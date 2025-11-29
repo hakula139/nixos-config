@@ -1,28 +1,10 @@
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 
 {
-  imports = [
-    ./disk-config.nix
-  ];
-
-  boot.loader.grub = {
-    efiSupport = false;
-    mirroredBoots = lib.mkForce [
-      {
-        devices = [ "/dev/vda" ];
-        path = "/boot";
-      }
-    ];
-  };
-
   networking = {
-    hostName = "hakula";
-    domain = "xyz";
+    domain = "hakula.xyz";
     useDHCP = true;
-    firewall = {
-      enable = true;
-      allowedTCPPorts = [ 35060 ];
-    };
+    firewall.enable = true;
   };
 
   time.timeZone = "Asia/Shanghai";
@@ -58,6 +40,4 @@
     curl
     htop
   ];
-
-  system.stateVersion = "25.05";
 }

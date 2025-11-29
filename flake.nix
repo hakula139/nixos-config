@@ -19,12 +19,12 @@
     }@inputs:
     {
       nixosConfigurations = {
-        "hakula.xyz" = nixpkgs.lib.nixosSystem {
+        us = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = { inherit inputs; };
           modules = [
             disko.nixosModules.disko
-            ./hosts/hakula.xyz
+            ./hosts/us
           ];
         };
       };
