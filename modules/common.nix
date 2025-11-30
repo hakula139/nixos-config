@@ -54,26 +54,26 @@
   # Programs & Packages
   # ============================================================================
   environment.systemPackages = with pkgs; [
-    vim
-    git
     curl
+    git
     htop
+    vim
   ];
 
-  # Enable nix-ld for running unpatched binaries (e.g. VS Code Server, Cursor)
+  # Enable nix-ld for running unpatched binaries.
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [
-    stdenv.cc.cc.lib
-    zlib
-    openssl
     curl
     glib
-    util-linux
     glibc
     icu
+    libkrb5
+    libsecret
     libunwind
     libuuid
-    libsecret
-    libkrb5
+    openssl
+    stdenv.cc.cc.lib
+    util-linux
+    zlib
   ];
 }
