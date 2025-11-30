@@ -5,7 +5,16 @@
   # Core System Configuration
   # ============================================================================
   time.timeZone = "Asia/Shanghai";
-  i18n.defaultLocale = "en_US.UTF-8";
+  i18n = {
+    defaultLocale = "en_US.UTF-8";
+    supportedLocales = [ "en_US.UTF-8/UTF-8" ];
+    extraLocaleSettings = {
+      LC_ALL = "en_US.UTF-8";
+    };
+  };
+
+  # Console UTF-8 support
+  console.keyMap = "us";
 
   # ============================================================================
   # Nix Settings
@@ -61,13 +70,22 @@
   programs.zsh.enable = true;
   environment.shells = [ pkgs.zsh ];
 
+  # Environment variables for proper Unicode/icon rendering
+  environment.variables = {
+    LANG = "en_US.UTF-8";
+    LC_ALL = "en_US.UTF-8";
+  };
+
   # ============================================================================
   # Fonts
   # Nerd Fonts provide icons for terminal tools like eza and starship
   # ============================================================================
-  fonts.packages = [
-    pkgs.nerd-fonts.meslo-lg
-  ];
+  fonts = {
+    packages = [
+      pkgs.nerd-fonts.meslo-lg
+    ];
+    fontconfig.enable = true;
+  };
 
   # ============================================================================
   # System Packages
