@@ -10,6 +10,7 @@
   boot.loader.grub = {
     enable = true;
     device = "/dev/vda";
+    configurationLimit = 10;
     extraInstallCommands = ''
       ln -sfn /nix/var/nix/profiles/system/kernel /boot/vmlinuz
       ln -sfn /nix/var/nix/profiles/system/initrd /boot/initrd
@@ -27,6 +28,7 @@
 
   networking = {
     hostName = "cloudcone-sc2";
+    useDHCP = false;
 
     interfaces.ens3 = {
       ipv4.addresses = [

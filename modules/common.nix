@@ -3,7 +3,6 @@
 {
   networking = {
     domain = "hakula.xyz";
-    # useDHCP = true; # CloudCone requires Static IP
     firewall.enable = true;
   };
 
@@ -40,4 +39,10 @@
     curl
     htop
   ];
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
 }
