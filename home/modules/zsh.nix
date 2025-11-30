@@ -96,9 +96,6 @@
       "...." = "cd ../../..";
 
       # NixOS management
-      nixsw = "sudo nixos-rebuild switch --flake .#";
-      nixtest = "sudo nixos-rebuild test --flake .#";
-      nixboot = "sudo nixos-rebuild boot --flake .#";
       nixup = "nix flake update";
       nixgc = "sudo nix-collect-garbage -d && nix-collect-garbage -d";
       nixopt = "nix-store --optimise";
@@ -167,6 +164,11 @@
         export EDITOR="nvim"
       fi
       alias e="$EDITOR"
+
+      # NixOS rebuild functions
+      nixsw() { sudo nixos-rebuild switch --flake ".#$1"; }
+      nixtest() { sudo nixos-rebuild test --flake ".#$1"; }
+      nixboot() { sudo nixos-rebuild boot --flake ".#$1"; }
 
       # Git retag - delete and recreate a tag
       git-retag() {
