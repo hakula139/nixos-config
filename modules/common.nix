@@ -19,10 +19,24 @@
   # ============================================================================
   # Nix Settings
   # ============================================================================
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
+  nix = {
+    settings = {
+      # Enable flakes and new nix command
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      # Avoid unwanted garbage collection when using nix-direnv
+      keep-outputs = true;
+      keep-derivations = true;
+    };
+
+    # Garbage collection
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 30d";
+    };
   };
 
   # ============================================================================
@@ -82,7 +96,7 @@
   # ============================================================================
   fonts = {
     packages = [
-      pkgs.nerd-fonts.meslo-lg
+      pkgs.nerd-fonts.jetbrains-mono
     ];
     fontconfig.enable = true;
   };

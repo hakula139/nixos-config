@@ -1,8 +1,17 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  ...
+}:
 
+let
+  isDarwin = pkgs.stdenv.isDarwin;
+in
 {
   imports = [
     ./modules/zsh.nix
+    ./modules/git.nix
+    ./modules/dev-env.nix
+    ./modules/darwin-env.nix
   ];
 
   # ============================================================================
@@ -10,7 +19,7 @@
   # ============================================================================
   home = {
     username = "hakula";
-    homeDirectory = "/home/hakula";
+    homeDirectory = if isDarwin then "/Users/hakula" else "/home/hakula";
     stateVersion = "25.05";
 
     # --------------------------------------------------------------------------
@@ -35,6 +44,11 @@
       p7zip
     ];
   };
+
+  # ============================================================================
+  # XDG Base Directories
+  # ============================================================================
+  xdg.enable = true;
 
   # ============================================================================
   # Home Manager Self-Management

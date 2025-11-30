@@ -1,9 +1,15 @@
 {
   config,
   pkgs,
+  lib,
   ...
 }:
 
+let
+  # Platform detection
+  isDarwin = pkgs.stdenv.isDarwin;
+  isLinux = pkgs.stdenv.isLinux;
+in
 {
   # ============================================================================
   # Zsh Shell Configuration
@@ -53,17 +59,25 @@
         "pip"
         "poetry"
 
-        # System & Files
-        "systemd"
+        # Files & Archives
         "rsync"
+        "extract"
 
         # Utilities
         "sudo"
-        "extract"
         "encode64"
         "copypath"
         "dirhistory"
         "colored-man-pages"
+      ]
+      # Linux-only plugins
+      ++ lib.optionals isLinux [
+        "systemd"
+      ]
+      # macOS-only plugins
+      ++ lib.optionals isDarwin [
+        "brew"
+        "macos"
       ];
     };
 
@@ -95,12 +109,10 @@
       "..." = "cd ../..";
       "...." = "cd ../../..";
 
-      # NixOS management
+      # Nix aliases
       nixup = "nix flake update";
-      nixgc = "sudo nix-collect-garbage -d && nix-collect-garbage -d";
+      nixgc = "nix-collect-garbage -d";
       nixopt = "nix-store --optimise";
-      nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
-      nixroll = "sudo nixos-rebuild switch --rollback";
 
       # Git extras
       gls = "git pull --recurse-submodules && git submodule foreach git lfs pull";
@@ -115,6 +127,21 @@
       # Zsh utilities
       zcp = "zmv -C";
       zln = "zmv -L";
+    }
+    # Linux-specific aliases
+    // lib.optionalAttrs isLinux {
+      # Nix aliases
+      nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
+      nixroll = "sudo nixos-rebuild switch --rollback";
+    }
+    # macOS-specific aliases
+    // lib.optionalAttrs isDarwin {
+      # System aliases
+      nproc = "sysctl -n hw.logicalcpu";
+
+      # Nix aliases
+      nixlist = "darwin-rebuild --list-generations";
+      nixroll = "darwin-rebuild switch --rollback";
     };
 
     # --------------------------------------------------------------------------
@@ -165,10 +192,21 @@
       fi
       alias e="$EDITOR"
 
-      # NixOS rebuild functions
-      nixsw() { sudo nixos-rebuild switch --flake ".#$1"; }
-      nixtest() { sudo nixos-rebuild test --flake ".#$1"; }
-      nixboot() { sudo nixos-rebuild boot --flake ".#$1"; }
+      # --------------------------------------------------------------------------
+      # Nix rebuild aliases
+      # --------------------------------------------------------------------------
+      ${
+        if isLinux then
+          ''
+            nixsw() { sudo nixos-rebuild switch --flake ".#$1"; }
+            nixtest() { sudo nixos-rebuild test --flake ".#$1"; }
+            nixboot() { sudo nixos-rebuild boot --flake ".#$1"; }
+          ''
+        else
+          ''
+            nixsw() { darwin-rebuild switch --flake ".#$1"; }
+          ''
+      }
 
       # Git retag - delete and recreate a tag
       git-retag() {
@@ -223,22 +261,22 @@
       git_branch = {
         format = "[$symbol$branch(:$remote_branch)]($style)";
         style = "bold green";
-        symbol = " ";
+        symbol = "";
       };
 
       git_status = {
         format = "([$all_status$ahead_behind]($style)) ";
         style = "bold yellow";
-        ahead = "⇡$count";
-        behind = "⇣$count";
-        diverged = "⇕⇡$ahead_count⇣$behind_count";
-        conflicted = "=$count";
-        deleted = "✘$count";
-        modified = "!$count";
-        renamed = "»$count";
-        staged = "+$count";
-        stashed = "*$count";
-        untracked = "?$count";
+        ahead = "⇡$count ";
+        behind = "⇣$count ";
+        diverged = "⇕⇡$ahead_count⇣$behind_count ";
+        conflicted = "=$count ";
+        deleted = "✘$count ";
+        modified = "!$count ";
+        renamed = "»$count ";
+        staged = "+$count ";
+        stashed = "*$count ";
+        untracked = "?$count ";
       };
 
       # --------------------------------------------------------------------------
