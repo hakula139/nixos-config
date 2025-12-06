@@ -4,11 +4,12 @@
 # Shared Configuration
 # ============================================================================
 
+let
+  keys = import ../secrets/keys.nix;
+in
 {
   # SSH public keys
-  sshKeys = {
-    hakula = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPqd9HS6uF0h0mXMbIwCv9yrkvvdl3o1wUgQWVkjKuiJ";
-  };
+  sshKeys = keys.users;
 
   # Base packages available on all systems
   basePackages = with pkgs; [
