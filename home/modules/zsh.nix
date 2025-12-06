@@ -261,7 +261,7 @@ in
       git_branch = {
         format = "[$symbol$branch(:$remote_branch)]($style)";
         style = "bold green";
-        symbol = "";
+        symbol = "";
       };
 
       git_status = {
