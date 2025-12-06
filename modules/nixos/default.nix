@@ -192,6 +192,7 @@ in
       PrivateTmp = true;
       StateDirectory = "subconverter";
       WorkingDirectory = "/var/lib/subconverter";
+      BindReadOnlyPaths = [ config.age.secrets.subconverter-nodes.path ];
     };
   };
 
