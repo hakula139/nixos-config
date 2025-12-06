@@ -1,14 +1,13 @@
 { lib, pkgs, ... }:
 
 # ============================================================================
-# Linux Configuration
+# NixOS Configuration
 # ============================================================================
 
 let
-  shared = import ./shared.nix { inherit pkgs; };
+  shared = import ../shared.nix { inherit pkgs; };
   cloudflareIPs = import ./cloudflare-ips.nix;
 
-  # Generate nginx set_real_ip_from directives from the Cloudflare IP list
   cloudflareRealIPConfig = lib.concatMapStringsSep "\n" (ip: "set_real_ip_from ${ip};") (
     cloudflareIPs.ipv4 ++ cloudflareIPs.ipv6
   );
