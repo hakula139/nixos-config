@@ -1,0 +1,106 @@
+proxies:
+  - name: 🇺🇸 US-1
+    type: vless
+    server: us-1.hakula.xyz
+    port: 443
+    uuid: {{ uuid }}
+    network: tcp
+    tls: true
+    udp: true
+    flow: xtls-rprx-vision
+    servername: cn.bing.com
+    reality-opts:
+      public-key: O5uVpg5pk5mE4woKt58Vhjety3aBKIE1UdtheI9DwAI
+      short-id: {{ short_id }}
+    client-fingerprint: chrome
+
+proxy-groups:
+  - name: PROXY
+    type: select
+    proxies:
+      - 🇺🇸 US-1
+  - name: DIRECT
+    type: select
+    proxies:
+      - DIRECT
+  - name: REJECT
+    type: select
+    proxies:
+      - REJECT
+
+rule-providers:
+  Reject:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt
+    path: ./ruleset/reject.yaml
+    interval: 86400
+  LAN:
+    type: http
+    behavior: ipcidr
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt
+    path: ./ruleset/lancidr.yaml
+    interval: 86400
+  iCloud:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/icloud.txt
+    path: ./ruleset/icloud.yaml
+    interval: 86400
+  Apple:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt
+    path: ./ruleset/apple.yaml
+    interval: 86400
+  Google:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt
+    path: ./ruleset/google.yaml
+    interval: 86400
+  Telegram:
+    type: http
+    behavior: ipcidr
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt
+    path: ./ruleset/telegramcidr.yaml
+    interval: 86400
+  GFW:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt
+    path: ./ruleset/gfw.yaml
+    interval: 86400
+  Proxy:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt
+    path: ./ruleset/proxy.yaml
+    interval: 86400
+  ChinaIP:
+    type: http
+    behavior: ipcidr
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt
+    path: ./ruleset/cncidr.yaml
+    interval: 86400
+  Direct:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt
+    path: ./ruleset/direct.yaml
+    interval: 86400
+
+rules:
+  - DOMAIN-SUFFIX,hakula.xyz,DIRECT
+  - RULE-SET,Reject,REJECT
+  - RULE-SET,LAN,DIRECT,no-resolve
+  - RULE-SET,iCloud,DIRECT
+  - RULE-SET,Apple,DIRECT
+  - RULE-SET,Google,PROXY
+  - RULE-SET,Telegram,PROXY,no-resolve
+  - RULE-SET,GFW,PROXY
+  - RULE-SET,Proxy,PROXY
+  - RULE-SET,ChinaIP,DIRECT,no-resolve
+  - RULE-SET,Direct,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,PROXY

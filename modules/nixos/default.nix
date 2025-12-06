@@ -17,9 +17,7 @@ let
     cloudflareIPs.ipv4 ++ cloudflareIPs.ipv6
   );
 
-  subconverterPort = 25500;
-  subconverterPkg = pkgs.callPackage ../../pkgs/subconverter.nix { };
-  subconverterPref = ./subconverter-pref.ini;
+  clashGenerator = import ./clash-generator { inherit config pkgs; };
 in
 {
   # ============================================================================
@@ -100,12 +98,6 @@ in
   };
   users.groups.sing-box = { };
 
-  users.users.subconverter = {
-    isSystemUser = true;
-    group = "subconverter";
-  };
-  users.groups.subconverter = { };
-
   security.sudo.wheelNeedsPassword = false;
 
   # ============================================================================
@@ -125,11 +117,9 @@ in
     mode = "0440";
   };
 
-  age.secrets.subconverter-nodes = {
-    file = ../../secrets/subconverter-nodes.age;
-    owner = "subconverter";
-    group = "subconverter";
-    mode = "0440";
+  age.secrets.clash-users = {
+    file = ../../secrets/clash-users.age;
+    mode = "0444"; # World-readable (generator script runs as root)
   };
 
   # ============================================================================
@@ -172,33 +162,21 @@ in
   };
 
   # ----------------------------------------------------------------------------
-  # Clash Subscription Converter (subconverter)
+  # Clash Subscription Generator
   # ----------------------------------------------------------------------------
-  systemd.services.subconverter = {
-    description = "clash subscription converter";
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
+  systemd.services.clash-generator = {
+    description = "Generate Clash subscription configs from user data";
+    after = [ "agenix.service" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
-      Type = "simple";
-      ExecStart = "${subconverterPkg}/bin/subconverter -cf ${subconverterPref} -p ${toString subconverterPort}";
-      User = "subconverter";
-      Group = "subconverter";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      NoNewPrivileges = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateTmp = true;
-      StateDirectory = "subconverter";
-      WorkingDirectory = "/var/lib/subconverter";
-      BindReadOnlyPaths = [ config.age.secrets.subconverter-nodes.path ];
+      Type = "oneshot";
+      ExecStart = clashGenerator;
+      RemainAfterExit = true;
     };
   };
 
   systemd.tmpfiles.rules = [
-    "d /var/lib/subconverter 0755 subconverter subconverter -"
-    "L+ /var/lib/subconverter/nodes.txt - - - - ${config.age.secrets.subconverter-nodes.path}"
+    "d /var/lib/clash-subscriptions 0755 root root -"
   ];
 
   # ----------------------------------------------------------------------------
@@ -239,7 +217,9 @@ in
     # Default: Reject unknown hostnames
     virtualHosts."_" = {
       default = true;
-      locations."/".return = "444";
+      locations."/" = {
+        return = "444";
+      };
     };
 
     virtualHosts."clash.hakula.xyz" = {
@@ -257,10 +237,15 @@ in
         absolute_redirect off;
       '';
       locations."/" = {
-        proxyPass = "http://127.0.0.1:${toString subconverterPort}";
+        alias = "/var/lib/clash-subscriptions/";
+        extraConfig = ''
+          default_type application/x-yaml;
+          add_header Content-Disposition 'attachment; filename="clash.yaml"';
+          add_header Cache-Control 'no-cache, no-store, must-revalidate';
+        '';
       };
-      locations."/clash" = {
-        return = "302 /sub?target=clash&url=file:///var/lib/subconverter/nodes.txt";
+      locations."= /" = {
+        return = "404";
       };
     };
   };

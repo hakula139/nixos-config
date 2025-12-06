@@ -5,12 +5,10 @@
 
 let
   keys = import ./keys.nix;
-
-  allUsers = builtins.attrValues keys.users;
-  allHosts = builtins.attrValues keys.hosts;
+  publicKeys = builtins.attrValues keys.users ++ builtins.attrValues keys.hosts;
 in
 {
-  "cloudflare-credentials.age".publicKeys = allUsers ++ allHosts;
-  "sing-box-config.age".publicKeys = allUsers ++ allHosts;
-  "subconverter-nodes.age".publicKeys = allUsers ++ allHosts;
+  "cloudflare-credentials.age".publicKeys = publicKeys;
+  "sing-box-config.age".publicKeys = publicKeys;
+  "clash-users.age".publicKeys = publicKeys;
 }
