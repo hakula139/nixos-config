@@ -260,23 +260,23 @@ in
       # --------------------------------------------------------------------------
       git_branch = {
         format = "[$symbol$branch(:$remote_branch)]($style)";
-        style = "bold green";
+        style = "green";
         symbol = "";
       };
 
       git_status = {
         format = "([$all_status$ahead_behind]($style)) ";
-        style = "bold yellow";
-        ahead = "⇡$count ";
-        behind = "⇣$count ";
-        diverged = "⇕⇡$ahead_count⇣$behind_count ";
-        conflicted = "=$count ";
-        deleted = "✘$count ";
-        modified = "!$count ";
-        renamed = "»$count ";
-        staged = "+$count ";
-        stashed = "*$count ";
-        untracked = "?$count ";
+        style = "yellow";
+        ahead = " ⇡$count";
+        behind = " ⇣$count";
+        diverged = " ⇕⇡$ahead_count⇣$behind_count";
+        conflicted = " =$count";
+        deleted = " ✘$count";
+        modified = " !$count";
+        renamed = " »$count";
+        staged = " +$count";
+        stashed = " *$count";
+        untracked = " ?$count";
       };
 
       # --------------------------------------------------------------------------
