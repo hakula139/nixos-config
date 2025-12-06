@@ -13,6 +13,27 @@ let
   shared = import ../shared.nix { inherit pkgs; };
   cloudflareIPs = import ./cloudflare-ips.nix;
 
+  subconverterVersion = "0.9.2";
+  subconverterPkg = pkgs.stdenvNoCC.mkDerivation {
+    pname = "subconverter";
+    version = subconverterVersion;
+    src = pkgs.fetchzip {
+      url = "https://github.com/MetaCubeX/subconverter/releases/download/v${subconverterVersion}/subconverter_linux64.tar.gz";
+      sha256 = "sha256-t3TlTeKviKZlHOwT+bnNnKS0EM9b9tFOn5KW0Q016GQ=";
+    };
+    installPhase = ''
+      mkdir -p $out/bin
+      cp subconverter $out/bin/
+    '';
+  };
+
+  subconverterPref = pkgs.writeText "subconverter-pref.ini" ''
+    api_mode = true
+    api_access_token = ""  ; set if you want auth
+    listen = 127.0.0.1
+    port = 25500
+  '';
+
   cloudflareRealIPConfig = lib.concatMapStringsSep "\n" (ip: "set_real_ip_from ${ip};") (
     cloudflareIPs.ipv4 ++ cloudflareIPs.ipv6
   );
@@ -96,6 +117,12 @@ in
   };
   users.groups.sing-box = { };
 
+  users.users.subconverter = {
+    isSystemUser = true;
+    group = "subconverter";
+  };
+  users.groups.subconverter = { };
+
   security.sudo.wheelNeedsPassword = false;
 
   # ============================================================================
@@ -143,18 +170,39 @@ in
       ExecStart = "${pkgs.sing-box}/bin/sing-box run -c ${config.age.secrets.sing-box-config.path}";
       Restart = "on-failure";
       RestartSec = "5s";
-      # Run as dedicated user
       User = "sing-box";
       Group = "sing-box";
-      # Allow binding to privileged ports (443)
       AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
       CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
-      # Security hardening
       NoNewPrivileges = true;
       ProtectSystem = "strict";
       ProtectHome = true;
       PrivateTmp = true;
       StateDirectory = "sing-box";
+    };
+  };
+
+  # ----------------------------------------------------------------------------
+  # Clash Subscription Converter (subconverter)
+  # ----------------------------------------------------------------------------
+  systemd.services.subconverter = {
+    description = "clash subscription converter";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${subconverterPkg}/bin/subconverter -cf ${subconverterPref} -p 25500";
+      User = "subconverter";
+      Group = "subconverter";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      NoNewPrivileges = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
+      StateDirectory = "subconverter";
+      WorkingDirectory = "/var/lib/subconverter";
     };
   };
 
@@ -190,6 +238,13 @@ in
         }
       ];
       locations."/".return = "444";
+    };
+
+    virtualHosts."clash.hakula.xyz" = {
+      enableACME = true;
+      forceSSL = true;
+      acmeRoot = null;
+      locations."/".proxyPass = "http://127.0.0.1:25500";
     };
   };
 
