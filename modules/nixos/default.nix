@@ -11,32 +11,21 @@
 
 let
   shared = import ../shared.nix { inherit pkgs; };
+
   cloudflareIPs = import ./cloudflare-ips.nix;
-
-  subconverterVersion = "0.9.2";
-  subconverterPkg = pkgs.stdenvNoCC.mkDerivation {
-    pname = "subconverter";
-    version = subconverterVersion;
-    src = pkgs.fetchzip {
-      url = "https://github.com/MetaCubeX/subconverter/releases/download/v${subconverterVersion}/subconverter_linux64.tar.gz";
-      sha256 = "sha256-t3TlTeKviKZlHOwT+bnNnKS0EM9b9tFOn5KW0Q016GQ=";
-    };
-    installPhase = ''
-      mkdir -p $out/bin
-      cp subconverter $out/bin/
-    '';
-  };
-
-  subconverterPref = pkgs.writeText "subconverter-pref.ini" ''
-    api_mode = true
-    api_access_token = ""  ; set if you want auth
-    listen = 127.0.0.1
-    port = 25500
-  '';
-
   cloudflareRealIPConfig = lib.concatMapStringsSep "\n" (ip: "set_real_ip_from ${ip};") (
     cloudflareIPs.ipv4 ++ cloudflareIPs.ipv6
   );
+
+  subconverterPort = 25500;
+  subconverterPkg = pkgs.callPackage ../../pkgs/subconverter.nix { };
+  subconverterPref = pkgs.writeText "subconverter-pref.ini" ''
+    [common]
+    api_mode = true
+    api_access_token = ""
+    listen = 127.0.0.1
+    port = ${toString subconverterPort}
+  '';
 in
 {
   # ============================================================================
@@ -179,6 +168,7 @@ in
       ProtectHome = true;
       PrivateTmp = true;
       StateDirectory = "sing-box";
+      WorkingDirectory = "/var/lib/sing-box";
     };
   };
 
@@ -192,7 +182,7 @@ in
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "simple";
-      ExecStart = "${subconverterPkg}/bin/subconverter -cf ${subconverterPref} -p 25500";
+      ExecStart = "${subconverterPkg}/bin/subconverter -cf ${subconverterPref} -p ${toString subconverterPort}";
       User = "subconverter";
       Group = "subconverter";
       Restart = "on-failure";
@@ -244,7 +234,7 @@ in
       enableACME = true;
       forceSSL = true;
       acmeRoot = null;
-      locations."/".proxyPass = "http://127.0.0.1:25500";
+      locations."/".proxyPass = "http://127.0.0.1:${toString subconverterPort}";
     };
   };
 
