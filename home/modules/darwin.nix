@@ -5,20 +5,19 @@
 }:
 
 # ============================================================================
-# macOS-specific Environment Configuration
-# These settings are only applicable to macOS.
+# Darwin (macOS) Environment
 # ============================================================================
 
 lib.mkIf pkgs.stdenv.isDarwin {
   home.sessionVariables = {
     # --------------------------------------------------------------------------
-    # Homebrew Mirrors (Tsinghua University - faster in China)
+    # Homebrew Mirrors
     # --------------------------------------------------------------------------
     HOMEBREW_API_DOMAIN = "https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api";
     HOMEBREW_BOTTLE_DOMAIN = "https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles";
 
     # --------------------------------------------------------------------------
-    # pnpm on macOS (different path than Linux)
+    # pnpm
     # --------------------------------------------------------------------------
     PNPM_HOME = "$HOME/Library/pnpm";
   };

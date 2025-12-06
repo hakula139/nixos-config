@@ -10,8 +10,8 @@ in
   imports = [
     ./modules/zsh.nix
     ./modules/git.nix
-    ./modules/dev-env.nix
-    ./modules/darwin-env.nix
+    ./modules/shared.nix
+    ./modules/darwin.nix
   ];
 
   # ============================================================================

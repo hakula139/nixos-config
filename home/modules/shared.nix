@@ -5,8 +5,7 @@
 }:
 
 # ============================================================================
-# Shared Development Environment
-# These tools are installed via Nix and work on both Linux and macOS
+# Shared Environment
 # ============================================================================
 
 {
