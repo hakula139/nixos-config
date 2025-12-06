@@ -74,7 +74,7 @@
       # Dock settings
       dock = {
         autohide = true;
-        show-recents = false;
+        show-recents = true;
         mru-spaces = false;
         minimize-to-application = true;
       };
