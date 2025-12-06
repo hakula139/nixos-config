@@ -140,8 +140,8 @@ in
       nproc = "sysctl -n hw.logicalcpu";
 
       # Nix aliases
-      nixlist = "darwin-rebuild --list-generations";
-      nixroll = "darwin-rebuild switch --rollback";
+      nixlist = "sudo darwin-rebuild --list-generations";
+      nixroll = "sudo darwin-rebuild switch --rollback";
     };
 
     # --------------------------------------------------------------------------
@@ -204,7 +204,7 @@ in
           ''
         else
           ''
-            nixsw() { darwin-rebuild switch --flake ".#$1"; }
+            nixsw() { sudo darwin-rebuild switch --flake ".#$1"; }
           ''
       }
 
