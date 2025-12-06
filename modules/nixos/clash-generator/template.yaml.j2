@@ -14,11 +14,37 @@ proxies:
       short-id: {{ short_id }}
     client-fingerprint: chrome
 
+  - name: 🇺🇸 US-2 (gRPC)
+    type: vmess
+    server: us.hakula.xyz
+    port: 443
+    uuid: {{ uuid }}
+    alterId: 0
+    cipher: auto
+    tls: true
+    network: grpc
+    grpc-opts:
+      grpc-service-name: ray_grpc_service
+
+  - name: 🇺🇸 US-2 (CDN)
+    type: vmess
+    server: us-cf.hakula.xyz
+    port: 443
+    uuid: {{ uuid }}
+    alterId: 0
+    cipher: auto
+    tls: true
+    network: ws
+    ws-opts:
+      path: /
+
 proxy-groups:
   - name: PROXY
     type: select
     proxies:
       - 🇺🇸 US-1
+      - 🇺🇸 US-2 (gRPC)
+      - 🇺🇸 US-2 (CDN)
 
 rule-providers:
   Reject:
