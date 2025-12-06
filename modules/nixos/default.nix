@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 # ============================================================================
 # NixOS Configuration
@@ -82,6 +87,11 @@ in
   security.sudo.wheelNeedsPassword = false;
 
   # ============================================================================
+  # Secrets (agenix)
+  # ============================================================================
+  age.secrets.cloudflare-credentials.file = ../../secrets/cloudflare-credentials.age;
+
+  # ============================================================================
   # Services
   # ============================================================================
 
@@ -100,16 +110,6 @@ in
   # ----------------------------------------------------------------------------
   # Web Server (nginx + ACME)
   # ----------------------------------------------------------------------------
-  security.acme = {
-    acceptTerms = true;
-    defaults = {
-      email = "i@hakula.xyz";
-      dnsProvider = "cloudflare";
-      environmentFile = "/var/lib/acme/cloudflare-credentials";
-      dnsResolver = "1.1.1.1:53";
-    };
-  };
-
   services.nginx = {
     enable = true;
     recommendedGzipSettings = true;
@@ -130,6 +130,16 @@ in
       default = true;
       rejectSSL = true;
       locations."/".return = "444";
+    };
+  };
+
+  security.acme = {
+    acceptTerms = true;
+    defaults = {
+      email = "i@hakula.xyz";
+      dnsProvider = "cloudflare";
+      environmentFile = config.age.secrets.cloudflare-credentials.path;
+      dnsResolver = "1.1.1.1:53";
     };
   };
 
