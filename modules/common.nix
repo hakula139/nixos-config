@@ -47,10 +47,13 @@
     firewall.enable = true;
   };
 
-  # Enable TCP BBR
   boot.kernel.sysctl = {
+    # Enable TCP BBR for better throughput on high-latency networks
     "net.core.default_qdisc" = "fq";
     "net.ipv4.tcp_congestion_control" = "bbr";
+
+    "vm.swappiness" = 10; # Reduce swap usage
+    "vm.vfs_cache_pressure" = 50; # Keep filesystem caches longer
   };
 
   # ============================================================================
@@ -90,7 +93,6 @@
   programs.zsh.enable = true;
   environment.shells = [ pkgs.zsh ];
 
-  # Environment variables for proper Unicode/icon rendering
   environment.variables = {
     LANG = "en_US.UTF-8";
     LC_ALL = "en_US.UTF-8";
