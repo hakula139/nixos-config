@@ -162,8 +162,6 @@ in
       RestartSec = "5s";
       User = "sing-box";
       Group = "sing-box";
-      AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
-      CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
       NoNewPrivileges = true;
       ProtectSystem = "strict";
       ProtectHome = true;
@@ -176,11 +174,6 @@ in
   # ----------------------------------------------------------------------------
   # Clash Subscription Converter (subconverter)
   # ----------------------------------------------------------------------------
-  systemd.tmpfiles.rules = [
-    "d /var/lib/subconverter 0755 subconverter subconverter -"
-    "L+ /var/lib/subconverter/nodes.txt - - - - ${config.age.secrets.subconverter-nodes.path}"
-  ];
-
   systemd.services.subconverter = {
     description = "clash subscription converter";
     after = [ "network-online.target" ];
@@ -202,6 +195,11 @@ in
     };
   };
 
+  systemd.tmpfiles.rules = [
+    "d /var/lib/subconverter 0755 subconverter subconverter -"
+    "L+ /var/lib/subconverter/nodes.txt - - - - ${config.age.secrets.subconverter-nodes.path}"
+  ];
+
   # ----------------------------------------------------------------------------
   # Web Server (nginx + ACME)
   # ----------------------------------------------------------------------------
@@ -220,32 +218,45 @@ in
       real_ip_header CF-Connecting-IP;
     '';
 
-    # Default: Reject unknown hostnames (HTTP only, 443 is used by sing-box)
+    # SNI-based routing: Route traffic based on TLS Server Name Indication
+    # - cn.bing.com (REALITY) → sing-box (port 8444)
+    # - Everything else → nginx HTTPS (port 8443)
+    streamConfig = ''
+      map $ssl_preread_server_name $backend {
+        cn.bing.com 127.0.0.1:8444;
+        default 127.0.0.1:8443;
+      }
+
+      server {
+        listen 443;
+        listen [::]:443;
+        ssl_preread on;
+        proxy_pass $backend;
+      }
+    '';
+
+    # Default: Reject unknown hostnames
     virtualHosts."_" = {
       default = true;
-      listen = [
-        {
-          addr = "0.0.0.0";
-          port = 80;
-        }
-        {
-          addr = "[::]";
-          port = 80;
-        }
-      ];
       locations."/".return = "444";
     };
 
     virtualHosts."clash.hakula.xyz" = {
       enableACME = true;
-      forceSSL = true;
       acmeRoot = null;
+      onlySSL = true;
+      listen = [
+        {
+          addr = "127.0.0.1";
+          port = 8443;
+          ssl = true;
+        }
+      ];
+      extraConfig = ''
+        absolute_redirect off;
+      '';
       locations."/" = {
         proxyPass = "http://127.0.0.1:${toString subconverterPort}";
-        extraConfig = ''
-          proxy_set_header Host $host;
-          proxy_set_header X-Real-IP $remote_addr;
-        '';
       };
       locations."/clash" = {
         return = "302 /sub?target=clash&url=file:///var/lib/subconverter/nodes.txt";
