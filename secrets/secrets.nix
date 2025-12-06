@@ -11,4 +11,5 @@ let
 in
 {
   "cloudflare-credentials.age".publicKeys = allUsers ++ allHosts;
+  "sing-box-config.age".publicKeys = allUsers ++ allHosts;
 }

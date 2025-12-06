@@ -90,6 +90,7 @@ in
   # Secrets (agenix)
   # ============================================================================
   age.secrets.cloudflare-credentials.file = ../../secrets/cloudflare-credentials.age;
+  age.secrets.sing-box-config.file = ../../secrets/sing-box-config.age;
 
   # ============================================================================
   # Services
@@ -104,6 +105,23 @@ in
     settings = {
       PermitRootLogin = "prohibit-password";
       PasswordAuthentication = false;
+    };
+  };
+
+  # ----------------------------------------------------------------------------
+  # Proxy (sing-box with VLESS + REALITY)
+  # ----------------------------------------------------------------------------
+  systemd.services.sing-box = {
+    description = "sing-box service";
+    after = [ "network.target" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.sing-box}/bin/sing-box run -c ${config.age.secrets.sing-box-config.path}";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      DynamicUser = true;
+      AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
+      CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
     };
   };
 
@@ -125,10 +143,19 @@ in
       real_ip_header CF-Connecting-IP;
     '';
 
-    # Default: Reject unknown hostnames
+    # Default: Reject unknown hostnames (HTTP only, 443 is used by sing-box)
     virtualHosts."_" = {
       default = true;
-      rejectSSL = true;
+      listen = [
+        {
+          addr = "0.0.0.0";
+          port = 80;
+        }
+        {
+          addr = "[::]";
+          port = 80;
+        }
+      ];
       locations."/".return = "444";
     };
   };
