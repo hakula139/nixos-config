@@ -58,6 +58,7 @@
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 users.hakula = import ./home/hakula.nix;
+                backupFileExtension = "bak";
               };
             }
             ./hosts/cloudcone-sc2
@@ -82,6 +83,7 @@
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 users.hakula = import ./home/hakula.nix;
+                backupFileExtension = "bak";
               };
             }
             ./hosts/hakula-macbook
