@@ -84,13 +84,36 @@ in
 
   users.users.root.openssh.authorizedKeys.keys = [ shared.sshKeys.hakula ];
 
+  users.users.acme = {
+    isSystemUser = true;
+    group = "acme";
+  };
+  users.groups.acme = { };
+
+  users.users.sing-box = {
+    isSystemUser = true;
+    group = "sing-box";
+  };
+  users.groups.sing-box = { };
+
   security.sudo.wheelNeedsPassword = false;
 
   # ============================================================================
   # Secrets (agenix)
   # ============================================================================
-  age.secrets.cloudflare-credentials.file = ../../secrets/cloudflare-credentials.age;
-  age.secrets.sing-box-config.file = ../../secrets/sing-box-config.age;
+  age.secrets.cloudflare-credentials = {
+    file = ../../secrets/cloudflare-credentials.age;
+    owner = "acme";
+    group = "acme";
+    mode = "0400";
+  };
+
+  age.secrets.sing-box-config = {
+    file = ../../secrets/sing-box-config.age;
+    owner = "sing-box";
+    group = "sing-box";
+    mode = "0440";
+  };
 
   # ============================================================================
   # Services
@@ -116,12 +139,22 @@ in
     after = [ "network.target" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
+      Type = "simple";
       ExecStart = "${pkgs.sing-box}/bin/sing-box run -c ${config.age.secrets.sing-box-config.path}";
       Restart = "on-failure";
       RestartSec = "5s";
-      DynamicUser = true;
+      # Run as dedicated user
+      User = "sing-box";
+      Group = "sing-box";
+      # Allow binding to privileged ports (443)
       AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
       CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
+      # Security hardening
+      NoNewPrivileges = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
+      StateDirectory = "sing-box";
     };
   };
 
