@@ -25,6 +25,12 @@
       url = "github:LnL7/nix-darwin/nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Secrets management
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   # ============================================================================
@@ -37,6 +43,7 @@
       disko,
       home-manager,
       nix-darwin,
+      agenix,
       ...
     }@inputs:
     {
@@ -51,6 +58,7 @@
           system = "x86_64-linux";
           specialArgs = { inherit inputs; };
           modules = [
+            agenix.nixosModules.default
             disko.nixosModules.disko
             home-manager.nixosModules.home-manager
             {

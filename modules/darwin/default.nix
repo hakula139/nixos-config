@@ -67,8 +67,8 @@ in
         FXEnableExtensionChangeWarning = false;
         QuitMenuItem = true;
         ShowPathbar = true;
-        ShowStatusBar = true;
-        _FXShowPosixPathInTitle = true;
+        ShowStatusBar = false;
+        _FXShowPosixPathInTitle = false;
       };
 
       trackpad = {
