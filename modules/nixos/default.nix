@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 # ============================================================================
 # NixOS Configuration
@@ -6,11 +11,16 @@
 
 let
   shared = import ../shared.nix { inherit pkgs; };
-  cloudflareIPs = import ./cloudflare-ips.nix;
 
+  cloudflareIPs = import ./cloudflare-ips.nix;
   cloudflareRealIPConfig = lib.concatMapStringsSep "\n" (ip: "set_real_ip_from ${ip};") (
     cloudflareIPs.ipv4 ++ cloudflareIPs.ipv6
   );
+
+  # REALITY SNI Host
+  # If you change this, also update secrets/xray-config.json.age.
+  realitySniHost = "www.microsoft.com";
+  clashGenerator = import ./clash-generator { inherit config pkgs realitySniHost; };
 in
 {
   # ============================================================================
@@ -71,15 +81,67 @@ in
   # ============================================================================
   users.defaultUserShell = pkgs.zsh;
 
+  users.users.root.openssh.authorizedKeys.keys = [ shared.sshKeys.hakula ];
+
   users.users.hakula = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
     openssh.authorizedKeys.keys = [ shared.sshKeys.hakula ];
   };
 
-  users.users.root.openssh.authorizedKeys.keys = [ shared.sshKeys.hakula ];
+  users.users.xray = {
+    isSystemUser = true;
+    group = "xray";
+  };
+  users.groups.xray = { };
+
+  users.users.clashgen = {
+    isSystemUser = true;
+    group = "clashgen";
+  };
+  users.groups.clashgen = { };
+
+  users.users.acme = {
+    isSystemUser = true;
+    group = "acme";
+  };
+  users.groups.acme = { };
+
+  users.users.nginx = {
+    isSystemUser = true;
+    group = "nginx";
+    extraGroups = [
+      "acme"
+      "clashgen"
+    ];
+  };
+  users.groups.nginx = { };
 
   security.sudo.wheelNeedsPassword = false;
+
+  # ============================================================================
+  # Secrets (agenix)
+  # ============================================================================
+  age.secrets.cloudflare-credentials = {
+    file = ../../secrets/cloudflare-credentials.age;
+    owner = "acme";
+    group = "acme";
+    mode = "0400";
+  };
+
+  age.secrets.xray-config = {
+    file = ../../secrets/xray-config.json.age;
+    owner = "xray";
+    group = "xray";
+    mode = "0400";
+  };
+
+  age.secrets.clash-users = {
+    file = ../../secrets/clash-users.json.age;
+    owner = "clashgen";
+    group = "clashgen";
+    mode = "0400";
+  };
 
   # ============================================================================
   # Services
@@ -98,20 +160,58 @@ in
   };
 
   # ----------------------------------------------------------------------------
-  # Web Server (nginx + ACME)
+  # Proxy (Xray with VLESS + REALITY)
   # ----------------------------------------------------------------------------
-  security.acme = {
-    acceptTerms = true;
-    defaults = {
-      email = "i@hakula.xyz";
-      dnsProvider = "cloudflare";
-      environmentFile = "/var/lib/acme/cloudflare-credentials";
-      dnsResolver = "1.1.1.1:53";
+  systemd.services.xray = {
+    description = "xray service";
+    after = [ "network.target" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${pkgs.xray}/bin/xray run -format json -c ${config.age.secrets.xray-config.path}";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      User = "xray";
+      Group = "xray";
+      NoNewPrivileges = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
+      StateDirectory = "xray";
+      WorkingDirectory = "/var/lib/xray";
     };
   };
 
+  # ----------------------------------------------------------------------------
+  # Clash Subscription Generator
+  # ----------------------------------------------------------------------------
+  systemd.services.clash-generator = {
+    description = "Generate Clash subscription configs from user data";
+    after = [ "agenix.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = clashGenerator;
+      RemainAfterExit = true;
+      User = "clashgen";
+      Group = "clashgen";
+      NoNewPrivileges = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
+      StateDirectory = "clash-subscriptions";
+      StateDirectoryMode = "0750";
+      WorkingDirectory = "/var/lib/clash-subscriptions";
+    };
+  };
+
+  # ----------------------------------------------------------------------------
+  # Web Server (nginx + ACME)
+  # ----------------------------------------------------------------------------
   services.nginx = {
     enable = true;
+    user = "nginx";
+    group = "nginx";
     recommendedGzipSettings = true;
     recommendedOptimisation = true;
     recommendedProxySettings = true;
@@ -125,11 +225,66 @@ in
       real_ip_header CF-Connecting-IP;
     '';
 
+    # SNI-based routing: Route traffic based on TLS Server Name Indication
+    # - REALITY → Xray (port 8444)
+    # - Everything else → nginx HTTPS (port 8443)
+    streamConfig = ''
+      map $ssl_preread_server_name $backend {
+        ${realitySniHost} 127.0.0.1:8444;
+        default 127.0.0.1:8443;
+      }
+
+      server {
+        listen 443;
+        listen [::]:443;
+        ssl_preread on;
+        proxy_pass $backend;
+      }
+    '';
+
     # Default: Reject unknown hostnames
     virtualHosts."_" = {
       default = true;
-      rejectSSL = true;
-      locations."/".return = "444";
+      locations."/" = {
+        return = "444";
+      };
+    };
+
+    virtualHosts."clash.hakula.xyz" = {
+      enableACME = true;
+      acmeRoot = null;
+      onlySSL = true;
+      listen = [
+        {
+          addr = "127.0.0.1";
+          port = 8443;
+          ssl = true;
+        }
+      ];
+      extraConfig = ''
+        absolute_redirect off;
+      '';
+      locations."/" = {
+        alias = "/var/lib/clash-subscriptions/";
+        extraConfig = ''
+          default_type application/x-yaml;
+          add_header Content-Disposition 'attachment; filename="clash.yaml"';
+          add_header Cache-Control 'no-cache, no-store, must-revalidate';
+        '';
+      };
+      locations."= /" = {
+        return = "404";
+      };
+    };
+  };
+
+  security.acme = {
+    acceptTerms = true;
+    defaults = {
+      email = "i@hakula.xyz";
+      dnsProvider = "cloudflare";
+      environmentFile = config.age.secrets.cloudflare-credentials.path;
+      dnsResolver = "1.1.1.1:53";
     };
   };
 
