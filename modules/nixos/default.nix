@@ -111,14 +111,14 @@ in
   };
 
   age.secrets.xray-config = {
-    file = ../../secrets/xray-config.age;
+    file = ../../secrets/xray-config.json.age;
     owner = "xray";
     group = "xray";
     mode = "0440";
   };
 
   age.secrets.clash-users = {
-    file = ../../secrets/clash-users.age;
+    file = ../../secrets/clash-users.json.age;
     mode = "0444";
   };
 
@@ -147,7 +147,7 @@ in
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "simple";
-      ExecStart = "${pkgs.xray}/bin/xray run -c ${config.age.secrets.xray-config.path}";
+      ExecStart = "${pkgs.xray}/bin/xray run -format json -c ${config.age.secrets.xray-config.path}";
       Restart = "on-failure";
       RestartSec = "5s";
       User = "xray";

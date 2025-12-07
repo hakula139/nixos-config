@@ -9,6 +9,6 @@ let
 in
 {
   "cloudflare-credentials.age".publicKeys = publicKeys;
-  "xray-config.age".publicKeys = publicKeys;
-  "clash-users.age".publicKeys = publicKeys;
+  "xray-config.json.age".publicKeys = publicKeys;
+  "clash-users.json.age".publicKeys = publicKeys;
 }
