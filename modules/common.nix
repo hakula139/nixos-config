@@ -5,8 +5,20 @@
   # Core System Configuration
   # ============================================================================
   time.timeZone = "Asia/Shanghai";
-  i18n.defaultLocale = "en_US.UTF-8";
+  i18n = {
+    defaultLocale = "en_US.UTF-8";
+    supportedLocales = [ "en_US.UTF-8/UTF-8" ];
+    extraLocaleSettings = {
+      LC_ALL = "en_US.UTF-8";
+    };
+  };
 
+  # Console UTF-8 support
+  console.keyMap = "us";
+
+  # ============================================================================
+  # Nix Settings
+  # ============================================================================
   nix.gc = {
     automatic = true;
     dates = "weekly";
@@ -24,6 +36,8 @@
   # ============================================================================
   # Users & Security
   # ============================================================================
+  users.defaultUserShell = pkgs.zsh;
+
   users.users.hakula = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
@@ -51,18 +65,46 @@
   };
 
   # ============================================================================
-  # Programs & Packages
+  # Shell Configuration
+  # ============================================================================
+  programs.zsh.enable = true;
+  environment.shells = [ pkgs.zsh ];
+
+  # Environment variables for proper Unicode/icon rendering
+  environment.variables = {
+    LANG = "en_US.UTF-8";
+    LC_ALL = "en_US.UTF-8";
+  };
+
+  # ============================================================================
+  # Fonts
+  # Nerd Fonts provide icons for terminal tools like eza and starship
+  # ============================================================================
+  fonts = {
+    packages = [
+      pkgs.nerd-fonts.meslo-lg
+    ];
+    fontconfig.enable = true;
+  };
+
+  # ============================================================================
+  # System Packages
   # ============================================================================
   environment.systemPackages = with pkgs; [
     curl
     git
     htop
+    vim
+
+    # Nix tooling
     nil
     nixfmt-rfc-style
-    vim
   ];
 
-  # Enable nix-ld for running unpatched binaries.
+  # ============================================================================
+  # Nix-LD
+  # Enables running unpatched dynamically linked binaries
+  # ============================================================================
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [
     curl
