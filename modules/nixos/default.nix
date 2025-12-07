@@ -92,11 +92,11 @@ in
   };
   users.groups.acme = { };
 
-  users.users.sing-box = {
+  users.users.xray = {
     isSystemUser = true;
-    group = "sing-box";
+    group = "xray";
   };
-  users.groups.sing-box = { };
+  users.groups.xray = { };
 
   security.sudo.wheelNeedsPassword = false;
 
@@ -110,16 +110,16 @@ in
     mode = "0400";
   };
 
-  age.secrets.sing-box-config = {
-    file = ../../secrets/sing-box-config.age;
-    owner = "sing-box";
-    group = "sing-box";
+  age.secrets.xray-config = {
+    file = ../../secrets/xray-config.age;
+    owner = "xray";
+    group = "xray";
     mode = "0440";
   };
 
   age.secrets.clash-users = {
     file = ../../secrets/clash-users.age;
-    mode = "0444"; # World-readable (generator script runs as root)
+    mode = "0444";
   };
 
   # ============================================================================
@@ -139,25 +139,25 @@ in
   };
 
   # ----------------------------------------------------------------------------
-  # Proxy (sing-box with VLESS + REALITY)
+  # Proxy (Xray with VLESS + REALITY)
   # ----------------------------------------------------------------------------
-  systemd.services.sing-box = {
-    description = "sing-box service";
+  systemd.services.xray = {
+    description = "xray service";
     after = [ "network.target" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "simple";
-      ExecStart = "${pkgs.sing-box}/bin/sing-box run -c ${config.age.secrets.sing-box-config.path}";
+      ExecStart = "${pkgs.xray}/bin/xray run -c ${config.age.secrets.xray-config.path}";
       Restart = "on-failure";
       RestartSec = "5s";
-      User = "sing-box";
-      Group = "sing-box";
+      User = "xray";
+      Group = "xray";
       NoNewPrivileges = true;
       ProtectSystem = "strict";
       ProtectHome = true;
       PrivateTmp = true;
-      StateDirectory = "sing-box";
-      WorkingDirectory = "/var/lib/sing-box";
+      StateDirectory = "xray";
+      WorkingDirectory = "/var/lib/xray";
     };
   };
 
@@ -198,7 +198,7 @@ in
     '';
 
     # SNI-based routing: Route traffic based on TLS Server Name Indication
-    # - cn.bing.com (REALITY) → sing-box (port 8444)
+    # - cn.bing.com (REALITY) → xray (port 8444)
     # - Everything else → nginx HTTPS (port 8443)
     streamConfig = ''
       map $ssl_preread_server_name $backend {
