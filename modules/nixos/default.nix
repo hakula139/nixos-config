@@ -16,6 +16,7 @@ let
   cloudflareRealIPConfig = lib.concatMapStringsSep "\n" (ip: "set_real_ip_from ${ip};") (
     cloudflareIPs.ipv4 ++ cloudflareIPs.ipv6
   );
+  cloudflareOriginCA = ./cloudflare-origin-pull-ca.pem;
 
   # REALITY SNI Host
   # If you change this, also update secrets/xray-config.json.age.
@@ -263,6 +264,9 @@ in
       ];
       extraConfig = ''
         absolute_redirect off;
+        ssl_client_certificate ${cloudflareOriginCA};
+        ssl_verify_client on;
+        ssl_stapling off;
       '';
       locations."/" = {
         alias = "/var/lib/clash-subscriptions/";
