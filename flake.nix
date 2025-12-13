@@ -7,6 +7,7 @@
   inputs = {
     # Nixpkgs - NixOS 25.05 stable release
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # Declarative disk partitioning (Linux only)
     disko = {
@@ -40,6 +41,7 @@
     {
       self,
       nixpkgs,
+      nixpkgs-unstable,
       disko,
       home-manager,
       nix-darwin,

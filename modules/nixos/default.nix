@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 
@@ -23,7 +24,11 @@ let
   realitySniHost = "www.microsoft.com";
   clashGenerator = import ./clash-generator { inherit config pkgs realitySniHost; };
 
-  netdataPkg = pkgs.netdata.override { withCloudUi = true; };
+  netdataPkgsUnstable = import inputs.nixpkgs-unstable {
+    system = pkgs.system;
+    config = config.nixpkgs.config;
+  };
+  netdataPkgUnstable = netdataPkgsUnstable.netdata.override { withCloudUi = true; };
 in
 {
   # ============================================================================
@@ -219,13 +224,13 @@ in
   # ----------------------------------------------------------------------------
   services.netdata = {
     enable = true;
-    package = netdataPkg;
+    package = netdataPkgUnstable;
     config = {
       global = {
         "hostname" = "cloudcone-sc2";
       };
       directories = {
-        "web files directory" = "${netdataPkg}/share/netdata/web";
+        "web files directory" = "${netdataPkgUnstable}/share/netdata/web";
       };
       db = {
         "update every" = 2;
