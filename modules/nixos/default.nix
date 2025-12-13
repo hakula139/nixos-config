@@ -22,6 +22,8 @@ let
   # If you change this, also update secrets/xray-config.json.age.
   realitySniHost = "www.microsoft.com";
   clashGenerator = import ./clash-generator { inherit config pkgs realitySniHost; };
+
+  netdataPkg = pkgs.netdata.override { withCloudUi = true; };
 in
 {
   # ============================================================================
@@ -48,6 +50,12 @@ in
       options = "--delete-older-than 30d";
     };
   };
+
+  nixpkgs.config.allowUnfreePredicate =
+    pkg:
+    builtins.elem (lib.getName pkg) [
+      "netdata"
+    ];
 
   # ============================================================================
   # Boot & Kernel
@@ -207,6 +215,36 @@ in
   };
 
   # ----------------------------------------------------------------------------
+  # Netdata (System Monitoring)
+  # ----------------------------------------------------------------------------
+  services.netdata = {
+    enable = true;
+    package = netdataPkg;
+    config = {
+      global = {
+        "hostname" = "cloudcone-sc2";
+      };
+      directories = {
+        "web files directory" = "${netdataPkg}/share/netdata/web";
+      };
+      db = {
+        "update every" = 2;
+        "mode" = "dbengine";
+        "storage tiers" = 2;
+        "dbengine page cache size MB" = 32;
+        "dbengine disk space MB" = 768;
+        "dbengine tier 1 update every iterations" = 60;
+        "dbengine tier 1 page cache size MB" = 16;
+        "dbengine tier 1 disk space MB" = 256;
+      };
+      web = {
+        "bind to" = "127.0.0.1:19999";
+        "enable gzip compression" = "yes";
+      };
+    };
+  };
+
+  # ----------------------------------------------------------------------------
   # Web Server (nginx + ACME)
   # ----------------------------------------------------------------------------
   services.nginx = {
@@ -252,8 +290,7 @@ in
     };
 
     virtualHosts."clash.hakula.xyz" = {
-      enableACME = true;
-      acmeRoot = null;
+      useACMEHost = "hakula.xyz";
       onlySSL = true;
       listen = [
         {
@@ -280,6 +317,31 @@ in
         return = "404";
       };
     };
+
+    virtualHosts."status.hakula.xyz" = {
+      useACMEHost = "hakula.xyz";
+      onlySSL = true;
+      listen = [
+        {
+          addr = "127.0.0.1";
+          port = 8443;
+          ssl = true;
+        }
+      ];
+      extraConfig = ''
+        ssl_client_certificate ${cloudflareOriginCA};
+        ssl_verify_client on;
+        ssl_stapling off;
+      '';
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:19999/";
+        proxyWebsockets = true;
+        extraConfig = ''
+          proxy_buffering off;
+          proxy_request_buffering off;
+        '';
+      };
+    };
   };
 
   security.acme = {
@@ -289,6 +351,10 @@ in
       dnsProvider = "cloudflare";
       environmentFile = config.age.secrets.cloudflare-credentials.path;
       dnsResolver = "1.1.1.1:53";
+    };
+    certs."hakula.xyz" = {
+      domain = "*.hakula.xyz";
+      extraDomainNames = [ "hakula.xyz" ];
     };
   };
 
