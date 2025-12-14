@@ -108,13 +108,6 @@ in
     mode = "0400";
   };
 
-  age.secrets.cloudflare-credentials = {
-    file = ../../secrets/cloudflare-credentials.age;
-    owner = "acme";
-    group = "acme";
-    mode = "0400";
-  };
-
   # ============================================================================
   # Environment
   # ============================================================================
