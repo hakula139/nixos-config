@@ -1,7 +1,6 @@
 {
-  config,
-  lib,
   pkgs,
+  lib,
   ...
 }:
 
@@ -19,6 +18,7 @@ in
 {
   imports = [
     ./netdata
+    ./xray
     (import ./clash { inherit realitySniHost; })
     (import ./nginx { inherit realitySniHost; })
   ];
@@ -95,12 +95,6 @@ in
     openssh.authorizedKeys.keys = [ shared.sshKeys.hakula ];
   };
 
-  users.users.xray = {
-    isSystemUser = true;
-    group = "xray";
-  };
-  users.groups.xray = { };
-
   security.sudo.wheelNeedsPassword = false;
 
   # ============================================================================
@@ -120,13 +114,6 @@ in
     mode = "0400";
   };
 
-  age.secrets.xray-config = {
-    file = ../../secrets/xray-config.json.age;
-    owner = "xray";
-    group = "xray";
-    mode = "0400";
-  };
-
   # ============================================================================
   # Services
   # ============================================================================
@@ -143,28 +130,6 @@ in
     };
   };
 
-  # ----------------------------------------------------------------------------
-  # Proxy (Xray with VLESS + REALITY)
-  # ----------------------------------------------------------------------------
-  systemd.services.xray = {
-    description = "xray service";
-    after = [ "network.target" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = "${pkgs.xray}/bin/xray run -format json -c ${config.age.secrets.xray-config.path}";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      User = "xray";
-      Group = "xray";
-      NoNewPrivileges = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateTmp = true;
-      StateDirectory = "xray";
-      WorkingDirectory = "/var/lib/xray";
-    };
-  };
 
   # ============================================================================
   # Environment

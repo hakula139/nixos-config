@@ -1,8 +1,8 @@
 { realitySniHost }:
 {
   config,
-  lib,
   pkgs,
+  lib,
   ...
 }:
 
