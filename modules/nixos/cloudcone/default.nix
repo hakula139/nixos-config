@@ -11,12 +11,7 @@
 
 let
   cfg = config.services.cloudconeAgent;
-
-  # Pinned upstream agent script
-  agentScript = pkgs.fetchurl {
-    url = "https://raw.githubusercontent.com/Cloudcone/cloud-view/master/agent.sh";
-    hash = "sha256-VTKxN2yykeNANqE5vF7rpsscDPr7CKykiggpTY8qRQQ=";
-  };
+  cloudconeAgent = import ./agent { inherit config pkgs; };
 in
 {
   # ----------------------------------------------------------------------------
@@ -28,11 +23,6 @@ in
     serverKeyFile = lib.mkOption {
       type = lib.types.str;
       default = config.age.secrets.cloudcone-sc2-server-key.path;
-    };
-
-    gatewayUrl = lib.mkOption {
-      type = lib.types.str;
-      default = "http://watch.cloudc.one/agent";
     };
 
     intervalSeconds = lib.mkOption {
@@ -48,7 +38,6 @@ in
     users.users.ccagent = {
       isSystemUser = true;
       group = "ccagent";
-      home = "/opt/cloudcone";
     };
     users.groups.ccagent = { };
 
@@ -67,9 +56,6 @@ in
     # ----------------------------------------------------------------------------
     systemd.tmpfiles.rules = [
       "d /opt/cloudcone 0700 ccagent ccagent -"
-      "L+ /opt/cloudcone/agent.sh - - - - ${agentScript}"
-      "w /opt/cloudcone/gateway 0600 ccagent ccagent - ${cfg.gatewayUrl}"
-      "L+ /opt/cloudcone/serverkey - - - - ${cfg.serverKeyFile}"
     ];
 
     # ----------------------------------------------------------------------------
@@ -94,21 +80,7 @@ in
         CapabilityBoundingSet = [ "CAP_NET_RAW" ];
         WorkingDirectory = "/opt/cloudcone";
       };
-      path = with pkgs; [
-        bash
-        curl
-        coreutils
-        gawk
-        gnugrep
-        gnused
-        iproute2
-        iputils
-        procps
-        util-linux
-      ];
-      script = ''
-        exec bash /opt/cloudcone/agent.sh
-      '';
+      serviceConfig.ExecStart = "${cloudconeAgent}/bin/cloudcone-agent";
     };
 
     # ----------------------------------------------------------------------------
