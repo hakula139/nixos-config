@@ -1,11 +1,15 @@
-{ pkgs }:
+{ pkgs, ... }:
 
-# ============================================================================
+# ==============================================================================
 # Shared Configuration
-# ============================================================================
+# ==============================================================================
 
 let
   keys = import ../secrets/keys.nix;
+
+  cachixCacheName = "hakula";
+  cachixPublicKey = "hakula.cachix.org-1:7zwB3fhMfReHdOjh6DmnaLXgqbPDBcojvN9F+osZw0k=";
+  caches = import ./nix/caches.nix { inherit cachixCacheName cachixPublicKey; };
 in
 {
   # SSH public keys
@@ -26,8 +30,12 @@ in
 
   # Nix development tools
   nixTooling = with pkgs; [
+    cachix
     nil
+    nix-tree
     nixfmt-rfc-style
+    nom
+    nvd
   ];
 
   # Nix settings
@@ -38,5 +46,7 @@ in
     ];
     keep-outputs = true;
     keep-derivations = true;
+    download-buffer-size = 536870912;
+    inherit (caches) substituters trusted-public-keys;
   };
 }
