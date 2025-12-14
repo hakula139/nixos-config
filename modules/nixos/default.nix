@@ -323,7 +323,7 @@ in
       };
     };
 
-    virtualHosts."status.hakula.xyz" = {
+    virtualHosts."metrics-us.hakula.xyz" = {
       useACMEHost = "hakula.xyz";
       onlySSL = true;
       listen = [
