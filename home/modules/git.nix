@@ -71,6 +71,7 @@
       "._*"
 
       # IDEs
+      ".cursor/plans"
       "*.swp"
       "*.swo"
       "*~"
