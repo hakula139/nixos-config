@@ -281,6 +281,7 @@ in
         pkgs.systemd
         systemdCatNative
       ];
+      environment.NETDATA_PREFIX = "${netdataPkgUnstable}";
     };
 
   # ----------------------------------------------------------------------------
