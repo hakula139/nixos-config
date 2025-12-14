@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 # ==============================================================================
-# Shared Configuration
+# Shared Configuration (cross-platform)
 # ==============================================================================
 
 let
@@ -46,7 +46,7 @@ in
     ];
     keep-outputs = true;
     keep-derivations = true;
-    download-buffer-size = 536870912;
+    download-buffer-size = 536870912; # 512 MB
     inherit (caches) substituters trusted-public-keys;
   };
 }

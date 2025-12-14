@@ -5,12 +5,24 @@
 
 let
   keys = import ./keys.nix;
-  publicKeys = builtins.attrValues keys.users ++ builtins.attrValues keys.hosts;
+  allUserKeys = builtins.attrValues keys.users;
+  allHostKeys = builtins.attrValues keys.hosts;
+
+  sharedKeys = allUserKeys ++ allHostKeys;
+  cloudconeSc2Keys = allUserKeys ++ [ keys.hosts.cloudcone-sc2 ];
 in
 {
-  "cachix-auth-token.age".publicKeys = publicKeys;
-  "clash-users.json.age".publicKeys = publicKeys;
-  "cloudflare-credentials.age".publicKeys = publicKeys;
-  "qq-smtp-authcode.age".publicKeys = publicKeys;
-  "xray-config.json.age".publicKeys = publicKeys;
+  # ----------------------------------------------------------------------------
+  # Shared (multi-host)
+  # ----------------------------------------------------------------------------
+  "shared/cachix-auth-token.age".publicKeys = sharedKeys;
+  "shared/clash-users.json.age".publicKeys = sharedKeys;
+  "shared/cloudflare-credentials.age".publicKeys = sharedKeys;
+  "shared/qq-smtp-authcode.age".publicKeys = sharedKeys;
+  "shared/xray-config.json.age".publicKeys = sharedKeys;
+
+  # ----------------------------------------------------------------------------
+  # Host-specific
+  # ----------------------------------------------------------------------------
+  "cloudcone-sc2/server-key.age".publicKeys = cloudconeSc2Keys;
 }

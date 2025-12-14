@@ -26,7 +26,7 @@ in
   # Secrets (agenix)
   # ----------------------------------------------------------------------------
   age.secrets.clash-users = {
-    file = ../../../secrets/clash-users.json.age;
+    file = ../../../secrets/shared/clash-users.json.age;
     owner = "clashgen";
     group = "clashgen";
     mode = "0400";

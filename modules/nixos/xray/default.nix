@@ -22,7 +22,7 @@
   # Secrets (agenix)
   # ----------------------------------------------------------------------------
   age.secrets.xray-config = {
-    file = ../../../secrets/xray-config.json.age;
+    file = ../../../secrets/shared/xray-config.json.age;
     owner = "xray";
     group = "xray";
     mode = "0400";
@@ -40,15 +40,12 @@
       ExecStart = "${pkgs.xray}/bin/xray run -format json -c ${config.age.secrets.xray-config.path}";
       Restart = "on-failure";
       RestartSec = "5s";
-
       User = "xray";
       Group = "xray";
-
       NoNewPrivileges = true;
       ProtectSystem = "strict";
       ProtectHome = true;
       PrivateTmp = true;
-
       StateDirectory = "xray";
       WorkingDirectory = "/var/lib/xray";
     };

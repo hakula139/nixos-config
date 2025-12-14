@@ -6,7 +6,7 @@
 }:
 
 # ==============================================================================
-# Netdata (Monitoring Service)
+# Netdata (Monitoring)
 # ==============================================================================
 
 let
@@ -45,7 +45,7 @@ in
   # Secrets (agenix)
   # ----------------------------------------------------------------------------
   age.secrets.qq-smtp-authcode = {
-    file = ../../../secrets/qq-smtp-authcode.age;
+    file = ../../../secrets/shared/qq-smtp-authcode.age;
     owner = "netdata";
     group = "netdata";
     mode = "0400";
