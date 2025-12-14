@@ -18,6 +18,7 @@ in
 {
   imports = [
     ./cachix
+    ./cloudcone
     ./netdata
     ./ssh
     ./xray

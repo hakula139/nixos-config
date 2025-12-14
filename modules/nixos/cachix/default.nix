@@ -9,7 +9,7 @@
   # Secrets (agenix)
   # ----------------------------------------------------------------------------
   age.secrets.cachix-auth-token = {
-    file = ../../../secrets/cachix-auth-token.age;
+    file = ../../../secrets/shared/cachix-auth-token.age;
     owner = "hakula";
     group = "users";
     mode = "0400";

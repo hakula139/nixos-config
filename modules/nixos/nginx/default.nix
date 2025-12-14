@@ -41,7 +41,7 @@ in
   # Secrets (agenix)
   # ----------------------------------------------------------------------------
   age.secrets.cloudflare-credentials = {
-    file = ../../../secrets/cloudflare-credentials.age;
+    file = ../../../secrets/shared/cloudflare-credentials.age;
     owner = "acme";
     group = "acme";
     mode = "0400";
