@@ -9,8 +9,8 @@ let
 in
 {
   "cachix-auth-token.age".publicKeys = publicKeys;
-  "cloudflare-credentials.age".publicKeys = publicKeys;
-  "xray-config.json.age".publicKeys = publicKeys;
   "clash-users.json.age".publicKeys = publicKeys;
+  "cloudflare-credentials.age".publicKeys = publicKeys;
   "qq-smtp-authcode.age".publicKeys = publicKeys;
+  "xray-config.json.age".publicKeys = publicKeys;
 }
