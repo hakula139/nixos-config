@@ -15,11 +15,11 @@ let
   # REALITY SNI Host
   # If you change this, also update secrets/xray-config.json.age.
   realitySniHost = "www.microsoft.com";
-  clashGenerator = import ./clash-generator { inherit config pkgs realitySniHost; };
 in
 {
   imports = [
     ./netdata
+    (import ./clash { inherit realitySniHost; })
     (import ./nginx { inherit realitySniHost; })
   ];
 
@@ -101,12 +101,6 @@ in
   };
   users.groups.xray = { };
 
-  users.users.clashgen = {
-    isSystemUser = true;
-    group = "clashgen";
-  };
-  users.groups.clashgen = { };
-
   security.sudo.wheelNeedsPassword = false;
 
   # ============================================================================
@@ -130,13 +124,6 @@ in
     file = ../../secrets/xray-config.json.age;
     owner = "xray";
     group = "xray";
-    mode = "0400";
-  };
-
-  age.secrets.clash-users = {
-    file = ../../secrets/clash-users.json.age;
-    owner = "clashgen";
-    group = "clashgen";
     mode = "0400";
   };
 
@@ -176,29 +163,6 @@ in
       PrivateTmp = true;
       StateDirectory = "xray";
       WorkingDirectory = "/var/lib/xray";
-    };
-  };
-
-  # ----------------------------------------------------------------------------
-  # Clash Subscription Generator
-  # ----------------------------------------------------------------------------
-  systemd.services.clash-generator = {
-    description = "Generate Clash subscription configs from user data";
-    after = [ "agenix.service" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = clashGenerator;
-      RemainAfterExit = true;
-      User = "clashgen";
-      Group = "clashgen";
-      NoNewPrivileges = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateTmp = true;
-      StateDirectory = "clash-subscriptions";
-      StateDirectoryMode = "0750";
-      WorkingDirectory = "/var/lib/clash-subscriptions";
     };
   };
 
