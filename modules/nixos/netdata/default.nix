@@ -73,8 +73,7 @@ in
     '';
   };
 
-  environment.etc."netdata/conf.d/health_alarm_notify.conf".source =
-    ./conf.d/health_alarm_notify.conf;
+  environment.etc."netdata/health_alarm_notify.conf".source = ./health_alarm_notify.conf;
 
   systemd.services.netdata =
     let
