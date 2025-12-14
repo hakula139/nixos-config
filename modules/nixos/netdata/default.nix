@@ -35,6 +35,10 @@ let
       exec ${pkgs.systemd}/bin/systemd-cat "''${out[@]}"
     fi
   '';
+
+  sendmail = pkgs.writeShellScriptBin "sendmail" ''
+    exec ${pkgs.msmtp}/bin/msmtp "$@"
+  '';
 in
 {
   age.secrets.qq-smtp-authcode = {
@@ -95,6 +99,7 @@ in
 
   environment.systemPackages = [
     systemdCatNative
+    sendmail
   ];
 
   systemd.services.netdata = {
@@ -102,6 +107,7 @@ in
       pkgs.systemd
       systemdCatNative
       pkgs.msmtp
+      sendmail
     ];
     environment.NETDATA_PREFIX = "${netdataPkgUnstable}";
   };
