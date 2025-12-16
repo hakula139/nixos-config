@@ -63,14 +63,15 @@
 
       overlays = [
         (final: _prev: {
-          agenix = agenix.packages.${final.system}.default;
+          agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
         })
       ];
 
       pkgsFor =
         system:
         import nixpkgs {
-          inherit system overlays;
+          inherit overlays;
+          localSystem = system;
         };
 
       preCommitCheckFor =
@@ -95,10 +96,12 @@
         # CloudCone SC2 (Scalable Cloud Compute)
         # ----------------------------------------------------------------------
         cloudcone-sc2 = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
           specialArgs = { inherit inputs; };
           modules = [
-            { nixpkgs.overlays = overlays; }
+            {
+              nixpkgs.hostPlatform = "x86_64-linux";
+              nixpkgs.overlays = overlays;
+            }
             agenix.nixosModules.default
             disko.nixosModules.disko
             home-manager.nixosModules.home-manager
@@ -124,9 +127,11 @@
         # Hakula's MacBook Pro
         # ----------------------------------------------------------------------
         hakula-macbook = nix-darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
           modules = [
-            { nixpkgs.overlays = overlays; }
+            {
+              nixpkgs.hostPlatform = "aarch64-darwin";
+              nixpkgs.overlays = overlays;
+            }
             home-manager.darwinModules.home-manager
             {
               home-manager = {
