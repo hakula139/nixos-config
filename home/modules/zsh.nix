@@ -117,6 +117,15 @@ in
       # Git extras
       gls = "git pull --recurse-submodules && git submodule foreach git lfs pull";
 
+      # Podman Compose
+      pcup = "podman-compose up";
+      pcupb = "podman-compose up --build";
+      pcupd = "podman-compose up -d";
+      pcupdb = "podman-compose up -d --build";
+      pcdn = "podman-compose down";
+      pcpull = "podman-compose pull";
+      pcr = "podman-compose run";
+
       # Kubectl extras
       kdelpf = "kubectl delete pod --field-selector=status.phase=Failed";
       kdelrs = "kubectl delete replicaset";

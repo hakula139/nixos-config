@@ -15,16 +15,10 @@ lib.mkIf pkgs.stdenv.isDarwin {
     # --------------------------------------------------------------------------
     HOMEBREW_API_DOMAIN = "https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api";
     HOMEBREW_BOTTLE_DOMAIN = "https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles";
-
-    # --------------------------------------------------------------------------
-    # pnpm
-    # --------------------------------------------------------------------------
-    PNPM_HOME = "$HOME/Library/pnpm";
   };
 
   home.sessionPath = [
     "/opt/homebrew/bin" # Homebrew (Apple Silicon)
-    "$HOME/Library/pnpm" # pnpm global binaries
   ];
 
   programs.zsh.initContent = lib.mkAfter ''
