@@ -19,7 +19,9 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v21
 
       - name: Setup Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-flake-check
 
       - name: Run flake check
         run: nix flake check --all-systems
@@ -32,13 +34,16 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - name: cloudcone-sc2 (x86_64-linux, NixOS)
+          - id: nixos
+            name: cloudcone-sc2 (x86_64-linux, NixOS)
             runner: ubuntu-latest
             target: .#nixosConfigurations.cloudcone-sc2.config.system.build.toplevel
-          - name: hakula-linux (x86_64-linux, Generic Linux)
+          - id: generic-linux
+            name: hakula-linux (x86_64-linux, Generic Linux)
             runner: ubuntu-latest
             target: .#homeConfigurations.hakula-linux.activationPackage
-          - name: hakula-macbook (aarch64-darwin, macOS)
+          - id: macos
+            name: hakula-macbook (aarch64-darwin, macOS)
             runner: macos-15 # Sequoia
             target: .#darwinConfigurations.hakula-macbook.system
 
@@ -50,7 +55,9 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v21
 
       - name: Setup Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+        uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-${{ matrix.config.id }}
 
       - name: Build configuration
         run: |
