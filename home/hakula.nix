@@ -1,10 +1,13 @@
 {
   pkgs,
+  lib,
+  isNixOS ? false,
   ...
 }:
 
 let
   isDarwin = pkgs.stdenv.isDarwin;
+  isLinux = pkgs.stdenv.isLinux;
 in
 {
   imports = [
@@ -49,6 +52,11 @@ in
   # XDG Base Directories
   # ============================================================================
   xdg.enable = true;
+
+  # ============================================================================
+  # Generic Linux Settings (for non-NixOS systems)
+  # ============================================================================
+  targets.genericLinux.enable = lib.mkDefault (isLinux && !isNixOS);
 
   # ============================================================================
   # Home Manager Self-Management

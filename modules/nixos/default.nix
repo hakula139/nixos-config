@@ -111,12 +111,12 @@ in
     LC_ALL = "en_US.UTF-8";
   };
 
+  environment.systemPackages = shared.basePackages;
+
   fonts = {
     packages = shared.fonts;
     fontconfig.enable = true;
   };
-
-  environment.systemPackages = shared.basePackages ++ shared.nixTooling;
 
   # Nix-LD: Run unpatched Linux binaries
   programs.nix-ld.enable = true;

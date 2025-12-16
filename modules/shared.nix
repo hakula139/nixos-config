@@ -6,6 +6,7 @@
 
 let
   keys = import ../secrets/keys.nix;
+  tooling = import ../lib/tooling.nix { inherit pkgs; };
 
   cachixCacheName = "hakula";
   cachixPublicKey = "hakula.cachix.org-1:7zwB3fhMfReHdOjh6DmnaLXgqbPDBcojvN9F+osZw0k=";
@@ -29,14 +30,7 @@ in
   ];
 
   # Nix development tools
-  nixTooling = with pkgs; [
-    cachix
-    nil
-    nix-tree
-    nixfmt-rfc-style
-    nom
-    nvd
-  ];
+  nixTooling = tooling.nix;
 
   # Nix settings
   nixSettings = {

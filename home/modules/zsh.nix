@@ -2,11 +2,11 @@
   config,
   pkgs,
   lib,
+  isNixOS ? false,
   ...
 }:
 
 let
-  # Platform detection
   isDarwin = pkgs.stdenv.isDarwin;
   isLinux = pkgs.stdenv.isLinux;
 in
@@ -117,6 +117,15 @@ in
       # Git extras
       gls = "git pull --recurse-submodules && git submodule foreach git lfs pull";
 
+      # Podman Compose
+      pcup = "podman-compose up";
+      pcupb = "podman-compose up --build";
+      pcupd = "podman-compose up -d";
+      pcupdb = "podman-compose up -d --build";
+      pcdn = "podman-compose down";
+      pcpull = "podman-compose pull";
+      pcr = "podman-compose run";
+
       # Kubectl extras
       kdelpf = "kubectl delete pod --field-selector=status.phase=Failed";
       kdelrs = "kubectl delete replicaset";
@@ -128,20 +137,26 @@ in
       zcp = "zmv -C";
       zln = "zmv -L";
     }
-    # Linux-specific aliases
-    // lib.optionalAttrs isLinux {
+    # NixOS-specific aliases
+    // lib.optionalAttrs isNixOS {
       # Nix aliases
       nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
       nixroll = "sudo nixos-rebuild switch --rollback";
     }
+    # Generic Linux (non-NixOS) aliases
+    // lib.optionalAttrs (isLinux && !isNixOS) {
+      # Home Manager aliases
+      nixlist = "home-manager generations | head -n 10";
+      nixroll = "home-manager switch --rollback";
+    }
     # macOS-specific aliases
     // lib.optionalAttrs isDarwin {
-      # System aliases
-      nproc = "sysctl -n hw.logicalcpu";
-
       # Nix aliases
       nixlist = "sudo darwin-rebuild --list-generations";
       nixroll = "sudo darwin-rebuild switch --rollback";
+
+      # System aliases
+      nproc = "sysctl -n hw.logicalcpu";
     };
 
     # --------------------------------------------------------------------------
@@ -196,11 +211,15 @@ in
       # Nix rebuild aliases
       # ------------------------------------------------------------------------
       ${
-        if isLinux then
+        if isNixOS then
           ''
             nixsw() { sudo nixos-rebuild switch --flake ".#$1"; }
             nixtest() { sudo nixos-rebuild test --flake ".#$1"; }
             nixboot() { sudo nixos-rebuild boot --flake ".#$1"; }
+          ''
+        else if isLinux then
+          ''
+            nixsw() { home-manager switch --flake ".#''${1:-hakula-linux}"; }
           ''
         else
           ''

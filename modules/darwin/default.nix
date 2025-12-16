@@ -92,7 +92,7 @@ in
 
   fonts.packages = shared.fonts;
 
-  environment.systemPackages = shared.basePackages ++ shared.nixTooling;
+  environment.systemPackages = shared.basePackages;
 
   # ============================================================================
   # Homebrew
