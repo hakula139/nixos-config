@@ -106,6 +106,7 @@ in
     "$HOME/go/bin" # Go binaries
     "$HOME/.cargo/bin" # Rust binaries
     "$HOME/.local/bin" # Local binaries
+    "$HOME/.local/share/corepack" # pnpm / yarn via corepack
   ];
 
   # ============================================================================
@@ -117,14 +118,6 @@ in
     # --------------------------------------------------------------------------
     if command -v fnm &>/dev/null; then
       eval "$(fnm env --use-on-cd)"
-    fi
-
-    # --------------------------------------------------------------------------
-    # Rustup completions
-    # --------------------------------------------------------------------------
-    if command -v rustup &>/dev/null; then
-      # Rustup shell setup (if not using Nix rustup)
-      [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
     fi
   '';
 }
