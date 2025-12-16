@@ -1,5 +1,7 @@
 # NixOS Configuration
 
+[![CI](https://github.com/hakula139/nixos-config/actions/workflows/ci.yml/badge.svg)](https://github.com/hakula139/nixos-config/actions/workflows/ci.yml)
+
 NixOS configuration for Hakula's machines (flake-based).
 
 ## Hosts
@@ -116,6 +118,14 @@ CI-style check (does not modify your working tree; fails if formatting would cha
 ```bash
 nix flake check
 ```
+
+## Continuous Integration
+
+GitHub Actions automatically validates the configuration on every push and pull request:
+
+- **Flake Check**: Validates flake structure and runs pre-commit checks
+- **Build NixOS**: Tests building the `cloudcone-sc2` configuration on x86_64-linux
+- **Build Darwin**: Tests building the `hakula-macbook` configuration on aarch64-darwin
 
 ## Secrets
 
