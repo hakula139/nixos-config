@@ -1,7 +1,7 @@
 {
   pkgs,
   lib,
-  isNixOS ? false,
+  isNixOS,
   ...
 }:
 

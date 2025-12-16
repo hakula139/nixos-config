@@ -8,17 +8,19 @@
     enable = true;
 
     # --------------------------------------------------------------------------
-    # User Identity
+    # Git Settings
     # --------------------------------------------------------------------------
-    userName = "Hakula Chen";
-    userEmail = "i@hakula.xyz";
+    settings = {
+      # User Identity
+      user = {
+        name = "Hakula Chen";
+        email = "i@hakula.xyz";
+      };
 
-    # --------------------------------------------------------------------------
-    # Core Settings
-    # --------------------------------------------------------------------------
-    extraConfig = {
+      # Initialize with main branch
       init.defaultBranch = "main";
 
+      # Core settings
       core = {
         eol = "lf";
         fileMode = true;
@@ -41,24 +43,20 @@
 
       # Remember merge conflict resolutions
       rerere.enabled = true;
+
+      # Aliases
+      alias = {
+        unstage = "reset HEAD --";
+        undo = "reset --soft HEAD~1";
+        last = "log -1 HEAD --stat";
+        contributors = "shortlog -sn";
+      };
     };
 
     # --------------------------------------------------------------------------
     # Git LFS
     # --------------------------------------------------------------------------
     lfs.enable = true;
-
-    # --------------------------------------------------------------------------
-    # Delta - Better diff viewer
-    # --------------------------------------------------------------------------
-    delta = {
-      enable = true;
-      options = {
-        navigate = true;
-        line-numbers = true;
-        syntax-theme = "Dracula";
-      };
-    };
 
     # --------------------------------------------------------------------------
     # Global Gitignore
@@ -76,20 +74,18 @@
       "*.swo"
       "*~"
     ];
+  };
 
-    # --------------------------------------------------------------------------
-    # Aliases
-    # --------------------------------------------------------------------------
-    aliases = {
-      # Undo
-      unstage = "reset HEAD --";
-      undo = "reset --soft HEAD~1";
-
-      # Show last commit
-      last = "log -1 HEAD --stat";
-
-      # List contributors
-      contributors = "shortlog -sn";
+  # ============================================================================
+  # Delta - Better diff viewer
+  # ============================================================================
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = {
+      navigate = true;
+      line-numbers = true;
+      syntax-theme = "Dracula";
     };
   };
 }

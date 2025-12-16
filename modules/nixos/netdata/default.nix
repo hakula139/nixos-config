@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  inputs,
   ...
 }:
 
@@ -10,11 +9,7 @@
 # ==============================================================================
 
 let
-  netdataPkgsUnstable = import inputs.nixpkgs-unstable {
-    system = pkgs.system;
-    config = config.nixpkgs.config;
-  };
-  netdataPkgUnstable = netdataPkgsUnstable.netdata.override {
+  netdataPkg = pkgs.netdata.override {
     withCloudUi = true;
   };
 
@@ -56,13 +51,13 @@ in
   # ----------------------------------------------------------------------------
   services.netdata = {
     enable = true;
-    package = netdataPkgUnstable;
+    package = netdataPkg;
     config = {
       global = {
         "hostname" = "cloudcone-sc2";
       };
       directories = {
-        "web files directory" = "${netdataPkgUnstable}/share/netdata/web";
+        "web files directory" = "${netdataPkg}/share/netdata/web";
       };
       db = {
         "update every" = 2;
@@ -96,7 +91,7 @@ in
       pkgs.msmtp
       sendmail
     ];
-    environment.NETDATA_PREFIX = "${netdataPkgUnstable}";
+    environment.NETDATA_PREFIX = "${netdataPkg}";
   };
 
   # ----------------------------------------------------------------------------

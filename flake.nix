@@ -5,19 +5,18 @@
   # Inputs
   # ============================================================================
   inputs = {
-    # Nixpkgs - NixOS 25.05 stable release
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Nixpkgs - NixOS 25.11 stable release
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
 
     # macOS system configuration
     nix-darwin = {
-      url = "github:LnL7/nix-darwin/nix-darwin-25.05";
+      url = "github:LnL7/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # User environment management
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -47,7 +46,6 @@
     {
       self,
       nixpkgs,
-      nixpkgs-unstable,
       disko,
       home-manager,
       nix-darwin,
@@ -65,14 +63,15 @@
 
       overlays = [
         (final: _prev: {
-          agenix = agenix.packages.${final.system}.default;
+          agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
         })
       ];
 
       pkgsFor =
         system:
         import nixpkgs {
-          inherit system overlays;
+          inherit overlays;
+          localSystem = system;
         };
 
       preCommitCheckFor =
@@ -97,10 +96,12 @@
         # CloudCone SC2 (Scalable Cloud Compute)
         # ----------------------------------------------------------------------
         cloudcone-sc2 = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
           specialArgs = { inherit inputs; };
           modules = [
-            { nixpkgs.overlays = overlays; }
+            {
+              nixpkgs.hostPlatform = "x86_64-linux";
+              nixpkgs.overlays = overlays;
+            }
             agenix.nixosModules.default
             disko.nixosModules.disko
             home-manager.nixosModules.home-manager
@@ -126,9 +127,11 @@
         # Hakula's MacBook Pro
         # ----------------------------------------------------------------------
         hakula-macbook = nix-darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
           modules = [
-            { nixpkgs.overlays = overlays; }
+            {
+              nixpkgs.hostPlatform = "aarch64-darwin";
+              nixpkgs.overlays = overlays;
+            }
             home-manager.darwinModules.home-manager
             {
               home-manager = {
@@ -136,6 +139,7 @@
                 useUserPackages = true;
                 users.hakula = import ./home/hakula.nix;
                 backupFileExtension = "bak";
+                extraSpecialArgs.isNixOS = false;
               };
             }
             ./hosts/hakula-macbook

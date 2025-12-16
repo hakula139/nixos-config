@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  flake-check:
+    name: Nix Flake Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v21
+
+      - name: Setup Nix cache
+        uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-flake-check
+
+      - name: Run flake check
+        run: nix flake check --all-systems
+
+  build:
+    name: Build ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.runner }}
+    needs: flake-check
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - id: nixos
+            name: cloudcone-sc2 (x86_64-linux, NixOS)
+            runner: ubuntu-latest
+            target: .#nixosConfigurations.cloudcone-sc2.config.system.build.toplevel
+          - id: generic-linux
+            name: hakula-linux (x86_64-linux, Generic Linux)
+            runner: ubuntu-latest
+            target: .#homeConfigurations.hakula-linux.activationPackage
+          - id: macos
+            name: hakula-macbook (aarch64-darwin, macOS)
+            runner: macos-15 # Sequoia
+            target: .#darwinConfigurations.hakula-macbook.system
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v21
+
+      - name: Setup Nix cache
+        uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-${{ matrix.config.id }}
+
+      - name: Build configuration
+        run: |
+          nix build ${{ matrix.config.target }} \
+            --print-build-logs \
+            --show-trace
+
+      - name: Check system closure size
+        run: |
+          nix path-info -Sh ${{ matrix.config.target }}
