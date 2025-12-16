@@ -63,13 +63,16 @@
 
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
+      overlays = [
+        (final: _prev: {
+          agenix = agenix.packages.${final.system}.default;
+        })
+      ];
+
       pkgsFor =
         system:
         import nixpkgs {
-          inherit system;
-          overlays = [
-            agenix.overlays.default
-          ];
+          inherit system overlays;
         };
 
       preCommitCheckFor =
@@ -97,6 +100,7 @@
           system = "x86_64-linux";
           specialArgs = { inherit inputs; };
           modules = [
+            { nixpkgs.overlays = overlays; }
             agenix.nixosModules.default
             disko.nixosModules.disko
             home-manager.nixosModules.home-manager
@@ -106,9 +110,7 @@
                 useUserPackages = true;
                 users.hakula = import ./home/hakula.nix;
                 backupFileExtension = "bak";
-                extraSpecialArgs = {
-                  isNixOS = true;
-                };
+                extraSpecialArgs.isNixOS = true;
               };
             }
             ./hosts/cloudcone-sc2
@@ -125,8 +127,8 @@
         # ----------------------------------------------------------------------
         hakula-macbook = nix-darwin.lib.darwinSystem {
           system = "aarch64-darwin";
-          specialArgs = { inherit inputs; };
           modules = [
+            { nixpkgs.overlays = overlays; }
             home-manager.darwinModules.home-manager
             {
               home-manager = {
@@ -153,10 +155,7 @@
           modules = [
             ./home/hakula.nix
           ];
-          extraSpecialArgs = {
-            inherit inputs;
-            isNixOS = false;
-          };
+          extraSpecialArgs.isNixOS = false;
         };
       };
 
