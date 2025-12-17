@@ -11,7 +11,7 @@
 # ==============================================================================
 
 let
-  cfg = config.services.nginxProxy;
+  cfg = config.hakula.services.nginx;
   cloudflareIPs = import ../cloudflare/ips.nix;
   cloudflareRealIPConfig = lib.concatMapStringsSep "\n" (ip: "set_real_ip_from ${ip};") (
     cloudflareIPs.ipv4 ++ cloudflareIPs.ipv6
@@ -22,7 +22,7 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.services.nginxProxy = {
+  options.hakula.services.nginx = {
     enable = lib.mkEnableOption "Nginx web server";
   };
 

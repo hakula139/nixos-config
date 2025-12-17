@@ -10,7 +10,7 @@
 # ==============================================================================
 
 let
-  cfg = config.services.netdataMonitoring;
+  cfg = config.hakula.services.netdata;
 
   netdataPkg = pkgs.netdata.override {
     withCloudUi = true;
@@ -42,7 +42,7 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.services.netdataMonitoring = {
+  options.hakula.services.netdata = {
     enable = lib.mkEnableOption "Netdata monitoring system";
   };
 

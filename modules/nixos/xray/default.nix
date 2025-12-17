@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   lib,
   ...
 }:
@@ -10,57 +9,30 @@
 # ==============================================================================
 
 let
-  cfg = config.services.xrayServer;
+  cfg = config.hakula.services.xray;
 in
 {
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.services.xrayServer = {
+  options.hakula.services.xray = {
     enable = lib.mkEnableOption "Xray proxy server";
   };
 
   config = lib.mkIf cfg.enable {
     # ----------------------------------------------------------------------------
-    # User & Group
-    # ----------------------------------------------------------------------------
-    users.users.xray = {
-      isSystemUser = true;
-      group = "xray";
-    };
-    users.groups.xray = { };
-
-    # ----------------------------------------------------------------------------
     # Secrets (agenix)
     # ----------------------------------------------------------------------------
     age.secrets.xray-config = {
       file = ../../../secrets/shared/xray-config.json.age;
-      owner = "xray";
-      group = "xray";
+      owner = "root";
+      group = "root";
       mode = "0400";
     };
 
-    # ----------------------------------------------------------------------------
-    # Systemd service
-    # ----------------------------------------------------------------------------
-    systemd.services.xray = {
-      description = "Xray service";
-      after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        Type = "simple";
-        ExecStart = "${pkgs.xray}/bin/xray run -format json -c ${config.age.secrets.xray-config.path}";
-        Restart = "on-failure";
-        RestartSec = "5s";
-        User = "xray";
-        Group = "xray";
-        NoNewPrivileges = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        PrivateTmp = true;
-        StateDirectory = "xray";
-        WorkingDirectory = "/var/lib/xray";
-      };
+    services.xray = {
+      enable = true;
+      settingsFile = config.age.secrets.xray-config.path;
     };
   };
 }

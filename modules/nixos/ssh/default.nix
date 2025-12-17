@@ -5,14 +5,18 @@
 # ==============================================================================
 
 let
-  cfg = config.services.sshServer;
+  cfg = config.hakula.services.openssh;
 in
 {
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.services.sshServer = {
+  options.hakula.services.openssh = {
     enable = lib.mkEnableOption "OpenSSH server";
+    ports = lib.mkOption {
+      type = lib.types.listOf lib.types.port;
+      default = [ 22 ];
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -21,7 +25,7 @@ in
     # ----------------------------------------------------------------------------
     services.openssh = {
       enable = true;
-      ports = [ 35060 ];
+      ports = cfg.ports;
       settings = {
         PermitRootLogin = "prohibit-password";
         PasswordAuthentication = false;
