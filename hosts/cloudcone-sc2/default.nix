@@ -82,14 +82,16 @@
   };
 
   # ============================================================================
-  # Monitoring
+  # Services
   # ============================================================================
+  services.cachixSecret.enable = true;
+  services.clashGenerator.enable = true;
   services.cloudconeAgent.enable = true;
-
-  # ============================================================================
-  # Virtualization
-  # ============================================================================
+  services.netdataMonitoring.enable = true;
+  services.nginxProxy.enable = true;
   services.qemuGuest.enable = true;
+  services.sshServer.enable = true;
+  services.xrayServer.enable = true;
 
   # ============================================================================
   # System State
