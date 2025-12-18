@@ -1,17 +1,29 @@
-{ ... }:
+{ lib, config, ... }:
 
 # ==============================================================================
 # Cachix (Binary Cache Tooling)
 # ==============================================================================
 
+let
+  cfg = config.hakula.services.cachix;
+in
 {
   # ----------------------------------------------------------------------------
-  # Secrets (agenix)
+  # Module options
   # ----------------------------------------------------------------------------
-  age.secrets.cachix-auth-token = {
-    file = ../../../secrets/shared/cachix-auth-token.age;
-    owner = "hakula";
-    group = "users";
-    mode = "0400";
+  options.hakula.services.cachix = {
+    enable = lib.mkEnableOption "Cachix auth token secret";
+  };
+
+  config = lib.mkIf cfg.enable {
+    # ----------------------------------------------------------------------------
+    # Secrets (agenix)
+    # ----------------------------------------------------------------------------
+    age.secrets.cachix-auth-token = {
+      file = ../../../secrets/shared/cachix-auth-token.age;
+      owner = "hakula";
+      group = "users";
+      mode = "0400";
+    };
   };
 }

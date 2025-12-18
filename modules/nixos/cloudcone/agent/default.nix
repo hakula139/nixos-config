@@ -1,6 +1,6 @@
 {
-  config,
   pkgs,
+  serverKeyFile,
   ...
 }:
 
@@ -26,7 +26,7 @@ pkgs.writeShellApplication {
     util-linux
   ];
   text = ''
-    export CLOUDCONE_SERVER_KEY_FILE="${config.services.cloudconeAgent.serverKeyFile}"
+    export CLOUDCONE_SERVER_KEY_FILE="${serverKeyFile}"
     exec ${pkgs.bash}/bin/bash ${agentScript}
   '';
 }
