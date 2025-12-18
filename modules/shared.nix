@@ -38,8 +38,8 @@ in
       "nix-command"
       "flakes"
     ];
-    keep-outputs = true;
-    keep-derivations = true;
+    keep-outputs = false;
+    keep-derivations = false;
     download-buffer-size = 536870912; # 512 MB
     inherit (caches) substituters trusted-public-keys;
   };
