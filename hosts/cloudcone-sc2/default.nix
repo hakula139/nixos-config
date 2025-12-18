@@ -16,6 +16,7 @@
   boot.loader.grub = {
     enable = true;
     device = "/dev/vda";
+    configurationLimit = 30;
 
     extraInstallCommands = ''
       # Create symlinks to the current kernel / initrd in /boot.
