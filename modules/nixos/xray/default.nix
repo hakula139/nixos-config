@@ -1,6 +1,6 @@
 {
   config,
-  pkgs,
+  lib,
   ...
 }:
 
@@ -8,46 +8,31 @@
 # Xray (VLESS + REALITY)
 # ==============================================================================
 
+let
+  cfg = config.hakula.services.xray;
+in
 {
   # ----------------------------------------------------------------------------
-  # User & Group
+  # Module options
   # ----------------------------------------------------------------------------
-  users.users.xray = {
-    isSystemUser = true;
-    group = "xray";
-  };
-  users.groups.xray = { };
-
-  # ----------------------------------------------------------------------------
-  # Secrets (agenix)
-  # ----------------------------------------------------------------------------
-  age.secrets.xray-config = {
-    file = ../../../secrets/shared/xray-config.json.age;
-    owner = "xray";
-    group = "xray";
-    mode = "0400";
+  options.hakula.services.xray = {
+    enable = lib.mkEnableOption "Xray proxy server";
   };
 
-  # ----------------------------------------------------------------------------
-  # Systemd service
-  # ----------------------------------------------------------------------------
-  systemd.services.xray = {
-    description = "Xray service";
-    after = [ "network.target" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = "${pkgs.xray}/bin/xray run -format json -c ${config.age.secrets.xray-config.path}";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      User = "xray";
-      Group = "xray";
-      NoNewPrivileges = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateTmp = true;
-      StateDirectory = "xray";
-      WorkingDirectory = "/var/lib/xray";
+  config = lib.mkIf cfg.enable {
+    # ----------------------------------------------------------------------------
+    # Secrets (agenix)
+    # ----------------------------------------------------------------------------
+    age.secrets.xray-config = {
+      file = ../../../secrets/shared/xray-config.json.age;
+      owner = "root";
+      group = "root";
+      mode = "0400";
+    };
+
+    services.xray = {
+      enable = true;
+      settingsFile = config.age.secrets.xray-config.path;
     };
   };
 }

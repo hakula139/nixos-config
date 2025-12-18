@@ -10,7 +10,7 @@ readonly AGENT_VERSION='1.0'
 readonly GATEWAY='http://watch.cloudc.one/agent'
 readonly PING_TARGET='1.1.1.1'
 
-readonly DEFAULT_SERVER_KEY_FILE='/run/agenix/cloudcone-sc2-server-key'
+readonly DEFAULT_SERVER_KEY_FILE='/run/agenix/cloudcone-server-key'
 readonly SERVER_KEY_FILE="${CLOUDCONE_SERVER_KEY_FILE:-${DEFAULT_SERVER_KEY_FILE}}"
 
 # If set to 1, do not send to gateway; print the payload to stdout instead.

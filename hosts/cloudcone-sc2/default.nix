@@ -82,13 +82,21 @@
   };
 
   # ============================================================================
-  # Monitoring
+  # Services
   # ============================================================================
-  services.cloudconeAgent.enable = true;
-
-  # ============================================================================
-  # Virtualization
-  # ============================================================================
+  hakula.services.cachix.enable = true;
+  hakula.services.clashGenerator.enable = true;
+  hakula.services.cloudconeAgent = {
+    enable = true;
+    serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-key.age;
+  };
+  hakula.services.netdata.enable = true;
+  hakula.services.nginx.enable = true;
+  hakula.services.openssh = {
+    enable = true;
+    ports = [ 35060 ];
+  };
+  hakula.services.xray.enable = true;
   services.qemuGuest.enable = true;
 
   # ============================================================================
