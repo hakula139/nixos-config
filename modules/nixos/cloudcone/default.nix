@@ -83,6 +83,7 @@ in
         wants = [ "network-online.target" ];
         serviceConfig = {
           Type = "oneshot";
+          ExecStart = "${cloudconeAgent}/bin/cloudcone-agent";
           User = "ccagent";
           Group = "ccagent";
           NoNewPrivileges = true;
@@ -96,7 +97,6 @@ in
           CapabilityBoundingSet = [ "CAP_NET_RAW" ];
           WorkingDirectory = "/opt/cloudcone";
         };
-        serviceConfig.ExecStart = "${cloudconeAgent}/bin/cloudcone-agent";
       };
 
       # ----------------------------------------------------------------------------

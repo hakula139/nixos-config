@@ -7,202 +7,177 @@
 
 # ==============================================================================
 # Cloudreve (Self-hosted Cloud Storage)
-# Runs as Podman containers via NixOS oci-containers, matching upstream compose:
-# https://github.com/cloudreve/cloudreve/blob/master/docker-compose.yml
 # ==============================================================================
 
 let
   cfg = config.hakula.services.cloudreve;
 
-  images = {
-    cloudreve = "cloudreve/cloudreve:4.10.1";
-    postgres = "postgres:17";
-    redis = "redis:7";
+  serviceUser = "cloudreve";
+  serviceGroup = "cloudreve";
+
+  stateDirName = "cloudreve";
+
+  dbName = "cloudreve";
+  dbUser = "cloudreve";
+  dbSocketDir = "/run/postgresql";
+
+  redisInstance = "cloudreve";
+  redisSocket = "/run/redis-cloudreve/redis.sock";
+  redisGroup = "redis-${redisInstance}";
+
+  cloudreve = pkgs.stdenv.mkDerivation rec {
+    pname = "cloudreve";
+    version = "4.10.1";
+
+    src = pkgs.fetchurl {
+      url = "https://github.com/cloudreve/cloudreve/releases/download/${version}/cloudreve_${version}_linux_amd64.tar.gz";
+      hash = "sha256-tNZg+ocgr65vyBkRDQhyX0DmLQuO0JwbXUzTeL4hSAc=";
+    };
+
+    sourceRoot = ".";
+
+    nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+    buildInputs = [ pkgs.stdenv.cc.cc.lib ];
+
+    installPhase = ''
+      runHook preInstall
+      install -Dm755 cloudreve $out/bin/cloudreve
+      runHook postInstall
+    '';
+
+    meta = {
+      description = "Self-hosted file management and sharing system";
+      homepage = "https://cloudreve.org";
+      license = lib.licenses.gpl3Plus;
+      platforms = [ "x86_64-linux" ];
+      mainProgram = "cloudreve";
+    };
   };
 
-  containerNetwork = "cloudreve-net";
-  containerExe = lib.getExe pkgs.podman;
+  cloudreveConfTemplate = pkgs.writeText "cloudreve-conf.ini" ''
+    [System]
+    Mode = master
+    Listen = :${toString cfg.port}
 
-  rootlessServiceConfig = {
-    User = lib.mkForce "cloudreve";
-    Group = lib.mkForce "cloudreve";
-    RuntimeDirectory = lib.mkForce "cloudreve";
-    RuntimeDirectoryMode = lib.mkForce "0700";
-  };
+    [Database]
+    Type = postgres
+    Host = ${dbSocketDir}
+    Port = 5432
+    User = ${dbUser}
+    Name = ${dbName}
+    UnixSocket = true
 
-  rootlessEnv = {
-    XDG_RUNTIME_DIR = "/run/cloudreve";
-    HOME = cfg.dataDir;
-  };
-
-  mkRootlessService = after: {
-    inherit after;
-    requires = [ "cloudreve-network.service" ];
-    serviceConfig = rootlessServiceConfig;
-    environment = rootlessEnv;
-  };
+    [Redis]
+    Network = unix
+    Server = ${redisSocket}
+    DB = 0
+  '';
 in
 {
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
   options.hakula.services.cloudreve = {
     enable = lib.mkEnableOption "Cloudreve cloud storage service";
-
-    dataDir = lib.mkOption {
-      type = lib.types.str;
-      default = "/var/lib/cloudreve";
-      description = "Directory for Cloudreve persistent data";
-    };
 
     port = lib.mkOption {
       type = lib.types.port;
       default = 5212;
-      description = "Port for Cloudreve web interface (bound to localhost)";
+      description = "Port for Cloudreve web interface";
     };
   };
 
   config = lib.mkIf cfg.enable {
-    # --------------------------------------------------------------------------
-    # Container backend
-    # --------------------------------------------------------------------------
-    virtualisation.podman.enable = true;
-    virtualisation.oci-containers.backend = "podman";
-
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------
     # Users & Groups
-    # --------------------------------------------------------------------------
-    users.users.cloudreve = {
+    # ----------------------------------------------------------------------------
+    users.users.${serviceUser} = {
       isSystemUser = true;
-      group = "cloudreve";
-      home = cfg.dataDir;
+      group = serviceGroup;
+      extraGroups = [ redisGroup ];
+      home = "/var/lib/${stateDirName}";
+      createHome = false;
     };
-    users.groups.cloudreve = { };
+    users.groups.${serviceGroup} = { };
 
-    # --------------------------------------------------------------------------
-    # Secrets (agenix)
-    # --------------------------------------------------------------------------
-    age.secrets.cloudreve-postgres-password = {
-      file = ../../../secrets/shared/cloudreve-postgres-password.age;
-      owner = "cloudreve";
-      group = "cloudreve";
-      mode = "0400";
+    # ----------------------------------------------------------------------------
+    # PostgreSQL (local)
+    # ----------------------------------------------------------------------------
+    services.postgresql = {
+      enable = true;
+      enableTCPIP = false;
+      ensureDatabases = [ dbName ];
+      ensureUsers = [
+        {
+          name = dbUser;
+          ensureDBOwnership = true;
+        }
+      ];
+      authentication = lib.mkForce ''
+        local all postgres peer
+        local ${dbName} ${dbUser} peer
+        local all all reject
+      '';
     };
 
-    # --------------------------------------------------------------------------
-    # Filesystem layout
-    # --------------------------------------------------------------------------
-    systemd.tmpfiles.rules = [
-      "d ${cfg.dataDir} 0755 cloudreve cloudreve -"
-      "d ${cfg.dataDir}/backend 0755 cloudreve cloudreve -"
-      "d ${cfg.dataDir}/postgres 0755 cloudreve cloudreve -"
-      "d ${cfg.dataDir}/redis 0755 cloudreve cloudreve -"
-    ];
+    # ----------------------------------------------------------------------------
+    # Redis (local)
+    # ----------------------------------------------------------------------------
+    services.redis.servers.${redisInstance} = {
+      enable = true;
+      port = 0;
+      unixSocket = redisSocket;
+      unixSocketPerm = 660;
+    };
 
-    # --------------------------------------------------------------------------
-    # Container network
-    # --------------------------------------------------------------------------
-    systemd.services.cloudreve-network = {
-      description = "Create Podman network for Cloudreve";
-      before = [
-        "podman-cloudreve-redis.service"
-        "podman-cloudreve-postgres.service"
-        "podman-cloudreve.service"
+    # ----------------------------------------------------------------------------
+    # Cloudreve systemd service
+    # ----------------------------------------------------------------------------
+    systemd.services.cloudreve = {
+      description = "Cloudreve file management and sharing system";
+      documentation = [ "https://docs.cloudreve.org" ];
+
+      after = [
+        "network.target"
+        "postgresql.service"
+        "redis-${redisInstance}.service"
+      ];
+      requires = [
+        "postgresql.service"
+        "redis-${redisInstance}.service"
       ];
       wantedBy = [ "multi-user.target" ];
-      path = [ pkgs.podman ];
+
+      preStart = ''
+        install -m 0755 ${lib.getExe cloudreve} "$STATE_DIRECTORY/cloudreve"
+        install -d -m 0750 "$STATE_DIRECTORY/data"
+        if [ ! -f "$STATE_DIRECTORY/data/conf.ini" ]; then
+          install -m 0600 ${cloudreveConfTemplate} "$STATE_DIRECTORY/data/conf.ini"
+        fi
+      '';
+
       serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        User = "cloudreve";
-        Group = "cloudreve";
-        RuntimeDirectory = "cloudreve";
-        RuntimeDirectoryMode = "0700";
-        ExecStart = "${containerExe} network create ${containerNetwork} || true";
-        ExecStop = "${containerExe} network rm ${containerNetwork} || true";
-      };
-      environment = rootlessEnv;
-    };
-
-    # --------------------------------------------------------------------------
-    # OCI Containers
-    # --------------------------------------------------------------------------
-    virtualisation.oci-containers.containers = {
-      cloudreve-redis = {
-        image = images.redis;
-        autoStart = true;
-        volumes = [
-          "${cfg.dataDir}/redis:/data:U"
-        ];
-        extraOptions = [
-          "--network=${containerNetwork}"
-          "--hostname=redis"
-        ];
-      };
-
-      cloudreve-postgres = {
-        image = images.postgres;
-        autoStart = true;
-        volumes = [
-          "${cfg.dataDir}/postgres:/var/lib/postgresql/data:U"
-        ];
-        environment = {
-          POSTGRES_USER = "cloudreve";
-          POSTGRES_DB = "cloudreve";
-        };
-        environmentFiles = [
-          config.age.secrets.cloudreve-postgres-password.path
-        ];
-        extraOptions = [
-          "--network=${containerNetwork}"
-          "--hostname=postgresql"
-        ];
-      };
-
-      cloudreve = {
-        image = images.cloudreve;
-        autoStart = true;
-        dependsOn = [
-          "cloudreve-redis"
-          "cloudreve-postgres"
-        ];
-        ports = [
-          "127.0.0.1:${toString cfg.port}:5212"
-          "127.0.0.1:6888:6888"
-          "127.0.0.1:6888:6888/udp"
-        ];
-        volumes = [
-          "${cfg.dataDir}/backend:/cloudreve/data:U"
-        ];
-        environment = {
-          "CR_CONF_Database.Type" = "postgres";
-          "CR_CONF_Database.Host" = "postgresql";
-          "CR_CONF_Database.User" = "cloudreve";
-          "CR_CONF_Database.Name" = "cloudreve";
-          "CR_CONF_Database.Port" = "5432";
-          "CR_CONF_Redis.Server" = "redis:6379";
-        };
-        environmentFiles = [
-          config.age.secrets.cloudreve-postgres-password.path
-        ];
-        extraOptions = [
-          "--network=${containerNetwork}"
-        ];
+        Type = "simple";
+        ExecStart = "%S/${stateDirName}/cloudreve";
+        Restart = "on-failure";
+        RestartSec = "5s";
+        User = serviceUser;
+        Group = serviceGroup;
+        NoNewPrivileges = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        PrivateTmp = true;
+        ProtectControlGroups = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        RestrictSUIDSGID = true;
+        LockPersonality = true;
+        StateDirectory = stateDirName;
+        StateDirectoryMode = "0750";
+        UMask = "0077";
+        WorkingDirectory = "%S/${stateDirName}";
+        ReadWritePaths = [ "%S/${stateDirName}" ];
       };
     };
-
-    # --------------------------------------------------------------------------
-    # Service ordering
-    # --------------------------------------------------------------------------
-    systemd.services.podman-cloudreve-postgres = mkRootlessService [
-      "cloudreve-network.service"
-    ];
-
-    systemd.services.podman-cloudreve-redis = mkRootlessService [
-      "cloudreve-network.service"
-    ];
-
-    systemd.services.podman-cloudreve = mkRootlessService [
-      "cloudreve-network.service"
-      "podman-cloudreve-postgres.service"
-      "podman-cloudreve-redis.service"
-    ];
   };
 }

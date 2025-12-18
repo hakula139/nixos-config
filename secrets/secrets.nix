@@ -18,7 +18,6 @@ in
   "shared/cachix-auth-token.age".publicKeys = sharedKeys;
   "shared/clash-users.json.age".publicKeys = sharedKeys;
   "shared/cloudflare-credentials.age".publicKeys = sharedKeys;
-  "shared/cloudreve-postgres-password.age".publicKeys = sharedKeys; # TODO: need to create
   "shared/qq-smtp-authcode.age".publicKeys = sharedKeys;
   "shared/xray-config.json.age".publicKeys = sharedKeys;
 
