@@ -132,5 +132,6 @@ GitHub Actions automatically validates the configuration on every push and pull 
 Secrets are managed with [agenix](https://github.com/ryantm/agenix). Edit secrets with:
 
 ```bash
-agenix -e secrets/<secret-name>.age -i ~/.ssh/<private-key>
+cd secrets
+agenix -e <secret-name>.age -i ~/.ssh/<private-key>
 ```
