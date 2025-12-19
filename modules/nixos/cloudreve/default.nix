@@ -43,6 +43,15 @@ let
 in
 {
   imports = [
+    (import ./backup {
+      inherit
+        serviceName
+        dbName
+        redisServiceName
+        redisSocket
+        redisStateDir
+        ;
+    })
     (import ./restore {
       inherit
         serviceName
@@ -73,6 +82,29 @@ in
         type = lib.types.bool;
         default = true;
         description = "Enable aria2 for remote download support";
+      };
+    };
+
+    backup = {
+      enable = lib.mkEnableOption "Automatic Cloudreve backup to Backblaze B2";
+
+      remotePath = lib.mkOption {
+        type = with lib.types; nullOr str;
+        default = null;
+        example = "b2:my-bucket/cloudreve";
+        description = "Remote path to backup to (via rclone)";
+      };
+
+      schedule = lib.mkOption {
+        type = lib.types.str;
+        default = "*-*-* 03:00:00";
+        description = "systemd OnCalendar schedule for automatic backups";
+      };
+
+      transfers = lib.mkOption {
+        type = lib.types.ints.positive;
+        default = 4;
+        description = "Number of parallel transfers";
       };
     };
 

@@ -92,7 +92,13 @@
     enable = true;
     serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-key.age;
   };
-  hakula.services.cloudreve.enable = true;
+  hakula.services.cloudreve = {
+    enable = true;
+    backup = {
+      enable = true;
+      remotePath = "b2:hakula-backup/cloudcone-sc2/cloudreve";
+    };
+  };
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
   hakula.services.openssh = {
