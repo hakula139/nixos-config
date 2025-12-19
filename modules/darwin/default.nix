@@ -14,6 +14,7 @@ in
   nix = {
     enable = true; # Let nix-darwin manage the Nix installation
     settings = shared.nixSettings;
+    optimise.automatic = true;
     gc = {
       automatic = true;
       interval = {

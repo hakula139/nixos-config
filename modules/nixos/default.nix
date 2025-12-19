@@ -46,6 +46,7 @@ in
   # ============================================================================
   nix = {
     settings = shared.nixSettings;
+    optimise.automatic = true;
     gc = {
       automatic = true;
       dates = "weekly";
