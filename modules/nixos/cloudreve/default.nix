@@ -205,7 +205,10 @@ in
         StateDirectoryMode = "0750";
         UMask = "0077";
         WorkingDirectory = "%S/${serviceName}";
-        ReadWritePaths = [ "%S/${serviceName}" ];
+        ReadWritePaths = [
+          "%S/${serviceName}"
+        ]
+        ++ lib.optionals cfg.aria2.enable [ config.services.aria2.settings.dir ];
       };
     };
   };
