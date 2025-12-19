@@ -11,8 +11,17 @@
 
 let
   cfg = config.hakula.services.cloudreve;
+  restoreCfg = cfg.restore;
+
   serviceName = "cloudreve";
-  redisSocket = "/run/redis-${serviceName}/redis.sock";
+  dbName = serviceName;
+  redisName = serviceName;
+  redisServiceName = "redis-${redisName}";
+  redisUnit = "${redisServiceName}.service";
+  redisUser = config.services.redis.servers.${serviceName}.user;
+  redisGroup = config.services.redis.servers.${serviceName}.group;
+  redisStateDir = "/var/lib/${redisServiceName}";
+  redisSocket = "/run/redis-${redisName}/redis.sock";
 
   configFile = pkgs.writeText "cloudreve-conf.ini" ''
     [System]
@@ -23,8 +32,8 @@ let
     Type = postgres
     Host = /run/postgresql
     Port = 5432
+    Name = ${dbName}
     User = ${serviceName}
-    Name = ${serviceName}
     UnixSocket = true
 
     [Redis]
@@ -34,6 +43,20 @@ let
   '';
 in
 {
+  imports = [
+    (import ./restore {
+      inherit
+        serviceName
+        dbName
+        redisServiceName
+        redisUnit
+        redisUser
+        redisGroup
+        redisStateDir
+        ;
+    })
+  ];
+
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
@@ -45,42 +68,67 @@ in
       default = 5212;
       description = "Port for Cloudreve web interface";
     };
+
+    restore = {
+      enable = lib.mkEnableOption "Restore Cloudreve from a backup directory";
+
+      sqlFile = lib.mkOption {
+        type = with lib.types; nullOr str;
+        default = null;
+        description = "Absolute path to a cloudreve.sql (pg_dump) file";
+      };
+
+      backendDataTgz = lib.mkOption {
+        type = with lib.types; nullOr str;
+        default = null;
+        description = "Absolute path to a backend_data.tgz file";
+      };
+
+      redisDataTgz = lib.mkOption {
+        type = with lib.types; nullOr str;
+        default = null;
+        description = "Absolute path to a redis_data.tgz file";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
-    # ----------------------------------------------------------------------------
+    assertions = [
+      {
+        assertion = config.services.postgresql.enable;
+        message = "Cloudreve requires PostgreSQL. Enable it via hakula.services.postgresql.enable = true.";
+      }
+    ];
+
+    # --------------------------------------------------------------------------
     # Users & Groups
-    # ----------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     users.users.${serviceName} = {
       isSystemUser = true;
       group = serviceName;
-      extraGroups = [ "redis-${serviceName}" ];
+      extraGroups = [ redisGroup ];
     };
     users.groups.${serviceName} = { };
 
-    # ----------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # PostgreSQL (local)
-    # ----------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     services.postgresql = {
-      enable = true;
-      enableTCPIP = false;
-      ensureDatabases = [ serviceName ];
+      ensureDatabases = [ dbName ];
       ensureUsers = [
         {
           name = serviceName;
           ensureDBOwnership = true;
         }
       ];
-      authentication = lib.mkForce ''
-        local all postgres peer
-        local ${serviceName} ${serviceName} peer
-        local all all reject
+      authentication = lib.mkAfter ''
+        local ${dbName} ${serviceName} peer
       '';
     };
 
-    # ----------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Redis (local)
-    # ----------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     services.redis.servers.${serviceName} = {
       enable = true;
       port = 0;
@@ -88,9 +136,9 @@ in
       unixSocketPerm = 660;
     };
 
-    # ----------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Cloudreve systemd service
-    # ----------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     systemd.services.cloudreve = {
       description = "Cloudreve file management and sharing system";
       documentation = [ "https://docs.cloudreve.org" ];
@@ -98,11 +146,17 @@ in
       after = [
         "network.target"
         "postgresql.service"
-        "redis-${serviceName}.service"
+        redisUnit
+      ]
+      ++ lib.optionals restoreCfg.enable [
+        "cloudreve-restore.service"
       ];
       requires = [
         "postgresql.service"
-        "redis-${serviceName}.service"
+        redisUnit
+      ]
+      ++ lib.optionals restoreCfg.enable [
+        "cloudreve-restore.service"
       ];
       wantedBy = [ "multi-user.target" ];
 

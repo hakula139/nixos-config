@@ -21,6 +21,7 @@ in
     ./cloudcone
     ./cloudreve
     ./netdata
+    ./postgresql
     ./ssh
     ./xray
     (import ./clash { inherit realitySniHost; })
