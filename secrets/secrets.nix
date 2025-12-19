@@ -19,6 +19,7 @@ in
   "shared/cachix-auth-token.age".publicKeys = sharedKeys;
   "shared/clash-users.json.age".publicKeys = sharedKeys;
   "shared/cloudflare-credentials.age".publicKeys = sharedKeys;
+  "shared/cloudreve-rclone-config.age".publicKeys = sharedKeys;
   "shared/qq-smtp-authcode.age".publicKeys = sharedKeys;
   "shared/xray-config.json.age".publicKeys = sharedKeys;
 
