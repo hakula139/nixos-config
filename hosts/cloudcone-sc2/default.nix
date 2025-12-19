@@ -85,6 +85,7 @@
   # ============================================================================
   # Services
   # ============================================================================
+  hakula.services.aria2.enable = true;
   hakula.services.cachix.enable = true;
   hakula.services.clashGenerator.enable = true;
   hakula.services.cloudconeAgent = {

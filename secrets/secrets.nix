@@ -15,6 +15,7 @@ in
   # ----------------------------------------------------------------------------
   # Shared (multi-host)
   # ----------------------------------------------------------------------------
+  "shared/aria2-rpc-secret.age".publicKeys = sharedKeys;
   "shared/cachix-auth-token.age".publicKeys = sharedKeys;
   "shared/clash-users.json.age".publicKeys = sharedKeys;
   "shared/cloudflare-credentials.age".publicKeys = sharedKeys;

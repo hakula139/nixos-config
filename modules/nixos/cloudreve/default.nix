@@ -11,7 +11,6 @@
 
 let
   cfg = config.hakula.services.cloudreve;
-  restoreCfg = cfg.restore;
 
   serviceName = "cloudreve";
   dbName = serviceName;
@@ -69,6 +68,14 @@ in
       description = "Port for Cloudreve web interface";
     };
 
+    aria2 = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Enable aria2 for remote download support";
+      };
+    };
+
     restore = {
       enable = lib.mkEnableOption "Restore Cloudreve from a backup directory";
 
@@ -98,6 +105,10 @@ in
         assertion = config.services.postgresql.enable;
         message = "Cloudreve requires PostgreSQL. Enable it via hakula.services.postgresql.enable = true.";
       }
+      {
+        assertion = !cfg.aria2.enable || config.hakula.services.aria2.enable;
+        message = "Cloudreve aria2 integration requires aria2. Enable it via hakula.services.aria2.enable = true.";
+      }
     ];
 
     # --------------------------------------------------------------------------
@@ -106,7 +117,10 @@ in
     users.users.${serviceName} = {
       isSystemUser = true;
       group = serviceName;
-      extraGroups = [ redisGroup ];
+      extraGroups = [
+        redisGroup
+      ]
+      ++ lib.optionals cfg.aria2.enable [ "aria2" ];
     };
     users.groups.${serviceName} = { };
 
@@ -148,14 +162,17 @@ in
         "postgresql.service"
         redisUnit
       ]
-      ++ lib.optionals restoreCfg.enable [
+      ++ lib.optionals cfg.aria2.enable [
+        "aria2.service"
+      ]
+      ++ lib.optionals cfg.restore.enable [
         "cloudreve-restore.service"
       ];
       requires = [
         "postgresql.service"
         redisUnit
       ]
-      ++ lib.optionals restoreCfg.enable [
+      ++ lib.optionals cfg.restore.enable [
         "cloudreve-restore.service"
       ];
       wantedBy = [ "multi-user.target" ];
@@ -188,7 +205,10 @@ in
         StateDirectoryMode = "0750";
         UMask = "0077";
         WorkingDirectory = "%S/${serviceName}";
-        ReadWritePaths = [ "%S/${serviceName}" ];
+        ReadWritePaths = [
+          "%S/${serviceName}"
+        ]
+        ++ lib.optionals cfg.aria2.enable [ config.services.aria2.settings.dir ];
       };
     };
   };

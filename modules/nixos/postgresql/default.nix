@@ -13,6 +13,9 @@ let
   cfg = config.hakula.services.postgresql;
 in
 {
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
   options.hakula.services.postgresql = {
     enable = lib.mkEnableOption "PostgreSQL database server";
 
@@ -24,6 +27,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # --------------------------------------------------------------------------
+    # PostgreSQL service
+    # --------------------------------------------------------------------------
     services.postgresql = {
       enable = true;
       package = cfg.package;

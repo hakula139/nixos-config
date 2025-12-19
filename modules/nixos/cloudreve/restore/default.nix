@@ -20,10 +20,9 @@
 
 let
   cfg = config.hakula.services.cloudreve;
-  restoreCfg = cfg.restore;
 in
 {
-  config = lib.mkIf (cfg.enable && restoreCfg.enable) {
+  config = lib.mkIf (cfg.enable && cfg.restore.enable) {
     # --------------------------------------------------------------------------
     # Cloudreve restore service
     # --------------------------------------------------------------------------
@@ -35,11 +34,11 @@ in
       before = [
         "cloudreve.service"
       ]
-      ++ lib.optionals (restoreCfg.redisDataTgz != null) [ redisUnit ];
+      ++ lib.optionals (cfg.restore.redisDataTgz != null) [ redisUnit ];
       wantedBy = [
         "cloudreve.service"
       ]
-      ++ lib.optionals (restoreCfg.redisDataTgz != null) [ redisUnit ];
+      ++ lib.optionals (cfg.restore.redisDataTgz != null) [ redisUnit ];
 
       serviceConfig = {
         Type = "oneshot";
@@ -67,7 +66,7 @@ in
 
         install -d -m 0750 "$STATE_DIRECTORY/data"
 
-        sqlFile=${if restoreCfg.sqlFile != null then lib.escapeShellArg restoreCfg.sqlFile else "''"}
+        sqlFile=${if cfg.restore.sqlFile != null then lib.escapeShellArg cfg.restore.sqlFile else "''"}
         if [ -n "$sqlFile" ]; then
           if [ ! -f "$sqlFile" ]; then
             echo "cloudreve-restore: missing sql dump: $sqlFile" >&2
@@ -80,7 +79,7 @@ in
         fi
 
         backendTgz=${
-          if restoreCfg.backendDataTgz != null then lib.escapeShellArg restoreCfg.backendDataTgz else "''"
+          if cfg.restore.backendDataTgz != null then lib.escapeShellArg cfg.restore.backendDataTgz else "''"
         }
         if [ -n "$backendTgz" ]; then
           if [ ! -f "$backendTgz" ]; then
@@ -93,7 +92,7 @@ in
         fi
 
         redisTgz=${
-          if restoreCfg.redisDataTgz != null then lib.escapeShellArg restoreCfg.redisDataTgz else "''"
+          if cfg.restore.redisDataTgz != null then lib.escapeShellArg cfg.restore.redisDataTgz else "''"
         }
         if [ -n "$redisTgz" ]; then
           if [ ! -f "$redisTgz" ]; then

@@ -17,6 +17,7 @@ let
 in
 {
   imports = [
+    ./aria2
     ./cachix
     ./cloudcone
     ./cloudreve
