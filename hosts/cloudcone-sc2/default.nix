@@ -91,12 +91,14 @@
     enable = true;
     serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-key.age;
   };
+  hakula.services.cloudreve.enable = true;
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
   hakula.services.openssh = {
     enable = true;
     ports = [ 35060 ];
   };
+  hakula.services.postgresql.enable = true;
   hakula.services.xray.enable = true;
   services.qemuGuest.enable = true;
 

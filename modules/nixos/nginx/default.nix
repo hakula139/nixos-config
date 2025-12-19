@@ -17,6 +17,13 @@ let
     cloudflareIPs.ipv4 ++ cloudflareIPs.ipv6
   );
   cloudflareOriginCA = ../cloudflare/origin-pull-ca.pem;
+
+  cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
+  cloudreveNoBufferingExtra = ''
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_max_temp_file_size 0;
+  '';
 in
 {
   # ----------------------------------------------------------------------------
@@ -147,6 +154,61 @@ in
         };
         locations."= /" = {
           return = "404";
+        };
+      };
+
+      # Cloudreve cloud storage
+      virtualHosts."cloud.hakula.xyz" = {
+        useACMEHost = "hakula.xyz";
+        onlySSL = true;
+        listen = [
+          {
+            addr = "127.0.0.1";
+            port = 8443;
+            ssl = true;
+          }
+        ];
+        extraConfig = ''
+          ssl_client_certificate ${cloudflareOriginCA};
+          ssl_verify_client on;
+          ssl_stapling off;
+
+          client_body_timeout 300s;
+          client_header_timeout 60s;
+
+          proxy_connect_timeout 60s;
+          proxy_send_timeout 600s;
+          proxy_read_timeout 600s;
+        '';
+
+        locations."/api/v4/ws" = {
+          proxyPass = cloudreveUpstream;
+          proxyWebsockets = true;
+        };
+
+        locations."/api/v4/file/download" = {
+          proxyPass = cloudreveUpstream;
+          extraConfig = ''
+            ${cloudreveNoBufferingExtra}
+          '';
+        };
+
+        locations."/api/v4/file/upload" = {
+          proxyPass = cloudreveUpstream;
+          extraConfig = ''
+            ${cloudreveNoBufferingExtra}
+          '';
+        };
+
+        locations."/dav" = {
+          proxyPass = "${cloudreveUpstream}/dav";
+          extraConfig = ''
+            ${cloudreveNoBufferingExtra}
+          '';
+        };
+
+        locations."/" = {
+          proxyPass = "${cloudreveUpstream}/";
         };
       };
 

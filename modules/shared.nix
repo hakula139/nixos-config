@@ -21,6 +21,7 @@ in
     curl
     git
     htop
+    tree
     vim
   ];
 

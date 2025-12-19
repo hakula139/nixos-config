@@ -16,6 +16,7 @@ in
     ports = lib.mkOption {
       type = lib.types.listOf lib.types.port;
       default = [ 22 ];
+      description = "Ports to listen on for SSH connections";
     };
   };
 

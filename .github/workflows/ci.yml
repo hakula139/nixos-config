@@ -21,7 +21,10 @@ jobs:
       - name: Setup Nix cache
         uses: nix-community/cache-nix-action@v6
         with:
-          primary-key: nix-flake-check
+          primary-key: nix-${{ runner.os }}-flake-check-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: |
+            nix-${{ runner.os }}-flake-check-
+            nix-${{ runner.os }}-
 
       - name: Run flake check
         run: nix flake check --all-systems
@@ -57,7 +60,11 @@ jobs:
       - name: Setup Nix cache
         uses: nix-community/cache-nix-action@v6
         with:
-          primary-key: nix-${{ matrix.config.id }}
+          primary-key: nix-${{ runner.os }}-${{ matrix.config.id }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: |
+            nix-${{ runner.os }}-${{ matrix.config.id }}-
+            nix-${{ runner.os }}-
+          gc-max-store-size-linux: 8G
 
       - name: Build configuration
         run: |

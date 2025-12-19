@@ -51,6 +51,7 @@ in
 
         # Containers & Kubernetes
         "docker"
+        "docker-compose"
         "podman"
         "kubectl"
         "helm"
@@ -125,6 +126,9 @@ in
       pcdn = "podman-compose down";
       pcpull = "podman-compose pull";
       pcr = "podman-compose run";
+
+      # Docker Compose (v2): make OMZ docker-compose plugin aliases use `docker compose`
+      docker-compose = "docker compose";
 
       # Kubectl extras
       kdelpf = "kubectl delete pod --field-selector=status.phase=Failed";

@@ -62,8 +62,9 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
       overlays = [
-        (final: _prev: {
+        (final: prev: {
           agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
+          cloudreve = final.callPackage ./packages/cloudreve { };
         })
       ];
 
