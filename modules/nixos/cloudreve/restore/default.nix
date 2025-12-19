@@ -73,9 +73,10 @@ in
             exit 1
           fi
 
+          echo "==> Restoring PostgreSQL database..."
           runuser -u postgres -- dropdb --if-exists -h /run/postgresql ${dbName}
           runuser -u postgres -- createdb -h /run/postgresql -O ${serviceName} ${dbName}
-          runuser -u ${serviceName} -- psql -h /run/postgresql -U ${serviceName} -d ${dbName} -v ON_ERROR_STOP=1 < "$sqlFile"
+          runuser -u ${serviceName} -- psql -h /run/postgresql -U ${serviceName} -d ${dbName} -v ON_ERROR_STOP=1 <"$sqlFile"
         fi
 
         backendTgz=${
@@ -87,6 +88,7 @@ in
             exit 1
           fi
 
+          echo "==> Restoring backend data..."
           tar -xzf "$backendTgz" -C "$STATE_DIRECTORY" --no-same-owner --no-same-permissions
           chown -R ${serviceName}:${serviceName} "$STATE_DIRECTORY"
         fi
@@ -100,14 +102,18 @@ in
             exit 1
           fi
 
+          echo "==> Restoring Redis data..."
           install -d -m 0750 -o ${redisUser} -g ${redisGroup} "${redisStateDir}"
           tar -xzf "$redisTgz" -C "${redisStateDir}" --no-same-owner --no-same-permissions
           chown -R ${redisUser}:${redisGroup} "${redisStateDir}"
           chmod 0600 "${redisStateDir}/dump.rdb" 2>/dev/null || true
         fi
 
+        echo "==> Marking restore as complete..."
         touch "$marker"
         chown ${serviceName}:${serviceName} "$marker"
+
+        echo "==> Restore complete: $timestamp"
       '';
     };
   };
