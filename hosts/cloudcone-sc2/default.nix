@@ -96,7 +96,7 @@
     enable = true;
     backup = {
       enable = true;
-      remotePath = "b2:hakula-backup/cloudcone-sc2/cloudreve";
+      toPath = "b2:hakula-backup/cloudcone-sc2/cloudreve";
     };
   };
   hakula.services.netdata.enable = true;

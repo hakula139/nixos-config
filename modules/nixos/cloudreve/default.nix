@@ -86,13 +86,13 @@ in
     };
 
     backup = {
-      enable = lib.mkEnableOption "Automatic Cloudreve backup to Backblaze B2";
+      enable = lib.mkEnableOption "Automatic Cloudreve backup";
 
-      remotePath = lib.mkOption {
+      toPath = lib.mkOption {
         type = with lib.types; nullOr str;
         default = null;
-        example = "b2:my-bucket/cloudreve";
-        description = "Remote path to backup to (via rclone)";
+        example = "b2:my-bucket/cloudreve-backups";
+        description = "Backup destination base path (local directory path, or remote path starting with 'b2:')";
       };
 
       schedule = lib.mkOption {
@@ -100,33 +100,14 @@ in
         default = "*-*-* 03:00:00";
         description = "systemd OnCalendar schedule for automatic backups";
       };
-
-      transfers = lib.mkOption {
-        type = lib.types.ints.positive;
-        default = 4;
-        description = "Number of parallel transfers";
-      };
     };
 
     restore = {
-      enable = lib.mkEnableOption "Restore Cloudreve from a backup directory";
-
-      sqlFile = lib.mkOption {
+      fromPath = lib.mkOption {
         type = with lib.types; nullOr str;
         default = null;
-        description = "Absolute path to a cloudreve.sql (pg_dump) file";
-      };
-
-      backendDataTgz = lib.mkOption {
-        type = with lib.types; nullOr str;
-        default = null;
-        description = "Absolute path to a backend_data.tgz file";
-      };
-
-      redisDataTgz = lib.mkOption {
-        type = with lib.types; nullOr str;
-        default = null;
-        description = "Absolute path to a redis_data.tgz file";
+        example = "b2:my-bucket/cloudreve-backups/20251220-030000";
+        description = "Backup source path (local directory path, or remote path starting with 'b2:')";
       };
     };
   };
@@ -197,14 +178,14 @@ in
       ++ lib.optionals cfg.aria2.enable [
         "aria2.service"
       ]
-      ++ lib.optionals cfg.restore.enable [
+      ++ lib.optionals (cfg.restore.fromPath != null) [
         "cloudreve-restore.service"
       ];
       requires = [
         "postgresql.service"
         redisUnit
       ]
-      ++ lib.optionals cfg.restore.enable [
+      ++ lib.optionals (cfg.restore.fromPath != null) [
         "cloudreve-restore.service"
       ];
       wantedBy = [ "multi-user.target" ];

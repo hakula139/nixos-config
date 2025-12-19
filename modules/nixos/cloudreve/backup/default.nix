@@ -13,25 +13,26 @@
 }:
 
 # ==============================================================================
-# Cloudreve Backup (to Backblaze B2 via rclone)
+# Cloudreve Backup
 # ==============================================================================
 
 let
   cfg = config.hakula.services.cloudreve;
+  isRemote = cfg.backup.toPath != null && lib.hasPrefix "b2:" cfg.backup.toPath;
 in
 {
   config = lib.mkIf (cfg.enable && cfg.backup.enable) {
     assertions = [
       {
-        assertion = cfg.backup.remotePath != null;
-        message = "hakula.services.cloudreve.backup.remotePath must be set (e.g., 'b2:bucket-name/cloudreve').";
+        assertion = cfg.backup.toPath != null && cfg.backup.toPath != "";
+        message = "hakula.services.cloudreve.backup.toPath must be set and not an empty string.";
       }
     ];
 
     # --------------------------------------------------------------------------
     # Secrets (agenix)
     # --------------------------------------------------------------------------
-    age.secrets.cloudreve-rclone-config = {
+    age.secrets.cloudreve-rclone-config = lib.mkIf isRemote {
       file = ../../../../secrets/shared/cloudreve-rclone-config.age;
       owner = serviceName;
       group = serviceName;
@@ -42,13 +43,13 @@ in
     # Cloudreve backup service
     # --------------------------------------------------------------------------
     systemd.services.cloudreve-backup = {
-      description = "Cloudreve backup to Backblaze B2";
+      description = "Cloudreve backup";
 
       after = [
-        "network-online.target"
         "cloudreve.service"
-      ];
-      wants = [ "network-online.target" ];
+      ]
+      ++ lib.optionals isRemote [ "network-online.target" ];
+      wants = lib.optionals isRemote [ "network-online.target" ];
 
       serviceConfig = {
         Type = "oneshot";
@@ -65,43 +66,48 @@ in
         pkgs.gnutar
         pkgs.gzip
         pkgs.redis
-        pkgs.rclone
         config.services.postgresql.package
-      ];
+      ]
+      ++ lib.optionals isRemote [ pkgs.rclone ];
 
-      script =
-        let
-          cloudreveStateDir = "/var/lib/${serviceName}";
-          rcloneConfig = config.age.secrets.cloudreve-rclone-config.path;
-        in
-        ''
-          set -euo pipefail
+      script = ''
+        set -euo pipefail
 
-          timestamp=$(date +%Y%m%d-%H%M%S)
-          backupDir="$STATE_DIRECTORY/$timestamp"
+        cloudreveStateDir="/var/lib/${serviceName}";
 
-          install -d -m 0700 "$backupDir"
+        timestamp=$(date +%Y%m%d-%H%M%S)
+        backupDir="$STATE_DIRECTORY/$timestamp"
+        toPath="${lib.escapeShellArg cfg.backup.toPath}/$timestamp"
 
-          echo "==> Dumping PostgreSQL database..."
-          pg_dump -h /run/postgresql -U ${serviceName} -d ${dbName} >"$backupDir/cloudreve.sql"
+        install -d -m 0700 "$backupDir"
 
-          echo "==> Creating backend data archive..."
-          tar -czf "$backupDir/backend_data.tgz" -C "${cloudreveStateDir}" data
+        echo "==> Dumping PostgreSQL database..."
+        pg_dump -h /run/postgresql -U ${serviceName} -d ${dbName} >"$backupDir/cloudreve.sql"
 
-          echo "==> Creating Redis data archive..."
-          redis-cli -s ${lib.escapeShellArg redisSocket} --rdb "$backupDir/dump.rdb"
-          tar -czf "$backupDir/redis_data.tgz" -C "$backupDir" dump.rdb
+        echo "==> Creating backend data archive..."
+        tar -czf "$backupDir/backend_data.tgz" -C "$cloudreveStateDir" data
 
-          echo "==> Uploading to Backblaze B2..."
+        echo "==> Creating Redis data archive..."
+        redis-cli -s ${lib.escapeShellArg redisSocket} --rdb "$backupDir/dump.rdb"
+        tar -czf "$backupDir/redis_data.tgz" -C "$backupDir" dump.rdb
+
+        ${lib.optionalString isRemote ''
+          echo "==> Uploading snapshot to remote storage..."
           rclone copy \
-            --config "${rcloneConfig}" \
-            --transfers ${toString cfg.backup.transfers} \
+            --config ${lib.escapeShellArg config.age.secrets.cloudreve-rclone-config.path} \
             --progress \
             "$backupDir" \
-            ${lib.escapeShellArg cfg.backup.remotePath}
+            "$toPath"
+        ''}
 
-          echo "==> Backup complete: $timestamp"
-        '';
+        ${lib.optionalString (!isRemote) ''
+          echo "==> Copying snapshot to local destination..."
+          install -d -m 0700 "$toPath"
+          cp -a "$backupDir/." "$toPath/"
+        ''}
+
+        echo "==> Backup complete: $timestamp"
+      '';
     };
 
     # --------------------------------------------------------------------------
