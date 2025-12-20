@@ -52,6 +52,7 @@ in
         description = "Generate Clash subscription configs from user data";
         after = [ "agenix.service" ];
         wantedBy = [ "multi-user.target" ];
+        restartTriggers = [ config.age.secrets.clash-users.file ];
         serviceConfig = {
           Type = "oneshot";
           ExecStart = clashGenerator;
