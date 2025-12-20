@@ -106,7 +106,10 @@
     ports = [ 35060 ];
   };
   hakula.services.postgresql.enable = true;
-  hakula.services.xray.enable = true;
+  hakula.services.xray = {
+    enable = true;
+    ws.enable = true;
+  };
   services.qemuGuest.enable = true;
 
   # ============================================================================

@@ -1,5 +1,5 @@
 proxies:
-  - name: 🇺🇸 US-1
+  - name: 🇺🇸 US-1 (REALITY)
     type: vless
     server: us-1.hakula.xyz
     port: 443
@@ -14,37 +14,26 @@ proxies:
       short-id: {{ short_id }}
     client-fingerprint: chrome
 
-  - name: 🇺🇸 US-2
-    type: vmess
-    server: us.hakula.xyz
+  - name: 🇺🇸 US-1 (WS + CDN)
+    type: vless
+    server: us-1-cdn.hakula.xyz
     port: 443
     uuid: {{ uuid }}
-    alterId: 0
-    cipher: auto
-    tls: true
-    network: grpc
-    grpc-opts:
-      grpc-service-name: ray_grpc_service
-
-  - name: 🇺🇸 US-2 (CDN)
-    type: vmess
-    server: us-cf.hakula.xyz
-    port: 443
-    uuid: {{ uuid }}
-    alterId: 0
-    cipher: auto
-    tls: true
     network: ws
+    tls: true
+    udp: true
     ws-opts:
-      path: /
+      path: /ws
+      headers:
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
+    client-fingerprint: chrome
 
 proxy-groups:
   - name: PROXY
     type: select
     proxies:
-      - 🇺🇸 US-1
-      - 🇺🇸 US-2
-      - 🇺🇸 US-2 (CDN)
+      - 🇺🇸 US-1 (REALITY)
+      - 🇺🇸 US-1 (WS + CDN)
 
 rule-providers:
   LAN:

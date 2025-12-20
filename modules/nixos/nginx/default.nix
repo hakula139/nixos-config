@@ -24,6 +24,25 @@ let
     proxy_request_buffering off;
     proxy_max_temp_file_size 0;
   '';
+
+  # Common virtual host configuration
+  commonVhostConfig = {
+    useACMEHost = "hakula.xyz";
+    onlySSL = true;
+    http2 = true;
+    listen = [
+      {
+        addr = "127.0.0.1";
+        port = 8443;
+        ssl = true;
+      }
+    ];
+    extraConfig = ''
+      ssl_client_certificate ${cloudflareOriginCA};
+      ssl_verify_client on;
+      ssl_stapling off;
+    '';
+  };
 in
 {
   # ----------------------------------------------------------------------------
@@ -119,30 +138,22 @@ in
       # --------------------------------------------------------------------------
       # Virtual hosts
       # --------------------------------------------------------------------------
-      # Default: Reject unknown hostnames
+      # Default: Proxy to REALITY host (anti-fingerprint)
       virtualHosts."_" = {
         default = true;
         locations."/" = {
-          return = "444";
+          proxyPass = "https://${realitySniHost}";
+          extraConfig = ''
+            proxy_ssl_server_name on;
+            proxy_ssl_name ${realitySniHost};
+          '';
         };
       };
 
       # Clash subscriptions
-      virtualHosts."clash.hakula.xyz" = {
-        useACMEHost = "hakula.xyz";
-        onlySSL = true;
-        listen = [
-          {
-            addr = "127.0.0.1";
-            port = 8443;
-            ssl = true;
-          }
-        ];
-        extraConfig = ''
+      virtualHosts."clash.hakula.xyz" = commonVhostConfig // {
+        extraConfig = commonVhostConfig.extraConfig + ''
           absolute_redirect off;
-          ssl_client_certificate ${cloudflareOriginCA};
-          ssl_verify_client on;
-          ssl_stapling off;
         '';
         locations."/" = {
           alias = "/var/lib/clash-subscriptions/";
@@ -158,21 +169,8 @@ in
       };
 
       # Cloudreve cloud storage
-      virtualHosts."cloud.hakula.xyz" = {
-        useACMEHost = "hakula.xyz";
-        onlySSL = true;
-        listen = [
-          {
-            addr = "127.0.0.1";
-            port = 8443;
-            ssl = true;
-          }
-        ];
-        extraConfig = ''
-          ssl_client_certificate ${cloudflareOriginCA};
-          ssl_verify_client on;
-          ssl_stapling off;
-
+      virtualHosts."cloud.hakula.xyz" = commonVhostConfig // {
+        extraConfig = commonVhostConfig.extraConfig + ''
           client_body_timeout 300s;
           client_header_timeout 60s;
 
@@ -180,54 +178,29 @@ in
           proxy_send_timeout 600s;
           proxy_read_timeout 600s;
         '';
-
         locations."/api/v4/ws" = {
           proxyPass = cloudreveUpstream;
           proxyWebsockets = true;
         };
-
         locations."/api/v4/file/download" = {
           proxyPass = cloudreveUpstream;
-          extraConfig = ''
-            ${cloudreveNoBufferingExtra}
-          '';
+          extraConfig = cloudreveNoBufferingExtra;
         };
-
         locations."/api/v4/file/upload" = {
           proxyPass = cloudreveUpstream;
-          extraConfig = ''
-            ${cloudreveNoBufferingExtra}
-          '';
+          extraConfig = cloudreveNoBufferingExtra;
         };
-
         locations."/dav" = {
           proxyPass = "${cloudreveUpstream}/dav";
-          extraConfig = ''
-            ${cloudreveNoBufferingExtra}
-          '';
+          extraConfig = cloudreveNoBufferingExtra;
         };
-
         locations."/" = {
           proxyPass = "${cloudreveUpstream}/";
         };
       };
 
       # Netdata dashboard
-      virtualHosts."metrics-us.hakula.xyz" = {
-        useACMEHost = "hakula.xyz";
-        onlySSL = true;
-        listen = [
-          {
-            addr = "127.0.0.1";
-            port = 8443;
-            ssl = true;
-          }
-        ];
-        extraConfig = ''
-          ssl_client_certificate ${cloudflareOriginCA};
-          ssl_verify_client on;
-          ssl_stapling off;
-        '';
+      virtualHosts."metrics-us.hakula.xyz" = commonVhostConfig // {
         locations."/" = {
           proxyPass = "http://127.0.0.1:19999/";
           proxyWebsockets = true;
@@ -237,6 +210,29 @@ in
           '';
         };
       };
+
+      # Xray WebSocket proxy (with Cloudflare CDN)
+      # Note: We use WebSocket instead of gRPC to avoid Cloudflare's DDoS protection false positives.
+      virtualHosts."us-1-cdn.hakula.xyz" = lib.mkIf config.hakula.services.xray.ws.enable (
+        commonVhostConfig
+        // {
+          http2 = false;
+          locations."/ws" = {
+            proxyPass = "http://127.0.0.1:${toString config.hakula.services.xray.ws.port}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              proxy_redirect off;
+              proxy_connect_timeout 60s;
+              proxy_send_timeout 60s;
+              proxy_read_timeout 300s;
+            '';
+          };
+          # Redirect all other requests to main site
+          locations."/" = {
+            return = "302 https://hakula.xyz";
+          };
+        }
+      );
     };
   };
 }

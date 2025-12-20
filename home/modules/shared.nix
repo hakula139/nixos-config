@@ -70,6 +70,8 @@ in
       # ------------------------------------------------------------------------
       # Containers & Kubernetes
       # ------------------------------------------------------------------------
+      podman
+      podman-compose
       kubectl
       kubernetes-helm
       k9s # TUI for Kubernetes
