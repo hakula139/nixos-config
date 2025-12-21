@@ -141,6 +141,7 @@ in
         server {
           listen 443;
           listen [::]:443;
+          error_log /var/log/nginx/stream-error.log crit;
           ssl_preread on;
           proxy_pass $backend;
         }
