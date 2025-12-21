@@ -20,6 +20,7 @@ in
   "shared/clash-users.json.age".publicKeys = sharedKeys;
   "shared/cloudflare-credentials.age".publicKeys = sharedKeys;
   "shared/cloudreve-rclone-config.age".publicKeys = sharedKeys;
+  "shared/dockerhub-token.age".publicKeys = sharedKeys;
   "shared/piclist-config.json.age".publicKeys = sharedKeys;
   "shared/piclist-token.age".publicKeys = sharedKeys;
   "shared/qq-smtp-authcode.age".publicKeys = sharedKeys;

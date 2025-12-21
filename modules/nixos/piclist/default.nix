@@ -39,6 +39,7 @@ in
     users.users.${serviceName} = {
       isSystemUser = true;
       group = serviceName;
+      extraGroups = [ "dockerhub" ];
       home = stateDir;
       createHome = true;
       linger = true;
@@ -91,6 +92,7 @@ in
 
       containers.${containerName} = {
         image = containerImage;
+        login = config.hakula.dockerHub.ociLogin;
         pull = "newer";
         autoStart = true;
         podman.user = serviceName;

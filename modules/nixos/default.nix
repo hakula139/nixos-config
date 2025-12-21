@@ -22,6 +22,7 @@ in
     (import ./clash { inherit realitySniHost; })
     ./cloudcone
     ./cloudreve
+    ./dockerhub
     ./netdata
     (import ./nginx { inherit realitySniHost; })
     ./piclist

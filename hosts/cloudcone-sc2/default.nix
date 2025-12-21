@@ -85,6 +85,10 @@
   # ============================================================================
   # Services
   # ============================================================================
+  hakula.dockerHub = {
+    username = "hakula139";
+    tokenAgeFile = ../../secrets/shared/dockerhub-token.age;
+  };
   hakula.services.aria2.enable = true;
   hakula.services.cachix.enable = true;
   hakula.services.clashGenerator.enable = true;
