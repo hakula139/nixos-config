@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   lib,
   ...
 }:
@@ -14,9 +13,7 @@
 
 let
   cfg = config.hakula.services.piclist;
-  serviceName = "piclist";
-  stateDir = "/var/lib/${serviceName}";
-  containerName = serviceName;
+  containerName = "piclist";
   containerImage = "docker.io/kuingsmile/piclist:v2.0.4";
 in
 {
@@ -35,69 +32,30 @@ in
 
   config = lib.mkIf cfg.enable {
     # --------------------------------------------------------------------------
-    # User & Group
-    # --------------------------------------------------------------------------
-    users.users.${serviceName} = {
-      isSystemUser = true;
-      group = serviceName;
-      extraGroups = [ "dockerhub" ];
-      home = stateDir;
-      createHome = true;
-      linger = true;
-      shell = pkgs.bashInteractive;
-      subUidRanges = [
-        {
-          startUid = 100000;
-          count = 65536;
-        }
-      ];
-      subGidRanges = [
-        {
-          startGid = 100000;
-          count = 65536;
-        }
-      ];
-    };
-    users.groups.${serviceName} = { };
-
-    # --------------------------------------------------------------------------
     # Secrets (agenix)
     # --------------------------------------------------------------------------
     age.secrets.piclist-config = {
       file = ../../../secrets/shared/piclist-config.json.age;
-      owner = serviceName;
-      group = serviceName;
       mode = "0400";
     };
 
     age.secrets.piclist-token = {
       file = ../../../secrets/shared/piclist-token.age;
-      owner = serviceName;
-      group = serviceName;
       mode = "0400";
     };
 
     # --------------------------------------------------------------------------
-    # Filesystem layout
+    # Docker container
     # --------------------------------------------------------------------------
-    systemd.tmpfiles.rules = [
-      "d ${stateDir} 0750 ${serviceName} ${serviceName} -"
-    ];
-
-    # --------------------------------------------------------------------------
-    # Podman container
-    # --------------------------------------------------------------------------
-    virtualisation.podman.enable = true;
+    virtualisation.docker.enable = true;
 
     virtualisation.oci-containers = {
-      backend = "podman";
+      backend = "docker";
 
       containers.${containerName} = {
         image = containerImage;
         login = config.hakula.dockerHub.ociLogin;
-        pull = "newer";
         autoStart = true;
-        podman.user = serviceName;
 
         cmd = [
           "sh"
@@ -119,9 +77,7 @@ in
     # --------------------------------------------------------------------------
     # Systemd service
     # --------------------------------------------------------------------------
-    systemd.services."podman-${containerName}" = {
-      unitConfig.RequiresMountsFor = lib.mkForce "/run/user/${serviceName}/containers";
-
+    systemd.services."docker-${containerName}" = {
       restartTriggers = [
         config.age.secrets.piclist-config.file
         config.age.secrets.piclist-token.file
