@@ -7,9 +7,6 @@
 # ==============================================================================
 # PicList (Image Upload Server)
 # ==============================================================================
-# PicList runs as an HTTP server that accepts image uploads and forwards them to
-# configured backends.
-# Architecture: Client -> PicList -> WebDAV -> Cloudreve -> Tencent COS
 
 let
   cfg = config.hakula.services.piclist;
