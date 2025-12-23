@@ -93,6 +93,8 @@ in
         config.services.postgresql.package
       ];
 
+      heartbeatUrl = lib.mkDefault "https://uptime.betterstack.com/api/v1/heartbeat/aEq66Y6nTJfjh4DVkDvQMjUj";
+
       prepareCommand = ''
         echo "==> Dumping PostgreSQL database..."
         pg_dump -h /run/postgresql -U backup -d ${dbName} >"${stateDir}/cloudreve.sql"

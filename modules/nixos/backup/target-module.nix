@@ -41,6 +41,12 @@ lib.types.submodule (
         description = "Extra packages available during prepareCommand";
       };
 
+      heartbeatUrl = lib.mkOption {
+        type = with lib.types; nullOr str;
+        default = null;
+        description = "Heartbeat URL to ping after successful (or failed) backup";
+      };
+
       prepareCommand = lib.mkOption {
         type = lib.types.lines;
         default = "";
