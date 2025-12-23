@@ -1,5 +1,6 @@
 {
   config,
+  pkgs,
   lib,
   ...
 }:
@@ -10,7 +11,9 @@
 
 let
   cfg = config.hakula.services.piclist;
-  containerImage = "docker.io/kuingsmile/piclist:v2.0.4";
+  version = "2.0.4";
+  picgoServerBin = "node_modules/.bin/picgo-server";
+  piclistPkgJson = "node_modules/piclist/package.json";
 in
 {
   # ----------------------------------------------------------------------------
@@ -18,6 +21,12 @@ in
   # ----------------------------------------------------------------------------
   options.hakula.services.piclist = {
     enable = lib.mkEnableOption "PicList image upload server";
+
+    nodejs = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.nodejs_24;
+      description = "Node.js package / version to use";
+    };
 
     port = lib.mkOption {
       type = lib.types.port;
@@ -28,56 +37,87 @@ in
 
   config = lib.mkIf cfg.enable {
     # --------------------------------------------------------------------------
+    # User & Group
+    # --------------------------------------------------------------------------
+    users.users.piclist = {
+      isSystemUser = true;
+      group = "piclist";
+    };
+    users.groups.piclist = { };
+
+    # --------------------------------------------------------------------------
     # Secrets (agenix)
     # --------------------------------------------------------------------------
     age.secrets.piclist-config = {
       file = ../../../secrets/shared/piclist-config.json.age;
-      owner = "root";
-      group = "root";
+      owner = "piclist";
+      group = "piclist";
       mode = "0400";
     };
 
     age.secrets.piclist-token = {
       file = ../../../secrets/shared/piclist-token.age;
-      owner = "root";
-      group = "root";
+      owner = "piclist";
+      group = "piclist";
       mode = "0400";
-    };
-
-    # --------------------------------------------------------------------------
-    # Docker container
-    # --------------------------------------------------------------------------
-    virtualisation.docker.enable = true;
-
-    virtualisation.oci-containers = {
-      backend = "docker";
-
-      containers.piclist = {
-        image = containerImage;
-        login = config.hakula.dockerHub.ociLogin;
-        autoStart = true;
-
-        cmd = [
-          "sh"
-          "-c"
-          "picgo-server -c /config/config.json -k $(cat /config/token)"
-        ];
-
-        ports = [
-          "127.0.0.1:${toString cfg.port}:36677"
-        ];
-
-        volumes = [
-          "${config.age.secrets.piclist-config.path}:/config/config.json:ro"
-          "${config.age.secrets.piclist-token.path}:/config/token:ro"
-        ];
-      };
     };
 
     # --------------------------------------------------------------------------
     # Systemd service
     # --------------------------------------------------------------------------
-    systemd.services."docker-piclist" = {
+    systemd.services.piclist = {
+      description = "PicList image upload server";
+      documentation = [ "https://github.com/Kuingsmile/PicList-Core" ];
+
+      after = [ "network.target" ];
+      wantedBy = [ "multi-user.target" ];
+
+      path = [ cfg.nodejs ];
+
+      preStart = ''
+        cd "$STATE_DIRECTORY"
+
+        installedVersion="$(${lib.getExe cfg.nodejs} -p "require('./${piclistPkgJson}').version" 2>/dev/null || true)"
+
+        if [ ! -x "${picgoServerBin}" ] || [ "$installedVersion" != "${version}" ]; then
+          rm -rf node_modules package.json package-lock.json
+          npm init -y
+          npm install piclist@${version}
+        fi
+
+        install -m 0600 ${config.age.secrets.piclist-config.path} config.json
+      '';
+
+      script = ''
+        cd "$STATE_DIRECTORY"
+        SECRET_KEY=$(cat ${config.age.secrets.piclist-token.path})
+        exec "${picgoServerBin}" -c config.json -k "$SECRET_KEY"
+      '';
+
+      serviceConfig = {
+        Type = "simple";
+        Restart = "on-failure";
+        RestartSec = "5s";
+        User = "piclist";
+        Group = "piclist";
+        NoNewPrivileges = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        PrivateTmp = true;
+        ProtectControlGroups = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        RestrictSUIDSGID = true;
+        LockPersonality = true;
+        UMask = "0077";
+        StateDirectory = "%N";
+        StateDirectoryMode = "0750";
+        WorkingDirectory = "%S/%N";
+        Environment = [
+          "HOME=%S/%N"
+        ];
+      };
+
       restartTriggers = [
         config.age.secrets.piclist-config.file
         config.age.secrets.piclist-token.file
