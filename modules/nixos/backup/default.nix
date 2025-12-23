@@ -12,7 +12,8 @@
 let
   cfg = config.hakula.services.backup;
   serviceName = "backup";
-  resticUnitFor = name: "restic-backups-${name}.service";
+  resticServiceFor = name: "restic-backups-${name}";
+  resticUnitFor = name: "${resticServiceFor name}.service";
   baseStateDir = "/var/lib/backups";
   stateDirFor = name: "${baseStateDir}/${name}";
 
@@ -193,7 +194,10 @@ in
     # --------------------------------------------------------------------------
     # State directories (for each target)
     # --------------------------------------------------------------------------
-    systemd.tmpfiles.rules = lib.mapAttrsToList (
+    systemd.tmpfiles.rules = [
+      "d ${baseStateDir} 0750 ${serviceName} ${serviceName} -"
+    ]
+    ++ lib.mapAttrsToList (
       name: _: "d ${stateDirFor name} 0700 ${serviceName} ${serviceName} -"
     ) enabledTargets;
 
@@ -329,7 +333,7 @@ in
       # ------------------------------------------------------------------------
       (lib.mapAttrs' (
         name: _:
-        lib.nameValuePair (resticUnitFor name) {
+        lib.nameValuePair (resticServiceFor name) {
           unitConfig = {
             OnSuccess = [ "backup-heartbeat-succeeded-${name}.service" ];
             OnFailure = [ "backup-heartbeat-failed-${name}.service" ];

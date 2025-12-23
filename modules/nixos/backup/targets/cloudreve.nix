@@ -25,14 +25,13 @@ let
 
   stateDir = "/var/lib/backups/cloudreve";
   restoreDir = "${stateDir}/restore";
-  cloudreveStateDir = "/var/lib/${serviceName}";
 in
 {
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
   options.hakula.services.backup.cloudreve = {
-    enable = lib.mkEnableOption "Cloudreve backup (PostgreSQL, Redis, backend data)";
+    enable = lib.mkEnableOption "Cloudreve backup (PostgreSQL, Redis)";
 
     schedule = lib.mkOption {
       type = with lib.types; nullOr str;
@@ -60,9 +59,16 @@ in
     # --------------------------------------------------------------------------
     # PostgreSQL access
     # --------------------------------------------------------------------------
-    services.postgresql.authentication = lib.mkAfter ''
-      local ${dbName} backup peer
-    '';
+    services.postgresql = {
+      ensureUsers = [
+        {
+          name = "backup";
+        }
+      ];
+      authentication = lib.mkAfter ''
+        local ${dbName} backup peer
+      '';
+    };
 
     # --------------------------------------------------------------------------
     # Backup target configuration
@@ -82,7 +88,6 @@ in
       ];
 
       extraGroups = [
-        serviceName
         redisGroup
       ];
 
@@ -99,9 +104,6 @@ in
         echo "==> Dumping PostgreSQL database..."
         pg_dump -h /run/postgresql -U backup -d ${dbName} >"${stateDir}/cloudreve.sql"
 
-        echo "==> Creating backend data archive..."
-        tar -czf "${stateDir}/backend_data.tgz" -C "${cloudreveStateDir}" data
-
         echo "==> Creating Redis data archive..."
         redis-cli -s ${lib.escapeShellArg redisSocket} --rdb "${stateDir}/dump.rdb"
         tar -czf "${stateDir}/redis_data.tgz" -C "${stateDir}" dump.rdb
@@ -116,7 +118,6 @@ in
 
       restoreCommand = ''
         sqlFile="${restoreDir}${stateDir}/cloudreve.sql"
-        backendTgz="${restoreDir}${stateDir}/backend_data.tgz"
         redisTgz="${restoreDir}${stateDir}/redis_data.tgz"
 
         if [ -f "$sqlFile" ]; then
@@ -126,15 +127,6 @@ in
           runuser -u backup -- psql -h /run/postgresql -U backup -d ${dbName} -v ON_ERROR_STOP=1 <"$sqlFile"
         else
           echo "cloudreve.sql not found in backup, skipping database restore"
-        fi
-
-        if [ -f "$backendTgz" ]; then
-          echo "==> Restoring backend data..."
-          mkdir -p "${cloudreveStateDir}/data"
-          tar -xzf "$backendTgz" -C "${cloudreveStateDir}" --no-same-owner
-          chown -R ${serviceName}:${serviceName} "${cloudreveStateDir}"
-        else
-          echo "backend_data.tgz not found in backup, skipping backend restore"
         fi
 
         if [ -f "$redisTgz" ]; then
