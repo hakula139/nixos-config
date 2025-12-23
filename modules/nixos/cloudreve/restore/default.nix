@@ -66,9 +66,10 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        StateDirectory = serviceName;
-        StateDirectoryMode = "0750";
         UMask = "0077";
+        StateDirectory = serviceName; # intentionally use Cloudreve's state dir
+        StateDirectoryMode = "0750";
+        WorkingDirectory = "%S/${serviceName}";
       };
 
       path = [

@@ -68,13 +68,6 @@ in
       };
 
       # ----------------------------------------------------------------------------
-      # Filesystem layout
-      # ----------------------------------------------------------------------------
-      systemd.tmpfiles.rules = [
-        "d /opt/cloudcone 0700 ccagent ccagent -"
-      ];
-
-      # ----------------------------------------------------------------------------
       # Systemd service
       # ----------------------------------------------------------------------------
       systemd.services.cloudcone-agent = {
@@ -95,7 +88,9 @@ in
           ProtectKernelModules = true;
           AmbientCapabilities = [ "CAP_NET_RAW" ];
           CapabilityBoundingSet = [ "CAP_NET_RAW" ];
-          WorkingDirectory = "/opt/cloudcone";
+          StateDirectory = "%N";
+          StateDirectoryMode = "0700";
+          WorkingDirectory = "%S/%N";
         };
       };
 

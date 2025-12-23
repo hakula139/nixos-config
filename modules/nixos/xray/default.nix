@@ -24,7 +24,7 @@ in
       port = lib.mkOption {
         type = lib.types.port;
         default = 8445;
-        description = "Local port for Xray WebSocket inbound";
+        description = "Port for Xray WebSocket inbound";
       };
     };
   };

@@ -55,10 +55,11 @@ in
         Type = "oneshot";
         User = serviceName;
         Group = serviceName;
-        StateDirectory = "${serviceName}-backup";
-        StateDirectoryMode = "0700";
-        UMask = "0077";
         PrivateTmp = true;
+        UMask = "0077";
+        StateDirectory = "%N";
+        StateDirectoryMode = "0700";
+        WorkingDirectory = "%S/%N";
       };
 
       path = [

@@ -12,12 +12,19 @@
 
 let
   cfg = config.hakula.services.nginx;
+
+  # ----------------------------------------------------------------------------
+  # Cloudflare
+  # ----------------------------------------------------------------------------
   cloudflareIPs = import ../cloudflare/ips.nix;
   cloudflareRealIPConfig = lib.concatMapStringsSep "\n" (ip: "set_real_ip_from ${ip};") (
     cloudflareIPs.ipv4 ++ cloudflareIPs.ipv6
   );
   cloudflareOriginCA = ../cloudflare/origin-pull-ca.pem;
 
+  # ----------------------------------------------------------------------------
+  # Upstreams
+  # ----------------------------------------------------------------------------
   cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
   cloudreveNoBufferingExtra = ''
     proxy_buffering off;
@@ -25,8 +32,12 @@ let
     proxy_max_temp_file_size 0;
   '';
 
-  # Common virtual host configuration
-  commonVhostConfig = {
+  piclistUpstream = "http://127.0.0.1:${toString config.hakula.services.piclist.port}";
+
+  # ----------------------------------------------------------------------------
+  # Shared Configuration
+  # ----------------------------------------------------------------------------
+  sharedVhostConfig = {
     useACMEHost = "hakula.xyz";
     onlySSL = true;
     http2 = true;
@@ -110,7 +121,7 @@ in
       recommendedOptimisation = true;
       recommendedProxySettings = true;
       recommendedTlsSettings = true;
-      clientMaxBodySize = "10G";
+      clientMaxBodySize = "500M";
 
       # Cloudflare real IP detection
       commonHttpConfig = ''
@@ -130,6 +141,7 @@ in
         server {
           listen 443;
           listen [::]:443;
+          error_log /var/log/nginx/stream-error.log crit;
           ssl_preread on;
           proxy_pass $backend;
         }
@@ -151,12 +163,12 @@ in
       };
 
       # Clash subscriptions
-      virtualHosts."clash.hakula.xyz" = commonVhostConfig // {
-        extraConfig = commonVhostConfig.extraConfig + ''
+      virtualHosts."clash.hakula.xyz" = sharedVhostConfig // {
+        extraConfig = sharedVhostConfig.extraConfig + ''
           absolute_redirect off;
         '';
         locations."/" = {
-          alias = "/var/lib/clash-subscriptions/";
+          alias = "/var/lib/clash-generator/";
           extraConfig = ''
             default_type application/x-yaml;
             add_header Content-Disposition 'attachment; filename="clash.yaml"';
@@ -169,8 +181,8 @@ in
       };
 
       # Cloudreve cloud storage
-      virtualHosts."cloud.hakula.xyz" = commonVhostConfig // {
-        extraConfig = commonVhostConfig.extraConfig + ''
+      virtualHosts."cloud.hakula.xyz" = sharedVhostConfig // {
+        extraConfig = sharedVhostConfig.extraConfig + ''
           client_body_timeout 300s;
           client_header_timeout 60s;
 
@@ -200,7 +212,7 @@ in
       };
 
       # Netdata dashboard
-      virtualHosts."metrics-us.hakula.xyz" = commonVhostConfig // {
+      virtualHosts."metrics-us.hakula.xyz" = sharedVhostConfig // {
         locations."/" = {
           proxyPass = "http://127.0.0.1:19999/";
           proxyWebsockets = true;
@@ -211,10 +223,27 @@ in
         };
       };
 
+      # PicList image upload server
+      virtualHosts."static.hakula.xyz" = lib.mkIf config.hakula.services.piclist.enable (
+        sharedVhostConfig
+        // {
+          locations."/upload" = {
+            proxyPass = "${piclistUpstream}/upload";
+            extraConfig = ''
+              proxy_buffering off;
+              proxy_request_buffering off;
+            '';
+          };
+          locations."/" = {
+            return = "302 https://cloud.hakula.xyz";
+          };
+        }
+      );
+
       # Xray WebSocket proxy (with Cloudflare CDN)
       # Note: We use WebSocket instead of gRPC to avoid Cloudflare's DDoS protection false positives.
       virtualHosts."us-1-cdn.hakula.xyz" = lib.mkIf config.hakula.services.xray.ws.enable (
-        commonVhostConfig
+        sharedVhostConfig
         // {
           http2 = false;
           locations."/ws" = {

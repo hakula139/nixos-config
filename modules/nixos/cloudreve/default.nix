@@ -200,7 +200,7 @@ in
 
       serviceConfig = {
         Type = "simple";
-        ExecStart = "%S/${serviceName}/cloudreve";
+        ExecStart = "%S/%N/cloudreve";
         Restart = "on-failure";
         RestartSec = "5s";
         User = serviceName;
@@ -214,12 +214,12 @@ in
         ProtectKernelModules = true;
         RestrictSUIDSGID = true;
         LockPersonality = true;
-        StateDirectory = serviceName;
-        StateDirectoryMode = "0750";
         UMask = "0077";
-        WorkingDirectory = "%S/${serviceName}";
+        StateDirectory = "%N";
+        StateDirectoryMode = "0750";
+        WorkingDirectory = "%S/%N";
         ReadWritePaths = [
-          "%S/${serviceName}"
+          "%S/%N"
         ]
         ++ lib.optionals cfg.aria2.enable [ config.services.aria2.settings.dir ];
       };

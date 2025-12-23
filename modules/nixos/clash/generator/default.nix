@@ -15,9 +15,12 @@ let
 in
 pkgs.writeShellScript "clash-generator" ''
   set -euo pipefail
+
+  outputDir="''${STATE_DIRECTORY:-/var/lib/clash-generator}"
+
   ${pythonEnv}/bin/python3 ${generator} \
     -u "${config.age.secrets.clash-users.path}" \
     -t "${template}" \
     -s "${realitySniHost}" \
-    -o "/var/lib/clash-subscriptions"
+    -o "$outputDir"
 ''

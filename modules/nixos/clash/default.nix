@@ -63,9 +63,9 @@ in
           ProtectSystem = "strict";
           ProtectHome = true;
           PrivateTmp = true;
-          StateDirectory = "clash-subscriptions";
+          StateDirectory = "%N";
           StateDirectoryMode = "0750";
-          WorkingDirectory = "/var/lib/clash-subscriptions";
+          WorkingDirectory = "%S/%N";
         };
       };
     }
