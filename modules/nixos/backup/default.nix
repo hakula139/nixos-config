@@ -1,0 +1,261 @@
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+
+# ==============================================================================
+# Backup Service (Restic -> Backblaze B2)
+# ==============================================================================
+
+let
+  cfg = config.hakula.services.backup;
+  serviceName = "backup";
+  baseStateDir = "/var/lib/backups";
+  stateDirFor = name: "${baseStateDir}/${name}";
+
+  targetModule = import ./target-module.nix { inherit lib; };
+  enabledTargets = lib.filterAttrs (_: t: t.enable) cfg.targets;
+  restoreTargets = lib.filterAttrs (_: t: t.restoreSnapshot != null) enabledTargets;
+  allExtraGroups = lib.unique (lib.flatten (lib.mapAttrsToList (_: t: t.extraGroups) enabledTargets));
+
+  repositoryFor =
+    name:
+    "b2:${cfg.b2Bucket}:${
+      lib.concatStringsSep "/" (
+        lib.filter (p: p != "") [
+          cfg.backupPath
+          name
+        ]
+      )
+    }";
+in
+{
+  imports = [
+    ./targets/cloudreve.nix
+    ./targets/twikoo.nix
+  ];
+
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
+  options.hakula.services.backup = {
+    enable = lib.mkEnableOption "Restic backup service to Backblaze B2";
+
+    b2Bucket = lib.mkOption {
+      type = lib.types.str;
+      example = "hakula-backup";
+      description = "Backblaze B2 bucket name";
+    };
+
+    backupPath = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      example = "cloudcone-sc2";
+      description = "Base path within the B2 bucket (each target appends its name).";
+    };
+
+    schedule = lib.mkOption {
+      type = lib.types.str;
+      default = "*-*-* 04:00:00";
+      description = "Default schedule for backups";
+    };
+
+    retention = {
+      daily = lib.mkOption {
+        type = lib.types.int;
+        default = 7;
+        description = "Default number of daily backups to keep";
+      };
+
+      weekly = lib.mkOption {
+        type = lib.types.int;
+        default = 4;
+        description = "Default number of weekly backups to keep";
+      };
+
+      monthly = lib.mkOption {
+        type = lib.types.int;
+        default = 6;
+        description = "Default number of monthly backups to keep";
+      };
+    };
+
+    targets = lib.mkOption {
+      type = lib.types.attrsOf targetModule;
+      default = { };
+      description = "Backup targets to configure";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.b2Bucket != "";
+        message = "hakula.services.backup.b2Bucket must be set.";
+      }
+    ];
+
+    # --------------------------------------------------------------------------
+    # User & Group
+    # --------------------------------------------------------------------------
+    users.users.${serviceName} = {
+      isSystemUser = true;
+      group = serviceName;
+      extraGroups = allExtraGroups;
+    };
+    users.groups.${serviceName} = { };
+
+    # --------------------------------------------------------------------------
+    # Secrets (agenix)
+    # --------------------------------------------------------------------------
+    age.secrets.backupEnv = {
+      file = ../../../secrets/shared/backup-env.age;
+      owner = serviceName;
+      group = serviceName;
+      mode = "0400";
+    };
+
+    age.secrets.backupResticPassword = {
+      file = ../../../secrets/shared/backup-restic-password.age;
+      owner = serviceName;
+      group = serviceName;
+      mode = "0400";
+    };
+
+    # --------------------------------------------------------------------------
+    # Restic backups (for each target)
+    # --------------------------------------------------------------------------
+    services.restic.backups = lib.mapAttrs (
+      name: targetCfg:
+      let
+        effectiveSchedule = if targetCfg.schedule != null then targetCfg.schedule else cfg.schedule;
+        stateDir = stateDirFor name;
+      in
+      {
+        initialize = true;
+        user = serviceName;
+        repository = repositoryFor name;
+        environmentFile = config.age.secrets.backupEnv.path;
+        passwordFile = config.age.secrets.backupResticPassword.path;
+
+        paths = if targetCfg.paths != [ ] then targetCfg.paths else [ stateDir ];
+
+        extraBackupArgs = [
+          "--tag"
+          name
+        ]
+        ++ targetCfg.extraBackupArgs;
+
+        backupPrepareCommand =
+          let
+            runtimePath = lib.makeBinPath (
+              [
+                pkgs.coreutils
+              ]
+              ++ targetCfg.runtimeInputs
+            );
+          in
+          lib.optionalString (targetCfg.prepareCommand != "") ''
+            set -euo pipefail
+            export PATH="${runtimePath}:$PATH"
+
+            rm -rf ${stateDir}
+            install -d -m 0700 -o ${serviceName} -g ${serviceName} ${stateDir}
+
+            ${targetCfg.prepareCommand}
+          '';
+
+        backupCleanupCommand = lib.optionalString (targetCfg.cleanupCommand != "") ''
+          ${targetCfg.cleanupCommand}
+        '';
+
+        pruneOpts = [
+          "--keep-daily"
+          (toString cfg.retention.daily)
+          "--keep-weekly"
+          (toString cfg.retention.weekly)
+          "--keep-monthly"
+          (toString cfg.retention.monthly)
+        ];
+
+        timerConfig = {
+          OnCalendar = effectiveSchedule;
+          Persistent = true;
+          RandomizedDelaySec = "15m";
+        };
+      }
+    ) enabledTargets;
+
+    # --------------------------------------------------------------------------
+    # State directories (for each target)
+    # --------------------------------------------------------------------------
+    systemd.tmpfiles.rules = lib.mapAttrsToList (
+      name: _: "d ${stateDirFor name} 0700 ${serviceName} ${serviceName} -"
+    ) enabledTargets;
+
+    # --------------------------------------------------------------------------
+    # Restore services (for each target)
+    # --------------------------------------------------------------------------
+    systemd.services = lib.mapAttrs' (
+      name: targetCfg:
+      let
+        stateDir = stateDirFor name;
+        restoreDir = "${stateDir}/restore";
+        repository = repositoryFor name;
+        runtimePath = lib.makeBinPath (
+          [
+            pkgs.coreutils
+            pkgs.restic
+          ]
+          ++ targetCfg.runtimeInputs
+        );
+      in
+      lib.nameValuePair "backup-restore-${name}" {
+        description = "Restore ${name} from Restic backup";
+
+        after = [ "network-online.target" ];
+        wants = [ "network-online.target" ];
+
+        serviceConfig = {
+          Type = "oneshot";
+          User = serviceName;
+          Group = serviceName;
+          UMask = "0077";
+        };
+
+        path = [
+          pkgs.coreutils
+          pkgs.restic
+        ]
+        ++ targetCfg.runtimeInputs;
+
+        environment = {
+          RESTIC_REPOSITORY = repository;
+          RESTIC_PASSWORD_FILE = config.age.secrets.backupResticPassword.path;
+        };
+
+        script = ''
+          set -euo pipefail
+          export PATH="${runtimePath}:$PATH"
+
+          rm -rf ${restoreDir}
+          install -d -m 0700 -o ${serviceName} -g ${serviceName} ${restoreDir}
+
+          source ${config.age.secrets.backupEnv.path}
+
+          echo "==> Restoring snapshot ${targetCfg.restoreSnapshot} from Restic..."
+          restic restore ${targetCfg.restoreSnapshot} \
+            --target ${restoreDir} \
+            --path ${stateDir}
+
+          echo "==> Running restore command..."
+          ${targetCfg.restoreCommand}
+
+          echo "==> Restore complete for ${name}!"
+        '';
+      }
+    ) restoreTargets;
+  };
+}

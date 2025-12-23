@@ -18,6 +18,7 @@ in
 {
   imports = [
     ./aria2
+    ./backup
     ./cachix
     (import ./clash { inherit realitySniHost; })
     ./cloudcone
