@@ -16,17 +16,21 @@ in
     with pkgs;
     [
       # ------------------------------------------------------------------------
-      # Build Tools
+      # C/C++
       # ------------------------------------------------------------------------
+      ccache
       cmake
       gnumake
+      ninja
+      pkg-config
 
       # ------------------------------------------------------------------------
-      # LLVM / Clang Toolchain
+      # LLVM/Clang Toolchain
       # ------------------------------------------------------------------------
       llvmPackages.clang
-      llvmPackages.llvm
+      llvmPackages.clang-tools
       llvmPackages.lld
+      llvmPackages.lldb
 
       # ------------------------------------------------------------------------
       # Go
