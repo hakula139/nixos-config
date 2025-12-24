@@ -44,7 +44,7 @@ in
       assertions = [
         {
           assertion = cfg.serverKeyAgeFile != null;
-          message = "hakula.services.cloudconeAgent.serverKeyAgeFile must be set when enabling the CloudCone agent.";
+          message = "hakula.services.cloudconeAgent.serverKeyAgeFile must be set.";
         }
       ];
 

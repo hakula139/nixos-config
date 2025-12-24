@@ -17,10 +17,8 @@ let
   redisName = serviceName;
   redisServiceName = "redis-${redisName}";
   redisUnit = "${redisServiceName}.service";
-  redisUser = config.services.redis.servers.${serviceName}.user;
   redisGroup = config.services.redis.servers.${serviceName}.group;
-  redisStateDir = "/var/lib/${redisServiceName}";
-  redisSocket = "/run/redis-${redisName}/redis.sock";
+  redisSocket = "/run/${redisServiceName}/redis.sock";
 
   configFile = pkgs.writeText "cloudreve-conf.ini" ''
     [System]
@@ -42,28 +40,6 @@ let
   '';
 in
 {
-  imports = [
-    (import ./backup {
-      inherit
-        serviceName
-        dbName
-        redisServiceName
-        redisSocket
-        redisStateDir
-        ;
-    })
-    (import ./restore {
-      inherit
-        serviceName
-        dbName
-        redisServiceName
-        redisUnit
-        redisUser
-        redisGroup
-        redisStateDir
-        ;
-    })
-  ];
 
   # ----------------------------------------------------------------------------
   # Module options
@@ -82,32 +58,6 @@ in
         type = lib.types.bool;
         default = true;
         description = "Enable aria2 for remote download support";
-      };
-    };
-
-    backup = {
-      enable = lib.mkEnableOption "Automatic Cloudreve backup";
-
-      toPath = lib.mkOption {
-        type = with lib.types; nullOr str;
-        default = null;
-        example = "b2:my-bucket/cloudreve-backups";
-        description = "Backup destination base path (local directory path, or remote path starting with 'b2:')";
-      };
-
-      schedule = lib.mkOption {
-        type = lib.types.str;
-        default = "*-*-* 03:00:00";
-        description = "systemd OnCalendar schedule for automatic backups";
-      };
-    };
-
-    restore = {
-      fromPath = lib.mkOption {
-        type = with lib.types; nullOr str;
-        default = null;
-        example = "b2:my-bucket/cloudreve-backups/20251220-030000";
-        description = "Backup source path (local directory path, or remote path starting with 'b2:')";
       };
     };
   };
@@ -178,16 +128,18 @@ in
       ++ lib.optionals cfg.aria2.enable [
         "aria2.service"
       ]
-      ++ lib.optionals (cfg.restore.fromPath != null) [
-        "cloudreve-restore.service"
+      ++ lib.optionals (config.hakula.services.backup.cloudreve.restoreSnapshot or null != null) [
+        "backup-restore-cloudreve.service"
       ];
+
       requires = [
         "postgresql.service"
         redisUnit
       ]
-      ++ lib.optionals (cfg.restore.fromPath != null) [
-        "cloudreve-restore.service"
+      ++ lib.optionals (config.hakula.services.backup.cloudreve.restoreSnapshot or null != null) [
+        "backup-restore-cloudreve.service"
       ];
+
       wantedBy = [ "multi-user.target" ];
 
       preStart = ''

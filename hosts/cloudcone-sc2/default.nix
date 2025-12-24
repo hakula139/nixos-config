@@ -90,19 +90,20 @@
     tokenAgeFile = ../../secrets/shared/dockerhub-token.age;
   };
   hakula.services.aria2.enable = true;
+  hakula.services.backup = {
+    enable = true;
+    b2Bucket = "hakula-backup";
+    backupPath = "cloudcone-sc2";
+    cloudreve.enable = true;
+    twikoo.enable = true;
+  };
   hakula.services.cachix.enable = true;
   hakula.services.clashGenerator.enable = true;
   hakula.services.cloudconeAgent = {
     enable = true;
     serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-key.age;
   };
-  hakula.services.cloudreve = {
-    enable = true;
-    backup = {
-      enable = true;
-      toPath = "b2:hakula-backup/cloudcone-sc2/cloudreve";
-    };
-  };
+  hakula.services.cloudreve.enable = true;
   hakula.services.piclist.enable = true;
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
