@@ -11,10 +11,11 @@ let
 in
 {
   imports = [
-    ./modules/zsh.nix
-    ./modules/git.nix
     ./modules/shared.nix
     ./modules/darwin.nix
+    ./modules/cursor.nix
+    ./modules/git.nix
+    ./modules/zsh.nix
   ];
 
   # ============================================================================
@@ -62,4 +63,12 @@ in
   # Home Manager Self-Management
   # ============================================================================
   programs.home-manager.enable = true;
+
+  # ============================================================================
+  # Custom Modules
+  # ============================================================================
+  hakula.cursor = {
+    enable = true;
+    enableExtensions = true;
+  };
 }

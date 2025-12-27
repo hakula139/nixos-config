@@ -9,16 +9,10 @@
 # ==============================================================================
 
 lib.mkIf pkgs.stdenv.isDarwin {
-  home.sessionVariables = {
-    # --------------------------------------------------------------------------
-    # Homebrew Mirrors
-    # --------------------------------------------------------------------------
-    HOMEBREW_API_DOMAIN = "https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api";
-    HOMEBREW_BOTTLE_DOMAIN = "https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles";
-  };
+  home.sessionVariables = { };
 
   home.sessionPath = [
-    "/opt/homebrew/bin" # Homebrew (Apple Silicon)
+    "/opt/homebrew/bin"
   ];
 
   programs.zsh.initContent = lib.mkAfter ''
