@@ -30,6 +30,7 @@ envrc
 esbenp
 findutils
 geoip
+ghcup
 gnused
 gopath
 gopls
