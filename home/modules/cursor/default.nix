@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  inputs,
   ...
 }:
 
@@ -13,40 +12,47 @@
 let
   cfg = config.hakula.cursor;
   isDarwin = pkgs.stdenv.isDarwin;
-
-  # Import extension management
-  ext = import ./extensions.nix {
-    inherit pkgs lib inputs;
-    homeDirectory = config.home.homeDirectory;
-  };
+  ext = import ./extensions.nix { inherit lib; };
 
   # ----------------------------------------------------------------------------
   # Settings Generation
   # ----------------------------------------------------------------------------
-  cursorSettingsBase = builtins.fromJSON (builtins.readFile ./settings.json);
-  cursorSettingsOverrides = import ./settings.nix { inherit pkgs; };
-  cursorSettings = lib.recursiveUpdate cursorSettingsBase cursorSettingsOverrides;
-  cursorSettingsJson = (pkgs.formats.json { }).generate "cursor-settings.json" cursorSettings;
+  settingsBase = builtins.fromJSON (builtins.readFile ./settings.json);
+  settingsOverrides = import ./settings.nix { inherit pkgs; };
+  settings = lib.recursiveUpdate settingsBase settingsOverrides;
+  settingsJson = (pkgs.formats.json { }).generate "cursor-settings.json" settings;
 
   # ----------------------------------------------------------------------------
   # User Files
   # ----------------------------------------------------------------------------
-  cursorUserFiles =
+  userFiles =
     if isDarwin then
       {
-        "Library/Application Support/Cursor/User/settings.json".source = cursorSettingsJson;
+        "Library/Application Support/Cursor/User/settings.json".source = settingsJson;
         "Library/Application Support/Cursor/User/keybindings.json".source = ./keybindings.json;
         "Library/Application Support/Cursor/User/snippets".source = ./snippets;
-        ".cursor/extensions/extensions.json".source = ext.extensionsJson;
       }
     else
       {
-        "Cursor/User/settings.json".source = cursorSettingsJson;
+        "Cursor/User/settings.json".source = settingsJson;
         "Cursor/User/keybindings.json".source = ./keybindings.json;
         "Cursor/User/snippets".source = ./snippets;
-        ".cursor/extensions/extensions.json".source = ext.extensionsJson;
       };
 
+  # ----------------------------------------------------------------------------
+  # Cursor Paths
+  # ----------------------------------------------------------------------------
+  paths =
+    if isDarwin then
+      [
+        "/usr/local/bin"
+        "/Applications/Cursor.app/Contents/Resources/app/bin"
+      ]
+    else
+      [
+        "/usr/local/bin"
+        "/usr/bin"
+      ];
 in
 {
   # ============================================================================
@@ -65,37 +71,22 @@ in
     # --------------------------------------------------------------------------
     # User Configuration Files
     # --------------------------------------------------------------------------
-    home.file = lib.optionalAttrs isDarwin cursorUserFiles;
-    xdg.configFile = lib.optionalAttrs (!isDarwin) cursorUserFiles;
+    home.file = lib.optionalAttrs isDarwin userFiles;
+    xdg.configFile = lib.optionalAttrs (!isDarwin) userFiles;
 
     # --------------------------------------------------------------------------
-    # Extension Management (Home Manager Activation)
+    # Extension Management
     # --------------------------------------------------------------------------
     home.activation.cursorExtensions = lib.mkIf cfg.enableExtensions (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        base="$HOME/.cursor/extensions"
-        mkdir -p "$base"
+        export PATH="${lib.concatStringsSep ":" paths}:$PATH"
 
-        ${ext.extensionCopyScripts}
-
-        # Remove undeclared extensions
-        for dir in "$base"/*; do
-          if [ -d "$dir" ]; then
-            name=$(basename "$dir")
-            case "$name" in
-              ${ext.declaredExtensionsPattern})
-                ;;
-              anysphere.*)
-                ;;
-              extensions.json|.obsolete|.DS_Store)
-                ;;
-              *)
-                echo "Removing undeclared extension: $name"
-                rm -rf "$dir"
-                ;;
-            esac
-          fi
-        done
+        if command -v cursor &>/dev/null; then
+          cursor="$(command -v cursor)"
+          ${ext.installScript}
+        else
+          echo "Cursor not found, skipping extension installation"
+        fi
       ''
     );
   };
