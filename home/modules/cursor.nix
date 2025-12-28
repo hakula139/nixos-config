@@ -45,20 +45,6 @@ let
       };
 
   # ----------------------------------------------------------------------------
-  # Extension Management
-  # ----------------------------------------------------------------------------
-  mkCursorExtensionLink =
-    ext:
-    let
-      extId = ext.vscodeExtPublisher + "." + ext.vscodeExtName;
-      version = ext.version;
-    in
-    {
-      name = ".cursor/extensions/${extId}-${version}";
-      value.source = "${ext}/share/vscode/extensions/${extId}";
-    };
-
-  # ----------------------------------------------------------------------------
   # Extension List
   # ----------------------------------------------------------------------------
   extensions = with vscExtLib; [
@@ -158,6 +144,34 @@ let
     marketplace.t3dotgg.vsc-material-theme-but-i-wont-sue-you
     pkief.material-icon-theme
   ];
+
+  # ----------------------------------------------------------------------------
+  # Extension Installation Scripts
+  # ----------------------------------------------------------------------------
+  mkExtensionCopyScript =
+    ext:
+    let
+      extId = ext.vscodeExtPublisher + "." + ext.vscodeExtName;
+      version = ext.version;
+      src = "${ext}/share/vscode/extensions/${extId}";
+      dest = "$HOME/.cursor/extensions/${extId}-${version}";
+    in
+    ''
+      # Remove old versions of this extension
+      for old in "$base/${extId}"-*; do
+        if [ -e "$old" ] && [ "$old" != "${dest}" ]; then
+          rm -rf "$old"
+        fi
+      done
+
+      # Copy extension if not already present
+      if [ ! -e "${dest}" ]; then
+        cp -R "${src}" "${dest}"
+        chmod -R u+rw,go-rwx "${dest}"
+      fi
+    '';
+
+  extensionCopyScripts = lib.concatMapStringsSep "\n\n" mkExtensionCopyScript extensions;
 in
 {
   # ----------------------------------------------------------------------------
@@ -166,7 +180,7 @@ in
   options.hakula.cursor = {
     enable = lib.mkEnableOption "Cursor configuration";
 
-    enableExtensions = lib.mkEnableOption "Cursor extensions (symlinked into ~/.cursor/extensions)";
+    enableExtensions = lib.mkEnableOption "Cursor extensions";
   };
 
   config = lib.mkIf cfg.enable {
@@ -174,11 +188,18 @@ in
     # User Configuration Files
     # --------------------------------------------------------------------------
     xdg.configFile = lib.optionalAttrs (!isDarwin) cursorUserFiles;
+    home.file = lib.optionalAttrs isDarwin cursorUserFiles;
 
-    home.file =
-      (lib.optionalAttrs isDarwin cursorUserFiles)
-      // (lib.optionalAttrs cfg.enableExtensions (
-        lib.listToAttrs (map mkCursorExtensionLink extensions)
-      ));
+    # --------------------------------------------------------------------------
+    # Extension Installation (Home Manager Activation)
+    # --------------------------------------------------------------------------
+    home.activation.cursorExtensions = lib.mkIf cfg.enableExtensions (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        base="$HOME/.cursor/extensions"
+        mkdir -p "$base"
+
+        ${extensionCopyScripts}
+      ''
+    );
   };
 }
