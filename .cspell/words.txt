@@ -37,6 +37,8 @@ gopls
 gsub
 hakula
 hediet
+hitoolbox
+horiz
 iface
 inetutils
 inodes
@@ -67,6 +69,7 @@ nixos
 nixpkgs
 nixsw
 nixup
+nlsv
 nvim
 pcdn
 pcpu
