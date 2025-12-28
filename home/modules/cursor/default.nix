@@ -82,7 +82,6 @@ in
         export PATH="${lib.concatStringsSep ":" paths}:$PATH"
 
         if command -v cursor &>/dev/null; then
-          cursor="$(command -v cursor)"
           ${ext.installScript}
         else
           echo "Cursor not found, skipping extension installation"

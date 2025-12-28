@@ -55,7 +55,7 @@ let
     # Other Languages
     # --------------------------------------------------------------------------
     "jnoortheen.nix-ide"
-    "foxundermoon.shell-format"
+    "foxundermoon.shell-format@7.2.5"
     "redhat.vscode-yaml"
     "tamasfe.even-better-toml"
     "mechatroner.rainbow-csv"
@@ -114,9 +114,24 @@ let
   # ============================================================================
   # Installation Script
   # ============================================================================
-  installScript = lib.concatMapStringsSep "\n" (ext: ''
-    cursor --install-extension "${ext}" || echo "Failed to install ${ext}"
-  '') extensions;
+  installScript = ''
+    installed="$(cursor --list-extensions --show-versions 2>/dev/null || true)"
+
+    is_installed() {
+      case "$1" in
+        *@*) printf '%s\n' "$installed" | grep -qFx "$1" ;;
+        *) printf '%s\n' "$installed" | cut -d@ -f1 | grep -qFx "$1" ;;
+      esac
+    }
+
+    while IFS= read -r ext; do
+      if [ -n "$ext" ] && ! is_installed "$ext"; then
+        cursor --install-extension "$ext" || echo "Failed to install $ext"
+      fi
+    done <<EOF
+    ${lib.concatStringsSep "\n" extensions}
+    EOF
+  '';
 in
 {
   inherit extensions installScript;
