@@ -21,6 +21,7 @@ runs:
       uses: wimpysworld/nothing-but-nix@v6
       with:
         nix-permission-edict: true
+        root-safe-haven: '24576' # 24 GB
 
     - name: Install Nix
       uses: cachix/install-nix-action@v31
