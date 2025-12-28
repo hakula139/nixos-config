@@ -47,7 +47,7 @@ jobs:
             target: .#homeConfigurations.hakula-linux.activationPackage
           - id: macos
             name: hakula-macbook (aarch64-darwin, macOS)
-            runner: macos-15 # Sequoia
+            runner: macos-latest
             target: .#darwinConfigurations.hakula-macbook.system
 
     steps:

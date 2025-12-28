@@ -184,6 +184,7 @@
   "prettier.quoteProps": "consistent",
   "prettier.singleQuote": true,
   "prettier.trailingComma": "all",
+  "redhat.telemetry.enabled": true,
   "remote.extensionKind": {
     "WakaTime.vscode-wakatime": ["ui"]
   },
