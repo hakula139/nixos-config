@@ -19,6 +19,8 @@ runs:
     - name: General cleanup
       if: ${{ runner.os == 'Linux' }}
       uses: wimpysworld/nothing-but-nix@v6
+      with:
+        nix-permission-edict: true
 
     - name: Install Nix
       uses: cachix/install-nix-action@v31
