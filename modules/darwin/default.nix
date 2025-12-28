@@ -12,7 +12,7 @@ in
   # Nix
   # ============================================================================
   nix = {
-    enable = true; # Let nix-darwin manage the Nix installation
+    enable = true;
     settings = shared.nixSettings;
     optimise.automatic = true;
     gc = {
@@ -26,8 +26,10 @@ in
     };
   };
 
+  nixpkgs.config.allowUnfree = true;
+
   # ============================================================================
-  # System
+  # macOS System Settings (best effort)
   # ============================================================================
   system = {
     stateVersion = 6;
@@ -38,61 +40,191 @@ in
     };
 
     defaults = {
-      # Global settings
+      # ========================================================================
+      # System Settings
+      # ========================================================================
+
+      # ------------------------------------------------------------------------
+      # NSGlobalDomain (system-wide preferences)
+      # ------------------------------------------------------------------------
       NSGlobalDomain = {
-        # Expand save / print panels by default
+        # Appearance → Show scroll bars
+        AppleShowScrollBars = "WhenScrolling";
+
+        # Keyboard → Key repeat
+        ApplePressAndHoldEnabled = false;
+        InitialKeyRepeat = 15;
+        KeyRepeat = 2;
+
+        # Keyboard → Keyboard navigation
+        AppleKeyboardUIMode = 3;
+
+        # Keyboard → Keyboard Shortcuts → Function Keys
+        "com.apple.keyboard.fnState" = true;
+
+        # Keyboard → Text Input
+        NSAutomaticCapitalizationEnabled = false;
+        NSAutomaticDashSubstitutionEnabled = false;
+        NSAutomaticPeriodSubstitutionEnabled = false;
+        NSAutomaticQuoteSubstitutionEnabled = false;
+        NSAutomaticSpellingCorrectionEnabled = true;
+
+        # Trackpad → Scroll & Zoom → Natural scrolling
+        "com.apple.swipescrolldirection" = true;
+
+        # Save / Print dialogs (Internal)
         NSNavPanelExpandedStateForSaveMode = true;
         NSNavPanelExpandedStateForSaveMode2 = true;
         PMPrintingExpandedStateForPrint = true;
         PMPrintingExpandedStateForPrint2 = true;
-        # Disable auto-capitalization and smart quotes / dashes
-        NSAutomaticCapitalizationEnabled = false;
-        NSAutomaticDashSubstitutionEnabled = false;
-        NSAutomaticQuoteSubstitutionEnabled = false;
-        # Full keyboard access for all controls
-        AppleKeyboardUIMode = 3;
-        # Fast key repeat
-        KeyRepeat = 2;
-        InitialKeyRepeat = 15;
       };
 
+      # ------------------------------------------------------------------------
+      # Desktop & Dock
+      # ------------------------------------------------------------------------
       dock = {
+        # Dock
+        tilesize = 55;
+        magnification = true;
+        largesize = 82;
+        orientation = "bottom";
+        minimize-to-application = true;
         autohide = true;
         show-recents = true;
-        mru-spaces = false;
-        minimize-to-application = true;
+
+        # Mission Control
+        mru-spaces = true;
       };
 
+      WindowManager = {
+        # Desktop
+        EnableStandardClickToShowDesktop = false;
+        HideDesktop = false;
+
+        # Stage Manager
+        GloballyEnabled = false;
+        AutoHide = false;
+        AppWindowGroupingBehavior = true;
+
+        # Widgets
+        StandardHideWidgets = false;
+        StageManagerHideWidgets = false;
+
+        # Windows
+        EnableTopTilingByEdgeDrag = true;
+        EnableTiledWindowMargins = false;
+      };
+
+      # ------------------------------------------------------------------------
+      # Menu Bar
+      # ------------------------------------------------------------------------
+      menuExtraClock = {
+        # Clock Options
+        ShowDate = 1;
+        ShowDayOfMonth = true;
+        ShowDayOfWeek = true;
+        IsAnalog = false;
+        FlashDateSeparators = false;
+        ShowSeconds = false;
+        Show24Hour = true;
+      };
+
+      # ------------------------------------------------------------------------
+      # Keyboard
+      # ------------------------------------------------------------------------
+      hitoolbox = {
+        # Press Fn key to
+        AppleFnUsageType = "Change Input Source";
+      };
+
+      # ------------------------------------------------------------------------
+      # Trackpad
+      # ------------------------------------------------------------------------
+      trackpad = {
+        # Point & Click
+        TrackpadRightClick = true;
+        Clicking = true;
+
+        # Accessibility → Pointer Control → Trackpad Options → Dragging style
+        TrackpadThreeFingerDrag = true;
+      };
+
+      # ========================================================================
+      # App-specific Settings
+      # ========================================================================
+
+      # ------------------------------------------------------------------------
+      # Activity Monitor
+      # ------------------------------------------------------------------------
+      ActivityMonitor = {
+        OpenMainWindow = true;
+        ShowCategory = 101;
+      };
+
+      # ------------------------------------------------------------------------
+      # Finder
+      # ------------------------------------------------------------------------
       finder = {
+        # General
+        ShowHardDrivesOnDesktop = false;
+        ShowExternalHardDrivesOnDesktop = false;
+        ShowRemovableMediaOnDesktop = false;
+        ShowMountedServersOnDesktop = false;
+        NewWindowTarget = "Home";
+
+        # Advanced
         AppleShowAllExtensions = true;
         FXEnableExtensionChangeWarning = false;
+        _FXSortFoldersFirst = true;
+        _FXSortFoldersFirstOnDesktop = false;
+        FXDefaultSearchScope = "SCcf";
+
+        # Internal
         QuitMenuItem = true;
+        AppleShowAllFiles = false;
         ShowPathbar = true;
         ShowStatusBar = false;
-        _FXShowPosixPathInTitle = false;
+        FXPreferredViewStyle = "Nlsv";
       };
 
-      trackpad = {
-        Clicking = true;
-        TrackpadRightClick = true;
-        TrackpadThreeFingerDrag = true;
+      # ------------------------------------------------------------------------
+      # Calendar
+      # ------------------------------------------------------------------------
+      iCal = {
+        "first day of week" = "Monday";
+        "TimeZone support enabled" = true;
+      };
+
+      # ========================================================================
+      # Custom User Preferences (not yet supported by nix-darwin)
+      # ========================================================================
+      CustomUserPreferences = {
+        # ----------------------------------------------------------------------
+        # NSGlobalDomain (system-wide preferences)
+        # ----------------------------------------------------------------------
+        NSGlobalDomain = {
+          # Menu Bar → Show menu bar background
+          SLSMenuBarUseBlurredAppearance = true;
+        };
       };
     };
   };
 
   # ============================================================================
-  # Security
+  # macOS Security
   # ============================================================================
   security.pam.services.sudo_local.touchIdAuth = true;
 
   # ============================================================================
-  # Environment
+  # Shell & Environment
   # ============================================================================
   programs.zsh.enable = true;
   environment.shells = [ pkgs.zsh ];
 
+  # ============================================================================
+  # Fonts & Packages
+  # ============================================================================
   fonts.packages = shared.fonts;
-
   environment.systemPackages = shared.basePackages;
 
   # ============================================================================

@@ -1,0 +1,37 @@
+name: Setup Nix
+description: Install Nix and setup cache
+
+inputs:
+  cache_prefix:
+    description: Cache prefix (e.g., flake-check)
+    required: true
+  cachix_name:
+    description: Cachix cache name (skips Cachix if not provided)
+  cachix_auth_token:
+    description: Cachix authentication token
+  cachix_skip_push:
+    description: Skip pushing to Cachix
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: General cleanup
+      if: ${{ runner.os == 'Linux' }}
+      uses: wimpysworld/nothing-but-nix@v6
+      with:
+        nix-permission-edict: true
+        root-safe-haven: '24576' # 24 GB
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v31
+      with:
+        install_options: ${{ runner.os == 'Linux' && '--no-daemon' || '' }}
+
+    - name: Setup Cachix
+      if: ${{ inputs.cachix_name }}
+      uses: cachix/cachix-action@v16
+      with:
+        name: ${{ inputs.cachix_name }}
+        authToken: ${{ inputs.cachix_auth_token }}
+        skipPush: ${{ inputs.cachix_skip_push }}

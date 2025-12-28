@@ -1,8 +1,4 @@
-{
-  pkgs,
-  lib,
-  ...
-}:
+{ pkgs, ... }:
 
 # ==============================================================================
 # NixOS Configuration
@@ -58,11 +54,7 @@ in
     };
   };
 
-  nixpkgs.config.allowUnfreePredicate =
-    pkg:
-    builtins.elem (lib.getName pkg) [
-      "netdata"
-    ];
+  nixpkgs.config.allowUnfree = true;
 
   # ============================================================================
   # Boot & Kernel

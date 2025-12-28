@@ -201,15 +201,21 @@ in
       # Create directory and cd into it
       mkcd() { mkdir -p "$1" && cd "$1"; }
 
-      # Set EDITOR based on available editors (cursor > code > nvim)
+      # Set EDITOR based on available editors (cursor > code > nvim > vim)
       if command -v cursor &>/dev/null; then
         export EDITOR="cursor editor --wait"
       elif command -v code &>/dev/null; then
         export EDITOR="code --wait"
-      else
+      elif command -v nvim &>/dev/null; then
         export EDITOR="nvim"
+      else
+        export EDITOR="vim"
       fi
       alias e="$EDITOR"
+
+      sudoe() {
+        SUDO_EDITOR="$EDITOR" sudo -e "$@"
+      }
 
       # ------------------------------------------------------------------------
       # Nix rebuild aliases

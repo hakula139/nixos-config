@@ -1,0 +1,251 @@
+{
+  "[c]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  },
+  "[cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[dockercompose]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "[dockerfile]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
+  },
+  "[github-actions-workflow]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[less]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+  },
+  "[nix]": {
+    "editor.defaultFormatter": "jnoortheen.nix-ide"
+  },
+  "[proto3]": {
+    "editor.defaultFormatter": "zxh404.vscode-proto3"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "C_Cpp.clang_format_fallbackStyle": "Google",
+  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+  "C_Cpp.default.cppStandard": "c++23",
+  "C_Cpp.default.cStandard": "c23",
+  "C_Cpp.experimentalFeatures": "enabled",
+  "clangd.checkUpdates": true,
+  "cmake.allowCommentsInPresetsFile": true,
+  "cmake.ctest.allowParallelJobs": true,
+  "cmake.options.statusBarVisibility": "icon",
+  "cmake.showConfigureWithDebuggerNotification": false,
+  "cSpell.allowCompoundWords": true,
+  "cSpell.language": "en,en-GB",
+  "cSpell.userWords": ["hakula"],
+  "cursor.composer.textSizeScale": 1.15,
+  "cursor.cpp.enablePartialAccepts": true,
+  "cursorpyright.analysis.autoImportCompletions": true,
+  "cursorpyright.analysis.inlayHints.callArgumentNames": true,
+  "cursorpyright.analysis.inlayHints.callArgumentNamesMatching": true,
+  "cursorpyright.analysis.inlayHints.functionReturnTypes": true,
+  "cursorpyright.analysis.inlayHints.genericTypes": true,
+  "cursorpyright.analysis.inlayHints.variableTypes": true,
+  "cursorpyright.analysis.typeCheckingMode": "strict",
+  "debug.console.fontSize": 14,
+  "debug.javascript.unmapMissingSources": true,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "editor.copyWithSyntaxHighlighting": false,
+  "editor.fontFamily": "Sarasa Mono SC, monospace",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 16,
+  "editor.formatOnType": false,
+  "editor.inlayHints.fontFamily": "Sarasa Mono SC, monospace",
+  "editor.inlineSuggest.enabled": true,
+  "editor.quickSuggestions": {
+    "comments": "on",
+    "strings": "on"
+  },
+  "editor.tabSize": 2,
+  "errorLens.gutterIconsEnabled": true,
+  "errorLens.statusBarColorsEnabled": true,
+  "evenBetterToml.formatter.alignComments": true,
+  "evenBetterToml.formatter.alignEntries": true,
+  "evenBetterToml.formatter.allowedBlankLines": 1,
+  "evenBetterToml.formatter.arrayAutoExpand": true,
+  "evenBetterToml.formatter.arrayTrailingComma": true,
+  "evenBetterToml.formatter.columnWidth": 80,
+  "evenBetterToml.formatter.reorderArrays": true,
+  "evenBetterToml.formatter.trailingNewline": true,
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "explorer.confirmPasteNative": false,
+  "extensions.ignoreRecommendations": true,
+  "files.associations": {
+    ".env*": "properties",
+    "*.json": "jsonc",
+    "history": "plaintext"
+  },
+  "files.autoGuessEncoding": true,
+  "files.autoSave": "off",
+  "files.eol": "\n",
+  "files.trimFinalNewlines": true,
+  "git.allowForcePush": true,
+  "git.allowNoVerifyCommit": true,
+  "git.autofetch": true,
+  "git.autoStash": true,
+  "git.confirmSync": false,
+  "git.detectSubmodules": true,
+  "git.diagnosticsCommitHook.Enabled": true,
+  "git.enableSmartCommit": true,
+  "git.ignoreLegacyWarning": true,
+  "git.openRepositoryInParentFolders": "always",
+  "git.pruneOnFetch": true,
+  "git.pullBeforeCheckout": true,
+  "git.rebaseWhenSync": true,
+  "git.replaceTagsWhenPull": true,
+  "git.showCursorWorktrees": true,
+  "git.statusLimit": 500,
+  "git.supportCancellation": true,
+  "git.terminalGitEditor": true,
+  "git.useCommitInputAsStashMessage": true,
+  "github.gitProtocol": "ssh",
+  "gitlens.gitCommands.skipConfirmations": [
+    "fetch:command",
+    "stash-push:command",
+    "switch:command",
+    "push:command"
+  ],
+  "gitlens.launchpad.indicator.enabled": false,
+  "gitlens.views.contributors.files.layout": "tree",
+  "go.toolsManagement.autoUpdate": true,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "lldb.suppressUpdateNotifications": true,
+  "markdown-preview-enhanced.automaticallyShowPreviewOfMarkdownBeingEdited": true,
+  "markdown-preview-enhanced.breakOnSingleNewLine": false,
+  "markdown-preview-enhanced.codeBlockTheme": "github-dark.css",
+  "markdown-preview-enhanced.enableExtendedTableSyntax": true,
+  "markdown-preview-enhanced.enableHTML5Embed": true,
+  "markdown-preview-enhanced.enableLinkify": false,
+  "markdown-preview-enhanced.imageUploader": "sm.ms",
+  "markdown-preview-enhanced.previewTheme": "github-dark.css",
+  "markdown-preview-enhanced.printBackground": true,
+  "markdown-preview-enhanced.revealjsTheme": "night.css",
+  "markdown.extension.completion.enabled": true,
+  "markdown.extension.italic.indicator": "_",
+  "markdown.extension.print.absoluteImgPath": false,
+  "markdown.extension.toc.levels": "2..6",
+  "markdown.marp.html": "all",
+  "markdown.preview.fontFamily": "Sarasa Gothic SC, sans-serif",
+  "markdownlint.config": {
+    "MD010": {
+      "code_blocks": false
+    },
+    "MD041": false
+  },
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nil",
+  "nix.serverSettings": {
+    "nil": {
+      "formatting": {
+        "command": ["nixfmt"]
+      }
+    },
+    "nix": {
+      "binary": "nix",
+      "flake": {
+        "autoArchive": true,
+        "autoEvalInputs": true
+      }
+    }
+  },
+  "notebook.output.scrolling": true,
+  "prettier.printWidth": 100,
+  "prettier.quoteProps": "consistent",
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "all",
+  "redhat.telemetry.enabled": true,
+  "remote.extensionKind": {
+    "WakaTime.vscode-wakatime": ["ui"]
+  },
+  "remote.SSH.remotePlatform": {
+    "CloudCone-SC2": "linux"
+  },
+  "ruff.configurationPreference": "filesystemFirst",
+  "scm.defaultViewMode": "tree",
+  "search.seedWithNearestWord": true,
+  "search.showLineNumbers": true,
+  "search.smartCase": true,
+  "search.useGlobalIgnoreFiles": true,
+  "search.useParentIgnoreFiles": true,
+  "shellformat.flag": "-i 2 -bn -ci",
+  "terminal.external.osxExec": "Warp.app",
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font, MesloLGS NF, Sarasa Term SC Nerd, Sarasa Term SC, monospace",
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.profiles.linux": {
+    "bash": {
+      "args": ["-l"],
+      "icon": "terminal-bash",
+      "path": "bash"
+    },
+    "zsh": {
+      "args": ["-l", "-i"],
+      "path": "zsh"
+    }
+  },
+  "terminal.integrated.profiles.osx": {
+    "zsh": {
+      "args": ["-l", "-i"],
+      "path": "zsh"
+    }
+  },
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "update.showReleaseNotes": false,
+  "window.commandCenter": true,
+  "window.restoreFullscreen": true,
+  "workbench.activityBar.orientation": "vertical",
+  "workbench.colorCustomizations": {
+    "terminal.findMatchBackground": "#ffee006e"
+  },
+  "workbench.colorTheme": "Material Theme Ocean High Contrast",
+  "workbench.editorLargeFileConfirmation": 100,
+  "workbench.iconTheme": "material-icon-theme",
+  "yaml.format.singleQuote": true
+}
