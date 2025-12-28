@@ -1,0 +1,43 @@
+name: Setup Nix
+description: Install Nix and setup cache
+
+inputs:
+  cache_prefix:
+    description: Cache prefix (e.g., flake-check)
+    required: true
+  cachix_name:
+    description: Cachix cache name (skips Cachix if not provided)
+  cachix_auth_token:
+    description: Cachix authentication token
+  cachix_skip_push:
+    description: Skip pushing to Cachix
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Install Nix
+      uses: cachix/install-nix-action@v31
+      with:
+        install_options: ${{ runner.os == 'Linux' && '--no-daemon' || '' }}
+
+    - name: Setup Cachix
+      if: ${{ inputs.cachix_name }}
+      uses: cachix/cachix-action@v16
+      with:
+        name: ${{ inputs.cachix_name }}
+        authToken: ${{ inputs.cachix_auth_token }}
+        skipPush: ${{ inputs.cachix_skip_push }}
+
+    - name: Setup Nix cache
+      uses: nix-community/cache-nix-action@v6
+      env:
+        CACHE_KEY_PREFIX: nix-${{ runner.os }}-${{ inputs.cache_prefix }}-
+      with:
+        primary-key: ${{ env.CACHE_KEY_PREFIX }}${{ hashFiles('**/*.nix', '**/flake.lock') }}
+        restore-prefixes-first-match: ${{ env.CACHE_KEY_PREFIX }}
+        gc-max-store-size-linux: 8G
+        purge: true
+        purge-prefixes: ${{ env.CACHE_KEY_PREFIX }}
+        purge-created: 604800 # 7 days
+        purge-last-accessed: 604800 # 7 days

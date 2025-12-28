@@ -7,6 +7,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  CACHIX_NAME: hakula
+
 jobs:
   flake-check:
     name: Nix Flake Check
@@ -15,15 +18,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@v31
-
-      - name: Setup Nix cache
-        uses: nix-community/cache-nix-action@v6
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
         with:
-          primary-key: nix-${{ runner.os }}-flake-check-${{ hashFiles('**/*.nix', '**/flake.lock') }}
-          restore-prefixes-first-match: |
-            nix-${{ runner.os }}-flake-check-
+          cache_prefix: flake-check
+          cachix_name: ${{ env.CACHIX_NAME }}
+          cachix_skip_push: 'true'
 
       - name: Run flake check
         run: nix flake check --all-systems
@@ -71,23 +71,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@v31
-
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v16
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
         with:
-          name: hakula
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          skipPush: ${{ github.ref != 'refs/heads/main' }}
-
-      - name: Setup Nix cache
-        uses: nix-community/cache-nix-action@v6
-        with:
-          primary-key: nix-${{ runner.os }}-${{ matrix.config.id }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
-          restore-prefixes-first-match: |
-            nix-${{ runner.os }}-${{ matrix.config.id }}-
-          gc-max-store-size-linux: 10G
+          cache_prefix: ${{ matrix.config.id }}
+          cachix_name: ${{ env.CACHIX_NAME }}
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix_skip_push: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Build configuration
         run: |
