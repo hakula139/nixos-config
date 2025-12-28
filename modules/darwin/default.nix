@@ -12,7 +12,7 @@ in
   # Nix
   # ============================================================================
   nix = {
-    enable = true; # Let nix-darwin manage the Nix installation
+    enable = true;
     settings = shared.nixSettings;
     optimise.automatic = true;
     gc = {
@@ -40,22 +40,19 @@ in
     };
 
     defaults = {
-      # Global settings
       NSGlobalDomain = {
-        # Expand save / print panels by default
+        AppleKeyboardUIMode = 3;
+        ApplePressAndHoldEnabled = false;
+        InitialKeyRepeat = 15;
+        KeyRepeat = 2;
+        NSAutomaticCapitalizationEnabled = false;
+        NSAutomaticDashSubstitutionEnabled = false;
+        NSAutomaticPeriodSubstitutionEnabled = false;
+        NSAutomaticQuoteSubstitutionEnabled = false;
         NSNavPanelExpandedStateForSaveMode = true;
         NSNavPanelExpandedStateForSaveMode2 = true;
         PMPrintingExpandedStateForPrint = true;
         PMPrintingExpandedStateForPrint2 = true;
-        # Disable auto-capitalization and smart quotes / dashes
-        NSAutomaticCapitalizationEnabled = false;
-        NSAutomaticDashSubstitutionEnabled = false;
-        NSAutomaticQuoteSubstitutionEnabled = false;
-        # Full keyboard access for all controls
-        AppleKeyboardUIMode = 3;
-        # Fast key repeat
-        KeyRepeat = 2;
-        InitialKeyRepeat = 15;
       };
 
       dock = {
@@ -67,6 +64,7 @@ in
 
       finder = {
         AppleShowAllExtensions = true;
+        AppleShowAllFiles = true;
         FXEnableExtensionChangeWarning = false;
         QuitMenuItem = true;
         ShowPathbar = true;
