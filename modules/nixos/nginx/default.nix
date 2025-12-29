@@ -37,7 +37,7 @@ let
   # ----------------------------------------------------------------------------
   # Shared Configuration
   # ----------------------------------------------------------------------------
-  sharedVhostConfig = {
+  baseVhostConfig = {
     useACMEHost = "hakula.xyz";
     onlySSL = true;
     http2 = true;
@@ -49,9 +49,14 @@ let
       }
     ];
     extraConfig = ''
+      ssl_stapling off;
+    '';
+  };
+
+  cloudflareVhostConfig = baseVhostConfig // {
+    extraConfig = baseVhostConfig.extraConfig + ''
       ssl_client_certificate ${cloudflareOriginCA};
       ssl_verify_client on;
-      ssl_stapling off;
     '';
   };
 in
@@ -151,7 +156,7 @@ in
       # Virtual hosts
       # --------------------------------------------------------------------------
       # Default: Proxy to REALITY host (anti-fingerprint)
-      virtualHosts."_" = {
+      virtualHosts."_" = baseVhostConfig // {
         default = true;
         locations."/" = {
           proxyPass = "https://$reality_upstream";
@@ -159,14 +164,15 @@ in
             set $reality_upstream ${realitySniHost};
             proxy_ssl_server_name on;
             proxy_ssl_name ${realitySniHost};
+            proxy_set_header Host ${realitySniHost};
             resolver 8.8.8.8 1.1.1.1;
           '';
         };
       };
 
       # Clash subscriptions
-      virtualHosts."clash.hakula.xyz" = sharedVhostConfig // {
-        extraConfig = sharedVhostConfig.extraConfig + ''
+      virtualHosts."clash.hakula.xyz" = cloudflareVhostConfig // {
+        extraConfig = cloudflareVhostConfig.extraConfig + ''
           absolute_redirect off;
         '';
         locations."/" = {
@@ -183,8 +189,8 @@ in
       };
 
       # Cloudreve cloud storage
-      virtualHosts."cloud.hakula.xyz" = sharedVhostConfig // {
-        extraConfig = sharedVhostConfig.extraConfig + ''
+      virtualHosts."cloud.hakula.xyz" = cloudflareVhostConfig // {
+        extraConfig = cloudflareVhostConfig.extraConfig + ''
           client_body_timeout 300s;
           client_header_timeout 60s;
 
@@ -214,7 +220,7 @@ in
       };
 
       # Netdata dashboard
-      virtualHosts."metrics-${config.networking.hostName}.hakula.xyz" = sharedVhostConfig // {
+      virtualHosts."metrics-${config.networking.hostName}.hakula.xyz" = cloudflareVhostConfig // {
         locations."/" = {
           proxyPass = "http://127.0.0.1:19999/";
           proxyWebsockets = true;
@@ -227,7 +233,7 @@ in
 
       # PicList image upload server
       virtualHosts."static.hakula.xyz" = lib.mkIf config.hakula.services.piclist.enable (
-        sharedVhostConfig
+        cloudflareVhostConfig
         // {
           locations."/upload" = {
             proxyPass = "${piclistUpstream}/upload";
@@ -247,7 +253,7 @@ in
       virtualHosts."${config.networking.hostName}-cdn.hakula.xyz" =
         lib.mkIf config.hakula.services.xray.ws.enable
           (
-            sharedVhostConfig
+            cloudflareVhostConfig
             // {
               http2 = false;
               locations."/ws" = {
