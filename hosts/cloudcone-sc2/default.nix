@@ -1,4 +1,5 @@
 {
+  hostName,
   modulesPath,
   pkgs,
   lib,
@@ -52,7 +53,7 @@
   # Networking
   # ============================================================================
   networking = {
-    hostName = "cloudcone-sc2";
+    inherit hostName;
     useDHCP = false; # CloudCone requires static IP configuration
 
     interfaces.ens3 = {
@@ -100,7 +101,7 @@
   hakula.services.backup = {
     enable = true;
     b2Bucket = "hakula-backup";
-    backupPath = "cloudcone-sc2";
+    backupPath = hostName;
     cloudreve.enable = true;
     twikoo.enable = true;
   };

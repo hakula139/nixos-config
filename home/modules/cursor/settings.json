@@ -205,8 +205,8 @@
     "WakaTime.vscode-wakatime": ["ui"]
   },
   "remote.SSH.remotePlatform": {
-    "CloudCone-SC2": "linux",
-    "CloudCone-VPS": "linux"
+    "CloudCone-US-1": "linux",
+    "CloudCone-US-2": "linux"
   },
   "ruff.configurationPreference": "filesystemFirst",
   "scm.defaultViewMode": "tree",

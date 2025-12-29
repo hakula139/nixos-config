@@ -95,6 +95,39 @@
             nixfmt-rfc-style.enable = true;
           };
         };
+
+      mkServer =
+        {
+          hostName,
+          configPath,
+        }:
+        nixpkgs.lib.nixosSystem {
+          specialArgs = {
+            inherit inputs hostName;
+          };
+          modules = [
+            {
+              nixpkgs.hostPlatform = "x86_64-linux";
+              nixpkgs.overlays = overlays;
+            }
+            agenix.nixosModules.default
+            disko.nixosModules.disko
+            home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.hakula = import ./home/hakula.nix;
+                backupFileExtension = "bak";
+                extraSpecialArgs = {
+                  isNixOS = true;
+                  inherit inputs;
+                };
+              };
+            }
+            configPath
+          ];
+        };
     in
     {
       # ========================================================================
@@ -102,61 +135,19 @@
       # ========================================================================
       nixosConfigurations = {
         # ----------------------------------------------------------------------
-        # CloudCone SC2 (Scalable Cloud Compute)
+        # US-1 (CloudCone SC2)
         # ----------------------------------------------------------------------
-        cloudcone-sc2 = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit inputs; };
-          modules = [
-            {
-              nixpkgs.hostPlatform = "x86_64-linux";
-              nixpkgs.overlays = overlays;
-            }
-            agenix.nixosModules.default
-            disko.nixosModules.disko
-            home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.hakula = import ./home/hakula.nix;
-                backupFileExtension = "bak";
-                extraSpecialArgs = {
-                  isNixOS = true;
-                  inherit inputs;
-                };
-              };
-            }
-            ./hosts/cloudcone-sc2
-          ];
+        us-1 = mkServer {
+          hostName = "us-1";
+          configPath = ./hosts/cloudcone-sc2;
         };
 
         # ----------------------------------------------------------------------
-        # CloudCone VPS
+        # US-2 (CloudCone VPS)
         # ----------------------------------------------------------------------
-        cloudcone-vps = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit inputs; };
-          modules = [
-            {
-              nixpkgs.hostPlatform = "x86_64-linux";
-              nixpkgs.overlays = overlays;
-            }
-            agenix.nixosModules.default
-            disko.nixosModules.disko
-            home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.hakula = import ./home/hakula.nix;
-                backupFileExtension = "bak";
-                extraSpecialArgs = {
-                  isNixOS = true;
-                  inherit inputs;
-                };
-              };
-            }
-            ./hosts/cloudcone-vps
-          ];
+        us-2 = mkServer {
+          hostName = "us-2";
+          configPath = ./hosts/cloudcone-vps;
         };
       };
 

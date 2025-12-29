@@ -1,4 +1,5 @@
 {
+  hostName,
   modulesPath,
   pkgs,
   lib,
@@ -51,7 +52,7 @@
   # Networking
   # ============================================================================
   networking = {
-    hostName = "cloudcone-vps";
+    inherit hostName;
     useDHCP = false; # CloudCone requires static IP configuration
 
     interfaces.eth0 = {

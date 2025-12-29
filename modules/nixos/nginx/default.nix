@@ -242,26 +242,28 @@ in
 
       # Xray WebSocket proxy (with Cloudflare CDN)
       # Note: We use WebSocket instead of gRPC to avoid Cloudflare's DDoS protection false positives.
-      virtualHosts."us-1-cdn.hakula.xyz" = lib.mkIf config.hakula.services.xray.ws.enable (
-        sharedVhostConfig
-        // {
-          http2 = false;
-          locations."/ws" = {
-            proxyPass = "http://127.0.0.1:${toString config.hakula.services.xray.ws.port}";
-            proxyWebsockets = true;
-            extraConfig = ''
-              proxy_redirect off;
-              proxy_connect_timeout 60s;
-              proxy_send_timeout 60s;
-              proxy_read_timeout 300s;
-            '';
-          };
-          # Redirect all other requests to main site
-          locations."/" = {
-            return = "302 https://hakula.xyz";
-          };
-        }
-      );
+      virtualHosts."${config.networking.hostName}-cdn.hakula.xyz" =
+        lib.mkIf config.hakula.services.xray.ws.enable
+          (
+            sharedVhostConfig
+            // {
+              http2 = false;
+              locations."/ws" = {
+                proxyPass = "http://127.0.0.1:${toString config.hakula.services.xray.ws.port}";
+                proxyWebsockets = true;
+                extraConfig = ''
+                  proxy_redirect off;
+                  proxy_connect_timeout 60s;
+                  proxy_send_timeout 60s;
+                  proxy_read_timeout 300s;
+                '';
+              };
+              # Redirect all other requests to main site
+              locations."/" = {
+                return = "302 https://hakula.xyz";
+              };
+            }
+          );
     };
   };
 }
