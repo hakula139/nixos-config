@@ -16,13 +16,12 @@
   # ============================================================================
   # Boot Loader & Hardware
   # ============================================================================
-  # CloudCone's VPS uses a legacy external bootloader that expects a standard
-  # MBR partition table and a legacy grub.conf.
-  # We shim this by creating a static grub.conf that points to our NixOS kernel.
+  # CloudCone's VPS uses a legacy external bootloader.
+  # We create a static grub.conf that points to our NixOS kernel.
   boot.loader.grub = {
     enable = true;
     devices = lib.mkForce [ "/dev/vda" ];
-    configurationLimit = 20;
+    configurationLimit = 10;
 
     extraInstallCommands = ''
       # Create symlinks to the current kernel / initrd in /boot.
@@ -35,8 +34,8 @@
       default=0
       timeout=1
       title NixOS
-          root (hd0,0)
-          kernel /boot/vmlinuz init=/nix/var/nix/profiles/system/init root=/dev/vda1 ro
+          root (hd0,1)
+          kernel /boot/vmlinuz init=/nix/var/nix/profiles/system/init root=/dev/vda2 ro
           initrd /boot/initrd
       EOF
     '';
@@ -54,72 +53,36 @@
   # ============================================================================
   networking = {
     inherit hostName;
+    enableIPv6 = false;
     useDHCP = false; # CloudCone requires static IP configuration
 
-    interfaces.ens3 = {
+    interfaces.eth0 = {
       ipv4.addresses = [
         {
-          address = "74.48.108.20";
-          prefixLength = 24;
-        }
-      ];
-      ipv6.addresses = [
-        {
-          address = "2607:f130:0:10d::7f";
-          prefixLength = 64;
-        }
-        {
-          address = "2607:f130:0:10d::80";
-          prefixLength = 64;
-        }
-        {
-          address = "2607:f130:0:10d::81";
-          prefixLength = 64;
+          address = "74.48.189.161";
+          prefixLength = 26;
         }
       ];
     };
 
-    defaultGateway = "74.48.108.1";
-    defaultGateway6 = "2607:f130:0:10d::1";
+    defaultGateway = "74.48.189.129";
 
     nameservers = [
       "8.8.8.8"
       "1.1.1.1"
-      "2001:4860:4860::8888"
-      "2606:4700:4700::1111"
     ];
   };
 
   # ============================================================================
   # Services
   # ============================================================================
-  hakula.dockerHub = {
-    username = "hakula139";
-    tokenAgeFile = ../../secrets/shared/dockerhub-token.age;
-  };
-  hakula.services.aria2.enable = true;
-  hakula.services.backup = {
-    enable = true;
-    b2Bucket = "hakula-backup";
-    backupPath = hostName;
-    cloudreve.enable = true;
-    twikoo.enable = true;
-  };
   hakula.services.cachix.enable = true;
-  hakula.services.clashGenerator.enable = true;
-  hakula.services.cloudconeAgent = {
-    enable = true;
-    serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
-  };
-  hakula.services.cloudreve.enable = true;
-  hakula.services.piclist.enable = true;
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
   hakula.services.openssh = {
     enable = true;
     ports = [ 35060 ];
   };
-  hakula.services.postgresql.enable = true;
   hakula.services.xray = {
     enable = true;
     ws.enable = true;
@@ -129,5 +92,5 @@
   # ============================================================================
   # System State
   # ============================================================================
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 }

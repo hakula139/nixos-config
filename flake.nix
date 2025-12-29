@@ -95,17 +95,16 @@
             nixfmt-rfc-style.enable = true;
           };
         };
-    in
-    {
-      # ========================================================================
-      # NixOS Configurations (Linux servers)
-      # ========================================================================
-      nixosConfigurations = {
-        # ----------------------------------------------------------------------
-        # CloudCone SC2 (Scalable Cloud Compute)
-        # ----------------------------------------------------------------------
-        cloudcone-sc2 = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit inputs; };
+
+      mkServer =
+        {
+          hostName,
+          configPath,
+        }:
+        nixpkgs.lib.nixosSystem {
+          specialArgs = {
+            inherit inputs hostName;
+          };
           modules = [
             {
               nixpkgs.hostPlatform = "x86_64-linux";
@@ -126,8 +125,29 @@
                 };
               };
             }
-            ./hosts/cloudcone-sc2
+            configPath
           ];
+        };
+    in
+    {
+      # ========================================================================
+      # NixOS Configurations (Linux servers)
+      # ========================================================================
+      nixosConfigurations = {
+        # ----------------------------------------------------------------------
+        # US-1 (CloudCone SC2)
+        # ----------------------------------------------------------------------
+        us-1 = mkServer {
+          hostName = "us-1";
+          configPath = ./hosts/cloudcone-sc2;
+        };
+
+        # ----------------------------------------------------------------------
+        # US-2 (CloudCone VPS)
+        # ----------------------------------------------------------------------
+        us-2 = mkServer {
+          hostName = "us-2";
+          configPath = ./hosts/cloudcone-vps;
         };
       };
 

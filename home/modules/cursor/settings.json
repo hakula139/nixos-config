@@ -76,9 +76,11 @@
   "cmake.options.statusBarVisibility": "icon",
   "cmake.showConfigureWithDebuggerNotification": false,
   "cSpell.allowCompoundWords": true,
+  "cSpell.diagnosticLevel": "Hint",
   "cSpell.language": "en,en-GB",
   "cSpell.userWords": ["hakula"],
   "cursor.composer.textSizeScale": 1.15,
+  "cursor.cpp.disabledLanguages": [],
   "cursor.cpp.enablePartialAccepts": true,
   "cursorpyright.analysis.autoImportCompletions": true,
   "cursorpyright.analysis.inlayHints.callArgumentNames": true,
@@ -204,7 +206,8 @@
     "WakaTime.vscode-wakatime": ["ui"]
   },
   "remote.SSH.remotePlatform": {
-    "CloudCone-SC2": "linux"
+    "CloudCone-US-1": "linux",
+    "CloudCone-US-2": "linux"
   },
   "ruff.configurationPreference": "filesystemFirst",
   "scm.defaultViewMode": "tree",

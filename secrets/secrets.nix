@@ -7,9 +7,7 @@ let
   keys = import ./keys.nix;
   allUserKeys = builtins.attrValues keys.users;
   allHostKeys = builtins.attrValues keys.hosts;
-
   sharedKeys = allUserKeys ++ allHostKeys;
-  cloudconeSc2Keys = allUserKeys ++ [ keys.hosts.cloudcone-sc2 ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -18,6 +16,7 @@ in
   "shared/aria2-rpc-secret.age".publicKeys = sharedKeys;
   "shared/backup-env.age".publicKeys = sharedKeys;
   "shared/backup-restic-password.age".publicKeys = sharedKeys;
+  "shared/brave-api-key.age".publicKeys = sharedKeys;
   "shared/cachix-auth-token.age".publicKeys = sharedKeys;
   "shared/clash-users.json.age".publicKeys = sharedKeys;
   "shared/cloudflare-credentials.age".publicKeys = sharedKeys;
@@ -31,5 +30,5 @@ in
   # ----------------------------------------------------------------------------
   # Host-specific
   # ----------------------------------------------------------------------------
-  "cloudcone-sc2/server-key.age".publicKeys = cloudconeSc2Keys;
+  "cloudcone-sc2/server-keys/us-1.age".publicKeys = allUserKeys ++ [ keys.hosts.us-1 ];
 }

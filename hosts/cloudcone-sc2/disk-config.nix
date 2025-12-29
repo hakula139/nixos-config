@@ -2,7 +2,7 @@
 
 {
   # ============================================================================
-  # CloudCone Disk Configuration
+  # CloudCone SC2 Disk Configuration
   # ============================================================================
   # NOTE: CloudCone's legacy bootloader requires:
   # 1. MBR (msdos) partition table. GPT is NOT supported.

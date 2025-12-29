@@ -12,7 +12,9 @@
 let
   cfg = config.hakula.cursor;
   isDarwin = pkgs.stdenv.isDarwin;
+
   ext = import ./extensions.nix { inherit lib; };
+  mcp = import ./mcp.nix { inherit config pkgs; };
 
   # ----------------------------------------------------------------------------
   # Settings Generation
@@ -29,12 +31,14 @@ let
         "Library/Application Support/Cursor/User/settings.json".source = settingsJson;
         "Library/Application Support/Cursor/User/keybindings.json".source = ./keybindings.json;
         "Library/Application Support/Cursor/User/snippets".source = ./snippets;
+        ".cursor/mcp.json".source = mcp.mcpJson;
       }
     else
       {
         "Cursor/User/settings.json".source = settingsJson;
         "Cursor/User/keybindings.json".source = ./keybindings.json;
         "Cursor/User/snippets".source = ./snippets;
+        ".cursor/mcp.json".source = mcp.mcpJson;
       };
 
   # ----------------------------------------------------------------------------
