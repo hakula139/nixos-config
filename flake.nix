@@ -129,6 +129,35 @@
             ./hosts/cloudcone-sc2
           ];
         };
+
+        # ----------------------------------------------------------------------
+        # CloudCone VPS
+        # ----------------------------------------------------------------------
+        cloudcone-vps = nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit inputs; };
+          modules = [
+            {
+              nixpkgs.hostPlatform = "x86_64-linux";
+              nixpkgs.overlays = overlays;
+            }
+            agenix.nixosModules.default
+            disko.nixosModules.disko
+            home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.hakula = import ./home/hakula.nix;
+                backupFileExtension = "bak";
+                extraSpecialArgs = {
+                  isNixOS = true;
+                  inherit inputs;
+                };
+              };
+            }
+            ./hosts/cloudcone-vps
+          ];
+        };
       };
 
       # ========================================================================
