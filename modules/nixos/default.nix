@@ -8,7 +8,7 @@ let
   shared = import ../shared.nix { inherit pkgs; };
 
   # REALITY SNI Host
-  # If you change this, also update secrets/xray-config.json.age.
+  # If you change this, also update secrets/shared/xray-config.json.age.
   realitySniHost = "www.microsoft.com";
 in
 {

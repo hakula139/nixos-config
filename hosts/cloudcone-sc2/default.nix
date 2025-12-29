@@ -1,4 +1,10 @@
-{ modulesPath, pkgs, ... }:
+{
+  modulesPath,
+  pkgs,
+  lib,
+  hostName,
+  ...
+}:
 
 {
   imports = [
@@ -15,8 +21,8 @@
   # We shim this by creating a static grub.conf that points to our NixOS kernel.
   boot.loader.grub = {
     enable = true;
-    device = "/dev/vda";
-    configurationLimit = 30;
+    devices = lib.mkForce [ "/dev/vda" ];
+    configurationLimit = 20;
 
     extraInstallCommands = ''
       # Create symlinks to the current kernel / initrd in /boot.
@@ -47,7 +53,7 @@
   # Networking
   # ============================================================================
   networking = {
-    hostName = "cloudcone-sc2";
+    inherit hostName;
     useDHCP = false; # CloudCone requires static IP configuration
 
     interfaces.ens3 = {
@@ -79,6 +85,8 @@
     nameservers = [
       "8.8.8.8"
       "1.1.1.1"
+      "2001:4860:4860::8888"
+      "2606:4700:4700::1111"
     ];
   };
 
@@ -93,7 +101,7 @@
   hakula.services.backup = {
     enable = true;
     b2Bucket = "hakula-backup";
-    backupPath = "cloudcone-sc2";
+    backupPath = hostName;
     cloudreve.enable = true;
     twikoo.enable = true;
   };
@@ -101,7 +109,7 @@
   hakula.services.clashGenerator.enable = true;
   hakula.services.cloudconeAgent = {
     enable = true;
-    serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-key.age;
+    serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
   };
   hakula.services.cloudreve.enable = true;
   hakula.services.piclist.enable = true;

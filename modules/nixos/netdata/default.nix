@@ -63,7 +63,7 @@ in
       package = netdataPkg;
       config = {
         global = {
-          "hostname" = "cloudcone-sc2";
+          "hostname" = config.networking.hostName;
         };
         directories = {
           "web files directory" = "${netdataPkg}/share/netdata/web";

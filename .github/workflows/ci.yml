@@ -43,7 +43,7 @@ jobs:
           - id: nixos
             name: cloudcone-sc2 (x86_64-linux, NixOS)
             runner: ubuntu-latest
-            target: .#nixosConfigurations.cloudcone-sc2.config.system.build.toplevel
+            target: .#nixosConfigurations.us-1.config.system.build.toplevel
           - id: generic-linux
             name: hakula-linux (x86_64-linux, Generic Linux)
             runner: ubuntu-latest

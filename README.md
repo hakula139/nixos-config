@@ -9,6 +9,7 @@ NixOS configuration for Hakula's machines (flake-based).
 | Host             | System         | Type               |
 | ---------------- | -------------- | ------------------ |
 | `cloudcone-sc2`  | x86_64-linux   | NixOS server       |
+| `cloudcone-vps`  | x86_64-linux   | NixOS server       |
 | `hakula-macbook` | aarch64-darwin | macOS (nix-darwin) |
 
 ## NixOS
@@ -18,19 +19,19 @@ NixOS configuration for Hakula's machines (flake-based).
 Install NixOS with [nixos-anywhere](https://github.com/nix-community/nixos-anywhere):
 
 ```bash
-nix run github:nix-community/nixos-anywhere -- --flake ".#cloudcone-sc2" root@<host>
+nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 ```
 
 ### Apply NixOS Configuration
 
 ```bash
-sudo nixos-rebuild switch --flake ".#cloudcone-sc2"
+sudo nixos-rebuild switch --flake '.#us-1'
 ```
 
 After setting up the alias:
 
 ```bash
-nixsw cloudcone-sc2
+nixsw us-1
 ```
 
 ## macOS
