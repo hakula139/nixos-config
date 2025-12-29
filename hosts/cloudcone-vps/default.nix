@@ -91,9 +91,15 @@
   # ============================================================================
   # Services
   # ============================================================================
+  hakula.services.cachix.enable = true;
+  hakula.services.nginx.enable = true;
   hakula.services.openssh = {
     enable = true;
     ports = [ 35060 ];
+  };
+  hakula.services.xray = {
+    enable = true;
+    ws.enable = true;
   };
   services.qemuGuest.enable = true;
 
