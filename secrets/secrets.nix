@@ -18,6 +18,7 @@ in
   "shared/aria2-rpc-secret.age".publicKeys = sharedKeys;
   "shared/backup-env.age".publicKeys = sharedKeys;
   "shared/backup-restic-password.age".publicKeys = sharedKeys;
+  "shared/brave-api-key.age".publicKeys = sharedKeys;
   "shared/cachix-auth-token.age".publicKeys = sharedKeys;
   "shared/clash-users.json.age".publicKeys = sharedKeys;
   "shared/cloudflare-credentials.age".publicKeys = sharedKeys;
