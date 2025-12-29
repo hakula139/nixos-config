@@ -76,6 +76,7 @@
   "cmake.options.statusBarVisibility": "icon",
   "cmake.showConfigureWithDebuggerNotification": false,
   "cSpell.allowCompoundWords": true,
+  "cSpell.diagnosticLevel": "Hint",
   "cSpell.language": "en,en-GB",
   "cSpell.userWords": ["hakula"],
   "cursor.composer.textSizeScale": 1.15,
