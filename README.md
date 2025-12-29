@@ -123,9 +123,10 @@ nix flake check
 
 GitHub Actions automatically validates the configuration on every push and pull request:
 
-- **Flake Check**: Validates flake structure and runs pre-commit checks
+- **Flake Check**: Validates flake structure using `nix flake check --all-systems`
 - **Build NixOS**: Tests building the `cloudcone-sc2` configuration on x86_64-linux
-- **Build Darwin**: Tests building the `hakula-macbook` configuration on aarch64-darwin
+- **Build Generic Linux**: Tests building the `hakula-linux` home-manager configuration on x86_64-linux
+- **Build macOS**: Tests building the `hakula-macbook` configuration on aarch64-darwin
 
 ## Secrets
 
