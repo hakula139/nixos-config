@@ -10,7 +10,7 @@
 
   # Server SSH host keys (/etc/ssh/ssh_host_ed25519_key.pub)
   hosts = {
-    cloudcone-sc2 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM7sPLIoCS4frp1la++4Iv2ws/3L0dRcRSnD5CNCP5s3";
-    cloudcone-vps = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPxT+47E+dG8+MClHeVb6zNhPcprRH76tOVlUMhrXmfM";
+    us-1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM7sPLIoCS4frp1la++4Iv2ws/3L0dRcRSnD5CNCP5s3";
+    us-2 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPxT+47E+dG8+MClHeVb6zNhPcprRH76tOVlUMhrXmfM";
   };
 }

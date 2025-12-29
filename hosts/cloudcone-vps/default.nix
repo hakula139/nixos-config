@@ -1,8 +1,8 @@
 {
-  hostName,
   modulesPath,
   pkgs,
   lib,
+  hostName,
   ...
 }:
 

@@ -7,9 +7,7 @@ let
   keys = import ./keys.nix;
   allUserKeys = builtins.attrValues keys.users;
   allHostKeys = builtins.attrValues keys.hosts;
-
   sharedKeys = allUserKeys ++ allHostKeys;
-  cloudconeSc2Keys = allUserKeys ++ [ keys.hosts.cloudcone-sc2 ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -32,5 +30,5 @@ in
   # ----------------------------------------------------------------------------
   # Host-specific
   # ----------------------------------------------------------------------------
-  "cloudcone-sc2/server-key.age".publicKeys = cloudconeSc2Keys;
+  "cloudcone-sc2/server-keys/us-1.age".publicKeys = allUserKeys ++ [ keys.hosts.us-1 ];
 }

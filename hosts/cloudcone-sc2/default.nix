@@ -1,8 +1,8 @@
 {
-  hostName,
   modulesPath,
   pkgs,
   lib,
+  hostName,
   ...
 }:
 
@@ -109,7 +109,7 @@
   hakula.services.clashGenerator.enable = true;
   hakula.services.cloudconeAgent = {
     enable = true;
-    serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-key.age;
+    serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
   };
   hakula.services.cloudreve.enable = true;
   hakula.services.piclist.enable = true;
