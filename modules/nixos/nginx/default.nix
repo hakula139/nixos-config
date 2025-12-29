@@ -212,7 +212,7 @@ in
       };
 
       # Netdata dashboard
-      virtualHosts."metrics-us.hakula.xyz" = sharedVhostConfig // {
+      virtualHosts."metrics-${config.networking.hostName}.hakula.xyz" = sharedVhostConfig // {
         locations."/" = {
           proxyPass = "http://127.0.0.1:19999/";
           proxyWebsockets = true;
