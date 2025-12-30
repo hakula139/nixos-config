@@ -10,7 +10,7 @@
   # ============================================================================
   networking = {
     inherit hostName;
-    useDHCP = false; # CloudCone requires static IP configuration
+    useDHCP = false;
 
     interfaces.ens3 = {
       ipv4.addresses = [
@@ -19,9 +19,12 @@
           prefixLength = 26;
         }
       ];
+    };
+
+    interfaces.ens4 = {
       ipv6.addresses = [
         {
-          address = "2607:f130:0:f0::78";
+          address = "2607:f130:0:f0::76";
           prefixLength = 64;
         }
         {
@@ -29,14 +32,17 @@
           prefixLength = 64;
         }
         {
-          address = "2607:f130:0:f0::76";
+          address = "2607:f130:0:f0::78";
           prefixLength = 64;
         }
       ];
     };
 
-    defaultGateway = "148.135.122.1";
-    defaultGateway6 = "2607:f130:0:f0::1";
+    defaultGateway = "148.135.122.193";
+    defaultGateway6 = {
+      address = "2607:f130:0:f0::1";
+      interface = "ens4";
+    };
 
     nameservers = [
       "8.8.8.8"
