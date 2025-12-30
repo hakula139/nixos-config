@@ -74,13 +74,13 @@ in
       ];
 
       age.secrets.brave-api-key = {
-        file = ../../../secrets/hakula-macbook/brave-api-key.age;
+        file = ../../../secrets/workstation/brave-api-key.age;
         path = "${config.home.homeDirectory}/.secrets/brave-api-key";
         mode = "0400";
       };
 
       age.secrets.context7-api-key = {
-        file = ../../../secrets/hakula-macbook/context7-api-key.age;
+        file = ../../../secrets/workstation/context7-api-key.age;
         path = "${config.home.homeDirectory}/.secrets/context7-api-key";
         mode = "0400";
       };
