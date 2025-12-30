@@ -51,11 +51,16 @@ let
         ];
         env = { };
       };
-      brave-search = {
-        type = "stdio";
+      BraveSearch = {
+        name = "BraveSearch";
         command = "${braveSearch}/bin/brave-search-mcp";
+        type = "stdio";
         args = [ ];
         env = { };
+      };
+      DeepWiki = {
+        name = "DeepWiki";
+        url = "https://mcp.deepwiki.com/sse";
       };
     };
   };
