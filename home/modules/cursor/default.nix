@@ -1,5 +1,6 @@
 {
   config,
+  osConfig,
   pkgs,
   lib,
   ...
@@ -14,7 +15,7 @@ let
   isDarwin = pkgs.stdenv.isDarwin;
 
   ext = import ./extensions.nix { inherit lib; };
-  mcp = import ./mcp.nix { inherit config pkgs; };
+  mcp = import ./mcp.nix { inherit config osConfig pkgs; };
 
   # ----------------------------------------------------------------------------
   # Settings Generation

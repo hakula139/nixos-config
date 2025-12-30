@@ -11,6 +11,19 @@
   system.primaryUser = "hakula";
 
   # ============================================================================
+  # Secrets (agenix)
+  # ============================================================================
+  age.secrets.brave-api-key = {
+    file = ../../secrets/shared/brave-api-key.age;
+    owner = "hakula";
+  };
+
+  age.secrets.context7-api-key = {
+    file = ../../secrets/shared/context7-api-key.age;
+    owner = "hakula";
+  };
+
+  # ============================================================================
   # Host-Specific Configuration
   # ============================================================================
   networking.hostName = "Hakula-MacBook";

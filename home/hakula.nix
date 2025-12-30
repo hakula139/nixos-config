@@ -68,7 +68,7 @@ in
   # Custom Modules
   # ============================================================================
   hakula.cursor = {
-    enable = true;
-    enableExtensions = true;
+    enable = !isNixOS;
+    enableExtensions = !isNixOS;
   };
 }

@@ -165,6 +165,7 @@
               nixpkgs.hostPlatform = "aarch64-darwin";
               nixpkgs.overlays = overlays;
             }
+            agenix.darwinModules.default
             home-manager.darwinModules.home-manager
             {
               home-manager = {
@@ -173,8 +174,8 @@
                 users.hakula = import ./home/hakula.nix;
                 backupFileExtension = "bak";
                 extraSpecialArgs = {
-                  isNixOS = false;
                   inherit inputs;
+                  isNixOS = false;
                 };
               };
             }

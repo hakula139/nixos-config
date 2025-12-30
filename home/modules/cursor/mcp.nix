@@ -1,5 +1,6 @@
 {
   config,
+  osConfig,
   pkgs,
   ...
 }:
@@ -15,8 +16,7 @@ let
   # ----------------------------------------------------------------------------
   # Brave Search MCP
   # ----------------------------------------------------------------------------
-  # You need to manually decrypt secrets/shared/brave-api-key.age to this path.
-  braveApiKeyFile = "${homeDir}/.secrets/brave-api-key";
+  braveApiKeyFile = osConfig.age.secrets.brave-api-key.path;
 
   braveSearch = pkgs.writeShellScriptBin "brave-search-mcp" ''
     if [ -f "${braveApiKeyFile}" ]; then
@@ -28,9 +28,14 @@ let
   # ----------------------------------------------------------------------------
   # Context7 MCP
   # ----------------------------------------------------------------------------
-  # You need to manually decrypt secrets/shared/context7-api-key.age to this path.
-  context7ApiKeyFile = "${homeDir}/.secrets/context7-api-key";
-  context7ApiKey = builtins.readFile context7ApiKeyFile;
+  context7ApiKeyFile = osConfig.age.secrets.context7-api-key.path;
+
+  context7 = pkgs.writeShellScriptBin "context7-mcp" ''
+    if [ -f "${context7ApiKeyFile}" ]; then
+      export CONTEXT7_API_KEY="$(cat ${context7ApiKeyFile})"
+    fi
+    exec ${pkgs.nodejs}/bin/npx -y @upstash/context7-mcp --transport stdio "$@"
+  '';
 
   # ----------------------------------------------------------------------------
   # GitKraken MCP
@@ -53,10 +58,8 @@ let
       };
       Context7 = {
         name = "Context7";
-        url = "https://mcp.context7.com/mcp";
-        headers = {
-          "CONTEXT7_API_KEY" = context7ApiKey;
-        };
+        command = "${context7}/bin/context7-mcp";
+        type = "stdio";
       };
       DeepWiki = {
         name = "DeepWiki";
