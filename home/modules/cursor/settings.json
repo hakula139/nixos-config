@@ -207,7 +207,8 @@
   },
   "remote.SSH.remotePlatform": {
     "CloudCone-US-1": "linux",
-    "CloudCone-US-2": "linux"
+    "CloudCone-US-2": "linux",
+    "CloudCone-US-3": "linux"
   },
   "ruff.configurationPreference": "filesystemFirst",
   "scm.defaultViewMode": "tree",

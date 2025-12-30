@@ -31,4 +31,6 @@ in
   # Host-specific
   # ----------------------------------------------------------------------------
   "cloudcone-sc2/server-keys/us-1.age".publicKeys = allUserKeys ++ [ keys.hosts.us-1 ];
+  # TODO: Create us-3.age after adding us-3 host key
+  # "cloudcone-sc2/server-keys/us-3.age".publicKeys = allUserKeys ++ [ keys.hosts.us-3 ];
 }

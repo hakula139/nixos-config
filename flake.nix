@@ -37,12 +37,6 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # VS Code / Cursor extensions
-    nix-vscode-extensions = {
-      url = "github:nix-community/nix-vscode-extensions";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   # ============================================================================
@@ -57,7 +51,6 @@
       nix-darwin,
       agenix,
       git-hooks-nix,
-      nix-vscode-extensions,
       ...
     }@inputs:
     let
@@ -139,7 +132,7 @@
         # ----------------------------------------------------------------------
         us-1 = mkServer {
           hostName = "us-1";
-          configPath = ./hosts/cloudcone-sc2;
+          configPath = ./hosts/us-1;
         };
 
         # ----------------------------------------------------------------------
@@ -147,7 +140,15 @@
         # ----------------------------------------------------------------------
         us-2 = mkServer {
           hostName = "us-2";
-          configPath = ./hosts/cloudcone-vps;
+          configPath = ./hosts/us-2;
+        };
+
+        # ----------------------------------------------------------------------
+        # US-3 (CloudCone SC2)
+        # ----------------------------------------------------------------------
+        us-3 = mkServer {
+          hostName = "us-3";
+          configPath = ./hosts/us-3;
         };
       };
 
