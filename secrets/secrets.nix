@@ -9,7 +9,6 @@ let
   allHostKeys = builtins.attrValues keys.hosts;
   allWorkstationKeys = builtins.attrValues keys.workstations;
   serverKeys = allUserKeys ++ allHostKeys;
-  workstationKeys = allUserKeys ++ allWorkstationKeys;
 in
 {
   # ----------------------------------------------------------------------------
@@ -34,6 +33,6 @@ in
   # ----------------------------------------------------------------------------
   # Workstation secrets
   # ----------------------------------------------------------------------------
-  "workstation/brave-api-key.age".publicKeys = workstationKeys;
-  "workstation/context7-api-key.age".publicKeys = workstationKeys;
+  "workstation/brave-api-key.age".publicKeys = allWorkstationKeys;
+  "workstation/context7-api-key.age".publicKeys = allWorkstationKeys;
 }
