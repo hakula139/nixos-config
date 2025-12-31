@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   lib,
   ...
@@ -89,6 +90,9 @@ in
   # Environment Variables (shared)
   # ============================================================================
   home.sessionVariables = {
+    # Node.js
+    PNPM_HOME = "${config.xdg.dataHome}/pnpm";
+
     # Go
     GOPATH = "$HOME/go";
 
@@ -103,10 +107,10 @@ in
   # PATH additions (shared)
   # ============================================================================
   home.sessionPath = [
-    "$HOME/go/bin" # Go binaries
-    "$HOME/.cargo/bin" # Rust binaries
-    "$HOME/.local/bin" # Local binaries
-    "$HOME/.local/share/corepack" # pnpm / yarn via corepack
+    "${config.xdg.dataHome}/pnpm"
+    "$HOME/go/bin"
+    "$HOME/.cargo/bin"
+    "$HOME/.local/bin"
   ];
 
   # ============================================================================
@@ -118,6 +122,13 @@ in
     # --------------------------------------------------------------------------
     if command -v fnm &>/dev/null; then
       eval "$(fnm env --use-on-cd)"
+    fi
+
+    # --------------------------------------------------------------------------
+    # Corepack - Enable pnpm with per-project version management
+    # --------------------------------------------------------------------------
+    if command -v corepack &>/dev/null; then
+      corepack enable pnpm 2>/dev/null
     fi
   '';
 }
