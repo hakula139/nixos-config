@@ -14,12 +14,8 @@ let
   isDarwin = pkgs.stdenv.isDarwin;
 
   ext = import ./extensions.nix { inherit lib; };
-
-  # ----------------------------------------------------------------------------
-  # Settings Generation
-  # ----------------------------------------------------------------------------
-  settings = builtins.fromJSON (builtins.readFile ./settings.json);
-  settingsJson = (pkgs.formats.json { }).generate "cursor-settings.json" settings;
+  mcp = import ./mcp.nix;
+  settings = import ./settings.nix { inherit pkgs; };
 
   # ----------------------------------------------------------------------------
   # Cursor Paths
@@ -51,16 +47,18 @@ in
   # ============================================================================
   config = lib.mkIf cfg.enable (
     let
-      mcpJson = (import ./mcp.nix { inherit config pkgs; }).mcpJson;
+      # `mcp.nix` depends on `config.age.secrets.*`, so keep evaluation inside
+      # `mkIf cfg.enable` to avoid forcing it when Cursor is disabled.
+      mcpJson = (mcp { inherit config pkgs; }).mcpJson;
 
       darwinXdgFiles = {
-        "Library/Application Support/Cursor/User/settings.json".source = settingsJson;
+        "Library/Application Support/Cursor/User/settings.json".source = settings.settingsJson;
         "Library/Application Support/Cursor/User/keybindings.json".source = ./keybindings.json;
         "Library/Application Support/Cursor/User/snippets".source = ./snippets;
       };
 
       linuxXdgFiles = {
-        "Cursor/User/settings.json".source = settingsJson;
+        "Cursor/User/settings.json".source = settings.settingsJson;
         "Cursor/User/keybindings.json".source = ./keybindings.json;
         "Cursor/User/snippets".source = ./snippets;
       };

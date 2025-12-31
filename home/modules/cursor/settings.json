@@ -54,7 +54,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[shellscript]": {
-    "editor.defaultFormatter": "foxundermoon.shell-format"
+    "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode"
   },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -65,6 +65,8 @@
   "[yaml]": {
     "editor.defaultFormatter": "redhat.vscode-yaml"
   },
+  "bashIde.shfmt.binaryNextLine": true,
+  "bashIde.shfmt.caseIndent": true,
   "C_Cpp.clang_format_fallbackStyle": "Google",
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.default.cppStandard": "c++23",
@@ -218,7 +220,6 @@
   "search.smartCase": true,
   "search.useGlobalIgnoreFiles": true,
   "search.useParentIgnoreFiles": true,
-  "shellformat.flag": "-i 2 -bn -ci",
   "terminal.external.osxExec": "Warp.app",
   "terminal.integrated.defaultProfile.linux": "zsh",
   "terminal.integrated.defaultProfile.osx": "zsh",

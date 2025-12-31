@@ -13,6 +13,16 @@ let
   tooling = import ../../lib/tooling.nix { inherit pkgs; };
 in
 {
+  # ============================================================================
+  # Files (shared)
+  # ============================================================================
+  home.file = {
+    ".editorconfig".source = ../../.editorconfig;
+  };
+
+  # ============================================================================
+  # Packages (shared)
+  # ============================================================================
   home.packages =
     with pkgs;
     [
@@ -82,6 +92,8 @@ in
       jq
       yq
       httpie
+      shellcheck
+      shfmt
     ]
     ++ tooling.nix
     ++ tooling.secrets;
@@ -119,6 +131,7 @@ in
   programs.zsh.initContent = lib.mkAfter ''
     # --------------------------------------------------------------------------
     # fnm (Fast Node Manager) - replacement for nvm
+    # Use `fnm use <version>` to switch Node.js versions.
     # --------------------------------------------------------------------------
     if command -v fnm &>/dev/null; then
       eval "$(fnm env --use-on-cd)"
