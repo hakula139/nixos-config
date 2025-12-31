@@ -29,6 +29,14 @@ in
         identityFile = "${homeDir}/.ssh/CloudCone/id_ed25519";
         forwardAgent = true;
       };
+      "CloudCone-US-3" = {
+        host = "CloudCone-US-3";
+        hostname = "148.135.122.201";
+        user = "hakula";
+        port = 35060;
+        identityFile = "${homeDir}/.ssh/CloudCone/id_ed25519";
+        forwardAgent = true;
+      };
       "Tencent-SG-1" = {
         host = "Tencent-SG-1";
         hostname = "43.134.225.50";

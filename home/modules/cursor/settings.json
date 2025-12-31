@@ -208,6 +208,7 @@
   "remote.SSH.remotePlatform": {
     "CloudCone-US-1": "linux",
     "CloudCone-US-2": "linux",
+    "CloudCone-US-3": "linux",
     "Tencent-SG-1": "linux"
   },
   "ruff.configurationPreference": "filesystemFirst",
