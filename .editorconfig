@@ -1,0 +1,7 @@
+root = true
+
+[*.sh]
+indent_style = space
+indent_size = 2
+binary_next_line = true
+switch_case_indent = true

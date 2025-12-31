@@ -102,6 +102,7 @@ ryantm
 sarasa
 sgid
 shellenv
+shfmt
 spack
 statix
 stdenv

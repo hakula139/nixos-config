@@ -1,6 +1,4 @@
-{
-  lib,
-}:
+{ lib, ... }:
 
 # ==============================================================================
 # Cursor Extensions
@@ -55,7 +53,7 @@ let
     # Other Languages
     # --------------------------------------------------------------------------
     "jnoortheen.nix-ide"
-    "foxundermoon.shell-format@7.2.5"
+    "mads-hartmann.bash-ide-vscode"
     "redhat.vscode-yaml"
     "tamasfe.even-better-toml"
     "mechatroner.rainbow-csv"
@@ -111,6 +109,10 @@ let
     "pkief.material-icon-theme"
   ];
 
+  deprecatedExtensions = [
+    "foxundermoon.shell-format"
+  ];
+
   # ============================================================================
   # Installation Script
   # ============================================================================
@@ -130,6 +132,14 @@ let
       fi
     done <<EOF
     ${lib.concatStringsSep "\n" extensions}
+    EOF
+
+    while IFS= read -r ext; do
+      if [ -n "$ext" ] && is_installed "$ext"; then
+        cursor --uninstall-extension "$ext" >/dev/null 2>&1 || true
+      fi
+    done <<EOF
+    ${lib.concatStringsSep "\n" deprecatedExtensions}
     EOF
   '';
 in
