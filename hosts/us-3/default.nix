@@ -63,7 +63,7 @@ in
   # ============================================================================
   # Services
   # ============================================================================
-  # hakula.services.cachix.enable = true;
+  hakula.services.cachix.enable = true;
   # hakula.services.cloudconeAgent = {
   #   enable = true;
   #   serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;

@@ -65,13 +65,18 @@ in
     # Nix
     # --------------------------------------------------------------------------
     nix = {
-      settings = shared.nixSettings;
-      optimise.automatic = true;
+      settings =
+        shared.nixSettings
+        // lib.optionalAttrs config.hakula.services.cachix.enable {
+          inherit (shared.cachix.caches) substituters trusted-public-keys;
+        };
+
       gc = {
         automatic = true;
         dates = "weekly";
         options = "--delete-older-than 30d";
       };
+      optimise.automatic = true;
     };
 
     nixpkgs.config.allowUnfree = true;

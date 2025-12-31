@@ -7,10 +7,6 @@
 let
   keys = import ../secrets/keys.nix;
   tooling = import ../lib/tooling.nix { inherit pkgs; };
-
-  cachixCacheName = "hakula";
-  cachixPublicKey = "hakula.cachix.org-1:7zwB3fhMfReHdOjh6DmnaLXgqbPDBcojvN9F+osZw0k=";
-  caches = import ./nix/caches.nix { inherit cachixCacheName cachixPublicKey; };
 in
 {
   # SSH public keys
@@ -30,6 +26,21 @@ in
     nerd-fonts.jetbrains-mono
   ];
 
+  # Cachix configuration
+  cachix =
+    let
+      cacheName = "hakula";
+      publicKey = "hakula.cachix.org-1:7zwB3fhMfReHdOjh6DmnaLXgqbPDBcojvN9F+osZw0k=";
+      cacheUrl = "https://${cacheName}.cachix.org";
+    in
+    {
+      inherit cacheName publicKey;
+      caches = {
+        substituters = [ cacheUrl ];
+        trusted-public-keys = [ publicKey ];
+      };
+    };
+
   # Nix development tools
   nixTooling = tooling.nix;
 
@@ -41,7 +52,6 @@ in
     ];
     keep-outputs = false;
     keep-derivations = false;
-    download-buffer-size = 536870912; # 512 MB
-    inherit (caches) substituters trusted-public-keys;
+    download-buffer-size = 1073741824; # 1 GB
   };
 }
