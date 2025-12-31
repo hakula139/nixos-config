@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{
+  config,
+  pkgs,
+  ...
+}:
 
 # ==============================================================================
 # Darwin (macOS) Configuration
@@ -6,6 +10,17 @@
 
 let
   shared = import ../shared.nix { inherit pkgs; };
+  keys = import ../../secrets/keys.nix;
+
+  builder = {
+    name = "CloudCone-US-2";
+    ip = "74.48.189.161";
+    port = 35060;
+    sshUser = "root";
+    sshKey = "${config.users.users.hakula.home}/.ssh/CloudCone/id_ed25519";
+    system = "x86_64-linux";
+    hostKey = keys.hosts.us-2;
+  };
 in
 {
   # ============================================================================
@@ -13,8 +28,30 @@ in
   # ============================================================================
   nix = {
     enable = true;
-    settings = shared.nixSettings;
-    optimise.automatic = true;
+
+    settings = shared.nixSettings // {
+      extra-trusted-users = [ "hakula" ];
+      builders-use-substitutes = true;
+    };
+
+    distributedBuilds = true;
+    buildMachines = [
+      {
+        hostName = builder.name;
+        system = builder.system;
+        protocol = "ssh-ng";
+        sshUser = builder.sshUser;
+        sshKey = builder.sshKey;
+        maxJobs = 3;
+        speedFactor = 2;
+        supportedFeatures = [
+          "big-parallel"
+          "kvm"
+          "nixos-test"
+        ];
+      }
+    ];
+
     gc = {
       automatic = true;
       interval = {
@@ -24,6 +61,7 @@ in
       };
       options = "--delete-older-than 30d";
     };
+    optimise.automatic = true;
   };
 
   nixpkgs.config.allowUnfree = true;
@@ -214,6 +252,27 @@ in
   # macOS Security
   # ============================================================================
   security.pam.services.sudo_local.touchIdAuth = true;
+
+  # ============================================================================
+  # SSH Configuration (system-wide)
+  # ============================================================================
+  programs.ssh.extraConfig = ''
+    Host ${builder.name}
+      HostName ${builder.ip}
+      Port ${toString builder.port}
+      User ${builder.sshUser}
+      IdentityFile ${builder.sshKey}
+  '';
+
+  programs.ssh.knownHosts = {
+    ${builder.name} = {
+      extraHostNames = [
+        builder.ip
+        "[${builder.ip}]:${toString builder.port}"
+      ];
+      publicKey = builder.hostKey;
+    };
+  };
 
   # ============================================================================
   # Shell & Environment

@@ -46,7 +46,7 @@ in
     # --------------------------------------------------------------------------
     # Secrets (agenix)
     # --------------------------------------------------------------------------
-    age.secrets.twikooAccessToken = {
+    age.secrets.twikoo-access-token = {
       file = ../../../../secrets/shared/twikoo-access-token.age;
       owner = backupServiceName;
       group = backupServiceName;
@@ -75,7 +75,7 @@ in
       heartbeatUrl = lib.mkDefault "https://uptime.betterstack.com/api/v1/heartbeat/CrDMRbSCsaR1v45b71Ybr8yv";
 
       prepareCommand = ''
-        TWIKOO_ACCESS_TOKEN=$(cat ${config.age.secrets.twikooAccessToken.path})
+        TWIKOO_ACCESS_TOKEN=$(cat ${config.age.secrets.twikoo-access-token.path})
 
         apiUrl=${lib.escapeShellArg backupTwikooCfg.apiUrl}
 

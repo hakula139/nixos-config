@@ -14,32 +14,12 @@ let
   isDarwin = pkgs.stdenv.isDarwin;
 
   ext = import ./extensions.nix { inherit lib; };
-  mcp = import ./mcp.nix { inherit config pkgs; };
 
   # ----------------------------------------------------------------------------
   # Settings Generation
   # ----------------------------------------------------------------------------
   settings = builtins.fromJSON (builtins.readFile ./settings.json);
   settingsJson = (pkgs.formats.json { }).generate "cursor-settings.json" settings;
-
-  # ----------------------------------------------------------------------------
-  # User Files
-  # ----------------------------------------------------------------------------
-  userFiles =
-    if isDarwin then
-      {
-        "Library/Application Support/Cursor/User/settings.json".source = settingsJson;
-        "Library/Application Support/Cursor/User/keybindings.json".source = ./keybindings.json;
-        "Library/Application Support/Cursor/User/snippets".source = ./snippets;
-        ".cursor/mcp.json".source = mcp.mcpJson;
-      }
-    else
-      {
-        "Cursor/User/settings.json".source = settingsJson;
-        "Cursor/User/keybindings.json".source = ./keybindings.json;
-        "Cursor/User/snippets".source = ./snippets;
-        ".cursor/mcp.json".source = mcp.mcpJson;
-      };
 
   # ----------------------------------------------------------------------------
   # Cursor Paths
@@ -69,26 +49,70 @@ in
   # ============================================================================
   # Module Configuration
   # ============================================================================
-  config = lib.mkIf cfg.enable {
-    # --------------------------------------------------------------------------
-    # User Configuration Files
-    # --------------------------------------------------------------------------
-    home.file = lib.optionalAttrs isDarwin userFiles;
-    xdg.configFile = lib.optionalAttrs (!isDarwin) userFiles;
+  config = lib.mkIf cfg.enable (
+    let
+      mcpJson = (import ./mcp.nix { inherit config pkgs; }).mcpJson;
 
-    # --------------------------------------------------------------------------
-    # Extension Management
-    # --------------------------------------------------------------------------
-    home.activation.cursorExtensions = lib.mkIf cfg.enableExtensions (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        export PATH="${lib.concatStringsSep ":" paths}:$PATH"
+      darwinXdgFiles = {
+        "Library/Application Support/Cursor/User/settings.json".source = settingsJson;
+        "Library/Application Support/Cursor/User/keybindings.json".source = ./keybindings.json;
+        "Library/Application Support/Cursor/User/snippets".source = ./snippets;
+      };
 
-        if command -v cursor &>/dev/null; then
-          ${ext.installScript}
-        else
-          echo "Cursor not found, skipping extension installation"
-        fi
-      ''
-    );
-  };
+      linuxXdgFiles = {
+        "Cursor/User/settings.json".source = settingsJson;
+        "Cursor/User/keybindings.json".source = ./keybindings.json;
+        "Cursor/User/snippets".source = ./snippets;
+      };
+    in
+    {
+      # --------------------------------------------------------------------------
+      # Secrets (agenix)
+      # --------------------------------------------------------------------------
+      age.identityPaths = [
+        "${config.home.homeDirectory}/.ssh/id_ed25519"
+      ];
+
+      age.secrets.brave-api-key = {
+        file = ../../../secrets/workstation/brave-api-key.age;
+        path = "${config.home.homeDirectory}/.secrets/brave-api-key";
+        mode = "0400";
+      };
+
+      age.secrets.context7-api-key = {
+        file = ../../../secrets/workstation/context7-api-key.age;
+        path = "${config.home.homeDirectory}/.secrets/context7-api-key";
+        mode = "0400";
+      };
+
+      home.activation.secretsDir = lib.hm.dag.entryBefore [ "writeBoundary" ] ''
+        install -d -m 0700 "$HOME/.secrets"
+      '';
+
+      # --------------------------------------------------------------------------
+      # User Configuration Files
+      # --------------------------------------------------------------------------
+      home.file = {
+        ".cursor/mcp.json".source = mcpJson;
+      }
+      // (lib.optionalAttrs isDarwin darwinXdgFiles);
+
+      xdg.configFile = lib.optionalAttrs (!isDarwin) linuxXdgFiles;
+
+      # --------------------------------------------------------------------------
+      # Extension Management
+      # --------------------------------------------------------------------------
+      home.activation.cursorExtensions = lib.mkIf cfg.enableExtensions (
+        lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          export PATH="${lib.concatStringsSep ":" paths}:$PATH"
+
+          if command -v cursor &>/dev/null; then
+            ${ext.installScript}
+          else
+            echo "Cursor not found, skipping extension installation"
+          fi
+        ''
+      );
+    }
+  );
 }

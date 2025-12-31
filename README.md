@@ -47,13 +47,13 @@ curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 Bootstrap with [nix-darwin](https://github.com/LnL7/nix-darwin) (first switch):
 
 ```bash
-sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake ".#hakula-macbook"
+sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#hakula-macbook'
 ```
 
 ### Apply Darwin Configuration
 
 ```bash
-sudo darwin-rebuild switch --flake ".#hakula-macbook"
+sudo darwin-rebuild switch --flake '.#hakula-macbook'
 ```
 
 After setting up the alias:
@@ -75,13 +75,13 @@ curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 ### Apply Home Manager Configuration
 
 ```bash
-nix run home-manager -- switch --flake ".#hakula-linux"
+nix run home-manager -- switch --flake '.#hakula-linux'
 ```
 
 If Home Manager is installed globally:
 
 ```bash
-home-manager switch --flake ".#hakula-linux"
+home-manager switch --flake '.#hakula-linux'
 ```
 
 After setting up the alias:

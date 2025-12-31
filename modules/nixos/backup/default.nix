@@ -113,14 +113,14 @@ in
     # --------------------------------------------------------------------------
     # Secrets (agenix)
     # --------------------------------------------------------------------------
-    age.secrets.backupEnv = {
+    age.secrets.backup-env = {
       file = ../../../secrets/shared/backup-env.age;
       owner = serviceName;
       group = serviceName;
       mode = "0400";
     };
 
-    age.secrets.backupResticPassword = {
+    age.secrets.backup-restic-password = {
       file = ../../../secrets/shared/backup-restic-password.age;
       owner = serviceName;
       group = serviceName;
@@ -140,8 +140,8 @@ in
         initialize = true;
         user = serviceName;
         repository = repositoryFor name;
-        environmentFile = config.age.secrets.backupEnv.path;
-        passwordFile = config.age.secrets.backupResticPassword.path;
+        environmentFile = config.age.secrets.backup-env.path;
+        passwordFile = config.age.secrets.backup-restic-password.path;
 
         paths = if targetCfg.paths != [ ] then targetCfg.paths else [ stateDir ];
 
@@ -244,7 +244,7 @@ in
 
             environment = {
               RESTIC_REPOSITORY = repository;
-              RESTIC_PASSWORD_FILE = config.age.secrets.backupResticPassword.path;
+              RESTIC_PASSWORD_FILE = config.age.secrets.backup-restic-password.path;
             };
 
             script = ''
@@ -254,7 +254,7 @@ in
               rm -rf ${restoreDir}
               install -d -m 0700 -o ${serviceName} -g ${serviceName} ${restoreDir}
 
-              source ${config.age.secrets.backupEnv.path}
+              source ${config.age.secrets.backup-env.path}
 
               echo "==> Restoring snapshot ${targetCfg.restoreSnapshot} from Restic..."
               restic restore ${targetCfg.restoreSnapshot} \

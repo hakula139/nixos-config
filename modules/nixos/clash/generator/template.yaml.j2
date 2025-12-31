@@ -1,8 +1,8 @@
 proxies:
-{%- for i in range(1, 3) %}
-  - name: 🇺🇸 US-{{ i }} (REALITY)
+{%- for server in servers %}
+  - name: {{ server.name }} (REALITY)
     type: vless
-    server: us-{{ i }}.hakula.xyz
+    server: {{ server.id }}.hakula.xyz
     port: 443
     uuid: {{ uuid }}
     network: tcp
@@ -14,9 +14,9 @@ proxies:
       public-key: bHzc9AjLZiUGoZBGvDmo7XBcewkh9Vqukvzb8CTBnVQ
       short-id: {{ short_id }}
     client-fingerprint: chrome
-  - name: 🇺🇸 US-{{ i }} (WS + CDN)
+  - name: {{ server.name }} (WS + CDN)
     type: vless
-    server: us-{{ i }}-cdn.hakula.xyz
+    server: {{ server.id }}-cdn.hakula.xyz
     port: 443
     uuid: {{ uuid }}
     network: ws
@@ -33,9 +33,9 @@ proxy-groups:
   - name: PROXY
     type: select
     proxies:
-{%- for i in range(1, 3) %}
-      - 🇺🇸 US-{{ i }} (REALITY)
-      - 🇺🇸 US-{{ i }} (WS + CDN)
+{%- for server in servers %}
+      - {{ server.name }} (REALITY)
+      - {{ server.name }} (WS + CDN)
 {%- endfor %}
 
 rule-providers:

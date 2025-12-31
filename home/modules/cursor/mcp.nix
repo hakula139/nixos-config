@@ -13,19 +13,9 @@ let
   homeDir = config.home.homeDirectory;
 
   # ----------------------------------------------------------------------------
-  # GitKraken MCP
-  # ----------------------------------------------------------------------------
-  gitKrakenPath =
-    if isDarwin then
-      "${homeDir}/Library/Application Support/Cursor/User/globalStorage/eamodio.gitlens/gk"
-    else
-      "${homeDir}/.config/Cursor/User/globalStorage/eamodio.gitlens/gk";
-
-  # ----------------------------------------------------------------------------
   # Brave Search MCP
   # ----------------------------------------------------------------------------
-  # You need to manually decrypt secrets/shared/brave-api-key.age to this path.
-  braveApiKeyFile = "${homeDir}/.secrets/brave-api-key";
+  braveApiKeyFile = config.age.secrets.brave-api-key.path;
 
   braveSearch = pkgs.writeShellScriptBin "brave-search-mcp" ''
     if [ -f "${braveApiKeyFile}" ]; then
@@ -35,10 +25,45 @@ let
   '';
 
   # ----------------------------------------------------------------------------
+  # Context7 MCP
+  # ----------------------------------------------------------------------------
+  context7ApiKeyFile = config.age.secrets.context7-api-key.path;
+
+  context7 = pkgs.writeShellScriptBin "context7-mcp" ''
+    if [ -f "${context7ApiKeyFile}" ]; then
+      export CONTEXT7_API_KEY="$(cat ${context7ApiKeyFile})"
+    fi
+    exec ${pkgs.nodejs}/bin/npx -y @upstash/context7-mcp "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
+  # GitKraken MCP
+  # ----------------------------------------------------------------------------
+  gitKrakenPath =
+    if isDarwin then
+      "${homeDir}/Library/Application Support/Cursor/User/globalStorage/eamodio.gitlens/gk"
+    else
+      "${homeDir}/.config/Cursor/User/globalStorage/eamodio.gitlens/gk";
+
+  # ----------------------------------------------------------------------------
   # MCP Configuration
   # ----------------------------------------------------------------------------
   mcpConfig = {
     mcpServers = {
+      BraveSearch = {
+        name = "BraveSearch";
+        command = "${braveSearch}/bin/brave-search-mcp";
+        type = "stdio";
+      };
+      Context7 = {
+        name = "Context7";
+        command = "${context7}/bin/context7-mcp";
+        type = "stdio";
+      };
+      DeepWiki = {
+        name = "DeepWiki";
+        url = "https://mcp.deepwiki.com/sse";
+      };
       GitKraken = {
         name = "GitKraken";
         command = gitKrakenPath;
@@ -49,13 +74,6 @@ let
           "--source=gitlens"
           "--scheme=cursor"
         ];
-        env = { };
-      };
-      brave-search = {
-        type = "stdio";
-        command = "${braveSearch}/bin/brave-search-mcp";
-        args = [ ];
-        env = { };
       };
     };
   };

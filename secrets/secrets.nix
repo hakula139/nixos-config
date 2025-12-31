@@ -7,28 +7,30 @@ let
   keys = import ./keys.nix;
   allUserKeys = builtins.attrValues keys.users;
   allHostKeys = builtins.attrValues keys.hosts;
-  sharedKeys = allUserKeys ++ allHostKeys;
+  allWorkstationKeys = builtins.attrValues keys.workstations;
+  serverKeys = allUserKeys ++ allHostKeys;
 in
 {
   # ----------------------------------------------------------------------------
-  # Shared (multi-host)
+  # Server secrets
   # ----------------------------------------------------------------------------
-  "shared/aria2-rpc-secret.age".publicKeys = sharedKeys;
-  "shared/backup-env.age".publicKeys = sharedKeys;
-  "shared/backup-restic-password.age".publicKeys = sharedKeys;
-  "shared/brave-api-key.age".publicKeys = sharedKeys;
-  "shared/cachix-auth-token.age".publicKeys = sharedKeys;
-  "shared/clash-users.json.age".publicKeys = sharedKeys;
-  "shared/cloudflare-credentials.age".publicKeys = sharedKeys;
-  "shared/dockerhub-token.age".publicKeys = sharedKeys;
-  "shared/piclist-config.json.age".publicKeys = sharedKeys;
-  "shared/piclist-token.age".publicKeys = sharedKeys;
-  "shared/qq-smtp-authcode.age".publicKeys = sharedKeys;
-  "shared/twikoo-access-token.age".publicKeys = sharedKeys;
-  "shared/xray-config.json.age".publicKeys = sharedKeys;
+  "shared/aria2-rpc-secret.age".publicKeys = serverKeys;
+  "shared/backup-env.age".publicKeys = serverKeys;
+  "shared/backup-restic-password.age".publicKeys = serverKeys;
+  "shared/cachix-auth-token.age".publicKeys = serverKeys;
+  "shared/clash-users.json.age".publicKeys = serverKeys;
+  "shared/cloudflare-credentials.age".publicKeys = serverKeys;
+  "shared/dockerhub-token.age".publicKeys = serverKeys;
+  "shared/piclist-config.json.age".publicKeys = serverKeys;
+  "shared/piclist-token.age".publicKeys = serverKeys;
+  "shared/qq-smtp-authcode.age".publicKeys = serverKeys;
+  "shared/twikoo-access-token.age".publicKeys = serverKeys;
+  "shared/xray-config.json.age".publicKeys = serverKeys;
+  "cloudcone-sc2/server-keys/us-1.age".publicKeys = allUserKeys ++ [ keys.hosts.us-1 ];
 
   # ----------------------------------------------------------------------------
-  # Host-specific
+  # Workstation secrets
   # ----------------------------------------------------------------------------
-  "cloudcone-sc2/server-keys/us-1.age".publicKeys = allUserKeys ++ [ keys.hosts.us-1 ];
+  "workstation/brave-api-key.age".publicKeys = allWorkstationKeys;
+  "workstation/context7-api-key.age".publicKeys = allWorkstationKeys;
 }
