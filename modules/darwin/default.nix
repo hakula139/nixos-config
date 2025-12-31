@@ -27,7 +27,7 @@ in
     distributedBuilds = true;
     buildMachines = [
       {
-        hostName = "us-2";
+        hostName = "CloudCone-US-2";
         system = "x86_64-linux";
         protocol = "ssh-ng";
         sshUser = "root";
@@ -55,22 +55,6 @@ in
   };
 
   nixpkgs.config.allowUnfree = true;
-
-  # ============================================================================
-  # SSH Configuration
-  # ============================================================================
-  programs.ssh = {
-    enable = true;
-    matchBlocks = {
-      "us-2" = {
-        host = "us-2";
-        hostname = "74.48.189.161";
-        port = 35060;
-        user = "root";
-        identityFile = cloudconeSshKeyPath;
-      };
-    };
-  };
 
   # ============================================================================
   # macOS System Settings (best effort)

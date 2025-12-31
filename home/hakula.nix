@@ -18,6 +18,7 @@ in
     ./modules/darwin.nix
     ./modules/cursor
     ./modules/git.nix
+    ./modules/ssh.nix
     ./modules/zsh.nix
   ];
 
