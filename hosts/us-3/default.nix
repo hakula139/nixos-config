@@ -64,20 +64,20 @@ in
   # Services
   # ============================================================================
   hakula.services.cachix.enable = true;
-  # hakula.services.cloudconeAgent = {
-  #   enable = true;
-  #   serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
-  # };
-  # hakula.services.netdata.enable = true;
-  # hakula.services.nginx.enable = true;
+  hakula.services.cloudconeAgent = {
+    enable = true;
+    serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
+  };
+  hakula.services.netdata.enable = true;
+  hakula.services.nginx.enable = true;
   hakula.services.openssh = {
     enable = true;
     ports = [ 35060 ];
   };
-  # hakula.services.xray = {
-  #   enable = true;
-  #   ws.enable = true;
-  # };
+  hakula.services.xray = {
+    enable = true;
+    ws.enable = true;
+  };
 
   # ============================================================================
   # System State
