@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{
+  config,
+  pkgs,
+  ...
+}:
 
 # ==============================================================================
 # Darwin (macOS) Configuration
@@ -6,6 +10,7 @@
 
 let
   shared = import ../shared.nix { inherit pkgs; };
+  cloudconeSshKeyPath = "${config.users.users.hakula.home}/.ssh/CloudCone/id_ed25519";
 in
 {
   # ============================================================================
@@ -13,10 +18,30 @@ in
   # ============================================================================
   nix = {
     enable = true;
+
     settings = shared.nixSettings // {
       trusted-users = [ "hakula" ];
+      builders-use-substitutes = true;
     };
-    optimise.automatic = true;
+
+    distributedBuilds = true;
+    buildMachines = [
+      {
+        hostName = "us-2";
+        system = "x86_64-linux";
+        protocol = "ssh-ng";
+        sshUser = "root";
+        sshKey = cloudconeSshKeyPath;
+        maxJobs = 3;
+        speedFactor = 2;
+        supportedFeatures = [
+          "big-parallel"
+          "kvm"
+          "nixos-test"
+        ];
+      }
+    ];
+
     gc = {
       automatic = true;
       interval = {
@@ -26,9 +51,26 @@ in
       };
       options = "--delete-older-than 30d";
     };
+    optimise.automatic = true;
   };
 
   nixpkgs.config.allowUnfree = true;
+
+  # ============================================================================
+  # SSH Configuration
+  # ============================================================================
+  programs.ssh = {
+    enable = true;
+    matchBlocks = {
+      "us-2" = {
+        host = "us-2";
+        hostname = "74.48.189.161";
+        port = 35060;
+        user = "root";
+        identityFile = cloudconeSshKeyPath;
+      };
+    };
+  };
 
   # ============================================================================
   # macOS System Settings (best effort)
