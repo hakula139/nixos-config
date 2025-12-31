@@ -37,7 +37,7 @@ REGION_FLAGS: dict[str, str] = {
     'sg': '🇸🇬',
 }
 
-SERVER_IDS = ['us-1', 'us-2', 'sg-1']
+SERVER_IDS = ['us-1', 'us-2', 'us-3', 'sg-1']
 
 
 def build_server_config(server_id: str) -> ServerConfig:
