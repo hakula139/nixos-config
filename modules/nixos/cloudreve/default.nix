@@ -117,7 +117,7 @@ in
     };
 
     # --------------------------------------------------------------------------
-    # Cloudreve systemd service
+    # Systemd service
     # --------------------------------------------------------------------------
     systemd.services.cloudreve = {
       description = "Cloudreve file management and sharing system";

@@ -33,6 +33,9 @@ in
     services.postgresql = {
       enable = true;
       package = cfg.package;
+      settings = {
+        password_encryption = lib.mkDefault "scram-sha-256";
+      };
     };
   };
 }

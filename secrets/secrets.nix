@@ -25,6 +25,7 @@ in
   "shared/piclist-token.age".publicKeys = serverKeys;
   "shared/qq-smtp-authcode.age".publicKeys = serverKeys;
   "shared/twikoo-access-token.age".publicKeys = serverKeys;
+  "shared/umami-env.age".publicKeys = serverKeys;
   "shared/xray-config.json.age".publicKeys = serverKeys;
   "cloudcone-sc2/server-keys/us-1.age".publicKeys = allUserKeys ++ [ keys.hosts.us-1 ];
   "cloudcone-sc2/server-keys/us-3.age".publicKeys = allUserKeys ++ [ keys.hosts.us-3 ];

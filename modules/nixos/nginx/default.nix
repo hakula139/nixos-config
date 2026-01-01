@@ -27,6 +27,7 @@ let
   # ----------------------------------------------------------------------------
   cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
   piclistUpstream = "http://127.0.0.1:${toString config.hakula.services.piclist.port}";
+  umamiUpstream = "http://127.0.0.1:${toString config.hakula.services.umami.port}";
 
   # ----------------------------------------------------------------------------
   # Shared Configuration
@@ -89,8 +90,8 @@ in
       group = "nginx";
       extraGroups = [
         "acme"
-        "clashgen"
-      ];
+      ]
+      ++ lib.optional config.hakula.services.clashGenerator.enable "clashgen";
     };
     users.groups.nginx = { };
 
@@ -177,77 +178,88 @@ in
       };
 
       # Clash subscriptions
-      virtualHosts."clash.hakula.xyz" = cloudflareVhostConfig // {
-        extraConfig = cloudflareVhostConfig.extraConfig + ''
-          absolute_redirect off;
-        '';
-        locations."/" = {
-          alias = "/var/lib/clash-generator/";
-          extraConfig = ''
-            default_type application/x-yaml;
-            add_header Content-Disposition 'attachment; filename="clash.yaml"';
-            ${noCacheExtraConfig}
+      virtualHosts."clash.hakula.xyz" = lib.mkIf config.hakula.services.clashGenerator.enable (
+        cloudflareVhostConfig
+        // {
+          extraConfig = cloudflareVhostConfig.extraConfig + ''
+            absolute_redirect off;
           '';
-        };
-        locations."= /" = {
-          return = "404";
-        };
-      };
+          locations."/" = {
+            alias = "/var/lib/clash-generator/";
+            extraConfig = ''
+              default_type application/x-yaml;
+              add_header Content-Disposition 'attachment; filename="clash.yaml"';
+              ${noCacheExtraConfig}
+            '';
+          };
+          locations."= /" = {
+            return = "404";
+          };
+        }
+      );
 
       # Cloudreve cloud storage
-      virtualHosts."cloud.hakula.xyz" = cloudflareVhostConfig // {
-        extraConfig = cloudflareVhostConfig.extraConfig + ''
-          client_body_timeout 300s;
-          client_header_timeout 60s;
+      virtualHosts."cloud.hakula.xyz" = lib.mkIf config.hakula.services.cloudreve.enable (
+        cloudflareVhostConfig
+        // {
+          extraConfig = cloudflareVhostConfig.extraConfig + ''
+            client_body_timeout 300s;
+            client_header_timeout 60s;
 
-          proxy_connect_timeout 60s;
-          proxy_send_timeout 600s;
-          proxy_read_timeout 600s;
-        '';
-        locations."= /index.html" = {
-          proxyPass = "${cloudreveUpstream}/index.html";
-          extraConfig = noCacheExtraConfig;
-        };
-        locations."= /sw.js" = {
-          proxyPass = "${cloudreveUpstream}/sw.js";
-          extraConfig = noCacheExtraConfig;
-        };
-        locations."= /manifest.json" = {
-          proxyPass = "${cloudreveUpstream}/manifest.json";
-          extraConfig = noCacheExtraConfig;
-        };
-        locations."/api/v4/ws" = {
-          proxyPass = cloudreveUpstream;
-          proxyWebsockets = true;
-        };
-        locations."/api/v4/file/download" = {
-          proxyPass = cloudreveUpstream;
-          extraConfig = noBufferingExtraConfig;
-        };
-        locations."/api/v4/file/upload" = {
-          proxyPass = cloudreveUpstream;
-          extraConfig = noBufferingExtraConfig;
-        };
-        locations."/dav" = {
-          proxyPass = "${cloudreveUpstream}/dav";
-          extraConfig = noBufferingExtraConfig;
-        };
-        locations."/" = {
-          proxyPass = "${cloudreveUpstream}/";
-        };
-      };
+            proxy_connect_timeout 60s;
+            proxy_send_timeout 600s;
+            proxy_read_timeout 600s;
+          '';
+          locations."= /index.html" = {
+            proxyPass = "${cloudreveUpstream}/index.html";
+            extraConfig = noCacheExtraConfig;
+          };
+          locations."= /sw.js" = {
+            proxyPass = "${cloudreveUpstream}/sw.js";
+            extraConfig = noCacheExtraConfig;
+          };
+          locations."= /manifest.json" = {
+            proxyPass = "${cloudreveUpstream}/manifest.json";
+            extraConfig = noCacheExtraConfig;
+          };
+          locations."/api/v4/ws" = {
+            proxyPass = cloudreveUpstream;
+            proxyWebsockets = true;
+          };
+          locations."/api/v4/file/download" = {
+            proxyPass = cloudreveUpstream;
+            extraConfig = noBufferingExtraConfig;
+          };
+          locations."/api/v4/file/upload" = {
+            proxyPass = cloudreveUpstream;
+            extraConfig = noBufferingExtraConfig;
+          };
+          locations."/dav" = {
+            proxyPass = "${cloudreveUpstream}/dav";
+            extraConfig = noBufferingExtraConfig;
+          };
+          locations."/" = {
+            proxyPass = "${cloudreveUpstream}/";
+          };
+        }
+      );
 
       # Netdata dashboard
-      virtualHosts."metrics-${config.networking.hostName}.hakula.xyz" = cloudflareVhostConfig // {
-        locations."/" = {
-          proxyPass = "http://127.0.0.1:19999/";
-          proxyWebsockets = true;
-          extraConfig = ''
-            proxy_buffering off;
-            proxy_request_buffering off;
-          '';
-        };
-      };
+      virtualHosts."metrics-${config.networking.hostName}.hakula.xyz" =
+        lib.mkIf config.hakula.services.netdata.enable
+          (
+            cloudflareVhostConfig
+            // {
+              locations."/" = {
+                proxyPass = "http://127.0.0.1:19999/";
+                proxyWebsockets = true;
+                extraConfig = ''
+                  proxy_buffering off;
+                  proxy_request_buffering off;
+                '';
+              };
+            }
+          );
 
       # PicList image upload server
       virtualHosts."static.hakula.xyz" = lib.mkIf config.hakula.services.piclist.enable (
@@ -262,6 +274,16 @@ in
           };
           locations."/" = {
             return = "302 https://cloud.hakula.xyz";
+          };
+        }
+      );
+
+      # Umami analytics
+      virtualHosts."umami.hakula.xyz" = lib.mkIf config.hakula.services.umami.enable (
+        cloudflareVhostConfig
+        // {
+          locations."/" = {
+            proxyPass = "${umamiUpstream}/";
           };
         }
       );

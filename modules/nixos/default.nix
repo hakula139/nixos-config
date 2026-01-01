@@ -33,6 +33,7 @@ in
     ./piclist
     ./postgresql
     ./ssh
+    ./umami
     ./xray
   ];
 
