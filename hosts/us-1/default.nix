@@ -75,7 +75,13 @@ in
     enable = true;
     serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
   };
-  hakula.services.cloudreve.enable = true;
+  hakula.services.cloudreve = {
+    enable = true;
+    umami = {
+      enable = true;
+      workerHost = "b2.hakula.xyz";
+    };
+  };
   hakula.services.piclist.enable = true;
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
