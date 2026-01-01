@@ -3,5 +3,15 @@
     "key": "shift+cmd+k",
     "command": "-aipopup.action.modal.generate",
     "when": "editorFocus && !composerBarIsVisible"
+  },
+  {
+    "key": "ctrl+=",
+    "command": "workbench.action.navigateForward",
+    "when": "canNavigateForward"
+  },
+  {
+    "key": "ctrl+shift+-",
+    "command": "-workbench.action.navigateForward",
+    "when": "canNavigateForward"
   }
 ]
