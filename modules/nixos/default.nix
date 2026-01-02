@@ -31,6 +31,7 @@ in
     ./netdata
     (import ./nginx { inherit realitySniHost; })
     ./piclist
+    ./podman
     ./postgresql
     ./ssh
     ./umami

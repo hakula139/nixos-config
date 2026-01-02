@@ -91,7 +91,7 @@ in
     users.groups.${serviceName} = { };
 
     # --------------------------------------------------------------------------
-    # PostgreSQL (local)
+    # PostgreSQL
     # --------------------------------------------------------------------------
     services.postgresql = {
       ensureDatabases = [ dbName ];
