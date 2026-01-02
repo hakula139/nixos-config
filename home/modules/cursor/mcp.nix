@@ -39,6 +39,13 @@ let
   '';
 
   # ----------------------------------------------------------------------------
+  # DeepWiki MCP
+  # ----------------------------------------------------------------------------
+  deepwiki = pkgs.writeShellScriptBin "deepwiki-mcp" ''
+    exec ${pkgs.nodejs}/bin/npx -y mcp-remote https://mcp.deepwiki.com/sse --transport sse-first "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
   # GitKraken MCP
   # ----------------------------------------------------------------------------
   gitKrakenPath =
@@ -69,7 +76,8 @@ let
       };
       DeepWiki = {
         name = "DeepWiki";
-        url = "https://mcp.deepwiki.com/sse";
+        command = "${deepwiki}/bin/deepwiki-mcp";
+        type = "stdio";
       };
       GitKraken = {
         name = "GitKraken";
