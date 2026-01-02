@@ -209,7 +209,7 @@
           extraSpecialArgs = {
             inherit inputs;
             isNixOS = false;
-            isWorkstation = true;
+            isWorkstation = false;
           };
         };
       };

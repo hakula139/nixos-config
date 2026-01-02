@@ -2,8 +2,8 @@
   pkgs,
   lib,
   inputs,
-  isNixOS,
-  isWorkstation,
+  isNixOS ? false,
+  isWorkstation ? false,
   ...
 }:
 

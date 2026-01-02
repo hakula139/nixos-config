@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  isWorkstation ? false,
   ...
 }:
 
@@ -40,10 +41,15 @@ let
   # GitKraken MCP
   # ----------------------------------------------------------------------------
   gitKrakenPath =
-    if isDarwin then
-      "${homeDir}/Library/Application Support/Cursor/User/globalStorage/eamodio.gitlens/gk"
+    if isWorkstation then
+      (
+        if isDarwin then
+          "${homeDir}/Library/Application Support/Cursor/User/globalStorage/eamodio.gitlens/gk"
+        else
+          "${homeDir}/.config/Cursor/User/globalStorage/eamodio.gitlens/gk"
+      )
     else
-      "${homeDir}/.config/Cursor/User/globalStorage/eamodio.gitlens/gk";
+      "${homeDir}/.cursor-server/data/User/globalStorage/eamodio.gitlens/gk";
 
   # ----------------------------------------------------------------------------
   # MCP Configuration
