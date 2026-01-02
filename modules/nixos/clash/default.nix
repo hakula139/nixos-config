@@ -52,7 +52,6 @@ in
         description = "Generate Clash subscription configs from user data";
         after = [ "agenix.service" ];
         wantedBy = [ "multi-user.target" ];
-        restartTriggers = [ config.age.secrets.clash-users.file ];
         serviceConfig = {
           Type = "oneshot";
           ExecStart = clashGenerator;
@@ -63,10 +62,14 @@ in
           ProtectSystem = "strict";
           ProtectHome = true;
           PrivateTmp = true;
+          ProtectControlGroups = true;
+          ProtectKernelTunables = true;
+          ProtectKernelModules = true;
           StateDirectory = "%N";
           StateDirectoryMode = "0750";
           WorkingDirectory = "%S/%N";
         };
+        restartTriggers = [ config.age.secrets.clash-users.file ];
       };
     }
   );

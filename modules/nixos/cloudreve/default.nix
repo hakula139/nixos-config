@@ -28,7 +28,7 @@ let
     [Database]
     Type = postgres
     Host = /run/postgresql
-    Port = 5432
+    Port = ${toString config.hakula.services.postgresql.port}
     Name = ${dbName}
     User = ${serviceName}
     UnixSocket = true
@@ -40,6 +40,10 @@ let
   '';
 in
 {
+  imports = [
+    ./umami
+  ];
+
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
@@ -87,7 +91,7 @@ in
     users.groups.${serviceName} = { };
 
     # --------------------------------------------------------------------------
-    # PostgreSQL (local)
+    # PostgreSQL
     # --------------------------------------------------------------------------
     services.postgresql = {
       ensureDatabases = [ dbName ];
@@ -113,7 +117,7 @@ in
     };
 
     # --------------------------------------------------------------------------
-    # Cloudreve systemd service
+    # Systemd service
     # --------------------------------------------------------------------------
     systemd.services.cloudreve = {
       description = "Cloudreve file management and sharing system";

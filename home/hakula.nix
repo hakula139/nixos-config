@@ -2,8 +2,8 @@
   pkgs,
   lib,
   inputs,
-  isNixOS,
-  isWorkstation,
+  isNixOS ? false,
+  isDesktop ? false,
   ...
 }:
 
@@ -72,7 +72,7 @@ in
   # Custom Modules
   # ============================================================================
   hakula.cursor = {
-    enable = isWorkstation;
-    enableExtensions = isWorkstation;
+    enable = true;
+    enableExtensions = isDesktop;
   };
 }

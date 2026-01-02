@@ -5,13 +5,13 @@
 # ==============================================================================
 
 let
-  cfg = config.hakula.services.cachix;
+  cfg = config.hakula.cachix;
 in
 {
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.hakula.services.cachix = {
+  options.hakula.cachix = {
     enable = lib.mkEnableOption "Cachix auth token secret";
   };
 

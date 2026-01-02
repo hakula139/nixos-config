@@ -1,6 +1,8 @@
 {
   config,
   pkgs,
+  isDesktop ? false,
+  secretsDir ? "${config.home.homeDirectory}/.secrets",
   ...
 }:
 
@@ -15,7 +17,7 @@ let
   # ----------------------------------------------------------------------------
   # Brave Search MCP
   # ----------------------------------------------------------------------------
-  braveApiKeyFile = config.age.secrets.brave-api-key.path;
+  braveApiKeyFile = "${secretsDir}/brave-api-key";
 
   braveSearch = pkgs.writeShellScriptBin "brave-search-mcp" ''
     if [ -f "${braveApiKeyFile}" ]; then
@@ -27,7 +29,7 @@ let
   # ----------------------------------------------------------------------------
   # Context7 MCP
   # ----------------------------------------------------------------------------
-  context7ApiKeyFile = config.age.secrets.context7-api-key.path;
+  context7ApiKeyFile = "${secretsDir}/context7-api-key";
 
   context7 = pkgs.writeShellScriptBin "context7-mcp" ''
     if [ -f "${context7ApiKeyFile}" ]; then
@@ -37,13 +39,25 @@ let
   '';
 
   # ----------------------------------------------------------------------------
+  # DeepWiki MCP
+  # ----------------------------------------------------------------------------
+  deepwiki = pkgs.writeShellScriptBin "deepwiki-mcp" ''
+    exec ${pkgs.nodejs}/bin/npx -y mcp-remote https://mcp.deepwiki.com/sse --transport sse-first "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
   # GitKraken MCP
   # ----------------------------------------------------------------------------
   gitKrakenPath =
-    if isDarwin then
-      "${homeDir}/Library/Application Support/Cursor/User/globalStorage/eamodio.gitlens/gk"
+    if isDesktop then
+      (
+        if isDarwin then
+          "${homeDir}/Library/Application Support/Cursor/User/globalStorage/eamodio.gitlens/gk"
+        else
+          "${homeDir}/.config/Cursor/User/globalStorage/eamodio.gitlens/gk"
+      )
     else
-      "${homeDir}/.config/Cursor/User/globalStorage/eamodio.gitlens/gk";
+      "${homeDir}/.cursor-server/data/User/globalStorage/eamodio.gitlens/gk";
 
   # ----------------------------------------------------------------------------
   # MCP Configuration
@@ -62,7 +76,8 @@ let
       };
       DeepWiki = {
         name = "DeepWiki";
-        url = "https://mcp.deepwiki.com/sse";
+        command = "${deepwiki}/bin/deepwiki-mcp";
+        type = "stdio";
       };
       GitKraken = {
         name = "GitKraken";
