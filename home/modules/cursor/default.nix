@@ -2,7 +2,7 @@
   config,
   pkgs,
   lib,
-  isWorkstation ? false,
+  isDesktop ? false,
   ...
 }:
 
@@ -50,7 +50,7 @@ in
     let
       # `mcp.nix` depends on `config.age.secrets.*`, so keep evaluation inside
       # `mkIf cfg.enable` to avoid forcing it when Cursor is disabled.
-      mcpJson = (mcp { inherit config pkgs isWorkstation; }).mcpJson;
+      mcpJson = (mcp { inherit config pkgs isDesktop; }).mcpJson;
 
       darwinXdgFiles = {
         "Library/Application Support/Cursor/User/settings.json".source = settings.settingsJson;
@@ -71,7 +71,7 @@ in
       age.identityPaths = [
         "${config.home.homeDirectory}/.ssh/id_ed25519"
       ]
-      ++ lib.optionals (!isWorkstation && !isDarwin) [
+      ++ lib.optionals (!isDesktop && !isDarwin) [
         "/etc/ssh/ssh_host_ed25519_key"
       ];
 

@@ -1,7 +1,7 @@
 {
   config,
   pkgs,
-  isWorkstation ? false,
+  isDesktop ? false,
   ...
 }:
 
@@ -41,7 +41,7 @@ let
   # GitKraken MCP
   # ----------------------------------------------------------------------------
   gitKrakenPath =
-    if isWorkstation then
+    if isDesktop then
       (
         if isDarwin then
           "${homeDir}/Library/Application Support/Cursor/User/globalStorage/eamodio.gitlens/gk"

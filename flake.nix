@@ -115,7 +115,7 @@
                 extraSpecialArgs = {
                   inherit inputs;
                   isNixOS = true;
-                  isWorkstation = false;
+                  isDesktop = false;
                 };
               };
             }
@@ -185,7 +185,7 @@
                 extraSpecialArgs = {
                   inherit inputs;
                   isNixOS = false;
-                  isWorkstation = true;
+                  isDesktop = true;
                 };
               };
             }
@@ -209,7 +209,7 @@
           extraSpecialArgs = {
             inherit inputs;
             isNixOS = false;
-            isWorkstation = false;
+            isDesktop = false;
           };
         };
       };
