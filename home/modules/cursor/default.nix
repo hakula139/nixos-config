@@ -97,9 +97,9 @@ in
       home.file = {
         ".cursor/mcp.json".source = mcpJson;
       }
-      // (lib.optionalAttrs isDarwin darwinXdgFiles);
+      // (lib.optionalAttrs (isDesktop && isDarwin) darwinXdgFiles);
 
-      xdg.configFile = lib.optionalAttrs (!isDarwin) linuxXdgFiles;
+      xdg.configFile = lib.optionalAttrs (isDesktop && !isDarwin) linuxXdgFiles;
 
       # --------------------------------------------------------------------------
       # Extension Management
