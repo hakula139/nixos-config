@@ -72,7 +72,7 @@ in
   # Custom Modules
   # ============================================================================
   hakula.cursor = {
-    enable = isWorkstation;
+    enable = true;
     enableExtensions = isWorkstation;
   };
 }
