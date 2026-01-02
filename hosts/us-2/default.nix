@@ -39,9 +39,14 @@ in
   hakula.access.ssh.authorizedKeys = [ keys.users.hakula-cloudcone ];
 
   # ============================================================================
+  # Credentials
+  # ============================================================================
+  hakula.cachix.enable = true;
+  hakula.mcp.enable = true;
+
+  # ============================================================================
   # Services
   # ============================================================================
-  hakula.services.cachix.enable = true;
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
   hakula.services.openssh = {

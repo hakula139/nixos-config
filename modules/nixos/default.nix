@@ -28,6 +28,7 @@ in
     ./cloudcone
     ./cloudreve
     ./dockerhub
+    ./mcp
     ./netdata
     (import ./nginx { inherit realitySniHost; })
     ./piclist
@@ -69,7 +70,7 @@ in
     nix = {
       settings =
         shared.nixSettings
-        // lib.optionalAttrs config.hakula.services.cachix.enable {
+        // lib.optionalAttrs config.hakula.cachix.enable {
           inherit (shared.cachix.caches) substituters trusted-public-keys;
         };
 

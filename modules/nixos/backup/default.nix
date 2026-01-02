@@ -192,7 +192,7 @@ in
     ) enabledTargets;
 
     # --------------------------------------------------------------------------
-    # State directories (for each target)
+    # Filesystem layout (for each target)
     # --------------------------------------------------------------------------
     systemd.tmpfiles.rules = [
       "d ${baseStateDir} 0750 ${serviceName} ${serviceName} -"

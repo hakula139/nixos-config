@@ -2,6 +2,7 @@
   config,
   pkgs,
   isDesktop ? false,
+  secretsDir ? "${config.home.homeDirectory}/.secrets",
   ...
 }:
 
@@ -16,7 +17,7 @@ let
   # ----------------------------------------------------------------------------
   # Brave Search MCP
   # ----------------------------------------------------------------------------
-  braveApiKeyFile = config.age.secrets.brave-api-key.path;
+  braveApiKeyFile = "${secretsDir}/brave-api-key";
 
   braveSearch = pkgs.writeShellScriptBin "brave-search-mcp" ''
     if [ -f "${braveApiKeyFile}" ]; then
@@ -28,7 +29,7 @@ let
   # ----------------------------------------------------------------------------
   # Context7 MCP
   # ----------------------------------------------------------------------------
-  context7ApiKeyFile = config.age.secrets.context7-api-key.path;
+  context7ApiKeyFile = "${secretsDir}/context7-api-key";
 
   context7 = pkgs.writeShellScriptBin "context7-mcp" ''
     if [ -f "${context7ApiKeyFile}" ]; then

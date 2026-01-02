@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  isNixOS ? false,
   isDesktop ? false,
   ...
 }:
@@ -15,7 +16,6 @@ let
   isDarwin = pkgs.stdenv.isDarwin;
 
   ext = import ./extensions.nix { inherit lib; };
-  mcp = import ./mcp.nix;
   settings = import ./settings.nix { inherit pkgs; };
 
   # ----------------------------------------------------------------------------
@@ -48,9 +48,15 @@ in
   # ============================================================================
   config = lib.mkIf cfg.enable (
     let
-      # `mcp.nix` depends on `config.age.secrets.*`, so keep evaluation inside
-      # `mkIf cfg.enable` to avoid forcing it when Cursor is disabled.
-      mcpJson = (mcp { inherit config pkgs isDesktop; }).mcpJson;
+      secretsDir = "${config.home.homeDirectory}/.secrets";
+      mcp = import ./mcp.nix {
+        inherit
+          config
+          pkgs
+          isDesktop
+          secretsDir
+          ;
+      };
 
       darwinXdgFiles = {
         "Library/Application Support/Cursor/User/settings.json".source = settings.settingsJson;
@@ -67,35 +73,38 @@ in
     {
       # --------------------------------------------------------------------------
       # Secrets (agenix)
+      # On NixOS: system-level agenix handles decryption (modules/nixos/mcp)
+      # On Darwin / standalone: home-manager agenix handles decryption
       # --------------------------------------------------------------------------
-      age.identityPaths = [
+      age.identityPaths = lib.mkIf (!isNixOS) [
         "${config.home.homeDirectory}/.ssh/id_ed25519"
-      ]
-      ++ lib.optionals (!isDesktop && !isDarwin) [
-        "/etc/ssh/ssh_host_ed25519_key"
       ];
 
-      age.secrets.brave-api-key = {
-        file = ../../../secrets/shared/brave-api-key.age;
-        path = "${config.home.homeDirectory}/.secrets/brave-api-key";
-        mode = "0400";
+      age.secrets = lib.mkIf (!isNixOS) {
+        brave-api-key = {
+          file = ../../../secrets/shared/brave-api-key.age;
+          path = "${secretsDir}/brave-api-key";
+          mode = "0400";
+        };
+
+        context7-api-key = {
+          file = ../../../secrets/shared/context7-api-key.age;
+          path = "${secretsDir}/context7-api-key";
+          mode = "0400";
+        };
       };
 
-      age.secrets.context7-api-key = {
-        file = ../../../secrets/shared/context7-api-key.age;
-        path = "${config.home.homeDirectory}/.secrets/context7-api-key";
-        mode = "0400";
-      };
-
-      home.activation.secretsDir = lib.hm.dag.entryBefore [ "writeBoundary" ] ''
-        install -d -m 0700 "$HOME/.secrets"
-      '';
+      home.activation.secretsDir = lib.mkIf (!isNixOS) (
+        lib.hm.dag.entryBefore [ "writeBoundary" ] ''
+          install -d -m 0700 "${secretsDir}"
+        ''
+      );
 
       # --------------------------------------------------------------------------
       # User Configuration Files
       # --------------------------------------------------------------------------
       home.file = {
-        ".cursor/mcp.json".source = mcpJson;
+        ".cursor/mcp.json".source = mcp.mcpJson;
       }
       // (lib.optionalAttrs (isDesktop && isDarwin) darwinXdgFiles);
 
