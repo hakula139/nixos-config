@@ -13,6 +13,18 @@ in
 
     matchBlocks = {
       "*" = { };
+      "github.com-hakula139" = {
+        host = "github.com-hakula139";
+        hostname = "github.com";
+        user = "git";
+        identityFile = "${homeDir}/.ssh/GitHub/hakula139";
+      };
+      "github.com-hc492874" = {
+        host = "github.com-hc492874";
+        hostname = "github.com";
+        user = "git";
+        identityFile = "${homeDir}/.ssh/GitHub/hc492874";
+      };
       "CloudCone-US-1" = {
         host = "CloudCone-US-1";
         hostname = "74.48.108.20";
