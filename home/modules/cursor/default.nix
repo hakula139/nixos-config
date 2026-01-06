@@ -121,7 +121,11 @@ in
       # --------------------------------------------------------------------------
       home.activation.cursorExtensions = lib.mkIf cfg.extensions.enable (
         lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          export PATH="${lib.concatStringsSep ":" paths}:$PATH"
+          cursor_server_path="$(
+            ls -1d "$HOME/.cursor-server/bin/"*"/bin/remote-cli" 2>/dev/null | sort | tail -n 1 || true
+          )"
+
+          export PATH="${lib.concatStringsSep ":" paths}''${cursor_server_path:+:$cursor_server_path}:$PATH"
 
           if command -v cursor &>/dev/null; then
             ${ext.installScript}
