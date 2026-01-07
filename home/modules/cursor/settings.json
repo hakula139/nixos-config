@@ -56,6 +56,9 @@
   "[shellscript]": {
     "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode"
   },
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
+  },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -72,6 +75,7 @@
   "C_Cpp.default.cppStandard": "c++23",
   "C_Cpp.default.cStandard": "c23",
   "C_Cpp.experimentalFeatures": "enabled",
+  "C_Cpp.inlayHints.referenceOperator.enabled": true,
   "clangd.checkUpdates": true,
   "cmake.allowCommentsInPresetsFile": true,
   "cmake.ctest.allowParallelJobs": true,
@@ -79,6 +83,7 @@
   "cmake.showConfigureWithDebuggerNotification": false,
   "cSpell.allowCompoundWords": true,
   "cSpell.diagnosticLevel": "Hint",
+  "cSpell.diagnosticLevelFlaggedWords": "Information",
   "cSpell.language": "en,en-GB",
   "cSpell.userWords": ["hakula"],
   "cursor.composer.textSizeScale": 1.15,
