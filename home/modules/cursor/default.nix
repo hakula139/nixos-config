@@ -15,8 +15,11 @@ let
   cfg = config.hakula.cursor;
   isDarwin = pkgs.stdenv.isDarwin;
 
-  ext = import ./extensions.nix { inherit lib; };
   settings = import ./settings.nix { inherit pkgs; };
+  ext = import ./extensions.nix {
+    inherit lib isDesktop;
+    prune = cfg.extensions.prune;
+  };
 
   # ----------------------------------------------------------------------------
   # Cursor Paths
@@ -40,7 +43,10 @@ in
   options.hakula.cursor = {
     enable = lib.mkEnableOption "Cursor configuration";
 
-    enableExtensions = lib.mkEnableOption "Cursor extensions";
+    extensions = {
+      enable = lib.mkEnableOption "Cursor extensions";
+      prune = lib.mkEnableOption "Prune Cursor extensions not in the provisioned list";
+    };
   };
 
   # ============================================================================
@@ -58,16 +64,22 @@ in
           ;
       };
 
-      darwinXdgFiles = {
+      darwinFiles = {
         "Library/Application Support/Cursor/User/settings.json".source = settings.settingsJson;
         "Library/Application Support/Cursor/User/keybindings.json".source = ./keybindings.json;
         "Library/Application Support/Cursor/User/snippets".source = ./snippets;
       };
 
-      linuxXdgFiles = {
+      linuxFiles = {
         "Cursor/User/settings.json".source = settings.settingsJson;
         "Cursor/User/keybindings.json".source = ./keybindings.json;
         "Cursor/User/snippets".source = ./snippets;
+      };
+
+      remoteFiles = {
+        ".cursor-server/data/User/settings.json".source = settings.settingsJson;
+        ".cursor-server/data/User/keybindings.json".source = ./keybindings.json;
+        ".cursor-server/data/User/snippets".source = ./snippets;
       };
     in
     {
@@ -106,16 +118,21 @@ in
       home.file = {
         ".cursor/mcp.json".source = mcp.mcpJson;
       }
-      // (lib.optionalAttrs (isDesktop && isDarwin) darwinXdgFiles);
+      // (lib.optionalAttrs (isDesktop && isDarwin) darwinFiles)
+      // (lib.optionalAttrs (!isDesktop) remoteFiles);
 
-      xdg.configFile = lib.optionalAttrs (isDesktop && !isDarwin) linuxXdgFiles;
+      xdg.configFile = lib.optionalAttrs (isDesktop && !isDarwin) linuxFiles;
 
       # --------------------------------------------------------------------------
       # Extension Management
       # --------------------------------------------------------------------------
-      home.activation.cursorExtensions = lib.mkIf cfg.enableExtensions (
+      home.activation.cursorExtensions = lib.mkIf cfg.extensions.enable (
         lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          export PATH="${lib.concatStringsSep ":" paths}:$PATH"
+          cursor_server_path="$(
+            ls -1d "$HOME/.cursor-server/bin/"*"/bin/remote-cli" 2>/dev/null | sort | tail -n 1 || true
+          )"
+
+          export PATH="${lib.concatStringsSep ":" paths}''${cursor_server_path:+:$cursor_server_path}:$PATH"
 
           if command -v cursor &>/dev/null; then
             ${ext.installScript}

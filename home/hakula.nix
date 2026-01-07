@@ -3,7 +3,6 @@
   lib,
   inputs,
   isNixOS ? false,
-  isDesktop ? false,
   ...
 }:
 
@@ -73,6 +72,10 @@ in
   # ============================================================================
   hakula.cursor = {
     enable = true;
-    enableExtensions = isDesktop;
+
+    extensions = {
+      enable = true;
+      prune = true;
+    };
   };
 }

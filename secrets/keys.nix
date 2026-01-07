@@ -20,5 +20,6 @@
   # Workstation SSH keys (/Users/hakula/.ssh/id_ed25519.pub)
   workstations = {
     hakula-macbook = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK+FcR3wQnWYQm7Jhk5J+D9xBUj81Yv7HLRumCHg5ffn";
+    hakula-work = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIWfYOT8WdYxjgxLzxqVnCAlOweMjHKKQw3vgjsAvSCg";
   };
 }
