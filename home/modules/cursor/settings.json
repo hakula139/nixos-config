@@ -42,7 +42,7 @@
     "editor.defaultFormatter": "jnoortheen.nix-ide"
   },
   "[proto3]": {
-    "editor.defaultFormatter": "zxh404.vscode-proto3"
+    "editor.defaultFormatter": "drblury.protobuf-vsc"
   },
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff"
@@ -55,6 +55,9 @@
   },
   "[shellscript]": {
     "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode"
+  },
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
   },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -72,15 +75,19 @@
   "C_Cpp.default.cppStandard": "c++23",
   "C_Cpp.default.cStandard": "c23",
   "C_Cpp.experimentalFeatures": "enabled",
+  "C_Cpp.inlayHints.referenceOperator.enabled": true,
   "clangd.checkUpdates": true,
   "cmake.allowCommentsInPresetsFile": true,
+  "cmake.configureOnOpen": false,
   "cmake.ctest.allowParallelJobs": true,
   "cmake.options.statusBarVisibility": "icon",
   "cmake.showConfigureWithDebuggerNotification": false,
   "cSpell.allowCompoundWords": true,
   "cSpell.diagnosticLevel": "Hint",
+  "cSpell.diagnosticLevelFlaggedWords": "Information",
   "cSpell.language": "en,en-GB",
   "cSpell.userWords": ["hakula"],
+  "css.lint.unknownAtRules": "ignore",
   "cursor.composer.textSizeScale": 1.15,
   "cursor.cpp.disabledLanguages": [],
   "cursor.cpp.enablePartialAccepts": true,
@@ -159,8 +166,8 @@
   "gitlens.views.contributors.files.layout": "tree",
   "go.toolsManagement.autoUpdate": true,
   "javascript.updateImportsOnFileMove.enabled": "always",
+  "jupyter.askForKernelRestart": false,
   "lldb.suppressUpdateNotifications": true,
-  "markdown-preview-enhanced.automaticallyShowPreviewOfMarkdownBeingEdited": true,
   "markdown-preview-enhanced.breakOnSingleNewLine": false,
   "markdown-preview-enhanced.codeBlockTheme": "github-dark.css",
   "markdown-preview-enhanced.enableExtendedTableSyntax": true,

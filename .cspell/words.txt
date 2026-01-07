@@ -1,4 +1,5 @@
 aipopup
+alnum
 autocd
 bradlc
 btop
@@ -21,6 +22,7 @@ dbengine
 debugpy
 direnv
 disko
+drblury
 dreamin
 dropdb
 dups
@@ -114,6 +116,7 @@ tamasfe
 telegramcidr
 tmp
 tmpfiles
+toolsai
 twikoo
 usernamehw
 vadimcn

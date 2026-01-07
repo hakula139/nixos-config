@@ -1,4 +1,9 @@
-{ lib, ... }:
+{
+  lib,
+  isDesktop ? false,
+  prune ? false,
+  ...
+}:
 
 # ==============================================================================
 # Cursor Extensions
@@ -8,7 +13,7 @@ let
   # ============================================================================
   # Extension List
   # ============================================================================
-  extensions = [
+  baseExtensions = [
     # --------------------------------------------------------------------------
     # C/C++
     # --------------------------------------------------------------------------
@@ -24,6 +29,10 @@ let
     "ms-python.python"
     "ms-python.debugpy"
     "charliermarsh.ruff"
+    "ms-toolsai.jupyter"
+    "ms-toolsai.jupyter-renderers"
+    "ms-toolsai.vscode-jupyter-cell-tags"
+    "ms-toolsai.vscode-jupyter-slideshow"
 
     # --------------------------------------------------------------------------
     # Web Development
@@ -32,6 +41,7 @@ let
     "dbaeumer.vscode-eslint"
     "esbenp.prettier-vscode"
     "bradlc.vscode-tailwindcss"
+    "ms-vscode.live-server"
 
     # --------------------------------------------------------------------------
     # Go
@@ -47,35 +57,26 @@ let
     # Haskell
     # --------------------------------------------------------------------------
     "haskell.haskell"
-    "phoityne.phoityne-vscode"
+    "justusadam.language-haskell"
 
     # --------------------------------------------------------------------------
     # Other Languages
     # --------------------------------------------------------------------------
+    "drblury.protobuf-vsc"
     "jnoortheen.nix-ide"
     "mads-hartmann.bash-ide-vscode"
-    "redhat.vscode-yaml"
-    "tamasfe.even-better-toml"
     "mechatroner.rainbow-csv"
-    "samuelcolvin.jinjahtml"
     "myriad-dreamin.tinymist"
-    "zxh404.vscode-proto3"
-
-    # --------------------------------------------------------------------------
-    # Remote Development
-    # --------------------------------------------------------------------------
-    "anysphere.remote-containers"
-    "anysphere.remote-ssh"
-    "anysphere.remote-wsl"
-    "ms-vscode-remote.vscode-remote-extensionpack"
-    "ms-vscode-remote.remote-ssh-edit"
-    "ms-vscode.remote-explorer"
-    "ms-vscode.live-server"
+    "redhat.vscode-xml"
+    "redhat.vscode-yaml"
+    "samuelcolvin.jinjahtml"
+    "tamasfe.even-better-toml"
 
     # --------------------------------------------------------------------------
     # Containers & Kubernetes
     # --------------------------------------------------------------------------
     "docker.docker"
+    "ms-azuretools.vscode-containers"
     "ms-azuretools.vscode-docker"
     "ms-kubernetes-tools.vscode-kubernetes-tools"
 
@@ -100,7 +101,6 @@ let
     "streetsidesoftware.code-spell-checker"
     "usernamehw.errorlens"
     "hediet.vscode-drawio"
-    "wakatime.vscode-wakatime"
 
     # --------------------------------------------------------------------------
     # Themes
@@ -109,38 +109,54 @@ let
     "pkief.material-icon-theme"
   ];
 
-  deprecatedExtensions = [
-    "foxundermoon.shell-format"
+  remoteExtensions = [
+    # --------------------------------------------------------------------------
+    # Remote Development
+    # --------------------------------------------------------------------------
+    "anysphere.remote-containers"
+    "anysphere.remote-ssh"
+    "anysphere.remote-wsl"
+    "ms-vscode.remote-explorer"
+    "ms-vscode-remote.remote-ssh-edit"
+
+    # --------------------------------------------------------------------------
+    # Utilities & Tools
+    # --------------------------------------------------------------------------
+    "wakatime.vscode-wakatime"
   ];
+
+  extensions = baseExtensions ++ lib.optionals isDesktop remoteExtensions;
 
   # ============================================================================
   # Installation Script
   # ============================================================================
   installScript = ''
-    installed="$(cursor --list-extensions --show-versions 2>/dev/null || true)"
+    expected="${lib.concatStringsSep "\n" extensions}"
 
-    is_installed() {
-      case "$1" in
-        *@*) printf '%s\n' "$installed" | grep -qFx "$1" ;;
-        *) printf '%s\n' "$installed" | cut -d@ -f1 | grep -qFx "$1" ;;
-      esac
+    get_installed_ids() {
+      cursor --list-extensions --show-versions 2>/dev/null \
+        | sed 's/\r$//' \
+        | grep -E '^[[:alnum:]_-]+\.[[:alnum:]_-]+(@[^[:space:]]+)?$' \
+        | cut -d@ -f1
     }
 
-    while IFS= read -r ext; do
-      if [ -n "$ext" ] && ! is_installed "$ext"; then
-        cursor --install-extension "$ext" || echo "Failed to install $ext"
-      fi
-    done <<EOF
-    ${lib.concatStringsSep "\n" extensions}
-    EOF
+    installed_ids="$(get_installed_ids)"
 
+    # Install missing extensions
     while IFS= read -r ext; do
-      if [ -n "$ext" ] && is_installed "$ext"; then
-        cursor --uninstall-extension "$ext" >/dev/null 2>&1 || true
-      fi
-    done <<EOF
-    ${lib.concatStringsSep "\n" deprecatedExtensions}
-    EOF
+      [ -z "$ext" ] && continue
+      printf '%s\n' "$installed_ids" | grep -iqFx "$ext" && continue
+      cursor --install-extension "$ext" || true
+    done < <(printf '%s\n' "$expected")
+
+    # Prune non-provisioned extensions
+    if ${lib.boolToString prune}; then
+      while IFS= read -r ext; do
+        [ -z "$ext" ] && continue
+        printf '%s\n' "$expected" | grep -iqFx "$ext" && continue
+        cursor --uninstall-extension "$ext" 2>/dev/null || true
+      done < <(get_installed_ids)
+    fi
   '';
 in
 {

@@ -229,7 +229,7 @@ in
           ''
         else if isLinux then
           ''
-            nixsw() { home-manager switch --flake ".#''${1:-hakula-linux}"; }
+            nixsw() { home-manager switch --flake ".#''${1:-hakula-linux}" -b bak; }
           ''
         else
           ''
