@@ -526,7 +526,7 @@ in
     enableZshIntegration = true;
     options = [
       "--cmd"
-      "cd"
+      "j"
     ];
   };
 
