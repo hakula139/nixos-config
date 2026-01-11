@@ -33,6 +33,7 @@ envrc
 esac
 esbenp
 findutils
+fuclaude
 geoip
 ghcup
 gnused
@@ -82,6 +83,7 @@ pcup
 pcupb
 pcupd
 pcupdb
+pengzhile
 phoityne
 picgo
 pkgs
@@ -105,6 +107,7 @@ sarasa
 sgid
 shellenv
 shfmt
+signup
 spack
 statix
 stdenv

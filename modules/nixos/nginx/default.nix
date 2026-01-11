@@ -26,6 +26,7 @@ let
   # Upstreams
   # ----------------------------------------------------------------------------
   cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
+  fuclaudeUpstream = "http://127.0.0.1:${toString config.hakula.services.fuclaude.port}";
   piclistUpstream = "http://127.0.0.1:${toString config.hakula.services.piclist.port}";
   umamiUpstream = "http://127.0.0.1:${toString config.hakula.services.umami.port}";
 
@@ -198,6 +199,18 @@ in
         }
       );
 
+      # Fuclaude (Claude mirror)
+      virtualHosts."claude.hakula.xyz" = lib.mkIf config.hakula.services.fuclaude.enable (
+        cloudflareVhostConfig
+        // {
+          locations."/" = {
+            proxyPass = "${fuclaudeUpstream}/";
+            proxyWebsockets = true;
+            extraConfig = noBufferingExtraConfig;
+          };
+        }
+      );
+
       # Cloudreve cloud storage
       virtualHosts."cloud.hakula.xyz" = lib.mkIf config.hakula.services.cloudreve.enable (
         cloudflareVhostConfig
@@ -205,7 +218,6 @@ in
           extraConfig = cloudflareVhostConfig.extraConfig + ''
             client_body_timeout 300s;
             client_header_timeout 60s;
-
             proxy_connect_timeout 60s;
             proxy_send_timeout 600s;
             proxy_read_timeout 600s;
@@ -253,10 +265,7 @@ in
               locations."/" = {
                 proxyPass = "http://127.0.0.1:19999/";
                 proxyWebsockets = true;
-                extraConfig = ''
-                  proxy_buffering off;
-                  proxy_request_buffering off;
-                '';
+                extraConfig = noBufferingExtraConfig;
               };
             }
           );
@@ -267,10 +276,7 @@ in
         // {
           locations."/upload" = {
             proxyPass = "${piclistUpstream}/upload";
-            extraConfig = ''
-              proxy_buffering off;
-              proxy_request_buffering off;
-            '';
+            extraConfig = noBufferingExtraConfig;
           };
           locations."/" = {
             return = "302 https://cloud.hakula.xyz";
