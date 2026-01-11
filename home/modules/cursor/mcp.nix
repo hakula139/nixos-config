@@ -23,7 +23,7 @@ let
     if [ -f "${braveApiKeyFile}" ]; then
       export BRAVE_API_KEY="$(cat ${braveApiKeyFile})"
     fi
-    exec ${pkgs.nodejs}/bin/npx -y @modelcontextprotocol/server-brave-search "$@"
+    exec ${pkgs.nodejs}/bin/npx -y @brave/brave-search-mcp-server "$@"
   '';
 
   # ----------------------------------------------------------------------------
