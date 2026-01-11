@@ -6,11 +6,12 @@ NixOS configuration for Hakula's machines (flake-based).
 
 ## Hosts
 
-| Host             | System         | Type               |
-| ---------------- | -------------- | ------------------ |
-| `cloudcone-sc2`  | x86_64-linux   | NixOS server       |
-| `cloudcone-vps`  | x86_64-linux   | NixOS server       |
-| `hakula-macbook` | aarch64-darwin | macOS (nix-darwin) |
+| Host                 | System         | Type               |
+| -------------------- | -------------- | ------------------ |
+| `cloudcone-sc2`      | x86_64-linux   | NixOS server       |
+| `cloudcone-vps`      | x86_64-linux   | NixOS server       |
+| `tencent-lighthouse` | x86_64-linux   | NixOS server       |
+| `hakula-macbook`     | aarch64-darwin | macOS (nix-darwin) |
 
 ## NixOS
 
