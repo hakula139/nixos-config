@@ -28,28 +28,6 @@ in
     username = "hakula";
     homeDirectory = if isDarwin then "/Users/hakula" else "/home/hakula";
     stateVersion = "25.05";
-
-    # --------------------------------------------------------------------------
-    # Packages
-    # --------------------------------------------------------------------------
-    packages = with pkgs; [
-      # Modern CLI replacements
-      eza
-      bat
-      fd
-      ripgrep
-
-      # Fuzzy finding and smart navigation
-      fzf
-      zoxide
-
-      # System monitoring
-      btop
-
-      # Archive tools
-      unzip
-      p7zip
-    ];
   };
 
   # ============================================================================
