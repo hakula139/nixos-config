@@ -15,9 +15,9 @@ in
   # Base packages available on all systems
   basePackages = with pkgs; [
     curl
+    wget
     git
     htop
-    tree
     vim
   ];
 

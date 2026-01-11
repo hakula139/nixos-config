@@ -30,21 +30,24 @@ in
       # ------------------------------------------------------------------------
       # C/C++
       # ------------------------------------------------------------------------
+      llvmPackages.clang
+      llvmPackages.clang-tools
+      llvmPackages.lld
+      llvmPackages.lldb
+      cppcheck
       ccache
       cmake
       gnumake
       ninja
       pkg-config
-      llvmPackages.clang
-      llvmPackages.clang-tools
-      llvmPackages.lld
-      llvmPackages.lldb
+      doxygen
 
       # ------------------------------------------------------------------------
       # Python
       # ------------------------------------------------------------------------
       python3
       python3Packages.pip
+      pipx
       poetry
       ruff
       uv
@@ -90,11 +93,13 @@ in
       # ------------------------------------------------------------------------
       # Other Tools
       # ------------------------------------------------------------------------
+      git-filter-repo
       jq
       yq
       httpie
       shellcheck
       shfmt
+      scc
     ]
     ++ tooling.nix
     ++ tooling.secrets;
@@ -127,7 +132,7 @@ in
   ];
 
   # ============================================================================
-  # Shell Configuration for Dev Tools
+  # Shell Configuration (shared)
   # ============================================================================
   programs.zsh.initContent = lib.mkAfter ''
     # --------------------------------------------------------------------------

@@ -34,17 +34,17 @@ in
     # --------------------------------------------------------------------------
     packages = with pkgs; [
       # Modern CLI replacements
-      eza # ls replacement with icons and git integration
-      bat # cat replacement with syntax highlighting
-      fd # find replacement, faster and user-friendly
-      ripgrep # grep replacement, very fast
+      eza
+      bat
+      fd
+      ripgrep
 
       # Fuzzy finding and smart navigation
-      fzf # Command-line fuzzy finder
-      zoxide # Smarter cd that learns your habits
+      fzf
+      zoxide
 
       # System monitoring
-      btop # Modern resource monitor
+      btop
 
       # Archive tools
       unzip
