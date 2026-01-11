@@ -28,6 +28,7 @@ in
   "shared/clash-users.json.age".publicKeys = allServerKeys;
   "shared/cloudflare-credentials.age".publicKeys = allServerKeys;
   "shared/dockerhub-token.age".publicKeys = allServerKeys;
+  "shared/fuclaude-env.age".publicKeys = allServerKeys;
   "shared/piclist-config.json.age".publicKeys = allServerKeys;
   "shared/piclist-token.age".publicKeys = allServerKeys;
   "shared/qq-smtp-authcode.age".publicKeys = allServerKeys;

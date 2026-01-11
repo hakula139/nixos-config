@@ -28,6 +28,7 @@ in
     ./cloudcone
     ./cloudreve
     ./dockerhub
+    ./fuclaude
     ./mcp
     ./netdata
     (import ./nginx { inherit realitySniHost; })
