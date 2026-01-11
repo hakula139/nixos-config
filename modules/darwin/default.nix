@@ -293,12 +293,17 @@ in
     enable = true;
     onActivation = {
       autoUpdate = true;
-      cleanup = "none"; # "uninstall" or "zap" to remove unlisted packages
+      cleanup = "uninstall";
       upgrade = true;
     };
     taps = [ ];
     brews = [ ];
-    casks = [ ];
+    casks = [
+      "keyclu"
+      "mos"
+      "rectangle"
+      "warp"
+    ];
     masApps = { };
   };
 }
