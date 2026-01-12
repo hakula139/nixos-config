@@ -15,6 +15,7 @@ in
     inputs.agenix.homeManagerModules.default
     ./modules/shared.nix
     ./modules/darwin.nix
+    ./modules/claude-code
     ./modules/cursor
     ./modules/git.nix
     ./modules/ssh.nix
@@ -48,9 +49,9 @@ in
   # ============================================================================
   # Custom Modules
   # ============================================================================
+  hakula.claudeCode.enable = true;
   hakula.cursor = {
     enable = true;
-
     extensions = {
       enable = true;
       prune = true;

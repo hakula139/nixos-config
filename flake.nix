@@ -8,6 +8,9 @@
     # Nixpkgs - NixOS 25.11 stable release
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
 
+    # Nixpkgs unstable - for bleeding edge packages
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+
     # macOS system configuration
     nix-darwin = {
       url = "github:LnL7/nix-darwin/nix-darwin-25.11";
@@ -46,6 +49,7 @@
     {
       self,
       nixpkgs,
+      nixpkgs-unstable,
       disko,
       home-manager,
       nix-darwin,
@@ -63,6 +67,10 @@
 
       overlays = [
         (final: prev: {
+          unstable = import nixpkgs-unstable {
+            localSystem = final.stdenv.hostPlatform.system;
+            config.allowUnfree = true;
+          };
           agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
           cloudreve = final.callPackage ./packages/cloudreve { };
         })
