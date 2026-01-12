@@ -87,7 +87,6 @@ in
       workerHost = "b2.hakula.xyz";
     };
   };
-  hakula.services.fuclaude.enable = true;
   hakula.services.piclist.enable = true;
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
