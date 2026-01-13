@@ -3,17 +3,14 @@
   pkgs,
   lib,
   isNixOS ? false,
-  isDesktop ? false,
   ...
 }:
 
 # ==============================================================================
-# Cursor MCP (Model Context Protocol) Configuration
+# Cursor MCP Configuration
 # ==============================================================================
 
 let
-  isDarwin = pkgs.stdenv.isDarwin;
-  homeDir = config.home.homeDirectory;
   mcp = import ../mcp.nix {
     inherit
       config
@@ -22,20 +19,6 @@ let
       isNixOS
       ;
   };
-
-  # ----------------------------------------------------------------------------
-  # GitKraken
-  # ----------------------------------------------------------------------------
-  gitKrakenPath =
-    if isDesktop then
-      (
-        if isDarwin then
-          "${homeDir}/Library/Application Support/Cursor/User/globalStorage/eamodio.gitlens/gk"
-        else
-          "${homeDir}/.config/Cursor/User/globalStorage/eamodio.gitlens/gk"
-      )
-    else
-      "${homeDir}/.cursor-server/data/User/globalStorage/eamodio.gitlens/gk";
 
   # ----------------------------------------------------------------------------
   # MCP configuration
@@ -47,17 +30,6 @@ let
       DeepWiki = mcp.servers.deepwiki;
       Filesystem = mcp.servers.filesystem;
       Git = mcp.servers.git;
-      GitKraken = {
-        name = "GitKraken";
-        command = gitKrakenPath;
-        type = "stdio";
-        args = [
-          "mcp"
-          "--host=cursor"
-          "--source=gitlens"
-          "--scheme=cursor"
-        ];
-      };
       Playwright = mcp.servers.playwright;
     };
   };
