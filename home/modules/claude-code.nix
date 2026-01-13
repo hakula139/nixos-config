@@ -16,19 +16,39 @@ let
       ;
   };
 in
-{
-  # ============================================================================
-  # Claude Code Configuration
-  # ============================================================================
-  programs.claude-code = {
-    enable = true;
+lib.mkMerge [
+  mcp.secrets
+  {
+    # ============================================================================
+    # Claude Code Configuration
+    # ============================================================================
+    programs.claude-code = {
+      enable = true;
 
-    # --------------------------------------------------------------------------
-    # MCP configuration
-    # --------------------------------------------------------------------------
-    mcpServers = {
-      Context7 = mcp.servers.context7;
-      DeepWiki = mcp.servers.deepwiki;
+      # --------------------------------------------------------------------------
+      # Settings
+      # --------------------------------------------------------------------------
+      settings = {
+        attribution = {
+          commit = "";
+          pr = "";
+        };
+        permissions = {
+          defaultMode = "acceptEdits";
+        };
+      };
+
+      # --------------------------------------------------------------------------
+      # MCP configuration
+      # --------------------------------------------------------------------------
+      mcpServers = {
+        BraveSearch = mcp.servers.braveSearch;
+        Context7 = mcp.servers.context7;
+        DeepWiki = mcp.servers.deepwiki;
+        Filesystem = mcp.servers.filesystem;
+        Git = mcp.servers.git;
+        Playwright = mcp.servers.playwright;
+      };
     };
-  };
-}
+  }
+]

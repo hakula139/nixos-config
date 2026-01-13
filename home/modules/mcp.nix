@@ -10,7 +10,8 @@
 # ==============================================================================
 
 let
-  secretsDir = "${config.home.homeDirectory}/.secrets";
+  homeDir = config.home.homeDirectory;
+  secretsDir = "${homeDir}/.secrets";
 
   # ----------------------------------------------------------------------------
   # Brave Search
@@ -40,6 +41,27 @@ let
   deepwikiBin = pkgs.writeShellScriptBin "deepwiki-mcp" ''
     exec ${pkgs.nodejs}/bin/npx -y mcp-remote https://mcp.deepwiki.com/sse --transport sse-first "$@"
   '';
+
+  # ----------------------------------------------------------------------------
+  # Filesystem
+  # ----------------------------------------------------------------------------
+  filesystemBin = pkgs.writeShellScriptBin "filesystem-mcp" ''
+    exec ${pkgs.nodejs}/bin/npx -y @modelcontextprotocol/server-filesystem "${homeDir}" "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
+  # Git
+  # ----------------------------------------------------------------------------
+  gitBin = pkgs.writeShellScriptBin "git-mcp" ''
+    exec ${pkgs.uv}/bin/uvx mcp-server-git "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
+  # Playwright
+  # ----------------------------------------------------------------------------
+  playwrightBin = pkgs.writeShellScriptBin "playwright-mcp" ''
+    exec ${pkgs.nodejs}/bin/npx -y @playwright/mcp@latest "$@"
+  '';
 in
 {
   # ----------------------------------------------------------------------------
@@ -63,6 +85,24 @@ in
       command = "${deepwikiBin}/bin/deepwiki-mcp";
       type = "stdio";
     };
+
+    filesystem = {
+      name = "Filesystem";
+      command = "${filesystemBin}/bin/filesystem-mcp";
+      type = "stdio";
+    };
+
+    git = {
+      name = "Git";
+      command = "${gitBin}/bin/git-mcp";
+      type = "stdio";
+    };
+
+    playwright = {
+      name = "Playwright";
+      command = "${playwrightBin}/bin/playwright-mcp";
+      type = "stdio";
+    };
   };
 
   # ----------------------------------------------------------------------------
@@ -72,7 +112,7 @@ in
   # ----------------------------------------------------------------------------
   secrets = lib.mkIf (!isNixOS) {
     age.identityPaths = [
-      "${config.home.homeDirectory}/.ssh/id_ed25519"
+      "${homeDir}/.ssh/id_ed25519"
     ];
 
     age.secrets = {
