@@ -53,6 +53,7 @@ jnoortheen
 journalctl
 kdelpf
 kdelrs
+keyclu
 khtml
 kubeconfig
 kubectx
