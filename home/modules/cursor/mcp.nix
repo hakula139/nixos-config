@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  secretsDir ? "${config.home.homeDirectory}/.secrets",
   isNixOS ? false,
   isDesktop ? false,
   ...
@@ -20,7 +19,6 @@ let
       config
       pkgs
       lib
-      secretsDir
       isNixOS
       ;
   };

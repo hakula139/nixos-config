@@ -51,13 +51,11 @@ in
 
   config = lib.mkIf cfg.enable (
     let
-      secretsDir = "${config.home.homeDirectory}/.secrets";
       mcp = import ./mcp.nix {
         inherit
           config
           pkgs
           lib
-          secretsDir
           isNixOS
           isDesktop
           ;
