@@ -82,6 +82,7 @@
   "cmake.ctest.allowParallelJobs": true,
   "cmake.options.statusBarVisibility": "icon",
   "cmake.showConfigureWithDebuggerNotification": false,
+  "containers.containerClient": "com.microsoft.visualstudio.containers.docker",
   "cSpell.allowCompoundWords": true,
   "cSpell.diagnosticLevel": "Hint",
   "cSpell.diagnosticLevelFlaggedWords": "Information",
