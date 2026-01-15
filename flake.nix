@@ -36,10 +36,9 @@
     };
 
     # Pre-commit hooks
-    git-hooks-nix = {
-      url = "github:cachix/git-hooks.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # Note: Don't follow nixpkgs - let git-hooks-nix use its own nixpkgs
+    # to avoid dotnet build failures on aarch64-darwin (nixpkgs#450126)
+    git-hooks-nix.url = "github:cachix/git-hooks.nix";
   };
 
   # ============================================================================
