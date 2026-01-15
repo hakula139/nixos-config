@@ -94,77 +94,14 @@ lib.mkMerge [
           };
         };
 
+        permissions = import ./permissions.nix;
+
         statusLine = {
           type = "command";
           command = "${config.home.homeDirectory}/.claude/statusline-command.sh";
         };
 
         theme = "dark";
-
-        permissions = {
-          defaultMode = "acceptEdits";
-
-          allow = [
-            # Local shell
-            "Bash(ls:*)"
-            "Bash(tree:*)"
-            "Bash(cat:*)"
-            "Bash(grep:*)"
-            "Bash(find:*)"
-            "Bash(mv:*)"
-            "Bash(cp:*)"
-            "Bash(curl:*)"
-            "Bash(wget:*)"
-            "Bash(git status:*)"
-            "Bash(git diff:*)"
-            "Bash(git add:*)"
-            "Bash(git log:*)"
-            "Bash(git show:*)"
-
-            # MCP
-            "mcp__Context7__*"
-            "mcp__DeepWiki__*"
-            "mcp__Filesystem__*"
-            "mcp__Git__status"
-            "mcp__Git__diff*"
-            "mcp__Git__add"
-            "mcp__Git__log"
-            "mcp__Git__show"
-            "mcp__Git__branch"
-            "mcp__Playwright__*"
-          ];
-
-          ask = [
-            # Local shell
-            "Bash(sudo:*)"
-            "Bash(rm:*)"
-            "Bash(chmod:*)"
-            "Bash(chown:*)"
-            "Bash(kill:*)"
-            "Bash(pkill:*)"
-            "Bash(nix:*::*)"
-            "Bash(home-manager:*)"
-            "Bash(nixos-rebuild:*)"
-            "Bash(darwin-rebuild:*)"
-            "Bash(git commit:*)"
-            "Bash(git reset:*)"
-            "Bash(git switch:*)"
-            "Bash(git checkout:*)"
-            "Bash(git push:*)"
-            "Bash(git pull:*)"
-            "Bash(git rebase:*)"
-            "Bash(git merge:*)"
-            "Bash(git cherry-pick:*)"
-
-            # MCP
-            "mcp__Git__commit"
-            "mcp__Git__reset"
-            "mcp__Git__create_branch"
-            "mcp__Git__checkout"
-          ];
-
-          deny = [ ];
-        };
       };
 
       # ------------------------------------------------------------------------

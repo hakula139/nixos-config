@@ -7,6 +7,7 @@ btop
 cachix
 ccache
 ccagent
+chgrp
 cidr
 cloudreve
 cncidr
@@ -78,6 +79,7 @@ nixpkgs
 nixsw
 nixup
 nlsv
+nslookup
 nvim
 pcdn
 pcpu
@@ -87,6 +89,7 @@ pcupb
 pcupd
 pcupdb
 pengzhile
+pgrep
 phoityne
 picgo
 pkgs
@@ -106,6 +109,7 @@ rerere
 retag
 revealjs
 rprx
+rustc
 ryantm
 sarasa
 sgid
@@ -134,6 +138,7 @@ vlang
 vless
 waka
 wakatime
+whereis
 wimpysworld
 xtls
 yzhang
