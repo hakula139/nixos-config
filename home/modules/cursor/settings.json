@@ -255,6 +255,7 @@
   "typescript.updateImportsOnFileMove.enabled": "always",
   "update.showReleaseNotes": false,
   "window.commandCenter": true,
+  "window.newWindowProfile": "Default",
   "window.restoreFullscreen": true,
   "workbench.activityBar.orientation": "vertical",
   "workbench.colorCustomizations": {
