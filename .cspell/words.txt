@@ -43,6 +43,7 @@ gsub
 hakula
 hediet
 hitoolbox
+hookify
 horiz
 iface
 inetutils

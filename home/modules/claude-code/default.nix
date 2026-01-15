@@ -60,6 +60,19 @@ lib.mkMerge [
           NO_PROXY = "localhost,127.0.0.1";
         };
 
+        enabledPlugins = {
+          "code-review@claude-code-plugins" = true;
+          "commit-commands@claude-code-plugins" = true;
+          "explanatory-output-style@claude-code-plugins" = true;
+          "feature-dev@claude-code-plugins" = true;
+          "frontend-design@claude-code-plugins" = true;
+          "hookify@claude-code-plugins" = true;
+          "learning-output-style@claude-code-plugins" = true;
+          "pr-review-toolkit@claude-code-plugins" = true;
+          "ralph-wiggum@claude-code-plugins" = true;
+          "security-guidance@claude-code-plugins" = true;
+        };
+
         statusLine = {
           type = "command";
           command = "${config.home.homeDirectory}/.claude/statusline-command.sh";
