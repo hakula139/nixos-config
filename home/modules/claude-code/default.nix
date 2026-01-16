@@ -25,7 +25,9 @@ let
   };
 
   statusLineScript = pkgs.writeShellScript "statusline-command" (
-    builtins.readFile ./statusline-command.sh
+    builtins.replaceStrings [ "@npx@" ] [ "${pkgs.nodejs}/bin/npx" ] (
+      builtins.readFile ./statusline-command.sh
+    )
   );
 in
 lib.mkMerge [
