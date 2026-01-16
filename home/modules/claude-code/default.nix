@@ -94,6 +94,31 @@ lib.mkMerge [
           };
         };
 
+        hooks = {
+          PostToolUse = [
+            {
+              matcher = {
+                tools = [
+                  "Edit"
+                  "Write"
+                ];
+              };
+              hooks = [
+                {
+                  type = "command";
+                  command = ''
+                    for file in $CLAUDE_FILE_PATHS; do
+                      if [[ "$file" == *.nix ]]; then
+                        nix fmt "$file" 2>/dev/null || true
+                      fi
+                    done
+                  '';
+                }
+              ];
+            }
+          ];
+        };
+
         permissions = import ./permissions.nix;
 
         statusLine = {
