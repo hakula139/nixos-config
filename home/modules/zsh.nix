@@ -49,20 +49,19 @@ in
         "git-lfs"
         "gitignore"
 
+        # Archive & Compression
+        "extract"
+
+        # Python
+        "pip"
+        "poetry"
+
         # Containers & Kubernetes
         "docker"
         "docker-compose"
         "podman"
         "kubectl"
         "helm"
-
-        # Python
-        "pip"
-        "poetry"
-
-        # Files & Archives
-        "rsync"
-        "extract"
 
         # Utilities
         "sudo"

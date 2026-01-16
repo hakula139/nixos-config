@@ -3,8 +3,10 @@
 (() => {
   'use strict';
 
-  const WORKER_HOST = '__WORKER_HOST__'; // Cloudflare Worker host for B2 downloads
-  const FILE_URL_API = '/api/v4/file/url'; // Cloudreve API endpoint for signed download URLs
+  // Cloudflare Worker host for B2 downloads - will be substituted by Nix
+  const WORKER_HOST = '__WORKER_HOST__';
+  // Cloudreve API endpoint for signed download URLs
+  const FILE_URL_API = '/api/v4/file/url';
 
   const getPathname = (url) => {
     try {

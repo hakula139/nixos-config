@@ -1,0 +1,136 @@
+{
+  config,
+  pkgs,
+  lib,
+  isNixOS ? false,
+}:
+
+# ==============================================================================
+# MCP (Model Context Protocol) Configuration
+# ==============================================================================
+
+let
+  homeDir = config.home.homeDirectory;
+  secretsDir = "${homeDir}/.secrets";
+
+  # ----------------------------------------------------------------------------
+  # Brave Search
+  # ----------------------------------------------------------------------------
+  braveApiKeyFile = "${secretsDir}/brave-api-key";
+  braveSearchBin = pkgs.writeShellScriptBin "brave-search-mcp" ''
+    if [ -f "${braveApiKeyFile}" ]; then
+      export BRAVE_API_KEY="$(cat ${braveApiKeyFile})"
+    fi
+    exec ${pkgs.nodejs}/bin/npx -y @brave/brave-search-mcp-server "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
+  # Context7
+  # ----------------------------------------------------------------------------
+  context7ApiKeyFile = "${secretsDir}/context7-api-key";
+  context7Bin = pkgs.writeShellScriptBin "context7-mcp" ''
+    if [ -f "${context7ApiKeyFile}" ]; then
+      export CONTEXT7_API_KEY="$(cat ${context7ApiKeyFile})"
+    fi
+    exec ${pkgs.nodejs}/bin/npx -y @upstash/context7-mcp "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
+  # DeepWiki
+  # ----------------------------------------------------------------------------
+  deepwikiBin = pkgs.writeShellScriptBin "deepwiki-mcp" ''
+    exec ${pkgs.nodejs}/bin/npx -y mcp-remote https://mcp.deepwiki.com/sse --transport sse-first "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
+  # Filesystem
+  # ----------------------------------------------------------------------------
+  filesystemBin = pkgs.writeShellScriptBin "filesystem-mcp" ''
+    exec ${pkgs.nodejs}/bin/npx -y @modelcontextprotocol/server-filesystem "${homeDir}" "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
+  # Git
+  # ----------------------------------------------------------------------------
+  gitBin = pkgs.writeShellScriptBin "git-mcp" ''
+    exec ${pkgs.uv}/bin/uvx mcp-server-git "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
+  # Playwright
+  # ----------------------------------------------------------------------------
+  playwrightBin = pkgs.writeShellScriptBin "playwright-mcp" ''
+    exec ${pkgs.nodejs}/bin/npx -y @playwright/mcp@latest "$@"
+  '';
+in
+{
+  # ----------------------------------------------------------------------------
+  # MCP servers
+  # ----------------------------------------------------------------------------
+  servers = {
+    braveSearch = {
+      name = "BraveSearch";
+      command = "${braveSearchBin}/bin/brave-search-mcp";
+      type = "stdio";
+    };
+
+    context7 = {
+      name = "Context7";
+      command = "${context7Bin}/bin/context7-mcp";
+      type = "stdio";
+    };
+
+    deepwiki = {
+      name = "DeepWiki";
+      command = "${deepwikiBin}/bin/deepwiki-mcp";
+      type = "stdio";
+    };
+
+    filesystem = {
+      name = "Filesystem";
+      command = "${filesystemBin}/bin/filesystem-mcp";
+      type = "stdio";
+    };
+
+    git = {
+      name = "Git";
+      command = "${gitBin}/bin/git-mcp";
+      type = "stdio";
+    };
+
+    playwright = {
+      name = "Playwright";
+      command = "${playwrightBin}/bin/playwright-mcp";
+      type = "stdio";
+    };
+  };
+
+  # ----------------------------------------------------------------------------
+  # Secrets configuration (agenix)
+  # On NixOS: system-level agenix handles decryption (modules/nixos/mcp)
+  # On Darwin / standalone: home-manager agenix handles decryption
+  # ----------------------------------------------------------------------------
+  secrets = lib.mkIf (!isNixOS) {
+    age.identityPaths = [
+      "${homeDir}/.ssh/id_ed25519"
+    ];
+
+    age.secrets = {
+      brave-api-key = {
+        file = ../../secrets/shared/brave-api-key.age;
+        path = "${secretsDir}/brave-api-key";
+        mode = "0400";
+      };
+
+      context7-api-key = {
+        file = ../../secrets/shared/context7-api-key.age;
+        path = "${secretsDir}/context7-api-key";
+        mode = "0400";
+      };
+    };
+
+    home.activation.secretsDir = lib.hm.dag.entryBefore [ "writeBoundary" ] ''
+      install -d -m 0700 "${secretsDir}"
+    '';
+  };
+}
