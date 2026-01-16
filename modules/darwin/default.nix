@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   ...
 }:
 
@@ -23,287 +24,293 @@ let
   };
 in
 {
-  # ============================================================================
-  # Nix
-  # ============================================================================
-  nix = {
-    enable = true;
-
-    settings = shared.nixSettings // {
-      extra-trusted-users = [ "hakula" ];
-      builders-use-substitutes = true;
-    };
-
-    distributedBuilds = true;
-    buildMachines = [
-      {
-        hostName = builder.name;
-        system = builder.system;
-        protocol = "ssh-ng";
-        sshUser = builder.sshUser;
-        sshKey = builder.sshKey;
-        maxJobs = 3;
-        speedFactor = 2;
-        supportedFeatures = [
-          "big-parallel"
-          "kvm"
-          "nixos-test"
-        ];
-      }
-    ];
-
-    gc = {
-      automatic = true;
-      interval = {
-        Weekday = 0; # Sunday
-        Hour = 2;
-        Minute = 0;
-      };
-      options = "--delete-older-than 30d";
-    };
-    optimise.automatic = true;
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
+  options.hakula.cachix = {
+    enable = lib.mkEnableOption "Cachix auth token secret";
   };
 
-  nixpkgs.config.allowUnfree = true;
+  config = {
+    # ----------------------------------------------------------------------------
+    # Nix Configuration
+    # ----------------------------------------------------------------------------
+    nix = {
+      enable = true;
 
-  # ============================================================================
-  # macOS System Settings (best effort)
-  # ============================================================================
-  system = {
-    stateVersion = 6;
+      settings =
+        shared.nixSettings
+        // {
+          extra-trusted-users = [ "hakula" ];
+          builders-use-substitutes = true;
+        }
+        // lib.optionalAttrs config.hakula.cachix.enable {
+          inherit (shared.cachix.caches) substituters trusted-public-keys;
+        };
 
-    keyboard = {
-      enableKeyMapping = true;
-      remapCapsLockToControl = false;
+      distributedBuilds = true;
+      buildMachines = [
+        {
+          hostName = builder.name;
+          system = builder.system;
+          protocol = "ssh-ng";
+          sshUser = builder.sshUser;
+          sshKey = builder.sshKey;
+          maxJobs = 3;
+          speedFactor = 2;
+          supportedFeatures = [
+            "big-parallel"
+            "kvm"
+            "nixos-test"
+          ];
+        }
+      ];
+
+      gc = {
+        automatic = true;
+        interval = {
+          Weekday = 0; # Sunday
+          Hour = 2;
+          Minute = 0;
+        };
+        options = "--delete-older-than 30d";
+      };
+      optimise.automatic = true;
     };
 
-    defaults = {
-      # ========================================================================
-      # System Settings
-      # ========================================================================
+    nixpkgs.config.allowUnfree = true;
 
-      # ------------------------------------------------------------------------
-      # NSGlobalDomain (system-wide preferences)
-      # ------------------------------------------------------------------------
-      NSGlobalDomain = {
-        # Appearance → Show scroll bars
-        AppleShowScrollBars = "WhenScrolling";
+    # ----------------------------------------------------------------------------
+    # System Settings (best effort)
+    # ----------------------------------------------------------------------------
+    system = {
+      stateVersion = 6;
 
-        # Keyboard → Key repeat
-        ApplePressAndHoldEnabled = false;
-        InitialKeyRepeat = 15;
-        KeyRepeat = 2;
-
-        # Keyboard → Keyboard navigation
-        AppleKeyboardUIMode = 3;
-
-        # Keyboard → Keyboard Shortcuts → Function Keys
-        "com.apple.keyboard.fnState" = true;
-
-        # Keyboard → Text Input
-        NSAutomaticCapitalizationEnabled = false;
-        NSAutomaticDashSubstitutionEnabled = false;
-        NSAutomaticPeriodSubstitutionEnabled = false;
-        NSAutomaticQuoteSubstitutionEnabled = false;
-        NSAutomaticSpellingCorrectionEnabled = true;
-
-        # Trackpad → Scroll & Zoom → Natural scrolling
-        "com.apple.swipescrolldirection" = true;
-
-        # Save / Print dialogs (Internal)
-        NSNavPanelExpandedStateForSaveMode = true;
-        NSNavPanelExpandedStateForSaveMode2 = true;
-        PMPrintingExpandedStateForPrint = true;
-        PMPrintingExpandedStateForPrint2 = true;
+      keyboard = {
+        enableKeyMapping = true;
+        remapCapsLockToControl = false;
       };
 
-      # ------------------------------------------------------------------------
-      # Desktop & Dock
-      # ------------------------------------------------------------------------
-      dock = {
-        # Dock
-        tilesize = 55;
-        magnification = true;
-        largesize = 82;
-        orientation = "bottom";
-        minimize-to-application = true;
-        autohide = true;
-        show-recents = true;
-
-        # Mission Control
-        mru-spaces = true;
-      };
-
-      WindowManager = {
-        # Desktop
-        EnableStandardClickToShowDesktop = false;
-        HideDesktop = false;
-
-        # Stage Manager
-        GloballyEnabled = false;
-        AutoHide = false;
-        AppWindowGroupingBehavior = true;
-
-        # Widgets
-        StandardHideWidgets = false;
-        StageManagerHideWidgets = false;
-
-        # Windows
-        EnableTopTilingByEdgeDrag = true;
-        EnableTiledWindowMargins = false;
-      };
-
-      # ------------------------------------------------------------------------
-      # Menu Bar
-      # ------------------------------------------------------------------------
-      menuExtraClock = {
-        # Clock Options
-        ShowDate = 1;
-        ShowDayOfMonth = true;
-        ShowDayOfWeek = true;
-        IsAnalog = false;
-        FlashDateSeparators = false;
-        ShowSeconds = false;
-        Show24Hour = true;
-      };
-
-      # ------------------------------------------------------------------------
-      # Keyboard
-      # ------------------------------------------------------------------------
-      hitoolbox = {
-        # Press Fn key to
-        AppleFnUsageType = "Change Input Source";
-      };
-
-      # ------------------------------------------------------------------------
-      # Trackpad
-      # ------------------------------------------------------------------------
-      trackpad = {
-        # Point & Click
-        TrackpadRightClick = true;
-        Clicking = true;
-
-        # Accessibility → Pointer Control → Trackpad Options → Dragging style
-        TrackpadThreeFingerDrag = true;
-      };
-
-      # ========================================================================
-      # App-specific Settings
-      # ========================================================================
-
-      # ------------------------------------------------------------------------
-      # Activity Monitor
-      # ------------------------------------------------------------------------
-      ActivityMonitor = {
-        OpenMainWindow = true;
-        ShowCategory = 101;
-      };
-
-      # ------------------------------------------------------------------------
-      # Finder
-      # ------------------------------------------------------------------------
-      finder = {
-        # General
-        ShowHardDrivesOnDesktop = false;
-        ShowExternalHardDrivesOnDesktop = false;
-        ShowRemovableMediaOnDesktop = false;
-        ShowMountedServersOnDesktop = false;
-        NewWindowTarget = "Home";
-
-        # Advanced
-        AppleShowAllExtensions = true;
-        FXEnableExtensionChangeWarning = false;
-        _FXSortFoldersFirst = true;
-        _FXSortFoldersFirstOnDesktop = false;
-        FXDefaultSearchScope = "SCcf";
-
-        # Internal
-        QuitMenuItem = true;
-        AppleShowAllFiles = false;
-        ShowPathbar = true;
-        ShowStatusBar = false;
-        FXPreferredViewStyle = "Nlsv";
-      };
-
-      # ------------------------------------------------------------------------
-      # Calendar
-      # ------------------------------------------------------------------------
-      iCal = {
-        "first day of week" = "Monday";
-        "TimeZone support enabled" = true;
-      };
-
-      # ========================================================================
-      # Custom User Preferences (not yet supported by nix-darwin)
-      # ========================================================================
-      CustomUserPreferences = {
-        # ----------------------------------------------------------------------
+      defaults = {
+        # ------------------------------------------------------------------------
         # NSGlobalDomain (system-wide preferences)
-        # ----------------------------------------------------------------------
+        # ------------------------------------------------------------------------
         NSGlobalDomain = {
-          # Menu Bar → Show menu bar background
-          SLSMenuBarUseBlurredAppearance = true;
+          # Appearance → Show scroll bars
+          AppleShowScrollBars = "WhenScrolling";
+
+          # Keyboard → Key repeat
+          ApplePressAndHoldEnabled = false;
+          InitialKeyRepeat = 15;
+          KeyRepeat = 2;
+
+          # Keyboard → Keyboard navigation
+          AppleKeyboardUIMode = 3;
+
+          # Keyboard → Keyboard Shortcuts → Function Keys
+          "com.apple.keyboard.fnState" = true;
+
+          # Keyboard → Text Input
+          NSAutomaticCapitalizationEnabled = false;
+          NSAutomaticDashSubstitutionEnabled = false;
+          NSAutomaticPeriodSubstitutionEnabled = false;
+          NSAutomaticQuoteSubstitutionEnabled = false;
+          NSAutomaticSpellingCorrectionEnabled = true;
+
+          # Trackpad → Scroll & Zoom → Natural scrolling
+          "com.apple.swipescrolldirection" = true;
+
+          # Save / Print dialogs (Internal)
+          NSNavPanelExpandedStateForSaveMode = true;
+          NSNavPanelExpandedStateForSaveMode2 = true;
+          PMPrintingExpandedStateForPrint = true;
+          PMPrintingExpandedStateForPrint2 = true;
+        };
+
+        # ------------------------------------------------------------------------
+        # Desktop & Dock
+        # ------------------------------------------------------------------------
+        dock = {
+          # Dock
+          tilesize = 55;
+          magnification = true;
+          largesize = 82;
+          orientation = "bottom";
+          minimize-to-application = true;
+          autohide = true;
+          show-recents = true;
+
+          # Mission Control
+          mru-spaces = true;
+        };
+
+        WindowManager = {
+          # Desktop
+          EnableStandardClickToShowDesktop = false;
+          HideDesktop = false;
+
+          # Stage Manager
+          GloballyEnabled = false;
+          AutoHide = false;
+          AppWindowGroupingBehavior = true;
+
+          # Widgets
+          StandardHideWidgets = false;
+          StageManagerHideWidgets = false;
+
+          # Windows
+          EnableTopTilingByEdgeDrag = true;
+          EnableTiledWindowMargins = false;
+        };
+
+        # ------------------------------------------------------------------------
+        # Menu Bar
+        # ------------------------------------------------------------------------
+        menuExtraClock = {
+          # Clock Options
+          ShowDate = 1;
+          ShowDayOfMonth = true;
+          ShowDayOfWeek = true;
+          IsAnalog = false;
+          FlashDateSeparators = false;
+          ShowSeconds = false;
+          Show24Hour = true;
+        };
+
+        # ------------------------------------------------------------------------
+        # Keyboard
+        # ------------------------------------------------------------------------
+        hitoolbox = {
+          # Press Fn key to
+          AppleFnUsageType = "Change Input Source";
+        };
+
+        # ------------------------------------------------------------------------
+        # Trackpad
+        # ------------------------------------------------------------------------
+        trackpad = {
+          # Point & Click
+          TrackpadRightClick = true;
+          Clicking = true;
+
+          # Accessibility → Pointer Control → Trackpad Options → Dragging style
+          TrackpadThreeFingerDrag = true;
+        };
+
+        # ------------------------------------------------------------------------
+        # Activity Monitor
+        # ------------------------------------------------------------------------
+        ActivityMonitor = {
+          OpenMainWindow = true;
+          ShowCategory = 101;
+        };
+
+        # ------------------------------------------------------------------------
+        # Finder
+        # ------------------------------------------------------------------------
+        finder = {
+          # General
+          ShowHardDrivesOnDesktop = false;
+          ShowExternalHardDrivesOnDesktop = false;
+          ShowRemovableMediaOnDesktop = false;
+          ShowMountedServersOnDesktop = false;
+          NewWindowTarget = "Home";
+
+          # Advanced
+          AppleShowAllExtensions = true;
+          FXEnableExtensionChangeWarning = false;
+          _FXSortFoldersFirst = true;
+          _FXSortFoldersFirstOnDesktop = false;
+          FXDefaultSearchScope = "SCcf";
+
+          # Internal
+          QuitMenuItem = true;
+          AppleShowAllFiles = false;
+          ShowPathbar = true;
+          ShowStatusBar = false;
+          FXPreferredViewStyle = "Nlsv";
+        };
+
+        # ------------------------------------------------------------------------
+        # Calendar
+        # ------------------------------------------------------------------------
+        iCal = {
+          "first day of week" = "Monday";
+          "TimeZone support enabled" = true;
+        };
+
+        # ------------------------------------------------------------------------
+        # Custom User Preferences (not yet supported by nix-darwin)
+        # ------------------------------------------------------------------------
+        CustomUserPreferences = {
+          # ----------------------------------------------------------------------
+          # NSGlobalDomain (system-wide preferences)
+          # ----------------------------------------------------------------------
+          NSGlobalDomain = {
+            # Menu Bar → Show menu bar background
+            SLSMenuBarUseBlurredAppearance = true;
+          };
         };
       };
     };
-  };
 
-  # ============================================================================
-  # macOS Security
-  # ============================================================================
-  security.pam.services.sudo_local.touchIdAuth = true;
+    # ----------------------------------------------------------------------------
+    # Security
+    # ----------------------------------------------------------------------------
+    security.pam.services.sudo_local.touchIdAuth = true;
 
-  # ============================================================================
-  # SSH Configuration (system-wide)
-  # ============================================================================
-  programs.ssh.extraConfig = ''
-    Host ${builder.name}
-      HostName ${builder.ip}
-      Port ${toString builder.port}
-      User ${builder.sshUser}
-      IdentityFile ${builder.sshKey}
-  '';
+    # ----------------------------------------------------------------------------
+    # SSH Configuration (system-wide)
+    # ----------------------------------------------------------------------------
+    programs.ssh.extraConfig = ''
+      Host ${builder.name}
+        HostName ${builder.ip}
+        Port ${toString builder.port}
+        User ${builder.sshUser}
+        IdentityFile ${builder.sshKey}
+    '';
 
-  programs.ssh.knownHosts = {
-    ${builder.name} = {
-      extraHostNames = [
-        builder.ip
-        "[${builder.ip}]:${toString builder.port}"
+    programs.ssh.knownHosts = {
+      ${builder.name} = {
+        extraHostNames = [
+          builder.ip
+          "[${builder.ip}]:${toString builder.port}"
+        ];
+        publicKey = builder.hostKey;
+      };
+    };
+
+    # ----------------------------------------------------------------------------
+    # Shell & Environment
+    # ----------------------------------------------------------------------------
+    programs.zsh.enable = true;
+    environment.shells = [ pkgs.zsh ];
+
+    # ----------------------------------------------------------------------------
+    # Fonts & Packages
+    # ----------------------------------------------------------------------------
+    fonts.packages = shared.fonts;
+    environment.systemPackages = shared.basePackages;
+
+    # ----------------------------------------------------------------------------
+    # Homebrew
+    # ----------------------------------------------------------------------------
+    homebrew = {
+      enable = true;
+      onActivation = {
+        autoUpdate = true;
+        cleanup = "uninstall";
+        upgrade = true;
+      };
+      taps = [ ];
+      brews = [ ];
+      casks = [
+        "keyclu"
+        "mos"
+        "rectangle"
+        "warp"
       ];
-      publicKey = builder.hostKey;
+      masApps = { };
     };
-  };
-
-  # ============================================================================
-  # Shell & Environment
-  # ============================================================================
-  programs.zsh.enable = true;
-  environment.shells = [ pkgs.zsh ];
-
-  # ============================================================================
-  # Fonts & Packages
-  # ============================================================================
-  fonts.packages = shared.fonts;
-  environment.systemPackages = shared.basePackages;
-
-  # ============================================================================
-  # Homebrew
-  # ============================================================================
-  homebrew = {
-    enable = true;
-    onActivation = {
-      autoUpdate = true;
-      cleanup = "uninstall";
-      upgrade = true;
-    };
-    taps = [ ];
-    brews = [ ];
-    casks = [
-      "keyclu"
-      "mos"
-      "rectangle"
-      "warp"
-    ];
-    masApps = { };
   };
 }

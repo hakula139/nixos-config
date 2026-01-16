@@ -1,101 +1,40 @@
 {
   config,
   pkgs,
-  isDesktop ? false,
-  secretsDir ? "${config.home.homeDirectory}/.secrets",
+  lib,
+  isNixOS ? false,
   ...
 }:
 
 # ==============================================================================
-# Cursor MCP (Model Context Protocol) Configuration
+# Cursor MCP Configuration
 # ==============================================================================
 
 let
-  isDarwin = pkgs.stdenv.isDarwin;
-  homeDir = config.home.homeDirectory;
+  mcp = import ../mcp.nix {
+    inherit
+      config
+      pkgs
+      lib
+      isNixOS
+      ;
+  };
 
   # ----------------------------------------------------------------------------
-  # Brave Search MCP
-  # ----------------------------------------------------------------------------
-  braveApiKeyFile = "${secretsDir}/brave-api-key";
-
-  braveSearch = pkgs.writeShellScriptBin "brave-search-mcp" ''
-    if [ -f "${braveApiKeyFile}" ]; then
-      export BRAVE_API_KEY="$(cat ${braveApiKeyFile})"
-    fi
-    exec ${pkgs.nodejs}/bin/npx -y @brave/brave-search-mcp-server "$@"
-  '';
-
-  # ----------------------------------------------------------------------------
-  # Context7 MCP
-  # ----------------------------------------------------------------------------
-  context7ApiKeyFile = "${secretsDir}/context7-api-key";
-
-  context7 = pkgs.writeShellScriptBin "context7-mcp" ''
-    if [ -f "${context7ApiKeyFile}" ]; then
-      export CONTEXT7_API_KEY="$(cat ${context7ApiKeyFile})"
-    fi
-    exec ${pkgs.nodejs}/bin/npx -y @upstash/context7-mcp "$@"
-  '';
-
-  # ----------------------------------------------------------------------------
-  # DeepWiki MCP
-  # ----------------------------------------------------------------------------
-  deepwiki = pkgs.writeShellScriptBin "deepwiki-mcp" ''
-    exec ${pkgs.nodejs}/bin/npx -y mcp-remote https://mcp.deepwiki.com/sse --transport sse-first "$@"
-  '';
-
-  # ----------------------------------------------------------------------------
-  # GitKraken MCP
-  # ----------------------------------------------------------------------------
-  gitKrakenPath =
-    if isDesktop then
-      (
-        if isDarwin then
-          "${homeDir}/Library/Application Support/Cursor/User/globalStorage/eamodio.gitlens/gk"
-        else
-          "${homeDir}/.config/Cursor/User/globalStorage/eamodio.gitlens/gk"
-      )
-    else
-      "${homeDir}/.cursor-server/data/User/globalStorage/eamodio.gitlens/gk";
-
-  # ----------------------------------------------------------------------------
-  # MCP Configuration
+  # MCP configuration
   # ----------------------------------------------------------------------------
   mcpConfig = {
     mcpServers = {
-      BraveSearch = {
-        name = "BraveSearch";
-        command = "${braveSearch}/bin/brave-search-mcp";
-        type = "stdio";
-      };
-      Context7 = {
-        name = "Context7";
-        command = "${context7}/bin/context7-mcp";
-        type = "stdio";
-      };
-      DeepWiki = {
-        name = "DeepWiki";
-        command = "${deepwiki}/bin/deepwiki-mcp";
-        type = "stdio";
-      };
-      GitKraken = {
-        name = "GitKraken";
-        command = gitKrakenPath;
-        type = "stdio";
-        args = [
-          "mcp"
-          "--host=cursor"
-          "--source=gitlens"
-          "--scheme=cursor"
-        ];
-      };
+      BraveSearch = mcp.servers.braveSearch;
+      Context7 = mcp.servers.context7;
+      DeepWiki = mcp.servers.deepwiki;
+      Filesystem = mcp.servers.filesystem;
+      Git = mcp.servers.git;
+      Playwright = mcp.servers.playwright;
     };
   };
 in
 {
-  # ============================================================================
-  # MCP Configuration Generation
-  # ============================================================================
+  secrets = mcp.secrets;
   mcpJson = (pkgs.formats.json { }).generate "cursor-mcp.json" mcpConfig;
 }

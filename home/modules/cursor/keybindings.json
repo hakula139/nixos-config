@@ -18,5 +18,13 @@
     "key": "ctrl+shift+-",
     "command": "-workbench.action.navigateForward",
     "when": "canNavigateForward"
+  },
+  {
+    "key": "shift+enter",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": {
+      "text": "\u001b\r"
+    },
+    "when": "terminalFocus"
   }
 ]
