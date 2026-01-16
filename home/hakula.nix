@@ -23,6 +23,7 @@ in
     ./modules/cursor
     ./modules/git.nix
     ./modules/ssh.nix
+    ./modules/wakatime.nix
     ./modules/zsh.nix
   ];
 
