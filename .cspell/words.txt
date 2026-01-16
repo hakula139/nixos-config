@@ -112,6 +112,7 @@ rprx
 rustc
 ryantm
 sarasa
+Sess
 sgid
 shellenv
 shfmt
