@@ -22,7 +22,7 @@ let
   };
 
   # ----------------------------------------------------------------------------
-  # Cursor Paths
+  # Cursor paths
   # ----------------------------------------------------------------------------
   paths =
     if isDarwin then
@@ -37,9 +37,9 @@ let
       ];
 in
 {
-  # ============================================================================
-  # Module Options
-  # ============================================================================
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
   options.hakula.cursor = {
     enable = lib.mkEnableOption "Cursor configuration";
 
@@ -49,18 +49,15 @@ in
     };
   };
 
-  # ============================================================================
-  # Module Configuration
-  # ============================================================================
   config = lib.mkIf cfg.enable (
     let
-      secretsDir = "${config.home.homeDirectory}/.secrets";
       mcp = import ./mcp.nix {
         inherit
           config
           pkgs
+          lib
+          isNixOS
           isDesktop
-          secretsDir
           ;
       };
 
@@ -82,65 +79,39 @@ in
         ".cursor-server/data/User/snippets".source = ./snippets;
       };
     in
-    {
-      # --------------------------------------------------------------------------
-      # Secrets (agenix)
-      # On NixOS: system-level agenix handles decryption (modules/nixos/mcp)
-      # On Darwin / standalone: home-manager agenix handles decryption
-      # --------------------------------------------------------------------------
-      age.identityPaths = lib.mkIf (!isNixOS) [
-        "${config.home.homeDirectory}/.ssh/id_ed25519"
-      ];
+    lib.mkMerge [
+      mcp.secrets
+      {
+        # ------------------------------------------------------------------------
+        # User configuration files
+        # ------------------------------------------------------------------------
+        home.file = {
+          ".cursor/mcp.json".source = mcp.mcpJson;
+        }
+        // (lib.optionalAttrs (isDesktop && isDarwin) darwinFiles)
+        // (lib.optionalAttrs (!isDesktop) remoteFiles);
 
-      age.secrets = lib.mkIf (!isNixOS) {
-        brave-api-key = {
-          file = ../../../secrets/shared/brave-api-key.age;
-          path = "${secretsDir}/brave-api-key";
-          mode = "0400";
-        };
+        xdg.configFile = lib.optionalAttrs (isDesktop && !isDarwin) linuxFiles;
 
-        context7-api-key = {
-          file = ../../../secrets/shared/context7-api-key.age;
-          path = "${secretsDir}/context7-api-key";
-          mode = "0400";
-        };
-      };
+        # ------------------------------------------------------------------------
+        # Extension management
+        # ------------------------------------------------------------------------
+        home.activation.cursorExtensions = lib.mkIf cfg.extensions.enable (
+          lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            cursor_server_path="$(
+              ls -1d "$HOME/.cursor-server/bin/"*"/bin/remote-cli" 2>/dev/null | sort | tail -n 1 || true
+            )"
 
-      home.activation.secretsDir = lib.mkIf (!isNixOS) (
-        lib.hm.dag.entryBefore [ "writeBoundary" ] ''
-          install -d -m 0700 "${secretsDir}"
-        ''
-      );
+            export PATH="${lib.concatStringsSep ":" paths}''${cursor_server_path:+:$cursor_server_path}:$PATH"
 
-      # --------------------------------------------------------------------------
-      # User Configuration Files
-      # --------------------------------------------------------------------------
-      home.file = {
-        ".cursor/mcp.json".source = mcp.mcpJson;
+            if command -v cursor &>/dev/null; then
+              ${ext.installScript}
+            else
+              echo "Cursor not found, skipping extension installation"
+            fi
+          ''
+        );
       }
-      // (lib.optionalAttrs (isDesktop && isDarwin) darwinFiles)
-      // (lib.optionalAttrs (!isDesktop) remoteFiles);
-
-      xdg.configFile = lib.optionalAttrs (isDesktop && !isDarwin) linuxFiles;
-
-      # --------------------------------------------------------------------------
-      # Extension Management
-      # --------------------------------------------------------------------------
-      home.activation.cursorExtensions = lib.mkIf cfg.extensions.enable (
-        lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          cursor_server_path="$(
-            ls -1d "$HOME/.cursor-server/bin/"*"/bin/remote-cli" 2>/dev/null | sort | tail -n 1 || true
-          )"
-
-          export PATH="${lib.concatStringsSep ":" paths}''${cursor_server_path:+:$cursor_server_path}:$PATH"
-
-          if command -v cursor &>/dev/null; then
-            ${ext.installScript}
-          else
-            echo "Cursor not found, skipping extension installation"
-          fi
-        ''
-      );
-    }
+    ]
   );
 }
