@@ -41,4 +41,9 @@ in
   # ----------------------------------------------------------------------------
   "cloudcone-sc2/server-keys/us-1.age".publicKeys = allUserKeys ++ [ keys.hosts.us-1 ];
   "cloudcone-sc2/server-keys/us-3.age".publicKeys = allUserKeys ++ [ keys.hosts.us-3 ];
+
+  # ----------------------------------------------------------------------------
+  # Workstation shared secrets
+  # ----------------------------------------------------------------------------
+  "shared/wakatime-config.age".publicKeys = allWorkstationKeys;
 }
