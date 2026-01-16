@@ -165,10 +165,19 @@ get_ccusage_data() {
   else
     # Extract active block info and calculate daily total
     local active_block daily_cost time_remaining has_data
-    active_block="$(echo "${blocks_json}" | jq '[.data[] | select(.isActive == true)] | first // null')"
+    active_block="$(echo "${blocks_json}" | jq '[.blocks[] | select(.isActive == true)] | first // null')"
 
     if [[ "${active_block}" != "null" ]]; then
-      time_remaining="$(echo "${active_block}" | jq -r '.timeRemaining // ""')"
+      # Format remaining minutes as "HH:mm"
+      local remaining_mins
+      remaining_mins="$(echo "${active_block}" | jq -r '.projection.remainingMinutes // 0 | floor')"
+      if [[ "${remaining_mins}" -gt 0 ]]; then
+        local hours=$((remaining_mins / 60))
+        local mins=$((remaining_mins % 60))
+        time_remaining="$(printf '%02d:%02d' "${hours}" "${mins}")"
+      else
+        time_remaining=""
+      fi
       has_data="true"
     else
       time_remaining=""
@@ -179,7 +188,7 @@ get_ccusage_data() {
     local today
     today="$(date +%Y-%m-%d)"
     daily_cost="$(echo "${blocks_json}" | jq --arg today "${today}" '
-      [.data[] | select(.blockStart | startswith($today)) | .totalCost] | add // 0
+      [.blocks[] | select(.startTime | startswith($today)) | .costUSD] | add // 0
     ')"
 
     result="$(
