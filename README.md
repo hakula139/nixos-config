@@ -1,6 +1,7 @@
 # NixOS Configuration
 
 [![CI](https://github.com/hakula139/nixos-config/actions/workflows/ci.yml/badge.svg)](https://github.com/hakula139/nixos-config/actions/workflows/ci.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/hakula139/nixos-config)
 
 NixOS configuration for Hakula's machines (flake-based).
 
