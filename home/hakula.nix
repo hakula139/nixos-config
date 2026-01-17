@@ -21,10 +21,10 @@ in
     ./modules/darwin.nix
     ./modules/claude-code
     ./modules/cursor
-    ./modules/git.nix
-    ./modules/ssh.nix
-    ./modules/wakatime.nix
-    ./modules/zsh.nix
+    ./modules/git
+    ./modules/ssh
+    ./modules/wakatime
+    ./modules/zsh
   ];
 
   # ----------------------------------------------------------------------------

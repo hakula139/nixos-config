@@ -15,7 +15,7 @@ let
   hooks = import ./hooks.nix;
   permissions = import ./permissions.nix;
   plugins = import ./plugins.nix;
-  mcp = import ../mcp.nix {
+  mcp = import ../mcp {
     inherit
       config
       pkgs

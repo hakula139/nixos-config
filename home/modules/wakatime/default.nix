@@ -24,7 +24,7 @@ in
     ];
 
     age.secrets.wakatime-config = {
-      file = ../../secrets/shared/wakatime-config.age;
+      file = ../../../secrets/shared/wakatime-config.age;
       path = "${homeDir}/.wakatime.cfg";
       mode = "0600";
     };

@@ -11,7 +11,7 @@
 # ==============================================================================
 
 let
-  mcp = import ../mcp.nix {
+  mcp = import ../mcp {
     inherit
       config
       pkgs
