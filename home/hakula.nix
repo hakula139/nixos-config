@@ -23,6 +23,7 @@ in
     ./modules/cursor
     ./modules/git
     ./modules/ssh
+    ./modules/syncthing
     ./modules/wakatime
     ./modules/zsh
   ];
