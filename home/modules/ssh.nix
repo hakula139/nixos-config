@@ -57,6 +57,14 @@ in
         identityFile = "${homeDir}/.ssh/Tencent/id_ed25519";
         forwardAgent = true;
       };
+      "Hakula-MacBook" = {
+        host = "Hakula-MacBook";
+        hostname = "hakula-macbook";
+        user = "hakula";
+        port = 22;
+        identityFile = "${homeDir}/.ssh/id_ed25519";
+        forwardAgent = true;
+      };
     };
   };
 }
