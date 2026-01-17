@@ -13,6 +13,8 @@ let
   shared = import ../shared.nix { inherit pkgs; };
   keys = import ../../secrets/keys.nix;
 
+  sshCfg = config.hakula.access.ssh;
+
   builder = {
     name = "CloudCone-US-2";
     ip = "74.48.189.161";
@@ -24,9 +26,21 @@ let
   };
 in
 {
+  imports = [
+    ./ssh
+  ];
+
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
+  options.hakula.access.ssh = {
+    authorizedKeys = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = builtins.attrValues keys.workstations;
+      description = "SSH public keys authorized for user login";
+    };
+  };
+
   options.hakula.cachix = {
     enable = lib.mkEnableOption "Cachix auth token secret";
   };
@@ -84,8 +98,6 @@ in
     # System Settings (best effort)
     # ----------------------------------------------------------------------------
     system = {
-      stateVersion = 6;
-
       keyboard = {
         enableKeyMapping = true;
         remapCapsLockToControl = false;
@@ -255,8 +267,16 @@ in
     };
 
     # ----------------------------------------------------------------------------
-    # Security
+    # Users & Security
     # ----------------------------------------------------------------------------
+    users.users.hakula = {
+      name = "hakula";
+      home = "/Users/hakula";
+      openssh.authorizedKeys.keys = sshCfg.authorizedKeys;
+    };
+
+    system.primaryUser = "hakula";
+
     security.pam.services.sudo_local.touchIdAuth = true;
 
     # ----------------------------------------------------------------------------
@@ -308,6 +328,7 @@ in
         "keyclu"
         "mos"
         "rectangle"
+        "tailscale-app"
         "warp"
       ];
       masApps = { };

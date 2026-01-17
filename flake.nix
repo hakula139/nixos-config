@@ -129,6 +129,40 @@
             configPath
           ];
         };
+
+      mkDarwin =
+        {
+          hostName,
+          displayName,
+          configPath,
+        }:
+        nix-darwin.lib.darwinSystem {
+          specialArgs = {
+            inherit inputs hostName displayName;
+          };
+          modules = [
+            {
+              nixpkgs.hostPlatform = "aarch64-darwin";
+              nixpkgs.overlays = overlays;
+            }
+            agenix.darwinModules.default
+            home-manager.darwinModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.hakula = import ./home/hakula.nix;
+                backupFileExtension = "bak";
+                extraSpecialArgs = {
+                  inherit inputs;
+                  isNixOS = false;
+                  isDesktop = true;
+                };
+              };
+            }
+            configPath
+          ];
+        };
     in
     {
       # ========================================================================
@@ -175,29 +209,10 @@
         # ----------------------------------------------------------------------
         # Hakula's MacBook Pro
         # ----------------------------------------------------------------------
-        hakula-macbook = nix-darwin.lib.darwinSystem {
-          modules = [
-            {
-              nixpkgs.hostPlatform = "aarch64-darwin";
-              nixpkgs.overlays = overlays;
-            }
-            agenix.darwinModules.default
-            home-manager.darwinModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.hakula = import ./home/hakula.nix;
-                backupFileExtension = "bak";
-                extraSpecialArgs = {
-                  inherit inputs;
-                  isNixOS = false;
-                  isDesktop = true;
-                };
-              };
-            }
-            ./hosts/hakula-macbook
-          ];
+        hakula-macbook = mkDarwin {
+          hostName = "hakula-macbook";
+          displayName = "Hakula-MacBook";
+          configPath = ./hosts/hakula-macbook;
         };
       };
 

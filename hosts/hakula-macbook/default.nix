@@ -1,8 +1,32 @@
-{ ... }:
+{
+  hostName,
+  displayName,
+  ...
+}:
 
+let
+  keys = import ../../secrets/keys.nix;
+in
 {
   imports = [
     ../../modules/darwin
+  ];
+
+  # ============================================================================
+  # Networking
+  # ============================================================================
+  networking = {
+    inherit hostName;
+    computerName = displayName;
+    localHostName = displayName;
+  };
+
+  # ============================================================================
+  # Access (SSH)
+  # ============================================================================
+  hakula.access.ssh.authorizedKeys = with keys.workstations; [
+    hakula-macbook
+    hakula-work
   ];
 
   # ============================================================================
@@ -11,36 +35,12 @@
   hakula.cachix.enable = true;
 
   # ============================================================================
-  # Primary User (required for user-specific system defaults)
+  # Services
   # ============================================================================
-  system.primaryUser = "hakula";
+  hakula.services.openssh.enable = true;
 
   # ============================================================================
-  # Host-Specific Configuration
+  # System State
   # ============================================================================
-  networking.hostName = "Hakula-MacBook";
-
-  # Computer name visible in Finder sidebar, AirDrop, etc.
-  networking.computerName = "Hakula-MacBook";
-
-  # Local hostname for Bonjour (hostname.local)
-  networking.localHostName = "Hakula-MacBook";
-
-  # ============================================================================
-  # User Configuration
-  # ============================================================================
-  users.users.hakula = {
-    name = "hakula";
-    home = "/Users/hakula";
-  };
-
-  # ============================================================================
-  # Host-Specific Packages
-  # ============================================================================
-  # environment.systemPackages = with pkgs; [ ];
-
-  # ============================================================================
-  # Host-Specific Homebrew
-  # ============================================================================
-  # homebrew.casks = [ ];
+  system.stateVersion = 6;
 }
