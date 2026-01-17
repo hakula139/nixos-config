@@ -328,6 +328,7 @@ in
         "keyclu"
         "mos"
         "rectangle"
+        "tailscale"
         "warp"
       ];
       masApps = { };

@@ -38,7 +38,6 @@ in
   # Services
   # ============================================================================
   hakula.services.openssh.enable = true;
-  services.tailscale.enable = true;
 
   # ============================================================================
   # System State
