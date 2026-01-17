@@ -123,6 +123,7 @@
                   inherit inputs;
                   isNixOS = true;
                   isDesktop = false;
+                  useProxy = false;
                 };
               };
             }
@@ -157,6 +158,7 @@
                   inherit inputs;
                   isNixOS = false;
                   isDesktop = true;
+                  useProxy = true;
                 };
               };
             }
@@ -232,6 +234,7 @@
             inherit inputs;
             isNixOS = false;
             isDesktop = false;
+            useProxy = true;
           };
         };
       };

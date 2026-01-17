@@ -3,6 +3,7 @@
   lib,
   inputs,
   isNixOS ? false,
+  useProxy ? false,
   ...
 }:
 
@@ -55,6 +56,11 @@ in
   # ----------------------------------------------------------------------------
   # Custom Modules
   # ----------------------------------------------------------------------------
+  hakula.claude-code = {
+    enable = true;
+    proxy.enable = useProxy;
+  };
+
   hakula.cursor = {
     enable = true;
     extensions = {
