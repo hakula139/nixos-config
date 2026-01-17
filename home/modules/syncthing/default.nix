@@ -25,7 +25,24 @@ in
     settings = {
       devices = {
         "hakula-macbook" = {
+          # cspell:disable-next-line
           id = "K5RNBD3-2UASGL4-G4DJJEG-35NPPQK-LRB5KLH-6PF4NKZ-CF7MW37-2SDVWQS";
+        };
+        "us-1" = {
+          # cspell:disable-next-line
+          id = "WMZORNC-QJTIIQX-4Y2OGVF-3O5IESF-3M3UGMN-HC2C7SG-S42OC47-JMCPFAK";
+        };
+        "us-2" = {
+          # cspell:disable-next-line
+          id = "VPCN2SN-IEOCBX2-5FXCNCD-4SRA7PO-SK34FRH-MJWCXXB-QCRGTJE-WFWXSAL";
+        };
+        # "us-3" = {
+        #   # cspell:disable-next-line
+        #   id = "";
+        # };
+        "sg-1" = {
+          # cspell:disable-next-line
+          id = "TY4E6M5-W7CQMFI-XK3IPUV-RF35PE7-TXBAT23-H6AD3Y4-C6IDGDJ-JRXUDAS";
         };
       };
 
@@ -34,6 +51,7 @@ in
           path = claudeCodeSyncDir;
           devices = [
             "hakula-macbook"
+            "us-2"
           ];
           ignorePerms = false;
         };
