@@ -26,7 +26,7 @@ in
       devices = {
         "hakula-macbook" = {
           # cspell:disable-next-line
-          id = "K5RNBD3-2UASGL4-G4DJJEG-35NPPQK-LRB5KLH-6PF4NKZ-CF7MW37-2SDVWQS";
+          id = "4K52NMQ-QSKVTWQ-CTJABEH-TSYH5MG-HS3FOKP-ETOLSWB-TC7PV6E-JR2KTAN";
         };
         "us-1" = {
           # cspell:disable-next-line
