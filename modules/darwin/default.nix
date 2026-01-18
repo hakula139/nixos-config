@@ -14,16 +14,8 @@ let
   keys = import ../../secrets/keys.nix;
 
   sshCfg = config.hakula.access.ssh;
-
-  builder = {
-    name = "CloudCone-US-2";
-    ip = "74.48.189.161";
-    port = 35060;
-    sshUser = "root";
-    sshKey = "${config.users.users.hakula.home}/.ssh/CloudCone/id_ed25519";
-    system = "x86_64-linux";
-    hostKey = keys.hosts.us-2;
-  };
+  servers = builtins.attrValues shared.servers;
+  builders = builtins.filter (s: s.isBuilder) servers;
 in
 {
   imports = [
@@ -47,6 +39,16 @@ in
 
   config = {
     # ----------------------------------------------------------------------------
+    # Secrets (agenix)
+    # ----------------------------------------------------------------------------
+    age.secrets.builder-ssh-key = {
+      file = ../../secrets/shared/builder-ssh-key.age;
+      owner = "hakula";
+      group = "staff";
+      mode = "0400";
+    };
+
+    # ----------------------------------------------------------------------------
     # Nix Configuration
     # ----------------------------------------------------------------------------
     nix = {
@@ -63,22 +65,7 @@ in
         };
 
       distributedBuilds = true;
-      buildMachines = [
-        {
-          hostName = builder.name;
-          system = builder.system;
-          protocol = "ssh-ng";
-          sshUser = builder.sshUser;
-          sshKey = builder.sshKey;
-          maxJobs = 3;
-          speedFactor = 2;
-          supportedFeatures = [
-            "big-parallel"
-            "kvm"
-            "nixos-test"
-          ];
-        }
-      ];
+      buildMachines = shared.mkBuildMachines builders config.age.secrets.builder-ssh-key.path;
 
       gc = {
         automatic = true;
@@ -282,23 +269,11 @@ in
     # ----------------------------------------------------------------------------
     # SSH Configuration (system-wide)
     # ----------------------------------------------------------------------------
-    programs.ssh.extraConfig = ''
-      Host ${builder.name}
-        HostName ${builder.ip}
-        Port ${toString builder.port}
-        User ${builder.sshUser}
-        IdentityFile ${builder.sshKey}
-    '';
+    programs.ssh.extraConfig =
+      shared.mkSshExtraConfig lib servers
+        config.age.secrets.builder-ssh-key.path;
 
-    programs.ssh.knownHosts = {
-      ${builder.name} = {
-        extraHostNames = [
-          builder.ip
-          "[${builder.ip}]:${toString builder.port}"
-        ];
-        publicKey = builder.hostKey;
-      };
-    };
+    programs.ssh.knownHosts = shared.mkSshKnownHosts lib servers;
 
     # ----------------------------------------------------------------------------
     # Shell & Environment

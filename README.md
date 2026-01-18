@@ -7,12 +7,14 @@ NixOS configuration for Hakula's machines (flake-based).
 
 ## Hosts
 
-| Host                 | System         | Type               |
-| -------------------- | -------------- | ------------------ |
-| `cloudcone-sc2`      | x86_64-linux   | NixOS server       |
-| `cloudcone-vps`      | x86_64-linux   | NixOS server       |
-| `tencent-lighthouse` | x86_64-linux   | NixOS server       |
-| `hakula-macbook`     | aarch64-darwin | macOS (nix-darwin) |
+| Host             | System         | Type                         |
+| ---------------- | -------------- | ---------------------------- |
+| `us-1`           | x86_64-linux   | NixOS server                 |
+| `us-2`           | x86_64-linux   | NixOS server                 |
+| `us-3`           | x86_64-linux   | NixOS server                 |
+| `sg-1`           | x86_64-linux   | NixOS server                 |
+| `hakula-macbook` | aarch64-darwin | macOS (nix-darwin)           |
+| `hakula-work`    | x86_64-linux   | Generic Linux (Home Manager) |
 
 ## NixOS
 
@@ -77,19 +79,19 @@ curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 ### Apply Home Manager Configuration
 
 ```bash
-nix run home-manager -- switch --flake '.#hakula-linux'
+nix run home-manager -- switch --flake '.#hakula-work'
 ```
 
 If Home Manager is installed globally:
 
 ```bash
-home-manager switch --flake '.#hakula-linux'
+home-manager switch --flake '.#hakula-work'
 ```
 
 After setting up the alias:
 
 ```bash
-nixsw hakula-linux
+nixsw hakula-work
 ```
 
 ## Update
@@ -127,8 +129,8 @@ nix flake check
 GitHub Actions automatically validates the configuration on every push and pull request:
 
 - **Flake Check**: Validates flake structure using `nix flake check --all-systems`
-- **Build NixOS**: Tests building the `cloudcone-sc2` configuration on x86_64-linux
-- **Build Generic Linux**: Tests building the `hakula-linux` home-manager configuration on x86_64-linux
+- **Build NixOS**: Tests building the `us-1` NixOS server configuration on x86_64-linux
+- **Build Generic Linux**: Tests building the `hakula-work` Home Manager configuration on x86_64-linux
 - **Build macOS**: Tests building the `hakula-macbook` configuration on aarch64-darwin
 
 ## Secrets

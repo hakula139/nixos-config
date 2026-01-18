@@ -21,10 +21,11 @@ in
     ./modules/darwin.nix
     ./modules/claude-code
     ./modules/cursor
-    ./modules/git.nix
-    ./modules/ssh.nix
-    ./modules/wakatime.nix
-    ./modules/zsh.nix
+    ./modules/git
+    ./modules/ssh
+    ./modules/syncthing
+    ./modules/wakatime
+    ./modules/zsh
   ];
 
   # ----------------------------------------------------------------------------
@@ -54,6 +55,11 @@ in
   # ----------------------------------------------------------------------------
   # Custom Modules
   # ----------------------------------------------------------------------------
+  hakula.claude-code = {
+    enable = lib.mkDefault false;
+    proxy.enable = lib.mkDefault false;
+  };
+
   hakula.cursor = {
     enable = true;
     extensions = {
