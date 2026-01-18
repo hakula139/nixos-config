@@ -123,6 +123,7 @@
                   inherit inputs;
                   isNixOS = true;
                   isDesktop = false;
+                  useProxy = false;
                 };
               };
             }
@@ -157,11 +158,29 @@
                   inherit inputs;
                   isNixOS = false;
                   isDesktop = true;
+                  useProxy = true;
                 };
               };
             }
             configPath
           ];
+        };
+
+      mkHome =
+        {
+          configPath,
+        }:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = pkgsFor "x86_64-linux";
+          modules = [
+            ./home/hakula.nix
+            configPath
+          ];
+          extraSpecialArgs = {
+            inherit inputs;
+            isNixOS = false;
+            isDesktop = false;
+          };
         };
     in
     {
@@ -221,18 +240,10 @@
       # ========================================================================
       homeConfigurations = {
         # ----------------------------------------------------------------------
-        # Generic Linux (e.g., Ubuntu WSL)
+        # Hakula's Work PC (WSL)
         # ----------------------------------------------------------------------
-        hakula-linux = home-manager.lib.homeManagerConfiguration {
-          pkgs = pkgsFor "x86_64-linux";
-          modules = [
-            ./home/hakula.nix
-          ];
-          extraSpecialArgs = {
-            inherit inputs;
-            isNixOS = false;
-            isDesktop = false;
-          };
+        hakula-work = mkHome {
+          configPath = ./hosts/hakula-work;
         };
       };
 

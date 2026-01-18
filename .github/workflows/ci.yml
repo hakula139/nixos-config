@@ -47,7 +47,7 @@ jobs:
           - id: generic-linux
             name: hakula-linux (x86_64-linux, Generic Linux)
             runner: ubuntu-latest
-            target: .#homeConfigurations.hakula-linux.activationPackage
+            target: .#homeConfigurations.hakula-work.activationPackage
           - id: macos
             name: hakula-macbook (aarch64-darwin, macOS)
             runner: macos-latest
