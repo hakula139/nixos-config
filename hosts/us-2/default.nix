@@ -104,6 +104,7 @@ in
   # Home Manager Modules
   # ============================================================================
   home-manager.users.hakula.hakula.claude-code.enable = true;
+  home-manager.users.hakula.hakula.zsh.direnv.enable = false;
 
   # ============================================================================
   # System State
