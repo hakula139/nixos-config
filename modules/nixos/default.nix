@@ -23,6 +23,7 @@ in
   imports = [
     ./aria2
     ./backup
+    ./builders
     ./cachix
     (import ./clash { inherit realitySniHost; })
     ./cloudcone
@@ -118,7 +119,7 @@ in
     # --------------------------------------------------------------------------
     users.defaultUserShell = pkgs.zsh;
 
-    users.users.root.openssh.authorizedKeys.keys = sshCfg.authorizedKeys;
+    users.users.root.openssh.authorizedKeys.keys = sshCfg.authorizedKeys ++ [ keys.builder ];
 
     users.users.hakula = {
       isNormalUser = true;

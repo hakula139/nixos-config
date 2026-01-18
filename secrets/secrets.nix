@@ -24,6 +24,7 @@ in
   "shared/aria2-rpc-secret.age".publicKeys = allServerKeys;
   "shared/backup-env.age".publicKeys = allServerKeys;
   "shared/backup-restic-password.age".publicKeys = allServerKeys;
+  "shared/builder-ssh-key.age".publicKeys = allServerKeys;
   "shared/cachix-auth-token.age".publicKeys = allServerKeys;
   "shared/clash-users.json.age".publicKeys = allServerKeys;
   "shared/cloudflare-credentials.age".publicKeys = allServerKeys;

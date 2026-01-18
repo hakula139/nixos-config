@@ -8,7 +8,7 @@ This is a **flake-based NixOS / nix-darwin configuration** managing multiple sys
 
 - **4 NixOS servers** (us-1, us-2, us-3, sg-1) on x86_64-linux
 - **1 macOS workstation** (hakula-macbook) on aarch64-darwin
-- **1 generic Linux** (hakula-linux) using standalone Home Manager
+- **1 generic Linux** (hakula-work) using standalone Home Manager
 
 The architecture emphasizes modularity, with shared base configuration in `modules/shared.nix` and per-host customization in `hosts/`.
 
@@ -26,8 +26,8 @@ sudo darwin-rebuild switch --flake '.#hakula-macbook'
 # or with alias: nixsw hakula-macbook
 
 # Generic Linux (Home Manager standalone)
-home-manager switch --flake '.#hakula-linux'
-# or with alias: nixsw hakula-linux
+home-manager switch --flake '.#hakula-work'
+# or with alias: nixsw hakula-work
 
 # Update all dependencies
 nix flake update
@@ -81,6 +81,8 @@ agenix -e <secret-name>.age -i ~/.ssh/<private-key>
 The flake uses a **builder function pattern** to reduce duplication:
 
 - `mkServer`: Creates NixOS configurations with agenix, disko, and Home Manager integrated
+- `mkDarwin`: Creates Darwin configurations with agenix and Home Manager integrated
+- `mkHome`: Creates standalone Home Manager configurations for non-NixOS Linux
 - `overlays`: Provides `unstable` packages, `agenix` CLI, and custom `cloudreve` package
 - `forAllSystems`: Handles both x86_64-linux and aarch64-darwin
 
@@ -88,7 +90,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 
 - `nixosConfigurations.*`: Server configurations (us-1, us-2, us-3, sg-1)
 - `darwinConfigurations.hakula-macbook`: macOS configuration
-- `homeConfigurations.hakula-linux`: Standalone Home Manager for generic Linux
+- `homeConfigurations.hakula-work`: Standalone Home Manager for generic Linux
 - `checks.*.pre-commit`: Pre-commit hook validation
 - `devShells.default`: Development environment with pre-commit hooks
 - `formatter`: nixfmt-rfc-style
@@ -104,21 +106,25 @@ The flake uses a **builder function pattern** to reduce duplication:
 │   ├── us-2/                    # CloudCone VPS
 │   ├── us-3/                    # CloudCone SC2 server
 │   ├── sg-1/                    # Tencent Lighthouse server
-│   └── hakula-macbook/          # macOS workstation
+│   ├── hakula-macbook/          # macOS workstation
+│   └── hakula-work/             # Work PC (WSL)
 ├── modules/
 │   ├── shared.nix               # Cross-platform base config
-│   ├── nixos/                   # NixOS service modules (18 modules)
-│   └── darwin/                  # macOS-specific modules
+│   ├── nixos/                   # NixOS service modules (19 modules)
+│   └── darwin/                  # macOS-specific modules (with ssh/ submodule)
 ├── home/
 │   ├── hakula.nix               # Main user configuration entry
 │   └── modules/                 # Home Manager modules
 │       ├── claude-code/         # Claude Code configuration
 │       ├── cursor/              # Cursor editor config
 │       ├── git/                 # Git configuration
+│       ├── mcp/                 # MCP server definitions (shared)
 │       ├── ssh/                 # SSH client config
+│       ├── syncthing/           # Syncthing file synchronization
+│       ├── wakatime/            # Wakatime time tracking
 │       ├── zsh/                 # Shell configuration
-│       ├── mcp.nix              # MCP server definitions
-│       └── darwin.nix           # macOS user-level settings
+│       ├── darwin.nix           # macOS user-level settings
+│       └── shared.nix           # Shared module configuration
 ├── packages/                    # Custom package definitions
 ├── lib/
 │   └── tooling.nix              # Shared development tools
@@ -135,8 +141,8 @@ The flake uses a **builder function pattern** to reduce duplication:
 **NixOS modules** (`modules/nixos/`) are **optionally enabled** services configured per-host. Key modules:
 
 - **Infrastructure**: `nginx`, `xray`, `clash`, `postgresql`, `podman`
-- **Services**: `aria2`, `cloudreve`, `piclist`, `umami`, `fuclaude`, `netdata`
-- **System**: `backup`, `ssh`, `cachix`, `cloudcone`, `dockerhub`, `mcp`
+- **Services**: `aria2`, `cloudreve`, `piclist`, `umami`, `fuclaude`, `netdata`, `wakatime`
+- **System**: `backup`, `ssh`, `cachix`, `cloudcone`, `cloudflare`, `dockerhub`, `mcp`
 
 Each module typically exports an `enable` option and service-specific configuration. Host configurations import modules and enable them selectively.
 
@@ -172,7 +178,7 @@ Secrets in `secrets/*.age` are **decrypted at activation time** by agenix and pl
 1. **Flake Check**: Validates flake structure (`nix flake check --all-systems`)
 2. **Build Matrix**: Builds three configurations in parallel
    - NixOS: `us-1` (x86_64-linux)
-   - Generic Linux: `hakula-linux` (x86_64-linux)
+   - Generic Linux: `hakula-work` (x86_64-linux)
    - macOS: `hakula-macbook` (aarch64-darwin)
 
 **Cachix integration**: Builds are cached in the "hakula" cache. Uploads to Cachix happen on `main` branch or when the actor is `hakula139`.
@@ -216,14 +222,14 @@ For host-specific testing:
 # Build without activating (faster feedback)
 nix build '.#nixosConfigurations.us-1.config.system.build.toplevel'
 nix build '.#darwinConfigurations.hakula-macbook.system'
-nix build '.#homeConfigurations.hakula-linux.activationPackage'
+nix build '.#homeConfigurations.hakula-work.activationPackage'
 ```
 
 ## Common Patterns
 
 ### Adding a New NixOS Module
 
-1. Create `modules/nixos/my-service/default.nix`
+1. Create `modules/nixos/my-service/default.nix` (directory-based preferred)
 2. Define `options.services.my-service.enable` and configuration options
 3. Use `lib.mkIf config.services.my-service.enable { ... }` for conditional activation
 4. Import in host configuration and set `services.my-service.enable = true;`
@@ -231,7 +237,7 @@ nix build '.#homeConfigurations.hakula-linux.activationPackage'
 
 ### Adding a Home Manager Module
 
-1. Create `home/modules/my-module.nix` (or `my-module/default.nix`)
+1. Create `home/modules/my-module/default.nix` (directory-based preferred)
 2. Accept `{ config, pkgs, lib, isNixOS ? false, isDesktop ? false, ... }`
 3. Use `lib.mkIf` to conditionally enable based on `isNixOS` or `isDesktop`
 4. Import in `home/hakula.nix`
@@ -245,21 +251,16 @@ nix build '.#homeConfigurations.hakula-linux.activationPackage'
 
 ### Adding a Host
 
-1. Create `hosts/my-host/default.nix` with hardware configuration
-2. Add to `nixosConfigurations` (or `darwinConfigurations`) in `flake.nix` using `mkServer` or `nix-darwin.lib.darwinSystem`
-3. Generate hardware config: `nixos-generate-config --show-hardware-config`
+1. Create `hosts/my-host/default.nix` with host-specific configuration
+2. Add to `nixosConfigurations`, `darwinConfigurations`, or `homeConfigurations` in `flake.nix` using the appropriate builder (`mkServer`, `mkDarwin`, or `mkHome`)
+3. For NixOS: generate hardware config with `nixos-generate-config --show-hardware-config`
 4. Optionally reuse profiles from `hosts/_profiles/` for common hardware
 
 ## Proxy Configuration
 
-The repository uses **HTTP proxy** (127.0.0.1:7897) for Claude Code and other tools. This is configured in `home/modules/claude-code/default.nix`:
+Some hosts use **HTTP proxy** (`http://127.0.0.1:7897`) for Claude Code and other tools. This is configured per-host via `hakula.claude-code.proxy.enable = true` in the host's `default.nix`. Currently enabled on:
 
-```nix
-env = {
-  HTTPS_PROXY = "http://127.0.0.1:7897";
-  HTTP_PROXY = "http://127.0.0.1:7897";
-  NO_PROXY = "localhost,127.0.0.1";
-};
-```
+- `hakula-macbook`
+- `hakula-work`
 
-When working with network operations, be aware that tools may route through this proxy.
+When working with network operations on these hosts, be aware that tools may route through this proxy.

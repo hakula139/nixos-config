@@ -117,13 +117,13 @@ in
 
     age.secrets = {
       brave-api-key = {
-        file = ../../secrets/shared/brave-api-key.age;
+        file = ../../../secrets/shared/brave-api-key.age;
         path = "${secretsDir}/brave-api-key";
         mode = "0400";
       };
 
       context7-api-key = {
-        file = ../../secrets/shared/context7-api-key.age;
+        file = ../../../secrets/shared/context7-api-key.age;
         path = "${secretsDir}/context7-api-key";
         mode = "0400";
       };
