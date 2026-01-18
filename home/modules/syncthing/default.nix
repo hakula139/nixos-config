@@ -62,15 +62,17 @@ in
     overrideFolders = true;
   };
 
-  home.activation.syncthingSymlinks = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    install -d -m 0700 "${claudeCodeSyncDir}"
+  home.activation.syncthingSymlinks = lib.mkIf config.hakula.claude-code.enable (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      install -d -m 0700 "${claudeCodeSyncDir}"
 
-    for file in ${builtins.toString claudeCodeFiles}; do
-      if [[ ! -e "${homeDir}/$file" ]]; then
-        mkdir -p "$(dirname "${claudeCodeSyncDir}/$file")"
-        mkdir -p "$(dirname "${homeDir}/$file")"
-        ln -sfn "${claudeCodeSyncDir}/$file" "${homeDir}/$file"
-      fi
-    done
-  '';
+      for file in ${builtins.toString claudeCodeFiles}; do
+        if [[ ! -e "${homeDir}/$file" ]]; then
+          mkdir -p "$(dirname "${claudeCodeSyncDir}/$file")"
+          mkdir -p "$(dirname "${homeDir}/$file")"
+          ln -sfn "${claudeCodeSyncDir}/$file" "${homeDir}/$file"
+        fi
+      done
+    ''
+  );
 }
