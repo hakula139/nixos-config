@@ -13,6 +13,7 @@ cloudreve
 cncidr
 coreutils
 cpp
+cppcheck
 cpptools
 createdb
 csum
@@ -92,6 +93,7 @@ pengzhile
 pgrep
 phoityne
 picgo
+pipx
 pkgs
 pkief
 pkill
