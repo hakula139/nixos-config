@@ -61,10 +61,10 @@ in
   };
 
   hakula.cursor = {
-    enable = true;
+    enable = lib.mkDefault true;
     extensions = {
-      enable = true;
-      prune = true;
+      enable = lib.mkDefault true;
+      prune = lib.mkDefault true;
     };
   };
 }

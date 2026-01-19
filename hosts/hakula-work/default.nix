@@ -6,4 +6,6 @@
     enable = true;
     proxy.enable = true;
   };
+
+  hakula.cursor.extensions.prune = false;
 }
