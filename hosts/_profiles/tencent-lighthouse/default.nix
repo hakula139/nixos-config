@@ -26,7 +26,7 @@
   boot.loader.grub = {
     enable = true;
     devices = lib.mkForce [ "/dev/vda" ];
-    configurationLimit = 20;
+    configurationLimit = lib.mkDefault 5;
   };
 
   swapDevices = [
