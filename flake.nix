@@ -169,6 +169,7 @@
       mkHome =
         {
           configPath,
+          isDesktop ? true,
         }:
         home-manager.lib.homeManagerConfiguration {
           pkgs = pkgsFor "x86_64-linux";
@@ -177,9 +178,8 @@
             configPath
           ];
           extraSpecialArgs = {
-            inherit inputs;
+            inherit inputs isDesktop;
             isNixOS = false;
-            isDesktop = false;
           };
         };
     in

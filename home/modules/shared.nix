@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  isDesktop ? false,
   ...
 }:
 
@@ -51,29 +52,6 @@ in
       p7zip
 
       # ------------------------------------------------------------------------
-      # Bash Development
-      # ------------------------------------------------------------------------
-      bash-language-server
-      shellcheck
-      shfmt
-
-      # ------------------------------------------------------------------------
-      # C/C++ Development
-      # ------------------------------------------------------------------------
-      llvmPackages.clang
-      llvmPackages.clang-tools
-      llvmPackages.lld
-      llvmPackages.lldb
-      cppcheck
-      ccache
-      cmake
-      gnumake
-      ninja
-      pkg-config
-      catch2
-      doxygen
-
-      # ------------------------------------------------------------------------
       # Python Development
       # ------------------------------------------------------------------------
       python3
@@ -84,56 +62,90 @@ in
       uv
 
       # ------------------------------------------------------------------------
-      # Node.js Development
-      # ------------------------------------------------------------------------
-      fnm
-
-      # ------------------------------------------------------------------------
-      # Go Development
-      # ------------------------------------------------------------------------
-      go
-      gopls
-
-      # ------------------------------------------------------------------------
-      # Rust Development
-      # ------------------------------------------------------------------------
-      rustup
-
-      # ------------------------------------------------------------------------
-      # Containers & Kubernetes
-      # ------------------------------------------------------------------------
-      docker
-      podman
-      podman-compose
-      kubectl
-      kubernetes-helm
-      k9s
-      kubectx
-
-      # ------------------------------------------------------------------------
-      # Media
-      # ------------------------------------------------------------------------
-      ffmpeg
-      imagemagick
-
-      # ------------------------------------------------------------------------
       # Other Tools
       # ------------------------------------------------------------------------
-      fontconfig
-      git-filter-repo
       httpie
-      hugo
       jq
       yq
-      scc
     ]
     ++ tooling.nix
-    ++ tooling.secrets;
+    ++ tooling.secrets
+    # --------------------------------------------------------------------------
+    # Desktop-only packages (heavy dev toolchains)
+    # --------------------------------------------------------------------------
+    ++ lib.optionals isDesktop (
+      with pkgs;
+      [
+        # ----------------------------------------------------------------------
+        # Bash Development
+        # ----------------------------------------------------------------------
+        bash-language-server
+        shellcheck
+        shfmt
+
+        # ----------------------------------------------------------------------
+        # C/C++ Development
+        # ----------------------------------------------------------------------
+        llvmPackages.clang
+        llvmPackages.clang-tools
+        llvmPackages.lld
+        llvmPackages.lldb
+        cppcheck
+        ccache
+        cmake
+        gnumake
+        ninja
+        pkg-config
+        catch2
+        doxygen
+
+        # ----------------------------------------------------------------------
+        # Node.js Development
+        # ----------------------------------------------------------------------
+        fnm
+
+        # ----------------------------------------------------------------------
+        # Go Development
+        # ----------------------------------------------------------------------
+        go
+        gopls
+
+        # ----------------------------------------------------------------------
+        # Rust Development
+        # ----------------------------------------------------------------------
+        rustup
+
+        # ----------------------------------------------------------------------
+        # Containers & Kubernetes
+        # ----------------------------------------------------------------------
+        docker
+        podman
+        podman-compose
+        kubectl
+        kubernetes-helm
+        k9s
+        kubectx
+
+        # ----------------------------------------------------------------------
+        # Media
+        # ----------------------------------------------------------------------
+        ffmpeg
+        imagemagick
+
+        # ----------------------------------------------------------------------
+        # Other Tools
+        # ----------------------------------------------------------------------
+        fontconfig
+        git-filter-repo
+        hugo
+        scc
+      ]
+    );
 
   # ----------------------------------------------------------------------------
-  # Environment Variables (shared)
+  # Environment Variables (desktop-only)
   # ----------------------------------------------------------------------------
-  home.sessionVariables = {
+  home.sessionVariables = lib.optionalAttrs isDesktop {
     # Node.js
     PNPM_HOME = "${config.xdg.dataHome}/pnpm";
 
@@ -148,32 +160,36 @@ in
   };
 
   # ----------------------------------------------------------------------------
-  # PATH additions (shared)
+  # PATH additions
   # ----------------------------------------------------------------------------
   home.sessionPath = [
+    "$HOME/.local/bin"
+  ]
+  ++ lib.optionals isDesktop [
     "${config.xdg.dataHome}/pnpm"
     "$HOME/go/bin"
     "$HOME/.cargo/bin"
-    "$HOME/.local/bin"
   ];
 
   # ----------------------------------------------------------------------------
-  # Shell Configuration (shared)
+  # Shell Configuration (desktop-only)
   # ----------------------------------------------------------------------------
-  programs.zsh.initContent = lib.mkAfter ''
-    # --------------------------------------------------------------------------
-    # fnm (Fast Node Manager) - replacement for nvm
-    # Use `fnm use <version>` to switch Node.js versions.
-    # --------------------------------------------------------------------------
-    if command -v fnm &>/dev/null; then
-      eval "$(fnm env --use-on-cd)"
-    fi
+  programs.zsh.initContent = lib.mkIf isDesktop (
+    lib.mkAfter ''
+      # --------------------------------------------------------------------------
+      # fnm (Fast Node Manager) - replacement for nvm
+      # Use `fnm use <version>` to switch Node.js versions.
+      # --------------------------------------------------------------------------
+      if command -v fnm &>/dev/null; then
+        eval "$(fnm env --use-on-cd)"
+      fi
 
-    # --------------------------------------------------------------------------
-    # Corepack - Enable pnpm with per-project version management
-    # --------------------------------------------------------------------------
-    if command -v corepack &>/dev/null; then
-      corepack enable pnpm 2>/dev/null
-    fi
-  '';
+      # --------------------------------------------------------------------------
+      # Corepack - Enable pnpm with per-project version management
+      # --------------------------------------------------------------------------
+      if command -v corepack &>/dev/null; then
+        corepack enable pnpm 2>/dev/null
+      fi
+    ''
+  );
 }
