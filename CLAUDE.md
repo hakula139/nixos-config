@@ -110,7 +110,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 │   └── hakula-work/             # Work PC (WSL)
 ├── modules/
 │   ├── shared.nix               # Cross-platform base config
-│   ├── nixos/                   # NixOS service modules (19 modules)
+│   ├── nixos/                   # NixOS service modules (20 modules)
 │   └── darwin/                  # macOS-specific modules (with ssh/ submodule)
 ├── home/
 │   ├── hakula.nix               # Main user configuration entry
@@ -142,7 +142,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 
 - **Infrastructure**: `nginx`, `xray`, `clash`, `postgresql`, `podman`
 - **Services**: `aria2`, `cloudreve`, `piclist`, `umami`, `fuclaude`, `netdata`, `wakatime`
-- **System**: `backup`, `ssh`, `cachix`, `cloudcone`, `cloudflare`, `dockerhub`, `mcp`
+- **System**: `backup`, `builders`, `cachix`, `cloudcone`, `cloudflare`, `dockerhub`, `mcp`, `ssh`
 
 Each module typically exports an `enable` option and service-specific configuration. Host configurations import modules and enable them selectively.
 
