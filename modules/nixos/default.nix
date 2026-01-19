@@ -125,6 +125,7 @@ in
       isNormalUser = true;
       extraGroups = [ "wheel" ];
       openssh.authorizedKeys.keys = sshCfg.authorizedKeys;
+      linger = true;
     };
 
     security.sudo.wheelNeedsPassword = false;
