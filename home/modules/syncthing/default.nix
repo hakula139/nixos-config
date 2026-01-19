@@ -41,6 +41,10 @@ in
           # cspell:disable-next-line
           id = "VPCN2SN-IEOCBX2-5FXCNCD-4SRA7PO-SK34FRH-MJWCXXB-QCRGTJE-WFWXSAL";
         };
+        "us-3" = {
+          # cspell:disable-next-line
+          id = "NOHM6HO-B7HDLSE-VRHSXU7-T6BF6JL-V522NLY-BMW3H5F-WYC72RD-A3HANAV";
+        };
         "sg-1" = {
           # cspell:disable-next-line
           id = "TY4E6M5-W7CQMFI-XK3IPUV-RF35PE7-TXBAT23-H6AD3Y4-C6IDGDJ-JRXUDAS";
