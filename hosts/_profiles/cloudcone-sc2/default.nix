@@ -29,7 +29,7 @@
   boot.loader.grub = {
     enable = true;
     devices = lib.mkForce [ "/dev/vda" ];
-    configurationLimit = 20;
+    configurationLimit = lib.mkDefault 5;
 
     extraInstallCommands = ''
       # Create symlinks to the current kernel / initrd in /boot.
