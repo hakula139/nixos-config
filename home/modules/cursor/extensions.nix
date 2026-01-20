@@ -1,6 +1,5 @@
 {
   lib,
-  isDesktop ? false,
   prune ? false,
   ...
 }:
@@ -86,10 +85,11 @@ let
     "ms-kubernetes-tools.vscode-kubernetes-tools"
 
     # --------------------------------------------------------------------------
-    # Git & GitHub
+    # Git
     # --------------------------------------------------------------------------
     "eamodio.gitlens"
     "github.vscode-github-actions"
+    "gitlab.gitlab-workflow"
 
     # --------------------------------------------------------------------------
     # Markdown & Documentation
@@ -130,13 +130,22 @@ let
     "wakatime.vscode-wakatime"
   ];
 
-  extensions = baseExtensions ++ lib.optionals isDesktop remoteExtensions;
-
   # ----------------------------------------------------------------------------
   # Installation Script
   # ----------------------------------------------------------------------------
   installScript = ''
-    expected="${lib.concatStringsSep "\n" extensions}"
+    is_cursor_server() {
+      [[ "$(command -v cursor 2>/dev/null)" == *".cursor-server"* ]]
+    }
+
+    base_extensions="${lib.concatStringsSep "\n" baseExtensions}"
+    remote_extensions="${lib.concatStringsSep "\n" remoteExtensions}"
+
+    if is_cursor_server; then
+      expected="$base_extensions"
+    else
+      expected="$base_extensions"$'\n'"$remote_extensions"
+    fi
 
     get_installed_ids() {
       cursor --list-extensions --show-versions 2>/dev/null \
@@ -165,5 +174,5 @@ let
   '';
 in
 {
-  inherit extensions installScript;
+  inherit installScript;
 }
