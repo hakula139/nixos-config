@@ -182,6 +182,7 @@
     "Bash(python3:*)"
     "Bash(rustc:*)"
     "Bash(rustup:*)"
+    "Bash(shellcheck:*)"
     "Bash(uv:*)"
     "Bash(uvx:*)"
 
