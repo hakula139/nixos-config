@@ -89,7 +89,9 @@
   "cSpell.diagnosticLevel": "Hint",
   "cSpell.diagnosticLevelFlaggedWords": "Information",
   "cSpell.language": "en,en-GB",
-  "cSpell.userWords": ["hakula"],
+  "cSpell.userWords": [
+    "hakula"
+  ],
   "css.lint.unknownAtRules": "ignore",
   "cursor.composer.textSizeScale": 1.15,
   "cursor.cpp.disabledLanguages": [],
@@ -159,6 +161,9 @@
   "git.terminalGitEditor": true,
   "git.useCommitInputAsStashMessage": true,
   "github.gitProtocol": "ssh",
+  "gitlab.duoAgentPlatform.enabled": false,
+  "gitlab.duoChat.enabled": false,
+  "gitlab.duoCodeSuggestions.enabled": false,
   "gitlens.ai.model": "gitkraken",
   "gitlens.gitCommands.skipConfirmations": [
     "fetch:command",
@@ -198,7 +203,9 @@
   "nix.serverSettings": {
     "nil": {
       "formatting": {
-        "command": ["nixfmt"]
+        "command": [
+          "nixfmt"
+        ]
       }
     },
     "nix": {
@@ -216,7 +223,9 @@
   "prettier.trailingComma": "all",
   "redhat.telemetry.enabled": true,
   "remote.extensionKind": {
-    "WakaTime.vscode-wakatime": ["ui"]
+    "WakaTime.vscode-wakatime": [
+      "ui"
+    ]
   },
   "remote.SSH.remotePlatform": {
     "CloudCone-US-1": "linux",
@@ -239,18 +248,26 @@
   "terminal.integrated.fontSize": 14,
   "terminal.integrated.profiles.linux": {
     "bash": {
-      "args": ["-l"],
+      "args": [
+        "-l"
+      ],
       "icon": "terminal-bash",
       "path": "bash"
     },
     "zsh": {
-      "args": ["-l", "-i"],
+      "args": [
+        "-l",
+        "-i"
+      ],
       "path": "zsh"
     }
   },
   "terminal.integrated.profiles.osx": {
     "zsh": {
-      "args": ["-l", "-i"],
+      "args": [
+        "-l",
+        "-i"
+      ],
       "path": "zsh"
     }
   },
@@ -266,5 +283,8 @@
   "workbench.colorTheme": "Material Theme Ocean High Contrast",
   "workbench.editorLargeFileConfirmation": 100,
   "workbench.iconTheme": "material-icon-theme",
+  "yaml.customTags": [
+    "!reference sequence"
+  ],
   "yaml.format.singleQuote": true
 }
