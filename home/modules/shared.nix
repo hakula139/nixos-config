@@ -58,6 +58,7 @@ in
       python3Packages.pip
       pipx
       poetry
+      pyright
       ruff
       uv
 
@@ -103,6 +104,8 @@ in
         # Node.js Development
         # ----------------------------------------------------------------------
         fnm
+        nodePackages.typescript
+        nodePackages.typescript-language-server
 
         # ----------------------------------------------------------------------
         # Go Development
