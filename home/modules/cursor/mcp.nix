@@ -30,7 +30,6 @@ let
       DeepWiki = mcp.servers.deepwiki;
       Filesystem = mcp.servers.filesystem;
       Git = mcp.servers.git;
-      Playwright = mcp.servers.playwright;
     };
   };
 in

@@ -83,7 +83,3 @@ For operations not covered by MCP Git (e.g., `git cherry-pick`, `git rebase`, `g
 ### IDE (`mcp__ide__*`)
 
 Use `getDiagnostics` to check for language server errors / warnings in files. Use `executeCode` for running Python code in Jupyter kernels when working with notebooks.
-
-### Playwright (`mcp__Playwright__*`)
-
-Use for browser automation — navigating pages, taking screenshots, interacting with web UIs, filling forms, or scraping content. Prefer `browser_snapshot` over screenshots for understanding page structure and enabling interactions.

@@ -261,7 +261,6 @@
     "mcp__DeepWiki__*"
     "mcp__Filesystem__*"
     "mcp__Git__*"
-    "mcp__Playwright__*"
     "mcp__ide__*"
   ];
 
