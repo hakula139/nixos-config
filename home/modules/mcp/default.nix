@@ -55,13 +55,6 @@ let
   gitBin = pkgs.writeShellScriptBin "git-mcp" ''
     exec ${pkgs.uv}/bin/uvx mcp-server-git "$@"
   '';
-
-  # ----------------------------------------------------------------------------
-  # Playwright
-  # ----------------------------------------------------------------------------
-  playwrightBin = pkgs.writeShellScriptBin "playwright-mcp" ''
-    exec ${pkgs.nodejs}/bin/npx -y @playwright/mcp@latest "$@"
-  '';
 in
 {
   # ----------------------------------------------------------------------------
@@ -95,12 +88,6 @@ in
     git = {
       name = "Git";
       command = "${gitBin}/bin/git-mcp";
-      type = "stdio";
-    };
-
-    playwright = {
-      name = "Playwright";
-      command = "${playwrightBin}/bin/playwright-mcp";
       type = "stdio";
     };
   };
