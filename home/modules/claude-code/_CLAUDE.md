@@ -55,3 +55,35 @@ Avoid:
 - Comments that simply restate what the code does
 - Obvious explanations that clutter the code
 - Commented-out code (use version control instead)
+
+## MCP Server Usage
+
+Prefer MCP tools over equivalent Bash commands or web searches. MCPs provide structured interfaces, better error handling, and work within the configured permission model.
+
+### Context7 (`mcp__Context7__*`)
+
+Use for any library, framework, or API questions — documentation lookup, code examples, configuration, setup steps, or best practices. Context7 provides up-to-date, authoritative documentation and should be the first choice before falling back to web search or guessing from memory.
+
+Workflow: `resolve-library-id` first to get the library ID, then `query-docs` with specific questions.
+
+### DeepWiki (`mcp__DeepWiki__*`)
+
+Use when exploring or asking questions about GitHub repositories — understanding project architecture, finding documentation, or getting context about how a codebase works. Particularly useful for unfamiliar open-source projects.
+
+### Filesystem (`mcp__Filesystem__*`)
+
+Available for file operations with built-in directory sandboxing. Use when the native Read / Write / Edit tools are insufficient or when you need operations like `move_file`, `directory_tree`, or `search_files` with glob patterns.
+
+### Git (`mcp__Git__*`)
+
+Prefer over Bash git commands when operating on repositories outside the current working directory. MCP Git tools accept a `repo_path` parameter, avoiding the `git -C` flag which bypasses Bash permission patterns.
+
+For operations not covered by MCP Git (e.g., `git cherry-pick`, `git rebase`, `git stash`), ensure you're in the repository directory first.
+
+### IDE (`mcp__ide__*`)
+
+Use `getDiagnostics` to check for language server errors / warnings in files. Use `executeCode` for running Python code in Jupyter kernels when working with notebooks.
+
+### Playwright (`mcp__Playwright__*`)
+
+Use for browser automation — navigating pages, taking screenshots, interacting with web UIs, filling forms, or scraping content. Prefer `browser_snapshot` over screenshots for understanding page structure and enabling interactions.
