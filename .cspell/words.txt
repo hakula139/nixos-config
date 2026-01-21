@@ -29,6 +29,7 @@ drblury
 dreamin
 dropdb
 dups
+e2fsprogs
 eamodio
 elif
 env
