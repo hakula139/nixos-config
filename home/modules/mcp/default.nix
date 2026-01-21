@@ -55,6 +55,17 @@ let
   gitBin = pkgs.writeShellScriptBin "git-mcp" ''
     exec ${pkgs.uv}/bin/uvx mcp-server-git "$@"
   '';
+
+  # ----------------------------------------------------------------------------
+  # GitHub
+  # ----------------------------------------------------------------------------
+  githubPatFile = "${secretsDir}/github-pat";
+  githubBin = pkgs.writeShellScriptBin "github-mcp" ''
+    if [ -f "${githubPatFile}" ]; then
+      export GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${githubPatFile})"
+    fi
+    exec ${pkgs.github-mcp-server}/bin/github-mcp-server stdio "$@"
+  '';
 in
 {
   # ----------------------------------------------------------------------------
@@ -90,6 +101,12 @@ in
       command = "${gitBin}/bin/git-mcp";
       type = "stdio";
     };
+
+    github = {
+      name = "GitHub";
+      command = "${githubBin}/bin/github-mcp";
+      type = "stdio";
+    };
   };
 
   # ----------------------------------------------------------------------------
@@ -112,6 +129,12 @@ in
       context7-api-key = {
         file = ../../../secrets/shared/context7-api-key.age;
         path = "${secretsDir}/context7-api-key";
+        mode = "0400";
+      };
+
+      github-pat = {
+        file = ../../../secrets/shared/github-pat.age;
+        path = "${secretsDir}/github-pat";
         mode = "0400";
       };
     };
