@@ -8,13 +8,26 @@
 # Cloudreve (Self-hosted Cloud Storage)
 # ==============================================================================
 
-pkgs.stdenv.mkDerivation rec {
+let
+  version = "4.11.1";
+  baseUrl = "https://github.com/cloudreve/cloudreve/releases/download/${version}";
+
+  sources = {
+    x86_64-linux = {
+      url = "${baseUrl}/cloudreve_${version}_linux_amd64.tar.gz";
+      hash = "sha256-8dsRJgEf3fMZm+m6tD+oTrtWcxWsrGJYXzZC941E3rE=";
+    };
+  };
+
+  platform = pkgs.stdenv.hostPlatform.system;
+  source = sources.${platform} or (throw "Unsupported platform: ${platform}");
+in
+pkgs.stdenv.mkDerivation {
   pname = "cloudreve";
-  version = "4.10.1";
+  inherit version;
 
   src = pkgs.fetchurl {
-    url = "https://github.com/cloudreve/cloudreve/releases/download/${version}/cloudreve_${version}_linux_amd64.tar.gz";
-    hash = "sha256-tNZg+ocgr65vyBkRDQhyX0DmLQuO0JwbXUzTeL4hSAc=";
+    inherit (source) url hash;
   };
 
   sourceRoot = ".";
@@ -32,7 +45,7 @@ pkgs.stdenv.mkDerivation rec {
     description = "Self-hosted file management and sharing system";
     homepage = "https://cloudreve.org";
     license = lib.licenses.gpl3Plus;
-    platforms = [ "x86_64-linux" ];
+    platforms = builtins.attrNames sources;
     mainProgram = "cloudreve";
   };
 }
