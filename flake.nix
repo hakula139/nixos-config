@@ -72,6 +72,7 @@
           };
           agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
           cloudreve = final.callPackage ./packages/cloudreve { };
+          github-mcp-server = final.callPackage ./packages/github-mcp-server { };
         })
       ];
 

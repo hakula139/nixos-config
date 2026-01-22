@@ -255,12 +255,17 @@
     "Bash(kubectl version:*)"
 
     # --------------------------------------------------------------------------
-    # MCP servers
+    # MCP servers - Read-only
     # --------------------------------------------------------------------------
     "mcp__Context7__*"
     "mcp__DeepWiki__*"
     "mcp__Filesystem__*"
     "mcp__Git__*"
+    "mcp__GitHub__get_*"
+    "mcp__GitHub__issue_read"
+    "mcp__GitHub__list_*"
+    "mcp__GitHub__pull_request_read"
+    "mcp__GitHub__search_*"
     "mcp__ide__*"
   ];
 
@@ -401,6 +406,22 @@
     "Bash(kubectl exec:*)"
     "Bash(kubectl rollout:*)"
     "Bash(kubectl scale:*)"
+
+    # --------------------------------------------------------------------------
+    # MCP servers - Write Operations
+    # --------------------------------------------------------------------------
+    "mcp__GitHub__add_*"
+    "mcp__GitHub__assign_copilot_to_issue"
+    "mcp__GitHub__create_*"
+    "mcp__GitHub__delete_*"
+    "mcp__GitHub__fork_repository"
+    "mcp__GitHub__issue_write"
+    "mcp__GitHub__merge_pull_request"
+    "mcp__GitHub__pull_request_review_write"
+    "mcp__GitHub__push_files"
+    "mcp__GitHub__request_copilot_review"
+    "mcp__GitHub__sub_issue_write"
+    "mcp__GitHub__update_*"
   ];
 
   deny = [ ];

@@ -54,6 +54,14 @@ in
       mode = "0400";
     };
 
+    age.secrets.github-pat = {
+      file = ../../../secrets/shared/github-pat.age;
+      path = "${secretsDir}/github-pat";
+      owner = cfg.user;
+      group = userCfg.group;
+      mode = "0400";
+    };
+
     # --------------------------------------------------------------------------
     # Filesystem layout
     # --------------------------------------------------------------------------

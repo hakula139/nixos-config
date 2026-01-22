@@ -108,6 +108,7 @@ in
             DeepWiki = mcp.servers.deepwiki;
             Filesystem = mcp.servers.filesystem;
             Git = mcp.servers.git;
+            GitHub = mcp.servers.github;
           };
         };
       }
