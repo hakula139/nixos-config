@@ -89,6 +89,7 @@ in
   # Credentials
   # ============================================================================
   hakula.cachix.enable = true;
+  hakula.claude-code.enable = true;
   hakula.mcp.enable = true;
 
   # ============================================================================

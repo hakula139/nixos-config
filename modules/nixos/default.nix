@@ -26,6 +26,7 @@ in
     ./builders
     ./cachix
     (import ./clash { inherit realitySniHost; })
+    ./claude-code
     ./cloudcone
     ./cloudreve
     ./dockerhub

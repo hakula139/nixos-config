@@ -3,6 +3,7 @@
   pkgs,
   lib,
   isNixOS ? false,
+  ...
 }:
 
 # ==============================================================================
@@ -110,7 +111,7 @@ in
   };
 
   # ----------------------------------------------------------------------------
-  # Secrets configuration (agenix)
+  # Secrets (agenix)
   # On NixOS: system-level agenix handles decryption (modules/nixos/mcp)
   # On Darwin / standalone: home-manager agenix handles decryption
   # ----------------------------------------------------------------------------

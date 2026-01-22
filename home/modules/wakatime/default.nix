@@ -14,7 +14,7 @@ let
 in
 {
   # ----------------------------------------------------------------------------
-  # Secrets configuration (agenix)
+  # Secrets (agenix)
   # On NixOS: system-level agenix handles decryption (modules/nixos/wakatime)
   # On Darwin / standalone: home-manager agenix handles decryption
   # ----------------------------------------------------------------------------

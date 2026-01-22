@@ -110,7 +110,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 │   └── hakula-work/             # Work PC (WSL)
 ├── modules/
 │   ├── shared.nix               # Cross-platform base config
-│   ├── nixos/                   # NixOS service modules (20 modules)
+│   ├── nixos/                   # NixOS service modules (21 modules)
 │   └── darwin/                  # macOS-specific modules (with ssh/ submodule)
 ├── home/
 │   ├── hakula.nix               # Main user configuration entry
@@ -142,7 +142,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 
 - **Infrastructure**: `nginx`, `xray`, `clash`, `postgresql`, `podman`
 - **Services**: `aria2`, `cloudreve`, `piclist`, `umami`, `fuclaude`, `netdata`, `wakatime`
-- **System**: `backup`, `builders`, `cachix`, `cloudcone`, `cloudflare`, `dockerhub`, `mcp`, `ssh`
+- **System**: `backup`, `builders`, `cachix`, `claude-code`, `cloudcone`, `cloudflare`, `dockerhub`, `mcp`, `ssh`
 
 Each module typically exports an `enable` option and service-specific configuration. Host configurations import modules and enable them selectively.
 
@@ -166,8 +166,8 @@ Host configurations import `shared.nix` and extend with platform/host-specific s
 Secrets are encrypted with **age** using SSH keys defined in `secrets/keys.nix`:
 
 - **User keys**: `hakula-cloudcone`, `hakula-tencent` (for remote management)
-- **Host keys**: us-1, us-2, us-3, sg-1 (for host decryption)
-- **Workstation keys**: hakula-macbook, hakula-work (for local editing)
+- **Host keys**: `us-1`, `us-2`, `us-3`, `sg-1` (for host decryption)
+- **Workstation keys**: `hakula-macbook`, `hakula-work` (for local editing)
 
 Secrets in `secrets/*.age` are **decrypted at activation time** by agenix and placed in `/run/agenix` (NixOS) or `/run/agenix.d` (Darwin). Reference them in modules via `config.age.secrets.<secret-name>.path`.
 

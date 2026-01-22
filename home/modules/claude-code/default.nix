@@ -12,6 +12,8 @@
 
 let
   cfg = config.hakula.claude-code;
+  homeDir = config.home.homeDirectory;
+  secretsDir = "${homeDir}/.secrets";
 in
 {
   # ----------------------------------------------------------------------------
@@ -50,9 +52,29 @@ in
           builtins.readFile ./statusline-command.sh
         )
       );
+
+      oauthTokenFile = "${secretsDir}/claude-code-oauth-token";
+      claudeCodeBin = pkgs.writeShellScriptBin "claude" ''
+        if [ -f "${oauthTokenFile}" ]; then
+          export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"
+        fi
+        exec ${pkgs.unstable.claude-code}/bin/claude "$@"
+      '';
     in
     lib.mkMerge [
       mcp.secrets
+      (lib.mkIf (!isNixOS) {
+        # ----------------------------------------------------------------------
+        # Secrets (agenix)
+        # On NixOS: system-level agenix handles decryption (modules/nixos/claude-code)
+        # On Darwin / standalone: home-manager agenix handles decryption
+        # ----------------------------------------------------------------------
+        age.secrets.claude-code-oauth-token = {
+          file = ../../../secrets/shared/claude-code-oauth-token.age;
+          path = "${secretsDir}/claude-code-oauth-token";
+          mode = "0400";
+        };
+      })
       {
         # ----------------------------------------------------------------------
         # User configuration files
@@ -69,7 +91,7 @@ in
         # ----------------------------------------------------------------------
         programs.claude-code = {
           enable = true;
-          package = pkgs.unstable.claude-code;
+          package = claudeCodeBin;
 
           # --------------------------------------------------------------------
           # Settings
@@ -95,7 +117,7 @@ in
 
             statusLine = {
               type = "command";
-              command = "${config.home.homeDirectory}/.claude/statusline-command.sh";
+              command = "${homeDir}/.claude/statusline-command.sh";
             };
 
             theme = "dark";
