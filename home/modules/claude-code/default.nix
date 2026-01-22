@@ -84,7 +84,8 @@ in
             };
 
             env = {
-              CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = 1;
+              CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
+              ENABLE_INCREMENTAL_TUI = "true";
             }
             // lib.optionalAttrs cfg.proxy.enable {
               HTTPS_PROXY = cfg.proxy.url;
