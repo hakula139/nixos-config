@@ -80,6 +80,25 @@ Prefer over Bash git commands when operating on repositories outside the current
 
 For operations not covered by MCP Git (e.g., `git cherry-pick`, `git rebase`, `git stash`), ensure you're in the repository directory first.
 
+### GitHub (`mcp__GitHub__*`)
+
+Use for all GitHub API interactions — issues, pull requests, code search, repository management, and reviews. Prefer over `gh` CLI commands as MCP provides structured responses and proper pagination.
+
+**Tool selection:**
+
+- `list_*` tools for broad retrieval of all items (all issues, all PRs, all branches)
+- `search_*` tools for targeted queries with specific criteria or keywords
+
+**Read operations** (auto-approved): `get_*`, `list_*`, `search_*`, `issue_read`, `pull_request_read`
+
+**Write operations** (require confirmation): `create_*`, `update_*`, `delete_*`, `merge_*`, `push_*`, issue / PR modifications
+
+**Common workflows:**
+
+- Always call `get_me` first to understand current user context
+- Use `search_issues` before creating new issues to avoid duplicates
+- For PR reviews: `pull_request_review_write` (create pending) → `add_comment_to_pending_review` → `pull_request_review_write` (submit)
+
 ### IDE (`mcp__ide__*`)
 
 Use `getDiagnostics` to check for language server errors / warnings in files. Use `executeCode` for running Python code in Jupyter kernels when working with notebooks.
