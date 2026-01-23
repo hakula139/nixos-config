@@ -12,6 +12,7 @@
 let
   cfg = config.hakula.claude-code;
   userCfg = config.users.users.${cfg.user};
+  secretsDir = secrets.secretsPath userCfg.home;
 in
 {
   # ----------------------------------------------------------------------------
@@ -42,6 +43,7 @@ in
       name = "claude-code-oauth-token";
       owner = cfg.user;
       group = userCfg.group;
+      path = "${secretsDir}/claude-code-oauth-token";
     };
 
     # --------------------------------------------------------------------------
