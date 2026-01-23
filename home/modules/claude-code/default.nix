@@ -69,9 +69,10 @@ in
         # ----------------------------------------------------------------------
         # Secrets
         # ----------------------------------------------------------------------
-        age.secrets.claude-code-oauth-token =
-          secrets.mkHomeSecret "shared" "claude-code-oauth-token"
-            homeDir;
+        age.secrets.claude-code-oauth-token = secrets.mkHomeSecret {
+          name = "claude-code-oauth-token";
+          inherit homeDir;
+        };
       })
       {
         # ----------------------------------------------------------------------

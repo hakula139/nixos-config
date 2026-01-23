@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  secrets,
   ...
 }:
 
@@ -113,18 +114,16 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.backup-env = {
-      file = ../../../secrets/shared/backup-env.age;
+    age.secrets.backup-env = secrets.mkSecret {
+      name = "backup-env";
       owner = serviceName;
       group = serviceName;
-      mode = "0400";
     };
 
-    age.secrets.backup-restic-password = {
-      file = ../../../secrets/shared/backup-restic-password.age;
+    age.secrets.backup-restic-password = secrets.mkSecret {
+      name = "backup-restic-password";
       owner = serviceName;
       group = serviceName;
-      mode = "0400";
     };
 
     # --------------------------------------------------------------------------

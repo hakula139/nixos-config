@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  secrets,
   ...
 }:
 
@@ -37,12 +38,11 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.wakatime-config = {
-      file = ../../../secrets/shared/wakatime-config.age;
-      path = "${userCfg.home}/.wakatime.cfg";
+    age.secrets.wakatime-config = secrets.mkSecret {
+      name = "wakatime-config";
       owner = cfg.user;
       group = userCfg.group;
-      mode = "0600";
+      path = "${userCfg.home}/.wakatime.cfg";
     };
   };
 }

@@ -39,17 +39,24 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.brave-api-key = secrets.mkSecret "shared" "brave-api-key" cfg.user userCfg.group // {
+    age.secrets.brave-api-key = secrets.mkSecret {
+      name = "brave-api-key";
+      owner = cfg.user;
+      group = userCfg.group;
       path = "${secretsDir}/brave-api-key";
     };
 
-    age.secrets.context7-api-key =
-      secrets.mkSecret "shared" "context7-api-key" cfg.user userCfg.group
-      // {
-        path = "${secretsDir}/context7-api-key";
-      };
+    age.secrets.context7-api-key = secrets.mkSecret {
+      name = "context7-api-key";
+      owner = cfg.user;
+      group = userCfg.group;
+      path = "${secretsDir}/context7-api-key";
+    };
 
-    age.secrets.github-pat = secrets.mkSecret "shared" "github-pat" cfg.user userCfg.group // {
+    age.secrets.github-pat = secrets.mkSecret {
+      name = "github-pat";
+      owner = cfg.user;
+      group = userCfg.group;
       path = "${secretsDir}/github-pat";
     };
 

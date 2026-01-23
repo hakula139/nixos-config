@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  secrets,
   ...
 }:
 
@@ -46,11 +47,10 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.twikoo-access-token = {
-      file = ../../../../secrets/shared/twikoo-access-token.age;
+    age.secrets.twikoo-access-token = secrets.mkSecret {
+      name = "twikoo-access-token";
       owner = backupServiceName;
       group = backupServiceName;
-      mode = "0400";
     };
 
     # --------------------------------------------------------------------------

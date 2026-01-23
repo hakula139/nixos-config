@@ -116,9 +116,20 @@ in
   # ----------------------------------------------------------------------------
   secrets = lib.mkIf (!isNixOS) {
     age.secrets = {
-      brave-api-key = secrets.mkHomeSecret "shared" "brave-api-key" homeDir;
-      context7-api-key = secrets.mkHomeSecret "shared" "context7-api-key" homeDir;
-      github-pat = secrets.mkHomeSecret "shared" "github-pat" homeDir;
+      brave-api-key = secrets.mkHomeSecret {
+        name = "brave-api-key";
+        inherit homeDir;
+      };
+
+      context7-api-key = secrets.mkHomeSecret {
+        name = "context7-api-key";
+        inherit homeDir;
+      };
+
+      github-pat = secrets.mkHomeSecret {
+        name = "github-pat";
+        inherit homeDir;
+      };
     };
   };
 }

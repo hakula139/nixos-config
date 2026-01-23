@@ -3,6 +3,7 @@
   config,
   pkgs,
   lib,
+  secrets,
   ...
 }:
 
@@ -38,11 +39,10 @@ in
       # ----------------------------------------------------------------------------
       # Secrets
       # ----------------------------------------------------------------------------
-      age.secrets.clash-users = {
-        file = ../../../secrets/shared/clash-users.json.age;
+      age.secrets.clash-users = secrets.mkSecret {
+        name = "clash-users.json";
         owner = "clashgen";
         group = "clashgen";
-        mode = "0400";
       };
 
       # ----------------------------------------------------------------------------

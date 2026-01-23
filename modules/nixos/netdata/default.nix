@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  secrets,
   ...
 }:
 
@@ -48,11 +49,10 @@ in
     # ----------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------
-    age.secrets.qq-smtp-authcode = {
-      file = ../../../secrets/shared/qq-smtp-authcode.age;
+    age.secrets.qq-smtp-authcode = secrets.mkSecret {
+      name = "qq-smtp-authcode";
       owner = "netdata";
       group = "netdata";
-      mode = "0400";
     };
 
     # ----------------------------------------------------------------------------

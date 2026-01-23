@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  secrets,
   ...
 }:
 
@@ -52,18 +53,16 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.piclist-config = {
-      file = ../../../secrets/shared/piclist-config.json.age;
+    age.secrets.piclist-config = secrets.mkSecret {
+      name = "piclist-config.json";
       owner = "piclist";
       group = "piclist";
-      mode = "0400";
     };
 
-    age.secrets.piclist-token = {
-      file = ../../../secrets/shared/piclist-token.age;
+    age.secrets.piclist-token = secrets.mkSecret {
+      name = "piclist-token";
       owner = "piclist";
       group = "piclist";
-      mode = "0400";
     };
 
     # --------------------------------------------------------------------------

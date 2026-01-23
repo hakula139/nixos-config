@@ -38,9 +38,11 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.claude-code-oauth-token =
-      secrets.mkSecret "shared" "claude-code-oauth-token" cfg.user
-        userCfg.group;
+    age.secrets.claude-code-oauth-token = secrets.mkSecret {
+      name = "claude-code-oauth-token";
+      owner = cfg.user;
+      group = userCfg.group;
+    };
 
     # --------------------------------------------------------------------------
     # Filesystem layout

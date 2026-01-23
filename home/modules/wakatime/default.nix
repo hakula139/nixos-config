@@ -19,10 +19,10 @@ in
   # Secrets
   # ----------------------------------------------------------------------------
   config = lib.mkIf (!isNixOS) {
-    age.secrets.wakatime-config = {
-      file = secrets.secretFile "shared" "wakatime-config";
+    age.secrets.wakatime-config = secrets.mkHomeSecret {
+      name = "wakatime-config";
+      inherit homeDir;
       path = "${secretsDir}/.wakatime.cfg";
-      mode = "0600";
     };
   };
 }

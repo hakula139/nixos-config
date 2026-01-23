@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  secrets,
   ...
 }:
 
@@ -33,11 +34,10 @@ in
     # ----------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------
-    age.secrets.xray-config = {
-      file = ../../../secrets/shared/xray-config.json.age;
+    age.secrets.xray-config = secrets.mkSecret {
+      name = "xray-config.json";
       owner = "root";
       group = "root";
-      mode = "0400";
     };
 
     # ----------------------------------------------------------------------------
