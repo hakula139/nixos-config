@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  secrets,
   ...
 }:
 
@@ -21,13 +22,12 @@ in
 
   config = lib.mkIf cfg.enable {
     # --------------------------------------------------------------------------
-    # Secrets (agenix)
+    # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.aria2-rpc-secret = {
-      file = ../../../secrets/shared/aria2-rpc-secret.age;
+    age.secrets.aria2-rpc-secret = secrets.mkSecret {
+      name = "aria2-rpc-secret";
       owner = "aria2";
       group = "aria2";
-      mode = "0400";
     };
 
     # --------------------------------------------------------------------------

@@ -58,7 +58,7 @@ in
       users.groups.ccagent = { };
 
       # ----------------------------------------------------------------------------
-      # Secrets (agenix)
+      # Secrets
       # ----------------------------------------------------------------------------
       age.secrets.${secretName} = {
         file = cfg.serverKeyAgeFile;

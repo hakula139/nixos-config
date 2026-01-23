@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  secrets,
   ...
 }:
 
@@ -39,13 +40,12 @@ in
 
   config = {
     # ----------------------------------------------------------------------------
-    # Secrets (agenix)
+    # Secrets
     # ----------------------------------------------------------------------------
-    age.secrets.builder-ssh-key = {
-      file = ../../secrets/shared/builder-ssh-key.age;
+    age.secrets.builder-ssh-key = secrets.mkSecret {
+      name = "builder-ssh-key";
       owner = "hakula";
       group = "staff";
-      mode = "0400";
     };
 
     # ----------------------------------------------------------------------------

@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  secrets,
   hostName,
   ...
 }:
@@ -28,13 +29,12 @@ in
 
   config = lib.mkIf cfg.enable {
     # --------------------------------------------------------------------------
-    # Secrets (agenix)
+    # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.builder-ssh-key = {
-      file = ../../../secrets/shared/builder-ssh-key.age;
+    age.secrets.builder-ssh-key = secrets.mkSecret {
+      name = "builder-ssh-key";
       owner = "root";
       group = "root";
-      mode = "0400";
     };
 
     # --------------------------------------------------------------------------

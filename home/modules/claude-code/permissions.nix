@@ -22,8 +22,10 @@
     "Bash(cat:*)"
     "Bash(file:*)"
     "Bash(head:*)"
+    "Bash(ldd:*)"
     "Bash(less:*)"
     "Bash(more:*)"
+    "Bash(readelf:*)"
     "Bash(stat:*)"
     "Bash(tail:*)"
 
@@ -74,6 +76,7 @@
     # Shell & Environment
     # --------------------------------------------------------------------------
     "Bash(basename:*)"
+    "Bash(command:*)"
     "Bash(dirname:*)"
     "Bash(echo:*)"
     "Bash(env:*)"
@@ -175,6 +178,7 @@
     "Bash(npx:*)"
     "Bash(pip:*)"
     "Bash(pip3:*)"
+    "Bash(pipx:*)"
     "Bash(pnpm:*)"
     "Bash(poetry:*)"
     "Bash(pytest:*)"
@@ -202,12 +206,14 @@
     "Bash(nix log:*)"
     "Bash(nix path-info:*)"
     "Bash(nix print-dev-env:*)"
+    "Bash(nix profile list:*)"
     "Bash(nix repl:*)"
     "Bash(nix search:*)"
     "Bash(nix store ls:*)"
     "Bash(nix store path-info:*)"
     "Bash(nix why-depends:*)"
     "Bash(nix-instantiate:*)"
+    "Bash(nvd:*)"
 
     # --------------------------------------------------------------------------
     # Containers - Read-only

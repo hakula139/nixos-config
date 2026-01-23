@@ -2,7 +2,9 @@
   config,
   pkgs,
   lib,
+  secrets,
   isNixOS ? false,
+  isDesktop ? false,
   ...
 }:
 
@@ -12,6 +14,8 @@
 
 let
   cfg = config.hakula.claude-code;
+  homeDir = config.home.homeDirectory;
+  secretsDir = secrets.secretsPath homeDir;
 in
 {
   # ----------------------------------------------------------------------------
@@ -34,13 +38,14 @@ in
     let
       hooks = import ./hooks.nix;
       permissions = import ./permissions.nix;
-      plugins = import ./plugins.nix;
+      plugins = import ./plugins.nix { inherit lib isDesktop; };
 
       mcp = import ../mcp {
         inherit
           config
           pkgs
           lib
+          secrets
           isNixOS
           ;
       };
@@ -50,9 +55,26 @@ in
           builtins.readFile ./statusline-command.sh
         )
       );
+
+      oauthTokenFile = "${secretsDir}/claude-code-oauth-token";
+      claudeCodeBin = pkgs.writeShellScriptBin "claude" ''
+        if [ -f "${oauthTokenFile}" ]; then
+          export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"
+        fi
+        exec ${pkgs.unstable.claude-code}/bin/claude "$@"
+      '';
     in
     lib.mkMerge [
       mcp.secrets
+      (lib.mkIf (!isNixOS) {
+        # ----------------------------------------------------------------------
+        # Secrets
+        # ----------------------------------------------------------------------
+        age.secrets.claude-code-oauth-token = secrets.mkHomeSecret {
+          name = "claude-code-oauth-token";
+          inherit homeDir;
+        };
+      })
       {
         # ----------------------------------------------------------------------
         # User configuration files
@@ -69,7 +91,7 @@ in
         # ----------------------------------------------------------------------
         programs.claude-code = {
           enable = true;
-          package = pkgs.unstable.claude-code;
+          package = claudeCodeBin;
 
           # --------------------------------------------------------------------
           # Settings
@@ -93,9 +115,11 @@ in
               NO_PROXY = "localhost,127.0.0.1";
             };
 
+            model = "opus";
+
             statusLine = {
               type = "command";
-              command = "${config.home.homeDirectory}/.claude/statusline-command.sh";
+              command = "${homeDir}/.claude/statusline-command.sh";
             };
 
             theme = "dark";
