@@ -101,6 +101,7 @@ in
         home.activation.cursorExtensions = lib.mkIf cfg.extensions.enable (
           let
             homeDir = config.home.homeDirectory;
+            username = config.home.username;
           in
           lib.hm.dag.entryAfter [ "writeBoundary" ] ''
             cursor_server_path="$(
@@ -108,6 +109,15 @@ in
             )"
 
             export PATH="${lib.concatStringsSep ":" paths}''${cursor_server_path:+:$cursor_server_path}:$PATH"
+
+            # Detect Cursor IPC socket for CLI communication (needed when running via sudo)
+            if [ -z "''${VSCODE_IPC_HOOK_CLI:-}" ]; then
+              uid="$(id -u "${username}")"
+              ipc_socket="$(ls -t /run/user/"$uid"/vscode-ipc-*.sock 2>/dev/null | head -1 || true)"
+              if [ -n "$ipc_socket" ]; then
+                export VSCODE_IPC_HOOK_CLI="$ipc_socket"
+              fi
+            fi
 
             if command -v cursor &>/dev/null; then
               (
