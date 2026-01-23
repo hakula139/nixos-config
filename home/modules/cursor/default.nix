@@ -107,7 +107,9 @@ in
             export PATH="${lib.concatStringsSep ":" paths}''${cursor_server_path:+:$cursor_server_path}:$PATH"
 
             if command -v cursor &>/dev/null; then
-              ${ext.installScript}
+              (
+                ${ext.installScript}
+              ) || echo "Cursor extension management failed, continuing anyway"
             else
               echo "Cursor not found, skipping extension installation"
             fi
