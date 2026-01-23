@@ -198,17 +198,12 @@ in
       # Load zmv for batch renaming
       autoload -U zmv
 
-      ${
-        if (isNixOS || !isLinux) then
-          ''
-            # fzf-tab styling
-            zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border
-            zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
-            zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
-          ''
-        else
-          ""
-      }
+      ${lib.optionalString (isNixOS || !isLinux) ''
+        # fzf-tab styling
+        zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border
+        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+        zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
+      ''}
 
       # Create directory and cd into it
       mkcd() { mkdir -p "$1" && cd "$1"; }

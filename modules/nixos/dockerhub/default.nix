@@ -44,15 +44,11 @@ in
 
   config = lib.mkMerge [
     {
-      hakula.dockerHub.ociLogin =
-        if cfg.username != null && cfg.tokenAgeFile != null then
-          {
-            registry = cfg.registry;
-            username = cfg.username;
-            passwordFile = config.age.secrets.dockerhub-token.path;
-          }
-        else
-          { };
+      hakula.dockerHub.ociLogin = lib.optionalAttrs (cfg.username != null && cfg.tokenAgeFile != null) {
+        registry = cfg.registry;
+        username = cfg.username;
+        passwordFile = config.age.secrets.dockerhub-token.path;
+      };
     }
 
     (lib.mkIf (cfg.username != null && cfg.tokenAgeFile != null) {
