@@ -94,9 +94,7 @@ in
     # --------------------------------------------------------------------------
     # Plugins
     # --------------------------------------------------------------------------
-    # TODO: Fix outdated glibc issue on non-NixOS Linux systems, which causes
-    # fzf-tab to fail to load.
-    plugins = lib.optionals (isNixOS || !isLinux) [
+    plugins = [
       {
         name = "fzf-tab";
         src = pkgs.zsh-fzf-tab;
@@ -198,12 +196,10 @@ in
       # Load zmv for batch renaming
       autoload -U zmv
 
-      ${lib.optionalString (isNixOS || !isLinux) ''
-        # fzf-tab styling
-        zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border
-        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
-        zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
-      ''}
+      # fzf-tab styling
+      zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border
+      zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+      zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
 
       # Create directory and cd into it
       mkcd() { mkdir -p "$1" && cd "$1"; }
