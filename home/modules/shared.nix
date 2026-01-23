@@ -146,12 +146,13 @@ in
     );
 
   # ----------------------------------------------------------------------------
-  # Environment Variables (desktop-only)
+  # Environment Variables
   # ----------------------------------------------------------------------------
-  home.sessionVariables = lib.optionalAttrs isDesktop {
+  home.sessionVariables = {
     # Node.js
     PNPM_HOME = "${config.xdg.dataHome}/pnpm";
-
+  }
+  // lib.optionalAttrs isDesktop {
     # Go
     GOPATH = "$HOME/go";
 
@@ -167,34 +168,32 @@ in
   # ----------------------------------------------------------------------------
   home.sessionPath = [
     "$HOME/.local/bin"
+    "${config.xdg.dataHome}/pnpm"
   ]
   ++ lib.optionals isDesktop [
-    "${config.xdg.dataHome}/pnpm"
     "$HOME/go/bin"
     "$HOME/.cargo/bin"
   ];
 
   # ----------------------------------------------------------------------------
-  # Shell Configuration (desktop-only)
+  # Shell Configuration
   # ----------------------------------------------------------------------------
-  programs.zsh.initContent = lib.mkIf isDesktop (
-    lib.mkAfter ''
-      # --------------------------------------------------------------------------
-      # fnm (Fast Node Manager) - replacement for nvm
-      # Use `fnm use <version>` to switch Node.js versions.
-      # --------------------------------------------------------------------------
-      if command -v fnm &>/dev/null; then
-        eval "$(fnm env --use-on-cd)"
-      fi
+  programs.zsh.initContent = lib.mkAfter ''
+    # --------------------------------------------------------------------------
+    # fnm (Fast Node Manager) - replacement for nvm
+    # Use `fnm use <version>` to switch Node.js versions.
+    # --------------------------------------------------------------------------
+    if command -v fnm &>/dev/null; then
+      eval "$(fnm env --use-on-cd)"
+    fi
 
-      # --------------------------------------------------------------------------
-      # Corepack - Enable pnpm with per-project version management
-      # --------------------------------------------------------------------------
-      if command -v corepack &>/dev/null; then
-        corepack enable pnpm 2>/dev/null
-      fi
-    ''
-  );
+    # --------------------------------------------------------------------------
+    # Corepack - Enable pnpm with per-project version management
+    # --------------------------------------------------------------------------
+    if command -v corepack &>/dev/null; then
+      corepack enable pnpm 2>/dev/null
+    fi
+  '';
 
   # ----------------------------------------------------------------------------
   # Secrets Configuration (agenix)
