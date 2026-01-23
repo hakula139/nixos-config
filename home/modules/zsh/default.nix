@@ -106,18 +106,34 @@ in
     # Shell aliases
     # --------------------------------------------------------------------------
     shellAliases = {
+      # Trailing space enables alias expansion after sudo
+      sudo = "sudo ";
+
       # Modern CLI replacements
       ls = "eza --icons --group-directories-first";
+      l = "eza -1 --icons --group-directories-first";
       ll = "eza -l --icons --group-directories-first --git";
       la = "eza -la --icons --group-directories-first --git";
       lt = "eza --tree --icons --group-directories-first --level=2";
       cat = "bat --paging=never";
       grep = "grep --color=auto";
 
+      # Safe file operations (prompt before overwrite)
+      cp = "cp -i";
+      mv = "mv -i";
+      rm = "rm -i";
+
+      # Disk usage
+      df = "df -h";
+      du = "du -h";
+      dud = "du -d 1 -h";
+      duf = "du -sh *";
+
       # Navigation
       ".." = "cd ..";
       "..." = "cd ../..";
       "...." = "cd ../../..";
+      "....." = "cd ../../../..";
 
       # Nix aliases
       nixup = "nix flake update";
@@ -146,9 +162,27 @@ in
       # Python
       py = "python3";
 
+      # Process management
+      psg = "ps aux | grep -v grep | grep -i";
+
+      # Network
+      ports = "ss -tulanp";
+      myip = "curl -s ifconfig.me";
+
+      # Misc utilities
+      path = ''echo "$PATH" | tr ':' '\n' | nl'';
+      now = "date '+%Y-%m-%d %H:%M:%S'";
+      week = "date +%V";
+      h = "history";
+      hg = "history | grep";
+      eh = ''e "$HISTFILE"'';
+      c = "clear";
+      q = "exit";
+
       # Zsh utilities
       zcp = "zmv -C";
       zln = "zmv -L";
+      reload = "exec zsh";
     }
     # NixOS-specific aliases
     // lib.optionalAttrs isNixOS {
@@ -170,6 +204,13 @@ in
 
       # System aliases
       nproc = "sysctl -n hw.logicalcpu";
+
+      # Clipboard
+      pbc = "pbcopy";
+      pbp = "pbpaste";
+
+      # Flush DNS cache
+      flushdns = "sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder";
     };
 
     # --------------------------------------------------------------------------
