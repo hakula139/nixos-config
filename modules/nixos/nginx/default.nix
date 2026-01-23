@@ -1,9 +1,8 @@
-{ realitySniHost }:
 {
   config,
-  pkgs,
   lib,
   secrets,
+  realitySniHost,
   ...
 }:
 

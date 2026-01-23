@@ -25,7 +25,7 @@ in
     ./backup
     ./builders
     ./cachix
-    (import ./clash { inherit realitySniHost; })
+    ./clash
     ./claude-code
     ./cloudcone
     ./cloudreve
@@ -33,7 +33,7 @@ in
     ./fuclaude
     ./mcp
     ./netdata
-    (import ./nginx { inherit realitySniHost; })
+    ./nginx
     ./piclist
     ./podman
     ./postgresql
@@ -41,6 +41,8 @@ in
     ./umami
     ./xray
   ];
+
+  config._module.args.realitySniHost = realitySniHost;
 
   # ----------------------------------------------------------------------------
   # Module options
