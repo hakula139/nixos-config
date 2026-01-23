@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  secrets,
   isNixOS ? false,
   ...
 }:
@@ -16,6 +17,7 @@ let
       config
       pkgs
       lib
+      secrets
       isNixOS
       ;
   };

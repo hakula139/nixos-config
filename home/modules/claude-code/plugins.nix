@@ -1,3 +1,9 @@
+{
+  lib,
+  isDesktop ? false,
+  ...
+}:
+
 # ==============================================================================
 # Claude Code Plugins
 # ==============================================================================
@@ -24,14 +30,18 @@
     "security-guidance@claude-code-plugins" = true;
 
     # Official LSP plugins
-    "clangd-lsp@claude-plugins-official" = true;
-    "gopls-lsp@claude-plugins-official" = true;
-    "rust-analyzer-lsp@claude-plugins-official" = true;
     "pyright-lsp@claude-plugins-official" = true;
     "typescript-lsp@claude-plugins-official" = true;
 
     # Third-party plugins
     "claude-code-wakatime@wakatime" = true;
+  }
+  # Desktop-only plugins (require heavy dev toolchains)
+  // lib.optionalAttrs isDesktop {
+    # Official LSP plugins
+    "clangd-lsp@claude-plugins-official" = true;
+    "gopls-lsp@claude-plugins-official" = true;
+    "rust-analyzer-lsp@claude-plugins-official" = true;
   };
 
   # ----------------------------------------------------------------------------

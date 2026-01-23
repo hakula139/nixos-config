@@ -110,7 +110,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 │   └── hakula-work/             # Work PC (WSL)
 ├── modules/
 │   ├── shared.nix               # Cross-platform base config
-│   ├── nixos/                   # NixOS service modules (20 modules)
+│   ├── nixos/                   # NixOS service modules (21 modules)
 │   └── darwin/                  # macOS-specific modules (with ssh/ submodule)
 ├── home/
 │   ├── hakula.nix               # Main user configuration entry
@@ -127,6 +127,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 │       └── shared.nix           # Shared module configuration
 ├── packages/                    # Custom package definitions
 ├── lib/
+│   ├── secrets.nix              # Secrets helper library
 │   └── tooling.nix              # Shared development tools
 ├── secrets/                     # agenix-encrypted secrets
 │   ├── keys.nix                 # SSH public keys for age encryption
@@ -142,7 +143,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 
 - **Infrastructure**: `nginx`, `xray`, `clash`, `postgresql`, `podman`
 - **Services**: `aria2`, `cloudreve`, `piclist`, `umami`, `fuclaude`, `netdata`, `wakatime`
-- **System**: `backup`, `builders`, `cachix`, `cloudcone`, `cloudflare`, `dockerhub`, `mcp`, `ssh`
+- **System**: `backup`, `builders`, `cachix`, `claude-code`, `cloudcone`, `cloudflare`, `dockerhub`, `mcp`, `ssh`
 
 Each module typically exports an `enable` option and service-specific configuration. Host configurations import modules and enable them selectively.
 
@@ -166,10 +167,55 @@ Host configurations import `shared.nix` and extend with platform/host-specific s
 Secrets are encrypted with **age** using SSH keys defined in `secrets/keys.nix`:
 
 - **User keys**: `hakula-cloudcone`, `hakula-tencent` (for remote management)
-- **Host keys**: us-1, us-2, us-3, sg-1 (for host decryption)
-- **Workstation keys**: hakula-macbook, hakula-work (for local editing)
+- **Host keys**: `us-1`, `us-2`, `us-3`, `sg-1` (for host decryption)
+- **Workstation keys**: `hakula-macbook`, `hakula-work` (for local editing)
 
 Secrets in `secrets/*.age` are **decrypted at activation time** by agenix and placed in `/run/agenix` (NixOS) or `/run/agenix.d` (Darwin). Reference them in modules via `config.age.secrets.<secret-name>.path`.
+
+#### Secrets Helper Library (`lib/secrets.nix`)
+
+All modules use centralized helper functions from `lib/secrets.nix` to declare secrets with consistent configuration:
+
+**For NixOS modules:**
+
+```nix
+age.secrets.my-secret = secrets.mkSecret {
+  scope = "shared";        # Optional: secret scope directory (defaults to "shared")
+  name = "my-secret";      # Secret file name
+  owner = "service-user";  # File owner
+  group = "service-group"; # File group
+  mode = "0400";           # Optional: file permissions (defaults to "0400")
+  path = "/custom/path";   # Optional: custom destination path
+};
+```
+
+**For Home Manager modules:**
+
+```nix
+age.secrets.my-secret = secrets.mkHomeSecret {
+  scope = "shared";        # Optional: secret scope directory (defaults to "shared")
+  name = "my-secret";      # Secret file name
+  homeDir = homeDir;       # User's home directory
+  mode = "0400";           # Optional: file permissions (defaults to "0400")
+  path = "/custom/path";   # Optional: custom destination path
+};
+```
+
+**Parameters:**
+
+- `scope` (optional): Secret scope directory, defaults to `"shared"` (secrets stored in `secrets/shared/`)
+- `name` (required): Secret filename (without `.age` extension)
+- `owner` / `group` (NixOS only): File ownership for decrypted secret
+- `homeDir` (Home Manager only): User's home directory for path construction
+- `mode` (optional): File permissions, defaults to `"0400"` (read-only for owner)
+- `path` (optional): Custom destination path; if omitted, uses default location
+
+**Helper functions:**
+
+- `mkSecret`: Creates NixOS system-level secret configuration
+- `mkHomeSecret`: Creates Home Manager user-level secret configuration
+- `mkSecretsDir`: Generates systemd tmpfiles rule for secrets directory (NixOS)
+- `mkHomeSecretsDir`: Generates home activation script for secrets directory (Home Manager)
 
 ## CI/CD Pipeline
 
@@ -255,6 +301,16 @@ nix build '.#homeConfigurations.hakula-work.activationPackage'
 2. Add to `nixosConfigurations`, `darwinConfigurations`, or `homeConfigurations` in `flake.nix` using the appropriate builder (`mkServer`, `mkDarwin`, or `mkHome`)
 3. For NixOS: generate hardware config with `nixos-generate-config --show-hardware-config`
 4. Optionally reuse profiles from `hosts/_profiles/` for common hardware
+
+### Adding Secrets to a Module
+
+1. Add `secrets` parameter to the module's function signature (if not already present)
+2. Declare the secret using the helper library:
+   - **NixOS**: `age.secrets.<name> = secrets.mkSecret { name = "..."; owner = "..."; group = "..."; };`
+   - **Home Manager**: `age.secrets.<name> = secrets.mkHomeSecret { name = "..."; homeDir = homeDir; };`
+3. Create the encrypted secret file: `cd secrets/shared && agenix -e <name>.age`
+4. Reference the secret in your module via `config.age.secrets.<name>.path`
+5. Optional: Override `mode` or `path` parameters if custom permissions or location needed
 
 ## Proxy Configuration
 

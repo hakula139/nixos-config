@@ -1,8 +1,8 @@
-{ realitySniHost }:
 {
   config,
-  pkgs,
   lib,
+  secrets,
+  realitySniHost,
   ...
 }:
 
@@ -97,13 +97,12 @@ in
     users.groups.nginx = { };
 
     # ----------------------------------------------------------------------------
-    # Secrets (agenix)
+    # Secrets
     # ----------------------------------------------------------------------------
-    age.secrets.cloudflare-credentials = {
-      file = ../../../secrets/shared/cloudflare-credentials.age;
+    age.secrets.cloudflare-credentials = secrets.mkSecret {
+      name = "cloudflare-credentials";
       owner = "acme";
       group = "acme";
-      mode = "0400";
     };
 
     # ----------------------------------------------------------------------------

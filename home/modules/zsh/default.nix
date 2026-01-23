@@ -2,7 +2,7 @@
   config,
   pkgs,
   lib,
-  isNixOS,
+  isNixOS ? false,
   ...
 }:
 
@@ -94,7 +94,9 @@ in
     # --------------------------------------------------------------------------
     # Plugins
     # --------------------------------------------------------------------------
-    plugins = [
+    # TODO: Fix outdated glibc issue on non-NixOS Linux systems, which causes
+    # fzf-tab to fail to load.
+    plugins = lib.optionals (isNixOS || !isLinux) [
       {
         name = "fzf-tab";
         src = pkgs.zsh-fzf-tab;
@@ -193,19 +195,15 @@ in
       zstyle ':completion:*' menu select
       zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
 
-      # Key bindings for history search
-      bindkey '^[[A' history-substring-search-up
-      bindkey '^[[B' history-substring-search-down
-      bindkey '^P' history-substring-search-up
-      bindkey '^N' history-substring-search-down
-
       # Load zmv for batch renaming
       autoload -U zmv
 
-      # fzf-tab styling
-      zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border
-      zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
-      zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
+      ${lib.optionalString (isNixOS || !isLinux) ''
+        # fzf-tab styling
+        zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border
+        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+        zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
+      ''}
 
       # Create directory and cd into it
       mkcd() { mkdir -p "$1" && cd "$1"; }

@@ -1,4 +1,9 @@
-{ lib, config, ... }:
+{
+  config,
+  lib,
+  secrets,
+  ...
+}:
 
 # ==============================================================================
 # Cachix (Binary Cache Tooling)
@@ -17,13 +22,12 @@ in
 
   config = lib.mkIf cfg.enable {
     # ----------------------------------------------------------------------------
-    # Secrets (agenix)
+    # Secrets
     # ----------------------------------------------------------------------------
-    age.secrets.cachix-auth-token = {
-      file = ../../../secrets/shared/cachix-auth-token.age;
+    age.secrets.cachix-auth-token = secrets.mkSecret {
+      name = "cachix-auth-token";
       owner = "hakula";
       group = "users";
-      mode = "0400";
     };
   };
 }

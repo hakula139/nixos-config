@@ -97,6 +97,8 @@
           };
         };
 
+      secrets = import ./lib/secrets.nix { lib = nixpkgs.lib; };
+
       mkServer =
         {
           hostName,
@@ -104,7 +106,7 @@
         }:
         nixpkgs.lib.nixosSystem {
           specialArgs = {
-            inherit inputs hostName;
+            inherit inputs secrets hostName;
           };
           modules = [
             {
@@ -121,7 +123,7 @@
                 users.hakula = import ./home/hakula.nix;
                 backupFileExtension = "bak";
                 extraSpecialArgs = {
-                  inherit inputs;
+                  inherit inputs secrets;
                   isNixOS = true;
                   isDesktop = false;
                   useProxy = false;
@@ -140,7 +142,12 @@
         }:
         nix-darwin.lib.darwinSystem {
           specialArgs = {
-            inherit inputs hostName displayName;
+            inherit
+              inputs
+              secrets
+              hostName
+              displayName
+              ;
           };
           modules = [
             {
@@ -156,7 +163,7 @@
                 users.hakula = import ./home/hakula.nix;
                 backupFileExtension = "bak";
                 extraSpecialArgs = {
-                  inherit inputs;
+                  inherit inputs secrets;
                   isNixOS = false;
                   isDesktop = true;
                   useProxy = true;
@@ -179,7 +186,7 @@
             configPath
           ];
           extraSpecialArgs = {
-            inherit inputs isDesktop;
+            inherit inputs secrets isDesktop;
             isNixOS = false;
           };
         };

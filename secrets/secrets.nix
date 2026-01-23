@@ -16,6 +16,7 @@ in
   # Server & Workstation shared secrets
   # ----------------------------------------------------------------------------
   "shared/brave-api-key.age".publicKeys = allKeys;
+  "shared/claude-code-oauth-token.age".publicKeys = allKeys;
   "shared/context7-api-key.age".publicKeys = allKeys;
   "shared/github-pat.age".publicKeys = allKeys;
 

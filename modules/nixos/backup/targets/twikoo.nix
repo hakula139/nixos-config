@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  secrets,
   ...
 }:
 
@@ -44,13 +45,12 @@ in
 
   config = lib.mkIf (backupCfg.enable && backupTwikooCfg.enable) {
     # --------------------------------------------------------------------------
-    # Secrets (agenix)
+    # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.twikoo-access-token = {
-      file = ../../../../secrets/shared/twikoo-access-token.age;
+    age.secrets.twikoo-access-token = secrets.mkSecret {
+      name = "twikoo-access-token";
       owner = backupServiceName;
       group = backupServiceName;
-      mode = "0400";
     };
 
     # --------------------------------------------------------------------------

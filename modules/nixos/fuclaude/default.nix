@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  secrets,
   ...
 }:
 
@@ -52,13 +53,12 @@ in
 
   config = lib.mkIf cfg.enable {
     # --------------------------------------------------------------------------
-    # Secrets (agenix)
+    # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.fuclaude-env = {
-      file = ../../../secrets/shared/fuclaude-env.age;
+    age.secrets.fuclaude-env = secrets.mkSecret {
+      name = "fuclaude-env";
       owner = "root";
       group = "root";
-      mode = "0400";
     };
 
     # --------------------------------------------------------------------------

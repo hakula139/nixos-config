@@ -25,14 +25,15 @@ in
     ./backup
     ./builders
     ./cachix
-    (import ./clash { inherit realitySniHost; })
+    ./clash
+    ./claude-code
     ./cloudcone
     ./cloudreve
     ./dockerhub
     ./fuclaude
     ./mcp
     ./netdata
-    (import ./nginx { inherit realitySniHost; })
+    ./nginx
     ./piclist
     ./podman
     ./postgresql
@@ -40,6 +41,8 @@ in
     ./umami
     ./xray
   ];
+
+  config._module.args.realitySniHost = realitySniHost;
 
   # ----------------------------------------------------------------------------
   # Module options
@@ -99,6 +102,15 @@ in
     };
 
     # --------------------------------------------------------------------------
+    # Disk Optimization
+    # --------------------------------------------------------------------------
+    # Limit journal size to prevent excessive disk usage
+    services.journald.extraConfig = ''
+      SystemMaxUse=200M
+      MaxRetentionSec=7day
+    '';
+
+    # --------------------------------------------------------------------------
     # Networking
     # --------------------------------------------------------------------------
     networking = {
@@ -135,6 +147,12 @@ in
     # --------------------------------------------------------------------------
     programs.zsh.enable = true;
     environment.shells = [ pkgs.zsh ];
+
+    # /bin/bash symlink for scripts with #!/bin/bash shebangs
+    system.activationScripts.binbash.text = ''
+      mkdir -p /bin
+      ln -sfn ${pkgs.bash}/bin/bash /bin/bash
+    '';
 
     environment.variables = {
       LANG = "en_US.UTF-8";

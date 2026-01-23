@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  secrets,
   ...
 }:
 
@@ -48,13 +49,13 @@ in
     ];
 
     # --------------------------------------------------------------------------
-    # Secrets (agenix)
+    # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.umami-env = {
-      file = ../../../secrets/shared/umami-env.age;
+    age.secrets.umami-env = secrets.mkSecret {
+      name = "umami-env";
       owner = "root";
-      group = "postgres"; # postgresql postStart needs to read this file
-      mode = "0440";
+      group = "postgres";
+      mode = "0440"; # postgresql postStart needs to read this file
     };
 
     # --------------------------------------------------------------------------

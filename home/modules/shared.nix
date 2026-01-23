@@ -2,6 +2,8 @@
   config,
   pkgs,
   lib,
+  secrets,
+  isNixOS ? false,
   isDesktop ? false,
   ...
 }:
@@ -13,6 +15,8 @@
 let
   tooling = import ../../lib/tooling.nix { inherit pkgs; };
   isLinux = pkgs.stdenv.isLinux;
+  homeDir = config.home.homeDirectory;
+  secretsDir = secrets.secretsPath homeDir;
 in
 {
   # ----------------------------------------------------------------------------
@@ -52,6 +56,13 @@ in
       p7zip
 
       # ------------------------------------------------------------------------
+      # Bash Development
+      # ------------------------------------------------------------------------
+      bash-language-server
+      shellcheck
+      shfmt
+
+      # ------------------------------------------------------------------------
       # Python Development
       # ------------------------------------------------------------------------
       python3
@@ -63,11 +74,22 @@ in
       uv
 
       # ------------------------------------------------------------------------
+      # Node.js Development
+      # ------------------------------------------------------------------------
+      fnm
+      nodePackages.typescript
+      nodePackages.typescript-language-server
+
+      # ------------------------------------------------------------------------
       # Other Tools
       # ------------------------------------------------------------------------
       httpie
       jq
       yq
+      fontconfig
+      git-filter-repo
+      hugo
+      scc
     ]
     ++ tooling.nix
     ++ tooling.secrets
@@ -77,13 +99,6 @@ in
     ++ lib.optionals isDesktop (
       with pkgs;
       [
-        # ----------------------------------------------------------------------
-        # Bash Development
-        # ----------------------------------------------------------------------
-        bash-language-server
-        shellcheck
-        shfmt
-
         # ----------------------------------------------------------------------
         # C/C++ Development
         # ----------------------------------------------------------------------
@@ -99,13 +114,6 @@ in
         pkg-config
         catch2
         doxygen
-
-        # ----------------------------------------------------------------------
-        # Node.js Development
-        # ----------------------------------------------------------------------
-        fnm
-        nodePackages.typescript
-        nodePackages.typescript-language-server
 
         # ----------------------------------------------------------------------
         # Go Development
@@ -134,24 +142,17 @@ in
         # ----------------------------------------------------------------------
         ffmpeg
         imagemagick
-
-        # ----------------------------------------------------------------------
-        # Other Tools
-        # ----------------------------------------------------------------------
-        fontconfig
-        git-filter-repo
-        hugo
-        scc
       ]
     );
 
   # ----------------------------------------------------------------------------
-  # Environment Variables (desktop-only)
+  # Environment Variables
   # ----------------------------------------------------------------------------
-  home.sessionVariables = lib.optionalAttrs isDesktop {
+  home.sessionVariables = {
     # Node.js
     PNPM_HOME = "${config.xdg.dataHome}/pnpm";
-
+  }
+  // lib.optionalAttrs isDesktop {
     # Go
     GOPATH = "$HOME/go";
 
@@ -167,32 +168,45 @@ in
   # ----------------------------------------------------------------------------
   home.sessionPath = [
     "$HOME/.local/bin"
+    "${config.xdg.dataHome}/pnpm"
   ]
   ++ lib.optionals isDesktop [
-    "${config.xdg.dataHome}/pnpm"
     "$HOME/go/bin"
     "$HOME/.cargo/bin"
   ];
 
   # ----------------------------------------------------------------------------
-  # Shell Configuration (desktop-only)
+  # Shell Configuration
   # ----------------------------------------------------------------------------
-  programs.zsh.initContent = lib.mkIf isDesktop (
-    lib.mkAfter ''
-      # --------------------------------------------------------------------------
-      # fnm (Fast Node Manager) - replacement for nvm
-      # Use `fnm use <version>` to switch Node.js versions.
-      # --------------------------------------------------------------------------
-      if command -v fnm &>/dev/null; then
-        eval "$(fnm env --use-on-cd)"
-      fi
+  programs.zsh.initContent = lib.mkAfter ''
+    # --------------------------------------------------------------------------
+    # fnm (Fast Node Manager) - replacement for nvm
+    # Use `fnm use <version>` to switch Node.js versions.
+    # --------------------------------------------------------------------------
+    if command -v fnm &>/dev/null; then
+      eval "$(fnm env --use-on-cd)"
+    fi
 
-      # --------------------------------------------------------------------------
-      # Corepack - Enable pnpm with per-project version management
-      # --------------------------------------------------------------------------
-      if command -v corepack &>/dev/null; then
-        corepack enable pnpm 2>/dev/null
-      fi
+    # --------------------------------------------------------------------------
+    # Corepack - Enable pnpm with per-project version management
+    # --------------------------------------------------------------------------
+    if command -v corepack &>/dev/null; then
+      corepack enable pnpm 2>/dev/null
+    fi
+  '';
+
+  # ----------------------------------------------------------------------------
+  # Secrets Configuration (agenix)
+  # On NixOS: system-level agenix handles decryption, skip this config
+  # On Darwin / standalone: home-manager agenix handles decryption
+  # ----------------------------------------------------------------------------
+  age.identityPaths = lib.mkIf (!isNixOS) [
+    "${homeDir}/.ssh/id_ed25519"
+  ];
+
+  home.activation.ensureSecretsDir = lib.mkIf (!isNixOS) (
+    lib.hm.dag.entryBefore [ "writeBoundary" ] ''
+      install -d -m 0700 "${secretsDir}"
     ''
   );
 }
