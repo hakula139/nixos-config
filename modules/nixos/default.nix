@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  secrets,
   ...
 }:
 
@@ -14,6 +15,7 @@ let
   keys = import ../../secrets/keys.nix;
 
   sshCfg = config.hakula.access.ssh;
+  userCfg = config.users.users.hakula;
 
   # REALITY SNI Host
   # If you change this, also update secrets/shared/xray-config.json.age.
@@ -182,5 +184,10 @@ in
       util-linux
       zlib
     ];
+
+    # --------------------------------------------------------------------------
+    # Secrets Configuration (agenix)
+    # --------------------------------------------------------------------------
+    systemd.tmpfiles.rules = secrets.mkSecretsDir userCfg userCfg.group;
   };
 }

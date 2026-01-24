@@ -21,6 +21,10 @@ in
   options.hakula.claude-code = {
     enable = lib.mkEnableOption "Claude Code secrets";
 
+    auth = {
+      useOAuthToken = lib.mkEnableOption "long-lived OAuth token for authentication";
+    };
+
     user = lib.mkOption {
       type = lib.types.str;
       default = "hakula";
@@ -39,16 +43,13 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.claude-code-oauth-token = secrets.mkSecret {
-      name = "claude-code-oauth-token";
-      owner = cfg.user;
-      group = userCfg.group;
-      path = "${secretsDir}/claude-code-oauth-token";
-    };
-
-    # --------------------------------------------------------------------------
-    # Filesystem layout
-    # --------------------------------------------------------------------------
-    systemd.tmpfiles.rules = secrets.mkSecretsDir userCfg userCfg.group;
+    age.secrets.claude-code-oauth-token = lib.mkIf cfg.auth.useOAuthToken (
+      secrets.mkSecret {
+        name = "claude-code-oauth-token";
+        owner = cfg.user;
+        group = userCfg.group;
+        path = "${secretsDir}/claude-code-oauth-token";
+      }
+    );
   };
 }

@@ -59,10 +59,5 @@ in
       group = userCfg.group;
       path = "${secretsDir}/github-pat";
     };
-
-    # --------------------------------------------------------------------------
-    # Filesystem layout
-    # --------------------------------------------------------------------------
-    systemd.tmpfiles.rules = secrets.mkSecretsDir userCfg userCfg.group;
   };
 }

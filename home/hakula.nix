@@ -58,6 +58,7 @@ in
   # ----------------------------------------------------------------------------
   hakula.claude-code = {
     enable = lib.mkDefault false;
+    auth.useOAuthToken = lib.mkDefault false;
     proxy.enable = lib.mkDefault false;
   };
 

@@ -24,6 +24,10 @@ in
   options.hakula.claude-code = {
     enable = lib.mkEnableOption "Claude Code";
 
+    auth = {
+      useOAuthToken = lib.mkEnableOption "long-lived OAuth token for authentication";
+    };
+
     proxy = {
       enable = lib.mkEnableOption "HTTP proxy for Claude Code";
       url = lib.mkOption {
@@ -57,16 +61,20 @@ in
       );
 
       oauthTokenFile = "${secretsDir}/claude-code-oauth-token";
-      claudeCodeBin = pkgs.writeShellScriptBin "claude" ''
-        if [ -f "${oauthTokenFile}" ]; then
-          export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"
-        fi
-        exec ${pkgs.unstable.claude-code}/bin/claude "$@"
-      '';
+      claudeCodeBin = pkgs.writeShellScriptBin "claude" (
+        lib.optionalString cfg.auth.useOAuthToken ''
+          if [ -f "${oauthTokenFile}" ]; then
+            export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"
+          fi
+        ''
+        + ''
+          exec ${pkgs.unstable.claude-code}/bin/claude "$@"
+        ''
+      );
     in
     lib.mkMerge [
       mcp.secrets
-      (lib.mkIf (!isNixOS) {
+      (lib.mkIf (!isNixOS && cfg.auth.useOAuthToken) {
         # ----------------------------------------------------------------------
         # Secrets
         # ----------------------------------------------------------------------
