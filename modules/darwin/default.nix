@@ -251,6 +251,10 @@ in
           };
         };
       };
+
+      activationScripts.postActivation.text = ''
+        pmset -a networkoversleep 1
+      '';
     };
 
     # ----------------------------------------------------------------------------
