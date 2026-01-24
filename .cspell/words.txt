@@ -110,6 +110,7 @@ pkgs
 pkief
 pkill
 pmem
+pmset
 pname
 psql
 pulumi
