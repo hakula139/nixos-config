@@ -26,28 +26,25 @@ in
     settings = {
       devices = {
         "hakula-macbook" = {
-          # cspell:disable-next-line
-          id = "4K52NMQ-QSKVTWQ-CTJABEH-TSYH5MG-HS3FOKP-ETOLSWB-TC7PV6E-JR2KTAN";
+          id = "4K52NMQ-QSKVTWQ-CTJABEH-TSYH5MG-HS3FOKP-ETOLSWB-TC7PV6E-JR2KTAN"; # cspell:disable-line
         };
         "hakula-work" = {
-          # cspell:disable-next-line
-          id = "6MRKQMF-EG5RGDP-WEIJNSL-4U7DOC6-UH3WUUT-EPXFLUR-JGMIEWV-P6QIIAU";
+          id = "6MRKQMF-EG5RGDP-WEIJNSL-4U7DOC6-UH3WUUT-EPXFLUR-JGMIEWV-P6QIIAU"; # cspell:disable-line
         };
         "us-1" = {
-          # cspell:disable-next-line
-          id = "WMZORNC-QJTIIQX-4Y2OGVF-3O5IESF-3M3UGMN-HC2C7SG-S42OC47-JMCPFAK";
+          id = "WMZORNC-QJTIIQX-4Y2OGVF-3O5IESF-3M3UGMN-HC2C7SG-S42OC47-JMCPFAK"; # cspell:disable-line
         };
         "us-2" = {
-          # cspell:disable-next-line
-          id = "VPCN2SN-IEOCBX2-5FXCNCD-4SRA7PO-SK34FRH-MJWCXXB-QCRGTJE-WFWXSAL";
+          id = "VPCN2SN-IEOCBX2-5FXCNCD-4SRA7PO-SK34FRH-MJWCXXB-QCRGTJE-WFWXSAL"; # cspell:disable-line
         };
         "us-3" = {
-          # cspell:disable-next-line
-          id = "NOHM6HO-B7HDLSE-VRHSXU7-T6BF6JL-V522NLY-BMW3H5F-WYC72RD-A3HANAV";
+          id = "NOHM6HO-B7HDLSE-VRHSXU7-T6BF6JL-V522NLY-BMW3H5F-WYC72RD-A3HANAV"; # cspell:disable-line
         };
         "sg-1" = {
-          # cspell:disable-next-line
-          id = "TY4E6M5-W7CQMFI-XK3IPUV-RF35PE7-TXBAT23-H6AD3Y4-C6IDGDJ-JRXUDAS";
+          id = "TY4E6M5-W7CQMFI-XK3IPUV-RF35PE7-TXBAT23-H6AD3Y4-C6IDGDJ-JRXUDAS"; # cspell:disable-line
+          ignoredFolders = [
+            { id = "claude-code"; }
+          ];
         };
       };
 
@@ -57,7 +54,9 @@ in
           devices = [
             "hakula-macbook"
             "hakula-work"
+            "us-1"
             "us-2"
+            "us-3"
           ];
           ignorePerms = false;
         };

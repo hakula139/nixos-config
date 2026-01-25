@@ -68,6 +68,7 @@ in
   # Credentials
   # ============================================================================
   hakula.cachix.enable = true;
+  hakula.claude-code.enable = true;
   hakula.dockerHub = {
     username = "hakula139";
     tokenAgeFile = ../../secrets/shared/dockerhub-token.age;
@@ -110,6 +111,11 @@ in
     enable = true;
     ws.enable = true;
   };
+
+  # ============================================================================
+  # Home Manager Modules
+  # ============================================================================
+  home-manager.users.hakula.hakula.claude-code.enable = true;
 
   # ============================================================================
   # System State
