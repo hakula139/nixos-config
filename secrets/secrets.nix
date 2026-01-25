@@ -29,6 +29,7 @@ in
   "shared/builder-ssh-key.age".publicKeys = allServerKeys;
   "shared/cachix-auth-token.age".publicKeys = allServerKeys;
   "shared/clash-users.json.age".publicKeys = allServerKeys;
+  "shared/clove-env.age".publicKeys = allServerKeys;
   "shared/cloudflare-credentials.age".publicKeys = allServerKeys;
   "shared/dockerhub-token.age".publicKeys = allServerKeys;
   "shared/fuclaude-env.age".publicKeys = allServerKeys;

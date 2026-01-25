@@ -69,6 +69,7 @@ in
   # Credentials
   # ============================================================================
   hakula.cachix.enable = true;
+  hakula.claude-code.enable = true;
   hakula.mcp.enable = true;
 
   # ============================================================================
@@ -78,6 +79,7 @@ in
     enable = true;
     serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
   };
+  hakula.services.clove.enable = true;
   hakula.services.fuclaude.enable = true;
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
@@ -89,6 +91,11 @@ in
     enable = true;
     ws.enable = true;
   };
+
+  # ============================================================================
+  # Home Manager Modules
+  # ============================================================================
+  home-manager.users.hakula.hakula.claude-code.enable = true;
 
   # ============================================================================
   # System State

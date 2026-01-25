@@ -263,16 +263,34 @@
     # --------------------------------------------------------------------------
     # MCP servers - Read-only
     # --------------------------------------------------------------------------
-    "mcp__Context7__*"
-    "mcp__DeepWiki__*"
-    "mcp__Filesystem__*"
-    "mcp__Git__*"
-    "mcp__GitHub__get_*"
+    "mcp__Context7"
+    "mcp__DeepWiki"
+    "mcp__Filesystem"
+    "mcp__Git"
+    "mcp__GitHub__get_commit"
+    "mcp__GitHub__get_file_contents"
+    "mcp__GitHub__get_label"
+    "mcp__GitHub__get_latest_release"
+    "mcp__GitHub__get_me"
+    "mcp__GitHub__get_release_by_tag"
+    "mcp__GitHub__get_tag"
+    "mcp__GitHub__get_team_members"
+    "mcp__GitHub__get_teams"
     "mcp__GitHub__issue_read"
-    "mcp__GitHub__list_*"
+    "mcp__GitHub__list_branches"
+    "mcp__GitHub__list_commits"
+    "mcp__GitHub__list_issue_types"
+    "mcp__GitHub__list_issues"
+    "mcp__GitHub__list_pull_requests"
+    "mcp__GitHub__list_releases"
+    "mcp__GitHub__list_tags"
     "mcp__GitHub__pull_request_read"
-    "mcp__GitHub__search_*"
-    "mcp__ide__*"
+    "mcp__GitHub__search_code"
+    "mcp__GitHub__search_issues"
+    "mcp__GitHub__search_pull_requests"
+    "mcp__GitHub__search_repositories"
+    "mcp__GitHub__search_users"
+    "mcp__ide"
   ];
 
   ask = [
@@ -416,10 +434,14 @@
     # --------------------------------------------------------------------------
     # MCP servers - Write Operations
     # --------------------------------------------------------------------------
-    "mcp__GitHub__add_*"
+    "mcp__GitHub__add_comment_to_pending_review"
+    "mcp__GitHub__add_issue_comment"
     "mcp__GitHub__assign_copilot_to_issue"
-    "mcp__GitHub__create_*"
-    "mcp__GitHub__delete_*"
+    "mcp__GitHub__create_branch"
+    "mcp__GitHub__create_or_update_file"
+    "mcp__GitHub__create_pull_request"
+    "mcp__GitHub__create_repository"
+    "mcp__GitHub__delete_file"
     "mcp__GitHub__fork_repository"
     "mcp__GitHub__issue_write"
     "mcp__GitHub__merge_pull_request"
@@ -427,7 +449,8 @@
     "mcp__GitHub__push_files"
     "mcp__GitHub__request_copilot_review"
     "mcp__GitHub__sub_issue_write"
-    "mcp__GitHub__update_*"
+    "mcp__GitHub__update_pull_request"
+    "mcp__GitHub__update_pull_request_branch"
   ];
 
   deny = [ ];

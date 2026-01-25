@@ -78,6 +78,7 @@ lldb
 marp
 mechatroner
 meslo
+mirrorange
 mkcd
 msdos
 msmtp
