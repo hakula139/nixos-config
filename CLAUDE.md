@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Repository Overview
 
@@ -83,7 +83,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 - `mkServer`: Creates NixOS configurations with agenix, disko, and Home Manager integrated
 - `mkDarwin`: Creates Darwin configurations with agenix and Home Manager integrated
 - `mkHome`: Creates standalone Home Manager configurations for non-NixOS Linux
-- `overlays`: Provides `unstable` packages, `agenix` CLI, and custom `cloudreve` package
+- `overlays`: Provides `unstable` packages, `agenix` CLI, and custom packages (`cloudreve`, `github-mcp-server`)
 - `forAllSystems`: Handles both x86_64-linux and aarch64-darwin
 
 **Key outputs**:
@@ -142,7 +142,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 **NixOS modules** (`modules/nixos/`) are **optionally enabled** services configured per-host. Key modules:
 
 - **Infrastructure**: `nginx`, `xray`, `clash`, `postgresql`, `podman`
-- **Services**: `aria2`, `cloudreve`, `piclist`, `umami`, `fuclaude`, `netdata`, `wakatime`
+- **Services**: `aria2`, `cloudreve`, `clove`, `fuclaude`, `netdata`, `piclist`, `umami`, `wakatime`
 - **System**: `backup`, `builders`, `cachix`, `claude-code`, `cloudcone`, `cloudflare`, `dockerhub`, `mcp`, `ssh`
 
 Each module typically exports an `enable` option and service-specific configuration. Host configurations import modules and enable them selectively.
