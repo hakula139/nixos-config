@@ -26,6 +26,7 @@ let
   # Upstreams
   # ----------------------------------------------------------------------------
   cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
+  cloveUpstream = "http://127.0.0.1:${toString config.hakula.services.clove.port}";
   fuclaudeUpstream = "http://127.0.0.1:${toString config.hakula.services.fuclaude.port}";
   piclistUpstream = "http://127.0.0.1:${toString config.hakula.services.piclist.port}";
   umamiUpstream = "http://127.0.0.1:${toString config.hakula.services.umami.port}";
@@ -194,6 +195,18 @@ in
           };
           locations."= /" = {
             return = "404";
+          };
+        }
+      );
+
+      # Clove (Claude API reverse proxy)
+      virtualHosts."claude-api.hakula.xyz" = lib.mkIf config.hakula.services.clove.enable (
+        cloudflareVhostConfig
+        // {
+          locations."/" = {
+            proxyPass = "${cloveUpstream}/";
+            proxyWebsockets = true;
+            extraConfig = noBufferingExtraConfig;
           };
         }
       );

@@ -78,6 +78,7 @@ in
     enable = true;
     serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
   };
+  hakula.services.clove.enable = true;
   hakula.services.fuclaude.enable = true;
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;

@@ -31,6 +31,7 @@ in
     ./claude-code
     ./cloudcone
     ./cloudreve
+    ./clove
     ./dockerhub
     ./fuclaude
     ./mcp
