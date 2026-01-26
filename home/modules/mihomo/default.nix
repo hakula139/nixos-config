@@ -13,50 +13,67 @@
 
 let
   cfg = config.hakula.mihomo;
+
   homeDir = config.home.homeDirectory;
   configDir = "${homeDir}/.config/mihomo";
   configFile = "${configDir}/config.yaml";
   subscriptionUrlFile = config.age.secrets.mihomo-subscription-url.path;
+  secretFile = config.age.secrets.mihomo-secret.path;
+  baseConfigTemplate = builtins.readFile ./config.yaml;
 
-  baseConfig = pkgs.writeText "mihomo-base-config.yaml" (
-    builtins.replaceStrings [ "__PORT__" ] [ (toString cfg.port) ] (builtins.readFile ./config.yaml)
-  );
+  updateScript =
+    let
+      runtimePath = lib.makeBinPath [
+        pkgs.coreutils
+        pkgs.curl
+        pkgs.gnused
+      ];
+    in
+    pkgs.writeShellScript "mihomo-update" ''
+      set -euo pipefail
+      export PATH="${runtimePath}"
 
-  updateScript = pkgs.writeShellScript "mihomo-update" ''
-    set -euo pipefail
+      CONFIG_DIR="${configDir}"
+      CONFIG_FILE="${configFile}"
+      SUBSCRIPTION_URL="$(cat ${subscriptionUrlFile})"
+      SECRET="$(cat ${secretFile})"
+      BASE_CONFIG_TEMPLATE="${baseConfigTemplate}"
 
-    SUBSCRIPTION_URL="$(cat ${subscriptionUrlFile})"
-    CONFIG_DIR="${configDir}"
-    CONFIG_FILE="${configFile}"
-    BASE_CONFIG="${baseConfig}"
+      mkdir -p "$CONFIG_DIR"
 
-    mkdir -p "$CONFIG_DIR"
+      echo "Fetching mihomo subscription from: $SUBSCRIPTION_URL"
+      curl -fsSL "$SUBSCRIPTION_URL" -o "$CONFIG_FILE.tmp"
 
-    echo "Fetching mihomo subscription from: $SUBSCRIPTION_URL"
-    ${pkgs.curl}/bin/curl -fsSL "$SUBSCRIPTION_URL" -o "$CONFIG_FILE.tmp"
+      if [ ! -s "$CONFIG_FILE.tmp" ]; then
+        echo "Error: Downloaded config is empty"
+        rm -f "$CONFIG_FILE.tmp"
+        exit 1
+      fi
 
-    if [ ! -s "$CONFIG_FILE.tmp" ]; then
-      echo "Error: Downloaded config is empty"
-      rm -f "$CONFIG_FILE.tmp"
-      exit 1
-    fi
+      echo "Preparing base configuration with secrets"
+      BASE_CONFIG=$(
+        echo "$BASE_CONFIG_TEMPLATE" \
+          | sed "s|__PORT__|${toString cfg.port}|g" \
+          | sed "s|__CONTROLLER_PORT__|${toString cfg.controllerPort}|g" \
+          | sed "s|__SECRET__|$SECRET|g"
+      )
 
-    echo "Merging base configuration with subscription"
-    {
-      cat "$BASE_CONFIG"
-      echo
-      cat "$CONFIG_FILE.tmp"
-    } >"$CONFIG_FILE.merged"
-    mv "$CONFIG_FILE.merged" "$CONFIG_FILE.tmp"
+      echo "Merging base configuration with subscription"
+      {
+        echo "$BASE_CONFIG"
+        echo
+        cat "$CONFIG_FILE.tmp"
+      } >"$CONFIG_FILE.merged"
+      mv "$CONFIG_FILE.merged" "$CONFIG_FILE.tmp"
 
-    if [ -f "$CONFIG_FILE" ]; then
-      echo "Backing up existing config to $CONFIG_FILE.bak"
-      cp "$CONFIG_FILE" "$CONFIG_FILE.bak"
-    fi
+      if [ -f "$CONFIG_FILE" ]; then
+        echo "Backing up existing config to $CONFIG_FILE.bak"
+        cp "$CONFIG_FILE" "$CONFIG_FILE.bak"
+      fi
 
-    mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
-    echo "Successfully updated mihomo config"
-  '';
+      mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+      echo "Successfully updated mihomo config"
+    '';
 in
 {
   # ----------------------------------------------------------------------------
@@ -67,8 +84,14 @@ in
 
     port = lib.mkOption {
       type = lib.types.port;
-      default = 7897;
+      default = 7890;
       description = "Mixed port for HTTP / SOCKS proxy";
+    };
+
+    controllerPort = lib.mkOption {
+      type = lib.types.port;
+      default = 9090;
+      description = "External controller API port";
     };
 
     updateInterval = lib.mkOption {
@@ -78,9 +101,6 @@ in
     };
   };
 
-  # ----------------------------------------------------------------------------
-  # Module Configuration
-  # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable {
     # --------------------------------------------------------------------------
     # Secrets
@@ -88,6 +108,11 @@ in
     age.secrets = lib.mkIf (!isNixOS) {
       mihomo-subscription-url = secrets.mkHomeSecret {
         name = "mihomo-subscription-url";
+        inherit homeDir;
+      };
+
+      mihomo-secret = secrets.mkHomeSecret {
+        name = "mihomo-secret";
         inherit homeDir;
       };
     };

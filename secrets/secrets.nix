@@ -49,6 +49,7 @@ in
   # ----------------------------------------------------------------------------
   # Workstation shared secrets
   # ----------------------------------------------------------------------------
+  "shared/mihomo-secret.age".publicKeys = allWorkstationKeys;
   "shared/mihomo-subscription-url.age".publicKeys = allWorkstationKeys;
   "shared/wakatime-config.age".publicKeys = allWorkstationKeys;
 }

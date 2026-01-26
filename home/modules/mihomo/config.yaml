@@ -3,13 +3,15 @@
 # ==============================================================================
 
 # General Settings
-allow-lan: true
-ipv6: true
-log-level: info
-mixed-port: __PORT__
 mode: rule
+mixed-port: __PORT__
+log-level: info
+ipv6: true
+allow-lan: true
 tcp-concurrent: true
 unified-delay: true
+external-controller: 127.0.0.1:__CONTROLLER_PORT__
+secret: __SECRET__
 
 # Profile Settings
 profile:
