@@ -13,6 +13,7 @@
 
 let
   cfg = config.hakula.mihomo;
+  isDarwin = pkgs.stdenv.isDarwin;
 
   homeDir = config.home.homeDirectory;
   configDir = "${homeDir}/.config/mihomo";
@@ -74,6 +75,20 @@ let
       mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
       echo "Successfully updated mihomo config"
     '';
+
+  startScript = pkgs.writeShellScript "mihomo-start" ''
+    set -euo pipefail
+
+    CONFIG_FILE="${configFile}"
+
+    if [ ! -f "$CONFIG_FILE" ]; then
+      echo "Config not found, running update first..."
+      ${updateScript}
+    fi
+
+    echo "Starting mihomo..."
+    exec ${pkgs.mihomo}/bin/mihomo -d ${configDir}
+  '';
 in
 {
   # ----------------------------------------------------------------------------
@@ -123,9 +138,9 @@ in
     home.packages = [ pkgs.mihomo ];
 
     # --------------------------------------------------------------------------
-    # Systemd services
+    # Systemd services (Linux)
     # --------------------------------------------------------------------------
-    systemd.user.services = {
+    systemd.user.services = lib.mkIf (!isDarwin) {
       mihomo-update = {
         Unit = {
           Description = "Update mihomo subscription config";
@@ -137,6 +152,8 @@ in
           ExecStart = "${updateScript}";
           RemainAfterExit = false;
           Environment = [
+            "HTTP_PROXY="
+            "HTTPS_PROXY="
             "http_proxy="
             "https_proxy="
           ];
@@ -170,9 +187,9 @@ in
     };
 
     # --------------------------------------------------------------------------
-    # Systemd timer
+    # Systemd timer (Linux)
     # --------------------------------------------------------------------------
-    systemd.user.timers = {
+    systemd.user.timers = lib.mkIf (!isDarwin) {
       mihomo-update = {
         Unit = {
           Description = "Timer for mihomo subscription updates";
@@ -186,6 +203,45 @@ in
 
         Install = {
           WantedBy = [ "timers.target" ];
+        };
+      };
+    };
+
+    # --------------------------------------------------------------------------
+    # Launchd agents (macOS)
+    # --------------------------------------------------------------------------
+    launchd.agents = lib.mkIf isDarwin {
+      mihomo-update = {
+        enable = true;
+        config = {
+          Label = "one.metacubex.mihomo-update";
+          ProgramArguments = [ "${updateScript}" ];
+          StartCalendarInterval = [
+            {
+              Hour = 4;
+              Minute = 0;
+            }
+          ];
+          StandardOutPath = "${homeDir}/Library/Logs/mihomo-update.log";
+          StandardErrorPath = "${homeDir}/Library/Logs/mihomo-update.log";
+          EnvironmentVariables = {
+            HTTP_PROXY = "";
+            HTTPS_PROXY = "";
+            http_proxy = "";
+            https_proxy = "";
+          };
+        };
+      };
+
+      mihomo = {
+        enable = true;
+        config = {
+          Label = "one.metacubex.mihomo";
+          ProgramArguments = [ "${startScript}" ];
+          RunAtLoad = true;
+          KeepAlive = true;
+          StandardOutPath = "${homeDir}/Library/Logs/mihomo.log";
+          StandardErrorPath = "${homeDir}/Library/Logs/mihomo.log";
         };
       };
     };
