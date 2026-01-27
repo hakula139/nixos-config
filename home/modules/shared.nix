@@ -69,6 +69,7 @@ in
       python3Packages.pip
       pipx
       poetry
+      pre-commit
       pyright
       ruff
       uv

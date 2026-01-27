@@ -23,6 +23,7 @@ in
     ./modules/claude-code
     ./modules/cursor
     ./modules/git
+    ./modules/mihomo
     ./modules/ssh
     ./modules/syncthing
     ./modules/wakatime
@@ -69,4 +70,6 @@ in
       prune = lib.mkDefault true;
     };
   };
+
+  hakula.mihomo.enable = lib.mkDefault false;
 }

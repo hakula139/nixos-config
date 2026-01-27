@@ -8,6 +8,7 @@ bnext
 bprevious
 bradlc
 btop
+busctl
 cachix
 catppuccin
 ccache
@@ -50,6 +51,7 @@ gnused
 gopath
 gopls
 gsub
+gvisor
 hakula
 hediet
 hitoolbox
@@ -75,9 +77,12 @@ libkrb
 libuuid
 linkify
 lldb
+localectl
 marp
 mechatroner
 meslo
+metacubex
+mihomo
 mirrorange
 mkcd
 msdos
@@ -85,6 +90,7 @@ msmtp
 msmtprc
 myip
 nbsp
+networkctl
 nixfmt
 nixgc
 nixos
@@ -122,6 +128,7 @@ qdisc
 raku
 recents
 rerere
+resolvectl
 retag
 revealjs
 rprx
@@ -146,12 +153,14 @@ t3dotgg
 tabdo
 tamasfe
 telegramcidr
+timedatectl
 tmp
 tmpfiles
 toolsai
 tulanp
 twikoo
 usernamehw
+utun
 vadimcn
 vhost
 vimcmd
