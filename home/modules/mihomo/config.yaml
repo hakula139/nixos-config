@@ -2,33 +2,33 @@
 # Mihomo Base Configuration
 # ==============================================================================
 
-# General Settings
+# General Configuration
+allow-lan: true
+bind-address: '*'
 mode: rule
-mixed-port: __PORT__
 log-level: info
 ipv6: true
-allow-lan: true
-tcp-concurrent: true
+external-controller: 0.0.0.0:__CONTROLLER_PORT__
+secret: '__SECRET__'
 unified-delay: true
-external-controller: 127.0.0.1:__CONTROLLER_PORT__
-secret: __SECRET__
+tcp-concurrent: true
+geo-auto-update: true
+geo-update-interval: 24
 
-# Profile Settings
-profile:
-  store-selected: true
-
-# DNS Configuration
+# DNS
 dns:
   enable: true
+  prefer-h3: true
   ipv6: true
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  fake-ip-filter:
-    - '*.lan'
-    - '*.local'
   default-nameserver:
     - 223.5.5.5
     - 8.8.8.8
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter-mode: blacklist
+  fake-ip-filter:
+    - '*.lan'
+    - '*.local'
   nameserver:
     - https://doh.pub/dns-query
     - https://dns.alidns.com/dns-query
@@ -38,4 +38,12 @@ dns:
   fallback-filter:
     geoip: true
     geoip-code: CN
-  prefer-h3: true
+    ipcidr:
+      - 240.0.0.0/4
+
+# Inbounds - Proxy Ports
+mixed-port: __PORT__
+
+# Profile
+profile:
+  store-selected: true

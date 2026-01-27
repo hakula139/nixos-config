@@ -50,6 +50,7 @@ gnused
 gopath
 gopls
 gsub
+gvisor
 hakula
 hediet
 hitoolbox
@@ -154,6 +155,7 @@ toolsai
 tulanp
 twikoo
 usernamehw
+utun
 vadimcn
 vhost
 vimcmd
