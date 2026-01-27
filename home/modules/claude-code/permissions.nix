@@ -5,9 +5,13 @@
 {
   defaultMode = "acceptEdits";
 
+  # ============================================================================
+  # Allow - Auto-approved commands (read-only / safe operations)
+  # ============================================================================
+
   allow = [
     # --------------------------------------------------------------------------
-    # Filesystem - Navigation & Listing
+    # Filesystem - Navigation
     # --------------------------------------------------------------------------
     "Bash(cd:*)"
     "Bash(eza:*)"
@@ -16,7 +20,7 @@
     "Bash(tree:*)"
 
     # --------------------------------------------------------------------------
-    # Filesystem - Reading & Info
+    # Filesystem - Reading
     # --------------------------------------------------------------------------
     "Bash(bat:*)"
     "Bash(cat:*)"
@@ -38,7 +42,7 @@
     "Bash(rg:*)"
 
     # --------------------------------------------------------------------------
-    # Filesystem - Modification (non-destructive)
+    # Filesystem - Modification
     # --------------------------------------------------------------------------
     "Bash(cp:*)"
     "Bash(ln:*)"
@@ -47,7 +51,7 @@
     "Bash(touch:*)"
 
     # --------------------------------------------------------------------------
-    # Filesystem - Archive & Compression
+    # Filesystem - Archive
     # --------------------------------------------------------------------------
     "Bash(7z:*)"
     "Bash(gunzip:*)"
@@ -73,7 +77,7 @@
     "Bash(yq:*)"
 
     # --------------------------------------------------------------------------
-    # Shell & Environment
+    # Shell
     # --------------------------------------------------------------------------
     "Bash(basename:*)"
     "Bash(command:*)"
@@ -91,15 +95,7 @@
     "Bash(which:*)"
 
     # --------------------------------------------------------------------------
-    # System - Process
-    # --------------------------------------------------------------------------
-    "Bash(lsof:*)"
-    "Bash(pgrep:*)"
-    "Bash(ps:*)"
-    "Bash(top:*)"
-
-    # --------------------------------------------------------------------------
-    # System - Info & Resources
+    # System
     # --------------------------------------------------------------------------
     "Bash(date:*)"
     "Bash(df:*)"
@@ -107,12 +103,58 @@
     "Bash(free:*)"
     "Bash(hostname:*)"
     "Bash(id:*)"
+    "Bash(journalctl:*)"
+    "Bash(lsof:*)"
+    "Bash(pgrep:*)"
+    "Bash(ps:*)"
+    "Bash(top:*)"
     "Bash(uname:*)"
     "Bash(uptime:*)"
     "Bash(whoami:*)"
 
     # --------------------------------------------------------------------------
-    # Network - Read-only
+    # systemd
+    # --------------------------------------------------------------------------
+    "Bash(busctl:*)"
+    "Bash(hostnamectl status:*)"
+    "Bash(localectl status:*)"
+    "Bash(loginctl list-sessions:*)"
+    "Bash(loginctl list-users:*)"
+    "Bash(loginctl session-status:*)"
+    "Bash(loginctl show-session:*)"
+    "Bash(loginctl show-user:*)"
+    "Bash(loginctl user-status:*)"
+    "Bash(networkctl:*)"
+    "Bash(resolvectl:*)"
+    "Bash(systemctl --user is-active:*)"
+    "Bash(systemctl --user is-enabled:*)"
+    "Bash(systemctl --user is-failed:*)"
+    "Bash(systemctl --user list-dependencies:*)"
+    "Bash(systemctl --user list-jobs:*)"
+    "Bash(systemctl --user list-sockets:*)"
+    "Bash(systemctl --user list-timers:*)"
+    "Bash(systemctl --user list-unit-files:*)"
+    "Bash(systemctl --user list-units:*)"
+    "Bash(systemctl --user show:*)"
+    "Bash(systemctl --user status:*)"
+    "Bash(systemctl is-active:*)"
+    "Bash(systemctl is-enabled:*)"
+    "Bash(systemctl is-failed:*)"
+    "Bash(systemctl is-system-running:*)"
+    "Bash(systemctl list-dependencies:*)"
+    "Bash(systemctl list-jobs:*)"
+    "Bash(systemctl list-sockets:*)"
+    "Bash(systemctl list-timers:*)"
+    "Bash(systemctl list-unit-files:*)"
+    "Bash(systemctl list-units:*)"
+    "Bash(systemctl show:*)"
+    "Bash(systemctl status:*)"
+    "Bash(timedatectl show:*)"
+    "Bash(timedatectl status:*)"
+    "Bash(timedatectl timesync-status:*)"
+
+    # --------------------------------------------------------------------------
+    # Network
     # --------------------------------------------------------------------------
     "Bash(curl:*)"
     "Bash(dig:*)"
@@ -120,9 +162,11 @@
     "Bash(http:*)"
     "Bash(httpie:*)"
     "Bash(https:*)"
+    "Bash(ip:*)"
     "Bash(nc:*)"
     "Bash(nslookup:*)"
     "Bash(ping:*)"
+    "Bash(ss:*)"
     "Bash(wget:*)"
     "Bash(whois:*)"
     "WebFetch"
@@ -138,7 +182,7 @@
     "Bash(sw_vers:*)"
 
     # --------------------------------------------------------------------------
-    # Git - Read & Staging
+    # Git
     # --------------------------------------------------------------------------
     "Bash(git add:*)"
     "Bash(git blame:*)"
@@ -165,7 +209,7 @@
     "Bash(git worktree list:*)"
 
     # --------------------------------------------------------------------------
-    # Development Tools
+    # Development
     # --------------------------------------------------------------------------
     "Bash(cargo:*)"
     "Bash(cmake:*)"
@@ -194,7 +238,7 @@
     "Bash(uvx:*)"
 
     # --------------------------------------------------------------------------
-    # Nix - Read-only
+    # Nix
     # --------------------------------------------------------------------------
     "Bash(nix build:*)"
     "Bash(nix derivation show:*)"
@@ -219,7 +263,7 @@
     "Bash(nvd:*)"
 
     # --------------------------------------------------------------------------
-    # Containers - Read-only
+    # Containers
     # --------------------------------------------------------------------------
     "Bash(docker compose config:*)"
     "Bash(docker compose logs:*)"
@@ -231,16 +275,6 @@
     "Bash(docker logs:*)"
     "Bash(docker ps:*)"
     "Bash(docker version:*)"
-    "Bash(podman compose config:*)"
-    "Bash(podman compose logs:*)"
-    "Bash(podman compose ls:*)"
-    "Bash(podman compose ps:*)"
-    "Bash(podman images:*)"
-    "Bash(podman info:*)"
-    "Bash(podman inspect:*)"
-    "Bash(podman logs:*)"
-    "Bash(podman ps:*)"
-    "Bash(podman version:*)"
     "Bash(helm dependency list:*)"
     "Bash(helm env:*)"
     "Bash(helm get:*)"
@@ -262,9 +296,19 @@
     "Bash(kubectl get:*)"
     "Bash(kubectl logs:*)"
     "Bash(kubectl version:*)"
+    "Bash(podman compose config:*)"
+    "Bash(podman compose logs:*)"
+    "Bash(podman compose ls:*)"
+    "Bash(podman compose ps:*)"
+    "Bash(podman images:*)"
+    "Bash(podman info:*)"
+    "Bash(podman inspect:*)"
+    "Bash(podman logs:*)"
+    "Bash(podman ps:*)"
+    "Bash(podman version:*)"
 
     # --------------------------------------------------------------------------
-    # MCP servers - Read-only
+    # MCP
     # --------------------------------------------------------------------------
     "mcp__Context7"
     "mcp__DeepWiki"
@@ -296,22 +340,22 @@
     "mcp__ide"
   ];
 
+  # ============================================================================
+  # Ask - Requires confirmation (write / destructive / remote operations)
+  # ============================================================================
+
   ask = [
     # --------------------------------------------------------------------------
-    # Filesystem - Destructive
-    # --------------------------------------------------------------------------
-    "Bash(rm:*)"
-    "Bash(rmdir:*)"
-
-    # --------------------------------------------------------------------------
-    # Permissions & Ownership
+    # Filesystem
     # --------------------------------------------------------------------------
     "Bash(chgrp:*)"
     "Bash(chmod:*)"
     "Bash(chown:*)"
+    "Bash(rm:*)"
+    "Bash(rmdir:*)"
 
     # --------------------------------------------------------------------------
-    # Process Control
+    # System
     # --------------------------------------------------------------------------
     "Bash(kill:*)"
     "Bash(killall:*)"
@@ -319,7 +363,90 @@
     "Bash(sudo:*)"
 
     # --------------------------------------------------------------------------
-    # Nix - Write Operations
+    # systemd
+    # --------------------------------------------------------------------------
+    "Bash(hostnamectl set-hostname:*)"
+    "Bash(localectl set-keymap:*)"
+    "Bash(localectl set-locale:*)"
+    "Bash(localectl set-x11-keymap:*)"
+    "Bash(loginctl kill-session:*)"
+    "Bash(loginctl kill-user:*)"
+    "Bash(loginctl terminate-session:*)"
+    "Bash(loginctl terminate-user:*)"
+    "Bash(systemctl --user daemon-reload:*)"
+    "Bash(systemctl --user disable:*)"
+    "Bash(systemctl --user enable:*)"
+    "Bash(systemctl --user kill:*)"
+    "Bash(systemctl --user mask:*)"
+    "Bash(systemctl --user reload:*)"
+    "Bash(systemctl --user reset-failed:*)"
+    "Bash(systemctl --user restart:*)"
+    "Bash(systemctl --user start:*)"
+    "Bash(systemctl --user stop:*)"
+    "Bash(systemctl --user unmask:*)"
+    "Bash(systemctl daemon-reload:*)"
+    "Bash(systemctl disable:*)"
+    "Bash(systemctl enable:*)"
+    "Bash(systemctl kill:*)"
+    "Bash(systemctl mask:*)"
+    "Bash(systemctl reload:*)"
+    "Bash(systemctl reset-failed:*)"
+    "Bash(systemctl restart:*)"
+    "Bash(systemctl start:*)"
+    "Bash(systemctl stop:*)"
+    "Bash(systemctl unmask:*)"
+    "Bash(timedatectl set-local-rtc:*)"
+    "Bash(timedatectl set-ntp:*)"
+    "Bash(timedatectl set-time:*)"
+    "Bash(timedatectl set-timezone:*)"
+
+    # --------------------------------------------------------------------------
+    # Network
+    # --------------------------------------------------------------------------
+    "Bash(rsync:*)"
+    "Bash(scp:*)"
+    "Bash(sftp:*)"
+    "Bash(ssh:*)"
+
+    # --------------------------------------------------------------------------
+    # macOS
+    # --------------------------------------------------------------------------
+    "Bash(launchctl bootstrap:*)"
+    "Bash(launchctl bootout:*)"
+    "Bash(launchctl disable:*)"
+    "Bash(launchctl enable:*)"
+    "Bash(launchctl kickstart:*)"
+    "Bash(launchctl kill:*)"
+    "Bash(launchctl load:*)"
+    "Bash(launchctl unload:*)"
+
+    # --------------------------------------------------------------------------
+    # Git
+    # --------------------------------------------------------------------------
+    "Bash(git branch -D:*)"
+    "Bash(git branch -d:*)"
+    "Bash(git checkout:*)"
+    "Bash(git cherry-pick:*)"
+    "Bash(git clean:*)"
+    "Bash(git clone:*)"
+    "Bash(git commit:*)"
+    "Bash(git config:*)"
+    "Bash(git fetch:*)"
+    "Bash(git merge:*)"
+    "Bash(git pull:*)"
+    "Bash(git push:*)"
+    "Bash(git rebase:*)"
+    "Bash(git reset:*)"
+    "Bash(git restore:*)"
+    "Bash(git stash:*)"
+    "Bash(git submodule:*)"
+    "Bash(git switch:*)"
+    "Bash(git tag -d:*)"
+    "Bash(git worktree add:*)"
+    "Bash(git worktree remove:*)"
+
+    # --------------------------------------------------------------------------
+    # Nix
     # --------------------------------------------------------------------------
     "Bash(darwin-rebuild:*)"
     "Bash(home-manager:*)"
@@ -347,40 +474,7 @@
     "Bash(nixos-rebuild:*)"
 
     # --------------------------------------------------------------------------
-    # Git - Write Operations
-    # --------------------------------------------------------------------------
-    "Bash(git branch -D:*)"
-    "Bash(git branch -d:*)"
-    "Bash(git checkout:*)"
-    "Bash(git cherry-pick:*)"
-    "Bash(git clean:*)"
-    "Bash(git clone:*)"
-    "Bash(git commit:*)"
-    "Bash(git config:*)"
-    "Bash(git fetch:*)"
-    "Bash(git merge:*)"
-    "Bash(git pull:*)"
-    "Bash(git push:*)"
-    "Bash(git rebase:*)"
-    "Bash(git reset:*)"
-    "Bash(git restore:*)"
-    "Bash(git stash:*)"
-    "Bash(git submodule:*)"
-    "Bash(git switch:*)"
-    "Bash(git tag -d:*)"
-    "Bash(git worktree add:*)"
-    "Bash(git worktree remove:*)"
-
-    # --------------------------------------------------------------------------
-    # Network - Remote Access
-    # --------------------------------------------------------------------------
-    "Bash(rsync:*)"
-    "Bash(scp:*)"
-    "Bash(sftp:*)"
-    "Bash(ssh:*)"
-
-    # --------------------------------------------------------------------------
-    # Containers - Write Operations
+    # Containers
     # --------------------------------------------------------------------------
     "Bash(docker build:*)"
     "Bash(docker compose build:*)"
@@ -394,18 +488,6 @@
     "Bash(docker rmi:*)"
     "Bash(docker run:*)"
     "Bash(docker stop:*)"
-    "Bash(podman build:*)"
-    "Bash(podman compose build:*)"
-    "Bash(podman compose down:*)"
-    "Bash(podman compose restart:*)"
-    "Bash(podman compose up:*)"
-    "Bash(podman exec:*)"
-    "Bash(podman pull:*)"
-    "Bash(podman push:*)"
-    "Bash(podman rm:*)"
-    "Bash(podman rmi:*)"
-    "Bash(podman run:*)"
-    "Bash(podman stop:*)"
     "Bash(helm create:*)"
     "Bash(helm dependency build:*)"
     "Bash(helm dependency update:*)"
@@ -433,9 +515,21 @@
     "Bash(kubectl exec:*)"
     "Bash(kubectl rollout:*)"
     "Bash(kubectl scale:*)"
+    "Bash(podman build:*)"
+    "Bash(podman compose build:*)"
+    "Bash(podman compose down:*)"
+    "Bash(podman compose restart:*)"
+    "Bash(podman compose up:*)"
+    "Bash(podman exec:*)"
+    "Bash(podman pull:*)"
+    "Bash(podman push:*)"
+    "Bash(podman rm:*)"
+    "Bash(podman rmi:*)"
+    "Bash(podman run:*)"
+    "Bash(podman stop:*)"
 
     # --------------------------------------------------------------------------
-    # MCP servers - Write Operations
+    # MCP
     # --------------------------------------------------------------------------
     "mcp__GitHub__add_comment_to_pending_review"
     "mcp__GitHub__add_issue_comment"
@@ -455,6 +549,10 @@
     "mcp__GitHub__update_pull_request"
     "mcp__GitHub__update_pull_request_branch"
   ];
+
+  # ============================================================================
+  # Deny - Always blocked
+  # ============================================================================
 
   deny = [ ];
 }

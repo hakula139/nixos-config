@@ -8,6 +8,7 @@ bnext
 bprevious
 bradlc
 btop
+busctl
 cachix
 catppuccin
 ccache
@@ -76,6 +77,7 @@ libkrb
 libuuid
 linkify
 lldb
+localectl
 marp
 mechatroner
 meslo
@@ -88,6 +90,7 @@ msmtp
 msmtprc
 myip
 nbsp
+networkctl
 nixfmt
 nixgc
 nixos
@@ -125,6 +128,7 @@ qdisc
 raku
 recents
 rerere
+resolvectl
 retag
 revealjs
 rprx
@@ -149,6 +153,7 @@ t3dotgg
 tabdo
 tamasfe
 telegramcidr
+timedatectl
 tmp
 tmpfiles
 toolsai
