@@ -46,6 +46,11 @@ in
     enable = true;
     proxy.enable = true;
   };
+  home-manager.users.hakula.hakula.mihomo = {
+    enable = true;
+    port = 7897;
+    controllerPort = 59386;
+  };
 
   # ============================================================================
   # System State
