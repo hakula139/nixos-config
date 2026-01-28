@@ -66,6 +66,7 @@ ints
 ipcidr
 jnoortheen
 journalctl
+jqdomain
 kdelpf
 kdelrs
 keyclu

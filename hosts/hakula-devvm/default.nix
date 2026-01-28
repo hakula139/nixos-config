@@ -1,3 +1,5 @@
+{ lib, ... }:
+
 {
   # ============================================================================
   # Home Manager Settings
@@ -14,8 +16,18 @@
   hakula.cursor.extensions.prune = false;
 
   # ============================================================================
+  # SSH Configuration
+  # ============================================================================
+  programs.ssh.matchBlocks = {
+    "github.com" = {
+      hostname = "github-proxy.jqdomain.com";
+      forwardAgent = true;
+    };
+  };
+
+  # ============================================================================
   # Services
   # ============================================================================
-  services.ssh-agent.enable = false;
-  services.syncthing.enable = false;
+  services.ssh-agent.enable = lib.mkForce false;
+  services.syncthing.enable = lib.mkForce false;
 }
