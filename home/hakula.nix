@@ -24,6 +24,7 @@ in
     ./modules/cursor
     ./modules/git
     ./modules/mihomo
+    ./modules/nix
     ./modules/ssh
     ./modules/syncthing
     ./modules/wakatime
@@ -36,6 +37,7 @@ in
   home = {
     username = lib.mkDefault "hakula";
     homeDirectory = lib.mkDefault (if isDarwin then "/Users/hakula" else "/home/hakula");
+    stateVersion = lib.mkDefault "25.11";
   };
 
   # ----------------------------------------------------------------------------
