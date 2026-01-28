@@ -175,4 +175,5 @@ whereis
 wimpysworld
 xtls
 yzhang
+zstd
 zstyle

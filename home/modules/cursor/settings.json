@@ -254,11 +254,6 @@
       "icon": "terminal-bash",
       "path": "bash"
     },
-    "nix-zsh": {
-      "args": [],
-      "icon": "terminal-linux",
-      "path": "~/bin/nix-zsh"
-    },
     "zsh": {
       "args": [
         "-l",

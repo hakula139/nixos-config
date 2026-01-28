@@ -8,7 +8,7 @@ This is a **flake-based NixOS / nix-darwin configuration** managing multiple sys
 
 - **4 NixOS servers** (us-1, us-2, us-3, sg-1) on x86_64-linux
 - **1 macOS workstation** (hakula-macbook) on aarch64-darwin
-- **1 generic Linux** (hakula-work) using standalone Home Manager
+- **2 generic Linux** (hakula-work, hakula-devvm) using standalone Home Manager
 
 The architecture emphasizes modularity, with shared base configuration in `modules/shared.nix` and per-host customization in `hosts/`.
 
@@ -90,7 +90,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 
 - `nixosConfigurations.*`: Server configurations (us-1, us-2, us-3, sg-1)
 - `darwinConfigurations.hakula-macbook`: macOS configuration
-- `homeConfigurations.hakula-work`: Standalone Home Manager for generic Linux
+- `homeConfigurations.*`: Standalone Home Manager for generic Linux (hakula-work, hakula-devvm)
 - `checks.*.pre-commit`: Pre-commit hook validation
 - `devShells.default`: Development environment with pre-commit hooks
 - `formatter`: nixfmt-rfc-style
@@ -107,7 +107,8 @@ The flake uses a **builder function pattern** to reduce duplication:
 │   ├── us-3/                    # CloudCone SC2 server
 │   ├── sg-1/                    # Tencent Lighthouse server
 │   ├── hakula-macbook/          # macOS workstation
-│   └── hakula-work/             # Work PC (WSL)
+│   ├── hakula-work/             # Work PC (WSL)
+│   └── hakula-devvm/            # DevVM (isolated corporate server)
 ├── modules/
 │   ├── shared.nix               # Cross-platform base config
 │   ├── nixos/                   # NixOS service modules (21 modules)
@@ -119,6 +120,8 @@ The flake uses a **builder function pattern** to reduce duplication:
 │       ├── cursor/              # Cursor editor config
 │       ├── git/                 # Git configuration
 │       ├── mcp/                 # MCP server definitions (shared)
+│       ├── mihomo/              # Mihomo proxy client
+│       ├── nix/                 # User-level nix.conf for standalone HM
 │       ├── ssh/                 # SSH client config
 │       ├── syncthing/           # Syncthing file synchronization
 │       ├── wakatime/            # Wakatime time tracking
