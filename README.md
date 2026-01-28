@@ -15,7 +15,7 @@ NixOS configuration for Hakula's machines (flake-based).
 | `sg-1`           | x86_64-linux   | NixOS server                 |
 | `hakula-macbook` | aarch64-darwin | macOS (nix-darwin)           |
 | `hakula-work`    | x86_64-linux   | Generic Linux (Home Manager) |
-| `hakula-devvm`   | x86_64-linux   | Generic Linux (Home Manager) |
+| `hakula-devvm`   | x86_64-linux   | Docker Image (NixOS)         |
 
 ## NixOS
 
@@ -95,6 +95,31 @@ After setting up the alias:
 nixsw hakula-work
 ```
 
+## Docker Images (for air-gapped deployment)
+
+For environments where Nix cannot be installed natively, NixOS Docker images can be built using [nixos-generators](https://github.com/nix-community/nixos-generators).
+
+### Build Docker Image
+
+```bash
+nix build '.#packages.x86_64-linux.hakula-devvm-docker'
+```
+
+### Deploy Docker Image
+
+```bash
+# Import the filesystem tarball as a Docker image
+docker import result/tarball/nixos-system-x86_64-linux.tar.xz nixos:latest
+
+# Run the container
+docker run -d --name hakula-devvm \
+  --restart unless-stopped \
+  -v ~/:/home/hakula \
+  nixos:latest /init
+```
+
+Connect via VS Code / Cursor using the **Dev Containers: Attach to Running Container** command.
+
 ## Update
 
 ```bash
@@ -131,8 +156,9 @@ GitHub Actions automatically validates the configuration on every push and pull 
 
 - **Flake Check**: Validates flake structure using `nix flake check --all-systems`
 - **Build NixOS**: Tests building the `us-1` NixOS server configuration on x86_64-linux
-- **Build Generic Linux**: Tests building the `hakula-work` Home Manager configuration on x86_64-linux
 - **Build macOS**: Tests building the `hakula-macbook` configuration on aarch64-darwin
+- **Build Generic Linux**: Tests building the `hakula-work` Home Manager configuration on x86_64-linux
+- **Build Docker**: Tests building the `hakula-devvm-docker` Docker image on x86_64-linux
 
 ## Secrets
 
