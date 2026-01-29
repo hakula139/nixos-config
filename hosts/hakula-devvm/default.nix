@@ -6,9 +6,16 @@
   ];
 
   # ============================================================================
-  # Container Configuration
+  # Networking
   # ============================================================================
-  networking.hostName = "hakula-devvm";
+  networking = {
+    hostName = "hakula-devvm";
+    nameservers = [
+      "10.0.0.5"
+      "10.0.0.6"
+    ];
+    search = [ "saljiut.jqdomain.com" ];
+  };
 
   # ============================================================================
   # Home Manager Overrides

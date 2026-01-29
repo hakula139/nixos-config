@@ -138,6 +138,7 @@ revealjs
 rprx
 rustc
 ryantm
+saljiut
 sarasa
 sess
 sgid
