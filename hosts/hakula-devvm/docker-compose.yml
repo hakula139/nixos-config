@@ -21,6 +21,11 @@ services:
     environment:
       USER: hakula
       PATH: /run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTP_PROXY:-}
+      http_proxy: ${HTTP_PROXY:-}
+      https_proxy: ${HTTP_PROXY:-}
+      no_proxy: localhost,127.0.0.1,*.jqdomain.com,10.*
 
     # -------------------------------------------------------------------------
     # Network
