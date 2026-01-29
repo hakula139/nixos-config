@@ -114,7 +114,7 @@ docker import result/tarball/nixos-system-x86_64-linux.tar.xz nixos:latest
 # Run the container
 docker run -d --name hakula-devvm \
   --restart unless-stopped \
-  -v ~/:/home/hakula \
+  -v ~/workspace:/home/hakula/workspace \
   nixos:latest /init
 ```
 

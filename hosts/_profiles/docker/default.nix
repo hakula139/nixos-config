@@ -28,5 +28,8 @@
   # ============================================================================
   # User Overrides
   # ============================================================================
-  users.users.hakula.linger = false;
+  users.users.hakula = {
+    createHome = false;
+    linger = false;
+  };
 }
