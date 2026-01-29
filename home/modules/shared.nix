@@ -4,7 +4,7 @@
   lib,
   secrets,
   isNixOS ? false,
-  isDesktop ? false,
+  enableDevToolchains ? false,
   ...
 }:
 
@@ -95,9 +95,9 @@ in
     ++ tooling.nix
     ++ tooling.secrets
     # --------------------------------------------------------------------------
-    # Desktop-only packages (heavy dev toolchains)
+    # Additional Dev Toolchains
     # --------------------------------------------------------------------------
-    ++ lib.optionals isDesktop (
+    ++ lib.optionals enableDevToolchains (
       with pkgs;
       [
         # ----------------------------------------------------------------------
@@ -153,7 +153,7 @@ in
     # Node.js
     PNPM_HOME = "${config.xdg.dataHome}/pnpm";
   }
-  // lib.optionalAttrs isDesktop {
+  // lib.optionalAttrs enableDevToolchains {
     # Go
     GOPATH = "$HOME/go";
 
@@ -171,7 +171,7 @@ in
     "$HOME/.local/bin"
     "${config.xdg.dataHome}/pnpm"
   ]
-  ++ lib.optionals isDesktop [
+  ++ lib.optionals enableDevToolchains [
     "$HOME/go/bin"
     "$HOME/.cargo/bin"
   ];

@@ -133,6 +133,7 @@
                   inherit inputs secrets;
                   isNixOS = true;
                   isDesktop = false;
+                  enableDevToolchains = false;
                 };
               };
             }
@@ -172,6 +173,7 @@
                   inherit inputs secrets;
                   isNixOS = false;
                   isDesktop = true;
+                  enableDevToolchains = true;
                 };
               };
             }
@@ -183,6 +185,7 @@
         {
           configPath,
           isDesktop ? true,
+          enableDevToolchains ? true,
         }:
         home-manager.lib.homeManagerConfiguration {
           pkgs = pkgsFor "x86_64-linux";
@@ -191,7 +194,12 @@
             configPath
           ];
           extraSpecialArgs = {
-            inherit inputs secrets isDesktop;
+            inherit
+              inputs
+              secrets
+              isDesktop
+              enableDevToolchains
+              ;
             isNixOS = false;
           };
         };
@@ -199,6 +207,7 @@
       mkDocker =
         {
           configPath,
+          enableDevToolchains ? false,
         }:
         nixos-generators.nixosGenerate {
           system = "x86_64-linux";
@@ -224,7 +233,7 @@
                 };
                 backupFileExtension = "bak";
                 extraSpecialArgs = {
-                  inherit inputs secrets;
+                  inherit inputs secrets enableDevToolchains;
                   isNixOS = true;
                   isDesktop = false;
                 };
@@ -307,6 +316,7 @@
         # ----------------------------------------------------------------------
         hakula-devvm-docker = mkDocker {
           configPath = ./hosts/hakula-devvm;
+          enableDevToolchains = true;
         };
       };
 
