@@ -29,6 +29,7 @@ davidanson
 dbaeumer
 dbengine
 debugpy
+devvm
 direnv
 disko
 drblury
@@ -61,10 +62,12 @@ horiz
 iface
 inetutils
 inodes
+inotify
 ints
 ipcidr
 jnoortheen
 journalctl
+jqdomain
 kdelpf
 kdelrs
 keyclu
@@ -98,6 +101,7 @@ nixpkgs
 nixsw
 nixup
 nlsv
+nofile
 nslookup
 nvim
 pcall
@@ -134,6 +138,7 @@ revealjs
 rprx
 rustc
 ryantm
+saljiut
 sarasa
 sess
 sgid
@@ -156,9 +161,11 @@ telegramcidr
 timedatectl
 tmp
 tmpfiles
+tmpfs
 toolsai
 tulanp
 twikoo
+ulimits
 usernamehw
 utun
 vadimcn
@@ -173,4 +180,5 @@ whereis
 wimpysworld
 xtls
 yzhang
+zstd
 zstyle

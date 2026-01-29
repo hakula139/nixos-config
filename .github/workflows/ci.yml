@@ -44,14 +44,18 @@ jobs:
             name: cloudcone-sc2 (x86_64-linux, NixOS)
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-1.config.system.build.toplevel
-          - id: generic-linux
-            name: hakula-linux (x86_64-linux, Generic Linux)
-            runner: ubuntu-latest
-            target: .#homeConfigurations.hakula-work.activationPackage
           - id: macos
             name: hakula-macbook (aarch64-darwin, macOS)
             runner: macos-latest
             target: .#darwinConfigurations.hakula-macbook.system
+          - id: generic-linux
+            name: hakula-work (x86_64-linux, Generic Linux)
+            runner: ubuntu-latest
+            target: .#homeConfigurations.hakula-work.activationPackage
+          - id: docker
+            name: hakula-devvm (x86_64-linux, Docker)
+            runner: ubuntu-latest
+            target: .#packages.x86_64-linux.hakula-devvm-docker
 
     steps:
       - name: Checkout repository

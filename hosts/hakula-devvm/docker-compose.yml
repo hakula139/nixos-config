@@ -1,0 +1,53 @@
+services:
+  hakula-devvm:
+    image: nixos:latest
+    container_name: hakula-devvm
+
+    # -------------------------------------------------------------------------
+    # Container
+    # -------------------------------------------------------------------------
+    hostname: hakula-devvm
+    command: /init
+    restart: unless-stopped
+    privileged: true
+    stop_grace_period: 20s
+
+    labels:
+      devcontainer.metadata: '[{"remoteUser": "hakula"}]'
+
+    # -------------------------------------------------------------------------
+    # Environment
+    # -------------------------------------------------------------------------
+    environment:
+      USER: hakula
+      PATH: /run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin
+
+    # -------------------------------------------------------------------------
+    # Network
+    # -------------------------------------------------------------------------
+    network_mode: host
+
+    # -------------------------------------------------------------------------
+    # Storage
+    # -------------------------------------------------------------------------
+    volumes:
+      - hakula-home:/home/hakula
+
+    tmpfs:
+      - /tmp
+
+    # -------------------------------------------------------------------------
+    # Resource Tuning
+    # -------------------------------------------------------------------------
+    shm_size: 128g
+
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+      nproc:
+        soft: 966085
+        hard: 966085
+
+volumes:
+  hakula-home:
