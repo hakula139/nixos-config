@@ -50,6 +50,7 @@ services:
       - ~/.kube:/home/hakula/.kube:ro
       - ~/.npmrc:/home/hakula/.npmrc:ro
       - ~/.ssh:/home/hakula/.ssh
+      - ~/workspace:/home/hakula/workspace
 
     tmpfs:
       - /tmp
