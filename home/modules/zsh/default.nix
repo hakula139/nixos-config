@@ -130,11 +130,6 @@ in
       cat = "bat --paging=never";
       grep = "grep --color=auto";
 
-      # Safe file operations (prompt before overwrite)
-      cp = "cp -i";
-      mv = "mv -i";
-      rm = "rm -i";
-
       # Disk usage
       df = "df -h";
       du = "du -h";
