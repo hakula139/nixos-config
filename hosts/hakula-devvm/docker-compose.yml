@@ -38,17 +38,16 @@ services:
       - /etc/ssh/ssh_host_ed25519_key:/etc/ssh/ssh_host_ed25519_key:ro
       - /etc/ssh/ssh_host_ed25519_key.pub:/etc/ssh/ssh_host_ed25519_key.pub:ro
       - /usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro
-      - /var/run/docker.sock:/var/run/docker.sock
       - ~/.cargo/config.toml:/root/.cargo/config.toml:ro
       - ~/.condarc:/root/.condarc:ro
       - ~/.config/containers/registries.conf:/root/.config/containers/registries.conf:ro
       - ~/.config/go/env:/root/.config/go/env:ro
       - ~/.config/pip/pip.conf:/root/.config/pip/pip.conf:ro
-      - ~/.docker/config.json:/root/.docker/config.json:ro
       - ~/.kube:/root/.kube:ro
       - ~/.npmrc:/root/.npmrc:ro
       - ~/.ssh:/root/.ssh
-      - ~/workspace:/root/workspace
+      - ~/workspace:${HOME}/workspace
+      - ${XDG_RUNTIME_DIR}/docker.sock:/var/run/docker.sock
 
     tmpfs:
       - /tmp
