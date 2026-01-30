@@ -19,6 +19,14 @@
   hakula.mcp.enable = true;
 
   # ============================================================================
+  # Environment
+  # ============================================================================
+  # Rootless Docker maps container root to the host user, so running as root
+  # inside the container is safe and avoids bind-mount permission issues.
+  # Use hakula's per-user profile so root gets the full HM environment.
+  environment.profiles = [ "/etc/profiles/per-user/hakula" ];
+
+  # ============================================================================
   # Home Manager Overrides
   # ============================================================================
   home-manager.users.hakula = {
