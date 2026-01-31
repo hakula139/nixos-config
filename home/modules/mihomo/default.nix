@@ -79,12 +79,8 @@ let
   startScript = pkgs.writeShellScript "mihomo-start" ''
     set -euo pipefail
 
-    CONFIG_FILE="${configFile}"
-
-    if [ ! -f "$CONFIG_FILE" ]; then
-      echo "Config not found, running update first..."
-      ${updateScript}
-    fi
+    echo "Updating config before start..."
+    ${updateScript}
 
     echo "Starting mihomo..."
     exec ${pkgs.mihomo}/bin/mihomo -d ${configDir}
