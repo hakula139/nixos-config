@@ -18,6 +18,7 @@
     us-2 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPxT+47E+dG8+MClHeVb6zNhPcprRH76tOVlUMhrXmfM";
     us-3 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEnjZoYN+khNCCzTJhTxFd0ncGwlLoh+45HWe1slXGOV";
     sg-1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7u+0CKIQHDMQNF9L90xoMe9lhruFqYDG48Da7zlM8G";
+    hakula-devvm = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPtuESxjZuWsJeW4vCxkKbVnWDj08Y2FcI75w8o56Bm8";
   };
 
   # Workstation SSH keys (~/.ssh/id_ed25519.pub)

@@ -14,8 +14,9 @@ let
   shared = import ../shared.nix { inherit pkgs; };
   keys = import ../../secrets/keys.nix;
 
-  sshCfg = config.hakula.access.ssh;
-  userCfg = config.users.users.hakula;
+  cfg = config.hakula;
+  sshCfg = cfg.access.ssh;
+  userCfg = config.users.users.${cfg.user.name};
 
   # REALITY SNI Host
   # If you change this, also update secrets/shared/xray-config.json.age.
@@ -50,6 +51,14 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
+  options.hakula.user = {
+    name = lib.mkOption {
+      type = lib.types.str;
+      default = "hakula";
+      description = "Primary user account name";
+    };
+  };
+
   options.hakula.access.ssh = {
     authorizedKeys = lib.mkOption {
       type = lib.types.listOf lib.types.str;
@@ -95,7 +104,7 @@ in
     # --------------------------------------------------------------------------
     # Boot & Kernel
     # --------------------------------------------------------------------------
-    boot.kernel.sysctl = {
+    boot.kernel.sysctl = lib.mkDefault {
       # TCP BBR: Better throughput on high-latency / lossy networks
       "net.core.default_qdisc" = "fq";
       "net.ipv4.tcp_congestion_control" = "bbr";
@@ -117,11 +126,11 @@ in
     # Networking
     # --------------------------------------------------------------------------
     networking = {
-      domain = "hakula.xyz";
+      domain = lib.mkDefault "hakula.xyz";
       firewall = {
-        enable = true;
-        allowPing = true;
-        allowedTCPPorts = [
+        enable = lib.mkDefault true;
+        allowPing = lib.mkDefault true;
+        allowedTCPPorts = lib.mkDefault [
           80
           443
           # Note: SSH port is auto-opened by services.openssh
@@ -134,13 +143,16 @@ in
     # --------------------------------------------------------------------------
     users.defaultUserShell = pkgs.zsh;
 
-    users.users.root.openssh.authorizedKeys.keys = sshCfg.authorizedKeys ++ [ keys.builder ];
-
-    users.users.hakula = {
-      isNormalUser = true;
-      extraGroups = [ "wheel" ];
-      openssh.authorizedKeys.keys = sshCfg.authorizedKeys;
-      linger = true;
+    users.users = {
+      root.openssh.authorizedKeys.keys = lib.mkDefault (sshCfg.authorizedKeys ++ [ keys.builder ]);
+    }
+    // lib.optionalAttrs (cfg.user.name != "root") {
+      ${cfg.user.name} = {
+        isNormalUser = true;
+        extraGroups = [ "wheel" ];
+        openssh.authorizedKeys.keys = lib.mkDefault sshCfg.authorizedKeys;
+        linger = lib.mkDefault true;
+      };
     };
 
     security.sudo.wheelNeedsPassword = false;
