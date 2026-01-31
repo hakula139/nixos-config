@@ -47,11 +47,6 @@ in
       enable = true;
       proxy.enable = true;
     };
-    hakula.mihomo = {
-      enable = true;
-      port = 7897;
-      controllerPort = 59386;
-    };
   };
 
   # ============================================================================
