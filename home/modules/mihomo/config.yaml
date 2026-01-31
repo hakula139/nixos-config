@@ -19,6 +19,7 @@ geo-update-interval: 24
 dns:
   enable: true
   prefer-h3: true
+  use-system-hosts: true
   ipv6: true
   default-nameserver:
     - 223.5.5.5
