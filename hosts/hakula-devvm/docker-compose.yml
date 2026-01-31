@@ -1,0 +1,69 @@
+services:
+  hakula-devvm:
+    image: nixos:latest
+    container_name: hakula-devvm
+
+    # -------------------------------------------------------------------------
+    # Container
+    # -------------------------------------------------------------------------
+    hostname: hakula-devvm
+    command: /init
+    restart: unless-stopped
+    privileged: true
+    stop_grace_period: 20s
+
+    # -------------------------------------------------------------------------
+    # Environment
+    # -------------------------------------------------------------------------
+    environment:
+      USER: root
+      HOME: /root
+      PATH: /run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin
+      http_proxy: ${http_proxy:-}
+      https_proxy: ${http_proxy:-}
+      no_proxy: ${no_proxy:-}
+
+    # -------------------------------------------------------------------------
+    # Network
+    # -------------------------------------------------------------------------
+    network_mode: host
+
+    # -------------------------------------------------------------------------
+    # Storage
+    # -------------------------------------------------------------------------
+    volumes:
+      - devvm-root:/root
+
+      - /etc/resolv.conf:/etc/resolv.conf:ro
+      - /etc/ssh/ssh_host_ed25519_key:/etc/ssh/ssh_host_ed25519_key:ro
+      - /etc/ssh/ssh_host_ed25519_key.pub:/etc/ssh/ssh_host_ed25519_key.pub:ro
+      - /usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro
+      - ~/.cargo/config.toml:/root/.cargo/config.toml:ro
+      - ~/.condarc:/root/.condarc:ro
+      - ~/.config/containers/registries.conf:/root/.config/containers/registries.conf:ro
+      - ~/.config/go/env:/root/.config/go/env:ro
+      - ~/.config/pip/pip.conf:/root/.config/pip/pip.conf:ro
+      - ~/.kube:/root/.kube:ro
+      - ~/.npmrc:/root/.npmrc:ro
+      - ~/.ssh:/root/.ssh
+      - ~/workspace:${HOME}/workspace
+      - ${XDG_RUNTIME_DIR}/docker.sock:/var/run/docker.sock
+
+    tmpfs:
+      - /tmp
+
+    # -------------------------------------------------------------------------
+    # Resource Tuning
+    # -------------------------------------------------------------------------
+    shm_size: 128g
+
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+      nproc:
+        soft: 966085
+        hard: 966085
+
+volumes:
+  devvm-root:

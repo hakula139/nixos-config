@@ -4,7 +4,7 @@
   lib,
   secrets,
   isNixOS ? false,
-  isDesktop ? false,
+  enableDevToolchains ? false,
   ...
 }:
 
@@ -42,7 +42,7 @@ in
     let
       hooks = import ./hooks.nix;
       permissions = import ./permissions.nix;
-      plugins = import ./plugins.nix { inherit lib isDesktop; };
+      plugins = import ./plugins.nix { inherit lib enableDevToolchains; };
 
       mcp = import ../mcp {
         inherit

@@ -41,7 +41,7 @@ let
   # DeepWiki
   # ----------------------------------------------------------------------------
   deepwikiBin = pkgs.writeShellScriptBin "deepwiki-mcp" ''
-    exec ${pkgs.nodejs}/bin/npx -y mcp-remote https://mcp.deepwiki.com/sse --transport sse-first "$@"
+    exec ${pkgs.nodejs}/bin/npx -y mcp-remote https://mcp.deepwiki.com/mcp --transport http-first "$@"
   '';
 
   # ----------------------------------------------------------------------------

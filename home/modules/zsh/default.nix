@@ -11,6 +11,7 @@
 # ==============================================================================
 
 let
+  cfg = config.hakula.zsh;
   isDarwin = pkgs.stdenv.isDarwin;
   isLinux = pkgs.stdenv.isLinux;
 in
@@ -23,6 +24,17 @@ in
     ./tools.nix
     ./zoxide.nix
   ];
+
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
+  options.hakula.zsh = {
+    fzfTab.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Whether to enable fzf-tab plugin (requires compatible glibc)";
+    };
+  };
 
   config.programs.zsh = {
     enable = true;
@@ -94,7 +106,7 @@ in
     # --------------------------------------------------------------------------
     # Plugins
     # --------------------------------------------------------------------------
-    plugins = [
+    plugins = lib.optionals cfg.fzfTab.enable [
       {
         name = "fzf-tab";
         src = pkgs.zsh-fzf-tab;
@@ -117,11 +129,6 @@ in
       lt = "eza --tree --icons --group-directories-first --level=2";
       cat = "bat --paging=never";
       grep = "grep --color=auto";
-
-      # Safe file operations (prompt before overwrite)
-      cp = "cp -i";
-      mv = "mv -i";
-      rm = "rm -i";
 
       # Disk usage
       df = "df -h";
@@ -237,11 +244,15 @@ in
       # Load zmv for batch renaming
       autoload -U zmv
 
+    ''
+    + lib.optionalString cfg.fzfTab.enable ''
       # fzf-tab styling
       zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border
       zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
       zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
 
+    ''
+    + ''
       # Create directory and cd into it
       mkcd() { mkdir -p "$1" && cd "$1"; }
 

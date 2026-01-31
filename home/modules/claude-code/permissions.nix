@@ -59,6 +59,7 @@
     "Bash(tar:*)"
     "Bash(unzip:*)"
     "Bash(zip:*)"
+    "Bash(zstd:*)"
 
     # --------------------------------------------------------------------------
     # Text Processing
@@ -243,6 +244,7 @@
     "Bash(nix build:*)"
     "Bash(nix derivation show:*)"
     "Bash(nix eval:*)"
+    "Bash(nix flake archive:*)"
     "Bash(nix flake check:*)"
     "Bash(nix flake info:*)"
     "Bash(nix flake metadata:*)"

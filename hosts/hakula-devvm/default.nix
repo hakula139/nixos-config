@@ -1,61 +1,41 @@
-{
-  hostName,
-  displayName,
-  ...
-}:
+{ lib, ... }:
 
-let
-  keys = import ../../secrets/keys.nix;
-in
 {
   imports = [
-    ../../modules/darwin
+    ../_profiles/docker
   ];
 
   # ============================================================================
   # Networking
   # ============================================================================
-  networking = {
-    inherit hostName;
-    computerName = displayName;
-    localHostName = displayName;
-  };
+  networking.hostName = "hakula-devvm";
+
+  # DNS config (nameservers, search domain) comes from bind-mounted host
+  # /etc/resolv.conf — see docker-compose.yml volumes.
 
   # ============================================================================
-  # Access (SSH)
+  # User Configuration
   # ============================================================================
-  hakula.access.ssh.authorizedKeys = with keys.workstations; [
-    hakula-macbook
-    hakula-work
-  ];
+  hakula.user.name = "root";
 
   # ============================================================================
   # Credentials
   # ============================================================================
-  hakula.cachix.enable = true;
-
-  # ============================================================================
-  # Services
-  # ============================================================================
-  hakula.services.openssh.enable = true;
+  hakula.mcp.enable = true;
 
   # ============================================================================
   # Home Manager Overrides
   # ============================================================================
-  home-manager.users.hakula = {
-    hakula.claude-code = {
-      enable = true;
-      proxy.enable = true;
-    };
-    hakula.mihomo = {
-      enable = true;
-      port = 7897;
-      controllerPort = 59386;
-    };
+  home-manager.users.root = {
+    # SSH config comes from bind-mounted host ~/.ssh/config.
+    programs.ssh.enable = lib.mkForce false;
+
+    services.ssh-agent.enable = false;
+    services.syncthing.enable = false;
   };
 
   # ============================================================================
   # System State
   # ============================================================================
-  system.stateVersion = 6;
+  system.stateVersion = "25.11";
 }

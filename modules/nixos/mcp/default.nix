@@ -23,7 +23,7 @@ in
 
     user = lib.mkOption {
       type = lib.types.str;
-      default = "hakula";
+      default = config.hakula.user.name;
       description = "User to store MCP secrets for";
     };
   };
