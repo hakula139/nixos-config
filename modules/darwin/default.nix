@@ -254,6 +254,7 @@ in
 
       activationScripts.postActivation.text = ''
         pmset -a networkoversleep 1
+        pmset -c sleep 0
       '';
     };
 
