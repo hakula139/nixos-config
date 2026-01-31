@@ -1,6 +1,6 @@
 {
   lib,
-  isDesktop ? false,
+  enableDevToolchains ? false,
   ...
 }:
 
@@ -36,8 +36,8 @@
     # Third-party plugins
     "claude-code-wakatime@wakatime" = true;
   }
-  # Desktop-only plugins (require heavy dev toolchains)
-  // lib.optionalAttrs isDesktop {
+  # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
+  // lib.optionalAttrs enableDevToolchains {
     # Official LSP plugins
     "clangd-lsp@claude-plugins-official" = true;
     "gopls-lsp@claude-plugins-official" = true;

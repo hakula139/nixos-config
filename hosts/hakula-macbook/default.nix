@@ -40,16 +40,18 @@ in
   hakula.services.openssh.enable = true;
 
   # ============================================================================
-  # Home Manager Modules
+  # Home Manager Overrides
   # ============================================================================
-  home-manager.users.hakula.hakula.claude-code = {
-    enable = true;
-    proxy.enable = true;
-  };
-  home-manager.users.hakula.hakula.mihomo = {
-    enable = true;
-    port = 7897;
-    controllerPort = 59386;
+  home-manager.users.hakula = {
+    hakula.claude-code = {
+      enable = true;
+      proxy.enable = true;
+    };
+    hakula.mihomo = {
+      enable = true;
+      port = 7897;
+      controllerPort = 59386;
+    };
   };
 
   # ============================================================================

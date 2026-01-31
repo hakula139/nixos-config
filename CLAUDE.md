@@ -9,6 +9,7 @@ This is a **flake-based NixOS / nix-darwin configuration** managing multiple sys
 - **4 NixOS servers** (us-1, us-2, us-3, sg-1) on x86_64-linux
 - **1 macOS workstation** (hakula-macbook) on aarch64-darwin
 - **1 generic Linux** (hakula-work) using standalone Home Manager
+- **1 Docker image** (hakula-devvm) for air-gapped deployment
 
 The architecture emphasizes modularity, with shared base configuration in `modules/shared.nix` and per-host customization in `hosts/`.
 
@@ -83,6 +84,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 - `mkServer`: Creates NixOS configurations with agenix, disko, and Home Manager integrated
 - `mkDarwin`: Creates Darwin configurations with agenix and Home Manager integrated
 - `mkHome`: Creates standalone Home Manager configurations for non-NixOS Linux
+- `mkDocker`: Creates NixOS Docker images with nixos-generators for air-gapped deployment
 - `overlays`: Provides `unstable` packages, `agenix` CLI, and custom packages (`cloudreve`, `github-mcp-server`)
 - `forAllSystems`: Handles both x86_64-linux and aarch64-darwin
 
@@ -91,6 +93,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 - `nixosConfigurations.*`: Server configurations (us-1, us-2, us-3, sg-1)
 - `darwinConfigurations.hakula-macbook`: macOS configuration
 - `homeConfigurations.hakula-work`: Standalone Home Manager for generic Linux
+- `packages.x86_64-linux.hakula-devvm-docker`: Docker image for air-gapped deployment
 - `checks.*.pre-commit`: Pre-commit hook validation
 - `devShells.default`: Development environment with pre-commit hooks
 - `formatter`: nixfmt-rfc-style
@@ -101,13 +104,18 @@ The flake uses a **builder function pattern** to reduce duplication:
 .
 ├── flake.nix                    # Main entry point
 ├── hosts/                       # Per-host configurations
-│   ├── _profiles/               # Reusable hardware / boot profiles
+│   ├── _profiles/               # Reusable hardware / boot / container profiles
+│   │   ├── cloudcone-sc2/       # CloudCone SC2 hardware profile
+│   │   ├── cloudcone-vps/       # CloudCone VPS hardware profile
+│   │   ├── docker/              # Docker container profile
+│   │   └── tencent-lighthouse/  # Tencent Lighthouse hardware profile
 │   ├── us-1/                    # CloudCone SC2 server
 │   ├── us-2/                    # CloudCone VPS
 │   ├── us-3/                    # CloudCone SC2 server
 │   ├── sg-1/                    # Tencent Lighthouse server
 │   ├── hakula-macbook/          # macOS workstation
-│   └── hakula-work/             # Work PC (WSL)
+│   ├── hakula-work/             # Work PC (WSL)
+│   └── hakula-devvm/            # DevVM (Docker image for air-gapped deployment)
 ├── modules/
 │   ├── shared.nix               # Cross-platform base config
 │   ├── nixos/                   # NixOS service modules (21 modules)
@@ -119,6 +127,8 @@ The flake uses a **builder function pattern** to reduce duplication:
 │       ├── cursor/              # Cursor editor config
 │       ├── git/                 # Git configuration
 │       ├── mcp/                 # MCP server definitions (shared)
+│       ├── mihomo/              # Mihomo proxy client
+│       ├── nix/                 # User-level nix.conf for standalone HM
 │       ├── ssh/                 # SSH client config
 │       ├── syncthing/           # Syncthing file synchronization
 │       ├── wakatime/            # Wakatime time tracking
@@ -222,10 +232,11 @@ age.secrets.my-secret = secrets.mkHomeSecret {
 **GitHub Actions** (`.github/workflows/ci.yml`):
 
 1. **Flake Check**: Validates flake structure (`nix flake check --all-systems`)
-2. **Build Matrix**: Builds three configurations in parallel
+2. **Build Matrix**: Builds four configurations in parallel
    - NixOS: `us-1` (x86_64-linux)
-   - Generic Linux: `hakula-work` (x86_64-linux)
    - macOS: `hakula-macbook` (aarch64-darwin)
+   - Generic Linux: `hakula-work` (x86_64-linux)
+   - Docker: `hakula-devvm-docker` (x86_64-linux)
 
 **Cachix integration**: Builds are cached in the "hakula" cache. Uploads to Cachix happen on `main` branch or when the actor is `hakula139`.
 
@@ -269,6 +280,7 @@ For host-specific testing:
 nix build '.#nixosConfigurations.us-1.config.system.build.toplevel'
 nix build '.#darwinConfigurations.hakula-macbook.system'
 nix build '.#homeConfigurations.hakula-work.activationPackage'
+nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 ```
 
 ## Common Patterns
@@ -301,6 +313,15 @@ nix build '.#homeConfigurations.hakula-work.activationPackage'
 2. Add to `nixosConfigurations`, `darwinConfigurations`, or `homeConfigurations` in `flake.nix` using the appropriate builder (`mkServer`, `mkDarwin`, or `mkHome`)
 3. For NixOS: generate hardware config with `nixos-generate-config --show-hardware-config`
 4. Optionally reuse profiles from `hosts/_profiles/` for common hardware
+
+### Adding a Docker Image
+
+1. Create `hosts/my-container/default.nix` with container-specific configuration
+2. Import the docker profile: `imports = [ ../_profiles/docker ];`
+3. Set `networking.hostName` and any host-specific overrides
+4. Add Home Manager overrides under `home-manager.users.hakula = { ... };` if needed
+5. Add to `packages.x86_64-linux` in `flake.nix` using `mkDocker`
+6. Build with `nix build '.#packages.x86_64-linux.my-container-docker'`
 
 ### Adding Secrets to a Module
 

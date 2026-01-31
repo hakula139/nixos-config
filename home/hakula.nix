@@ -24,6 +24,7 @@ in
     ./modules/cursor
     ./modules/git
     ./modules/mihomo
+    ./modules/nix
     ./modules/ssh
     ./modules/syncthing
     ./modules/wakatime
@@ -34,15 +35,15 @@ in
   # Home Manager Settings
   # ----------------------------------------------------------------------------
   home = {
-    username = "hakula";
-    homeDirectory = if isDarwin then "/Users/hakula" else "/home/hakula";
-    stateVersion = "25.05";
+    username = lib.mkDefault "hakula";
+    homeDirectory = lib.mkDefault (if isDarwin then "/Users/hakula" else "/home/hakula");
+    stateVersion = lib.mkDefault "25.11";
   };
 
   # ----------------------------------------------------------------------------
   # XDG Base Directories
   # ----------------------------------------------------------------------------
-  xdg.enable = true;
+  xdg.enable = lib.mkDefault true;
 
   # ----------------------------------------------------------------------------
   # Generic Linux Settings (for non-NixOS systems)
@@ -52,7 +53,7 @@ in
   # ----------------------------------------------------------------------------
   # Home Manager Self-Management
   # ----------------------------------------------------------------------------
-  programs.home-manager.enable = true;
+  programs.home-manager.enable = lib.mkDefault true;
 
   # ----------------------------------------------------------------------------
   # Custom Modules
