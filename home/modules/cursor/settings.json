@@ -174,6 +174,7 @@
   "gitlens.launchpad.indicator.enabled": false,
   "gitlens.views.contributors.files.layout": "tree",
   "go.toolsManagement.autoUpdate": true,
+  "http.proxy": "socks5://127.0.0.1:7897",
   "javascript.updateImportsOnFileMove.enabled": "always",
   "jupyter.askForKernelRestart": false,
   "lldb.suppressUpdateNotifications": true,
