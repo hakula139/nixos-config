@@ -231,8 +231,9 @@
     "CloudCone-US-1": "linux",
     "CloudCone-US-2": "linux",
     "CloudCone-US-3": "linux",
-    "Hakula-MacBook": "macOS",
-    "Tencent-SG-1": "linux"
+    "DMIT-US-4": "linux",
+    "Tencent-SG-1": "linux",
+    "Hakula-MacBook": "macOS"
   },
   "ruff.configurationPreference": "filesystemFirst",
   "scm.defaultViewMode": "tree",
