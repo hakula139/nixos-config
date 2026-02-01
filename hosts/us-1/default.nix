@@ -70,27 +70,10 @@ in
   # ============================================================================
   # Services
   # ============================================================================
-  hakula.services.aria2.enable = true;
-  hakula.services.backup = {
-    enable = true;
-    b2Bucket = "hakula-backup";
-    backupPath = hostName;
-    cloudreve.enable = true;
-    twikoo.enable = true;
-  };
-  hakula.services.clashGenerator.enable = true;
   hakula.services.cloudconeAgent = {
     enable = true;
     serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
   };
-  hakula.services.cloudreve = {
-    enable = true;
-    umami = {
-      enable = true;
-      workerHost = "b2.hakula.xyz";
-    };
-  };
-  hakula.services.piclist.enable = true;
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
   hakula.services.openssh = {
