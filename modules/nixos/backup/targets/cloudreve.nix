@@ -124,7 +124,7 @@ in
           echo "==> Restoring PostgreSQL database..."
           runuser -u postgres -- dropdb --if-exists -h /run/postgresql ${dbName}
           runuser -u postgres -- createdb -h /run/postgresql -O ${serviceName} ${dbName}
-          runuser -u backup -- psql -h /run/postgresql -U backup -d ${dbName} -v ON_ERROR_STOP=1 <"$sqlFile"
+          runuser -u postgres -- psql -h /run/postgresql -d ${dbName} -v ON_ERROR_STOP=1 <"$sqlFile"
         else
           echo "cloudreve.sql not found in backup, skipping database restore"
         fi

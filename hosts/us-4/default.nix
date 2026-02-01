@@ -41,7 +41,6 @@ in
   hakula.services.backup = {
     enable = true;
     b2Bucket = "hakula-backup";
-    backupPath = hostName;
     cloudreve.enable = true;
     twikoo.enable = true;
   };

@@ -24,16 +24,18 @@ let
   restoreTargets = lib.filterAttrs (_: t: t.restoreSnapshot != null) enabledTargets;
   allExtraGroups = lib.unique (lib.flatten (lib.mapAttrsToList (_: t: t.extraGroups) enabledTargets));
 
-  repositoryFor =
-    name:
+  mkRepository =
+    path: name:
     "b2:${cfg.b2Bucket}:${
       lib.concatStringsSep "/" (
         lib.filter (p: p != "") [
-          cfg.backupPath
+          path
           name
         ]
       )
     }";
+
+  repositoryFor = mkRepository cfg.backupPath;
 in
 {
   imports = [
@@ -218,6 +220,7 @@ in
               [
                 pkgs.coreutils
                 pkgs.restic
+                pkgs.util-linux
               ]
               ++ targetCfg.runtimeInputs
             );
@@ -230,14 +233,14 @@ in
 
             serviceConfig = {
               Type = "oneshot";
-              User = serviceName;
-              Group = serviceName;
               UMask = "0077";
+              EnvironmentFile = config.age.secrets.backup-env.path;
             };
 
             path = [
               pkgs.coreutils
               pkgs.restic
+              pkgs.util-linux
             ]
             ++ targetCfg.runtimeInputs;
 
@@ -252,8 +255,6 @@ in
 
               rm -rf ${restoreDir}
               install -d -m 0700 -o ${serviceName} -g ${serviceName} ${restoreDir}
-
-              source ${config.age.secrets.backup-env.path}
 
               echo "==> Restoring snapshot ${targetCfg.restoreSnapshot} from Restic..."
               restic restore ${targetCfg.restoreSnapshot} \
