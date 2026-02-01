@@ -18,7 +18,6 @@ in
   # ============================================================================
   networking = {
     inherit hostName;
-    useDHCP = false; # CloudCone requires static IP configuration
 
     interfaces.ens3 = {
       ipv4.addresses = [
@@ -45,13 +44,6 @@ in
 
     defaultGateway = "74.48.108.1";
     defaultGateway6 = "2607:f130:0:10d::1";
-
-    nameservers = [
-      "8.8.8.8"
-      "1.1.1.1"
-      "2001:4860:4860::8888"
-      "2606:4700:4700::1111"
-    ];
   };
 
   # ============================================================================

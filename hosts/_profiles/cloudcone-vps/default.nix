@@ -56,4 +56,31 @@
   ];
 
   services.qemuGuest.enable = true;
+
+  # ============================================================================
+  # Networking
+  # ============================================================================
+  networking.useDHCP = false;
+  networking.nameservers = [
+    "8.8.8.8"
+    "1.1.1.1"
+    "2001:4860:4860::8888"
+    "2606:4700:4700::1111"
+  ];
+
+  # Disable IPv6 privacy extensions (RFC 4941) to prevent the kernel from
+  # generating temporary addresses that would be preferred as the source
+  # address for outbound connections. CloudCone VPS only routes traffic from
+  # statically assigned IPv6 addresses.
+  networking.tempAddresses = "disabled";
+
+  # Disable SLAAC and Router Advertisements on eth0.
+  # CloudCone assigns static IPv6 addresses, but the kernel creates additional
+  # SLAAC / autoconf addresses via router advertisements and uses them as the
+  # default source for outbound traffic. The provider only routes the static
+  # addresses, breaking IPv6 connectivity.
+  boot.kernel.sysctl = {
+    "net.ipv6.conf.eth0.autoconf" = 0;
+    "net.ipv6.conf.eth0.accept_ra" = 0;
+  };
 }

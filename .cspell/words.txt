@@ -31,6 +31,7 @@ dbaeumer
 dbengine
 debugpy
 devvm
+dhcpcd
 direnv
 disko
 dmit
@@ -96,6 +97,7 @@ msmtprc
 myip
 nbsp
 networkctl
+networkd
 nixfmt
 nixgc
 nixos
