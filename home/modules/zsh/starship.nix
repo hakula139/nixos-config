@@ -81,7 +81,7 @@
       # ------------------------------------------------------------------------
       python = {
         format = "[$symbol$virtualenv]($style) ";
-        style = "bold yellow";
+        style = "yellow";
         symbol = " ";
         detect_extensions = [ ];
         detect_files = [ ];
@@ -90,7 +90,7 @@
 
       nodejs = {
         format = "[$symbol$version]($style) ";
-        style = "bold green";
+        style = "green";
         symbol = " ";
         detect_extensions = [ ];
         detect_files = [ "package.json" ];
@@ -102,37 +102,37 @@
       # ------------------------------------------------------------------------
       cmake = {
         format = "[$symbol$version]($style) ";
-        style = "bold blue";
+        style = "blue";
         symbol = "△ ";
       };
 
       golang = {
         format = "[$symbol$version]($style) ";
-        style = "bold cyan";
+        style = "cyan";
         symbol = " ";
       };
 
       gradle = {
         format = "[$symbol$version]($style) ";
-        style = "bold green";
+        style = "green";
         symbol = " ";
       };
 
       haskell = {
         format = "[$symbol$version]($style) ";
-        style = "bold purple";
+        style = "purple";
         symbol = " ";
       };
 
       java = {
         format = "[$symbol$version]($style) ";
-        style = "bold red";
+        style = "red";
         symbol = " ";
       };
 
       rust = {
         format = "[$symbol$version]($style) ";
-        style = "bold red";
+        style = "red";
         symbol = " ";
       };
 
@@ -148,7 +148,7 @@
 
       helm = {
         format = "[$symbol$version]($style) ";
-        style = "bold white";
+        style = "white";
         symbol = "⎈ ";
       };
 
