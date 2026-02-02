@@ -57,20 +57,6 @@ in
     ];
 
     # --------------------------------------------------------------------------
-    # PostgreSQL access
-    # --------------------------------------------------------------------------
-    services.postgresql = {
-      ensureUsers = [
-        {
-          name = "backup";
-        }
-      ];
-      authentication = lib.mkAfter ''
-        local ${dbName} backup peer
-      '';
-    };
-
-    # --------------------------------------------------------------------------
     # Backup target configuration
     # --------------------------------------------------------------------------
     hakula.services.backup.targets.cloudreve = {
@@ -95,6 +81,7 @@ in
         pkgs.gnutar
         pkgs.gzip
         pkgs.redis
+        pkgs.util-linux
         config.services.postgresql.package
       ];
 
@@ -102,7 +89,7 @@ in
 
       prepareCommand = ''
         echo "==> Dumping PostgreSQL database..."
-        pg_dump -h /run/postgresql -U backup -d ${dbName} >"${stateDir}/cloudreve.sql"
+        runuser -u postgres -- pg_dump -d ${dbName} >"${stateDir}/cloudreve.sql"
 
         echo "==> Creating Redis data archive..."
         redis-cli -s ${lib.escapeShellArg redisSocket} --rdb "${stateDir}/dump.rdb"

@@ -41,6 +41,7 @@ in
   imports = [
     ./targets/cloudreve.nix
     ./targets/twikoo.nix
+    ./targets/umami.nix
   ];
 
   # ----------------------------------------------------------------------------
@@ -169,6 +170,8 @@ in
             install -d -m 0700 -o ${serviceName} -g ${serviceName} ${stateDir}
 
             ${targetCfg.prepareCommand}
+
+            chown -R ${serviceName}:${serviceName} ${stateDir}
           '';
 
         backupCleanupCommand = lib.optionalString (targetCfg.cleanupCommand != "") ''

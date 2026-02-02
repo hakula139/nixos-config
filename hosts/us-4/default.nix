@@ -43,6 +43,7 @@ in
     b2Bucket = "hakula-backup";
     cloudreve.enable = true;
     twikoo.enable = true;
+    umami.enable = true;
   };
   hakula.services.clashGenerator.enable = true;
   hakula.services.cloudreve = {
