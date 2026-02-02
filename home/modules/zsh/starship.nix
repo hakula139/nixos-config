@@ -19,7 +19,7 @@
       # Prompt format
       # ------------------------------------------------------------------------
       format = "$directory$git_branch$git_status$character";
-      right_format = "$cmd_duration$cmake$golang$gradle$haskell$java$nodejs$python$rust$docker_context$helm$kubernetes$nix_shell$username$hostname$time";
+      right_format = "$cmd_duration$cmake$golang$gradle$haskell$java$nodejs$python$rust$docker_context$helm$kubernetes$nix_shell($username(@$hostname) )$time";
 
       # ------------------------------------------------------------------------
       # Directory
@@ -191,7 +191,7 @@
       };
 
       hostname = {
-        format = "@[$hostname]($style) ";
+        format = "[$hostname]($style)";
         style = "dimmed white";
         ssh_only = true;
       };
