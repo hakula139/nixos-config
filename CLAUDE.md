@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **flake-based NixOS / nix-darwin configuration** managing multiple systems from a single declarative codebase:
 
-- **4 NixOS servers** (us-1, us-2, us-3, sg-1) on x86_64-linux
+- **5 NixOS servers** (us-1, us-2, us-3, us-4, sg-1) on x86_64-linux
 - **1 macOS workstation** (hakula-macbook) on aarch64-darwin
 - **1 generic Linux** (hakula-work) using standalone Home Manager
 - **1 Docker image** (hakula-devvm) for air-gapped deployment
@@ -75,6 +75,17 @@ cd secrets
 agenix -e <secret-name>.age -i ~/.ssh/<private-key>
 ```
 
+#### Re-keying Secrets
+
+When adding or changing host / user keys in `secrets/keys.nix`, all `.age` files must be re-encrypted with the updated recipient list. Run from an **interactive terminal** (not from scripts or Claude Code's Bash tool):
+
+```bash
+cd secrets
+agenix -r -i ~/.ssh/<private-key>
+```
+
+**Warning**: `agenix -r` must run in an interactive terminal. The agenix script checks `[ -t 0 ]` and overrides `EDITOR` to `cp -- /dev/stdin` when stdin is not a TTY, which silently empties all secrets before re-encrypting them.
+
 ## Architecture
 
 ### Flake Structure (`flake.nix`)
@@ -90,7 +101,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 
 **Key outputs**:
 
-- `nixosConfigurations.*`: Server configurations (us-1, us-2, us-3, sg-1)
+- `nixosConfigurations.*`: Server configurations (us-1, us-2, us-3, us-4, sg-1)
 - `darwinConfigurations.hakula-macbook`: macOS configuration
 - `homeConfigurations.hakula-work`: Standalone Home Manager for generic Linux
 - `packages.x86_64-linux.hakula-devvm-docker`: Docker image for air-gapped deployment
@@ -105,13 +116,16 @@ The flake uses a **builder function pattern** to reduce duplication:
 ├── flake.nix                    # Main entry point
 ├── hosts/                       # Per-host configurations
 │   ├── _profiles/               # Reusable hardware / boot / container profiles
-│   │   ├── cloudcone-sc2/       # CloudCone SC2 hardware profile
+│   │   ├── disk-config.nix      # Shared GPT + ext4 disk layout
+│   │   ├── cloudcone-sc2/       # CloudCone SC2 hardware profile (MBR, own disk layout)
 │   │   ├── cloudcone-vps/       # CloudCone VPS hardware profile
+│   │   ├── dmit/                # DMIT hardware profile
 │   │   ├── docker/              # Docker container profile
 │   │   └── tencent-lighthouse/  # Tencent Lighthouse hardware profile
 │   ├── us-1/                    # CloudCone SC2 server
 │   ├── us-2/                    # CloudCone VPS
 │   ├── us-3/                    # CloudCone SC2 server
+│   ├── us-4/                    # DMIT server
 │   ├── sg-1/                    # Tencent Lighthouse server
 │   ├── hakula-macbook/          # macOS workstation
 │   ├── hakula-work/             # Work PC (WSL)
@@ -176,8 +190,8 @@ Host configurations import `shared.nix` and extend with platform/host-specific s
 
 Secrets are encrypted with **age** using SSH keys defined in `secrets/keys.nix`:
 
-- **User keys**: `hakula-cloudcone`, `hakula-tencent` (for remote management)
-- **Host keys**: `us-1`, `us-2`, `us-3`, `sg-1` (for host decryption)
+- **User keys**: `hakula-cloudcone`, `hakula-dmit`, `hakula-tencent` (for remote management)
+- **Host keys**: `us-1`, `us-2`, `us-3`, `us-4`, `sg-1` (for host decryption)
 - **Workstation keys**: `hakula-macbook`, `hakula-work` (for local editing)
 
 Secrets in `secrets/*.age` are **decrypted at activation time** by agenix and placed in `/run/agenix` (NixOS) or `/run/agenix.d` (Darwin). Reference them in modules via `config.age.secrets.<secret-name>.path`.

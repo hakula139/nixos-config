@@ -12,6 +12,7 @@ NixOS configuration for Hakula's machines (flake-based).
 | `us-1`           | x86_64-linux   | NixOS server                 |
 | `us-2`           | x86_64-linux   | NixOS server                 |
 | `us-3`           | x86_64-linux   | NixOS server                 |
+| `us-4`           | x86_64-linux   | NixOS server                 |
 | `sg-1`           | x86_64-linux   | NixOS server                 |
 | `hakula-macbook` | aarch64-darwin | macOS (nix-darwin)           |
 | `hakula-work`    | x86_64-linux   | Generic Linux (Home Manager) |

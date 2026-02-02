@@ -16,13 +16,12 @@
   imports = [
     (modulesPath + "/profiles/qemu-guest.nix")
     ../../../modules/nixos
-    ./disk-config.nix
+    ../disk-config.nix
   ];
 
   # ============================================================================
   # Boot Loader & Hardware
   # ============================================================================
-  # Tencent Lighthouse uses SeaBIOS (legacy BIOS) with standard GRUB.
   boot.loader.grub = {
     enable = true;
     devices = lib.mkForce [ "/dev/vda" ];
@@ -32,9 +31,14 @@
   swapDevices = [
     {
       device = "/var/lib/swapfile";
-      size = 2048;
+      size = 4096;
     }
   ];
 
   services.qemuGuest.enable = true;
+
+  # ============================================================================
+  # Networking
+  # ============================================================================
+  networking.useDHCP = true;
 }
