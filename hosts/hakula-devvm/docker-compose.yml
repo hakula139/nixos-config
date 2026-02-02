@@ -18,6 +18,8 @@ services:
     environment:
       USER: root
       HOME: /root
+      HOST_HOME: ${HOME}
+      HOST_DOCKER_SOCKET: ${XDG_RUNTIME_DIR}/docker.sock
       PATH: /run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin
       http_proxy: ${http_proxy:-}
       https_proxy: ${http_proxy:-}
