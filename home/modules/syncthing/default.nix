@@ -40,6 +40,9 @@ in
         "us-3" = {
           id = "NOHM6HO-B7HDLSE-VRHSXU7-T6BF6JL-V522NLY-BMW3H5F-WYC72RD-A3HANAV"; # cspell:disable-line
         };
+        "us-4" = {
+          id = "B62RTKK-UFZ4SZZ-BV2LPT7-LXVUU64-TJITT2X-NTZBYUH-VQYM2SN-J3OFBA6"; # cspell:disable-line
+        };
         "sg-1" = {
           id = "TY4E6M5-W7CQMFI-XK3IPUV-RF35PE7-TXBAT23-H6AD3Y4-C6IDGDJ-JRXUDAS"; # cspell:disable-line
           ignoredFolders = [
@@ -57,6 +60,7 @@ in
             "us-1"
             "us-2"
             "us-3"
+            "us-4"
           ];
           ignorePerms = false;
         };

@@ -29,6 +29,7 @@ in
   # Font packages
   # ----------------------------------------------------------------------------
   fonts = with pkgs; [
+    maple-mono.NF-CN
     nerd-fonts.jetbrains-mono
     sarasa-gothic
     source-han-sans
@@ -81,9 +82,7 @@ in
       displayName = "CloudCone-US-1";
       provider = "CloudCone";
       hostKey = keys.hosts.us-1;
-      isBuilder = true;
-      maxJobs = 2;
-      speedFactor = 4;
+      isBuilder = false;
     };
     us-2 = {
       ip = "74.48.189.161";
@@ -102,6 +101,17 @@ in
       provider = "CloudCone";
       hostKey = keys.hosts.us-3;
       isBuilder = false;
+    };
+    us-4 = {
+      ip = "64.186.229.64";
+      port = 35060;
+      name = "us-4";
+      displayName = "DMIT-US-4";
+      provider = "DMIT";
+      hostKey = keys.hosts.us-4;
+      isBuilder = true;
+      maxJobs = 3;
+      speedFactor = 6;
     };
     sg-1 = {
       ip = "43.134.225.50";

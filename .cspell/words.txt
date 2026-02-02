@@ -31,8 +31,10 @@ dbaeumer
 dbengine
 debugpy
 devvm
+dhcpcd
 direnv
 disko
+dmit
 drblury
 dreamin
 dropdb
@@ -57,6 +59,7 @@ gvisor
 hakula
 hediet
 hitoolbox
+hkcu
 hlsearch
 hookify
 horiz
@@ -95,6 +98,7 @@ msmtprc
 myip
 nbsp
 networkctl
+networkd
 nixfmt
 nixgc
 nixos
@@ -172,6 +176,7 @@ utun
 vadimcn
 vhost
 vimcmd
+virtio
 virtualenv
 vlang
 vless
@@ -179,6 +184,7 @@ waka
 wakatime
 whereis
 wimpysworld
+wslpath
 xtls
 yzhang
 zstd

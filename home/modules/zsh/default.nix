@@ -195,7 +195,7 @@ in
     // lib.optionalAttrs isNixOS {
       # Nix aliases
       nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
-      nixroll = "sudo nixos-rebuild switch --rollback";
+      nixroll = "sudo nixos-rebuild switch --rollback --flake .";
     }
     # Generic Linux (non-NixOS) aliases
     // lib.optionalAttrs (isLinux && !isNixOS) {

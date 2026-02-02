@@ -120,8 +120,8 @@ in
               FORCE_AUTOUPDATE_PLUGINS = "true";
             }
             // lib.optionalAttrs cfg.proxy.enable {
-              HTTPS_PROXY = cfg.proxy.url;
               HTTP_PROXY = cfg.proxy.url;
+              HTTPS_PROXY = cfg.proxy.url;
               NO_PROXY = "localhost,127.0.0.1";
             };
 

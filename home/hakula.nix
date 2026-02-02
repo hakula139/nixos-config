@@ -22,6 +22,7 @@ in
     ./modules/darwin.nix
     ./modules/claude-code
     ./modules/cursor
+    ./modules/fonts
     ./modules/git
     ./modules/mihomo
     ./modules/nix

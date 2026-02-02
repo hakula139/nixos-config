@@ -5,51 +5,18 @@ let
 in
 {
   imports = [
-    ../_profiles/cloudcone-sc2
+    ../_profiles/dmit
   ];
-
-  # ============================================================================
-  # Generation Management
-  # ============================================================================
-  boot.loader.grub.configurationLimit = 10;
 
   # ============================================================================
   # Networking
   # ============================================================================
-  networking = {
-    inherit hostName;
-
-    interfaces.ens3 = {
-      ipv4.addresses = [
-        {
-          address = "74.48.108.20";
-          prefixLength = 24;
-        }
-      ];
-      ipv6.addresses = [
-        {
-          address = "2607:f130:0:10d::7f";
-          prefixLength = 64;
-        }
-        {
-          address = "2607:f130:0:10d::80";
-          prefixLength = 64;
-        }
-        {
-          address = "2607:f130:0:10d::81";
-          prefixLength = 64;
-        }
-      ];
-    };
-
-    defaultGateway = "74.48.108.1";
-    defaultGateway6 = "2607:f130:0:10d::1";
-  };
+  networking.hostName = hostName;
 
   # ============================================================================
   # Access (SSH)
   # ============================================================================
-  hakula.access.ssh.authorizedKeys = [ keys.users.hakula-cloudcone ];
+  hakula.access.ssh.authorizedKeys = [ keys.users.hakula-dmit ];
 
   # ============================================================================
   # Distributed Builds
@@ -70,16 +37,31 @@ in
   # ============================================================================
   # Services
   # ============================================================================
-  hakula.services.cloudconeAgent = {
+  hakula.services.aria2.enable = true;
+  hakula.services.backup = {
     enable = true;
-    serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
+    b2Bucket = "hakula-backup";
+    cloudreve.enable = true;
+    twikoo.enable = true;
+    umami.enable = true;
   };
+  hakula.services.clashGenerator.enable = true;
+  hakula.services.cloudreve = {
+    enable = true;
+    umami = {
+      enable = true;
+      workerHost = "b2.hakula.xyz";
+    };
+  };
+  hakula.services.piclist.enable = true;
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
   hakula.services.openssh = {
     enable = true;
     ports = [ 35060 ];
   };
+  hakula.services.postgresql.enable = true;
+  hakula.services.umami.enable = true;
   hakula.services.xray = {
     enable = true;
     ws.enable = true;
@@ -93,5 +75,5 @@ in
   # ============================================================================
   # System State
   # ============================================================================
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 }

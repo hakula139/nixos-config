@@ -20,10 +20,11 @@ let
   # ----------------------------------------------------------------------------
   braveApiKeyFile = "${secretsDir}/brave-api-key";
   braveSearchBin = pkgs.writeShellScriptBin "brave-search-mcp" ''
+    export PATH="${pkgs.nodejs}/bin:$PATH"
     if [ -f "${braveApiKeyFile}" ]; then
       export BRAVE_API_KEY="$(cat ${braveApiKeyFile})"
     fi
-    exec ${pkgs.nodejs}/bin/npx -y @brave/brave-search-mcp-server "$@"
+    exec npx -y @brave/brave-search-mcp-server "$@"
   '';
 
   # ----------------------------------------------------------------------------
@@ -31,24 +32,27 @@ let
   # ----------------------------------------------------------------------------
   context7ApiKeyFile = "${secretsDir}/context7-api-key";
   context7Bin = pkgs.writeShellScriptBin "context7-mcp" ''
+    export PATH="${pkgs.nodejs}/bin:$PATH"
     if [ -f "${context7ApiKeyFile}" ]; then
       export CONTEXT7_API_KEY="$(cat ${context7ApiKeyFile})"
     fi
-    exec ${pkgs.nodejs}/bin/npx -y @upstash/context7-mcp "$@"
+    exec npx -y @upstash/context7-mcp "$@"
   '';
 
   # ----------------------------------------------------------------------------
   # DeepWiki
   # ----------------------------------------------------------------------------
   deepwikiBin = pkgs.writeShellScriptBin "deepwiki-mcp" ''
-    exec ${pkgs.nodejs}/bin/npx -y mcp-remote https://mcp.deepwiki.com/mcp --transport http-first "$@"
+    export PATH="${pkgs.nodejs}/bin:$PATH"
+    exec npx -y mcp-remote https://mcp.deepwiki.com/mcp --transport http-first "$@"
   '';
 
   # ----------------------------------------------------------------------------
   # Filesystem
   # ----------------------------------------------------------------------------
   filesystemBin = pkgs.writeShellScriptBin "filesystem-mcp" ''
-    exec ${pkgs.nodejs}/bin/npx -y @modelcontextprotocol/server-filesystem "${homeDir}" "$@"
+    export PATH="${pkgs.nodejs}/bin:$PATH"
+    exec npx -y @modelcontextprotocol/server-filesystem "${homeDir}" "$@"
   '';
 
   # ----------------------------------------------------------------------------

@@ -112,8 +112,19 @@ in
     # Systemd service
     # --------------------------------------------------------------------------
     systemd.services."podman-${serviceName}" = {
-      after = [ "postgresql.service" ];
-      requires = [ "postgresql.service" ];
+      after = [
+        "postgresql.service"
+      ]
+      ++ lib.optionals (config.hakula.services.backup.umami.restoreSnapshot or null != null) [
+        "backup-restore-umami.service"
+      ];
+
+      requires = [
+        "postgresql.service"
+      ]
+      ++ lib.optionals (config.hakula.services.backup.umami.restoreSnapshot or null != null) [
+        "backup-restore-umami.service"
+      ];
     };
   };
 }

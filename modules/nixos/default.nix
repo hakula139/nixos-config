@@ -130,10 +130,9 @@ in
       firewall = {
         enable = lib.mkDefault true;
         allowPing = lib.mkDefault true;
-        allowedTCPPorts = lib.mkDefault [
+        allowedTCPPorts = [
           80
           443
-          # Note: SSH port is auto-opened by services.openssh
         ];
       };
     };
