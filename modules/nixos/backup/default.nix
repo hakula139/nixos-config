@@ -110,7 +110,7 @@ in
     users.users.${serviceName} = {
       isSystemUser = true;
       group = serviceName;
-      extraGroups = allExtraGroups;
+      extraGroups = [ "systemd-journal" ] ++ allExtraGroups;
     };
     users.groups.${serviceName} = { };
 
