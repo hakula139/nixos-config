@@ -80,8 +80,6 @@ in
     enable = true;
     ports = [ 35060 ];
   };
-  hakula.services.postgresql.enable = true;
-  hakula.services.umami.enable = true;
   hakula.services.xray = {
     enable = true;
     ws.enable = true;
