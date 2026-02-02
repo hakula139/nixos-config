@@ -43,7 +43,10 @@ in
     b2Bucket = "hakula-backup";
     cloudreve.enable = true;
     twikoo.enable = true;
-    umami.enable = true;
+    umami = {
+      enable = true;
+      restoreSnapshot = "latest"; # TODO: temporary — remove after umami db migration
+    };
   };
   hakula.services.clashGenerator.enable = true;
   hakula.services.cloudreve = {

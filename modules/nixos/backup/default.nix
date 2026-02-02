@@ -140,7 +140,6 @@ in
       in
       {
         initialize = true;
-        user = serviceName;
         repository = repositoryFor name;
         environmentFile = config.age.secrets.backup-env.path;
         passwordFile = config.age.secrets.backup-restic-password.path;
