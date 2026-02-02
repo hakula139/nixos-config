@@ -12,6 +12,7 @@
     proxy.enable = true;
   };
   hakula.cursor.extensions.prune = false;
+  hakula.fonts.windowsSync.enable = true;
   hakula.mihomo = {
     enable = true;
     port = 7897;

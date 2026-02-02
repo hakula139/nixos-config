@@ -81,8 +81,8 @@
       # ------------------------------------------------------------------------
       python = {
         format = "[$symbol$virtualenv]($style) ";
-        style = "bold yellow";
-        symbol = " ";
+        style = "yellow";
+        symbol = " ";
         detect_extensions = [ ];
         detect_files = [ ];
         detect_folders = [ ];
@@ -90,8 +90,8 @@
 
       nodejs = {
         format = "[$symbol$version]($style) ";
-        style = "bold green";
-        symbol = " ";
+        style = "green";
+        symbol = " ";
         detect_extensions = [ ];
         detect_files = [ "package.json" ];
         detect_folders = [ "node_modules" ];
@@ -102,38 +102,38 @@
       # ------------------------------------------------------------------------
       cmake = {
         format = "[$symbol$version]($style) ";
-        style = "bold blue";
+        style = "blue";
         symbol = "△ ";
       };
 
       golang = {
         format = "[$symbol$version]($style) ";
-        style = "bold cyan";
-        symbol = " ";
+        style = "cyan";
+        symbol = " ";
       };
 
       gradle = {
         format = "[$symbol$version]($style) ";
-        style = "bold green";
-        symbol = " ";
+        style = "green";
+        symbol = " ";
       };
 
       haskell = {
         format = "[$symbol$version]($style) ";
-        style = "bold purple";
-        symbol = " ";
+        style = "purple";
+        symbol = " ";
       };
 
       java = {
         format = "[$symbol$version]($style) ";
-        style = "bold red";
-        symbol = " ";
+        style = "red";
+        symbol = " ";
       };
 
       rust = {
         format = "[$symbol$version]($style) ";
-        style = "bold red";
-        symbol = " ";
+        style = "red";
+        symbol = " ";
       };
 
       # ------------------------------------------------------------------------
@@ -142,13 +142,13 @@
       docker_context = {
         format = "[$symbol$context]($style) ";
         style = "bold blue";
-        symbol = " ";
+        symbol = " ";
         only_with_files = false;
       };
 
       helm = {
         format = "[$symbol$version]($style) ";
-        style = "bold white";
+        style = "white";
         symbol = "⎈ ";
       };
 
@@ -173,9 +173,9 @@
       };
 
       nix_shell = {
-        format = "[$symbol$state( \\($name\\))]($style) ";
+        format = "[$symbol($state )(\\($name\\))]($style) ";
         style = "bold blue";
-        symbol = " ";
+        symbol = " ";
         impure_msg = "";
         pure_msg = "pure";
       };

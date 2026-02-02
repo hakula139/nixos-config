@@ -107,11 +107,11 @@
   "debug.javascript.unmapMissingSources": true,
   "diffEditor.ignoreTrimWhitespace": false,
   "editor.copyWithSyntaxHighlighting": false,
-  "editor.fontFamily": "Sarasa Mono SC, monospace",
+  "editor.fontFamily": "Maple Mono NF CN, Sarasa Mono SC, monospace",
   "editor.fontLigatures": true,
   "editor.fontSize": 16,
   "editor.formatOnType": false,
-  "editor.inlayHints.fontFamily": "Sarasa Mono SC, monospace",
+  "editor.inlayHints.fontFamily": "Maple Mono NF CN, Sarasa Mono SC, monospace",
   "editor.inlineSuggest.enabled": true,
   "editor.quickSuggestions": {
     "comments": "on",
@@ -174,6 +174,7 @@
   "gitlens.launchpad.indicator.enabled": false,
   "gitlens.views.contributors.files.layout": "tree",
   "go.toolsManagement.autoUpdate": true,
+  "http.proxy": "socks5://127.0.0.1:7897",
   "javascript.updateImportsOnFileMove.enabled": "always",
   "jupyter.askForKernelRestart": false,
   "lldb.suppressUpdateNotifications": true,
@@ -231,8 +232,9 @@
     "CloudCone-US-1": "linux",
     "CloudCone-US-2": "linux",
     "CloudCone-US-3": "linux",
-    "Hakula-MacBook": "macOS",
-    "Tencent-SG-1": "linux"
+    "DMIT-US-4": "linux",
+    "Tencent-SG-1": "linux",
+    "Hakula-MacBook": "macOS"
   },
   "ruff.configurationPreference": "filesystemFirst",
   "scm.defaultViewMode": "tree",
@@ -244,7 +246,7 @@
   "terminal.external.osxExec": "Warp.app",
   "terminal.integrated.defaultProfile.linux": "zsh",
   "terminal.integrated.defaultProfile.osx": "zsh",
-  "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font, MesloLGS NF, Sarasa Term SC Nerd, Sarasa Term SC, monospace",
+  "terminal.integrated.fontFamily": "Maple Mono NF CN, JetBrainsMono Nerd Font, Sarasa Term SC, monospace",
   "terminal.integrated.fontSize": 14,
   "terminal.integrated.profiles.linux": {
     "bash": {

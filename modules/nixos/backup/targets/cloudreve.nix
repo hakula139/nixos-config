@@ -57,20 +57,6 @@ in
     ];
 
     # --------------------------------------------------------------------------
-    # PostgreSQL access
-    # --------------------------------------------------------------------------
-    services.postgresql = {
-      ensureUsers = [
-        {
-          name = "backup";
-        }
-      ];
-      authentication = lib.mkAfter ''
-        local ${dbName} backup peer
-      '';
-    };
-
-    # --------------------------------------------------------------------------
     # Backup target configuration
     # --------------------------------------------------------------------------
     hakula.services.backup.targets.cloudreve = {
@@ -95,6 +81,7 @@ in
         pkgs.gnutar
         pkgs.gzip
         pkgs.redis
+        pkgs.util-linux
         config.services.postgresql.package
       ];
 
@@ -102,7 +89,7 @@ in
 
       prepareCommand = ''
         echo "==> Dumping PostgreSQL database..."
-        pg_dump -h /run/postgresql -U backup -d ${dbName} >"${stateDir}/cloudreve.sql"
+        runuser -u postgres -- pg_dump -d ${dbName} >"${stateDir}/cloudreve.sql"
 
         echo "==> Creating Redis data archive..."
         redis-cli -s ${lib.escapeShellArg redisSocket} --rdb "${stateDir}/dump.rdb"
@@ -124,7 +111,7 @@ in
           echo "==> Restoring PostgreSQL database..."
           runuser -u postgres -- dropdb --if-exists -h /run/postgresql ${dbName}
           runuser -u postgres -- createdb -h /run/postgresql -O ${serviceName} ${dbName}
-          runuser -u backup -- psql -h /run/postgresql -U backup -d ${dbName} -v ON_ERROR_STOP=1 <"$sqlFile"
+          runuser -u postgres -- psql -h /run/postgresql -d ${dbName} -v ON_ERROR_STOP=1 <"$sqlFile"
         else
           echo "cloudreve.sql not found in backup, skipping database restore"
         fi
