@@ -36,6 +36,7 @@
     # Third-party plugins
     "agent-browser@agent-browser" = true;
     "claude-code-wakatime@wakatime" = true;
+    "context7-plugin@context7-marketplace" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
   // lib.optionalAttrs enableDevToolchains {
@@ -71,6 +72,12 @@
       source = {
         source = "github";
         repo = "vercel-labs/agent-browser";
+      };
+    };
+    context7-marketplace = {
+      source = {
+        source = "github";
+        repo = "upstash/context7";
       };
     };
     wakatime = {

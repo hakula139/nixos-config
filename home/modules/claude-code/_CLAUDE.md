@@ -64,12 +64,6 @@ Avoid:
 
 Prefer MCP tools over equivalent Bash commands or web searches. MCPs provide structured interfaces, better error handling, and work within the configured permission model.
 
-### Context7 (`mcp__Context7__*`)
-
-Use for any library, framework, or API questions — documentation lookup, code examples, configuration, setup steps, or best practices. Context7 provides up-to-date, authoritative documentation and should be the first choice before falling back to web search or guessing from memory.
-
-Workflow: `resolve-library-id` first to get the library ID, then `query-docs` with specific questions.
-
 ### DeepWiki (`mcp__DeepWiki__*`)
 
 Use when exploring or asking questions about GitHub repositories — understanding project architecture, finding documentation, or getting context about how a codebase works. Particularly useful for unfamiliar open-source projects.
