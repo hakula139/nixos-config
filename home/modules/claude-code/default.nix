@@ -139,7 +139,6 @@ in
           # MCP configuration
           # --------------------------------------------------------------------
           mcpServers = {
-            Context7 = mcp.servers.context7;
             DeepWiki = mcp.servers.deepwiki;
             Filesystem = mcp.servers.filesystem;
             Git = mcp.servers.git;
