@@ -34,6 +34,7 @@
     "typescript-lsp@claude-plugins-official" = true;
 
     # Third-party plugins
+    "agent-browser@agent-browser" = true;
     "claude-code-wakatime@wakatime" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
@@ -64,6 +65,12 @@
       source = {
         source = "github";
         repo = "anthropics/claude-plugins-official";
+      };
+    };
+    agent-browser = {
+      source = {
+        source = "github";
+        repo = "vercel-labs/agent-browser";
       };
     };
     wakatime = {
