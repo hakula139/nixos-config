@@ -33,14 +33,14 @@ in
   # Networking
   # ============================================================================
   networking = {
-    domain = null;
-    firewall.enable = lib.mkDefault false;
+    domain = lib.mkForce null;
+    firewall.enable = lib.mkForce false;
   };
 
   # ============================================================================
   # User Overrides
   # ============================================================================
-  users.users.${username}.linger = false;
+  users.users.${username}.linger = lib.mkForce false;
 
   # ============================================================================
   # Directory Management

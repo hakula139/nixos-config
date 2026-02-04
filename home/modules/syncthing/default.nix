@@ -21,7 +21,7 @@ let
 in
 {
   services.syncthing = {
-    enable = lib.mkDefault true;
+    enable = true;
 
     settings = {
       devices = {

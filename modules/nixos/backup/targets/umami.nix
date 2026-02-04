@@ -70,7 +70,7 @@ in
         config.services.postgresql.package
       ];
 
-      heartbeatUrl = lib.mkDefault "https://uptime.betterstack.com/api/v1/heartbeat/CVksqJgmWW1KDKiiUEaSyHWw";
+      heartbeatUrl = "https://uptime.betterstack.com/api/v1/heartbeat/CVksqJgmWW1KDKiiUEaSyHWw";
 
       prepareCommand = ''
         echo "==> Dumping PostgreSQL database..."

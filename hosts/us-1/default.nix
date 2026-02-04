@@ -1,4 +1,8 @@
-{ hostName, ... }:
+{
+  lib,
+  hostName,
+  ...
+}:
 
 let
   keys = import ../../secrets/keys.nix;
@@ -11,7 +15,7 @@ in
   # ============================================================================
   # Generation Management
   # ============================================================================
-  boot.loader.grub.configurationLimit = 10;
+  boot.loader.grub.configurationLimit = lib.mkForce 10;
 
   # ============================================================================
   # Networking

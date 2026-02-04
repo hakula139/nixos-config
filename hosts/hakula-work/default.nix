@@ -1,3 +1,5 @@
+{ lib, ... }:
+
 {
   # ============================================================================
   # Home Manager Settings
@@ -11,7 +13,7 @@
     enable = true;
     proxy.enable = true;
   };
-  hakula.cursor.extensions.prune = false;
+  hakula.cursor.extensions.prune = lib.mkForce false;
   hakula.fonts.windowsSync.enable = true;
   hakula.mihomo = {
     enable = true;

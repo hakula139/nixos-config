@@ -72,7 +72,7 @@ in
         pkgs.curl
       ];
 
-      heartbeatUrl = lib.mkDefault "https://uptime.betterstack.com/api/v1/heartbeat/CrDMRbSCsaR1v45b71Ybr8yv";
+      heartbeatUrl = "https://uptime.betterstack.com/api/v1/heartbeat/CrDMRbSCsaR1v45b71Ybr8yv";
 
       prepareCommand = ''
         TWIKOO_ACCESS_TOKEN=$(cat ${config.age.secrets.twikoo-access-token.path})
