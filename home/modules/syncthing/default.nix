@@ -35,7 +35,7 @@ in
           id = "WMZORNC-QJTIIQX-4Y2OGVF-3O5IESF-3M3UGMN-HC2C7SG-S42OC47-JMCPFAK"; # cspell:disable-line
         };
         "us-2" = {
-          id = "VPCN2SN-IEOCBX2-5FXCNCD-4SRA7PO-SK34FRH-MJWCXXB-QCRGTJE-WFWXSAL"; # cspell:disable-line
+          id = "XPM7UMK-GPINXXM-T3QXBDE-NVENU5C-OPPXPPM-7PNNJUC-RRI7HJE-2573IAM"; # cspell:disable-line
         };
         "us-3" = {
           id = "NOHM6HO-B7HDLSE-VRHSXU7-T6BF6JL-V522NLY-BMW3H5F-WYC72RD-A3HANAV"; # cspell:disable-line
