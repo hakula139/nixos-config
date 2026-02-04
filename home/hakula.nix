@@ -44,34 +44,26 @@ in
   # ----------------------------------------------------------------------------
   # XDG Base Directories
   # ----------------------------------------------------------------------------
-  xdg.enable = lib.mkDefault true;
+  xdg.enable = true;
 
   # ----------------------------------------------------------------------------
   # Generic Linux Settings (for non-NixOS systems)
   # ----------------------------------------------------------------------------
-  targets.genericLinux.enable = lib.mkDefault (isLinux && !isNixOS);
+  targets.genericLinux.enable = isLinux && !isNixOS;
 
   # ----------------------------------------------------------------------------
   # Home Manager Self-Management
   # ----------------------------------------------------------------------------
-  programs.home-manager.enable = lib.mkDefault true;
+  programs.home-manager.enable = true;
 
   # ----------------------------------------------------------------------------
   # Custom Modules
   # ----------------------------------------------------------------------------
-  hakula.claude-code = {
-    enable = lib.mkDefault false;
-    auth.useOAuthToken = lib.mkDefault false;
-    proxy.enable = lib.mkDefault false;
-  };
-
   hakula.cursor = {
-    enable = lib.mkDefault true;
+    enable = true;
     extensions = {
-      enable = lib.mkDefault isDesktop;
-      prune = lib.mkDefault true;
+      enable = isDesktop;
+      prune = true;
     };
   };
-
-  hakula.mihomo.enable = lib.mkDefault false;
 }

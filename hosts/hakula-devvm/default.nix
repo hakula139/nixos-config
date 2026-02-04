@@ -30,8 +30,8 @@
     # SSH config comes from bind-mounted host ~/.ssh/config.
     programs.ssh.enable = lib.mkForce false;
 
-    services.ssh-agent.enable = false;
-    services.syncthing.enable = false;
+    services.ssh-agent.enable = lib.mkForce false;
+    services.syncthing.enable = lib.mkForce false;
   };
 
   # ============================================================================

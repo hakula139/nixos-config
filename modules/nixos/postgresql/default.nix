@@ -41,8 +41,8 @@ in
       package = cfg.package;
       settings = {
         listen_addresses = lib.mkForce "*";
-        port = lib.mkDefault cfg.port;
-        password_encryption = lib.mkDefault "scram-sha-256";
+        port = cfg.port;
+        password_encryption = "scram-sha-256";
       };
     };
 

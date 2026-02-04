@@ -104,7 +104,7 @@ in
     # --------------------------------------------------------------------------
     # Boot & Kernel
     # --------------------------------------------------------------------------
-    boot.kernel.sysctl = lib.mkDefault {
+    boot.kernel.sysctl = {
       # TCP BBR: Better throughput on high-latency / lossy networks
       "net.core.default_qdisc" = "fq";
       "net.ipv4.tcp_congestion_control" = "bbr";
@@ -126,10 +126,10 @@ in
     # Networking
     # --------------------------------------------------------------------------
     networking = {
-      domain = lib.mkDefault "hakula.xyz";
+      domain = "hakula.xyz";
       firewall = {
-        enable = lib.mkDefault true;
-        allowPing = lib.mkDefault true;
+        enable = true;
+        allowPing = true;
         allowedTCPPorts = [
           80
           443
@@ -143,14 +143,14 @@ in
     users.defaultUserShell = pkgs.zsh;
 
     users.users = {
-      root.openssh.authorizedKeys.keys = lib.mkDefault (sshCfg.authorizedKeys ++ [ keys.builder ]);
+      root.openssh.authorizedKeys.keys = sshCfg.authorizedKeys ++ [ keys.builder ];
     }
     // lib.optionalAttrs (cfg.user.name != "root") {
       ${cfg.user.name} = {
         isNormalUser = true;
         extraGroups = [ "wheel" ];
-        openssh.authorizedKeys.keys = lib.mkDefault sshCfg.authorizedKeys;
-        linger = lib.mkDefault true;
+        openssh.authorizedKeys.keys = sshCfg.authorizedKeys;
+        linger = true;
       };
     };
 
