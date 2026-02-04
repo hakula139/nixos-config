@@ -246,8 +246,8 @@ age.secrets.my-secret = secrets.mkHomeSecret {
 **GitHub Actions** (`.github/workflows/ci.yml`):
 
 1. **Flake Check**: Validates flake structure (`nix flake check --all-systems`)
-2. **Build Matrix**: Builds four configurations in parallel
-   - NixOS: `us-1` (x86_64-linux)
+2. **Build Matrix**: Builds 4 configurations in parallel
+   - NixOS: `us-4` (x86_64-linux)
    - macOS: `hakula-macbook` (aarch64-darwin)
    - Generic Linux: `hakula-work` (x86_64-linux)
    - Docker: `hakula-devvm-docker` (x86_64-linux)
@@ -291,7 +291,7 @@ For host-specific testing:
 
 ```bash
 # Build without activating (faster feedback)
-nix build '.#nixosConfigurations.us-1.config.system.build.toplevel'
+nix build '.#nixosConfigurations.us-4.config.system.build.toplevel'
 nix build '.#darwinConfigurations.hakula-macbook.system'
 nix build '.#homeConfigurations.hakula-work.activationPackage'
 nix build '.#packages.x86_64-linux.hakula-devvm-docker'
