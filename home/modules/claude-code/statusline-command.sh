@@ -4,11 +4,11 @@ set -euo pipefail
 # ==============================================================================
 # Claude Code Status Line Command
 # ==============================================================================
-# Format: [dir] [git] ❯  Ctx: X% | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
+# Row 1: [dir] [git]
+# Row 2: Ctx: X% | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
 
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
-readonly BOLD_GREEN='\033[1;32m'
 readonly YELLOW='\033[0;33m'
 readonly BOLD_BLUE='\033[1;34m'
 readonly CYAN='\033[0;36m'
@@ -241,7 +241,7 @@ main() {
   local cwd
   cwd="$(echo "${input}" | jq -r '.workspace.current_dir')"
 
-  # Left side: directory + git + prompt
+  # Row 1: directory + git
   local dir_name
   if [[ "${cwd}" == "${HOME}" ]]; then
     dir_name="~"
@@ -249,15 +249,14 @@ main() {
     dir_name="$(basename "${cwd}")"
   fi
 
-  local left_side
-  left_side="$(
-    printf '%b%s%b%s%b❯%b' \
+  local row1
+  row1="$(
+    printf '%b%s%b%s' \
       "${BOLD_BLUE}" "${dir_name}" "${RESET}" \
-      "$(format_git_info "${cwd}")" \
-      "${BOLD_GREEN}" "${RESET}"
+      "$(format_git_info "${cwd}")"
   )"
 
-  # Right side: context, session, block, daily, time
+  # Row 2: context, session, block, daily, time
   local claude_info ccusage_data ccusage_info
   claude_info="$(format_claude_info "${input}")"
   ccusage_data="$(get_ccusage_data)"
@@ -270,10 +269,10 @@ main() {
   local current_time
   current_time="$(printf '%b%s%b' "${DIM}" "$(date +%H:%M)" "${RESET}")"
 
-  local right_side
-  right_side="$(join_parts "${SEP}" "${ctx}" "${sess}" "${block}" "${daily}" "${current_time}")"
+  local row2
+  row2="$(join_parts "${SEP}" "${ctx}" "${sess}" "${block}" "${daily}" "${current_time}")"
 
-  printf '%b  %b' "${left_side}" "${right_side}"
+  printf '%b\n%b' "${row1}" "${row2}"
 }
 
 main "$@"
