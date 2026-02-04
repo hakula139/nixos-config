@@ -45,6 +45,7 @@ services:
       - ~/.config/containers/registries.conf:/root/.config/containers/registries.conf:ro
       - ~/.config/go/env:/root/.config/go/env:ro
       - ~/.config/pip/pip.conf:/root/.config/pip/pip.conf:ro
+      - ~/.gitconfig:/root/.gitconfig:ro
       - ~/.kube:/root/.kube:ro
       - ~/.npmrc:/root/.npmrc:ro
       - ~/.ssh:/root/.ssh
