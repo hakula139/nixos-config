@@ -313,7 +313,6 @@
     # --------------------------------------------------------------------------
     # MCP
     # --------------------------------------------------------------------------
-    "mcp__Context7"
     "mcp__DeepWiki"
     "mcp__Filesystem"
     "mcp__Git"
@@ -341,6 +340,8 @@
     "mcp__GitHub__search_repositories"
     "mcp__GitHub__search_users"
     "mcp__ide"
+    "mcp__plugin_context7-plugin_context7__resolve-library-id"
+    "mcp__plugin_context7-plugin_context7__query-docs"
   ];
 
   # ============================================================================
