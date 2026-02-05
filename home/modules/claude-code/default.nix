@@ -40,7 +40,7 @@ in
 
   config = lib.mkIf cfg.enable (
     let
-      hooks = import ./hooks.nix;
+      hooks = import ./hooks { inherit pkgs lib; };
       permissions = import ./permissions.nix;
       plugins = import ./plugins.nix { inherit lib enableDevToolchains; };
 
