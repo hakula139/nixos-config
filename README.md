@@ -98,7 +98,7 @@ nixsw hakula-work
 
 ## Docker Images (for air-gapped deployment)
 
-For environments where Nix cannot be installed natively, NixOS Docker images can be built using the upstream [docker-image module](https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/virtualisation/docker-image.nix).
+For environments where Nix cannot be installed natively, NixOS Docker images can be built using [`dockerTools.buildLayeredImage`](https://ryantm.github.io/nixpkgs/builders/images/dockertools/#ssec-pkgs-dockerTools-buildLayeredImage). This creates multi-layer images (up to 100 layers) for efficient incremental updates via layer caching.
 
 ### Build Docker Image
 
@@ -109,8 +109,8 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 ### Deploy Docker Image
 
 ```bash
-# Import the filesystem tarball as a Docker image
-docker import result/tarball/nixos-system-x86_64-linux.tar.xz nixos:latest
+# Load the layered image into Docker
+docker load < result
 
 # Start the container
 docker compose -f hosts/hakula-devvm/docker-compose.yml up -d

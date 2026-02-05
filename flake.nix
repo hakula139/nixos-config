@@ -217,11 +217,14 @@
       # ------------------------------------------------------------------------
       mkDocker =
         {
+          name,
+          tag ? "latest",
           configPath,
           username ? "hakula",
           enableDevToolchains ? false,
         }:
         let
+          pkgs = pkgsFor "x86_64-linux";
           nixosConfig = nixpkgs.lib.nixosSystem {
             specialArgs = {
               inherit inputs secrets;
@@ -231,7 +234,6 @@
                 nixpkgs.hostPlatform = "x86_64-linux";
                 nixpkgs.overlays = overlays;
               }
-              "${nixpkgs}/nixos/modules/virtualisation/docker-image.nix"
               agenix.nixosModules.default
               home-manager.nixosModules.home-manager
               {
@@ -254,8 +256,15 @@
               configPath
             ];
           };
+          toplevel = nixosConfig.config.system.build.toplevel;
         in
-        nixosConfig.config.system.build.tarball;
+        pkgs.dockerTools.buildLayeredImage {
+          inherit name tag;
+          contents = [ toplevel ];
+          config = {
+            Cmd = [ "${toplevel}/init" ];
+          };
+        };
     in
     {
       # ========================================================================
@@ -337,6 +346,7 @@
         # Hakula's DevVM (Docker Image)
         # ----------------------------------------------------------------------
         hakula-devvm-docker = mkDocker {
+          name = "hakula-devvm";
           configPath = ./hosts/hakula-devvm;
           username = "root";
           enableDevToolchains = true;
