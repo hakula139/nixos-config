@@ -11,12 +11,6 @@
     # Nixpkgs unstable - for bleeding edge packages
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    # NixOS image generation (for Docker images)
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # macOS system configuration
     nix-darwin = {
       url = "github:LnL7/nix-darwin/nix-darwin-25.11";
@@ -55,7 +49,6 @@
       self,
       nixpkgs,
       nixpkgs-unstable,
-      nixos-generators,
       nix-darwin,
       home-manager,
       disko,
@@ -228,39 +221,41 @@
           username ? "hakula",
           enableDevToolchains ? false,
         }:
-        nixos-generators.nixosGenerate {
-          system = "x86_64-linux";
-          format = "docker";
-          specialArgs = {
-            inherit inputs secrets;
+        let
+          nixosConfig = nixpkgs.lib.nixosSystem {
+            specialArgs = {
+              inherit inputs secrets;
+            };
+            modules = [
+              {
+                nixpkgs.hostPlatform = "x86_64-linux";
+                nixpkgs.overlays = overlays;
+              }
+              "${nixpkgs}/nixos/modules/virtualisation/docker-image.nix"
+              agenix.nixosModules.default
+              home-manager.nixosModules.home-manager
+              {
+                home-manager = {
+                  useGlobalPkgs = true;
+                  useUserPackages = true;
+                  users.${username} = {
+                    imports = [
+                      ./home/hakula.nix
+                    ];
+                  };
+                  backupFileExtension = "bak";
+                  extraSpecialArgs = {
+                    inherit inputs secrets enableDevToolchains;
+                    isNixOS = true;
+                    isDesktop = false;
+                  };
+                };
+              }
+              configPath
+            ];
           };
-          modules = [
-            {
-              nixpkgs.hostPlatform = "x86_64-linux";
-              nixpkgs.overlays = overlays;
-            }
-            agenix.nixosModules.default
-            home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.${username} = {
-                  imports = [
-                    ./home/hakula.nix
-                  ];
-                };
-                backupFileExtension = "bak";
-                extraSpecialArgs = {
-                  inherit inputs secrets enableDevToolchains;
-                  isNixOS = true;
-                  isDesktop = false;
-                };
-              };
-            }
-            configPath
-          ];
-        };
+        in
+        nixosConfig.config.system.build.tarball;
     in
     {
       # ========================================================================

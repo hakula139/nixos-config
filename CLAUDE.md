@@ -95,7 +95,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 - `mkServer`: Creates NixOS configurations with agenix, disko, and Home Manager integrated
 - `mkDarwin`: Creates Darwin configurations with agenix and Home Manager integrated
 - `mkHome`: Creates standalone Home Manager configurations for non-NixOS Linux
-- `mkDocker`: Creates NixOS Docker images with nixos-generators for air-gapped deployment
+- `mkDocker`: Creates NixOS Docker images using upstream docker-image module for air-gapped deployment
 - `overlays`: Provides `unstable` packages, `agenix` CLI, and custom packages (`cloudreve`, `github-mcp-server`)
 - `forAllSystems`: Handles both x86_64-linux and aarch64-darwin
 

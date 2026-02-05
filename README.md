@@ -98,7 +98,7 @@ nixsw hakula-work
 
 ## Docker Images (for air-gapped deployment)
 
-For environments where Nix cannot be installed natively, NixOS Docker images can be built using [nixos-generators](https://github.com/nix-community/nixos-generators).
+For environments where Nix cannot be installed natively, NixOS Docker images can be built using the upstream [docker-image module](https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/virtualisation/docker-image.nix).
 
 ### Build Docker Image
 
