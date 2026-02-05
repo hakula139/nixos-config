@@ -109,6 +109,7 @@ nlsv
 nofile
 nslookup
 nvim
+osascript
 pcall
 pcdn
 pcpu
