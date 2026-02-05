@@ -17,12 +17,16 @@ let
   isDarwin = pkgs.stdenv.isDarwin;
   isLinux = pkgs.stdenv.isLinux;
 
-  # Tiny Windows toast notification CLI
+  # Tiny Windows toast notification CLI for WSL
   # https://github.com/shanselman/toasty
-  toasty = pkgs.fetchurl {
-    url = "https://github.com/shanselman/toasty/releases/download/v0.5/toasty-x64.exe";
-    hash = "sha256-DTlIB4JCcjfGbDFss9+T8rYqvjC4yb/KHu0xZz3NFWQ=";
-  };
+  toasty = pkgs.runCommand "toasty" { } ''
+    install -D -m 0755 ${
+      pkgs.fetchurl {
+        url = "https://github.com/shanselman/toasty/releases/download/v0.5/toasty-x64.exe";
+        hash = "sha256-DTlIB4JCcjfGbDFss9+T8rYqvjC4yb/KHu0xZz3NFWQ=";
+      }
+    } $out/bin/toasty.exe
+  '';
 
   # Cross-platform notification script
   notifyScript = pkgs.writeShellScript "claude-notify" ''
@@ -34,7 +38,7 @@ let
     ${lib.optionalString isLinux ''
       # Check if running in WSL
       if grep -qi microsoft /proc/version 2>/dev/null; then
-        "${toasty}" "$body" -t "$title" --app claude 2>/dev/null || true
+        "${toasty}/bin/toasty.exe" "$body" -t "$title" --app claude 2>/dev/null || true
       else
         ${pkgs.libnotify}/bin/notify-send "$title" "$body"
       fi
