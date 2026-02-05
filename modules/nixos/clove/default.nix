@@ -29,7 +29,7 @@ in
 
     image = lib.mkOption {
       type = lib.types.str;
-      default = "mirrorange/clove:latest";
+      default = "mirrorange/clove:0.3.1";
       description = "Docker image for Clove";
     };
   };

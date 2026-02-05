@@ -28,7 +28,7 @@ in
 
     image = lib.mkOption {
       type = lib.types.str;
-      default = "pengzhile/fuclaude:latest";
+      default = "pengzhile/fuclaude:0.5.0";
       description = "Docker image for Fuclaude";
     };
 
