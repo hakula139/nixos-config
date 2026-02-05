@@ -263,6 +263,7 @@
     "Bash(nix store path-info:*)"
     "Bash(nix why-depends:*)"
     "Bash(nix-instantiate:*)"
+    "Bash(nix-prefetch-url:*)"
     "Bash(nvd:*)"
 
     # --------------------------------------------------------------------------
