@@ -11,8 +11,9 @@ in
 # ==============================================================================
 # Docker Container Profile
 # ==============================================================================
-# This module contains shared configuration for NixOS Docker images built with
-# nixos-generators. Import this from your container-specific host configuration.
+# Shared configuration for NixOS Docker images built with
+# dockerTools.buildLayeredImage. The mkDocker builder in flake.nix handles
+# the image creation with multi-layer caching.
 # ==============================================================================
 
 {
