@@ -52,6 +52,25 @@ in
   ];
 
   # ----------------------------------------------------------------------------
+  # Notification - Permission requests and idle reminders
+  # ----------------------------------------------------------------------------
+  Notification = [
+    {
+      hooks = [
+        {
+          type = "command";
+          command = ''
+            input="$(cat)"
+            project="$(basename "$PWD")"
+            message="$(echo "$input" | ${pkgs.jq}/bin/jq -r '.message // "Notification"')"
+            "${notify.notifyScript}" "Claude Code" "[$project] $message"
+          '';
+        }
+      ];
+    }
+  ];
+
+  # ----------------------------------------------------------------------------
   # Stop - Notifications when Claude needs input or completes
   # ----------------------------------------------------------------------------
   Stop = [
