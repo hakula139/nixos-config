@@ -37,20 +37,24 @@ in
   ];
 
   # ----------------------------------------------------------------------------
-  # Cachix configuration
+  # Binary caches
   # ----------------------------------------------------------------------------
-  cachix =
+  binaryCaches =
     let
-      cacheName = "hakula";
-      publicKey = "hakula.cachix.org-1:7zwB3fhMfReHdOjh6DmnaLXgqbPDBcojvN9F+osZw0k=";
-      cacheUrl = "https://${cacheName}.cachix.org";
+      caches = [
+        {
+          url = "https://hakula.cachix.org";
+          key = "hakula.cachix.org-1:7zwB3fhMfReHdOjh6DmnaLXgqbPDBcojvN9F+osZw0k=";
+        }
+        {
+          url = "https://cache.numtide.com";
+          key = "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=";
+        }
+      ];
     in
     {
-      inherit cacheName publicKey;
-      caches = {
-        substituters = [ cacheUrl ];
-        trusted-public-keys = [ publicKey ];
-      };
+      substituters = map (c: c.url) caches;
+      trusted-public-keys = map (c: c.key) caches;
     };
 
   # ----------------------------------------------------------------------------

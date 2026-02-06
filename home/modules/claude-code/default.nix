@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   secrets,
   isNixOS ? false,
   enableDevToolchains ? false,
@@ -78,7 +79,7 @@ in
           fi
         ''
         + ''
-          exec ${pkgs.unstable.claude-code}/bin/claude "$@"
+          exec ${inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code}/bin/claude "$@"
         ''
       );
     in

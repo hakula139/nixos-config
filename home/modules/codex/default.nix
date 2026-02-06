@@ -54,7 +54,7 @@ in
           ;
       };
 
-      codexPkg = inputs.codex.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
 
       codexBin = pkgs.writeShellScriptBin "codex" (
         lib.optionalString cfg.proxy.enable ''

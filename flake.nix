@@ -35,9 +35,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # OpenAI Codex CLI
-    codex = {
-      url = "github:openai/codex";
+    # AI coding agents
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
@@ -59,7 +59,7 @@
       home-manager,
       disko,
       agenix,
-      codex,
+      llm-agents,
       git-hooks-nix,
       ...
     }@inputs:

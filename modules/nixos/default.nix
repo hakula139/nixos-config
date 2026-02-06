@@ -88,7 +88,7 @@ in
       settings =
         shared.nixSettings
         // lib.optionalAttrs config.hakula.cachix.enable {
-          inherit (shared.cachix.caches) substituters trusted-public-keys;
+          inherit (shared.binaryCaches) substituters trusted-public-keys;
         };
 
       gc = {
