@@ -5,7 +5,7 @@ set -euo pipefail
 # Claude Code Status Line Command
 # ==============================================================================
 # Row 1: [dir] [git]
-# Row 2: Ctx: X% | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
+# Row 2: [Model] Ctx: X% | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
 # ==============================================================================
 
 readonly RED='\033[0;31m'
@@ -257,7 +257,15 @@ main() {
       "$(format_git_info "${cwd}")"
   )"
 
-  # Row 2: context, session, block, daily, time
+  # Row 2: model, context, session, block, daily, time
+  local model_name
+  model_name="$(echo "${input}" | jq -r '.model.display_name // empty')"
+
+  local model_output=""
+  if [[ -n "${model_name}" ]]; then
+    model_output="$(printf '%b[%s]%b' "${CYAN}" "${model_name}" "${RESET}")"
+  fi
+
   local claude_info ccusage_data ccusage_info
   claude_info="$(format_claude_info "${input}")"
   ccusage_data="$(get_ccusage_data)"
@@ -271,7 +279,7 @@ main() {
   current_time="$(printf '%b%s%b' "${DIM}" "$(date +%H:%M)" "${RESET}")"
 
   local row2
-  row2="$(join_parts "${SEP}" "${ctx}" "${sess}" "${block}" "${daily}" "${current_time}")"
+  row2="$(join_parts "${SEP}" "${model_output}" "${ctx}" "${sess}" "${block}" "${daily}" "${current_time}")"
 
   printf '%b\n%b' "${row1}" "${row2}"
 }
