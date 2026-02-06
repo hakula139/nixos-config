@@ -125,7 +125,7 @@ in
               NO_PROXY = "localhost,127.0.0.1";
             };
 
-            model = "opus";
+            model = "claude-opus-4-6";
 
             statusLine = {
               type = "command";

@@ -48,16 +48,28 @@ in
     }
   ];
 
-  Notification = [
-    # Permission prompt - notify when Claude Code needs approval
+  PermissionRequest = [
+    # Notify when Claude Code needs user attention (permission or question)
     {
-      matcher = "permission_prompt";
       hooks = [
         {
           type = "command";
           command = ''
-            project="$(basename "$PWD")"
-            "${notify.notifyScript}" "Claude Code" "[$project] Permission requested"
+            tool_name="$(${pkgs.jq}/bin/jq -r '.tool_name // empty')"
+            case "$tool_name" in
+              AskUserQuestion)
+                "${notify.projectNotifyScript}" "Question asked"
+                ;;
+              mcp__*)
+                # Extract MCP server name
+                mcp_name="''${tool_name#mcp__}"
+                mcp_name="''${mcp_name%%__*}"
+                "${notify.projectNotifyScript}" "$mcp_name permission requested"
+                ;;
+              *)
+                "${notify.projectNotifyScript}" "$tool_name permission requested"
+                ;;
+            esac
           '';
         }
       ];
@@ -71,8 +83,7 @@ in
         {
           type = "command";
           command = ''
-            project="$(basename "$PWD")"
-            "${notify.notifyScript}" "Claude Code" "[$project] Response complete"
+            "${notify.projectNotifyScript}" "Response complete"
           '';
         }
       ];
