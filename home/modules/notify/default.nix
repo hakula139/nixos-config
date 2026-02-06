@@ -37,7 +37,7 @@ let
     ${lib.optionalString isLinux ''
       # Check if running in WSL
       if grep -qi microsoft /proc/version 2>/dev/null; then
-        "${toasty}/bin/toasty.exe" "$body" -t "$title" --app claude 2>/dev/null || true
+        "${toasty}/bin/toasty.exe" "$body" -t "$title" 2>/dev/null || true
       else
         ${pkgs.libnotify}/bin/notify-send "$title" "$body"
       fi
@@ -54,10 +54,31 @@ let
 
     title="''${1:-Notification}"
     message="''${2:-}"
+    payload="''${3:-}"
     project="$(basename "$PWD")"
-    tty_num="$(ps -o tty= -p $$ 2>/dev/null | grep -oE '[0-9]+$' || echo '?')"
+    session_tag=""
 
-    "${notifyScript}" "$title" "[$project #$tty_num] $message"
+    if [[ -n "$payload" ]] && printf '%s' "$payload" | ${pkgs.jq}/bin/jq -e . >/dev/null 2>&1; then
+      thread_id="$(printf '%s' "$payload" | ${pkgs.jq}/bin/jq -r '."thread-id" // empty')"
+      payload_cwd="$(printf '%s' "$payload" | ${pkgs.jq}/bin/jq -r '.cwd // empty')"
+      if [[ -n "$payload_cwd" ]]; then
+        project="$(basename "$payload_cwd")"
+      fi
+      if [[ -n "$thread_id" ]]; then
+        session_tag="''${thread_id:0:8}"
+      fi
+    fi
+
+    if [[ -z "$session_tag" ]]; then
+      tty_num="$(ps -o tty= -p $$ 2>/dev/null | grep -oE '[0-9]+$' || true)"
+      if [[ -n "$tty_num" ]]; then
+        session_tag="tty$tty_num"
+      else
+        session_tag="tty?"
+      fi
+    fi
+
+    "${notifyScript}" "$title" "[$project $session_tag] $message"
   '';
 in
 {
