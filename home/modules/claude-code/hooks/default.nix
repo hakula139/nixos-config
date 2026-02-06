@@ -62,19 +62,6 @@ in
         }
       ];
     }
-    # Idle prompt - notify when Claude Code is waiting for input
-    {
-      matcher = "idle_prompt";
-      hooks = [
-        {
-          type = "command";
-          command = ''
-            project="$(basename "$PWD")"
-            "${notify.notifyScript}" "Claude Code" "[$project] Waiting for input"
-          '';
-        }
-      ];
-    }
   ];
 
   Stop = [
