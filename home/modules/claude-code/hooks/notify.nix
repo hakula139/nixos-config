@@ -47,7 +47,17 @@ let
       osascript -e "display notification \"$body\" with title \"$title\" sound name \"Glass\""
     ''}
   '';
+
+  # Project-scoped notification: prepends "[project-name]" to the message
+  projectNotifyScript = pkgs.writeShellScript "claude-project-notify" ''
+    set -euo pipefail
+
+    message="''${1:-}"
+    project="$(basename "$PWD")"
+
+    "${notifyScript}" "Claude Code" "[$project] $message"
+  '';
 in
 {
-  inherit notifyScript;
+  inherit notifyScript projectNotifyScript;
 }
