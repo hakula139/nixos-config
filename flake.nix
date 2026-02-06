@@ -35,6 +35,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # OpenAI Codex CLI
+    codex = {
+      url = "github:openai/codex";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     # Pre-commit hooks
     # Note: Don't follow nixpkgs - let git-hooks-nix use its own nixpkgs
     # to avoid dotnet build failures on aarch64-darwin (nixpkgs#450126)
@@ -53,6 +59,7 @@
       home-manager,
       disko,
       agenix,
+      codex,
       git-hooks-nix,
       ...
     }@inputs:

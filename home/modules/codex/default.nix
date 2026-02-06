@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   secrets,
   isNixOS ? false,
   ...
@@ -53,6 +54,8 @@ in
           ;
       };
 
+      codexPkg = inputs.codex.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
       codexBin = pkgs.writeShellScriptBin "codex" (
         lib.optionalString cfg.proxy.enable ''
           export HTTP_PROXY="${cfg.proxy.url}"
@@ -60,7 +63,7 @@ in
           export NO_PROXY="${builtins.concatStringsSep "," cfg.proxy.noProxy}"
         ''
         + ''
-          exec ${pkgs.codex}/bin/codex "$@"
+          exec ${codexPkg}/bin/codex "$@"
         ''
       );
     in
