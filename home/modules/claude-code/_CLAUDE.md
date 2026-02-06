@@ -60,6 +60,10 @@ Avoid:
 - Obvious explanations that clutter the code
 - Commented-out code (use version control instead)
 
+## Bash Tool Usage
+
+**Never prefix Bash commands with shell comments.** The `command` field must start with the actual command, not a `# comment`. Use the Bash tool's `description` parameter for explanations instead. Shell comments in the command string break permission pattern matching (e.g., `Bash(git status:*)` won't match `# Check status\ngit status`).
+
 ## MCP Server Usage
 
 Prefer MCP tools over equivalent Bash commands or web searches. MCPs provide structured interfaces, better error handling, and work within the configured permission model.
