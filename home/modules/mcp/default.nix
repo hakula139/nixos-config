@@ -28,6 +28,13 @@ let
   '';
 
   # ----------------------------------------------------------------------------
+  # Codex
+  # ----------------------------------------------------------------------------
+  codexBin = pkgs.writeShellScriptBin "codex-mcp" ''
+    exec "${config.home.profileDirectory}/bin/codex" mcp-server "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
   # Context7
   # ----------------------------------------------------------------------------
   context7ApiKeyFile = "${secretsDir}/context7-api-key";
@@ -81,6 +88,12 @@ in
     braveSearch = {
       name = "BraveSearch";
       command = "${braveSearchBin}/bin/brave-search-mcp";
+      type = "stdio";
+    };
+
+    codex = {
+      name = "Codex";
+      command = "${codexBin}/bin/codex-mcp";
       type = "stdio";
     };
 

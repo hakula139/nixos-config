@@ -104,3 +104,35 @@ Use for all GitHub API interactions — issues, pull requests, code search, repo
 ### IDE (`mcp__ide__*`)
 
 Use `getDiagnostics` to check for language server errors / warnings in files. Use `executeCode` for running Python code in Jupyter kernels when working with notebooks.
+
+### Codex (`mcp__Codex__*`)
+
+Use for delegating **self-contained, multi-step coding tasks** to an autonomous agent powered by GPT-5.3-codex. Codex runs with full shell access and its own MCP servers (Context7, DeepWiki, Filesystem, Git, GitHub), making it capable of independent exploration, code generation, and command execution.
+
+**When to use Codex:**
+
+- Tasks that require autonomous multi-step work with shell commands (e.g., refactoring across files, writing and running scripts, building and testing code)
+- Offloading work to a separate context window — useful when Claude Code's context is already large or the task is orthogonal to the current conversation
+- Leveraging GPT-5.3-codex's strengths for code generation or analysis
+- Tasks where an independent second opinion or alternative approach is valuable
+
+**When NOT to use Codex:**
+
+- Simple file reads / edits that Claude Code can handle directly
+- Tasks that depend heavily on the current conversation context (Codex starts fresh or continues its own thread)
+- Quick one-shot commands — use Bash or other MCP tools directly instead
+
+**Tools:**
+
+- `codex` — Start a new session. Key parameters:
+  - `prompt` (required): The task description
+  - `cwd`: Working directory (defaults to server's cwd)
+  - `model`: Override the default model if needed
+  - `sandbox`: `read-only` | `workspace-write` | `danger-full-access`
+  - `approval-policy`: `untrusted` | `on-failure` | `on-request` | `never`
+- `codex-reply` — Continue an existing session using `threadId` from a previous response. Use this for follow-up instructions, corrections, or multi-turn workflows
+
+**Session management:**
+
+- Each `codex` call returns a `threadId` — preserve it if you plan to continue the conversation
+- Use `codex-reply` with the `threadId` for iterative work rather than starting new sessions, to maintain context continuity
