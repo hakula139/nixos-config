@@ -27,6 +27,22 @@ let
     } $out/bin/toasty.exe
   '';
 
+  # Resolve TTY number by walking up the process tree.
+  # On macOS, child processes spawned without a controlling terminal show "??"
+  # instead of inheriting the parent's TTY like on Linux.
+  getTtyNum = pkgs.writeShellScript "get-tty-num" ''
+    pid=$$
+    while [[ "$pid" -gt 1 ]]; do
+      tty="$(ps -o tty= -p "$pid" 2>/dev/null | tr -d ' ')" || break
+      if [[ "$tty" != "??" && "$tty" != "?" && -n "$tty" ]]; then
+        echo "$tty" | grep -oE '[0-9]+$' && exit 0
+        break
+      fi
+      pid="$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')" || break
+    done
+    echo '?'
+  '';
+
   # Cross-platform notification script: notify <title> [body]
   notifyScript = pkgs.writeShellScript "notify" ''
     set -euo pipefail
@@ -70,17 +86,12 @@ let
     fi
 
     if [[ -z "$session_tag" ]]; then
-      tty_num="$(ps -o tty= -p $$ 2>/dev/null | grep -oE '[0-9]+$' || true)"
-      if [[ -n "$tty_num" ]]; then
-        session_tag="tty$tty_num"
-      else
-        session_tag="tty?"
-      fi
+      session_tag="tty$("${getTtyNum}")"
     fi
 
     "${notifyScript}" "$title" "[$project $session_tag] $message"
   '';
 in
 {
-  inherit notifyScript mkProjectNotifyScript;
+  inherit getTtyNum notifyScript mkProjectNotifyScript;
 }

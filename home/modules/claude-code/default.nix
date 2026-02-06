@@ -65,10 +65,11 @@ in
           ;
       };
 
+      notify = import ../notify { inherit pkgs lib; };
+
       statusLineScript = pkgs.writeShellScript "statusline-command" (
-        builtins.replaceStrings [ "@npx@" ] [ "${pkgs.nodejs}/bin/npx" ] (
-          builtins.readFile ./statusline-command.sh
-        )
+        builtins.replaceStrings [ "@npx@" "@getTtyNum@" ] [ "${pkgs.nodejs}/bin/npx" "${notify.getTtyNum}" ]
+          (builtins.readFile ./statusline-command.sh)
       );
 
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;

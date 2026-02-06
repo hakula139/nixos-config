@@ -19,8 +19,9 @@ readonly RESET='\033[0m'
 # Separator between statusline components
 readonly SEP=" ${DIM}|${RESET} "
 
-# Path to npx - will be substituted by Nix
+# Paths substituted by Nix
 readonly NPX="@npx@"
+readonly GET_TTY_NUM="@getTtyNum@"
 
 # ------------------------------------------------------------------------------
 # Helpers
@@ -242,9 +243,11 @@ main() {
   local cwd
   cwd="$(echo "${input}" | jq -r '.workspace.current_dir')"
 
-  # Row 1: tty + directory + git
+  # ----------------------------------------------------------------------------
+  # Row 1: tty, directory, git
+  # ----------------------------------------------------------------------------
   local tty_num
-  tty_num="$(ps -o tty= -p $$ 2>/dev/null | grep -oE '[0-9]+$' || echo '?')"
+  tty_num="$("${GET_TTY_NUM}")"
 
   local dir_name
   if [[ "${cwd}" == "${HOME}" ]]; then
@@ -261,7 +264,9 @@ main() {
       "$(format_git_info "${cwd}")"
   )"
 
+  # ----------------------------------------------------------------------------
   # Row 2: model, context, session, block, daily, time
+  # ----------------------------------------------------------------------------
   local model_name
   model_name="$(echo "${input}" | jq -r '.model.display_name // empty')"
 
