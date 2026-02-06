@@ -166,7 +166,7 @@ get_ccusage_data() {
   fi
 
   local result
-  result="$("${NPX}" -y ccusage@latest blocks --json --offline 2>/dev/null | jq -c '
+  result="$("${NPX}" -y ccusage@latest blocks --json 2>/dev/null | jq -c '
     (now | strftime("%Y-%m-%d")) as $today |
     (.blocks // []) as $blocks |
     ($blocks | map(select(.isActive)) | first) as $active |
