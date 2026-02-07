@@ -101,9 +101,17 @@ let
     "james-yu.latex-workshop"
 
     # --------------------------------------------------------------------------
-    # Utilities & Tools
+    # Spell Checker
     # --------------------------------------------------------------------------
     "streetsidesoftware.code-spell-checker"
+    "streetsidesoftware.code-spell-checker-ancient-greek"
+    "streetsidesoftware.code-spell-checker-french"
+    "streetsidesoftware.code-spell-checker-german"
+    "streetsidesoftware.code-spell-checker-latin"
+
+    # --------------------------------------------------------------------------
+    # Utilities & Tools
+    # --------------------------------------------------------------------------
     "usernamehw.errorlens"
     "hediet.vscode-drawio"
 
