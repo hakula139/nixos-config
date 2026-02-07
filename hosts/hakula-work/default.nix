@@ -13,6 +13,10 @@
     enable = true;
     proxy.enable = true;
   };
+  hakula.codex = {
+    enable = true;
+    proxy.enable = true;
+  };
   hakula.cursor.extensions.prune = lib.mkForce false;
   hakula.fonts.windowsSync.enable = true;
   hakula.mihomo = {

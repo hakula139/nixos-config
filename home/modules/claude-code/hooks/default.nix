@@ -9,7 +9,8 @@
 # ==============================================================================
 
 let
-  notify = import ./notify.nix { inherit pkgs lib; };
+  notify = import ../../notify { inherit pkgs lib; };
+  projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 in
 {
   PostToolUse = [
@@ -58,16 +59,16 @@ in
             tool_name="$(${pkgs.jq}/bin/jq -r '.tool_name // empty')"
             case "$tool_name" in
               AskUserQuestion)
-                "${notify.projectNotifyScript}" "Question asked"
+                ${projectNotify} "Question asked"
                 ;;
               mcp__*)
                 # Extract MCP server name
                 mcp_name="''${tool_name#mcp__}"
                 mcp_name="''${mcp_name%%__*}"
-                "${notify.projectNotifyScript}" "$mcp_name permission requested"
+                ${projectNotify} "$mcp_name permission requested"
                 ;;
               *)
-                "${notify.projectNotifyScript}" "$tool_name permission requested"
+                ${projectNotify} "$tool_name permission requested"
                 ;;
             esac
           '';
@@ -83,7 +84,7 @@ in
         {
           type = "command";
           command = ''
-            "${notify.projectNotifyScript}" "Response complete"
+            ${projectNotify} "Response complete"
           '';
         }
       ];

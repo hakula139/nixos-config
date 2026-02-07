@@ -35,6 +35,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # AI coding agents
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     # Pre-commit hooks
     # Note: Don't follow nixpkgs - let git-hooks-nix use its own nixpkgs
     # to avoid dotnet build failures on aarch64-darwin (nixpkgs#450126)
@@ -53,6 +59,7 @@
       home-manager,
       disko,
       agenix,
+      llm-agents,
       git-hooks-nix,
       ...
     }@inputs:

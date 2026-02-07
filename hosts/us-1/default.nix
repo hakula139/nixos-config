@@ -93,6 +93,7 @@ in
   # Home Manager Modules
   # ============================================================================
   home-manager.users.hakula.hakula.claude-code.enable = true;
+  home-manager.users.hakula.hakula.codex.enable = true;
 
   # ============================================================================
   # System State

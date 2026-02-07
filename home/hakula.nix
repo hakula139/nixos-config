@@ -21,6 +21,7 @@ in
     ./modules/shared.nix
     ./modules/darwin.nix
     ./modules/claude-code
+    ./modules/codex
     ./modules/cursor
     ./modules/fonts
     ./modules/git
