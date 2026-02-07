@@ -6,9 +6,12 @@
 
 let
   keys = import ../secrets/keys.nix;
+  binaryCaches = import ../lib/caches.nix;
   tooling = import ../lib/tooling.nix { inherit pkgs; };
 in
 {
+  inherit binaryCaches;
+
   # ----------------------------------------------------------------------------
   # SSH public keys
   # ----------------------------------------------------------------------------
@@ -35,23 +38,6 @@ in
     source-han-sans
     source-han-serif
   ];
-
-  # ----------------------------------------------------------------------------
-  # Cachix configuration
-  # ----------------------------------------------------------------------------
-  cachix =
-    let
-      cacheName = "hakula";
-      publicKey = "hakula.cachix.org-1:7zwB3fhMfReHdOjh6DmnaLXgqbPDBcojvN9F+osZw0k=";
-      cacheUrl = "https://${cacheName}.cachix.org";
-    in
-    {
-      inherit cacheName publicKey;
-      caches = {
-        substituters = [ cacheUrl ];
-        trusted-public-keys = [ publicKey ];
-      };
-    };
 
   # ----------------------------------------------------------------------------
   # Nix development tools

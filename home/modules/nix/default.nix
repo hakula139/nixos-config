@@ -10,10 +10,17 @@
 # ==============================================================================
 
 let
+  caches = import ../../../lib/caches.nix;
   isLinux = pkgs.stdenv.isLinux;
+
+  nixConf = ''
+    experimental-features = nix-command flakes
+    extra-substituters = ${builtins.concatStringsSep " " caches.substituters}
+    extra-trusted-public-keys = ${builtins.concatStringsSep " " caches.trusted-public-keys}
+  '';
 in
 {
   home.file.".config/nix/nix.conf" = lib.mkIf (isLinux && !isNixOS) {
-    source = ./nix.conf;
+    text = nixConf;
   };
 }

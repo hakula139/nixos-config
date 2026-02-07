@@ -47,6 +47,10 @@ in
       enable = true;
       proxy.enable = true;
     };
+    hakula.codex = {
+      enable = true;
+      proxy.enable = true;
+    };
   };
 
   # ============================================================================

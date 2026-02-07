@@ -97,6 +97,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 - `mkHome`: Creates standalone Home Manager configurations for non-NixOS Linux
 - `mkDocker`: Creates layered NixOS Docker images using `dockerTools.buildLayeredImageWithNixDb` for air-gapped deployment
 - `overlays`: Provides `unstable` packages, `agenix` CLI, and custom packages (`cloudreve`, `github-mcp-server`)
+- `inputs.llm-agents`: Provides `claude-code` and `codex` packages from [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix)
 - `forAllSystems`: Handles both x86_64-linux and aarch64-darwin
 
 **Key outputs**:
@@ -138,11 +139,13 @@ The flake uses a **builder function pattern** to reduce duplication:
 │   ├── hakula.nix               # Main user configuration entry
 │   └── modules/                 # Home Manager modules
 │       ├── claude-code/         # Claude Code configuration
+│       ├── codex/               # OpenAI Codex CLI configuration
 │       ├── cursor/              # Cursor editor config
 │       ├── git/                 # Git configuration
 │       ├── mcp/                 # MCP server definitions (shared)
 │       ├── mihomo/              # Mihomo proxy client
 │       ├── nix/                 # User-level nix.conf for standalone HM
+│       ├── notify/              # Cross-platform notification support
 │       ├── ssh/                 # SSH client config
 │       ├── syncthing/           # Syncthing file synchronization
 │       ├── wakatime/            # Wakatime time tracking
@@ -151,6 +154,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 │       └── shared.nix           # Shared module configuration
 ├── packages/                    # Custom package definitions
 ├── lib/
+│   ├── caches.nix               # Binary cache configuration
 │   ├── secrets.nix              # Secrets helper library
 │   └── tooling.nix              # Shared development tools
 ├── secrets/                     # agenix-encrypted secrets
@@ -180,7 +184,7 @@ Each module typically exports an `enable` option and service-specific configurat
 - `sshKeys`: User SSH public keys from `secrets/keys.nix`
 - `basePackages`: Minimal system packages (curl, wget, git, htop, vim)
 - `fonts`: Nerd Fonts, Sarasa Gothic, Source Han Sans/Serif
-- `cachix`: Binary cache configuration for "hakula" cache
+- `binaryCaches`: Binary cache substituters and public keys from `lib/caches.nix`
 - `nixTooling`: Development tools from `lib/tooling.nix`
 - `nixSettings`: Experimental features, buffer sizes
 
@@ -349,7 +353,7 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 
 ## Proxy Configuration
 
-Some hosts use **HTTP proxy** (`http://127.0.0.1:7897`) for Claude Code and other tools. This is configured per-host via `hakula.claude-code.proxy.enable = true` in the host's `default.nix`. Currently enabled on:
+Some hosts use **HTTP proxy** (`http://127.0.0.1:7897`) for Claude Code, Codex, and other tools. This is configured per-host via `hakula.claude-code.proxy.enable` and `hakula.codex.proxy.enable` in the host's `default.nix`. Currently enabled on:
 
 - `hakula-macbook`
 - `hakula-work`

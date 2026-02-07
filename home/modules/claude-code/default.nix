@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   secrets,
   isNixOS ? false,
   enableDevToolchains ? false,
@@ -30,10 +31,20 @@ in
 
     proxy = {
       enable = lib.mkEnableOption "HTTP proxy for Claude Code";
+
       url = lib.mkOption {
         type = lib.types.str;
         default = "http://127.0.0.1:7897";
         description = "HTTP proxy URL for Claude Code";
+      };
+
+      noProxy = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [
+          "localhost"
+          "127.0.0.1"
+        ];
+        description = "Domains to bypass the proxy";
       };
     };
   };
@@ -54,23 +65,29 @@ in
           ;
       };
 
+      notify = import ../notify { inherit pkgs lib; };
+
       statusLineScript = pkgs.writeShellScript "statusline-command" (
-        builtins.replaceStrings [ "@npx@" ] [ "${pkgs.nodejs}/bin/npx" ] (
-          builtins.readFile ./statusline-command.sh
-        )
+        builtins.replaceStrings [ "@npx@" "@getTtyNum@" ] [ "${pkgs.nodejs}/bin/npx" "${notify.getTtyNum}" ]
+          (builtins.readFile ./statusline-command.sh)
       );
 
+      claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
       oauthTokenFile = "${secretsDir}/claude-code-oauth-token";
-      claudeCodeBin = pkgs.writeShellScriptBin "claude" (
-        lib.optionalString cfg.auth.useOAuthToken ''
-          if [ -f "${oauthTokenFile}" ]; then
-            export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"
-          fi
-        ''
-        + ''
-          exec ${pkgs.unstable.claude-code}/bin/claude "$@"
-        ''
-      );
+
+      claudeCodeBin =
+        if cfg.auth.useOAuthToken then
+          pkgs.symlinkJoin {
+            name = "claude-code-${claudeCodePkg.version}";
+            paths = [ claudeCodePkg ];
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+            postBuild = ''
+              wrapProgram $out/bin/claude \
+                --run '[ -f "${oauthTokenFile}" ] && export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"'
+            '';
+          }
+        else
+          claudeCodePkg;
     in
     lib.mkMerge [
       mcp.secrets
@@ -108,6 +125,14 @@ in
             inherit hooks permissions;
             inherit (plugins) enabledPlugins extraKnownMarketplaces;
 
+            model = "claude-opus-4-6";
+
+            theme = "dark";
+            statusLine = {
+              type = "command";
+              command = "${homeDir}/.claude/statusline-command.sh";
+            };
+
             attribution = {
               commit = "";
               pr = "";
@@ -115,6 +140,7 @@ in
 
             env = {
               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
+              CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
               DISABLE_INSTALLATION_CHECKS = "1";
               ENABLE_INCREMENTAL_TUI = "true";
               FORCE_AUTOUPDATE_PLUGINS = "true";
@@ -122,27 +148,21 @@ in
             // lib.optionalAttrs cfg.proxy.enable {
               HTTP_PROXY = cfg.proxy.url;
               HTTPS_PROXY = cfg.proxy.url;
-              NO_PROXY = "localhost,127.0.0.1";
+              NO_PROXY = builtins.concatStringsSep "," cfg.proxy.noProxy;
             };
-
-            model = "claude-opus-4-6";
-
-            statusLine = {
-              type = "command";
-              command = "${homeDir}/.claude/statusline-command.sh";
-            };
-
-            theme = "dark";
           };
 
           # --------------------------------------------------------------------
-          # MCP configuration
+          # MCP servers
           # --------------------------------------------------------------------
           mcpServers = {
             DeepWiki = mcp.servers.deepwiki;
             Filesystem = mcp.servers.filesystem;
             Git = mcp.servers.git;
             GitHub = mcp.servers.github;
+          }
+          // lib.optionalAttrs config.hakula.codex.enable {
+            Codex = mcp.servers.codex;
           };
         };
       }

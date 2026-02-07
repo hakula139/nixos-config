@@ -4,8 +4,8 @@ set -euo pipefail
 # ==============================================================================
 # Claude Code Status Line Command
 # ==============================================================================
-# Row 1: [dir] [git]
-# Row 2: [Model] Ctx: X% | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
+# Row 1: #tty <directory> <git>
+# Row 2: [Model] | Ctx: X% (XXk/200k) | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
 # ==============================================================================
 
 readonly RED='\033[0;31m'
@@ -19,8 +19,9 @@ readonly RESET='\033[0m'
 # Separator between statusline components
 readonly SEP=" ${DIM}|${RESET} "
 
-# Path to npx - will be substituted by Nix
+# Paths substituted by Nix
 readonly NPX="@npx@"
+readonly GET_TTY_NUM="@getTtyNum@"
 
 # ------------------------------------------------------------------------------
 # Helpers
@@ -166,7 +167,7 @@ get_ccusage_data() {
   fi
 
   local result
-  result="$("${NPX}" -y ccusage@latest blocks --json --offline 2>/dev/null | jq -c '
+  result="$("${NPX}" -y ccusage@latest blocks --json 2>/dev/null | jq -c '
     (now | strftime("%Y-%m-%d")) as $today |
     (.blocks // []) as $blocks |
     ($blocks | map(select(.isActive)) | first) as $active |
@@ -242,7 +243,12 @@ main() {
   local cwd
   cwd="$(echo "${input}" | jq -r '.workspace.current_dir')"
 
-  # Row 1: directory + git
+  # ----------------------------------------------------------------------------
+  # Row 1: tty, directory, git
+  # ----------------------------------------------------------------------------
+  local tty_num
+  tty_num="$("${GET_TTY_NUM}")"
+
   local dir_name
   if [[ "${cwd}" == "${HOME}" ]]; then
     dir_name="~"
@@ -252,12 +258,15 @@ main() {
 
   local row1
   row1="$(
-    printf '%b%s%b%s' \
+    printf '%b#%s%b %b%s%b%s' \
+      "${DIM}" "${tty_num}" "${RESET}" \
       "${BOLD_BLUE}" "${dir_name}" "${RESET}" \
       "$(format_git_info "${cwd}")"
   )"
 
+  # ----------------------------------------------------------------------------
   # Row 2: model, context, session, block, daily, time
+  # ----------------------------------------------------------------------------
   local model_name
   model_name="$(echo "${input}" | jq -r '.model.display_name // empty')"
 

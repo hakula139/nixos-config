@@ -18,6 +18,11 @@ let
     ".claude.json"
     ".claude/.credentials.json"
   ];
+
+  codexSyncDir = "${syncDir}/codex";
+  codexFiles = [
+    ".codex/auth.json"
+  ];
 in
 {
   services.syncthing = {
@@ -47,6 +52,7 @@ in
           id = "TY4E6M5-W7CQMFI-XK3IPUV-RF35PE7-TXBAT23-H6AD3Y4-C6IDGDJ-JRXUDAS"; # cspell:disable-line
           ignoredFolders = [
             { id = "claude-code"; }
+            { id = "codex"; }
           ];
         };
       };
@@ -64,6 +70,19 @@ in
           ];
           ignorePerms = false;
         };
+
+        "codex" = {
+          path = codexSyncDir;
+          devices = [
+            "hakula-macbook"
+            "hakula-work"
+            "us-1"
+            "us-2"
+            "us-3"
+            "us-4"
+          ];
+          ignorePerms = false;
+        };
       };
     };
 
@@ -71,17 +90,40 @@ in
     overrideFolders = true;
   };
 
-  home.activation.syncthingSymlinks = lib.mkIf config.hakula.claude-code.enable (
-    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      install -d -m 0700 "${claudeCodeSyncDir}"
+  home.activation.syncthingSymlinks =
+    let
+      mkSymlinks =
+        {
+          syncDir,
+          files,
+          ...
+        }:
+        ''
+          install -d -m 0700 "${syncDir}"
 
-      for file in ${builtins.toString claudeCodeFiles}; do
-        if [[ ! -e "${homeDir}/$file" ]]; then
-          mkdir -p "$(dirname "${claudeCodeSyncDir}/$file")"
-          mkdir -p "$(dirname "${homeDir}/$file")"
-          ln -sfn "${claudeCodeSyncDir}/$file" "${homeDir}/$file"
-        fi
-      done
-    ''
-  );
+          for file in ${builtins.toString files}; do
+            if [[ ! -e "${homeDir}/$file" ]]; then
+              mkdir -p "$(dirname "${syncDir}/$file")"
+              mkdir -p "$(dirname "${homeDir}/$file")"
+              ln -sfn "${syncDir}/$file" "${homeDir}/$file"
+            fi
+          done
+        '';
+
+      entries = lib.filter (e: e.enabled) [
+        {
+          enabled = config.hakula.claude-code.enable;
+          syncDir = claudeCodeSyncDir;
+          files = claudeCodeFiles;
+        }
+        {
+          enabled = config.hakula.codex.enable;
+          syncDir = codexSyncDir;
+          files = codexFiles;
+        }
+      ];
+    in
+    lib.mkIf (entries != [ ]) (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] (lib.concatMapStrings mkSymlinks entries)
+    );
 }
