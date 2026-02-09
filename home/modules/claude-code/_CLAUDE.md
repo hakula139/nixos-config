@@ -136,3 +136,9 @@ Use for delegating **self-contained, multi-step coding tasks** to an autonomous 
 
 - Each `codex` call returns a `threadId` — preserve it if you plan to continue the conversation
 - Use `codex-reply` with the `threadId` for iterative work rather than starting new sessions, to maintain context continuity
+
+**Evaluating Codex output:**
+
+- Treat Codex as a peer with its own knowledge cutoffs and blind spots — verify claims before accepting them, especially regarding recent APIs, library versions, or best practices
+- When confident Codex is wrong, say so directly and provide evidence (own knowledge, web search, docs)
+- If a disagreement warrants discussion, resume the session via `codex-reply` with the evidence and let the user decide when there's genuine ambiguity
