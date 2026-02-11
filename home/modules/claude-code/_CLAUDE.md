@@ -78,9 +78,7 @@ Available for file operations with built-in directory sandboxing. Use when the n
 
 ### Git (`mcp__Git__*`)
 
-Prefer over Bash git commands when operating on repositories outside the current working directory. MCP Git tools accept a `repo_path` parameter, avoiding the `git -C` flag which bypasses Bash permission patterns.
-
-For operations not covered by MCP Git (e.g., `git cherry-pick`, `git rebase`, `git stash`), ensure you're in the repository directory first.
+Prefer MCP Git tools for all git operations, both in the current working directory and in other repositories. They accept a `repo_path` parameter, keeping the working directory unchanged and avoiding `git -C` which bypasses Bash permission patterns.
 
 ### GitHub (`mcp__GitHub__*`)
 
