@@ -6,6 +6,7 @@ in
 {
   imports = [
     ../_profiles/cloudcone-sc2
+    ../_profiles/server-baseline
   ];
 
   # ============================================================================
@@ -53,40 +54,12 @@ in
   hakula.access.ssh.authorizedKeys = [ keys.users.hakula-cloudcone ];
 
   # ============================================================================
-  # Distributed Builds
-  # ============================================================================
-  hakula.builders.enable = true;
-
-  # ============================================================================
-  # Credentials
-  # ============================================================================
-  hakula.cachix.enable = true;
-  hakula.claude-code.enable = true;
-  hakula.mcp.enable = true;
-
-  # ============================================================================
   # Services
   # ============================================================================
   hakula.services.cloudconeAgent = {
     enable = true;
     serverKeyAgeFile = ../../secrets/cloudcone-server-key-${hostName}.age;
   };
-  hakula.services.netdata.enable = true;
-  hakula.services.nginx.enable = true;
-  hakula.services.openssh = {
-    enable = true;
-    ports = [ 35060 ];
-  };
-  hakula.services.xray = {
-    enable = true;
-    ws.enable = true;
-  };
-
-  # ============================================================================
-  # Home Manager Modules
-  # ============================================================================
-  home-manager.users.hakula.hakula.claude-code.enable = true;
-  home-manager.users.hakula.hakula.codex.enable = true;
 
   # ============================================================================
   # System State
