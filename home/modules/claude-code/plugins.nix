@@ -18,16 +18,16 @@
     "example-skills@anthropic-agent-skills" = true;
 
     # Official plugins
-    "code-review@claude-code-plugins" = true;
-    "commit-commands@claude-code-plugins" = true;
-    "explanatory-output-style@claude-code-plugins" = true;
-    "feature-dev@claude-code-plugins" = true;
-    "frontend-design@claude-code-plugins" = true;
-    "hookify@claude-plugins-official" = true; # bug fixed version
-    "learning-output-style@claude-code-plugins" = true;
-    "pr-review-toolkit@claude-code-plugins" = true;
-    "ralph-wiggum@claude-code-plugins" = true;
-    "security-guidance@claude-code-plugins" = true;
+    "code-review@claude-plugins-official" = true;
+    "commit-commands@claude-plugins-official" = true;
+    "explanatory-output-style@claude-plugins-official" = true;
+    "feature-dev@claude-plugins-official" = true;
+    "frontend-design@claude-plugins-official" = true;
+    "hookify@claude-plugins-official" = true;
+    "learning-output-style@claude-plugins-official" = true;
+    "pr-review-toolkit@claude-plugins-official" = true;
+    "ralph-loop@claude-plugins-official" = true;
+    "security-guidance@claude-plugins-official" = true;
 
     # Official LSP plugins
     "pyright-lsp@claude-plugins-official" = true;
@@ -54,12 +54,6 @@
       source = {
         source = "github";
         repo = "anthropics/skills";
-      };
-    };
-    claude-code-plugins = {
-      source = {
-        source = "github";
-        repo = "anthropics/claude-code";
       };
     };
     claude-plugins-official = {
