@@ -101,23 +101,22 @@ No issues found.
 
 ### How to post the summary comment
 
-The `--body` flag does not work because the Bash permission glob cannot match multi-line arguments. Always use `--body-file` or `--input` instead.
+The `--body` flag does not work because the Bash permission glob cannot match multi-line arguments. Always use `--body-file` instead. All Bash commands **must be single-line** (no `\` line continuations).
 
 1. Write the review body to `review-comment.md` using the **Write** tool.
 
-2. Search for an existing comment containing `<!-- claude-review -->`:
+2. Search for an existing comment containing `<!-- claude-review -->` using the REST API (returns API URLs, unlike `gh pr view` which returns HTML URLs):
 
    ```bash
-   gh pr view $PR_NUMBER --repo $REPO --json comments --jq \
-     '.comments[] | select(.body | contains("claude-review")) | .url'
+   gh api repos/$REPO/issues/$PR_NUMBER/comments --jq '.[] | select(.body | contains("claude-review")) | .url'
    ```
 
 3. Post or update:
 
-   - If found: update that comment:
+   - If found: update that comment using the API URL from step 2:
 
      ```bash
-     gh api <url> -X PATCH -F body=@review-comment.md
+     gh api <api-url> -X PATCH -F body=@review-comment.md
      ```
 
    - If not found: create a new comment:
