@@ -99,14 +99,29 @@ If there are no findings:
 No issues found.
 ```
 
-### Updating existing comments
+### How to post the summary comment
 
-Before posting, search for an existing comment containing `<!-- claude-review -->`:
+The `--body` flag does not work because the Bash permission glob cannot match multi-line arguments. Always use `--body-file` or `--input` instead.
 
-```bash
-gh pr view $PR_NUMBER --repo $REPO --json comments --jq \
-  '.comments[] | select(.body | contains("<!-- claude-review -->")) | .url'
-```
+1. Write the review body to `review-comment.md` using the **Write** tool.
 
-- If found: update that comment using `gh api <url> -X PATCH -f body='...'`.
-- If not found: create a new comment using `gh pr comment`.
+2. Search for an existing comment containing `<!-- claude-review -->`:
+
+   ```bash
+   gh pr view $PR_NUMBER --repo $REPO --json comments --jq \
+     '.comments[] | select(.body | contains("claude-review")) | .url'
+   ```
+
+3. Post or update:
+
+   - If found: update that comment:
+
+     ```bash
+     gh api <url> -X PATCH -F body=@review-comment.md
+     ```
+
+   - If not found: create a new comment:
+
+     ```bash
+     gh pr comment $PR_NUMBER --repo $REPO --body-file review-comment.md
+     ```
