@@ -218,7 +218,13 @@ in
           locations."/" = {
             proxyPass = "${fuclaudeUpstream}/";
             proxyWebsockets = true;
-            extraConfig = noBufferingExtraConfig;
+            extraConfig = ''
+              ${noBufferingExtraConfig}
+              # Claude's OAuth callbacks send large Set-Cookie headers
+              proxy_buffer_size 128k;
+              proxy_buffers 4 256k;
+              proxy_busy_buffers_size 256k;
+            '';
           };
         }
       );
