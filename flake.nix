@@ -112,6 +112,32 @@
 
       secrets = import ./lib/secrets.nix { lib = nixpkgs.lib; };
 
+      # Shared Home Manager integration block used by mkServer, mkDarwin, and mkDocker
+      mkHomeManagerConfig =
+        {
+          username ? "hakula",
+          isNixOS,
+          isDesktop,
+          enableDevToolchains ? false,
+        }:
+        {
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            users.${username} = import ./home/hakula.nix;
+            backupFileExtension = "bak";
+            extraSpecialArgs = {
+              inherit
+                inputs
+                secrets
+                isNixOS
+                isDesktop
+                enableDevToolchains
+                ;
+            };
+          };
+        };
+
       # ------------------------------------------------------------------------
       # Server Configuration
       # ------------------------------------------------------------------------
@@ -132,20 +158,10 @@
             agenix.nixosModules.default
             disko.nixosModules.disko
             home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.hakula = import ./home/hakula.nix;
-                backupFileExtension = "bak";
-                extraSpecialArgs = {
-                  inherit inputs secrets;
-                  isNixOS = true;
-                  isDesktop = false;
-                  enableDevToolchains = false;
-                };
-              };
-            }
+            (mkHomeManagerConfig {
+              isNixOS = true;
+              isDesktop = false;
+            })
             configPath
           ];
         };
@@ -175,20 +191,11 @@
             }
             agenix.darwinModules.default
             home-manager.darwinModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.hakula = import ./home/hakula.nix;
-                backupFileExtension = "bak";
-                extraSpecialArgs = {
-                  inherit inputs secrets;
-                  isNixOS = false;
-                  isDesktop = true;
-                  enableDevToolchains = true;
-                };
-              };
-            }
+            (mkHomeManagerConfig {
+              isNixOS = false;
+              isDesktop = true;
+              enableDevToolchains = true;
+            })
             configPath
           ];
         };
@@ -243,23 +250,11 @@
               }
               agenix.nixosModules.default
               home-manager.nixosModules.home-manager
-              {
-                home-manager = {
-                  useGlobalPkgs = true;
-                  useUserPackages = true;
-                  users.${username} = {
-                    imports = [
-                      ./home/hakula.nix
-                    ];
-                  };
-                  backupFileExtension = "bak";
-                  extraSpecialArgs = {
-                    inherit inputs secrets enableDevToolchains;
-                    isNixOS = true;
-                    isDesktop = false;
-                  };
-                };
-              }
+              (mkHomeManagerConfig {
+                inherit username enableDevToolchains;
+                isNixOS = true;
+                isDesktop = false;
+              })
               configPath
             ];
           };
