@@ -19,7 +19,7 @@ in
     enable = lib.mkEnableOption "OpenSSH server";
     ports = lib.mkOption {
       type = lib.types.listOf lib.types.port;
-      default = [ 22 ];
+      default = [ 35060 ];
       description = "Ports to listen on for SSH connections";
     };
   };
