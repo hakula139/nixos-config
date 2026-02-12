@@ -40,7 +40,7 @@ in
       enable = true;
       package = cfg.package;
       settings = {
-        listen_addresses = lib.mkForce "*";
+        listen_addresses = lib.mkForce "localhost,${config.hakula.podman.network.gateway}";
         port = cfg.port;
         password_encryption = "scram-sha-256";
       };

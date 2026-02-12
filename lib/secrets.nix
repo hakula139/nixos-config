@@ -9,7 +9,7 @@
 
 let
   secretsRoot = ../secrets;
-  secretFile = scope: name: "${secretsRoot}/${scope}/${name}.age";
+  secretFile = name: "${secretsRoot}/${name}.age";
   secretsPath = homeDir: "${homeDir}/${secretsDir}";
 in
 {
@@ -23,7 +23,6 @@ in
   # Returns an age.secrets.<name> configuration for system-level agenix
   mkSecret =
     {
-      scope ? "shared",
       name,
       owner,
       group,
@@ -31,7 +30,7 @@ in
       path ? null,
     }:
     {
-      file = secretFile scope name;
+      file = secretFile name;
       inherit owner group mode;
     }
     // lib.optionalAttrs (path != null) { inherit path; };
@@ -40,7 +39,6 @@ in
   # Returns an age.secrets.<name> configuration for home-manager agenix
   mkHomeSecret =
     {
-      scope ? "shared",
       name,
       homeDir,
       mode ? "0400",
@@ -50,7 +48,7 @@ in
       defaultPath = "${secretsPath homeDir}/${name}";
     in
     {
-      file = secretFile scope name;
+      file = secretFile name;
       path = if path != null then path else defaultPath;
       inherit mode;
     };

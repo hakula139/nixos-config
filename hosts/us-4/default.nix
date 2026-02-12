@@ -30,7 +30,7 @@ in
   hakula.claude-code.enable = true;
   hakula.dockerHub = {
     username = "hakula139";
-    tokenAgeFile = ../../secrets/shared/dockerhub-token.age;
+    tokenAgeFile = ../../secrets/dockerhub-token.age;
   };
   hakula.mcp.enable = true;
 
