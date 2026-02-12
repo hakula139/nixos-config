@@ -51,7 +51,7 @@ You MUST post your review to the PR using GitHub tools — do not just output te
 
 ### Inline review comments
 
-For line-specific issues, use inline review comments on the relevant lines via the GitHub review API. Each inline comment MUST include a severity prefix (**Critical** / **Warning** / **Suggestion**) matching the definitions above.
+For line-specific issues, use `mcp__github_inline_comment__create_inline_comment`. Each inline comment MUST include a severity prefix (**Critical** / **Warning** / **Suggestion**) matching the definitions above.
 
 ### Top-level summary comment
 
