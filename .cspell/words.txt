@@ -159,6 +159,7 @@ slaac
 spack
 statix
 stdenv
+subcmd
 substituters
 sudoe
 suid

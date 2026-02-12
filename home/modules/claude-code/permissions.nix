@@ -316,6 +316,7 @@
     # --------------------------------------------------------------------------
     "mcp__Codex"
     "mcp__DeepWiki"
+    "mcp__Fetcher"
     "mcp__Filesystem"
     "mcp__Git"
     "mcp__GitHub__get_commit"

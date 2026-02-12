@@ -11,8 +11,22 @@
 let
   notify = import ../../notify { inherit pkgs lib; };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
+  enforceMcpScript = pkgs.writeShellScript "enforce-mcp" (builtins.readFile ./enforce-mcp.sh);
 in
 {
+  PreToolUse = [
+    # Enforce MCP tool usage over Bash equivalents
+    {
+      matcher = "Bash";
+      hooks = [
+        {
+          type = "command";
+          command = "${enforceMcpScript}";
+        }
+      ];
+    }
+  ];
+
   PostToolUse = [
     # Shell formatting and linting
     {
@@ -71,6 +85,42 @@ in
                 ${projectNotify} "$tool_name permission requested"
                 ;;
             esac
+          '';
+        }
+      ];
+    }
+  ];
+
+  # Nudge teammates once to check for remaining work before going idle
+  TeammateIdle = [
+    {
+      hooks = [
+        {
+          type = "command";
+          command = ''
+            session_id="$(${pkgs.jq}/bin/jq -r '.session_id // empty')"
+            teammate_name="$(${pkgs.jq}/bin/jq -r '.teammate_name // empty')"
+            nudge_flag="/tmp/claude-team-nudged-''${session_id:-unknown}"
+            if [ ! -f "$nudge_flag" ]; then
+              touch "$nudge_flag"
+              printf "Teammate %s: before going idle, check TaskList for unclaimed tasks and send any unsent findings via SendMessage." "$teammate_name" >&2
+              exit 2
+            fi
+          '';
+        }
+      ];
+    }
+  ];
+
+  # Notify when a teammate marks a task as completed
+  TaskCompleted = [
+    {
+      hooks = [
+        {
+          type = "command";
+          command = ''
+            task_subject="$(${pkgs.jq}/bin/jq -r '.task_subject // empty')"
+            ${projectNotify} "Task completed: $task_subject"
           '';
         }
       ];

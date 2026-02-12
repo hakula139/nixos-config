@@ -55,6 +55,14 @@ let
   '';
 
   # ----------------------------------------------------------------------------
+  # Fetcher (Playwright-based web fetcher, fallback for sites that block WebFetch)
+  # ----------------------------------------------------------------------------
+  fetcherBin = pkgs.writeShellScriptBin "fetcher-mcp" ''
+    export PATH="${pkgs.nodejs}/bin:$PATH"
+    exec npx -y fetcher-mcp "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
   # Filesystem
   # ----------------------------------------------------------------------------
   filesystemBin = pkgs.writeShellScriptBin "filesystem-mcp" ''
@@ -106,6 +114,12 @@ in
     deepwiki = {
       name = "DeepWiki";
       command = "${deepwikiBin}/bin/deepwiki-mcp";
+      type = "stdio";
+    };
+
+    fetcher = {
+      name = "Fetcher";
+      command = "${fetcherBin}/bin/fetcher-mcp";
       type = "stdio";
     };
 

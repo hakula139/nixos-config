@@ -15,7 +15,9 @@ Be direct, honest, and skeptical. Criticism is valuable.
 
 ## Punctuation
 
-Use spaces around `/` when separating distinct words (e.g., "Read / Write"). Omit spaces for abbreviations and compound terms (e.g., "I/O", "TCP/IP").
+Use spaces around `/` when separating distinct words (e.g., `"Read / Write"`). Omit spaces for abbreviations and compound terms (e.g., `"I/O"`, `"TCP/IP"`).
+
+Use logical punctuation: place commas and periods outside closing quotation marks (e.g., `"foobar",` not `"foobar,"`).
 
 ## Code Quality Principles
 
@@ -63,6 +65,21 @@ Avoid:
 ## MCP Server Usage
 
 Prefer MCP tools over equivalent shell commands or web searches. MCPs provide structured interfaces, better error handling, and work within the configured permission model.
+
+### Context7
+
+Use for looking up **library and framework documentation** — API references, code examples, and usage patterns. Provides up-to-date docs that may be newer than your training data.
+
+**Workflow** (always two steps):
+
+1. `resolve-library-id` — Find the Context7-compatible library ID for a package name
+2. `query-docs` — Fetch documentation using the resolved library ID
+
+**Tips:**
+
+- Always resolve the library ID first; don't guess IDs
+- Be specific in queries (e.g., "How to set up authentication with JWT in Express.js" not just "auth")
+- Limit to 3 calls per question — use the best result you have after that
 
 ### DeepWiki
 
