@@ -67,6 +67,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: |
+            --allowedTools "Write"
             --allowedTools "Bash(gh pr comment *)"
             --allowedTools "Bash(gh pr diff *)"
             --allowedTools "Bash(gh pr view *)"
