@@ -208,8 +208,7 @@ All modules use centralized helper functions from `lib/secrets.nix` to declare s
 
 ```nix
 age.secrets.my-secret = secrets.mkSecret {
-  scope = "shared";        # Optional: secret scope directory (defaults to "shared")
-  name = "my-secret";      # Secret file name
+  name = "my-secret";      # Secret file name (matches secrets/<name>.age)
   owner = "service-user";  # File owner
   group = "service-group"; # File group
   mode = "0400";           # Optional: file permissions (defaults to "0400")
@@ -221,8 +220,7 @@ age.secrets.my-secret = secrets.mkSecret {
 
 ```nix
 age.secrets.my-secret = secrets.mkHomeSecret {
-  scope = "shared";        # Optional: secret scope directory (defaults to "shared")
-  name = "my-secret";      # Secret file name
+  name = "my-secret";      # Secret file name (matches secrets/<name>.age)
   homeDir = homeDir;       # User's home directory
   mode = "0400";           # Optional: file permissions (defaults to "0400")
   path = "/custom/path";   # Optional: custom destination path
@@ -231,8 +229,7 @@ age.secrets.my-secret = secrets.mkHomeSecret {
 
 **Parameters:**
 
-- `scope` (optional): Secret scope directory, defaults to `"shared"` (secrets stored in `secrets/shared/`)
-- `name` (required): Secret filename (without `.age` extension)
+- `name` (required): Secret filename (without `.age` extension), stored flat in `secrets/`
 - `owner` / `group` (NixOS only): File ownership for decrypted secret
 - `homeDir` (Home Manager only): User's home directory for path construction
 - `mode` (optional): File permissions, defaults to `"0400"` (read-only for owner)
@@ -347,7 +344,7 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 2. Declare the secret using the helper library:
    - **NixOS**: `age.secrets.<name> = secrets.mkSecret { name = "..."; owner = "..."; group = "..."; };`
    - **Home Manager**: `age.secrets.<name> = secrets.mkHomeSecret { name = "..."; homeDir = homeDir; };`
-3. Create the encrypted secret file: `cd secrets/shared && agenix -e <name>.age`
+3. Create the encrypted secret file: `cd secrets && agenix -e <name>.age`
 4. Reference the secret in your module via `config.age.secrets.<name>.path`
 5. Optional: Override `mode` or `path` parameters if custom permissions or location needed
 

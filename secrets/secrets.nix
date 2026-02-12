@@ -5,51 +5,66 @@
 
 let
   keys = import ./keys.nix;
-  allUserKeys = builtins.attrValues keys.users;
-  allHostKeys = builtins.attrValues keys.hosts;
-  allServerKeys = allUserKeys ++ allHostKeys;
-  allWorkstationKeys = builtins.attrValues keys.workstations;
-  allKeys = allServerKeys ++ allWorkstationKeys;
+
+  allUsers = builtins.attrValues keys.users;
+  allHosts = builtins.attrValues keys.hosts;
+  allServers = allUsers ++ allHosts;
+  allWorkstations = builtins.attrValues keys.workstations;
+  allKeys = allServers ++ allWorkstations;
+
+  # Per-host shortcuts
+  inherit (keys.hosts) us-1 us-3 us-4;
+  inherit (keys.workstations) hakula-macbook;
+
+  # Common groupings
+  allServersAndMacbook = allServers ++ [ hakula-macbook ];
+  us1Only = allUsers ++ [ us-1 ];
+  us3Only = allUsers ++ [ us-3 ];
+  us4Only = allUsers ++ [ us-4 ];
 in
 {
   # ----------------------------------------------------------------------------
-  # Server & Workstation shared secrets
+  # Dev tool secrets
   # ----------------------------------------------------------------------------
-  "shared/brave-api-key.age".publicKeys = allKeys;
-  "shared/claude-code-oauth-token.age".publicKeys = allKeys;
-  "shared/context7-api-key.age".publicKeys = allKeys;
-  "shared/github-pat.age".publicKeys = allKeys;
+  "brave-api-key.age".publicKeys = allKeys;
+  "claude-code-oauth-token.age".publicKeys = allKeys;
+  "context7-api-key.age".publicKeys = allKeys;
+  "github-pat.age".publicKeys = allKeys;
 
   # ----------------------------------------------------------------------------
-  # Server shared secrets
+  # Infrastructure secrets
   # ----------------------------------------------------------------------------
-  "shared/aria2-rpc-secret.age".publicKeys = allServerKeys;
-  "shared/backup-env.age".publicKeys = allServerKeys;
-  "shared/backup-restic-password.age".publicKeys = allServerKeys;
-  "shared/builder-ssh-key.age".publicKeys = allServerKeys;
-  "shared/cachix-auth-token.age".publicKeys = allServerKeys;
-  "shared/clash-users.json.age".publicKeys = allServerKeys;
-  "shared/clove-env.age".publicKeys = allServerKeys;
-  "shared/cloudflare-credentials.age".publicKeys = allServerKeys;
-  "shared/dockerhub-token.age".publicKeys = allServerKeys;
-  "shared/fuclaude-env.age".publicKeys = allServerKeys;
-  "shared/piclist-config.json.age".publicKeys = allServerKeys;
-  "shared/piclist-token.age".publicKeys = allServerKeys;
-  "shared/qq-smtp-authcode.age".publicKeys = allServerKeys;
-  "shared/twikoo-access-token.age".publicKeys = allServerKeys;
-  "shared/umami-env.age".publicKeys = allServerKeys;
-  "shared/xray-config.json.age".publicKeys = allServerKeys;
+  "builder-ssh-key.age".publicKeys = allServersAndMacbook;
+  "cachix-auth-token.age".publicKeys = allServersAndMacbook;
 
   # ----------------------------------------------------------------------------
-  # Server-specific secrets
+  # All-server secrets
   # ----------------------------------------------------------------------------
-  "cloudcone-sc2/server-keys/us-1.age".publicKeys = allUserKeys ++ [ keys.hosts.us-1 ];
-  "cloudcone-sc2/server-keys/us-3.age".publicKeys = allUserKeys ++ [ keys.hosts.us-3 ];
+  "cloudflare-credentials.age".publicKeys = allServers;
+  "qq-smtp-authcode.age".publicKeys = allServers;
+  "xray-config.json.age".publicKeys = allServers;
 
   # ----------------------------------------------------------------------------
-  # Workstation shared secrets
+  # Host-specific secrets
   # ----------------------------------------------------------------------------
-  "shared/mihomo-secret.age".publicKeys = allWorkstationKeys;
-  "shared/mihomo-subscription-url.age".publicKeys = allWorkstationKeys;
-  "shared/wakatime-config.age".publicKeys = allWorkstationKeys;
+  "aria2-rpc-secret.age".publicKeys = us4Only;
+  "backup-env.age".publicKeys = us4Only;
+  "backup-restic-password.age".publicKeys = us4Only;
+  "clash-users.json.age".publicKeys = us4Only;
+  "cloudcone-server-key-us-1.age".publicKeys = us1Only;
+  "cloudcone-server-key-us-3.age".publicKeys = us3Only;
+  "clove-env.age".publicKeys = us4Only;
+  "dockerhub-token.age".publicKeys = us4Only;
+  "fuclaude-env.age".publicKeys = us4Only;
+  "piclist-config.json.age".publicKeys = us4Only;
+  "piclist-token.age".publicKeys = us4Only;
+  "twikoo-access-token.age".publicKeys = us4Only;
+  "umami-env.age".publicKeys = us4Only;
+
+  # ----------------------------------------------------------------------------
+  # Workstation-only secrets
+  # ----------------------------------------------------------------------------
+  "mihomo-secret.age".publicKeys = allWorkstations;
+  "mihomo-subscription-url.age".publicKeys = allWorkstations;
+  "wakatime-config.age".publicKeys = allWorkstations;
 }

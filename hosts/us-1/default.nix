@@ -65,10 +65,6 @@ in
   # ============================================================================
   hakula.cachix.enable = true;
   hakula.claude-code.enable = true;
-  hakula.dockerHub = {
-    username = "hakula139";
-    tokenAgeFile = ../../secrets/shared/dockerhub-token.age;
-  };
   hakula.mcp.enable = true;
 
   # ============================================================================
@@ -76,7 +72,7 @@ in
   # ============================================================================
   hakula.services.cloudconeAgent = {
     enable = true;
-    serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
+    serverKeyAgeFile = ../../secrets/cloudcone-server-key-${hostName}.age;
   };
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;

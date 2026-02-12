@@ -69,7 +69,7 @@ in
   # ============================================================================
   hakula.services.cloudconeAgent = {
     enable = true;
-    serverKeyAgeFile = ../../secrets/cloudcone-sc2/server-keys/${hostName}.age;
+    serverKeyAgeFile = ../../secrets/cloudcone-server-key-${hostName}.age;
   };
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
