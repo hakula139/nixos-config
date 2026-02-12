@@ -55,7 +55,7 @@ let
       if grep -qi microsoft /proc/version 2>/dev/null; then
         "${toasty}/bin/toasty.exe" "$body" -t "$title" 2>/dev/null || true
       else
-        ${pkgs.libnotify}/bin/notify-send "$title" "$body"
+        ${pkgs.libnotify}/bin/notify-send "$title" "$body" 2>/dev/null || true
       fi
     ''}
     ${lib.optionalString isDarwin ''
