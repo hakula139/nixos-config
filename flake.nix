@@ -106,7 +106,7 @@
               enable = true;
               excludes = [ "\\.age$" ];
             };
-            nixfmt-rfc-style.enable = true;
+            nixfmt.enable = true;
           };
         };
 
@@ -384,6 +384,6 @@
       # ========================================================================
       # Formatter (nix fmt)
       # ========================================================================
-      formatter = forAllSystems (system: (pkgsFor system).nixfmt-rfc-style);
+      formatter = forAllSystems (system: (pkgsFor system).nixfmt);
     };
 }

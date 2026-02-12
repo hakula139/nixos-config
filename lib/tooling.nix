@@ -13,7 +13,7 @@
     deadnix # Find unused Nix bindings / attributes
     nil # Nix language server (LSP)
     nix-tree # Explore dependency tree of Nix derivations
-    nixfmt-rfc-style # Nix formatter (RFC style)
+    nixfmt # Nix formatter
     nom # nix-output-monitor (pretty build output)
     nvd # Nix / NixOS diff tool (generations / closures)
     statix # Nix linter
