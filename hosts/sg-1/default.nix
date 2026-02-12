@@ -6,6 +6,7 @@ in
 {
   imports = [
     ../_profiles/tencent-lighthouse
+    ../_profiles/server-baseline
   ];
 
   # ============================================================================
@@ -19,29 +20,15 @@ in
   hakula.access.ssh.authorizedKeys = [ keys.users.hakula-tencent ];
 
   # ============================================================================
-  # Distributed Builds
-  # ============================================================================
-  hakula.builders.enable = true;
-
-  # ============================================================================
   # Credentials
   # ============================================================================
-  hakula.cachix.enable = true;
-  hakula.mcp.enable = true;
+  hakula.claude-code.enable = false;
 
   # ============================================================================
-  # Services
+  # Home Manager Modules
   # ============================================================================
-  hakula.services.netdata.enable = true;
-  hakula.services.nginx.enable = true;
-  hakula.services.openssh = {
-    enable = true;
-    ports = [ 35060 ];
-  };
-  hakula.services.xray = {
-    enable = true;
-    ws.enable = true;
-  };
+  home-manager.users.hakula.hakula.claude-code.enable = false;
+  home-manager.users.hakula.hakula.codex.enable = false;
 
   # ============================================================================
   # System State

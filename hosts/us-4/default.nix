@@ -6,6 +6,7 @@ in
 {
   imports = [
     ../_profiles/dmit
+    ../_profiles/server-baseline
   ];
 
   # ============================================================================
@@ -19,20 +20,12 @@ in
   hakula.access.ssh.authorizedKeys = [ keys.users.hakula-dmit ];
 
   # ============================================================================
-  # Distributed Builds
-  # ============================================================================
-  hakula.builders.enable = true;
-
-  # ============================================================================
   # Credentials
   # ============================================================================
-  hakula.cachix.enable = true;
-  hakula.claude-code.enable = true;
   hakula.dockerHub = {
     username = "hakula139";
     tokenAgeFile = ../../secrets/dockerhub-token.age;
   };
-  hakula.mcp.enable = true;
 
   # ============================================================================
   # Services
@@ -56,24 +49,8 @@ in
   hakula.services.clove.enable = true;
   hakula.services.fuclaude.enable = true;
   hakula.services.piclist.enable = true;
-  hakula.services.netdata.enable = true;
-  hakula.services.nginx.enable = true;
-  hakula.services.openssh = {
-    enable = true;
-    ports = [ 35060 ];
-  };
   hakula.services.postgresql.enable = true;
   hakula.services.umami.enable = true;
-  hakula.services.xray = {
-    enable = true;
-    ws.enable = true;
-  };
-
-  # ============================================================================
-  # Home Manager Modules
-  # ============================================================================
-  home-manager.users.hakula.hakula.claude-code.enable = true;
-  home-manager.users.hakula.hakula.codex.enable = true;
 
   # ============================================================================
   # System State
