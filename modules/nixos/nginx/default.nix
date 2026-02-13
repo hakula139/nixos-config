@@ -128,6 +128,7 @@ in
     # ----------------------------------------------------------------------------
     services.nginx = {
       enable = true;
+      enableReload = true;
       user = "nginx";
       group = "nginx";
       recommendedGzipSettings = true;

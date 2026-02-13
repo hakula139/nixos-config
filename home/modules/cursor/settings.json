@@ -200,23 +200,6 @@
     "MD041": false
   },
   "nix.enableLanguageServer": true,
-  "nix.serverPath": "nil",
-  "nix.serverSettings": {
-    "nil": {
-      "formatting": {
-        "command": [
-          "nixfmt"
-        ]
-      }
-    },
-    "nix": {
-      "binary": "nix",
-      "flake": {
-        "autoArchive": true,
-        "autoEvalInputs": true
-      }
-    }
-  },
   "notebook.output.scrolling": true,
   "prettier.printWidth": 100,
   "prettier.quoteProps": "consistent",

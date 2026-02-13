@@ -10,8 +10,10 @@
   # ----------------------------------------------------------------------------
   nix = with pkgs; [
     unstable.cachix # Cachix client (binary cache)
+    colmena # Multi-host NixOS deployment tool
     deadnix # Find unused Nix bindings / attributes
-    nil # Nix language server (LSP)
+    nh # Nix CLI wrapper with nom / nvd integration
+    unstable.nixd # Nix language server (LSP)
     nix-tree # Explore dependency tree of Nix derivations
     nixfmt # Nix formatter
     nom # nix-output-monitor (pretty build output)
