@@ -18,6 +18,7 @@ lib.mkIf pkgs.stdenv.isDarwin {
   # PATH additions (macOS)
   # ----------------------------------------------------------------------------
   home.sessionPath = [
+    "/Applications/Docker.app/Contents/Resources/bin"
     "/opt/homebrew/bin"
   ];
 
