@@ -111,6 +111,7 @@
         };
 
       secrets = import ./lib/secrets.nix { lib = nixpkgs.lib; };
+      keys = import ./secrets/keys.nix;
 
       # Shared Home Manager integration block used by mkServer, mkDarwin, and mkDocker
       mkHomeManagerConfig =
@@ -148,7 +149,12 @@
         }:
         nixpkgs.lib.nixosSystem {
           specialArgs = {
-            inherit inputs secrets hostName;
+            inherit
+              inputs
+              secrets
+              keys
+              hostName
+              ;
           };
           modules = [
             {
@@ -180,6 +186,7 @@
             inherit
               inputs
               secrets
+              keys
               hostName
               displayName
               ;
@@ -241,7 +248,7 @@
           pkgs = pkgsFor "x86_64-linux";
           nixosConfig = nixpkgs.lib.nixosSystem {
             specialArgs = {
-              inherit inputs secrets;
+              inherit inputs secrets keys;
             };
             modules = [
               {

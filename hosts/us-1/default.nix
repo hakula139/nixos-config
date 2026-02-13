@@ -1,12 +1,10 @@
 {
   lib,
+  keys,
   hostName,
   ...
 }:
 
-let
-  keys = import ../../secrets/keys.nix;
-in
 {
   imports = [
     ../_profiles/cloudcone-sc2

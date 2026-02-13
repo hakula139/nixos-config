@@ -3,6 +3,7 @@
   pkgs,
   lib,
   secrets,
+  keys,
   ...
 }:
 
@@ -12,7 +13,6 @@
 
 let
   shared = import ../shared.nix { inherit pkgs; };
-  keys = import ../../secrets/keys.nix;
 
   cfg = config.hakula;
   sshCfg = cfg.access.ssh;
