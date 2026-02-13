@@ -1,12 +1,10 @@
 {
+  keys,
   hostName,
   displayName,
   ...
 }:
 
-let
-  keys = import ../../secrets/keys.nix;
-in
 {
   imports = [
     ../../modules/darwin
