@@ -77,7 +77,7 @@ in
       environment = {
         TZ = config.time.timeZone;
         FUCLAUDE_BIND = "0.0.0.0:8181";
-        FUCLAUDE_TIMEOUT = "60";
+        FUCLAUDE_TIMEOUT = "600";
         FUCLAUDE_REAL_LOGOUT = lib.boolToString cfg.realLogout;
         FUCLAUDE_SIGNUP_ENABLED = lib.boolToString cfg.signupEnabled;
         FUCLAUDE_SHOW_SESSION_KEY = lib.boolToString cfg.showSessionKey;
