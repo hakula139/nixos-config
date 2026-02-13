@@ -216,6 +216,10 @@ in
       virtualHosts."claude.hakula.xyz" = lib.mkIf config.hakula.services.fuclaude.enable (
         cloudflareVhostConfig
         // {
+          extraConfig = cloudflareVhostConfig.extraConfig + ''
+            proxy_read_timeout 600s;
+            proxy_send_timeout 600s;
+          '';
           locations."/" = {
             proxyPass = "${fuclaudeUpstream}/";
             proxyWebsockets = true;
