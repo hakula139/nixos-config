@@ -17,6 +17,7 @@ chgrp
 cidr
 cloudreve
 cncidr
+colmena
 condarc
 coreutils
 cpp
@@ -86,6 +87,7 @@ lldb
 localectl
 marp
 mcp
+mcpjson
 mechatroner
 meslo
 metacubex
@@ -100,6 +102,7 @@ nbsp
 networkctl
 networkd
 niks3
+nixd
 nixfmt
 nixgc
 nixos

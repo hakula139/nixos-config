@@ -143,7 +143,7 @@ in
 
       # Nix aliases
       nixup = "nix flake update";
-      nixgc = "nix-collect-garbage -d";
+      nixgc = "nh clean all --keep-since 7d";
       nixopt = "nix-store --optimise";
 
       # Git extras
@@ -193,18 +193,23 @@ in
     # NixOS-specific aliases
     // lib.optionalAttrs isNixOS {
       # Nix aliases
+      nixsw = "nh os switch .";
+      nixtest = "nh os test .";
+      nixboot = "nh os boot .";
       nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
       nixroll = "sudo nixos-rebuild switch --rollback --flake .";
     }
     # Generic Linux (non-NixOS) aliases
     // lib.optionalAttrs (isLinux && !isNixOS) {
       # Home Manager aliases
+      nixsw = "nh home switch . -c hakula-linux";
       nixlist = "home-manager generations | head -n 10";
       nixroll = "home-manager switch --rollback";
     }
     # macOS-specific aliases
     // lib.optionalAttrs isDarwin {
       # Nix aliases
+      nixsw = "nh darwin switch .";
       nixlist = "sudo darwin-rebuild --list-generations";
       nixroll = "sudo darwin-rebuild switch --rollback";
 
@@ -269,26 +274,6 @@ in
 
       sudoe() {
         SUDO_EDITOR="$EDITOR" sudo -e "$@"
-      }
-
-      # ------------------------------------------------------------------------
-      # Nix rebuild aliases
-      # ------------------------------------------------------------------------
-      ${
-        if isNixOS then
-          ''
-            nixsw() { sudo nixos-rebuild switch --flake ".#$1"; }
-            nixtest() { sudo nixos-rebuild test --flake ".#$1"; }
-            nixboot() { sudo nixos-rebuild boot --flake ".#$1"; }
-          ''
-        else if isLinux then
-          ''
-            nixsw() { home-manager switch --flake ".#$1" -b bak; }
-          ''
-        else
-          ''
-            nixsw() { sudo darwin-rebuild switch --flake ".#$1"; }
-          ''
       }
 
       # Git retag - delete and recreate a tag

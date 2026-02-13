@@ -1,5 +1,13 @@
+# Nix build outputs
 result
 result-*
+
+# Development environment
 .direnv/
-.env
 .pre-commit-config.yaml
+
+# Secrets
+.env
+
+# Editor / tool local settings
+.claude/settings.local.json

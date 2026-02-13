@@ -139,6 +139,17 @@
           };
         };
 
+      # Shared modules for all NixOS servers (used by mkServer and Colmena)
+      serverSharedModules = [
+        agenix.nixosModules.default
+        disko.nixosModules.disko
+        home-manager.nixosModules.home-manager
+        (mkHomeManagerConfig {
+          isNixOS = true;
+          isDesktop = false;
+        })
+      ];
+
       # ------------------------------------------------------------------------
       # Server Configuration
       # ------------------------------------------------------------------------
@@ -161,15 +172,9 @@
               nixpkgs.hostPlatform = "x86_64-linux";
               nixpkgs.overlays = overlays;
             }
-            agenix.nixosModules.default
-            disko.nixosModules.disko
-            home-manager.nixosModules.home-manager
-            (mkHomeManagerConfig {
-              isNixOS = true;
-              isDesktop = false;
-            })
-            configPath
-          ];
+          ]
+          ++ serverSharedModules
+          ++ [ configPath ];
         };
 
       # ------------------------------------------------------------------------
@@ -322,6 +327,40 @@
       };
 
       # ========================================================================
+      # Colmena (multi-server deployment)
+      # ========================================================================
+      colmena =
+        let
+          servers = import ./lib/servers.nix;
+        in
+        {
+          meta = {
+            nixpkgs = import nixpkgs {
+              system = "x86_64-linux";
+              config.allowUnfree = true;
+            };
+            specialArgs = { inherit inputs secrets keys; };
+            nodeSpecialArgs = builtins.mapAttrs (name: _: { hostName = name; }) servers;
+          };
+
+          defaults = {
+            imports = [
+              { nixpkgs.overlays = overlays; }
+            ]
+            ++ serverSharedModules;
+          };
+        }
+        // builtins.mapAttrs (name: server: {
+          deployment = {
+            targetHost = server.displayName;
+            targetUser = "hakula";
+            buildOnTarget = true;
+            tags = [ (nixpkgs.lib.toLower server.provider) ];
+          };
+          imports = [ (./hosts + "/${name}") ];
+        }) servers;
+
+      # ========================================================================
       # Darwin Configurations (macOS)
       # ========================================================================
       darwinConfigurations = {
@@ -340,10 +379,10 @@
       # ========================================================================
       homeConfigurations = {
         # ----------------------------------------------------------------------
-        # Hakula's Work PC (WSL)
+        # Hakula's Generic Linux (standalone Home Manager)
         # ----------------------------------------------------------------------
-        hakula-work = mkHome {
-          configPath = ./hosts/hakula-work;
+        hakula-linux = mkHome {
+          configPath = ./hosts/hakula-linux;
         };
       };
 

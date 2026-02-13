@@ -15,7 +15,7 @@ NixOS configuration for Hakula's machines (flake-based).
 | `us-4`           | x86_64-linux   | NixOS server                 |
 | `sg-1`           | x86_64-linux   | NixOS server                 |
 | `hakula-macbook` | aarch64-darwin | macOS (nix-darwin)           |
-| `hakula-work`    | x86_64-linux   | Generic Linux (Home Manager) |
+| `hakula-linux`   | x86_64-linux   | Generic Linux (Home Manager) |
 | `hakula-devvm`   | x86_64-linux   | Docker Image (NixOS)         |
 
 ## NixOS
@@ -30,15 +30,45 @@ nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 
 ### Apply NixOS Configuration
 
+On a single server (run on the server itself):
+
 ```bash
-sudo nixos-rebuild switch --flake '.#us-1'
+nh os switch .
 ```
 
 After setting up the alias:
 
 ```bash
-nixsw us-1
+nixsw
 ```
+
+### Multi-Server Deployment
+
+Deploy to all servers in parallel from the workstation using [Colmena](https://github.com/zhaofengli/colmena):
+
+```bash
+colmena apply
+```
+
+Deploy to a single server:
+
+```bash
+colmena apply --on us-4
+```
+
+Deploy by provider tag:
+
+```bash
+colmena apply --on @cloudcone
+```
+
+Build without activating:
+
+```bash
+colmena build
+```
+
+Each server builds its own configuration locally (`buildOnTarget = true`), so no cross-compilation is needed. Server inventory is defined in `lib/servers.nix`.
 
 ## macOS
 
@@ -59,13 +89,13 @@ sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#hak
 ### Apply Darwin Configuration
 
 ```bash
-sudo darwin-rebuild switch --flake '.#hakula-macbook'
+nh darwin switch .
 ```
 
 After setting up the alias:
 
 ```bash
-nixsw hakula-macbook
+nixsw
 ```
 
 ## Home Manager (standalone, for non-NixOS Linux)
@@ -80,20 +110,22 @@ curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 
 ### Apply Home Manager Configuration
 
+First-time apply (before `nh` is available):
+
 ```bash
-nix run home-manager -- switch --flake '.#hakula-work'
+nix run home-manager -- switch --flake '.#hakula-linux'
 ```
 
-If Home Manager is installed globally:
+After the first apply:
 
 ```bash
-home-manager switch --flake '.#hakula-work'
+nh home switch . -c hakula-linux
 ```
 
-After setting up the alias:
+Or with the alias:
 
 ```bash
-nixsw hakula-work
+nixsw
 ```
 
 ## Docker Images (for air-gapped deployment)
@@ -155,7 +187,7 @@ GitHub Actions automatically validates the configuration on every push and pull 
 - **Flake Check**: Validates flake structure using `nix flake check --all-systems`, then lints with `statix` and `deadnix`
 - **Build NixOS**: Tests building all 5 server configurations (`us-1`, `us-2`, `us-3`, `us-4`, `sg-1`) on x86_64-linux
 - **Build macOS**: Tests building the `hakula-macbook` configuration on aarch64-darwin
-- **Build Generic Linux**: Tests building the `hakula-work` Home Manager configuration on x86_64-linux
+- **Build Generic Linux**: Tests building the `hakula-linux` Home Manager configuration on x86_64-linux
 - **Build Docker**: Tests building the `hakula-devvm-docker` Docker image on x86_64-linux
 
 ## Secrets
