@@ -52,14 +52,12 @@
   # ============================================================================
   outputs =
     {
-      self,
       nixpkgs,
       nixpkgs-unstable,
       nix-darwin,
       home-manager,
       disko,
       agenix,
-      llm-agents,
       git-hooks-nix,
       ...
     }@inputs:
@@ -72,7 +70,7 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
       overlays = [
-        (final: prev: {
+        (final: _: {
           unstable = import nixpkgs-unstable {
             localSystem = final.stdenv.hostPlatform.system;
             config.allowUnfree = true;
@@ -107,10 +105,12 @@
               excludes = [ "\\.age$" ];
             };
             nixfmt.enable = true;
+            statix.enable = true;
+            deadnix.enable = true;
           };
         };
 
-      secrets = import ./lib/secrets.nix { lib = nixpkgs.lib; };
+      secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
       keys = import ./secrets/keys.nix;
 
       # Shared Home Manager integration block used by mkServer, mkDarwin, and mkDocker
@@ -265,7 +265,7 @@
               configPath
             ];
           };
-          toplevel = nixosConfig.config.system.build.toplevel;
+          inherit (nixosConfig.config.system.build) toplevel;
         in
         pkgs.dockerTools.buildLayeredImageWithNixDb {
           inherit name tag;
@@ -373,12 +373,13 @@
         system:
         let
           pkgs = pkgsFor system;
+          tooling = import ./lib/tooling.nix { inherit pkgs; };
           preCommitCheck = preCommitCheckFor system;
         in
         {
           default = pkgs.mkShell {
-            buildInputs = preCommitCheck.enabledPackages;
-            shellHook = preCommitCheck.shellHook;
+            buildInputs = preCommitCheck.enabledPackages ++ tooling.nix ++ tooling.secrets;
+            inherit (preCommitCheck) shellHook;
           };
         }
       );

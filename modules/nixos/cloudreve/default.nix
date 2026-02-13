@@ -148,9 +148,7 @@ in
       preStart = ''
         install -m 0755 ${lib.getExe pkgs.cloudreve} "$STATE_DIRECTORY/cloudreve"
         install -d -m 0750 "$STATE_DIRECTORY/data"
-        if [ ! -f "$STATE_DIRECTORY/data/conf.ini" ]; then
-          install -m 0600 ${configFile} "$STATE_DIRECTORY/data/conf.ini"
-        fi
+        install -m 0600 ${configFile} "$STATE_DIRECTORY/data/conf.ini"
       '';
 
       serviceConfig = {

@@ -279,7 +279,7 @@ in
         name: targetCfg:
         lib.nameValuePair "backup-heartbeat-succeeded-${name}" (
           let
-            heartbeatUrl = targetCfg.heartbeatUrl;
+            inherit (targetCfg) heartbeatUrl;
           in
           {
             description = "Report backup success for ${name} to heartbeat URL";
@@ -302,7 +302,7 @@ in
         name: targetCfg:
         lib.nameValuePair "backup-heartbeat-failed-${name}" (
           let
-            heartbeatUrl = targetCfg.heartbeatUrl;
+            inherit (targetCfg) heartbeatUrl;
             resticUnit = resticUnitFor name;
           in
           {

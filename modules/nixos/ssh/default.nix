@@ -30,7 +30,7 @@ in
     # ----------------------------------------------------------------------------
     services.openssh = {
       enable = true;
-      ports = cfg.ports;
+      inherit (cfg) ports;
       settings = {
         PermitRootLogin = "prohibit-password";
         PasswordAuthentication = false;

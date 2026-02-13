@@ -38,10 +38,10 @@ in
     # --------------------------------------------------------------------------
     services.postgresql = {
       enable = true;
-      package = cfg.package;
+      inherit (cfg) package;
       settings = {
         listen_addresses = lib.mkForce "localhost,${config.hakula.podman.network.gateway}";
-        port = cfg.port;
+        inherit (cfg) port;
         password_encryption = "scram-sha-256";
       };
     };

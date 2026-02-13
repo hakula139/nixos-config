@@ -12,8 +12,8 @@
 # ==============================================================================
 
 let
+  inherit (pkgs.stdenv) isDarwin;
   cfg = config.hakula.mihomo;
-  isDarwin = pkgs.stdenv.isDarwin;
 
   homeDir = config.home.homeDirectory;
   configDir = "${homeDir}/.config/mihomo";

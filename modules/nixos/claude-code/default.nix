@@ -35,7 +35,7 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = builtins.hasAttr cfg.user config.users.users;
+        assertion = lib.hasAttr cfg.user config.users.users;
         message = "hakula.claude-code.user (${cfg.user}) must exist in config.users.users.*";
       }
     ];
@@ -47,7 +47,7 @@ in
       secrets.mkSecret {
         name = "claude-code-oauth-token";
         owner = cfg.user;
-        group = userCfg.group;
+        inherit (userCfg) group;
         path = "${secretsDir}/claude-code-oauth-token";
       }
     );

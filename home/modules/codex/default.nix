@@ -22,22 +22,7 @@ in
   options.hakula.codex = {
     enable = lib.mkEnableOption "OpenAI Codex CLI";
 
-    proxy = {
-      enable = lib.mkEnableOption "HTTP proxy for Codex";
-      url = lib.mkOption {
-        type = lib.types.str;
-        default = "http://127.0.0.1:7897";
-        description = "HTTP proxy URL for Codex";
-      };
-      noProxy = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [
-          "localhost"
-          "127.0.0.1"
-        ];
-        description = "Domains to bypass the proxy";
-      };
-    };
+    proxy = (import ../lib/proxy.nix { inherit lib; }).mkProxyOptions "Codex";
   };
 
   config = lib.mkIf cfg.enable (
@@ -55,7 +40,7 @@ in
       };
 
       codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
-      noProxy = builtins.concatStringsSep "," cfg.proxy.noProxy;
+      noProxy = lib.concatStringsSep "," cfg.proxy.noProxy;
 
       codexBin =
         if cfg.proxy.enable then

@@ -57,24 +57,7 @@ in
       };
     };
 
-    proxy = {
-      enable = lib.mkEnableOption "HTTP proxy for Claude Code";
-
-      url = lib.mkOption {
-        type = lib.types.str;
-        default = "http://127.0.0.1:7897";
-        description = "HTTP proxy URL for Claude Code";
-      };
-
-      noProxy = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [
-          "localhost"
-          "127.0.0.1"
-        ];
-        description = "Domains to bypass the proxy";
-      };
-    };
+    proxy = (import ../lib/proxy.nix { inherit lib; }).mkProxyOptions "Claude Code";
   };
 
   config = lib.mkIf cfg.enable (
@@ -183,7 +166,7 @@ in
             // lib.optionalAttrs cfg.proxy.enable {
               HTTP_PROXY = cfg.proxy.url;
               HTTPS_PROXY = cfg.proxy.url;
-              NO_PROXY = builtins.concatStringsSep "," cfg.proxy.noProxy;
+              NO_PROXY = lib.concatStringsSep "," cfg.proxy.noProxy;
             };
           };
 

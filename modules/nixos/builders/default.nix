@@ -12,12 +12,12 @@
 # ==============================================================================
 
 let
-  shared = import ../../shared.nix { inherit pkgs; };
+  shared = import ../../shared.nix { inherit pkgs lib; };
   cfg = config.hakula.builders;
 
-  allServers = builtins.attrValues shared.servers;
-  servers = builtins.filter (s: s.name != hostName) allServers;
-  builders = builtins.filter (s: s.isBuilder) servers;
+  allServers = lib.attrValues shared.servers;
+  servers = lib.filter (s: s.name != hostName) allServers;
+  builders = lib.filter (s: s.isBuilder) servers;
 in
 {
   # ----------------------------------------------------------------------------

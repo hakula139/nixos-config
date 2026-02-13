@@ -15,7 +15,7 @@ let
 
   piclistServer = import ./server {
     inherit pkgs;
-    nodejs = cfg.nodejs;
+    inherit (cfg) nodejs;
     configPath = config.age.secrets.piclist-config.path;
     tokenPath = config.age.secrets.piclist-token.path;
   };

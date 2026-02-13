@@ -152,8 +152,8 @@ nix flake check
 
 GitHub Actions automatically validates the configuration on every push and pull request:
 
-- **Flake Check**: Validates flake structure using `nix flake check --all-systems`
-- **Build NixOS**: Tests building the `us-4` NixOS server configuration on x86_64-linux
+- **Flake Check**: Validates flake structure using `nix flake check --all-systems`, then lints with `statix` and `deadnix`
+- **Build NixOS**: Tests building all 5 server configurations (`us-1`, `us-2`, `us-3`, `us-4`, `sg-1`) on x86_64-linux
 - **Build macOS**: Tests building the `hakula-macbook` configuration on aarch64-darwin
 - **Build Generic Linux**: Tests building the `hakula-work` Home Manager configuration on x86_64-linux
 - **Build Docker**: Tests building the `hakula-devvm-docker` Docker image on x86_64-linux

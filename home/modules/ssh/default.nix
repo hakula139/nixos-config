@@ -10,7 +10,7 @@
 # ==============================================================================
 
 let
-  shared = import ../../../modules/shared.nix { inherit pkgs; };
+  shared = import ../../../modules/shared.nix { inherit pkgs lib; };
   homeDir = config.home.homeDirectory;
 
   serverMatchBlocks = lib.mapAttrs' (
@@ -19,7 +19,7 @@ let
       host = server.displayName;
       hostname = server.ip;
       user = "hakula";
-      port = server.port;
+      inherit (server) port;
       identityFile = "${homeDir}/.ssh/${server.provider}/id_ed25519";
       forwardAgent = true;
     }
