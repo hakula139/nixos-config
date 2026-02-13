@@ -9,7 +9,7 @@
 # ==============================================================================
 
 let
-  isLinux = pkgs.stdenv.hostPlatform.isLinux;
+  inherit (pkgs.stdenv.hostPlatform) isLinux;
   version = "0.29.0";
   baseUrl = "https://github.com/github/github-mcp-server/releases/download/v${version}";
 

@@ -13,8 +13,8 @@
 # ==============================================================================
 
 let
+  inherit (pkgs.stdenv) isLinux;
   tooling = import ../../lib/tooling.nix { inherit pkgs; };
-  isLinux = pkgs.stdenv.isLinux;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
 in

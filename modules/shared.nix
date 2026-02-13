@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  lib,
+  ...
+}:
 
 # ==============================================================================
 # Shared Configuration (cross-platform)
@@ -125,7 +129,7 @@ in
         "kvm"
         "nixos-test"
       ];
-    }) (builtins.filter (s: s.isBuilder) servers);
+    }) (lib.filter (s: s.isBuilder) servers);
 
   # ----------------------------------------------------------------------------
   # SSH configuration helpers
@@ -144,7 +148,7 @@ in
     lib: servers:
     lib.listToAttrs (
       map (server: {
-        name = server.name;
+        inherit (server) name;
         value = {
           extraHostNames = [
             server.displayName

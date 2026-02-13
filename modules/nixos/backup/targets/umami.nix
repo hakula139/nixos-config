@@ -56,7 +56,7 @@ in
     hakula.services.backup.targets.umami = {
       enable = true;
 
-      schedule = backupUmamiCfg.schedule;
+      inherit (backupUmamiCfg) schedule;
 
       paths = [ stateDir ];
 
@@ -96,7 +96,7 @@ in
         fi
       '';
 
-      restoreSnapshot = backupUmamiCfg.restoreSnapshot;
+      inherit (backupUmamiCfg) restoreSnapshot;
     };
   };
 }

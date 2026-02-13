@@ -36,10 +36,26 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - id: nixos
-            name: server (x86_64-linux, NixOS)
+          - id: us-1
+            name: us-1 (x86_64-linux, CloudCone SC2)
+            runner: ubuntu-latest
+            target: .#nixosConfigurations.us-1.config.system.build.toplevel
+          - id: us-2
+            name: us-2 (x86_64-linux, CloudCone VPS)
+            runner: ubuntu-latest
+            target: .#nixosConfigurations.us-2.config.system.build.toplevel
+          - id: us-3
+            name: us-3 (x86_64-linux, CloudCone SC2)
+            runner: ubuntu-latest
+            target: .#nixosConfigurations.us-3.config.system.build.toplevel
+          - id: us-4
+            name: us-4 (x86_64-linux, DMIT)
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-4.config.system.build.toplevel
+          - id: sg-1
+            name: sg-1 (x86_64-linux, Tencent Lighthouse)
+            runner: ubuntu-latest
+            target: .#nixosConfigurations.sg-1.config.system.build.toplevel
           - id: macos
             name: hakula-macbook (aarch64-darwin, macOS)
             runner: macos-latest

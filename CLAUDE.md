@@ -50,6 +50,10 @@ sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#hak
 # Format all Nix files
 git ls-files '*.nix' -z | xargs -0 nix fmt
 
+# Lint with statix (anti-patterns) and deadnix (unused bindings)
+statix check .
+deadnix --fail .
+
 # Enable pre-commit hooks locally
 nix develop -c zsh
 
@@ -246,14 +250,19 @@ age.secrets.my-secret = secrets.mkHomeSecret {
 
 **GitHub Actions** (`.github/workflows/ci.yml`):
 
-1. **Flake Check**: Validates flake structure (`nix flake check --all-systems`)
-2. **Build Matrix**: Builds 4 configurations in parallel
-   - NixOS: `us-4` (x86_64-linux)
+1. **Flake Check**: Validates flake structure (`nix flake check --all-systems`), then runs `statix check` and `deadnix --fail`
+2. **Build Matrix**: Builds 8 configurations in parallel
+   - NixOS servers: `us-1`, `us-2`, `us-3`, `us-4`, `sg-1` (x86_64-linux)
    - macOS: `hakula-macbook` (aarch64-darwin)
    - Generic Linux: `hakula-work` (x86_64-linux)
    - Docker: `hakula-devvm-docker` (x86_64-linux)
 
 **Cachix integration**: Builds are cached in the "hakula" cache. Uploads to Cachix happen on `main` branch or when the actor is `hakula139`.
+
+**Linting** (enforced in CI):
+
+- `statix`: Catches Nix anti-patterns (W20 `repeated_keys` suppressed via `.statix.toml` — flat key style is intentional)
+- `deadnix`: Detects unused bindings (`--fail` mode)
 
 **Pre-commit hooks** run in CI via `nix flake check`:
 
@@ -268,8 +277,10 @@ age.secrets.my-secret = secrets.mkHomeSecret {
 ### Nix
 
 - **Formatter**: `nixfmt-rfc-style` (enforced by pre-commit)
+- **Linting**: `statix` and `deadnix` (enforced in CI)
 - **Line width**: Default (100 characters)
 - **Import style**: Use `with pkgs;` in package lists for brevity
+- **`inherit` placement**: In `let` blocks, place `inherit` statements at the top (like imports). Combine multiple bindings from the same source: `inherit (pkgs.stdenv) isDarwin isLinux;`. In attribute sets, keep `inherit` in its logical position (e.g., `group` between `owner` and `path`)
 - **Module structure**: Follow existing module patterns (enable option, config block, documentation strings)
 - **Comments**: Only add when needed; avoid verbose / obvious comments (prefer clarity in naming / structure)
 

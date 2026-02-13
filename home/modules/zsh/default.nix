@@ -11,9 +11,8 @@
 # ==============================================================================
 
 let
+  inherit (pkgs.stdenv) isDarwin isLinux;
   cfg = config.hakula.zsh;
-  isDarwin = pkgs.stdenv.isDarwin;
-  isLinux = pkgs.stdenv.isLinux;
 in
 {
   imports = [

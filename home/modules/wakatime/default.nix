@@ -12,7 +12,6 @@
 
 let
   homeDir = config.home.homeDirectory;
-  secretsDir = secrets.secretsPath homeDir;
 in
 {
   # ----------------------------------------------------------------------------
@@ -22,7 +21,7 @@ in
     age.secrets.wakatime-config = secrets.mkHomeSecret {
       name = "wakatime-config";
       inherit homeDir;
-      path = "${secretsDir}/.wakatime.cfg";
+      path = "${homeDir}/.wakatime.cfg";
     };
   };
 }

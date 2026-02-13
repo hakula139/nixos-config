@@ -22,4 +22,4 @@ let
     codex-worker = builtins.readFile ./codex-worker.md;
   };
 in
-lib.filterAttrs (name: _: builtins.elem name enabledAgents) allAgents
+lib.filterAttrs (name: _: lib.elem name enabledAgents) allAgents

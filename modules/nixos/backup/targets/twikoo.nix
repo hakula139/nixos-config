@@ -59,7 +59,7 @@ in
     hakula.services.backup.targets.twikoo = {
       enable = true;
 
-      schedule = backupTwikooCfg.schedule;
+      inherit (backupTwikooCfg) schedule;
 
       paths = [ stateDir ];
 

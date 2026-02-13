@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  secrets,
   ...
 }:
 
@@ -28,12 +29,6 @@ in
       description = "Docker Hub username used to authenticate image pulls";
     };
 
-    tokenAgeFile = lib.mkOption {
-      type = lib.types.nullOr lib.types.path;
-      default = null;
-      description = "Path to the Docker Hub access token file";
-    };
-
     ociLogin = lib.mkOption {
       type = lib.types.attrs;
       readOnly = true;
@@ -44,14 +39,13 @@ in
 
   config = lib.mkMerge [
     {
-      hakula.dockerHub.ociLogin = lib.optionalAttrs (cfg.username != null && cfg.tokenAgeFile != null) {
-        registry = cfg.registry;
-        username = cfg.username;
+      hakula.dockerHub.ociLogin = lib.optionalAttrs (cfg.username != null) {
+        inherit (cfg) registry username;
         passwordFile = config.age.secrets.dockerhub-token.path;
       };
     }
 
-    (lib.mkIf (cfg.username != null && cfg.tokenAgeFile != null) {
+    (lib.mkIf (cfg.username != null) {
       # ------------------------------------------------------------------------
       # User & Group
       # ------------------------------------------------------------------------
@@ -60,8 +54,8 @@ in
       # ------------------------------------------------------------------------
       # Secrets
       # ------------------------------------------------------------------------
-      age.secrets.dockerhub-token = {
-        file = cfg.tokenAgeFile;
+      age.secrets.dockerhub-token = secrets.mkSecret {
+        name = "dockerhub-token";
         owner = "root";
         group = "dockerhub";
         mode = "0440";

@@ -12,15 +12,11 @@
 # ==============================================================================
 
 let
-  shared = import ../shared.nix { inherit pkgs; };
+  shared = import ../shared.nix { inherit pkgs lib; };
 
   cfg = config.hakula;
   sshCfg = cfg.access.ssh;
   userCfg = config.users.users.${cfg.user.name};
-
-  # REALITY SNI Host
-  # If you change this, also update secrets/shared/xray-config.json.age.
-  realitySniHost = "www.microsoft.com";
 in
 {
   imports = [
@@ -46,25 +42,28 @@ in
     ./xray
   ];
 
-  config._module.args.realitySniHost = realitySniHost;
-
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.hakula.user = {
-    name = lib.mkOption {
-      type = lib.types.str;
-      default = "hakula";
-      description = "Primary user account name";
-    };
+  options.hakula.access.ssh.authorizedKeys = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = lib.attrValues keys.users;
+    description = "SSH public keys authorized for user login";
   };
 
-  options.hakula.access.ssh = {
-    authorizedKeys = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = builtins.attrValues keys.users;
-      description = "SSH public keys authorized for user login";
-    };
+  options.hakula.network.realitySniHost = lib.mkOption {
+    type = lib.types.str;
+    default = "www.microsoft.com";
+    description = ''
+      REALITY SNI host used for TLS camouflage in Xray and SNI-based routing in nginx.
+      If you change this, also update secrets/shared/xray-config.json.age.
+    '';
+  };
+
+  options.hakula.user.name = lib.mkOption {
+    type = lib.types.str;
+    default = "hakula";
+    description = "Primary user account name";
   };
 
   config = {

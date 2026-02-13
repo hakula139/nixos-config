@@ -93,7 +93,7 @@ in
     virtualisation.oci-containers.backend = "podman";
 
     virtualisation.oci-containers.containers.${serviceName} = {
-      image = cfg.image;
+      inherit (cfg) image;
 
       ports = [
         "127.0.0.1:${toString cfg.port}:3000"

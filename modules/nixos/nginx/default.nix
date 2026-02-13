@@ -2,7 +2,6 @@
   config,
   lib,
   secrets,
-  realitySniHost,
   ...
 }:
 
@@ -12,6 +11,7 @@
 
 let
   cfg = config.hakula.services.nginx;
+  inherit (config.hakula.network) realitySniHost;
 
   # ----------------------------------------------------------------------------
   # Cloudflare

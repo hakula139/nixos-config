@@ -13,8 +13,7 @@
 # ==============================================================================
 
 let
-  isDarwin = pkgs.stdenv.isDarwin;
-  isLinux = pkgs.stdenv.isLinux;
+  inherit (pkgs.stdenv) isDarwin isLinux;
 
   # Tiny Windows toast notification CLI for WSL
   # https://github.com/shanselman/toasty

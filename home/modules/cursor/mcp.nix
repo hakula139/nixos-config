@@ -37,6 +37,6 @@ let
   };
 in
 {
-  secrets = mcp.secrets;
+  inherit (mcp) secrets;
   mcpJson = (pkgs.formats.json { }).generate "cursor-mcp.json" mcpConfig;
 }

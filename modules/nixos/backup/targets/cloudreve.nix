@@ -62,7 +62,7 @@ in
     hakula.services.backup.targets.cloudreve = {
       enable = true;
 
-      schedule = backupCloudreveCfg.schedule;
+      inherit (backupCloudreveCfg) schedule;
 
       paths = [ stateDir ];
 
@@ -127,7 +127,7 @@ in
         fi
       '';
 
-      restoreSnapshot = backupCloudreveCfg.restoreSnapshot;
+      inherit (backupCloudreveCfg) restoreSnapshot;
     };
   };
 }

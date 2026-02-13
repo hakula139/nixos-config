@@ -10,7 +10,7 @@
 # ==============================================================================
 
 let
-  shared = import ../../../modules/shared.nix { inherit pkgs; };
+  shared = import ../../../modules/shared.nix { inherit pkgs lib; };
   cfg = config.hakula.fonts;
 
   fontDirs = map (p: "${p}/share/fonts") shared.fonts;

@@ -12,11 +12,11 @@
 # ==============================================================================
 
 let
-  shared = import ../shared.nix { inherit pkgs; };
+  shared = import ../shared.nix { inherit pkgs lib; };
 
   sshCfg = config.hakula.access.ssh;
-  servers = builtins.attrValues shared.servers;
-  builders = builtins.filter (s: s.isBuilder) servers;
+  servers = lib.attrValues shared.servers;
+  builders = lib.filter (s: s.isBuilder) servers;
 in
 {
   imports = [
@@ -29,7 +29,7 @@ in
   options.hakula.access.ssh = {
     authorizedKeys = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = builtins.attrValues keys.workstations;
+      default = lib.attrValues keys.workstations;
       description = "SSH public keys authorized for user login";
     };
   };

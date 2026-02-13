@@ -50,7 +50,7 @@ in
     virtualisation.oci-containers.backend = "podman";
 
     virtualisation.oci-containers.containers.${serviceName} = {
-      image = cfg.image;
+      inherit (cfg) image;
       login = config.hakula.dockerHub.ociLogin;
 
       ports = [

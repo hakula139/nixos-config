@@ -3,7 +3,6 @@
   pkgs,
   lib,
   secrets,
-  realitySniHost,
   ...
 }:
 
@@ -24,7 +23,10 @@ in
 
   config = lib.mkIf cfg.enable (
     let
-      clashGenerator = import ./generator { inherit config pkgs realitySniHost; };
+      clashGenerator = import ./generator {
+        inherit config pkgs;
+        inherit (config.hakula.network) realitySniHost;
+      };
     in
     {
       # ------------------------------------------------------------------------

@@ -10,13 +10,13 @@
 # ==============================================================================
 
 let
+  inherit (pkgs.stdenv) isLinux;
   caches = import ../../../lib/caches.nix;
-  isLinux = pkgs.stdenv.isLinux;
 
   nixConf = ''
     experimental-features = nix-command flakes
-    extra-substituters = ${builtins.concatStringsSep " " caches.substituters}
-    extra-trusted-public-keys = ${builtins.concatStringsSep " " caches.trusted-public-keys}
+    extra-substituters = ${lib.concatStringsSep " " caches.substituters}
+    extra-trusted-public-keys = ${lib.concatStringsSep " " caches.trusted-public-keys}
   '';
 in
 {

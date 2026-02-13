@@ -31,7 +31,7 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = builtins.hasAttr cfg.user config.users.users;
+        assertion = lib.hasAttr cfg.user config.users.users;
         message = "hakula.mcp.user (${cfg.user}) must exist in config.users.users.*";
       }
     ];
@@ -42,21 +42,21 @@ in
     age.secrets.brave-api-key = secrets.mkSecret {
       name = "brave-api-key";
       owner = cfg.user;
-      group = userCfg.group;
+      inherit (userCfg) group;
       path = "${secretsDir}/brave-api-key";
     };
 
     age.secrets.context7-api-key = secrets.mkSecret {
       name = "context7-api-key";
       owner = cfg.user;
-      group = userCfg.group;
+      inherit (userCfg) group;
       path = "${secretsDir}/context7-api-key";
     };
 
     age.secrets.github-pat = secrets.mkSecret {
       name = "github-pat";
       owner = cfg.user;
-      group = userCfg.group;
+      inherit (userCfg) group;
       path = "${secretsDir}/github-pat";
     };
   };
