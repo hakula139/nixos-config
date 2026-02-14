@@ -12,6 +12,8 @@
 # ==============================================================================
 
 let
+  json = pkgs.formats.json { };
+
   mcp = import ../mcp {
     inherit
       config
@@ -38,5 +40,5 @@ let
 in
 {
   inherit (mcp) secrets;
-  mcpJson = (pkgs.formats.json { }).generate "cursor-mcp.json" mcpConfig;
+  mcpJson = json.generate "cursor-mcp.json" mcpConfig;
 }
