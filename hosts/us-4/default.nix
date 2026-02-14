@@ -44,7 +44,6 @@
       workerHost = "b2.hakula.xyz";
     };
   };
-  hakula.services.clove.enable = true;
   hakula.services.piclist.enable = true;
   hakula.services.postgresql.enable = true;
   hakula.services.umami.enable = true;
