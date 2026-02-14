@@ -19,10 +19,10 @@ let
 
   settings = import ./settings.nix {
     inherit pkgs isDarwin isNixOS;
+    inherit (cfg.nixd) flakePath;
     configName = lib.toLower (
       if osConfig != null then osConfig.networking.hostName else "hakula-linux"
     );
-    homeDir = config.home.homeDirectory;
   };
 
   ext = import ./extensions.nix {
@@ -56,6 +56,12 @@ in
       enable = lib.mkEnableOption "Cursor extensions";
       prune = lib.mkEnableOption "Prune Cursor extensions not in the provisioned list";
     };
+
+    nixd.flakePath = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Absolute path to the nixos-config flake for nixd completions";
+    };
   };
 
   config = lib.mkIf cfg.enable (
@@ -83,9 +89,7 @@ in
       };
 
       remoteFiles = {
-        ".cursor-server/data/User/settings.json".source = settings.settingsJson;
-        ".cursor-server/data/User/keybindings.json".source = ./keybindings.json;
-        ".cursor-server/data/User/snippets".source = ./snippets;
+        ".cursor-server/data/Machine/settings.json".source = settings.machineSettingsJson;
       };
     in
     lib.mkMerge [

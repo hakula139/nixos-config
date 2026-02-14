@@ -2,8 +2,8 @@
   pkgs,
   isDarwin,
   isNixOS,
+  flakePath,
   configName,
-  homeDir,
   ...
 }:
 
@@ -12,47 +12,55 @@
 # ==============================================================================
 
 let
+  json = pkgs.formats.json { };
+
+  # ----------------------------------------------------------------------------
+  # Base settings
+  # ----------------------------------------------------------------------------
   settingsBase = builtins.fromJSON (builtins.readFile ./settings.json);
 
   # ----------------------------------------------------------------------------
-  # nixd — machine-specific option completions
+  # nixd - machine-specific option completions
   # ----------------------------------------------------------------------------
-  flakePath = "${homeDir}/GitHub/nixos-config";
-  flake = ''builtins.getFlake "${flakePath}"'';
+  nixdCompletions =
+    if flakePath != null then
+      let
+        configAttr =
+          if isDarwin then
+            "darwinConfigurations"
+          else if isNixOS then
+            "nixosConfigurations"
+          else
+            "homeConfigurations";
 
-  configAttr =
-    if isDarwin then
-      "darwinConfigurations"
-    else if isNixOS then
-      "nixosConfigurations"
+        flake = ''builtins.getFlake "${flakePath}"'';
+        flakeConfig = "(${flake}).${configAttr}.${configName}";
+
+        hmOptionsExpr =
+          if isDarwin || isNixOS then
+            "${flakeConfig}.options.home-manager.users.type.getSubOptions []"
+          else
+            "${flakeConfig}.options";
+      in
+      {
+        nixpkgs.expr = "import (${flake}).inputs.nixpkgs { }";
+        options = {
+          home-manager.expr = hmOptionsExpr;
+        }
+        // (
+          if isDarwin then
+            { darwin.expr = "${flakeConfig}.options"; }
+          else if isNixOS then
+            { nixos.expr = "${flakeConfig}.options"; }
+          else
+            { }
+        );
+      }
     else
-      "homeConfigurations";
-
-  flakeConfig = "(${flake}).${configAttr}.${configName}";
-
-  hmOptionsExpr =
-    if isDarwin || isNixOS then
-      "${flakeConfig}.options.home-manager.users.type.getSubOptions []"
-    else
-      "${flakeConfig}.options";
-
-  nixdSettings = {
-    nixpkgs.expr = "import (${flake}).inputs.nixpkgs { }";
-    options = {
-      home-manager.expr = hmOptionsExpr;
-    }
-    // (
-      if isDarwin then
-        { darwin.expr = "${flakeConfig}.options"; }
-      else if isNixOS then
-        { nixos.expr = "${flakeConfig}.options"; }
-      else
-        { }
-    );
-  };
+      { };
 
   # ----------------------------------------------------------------------------
-  # Settings overrides
+  # Override settings
   # ----------------------------------------------------------------------------
   settingsOverrides = {
     "bashIde.shellcheckPath" = "${pkgs.shellcheck}/bin/shellcheck";
@@ -62,7 +70,7 @@ let
       "nixd" = {
         formatting.command = [ "${pkgs.nixfmt}/bin/nixfmt" ];
       }
-      // nixdSettings;
+      // nixdCompletions;
     };
   };
 
@@ -70,8 +78,9 @@ let
   # Final settings
   # ----------------------------------------------------------------------------
   settings = settingsBase // settingsOverrides;
-  settingsJson = (pkgs.formats.json { }).generate "cursor-settings.json" settings;
 in
 {
-  inherit settings settingsJson;
+  inherit settings;
+  machineSettingsJson = json.generate "cursor-machine-settings.json" settingsOverrides;
+  settingsJson = json.generate "cursor-settings.json" settings;
 }

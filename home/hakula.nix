@@ -2,6 +2,7 @@
   pkgs,
   lib,
   inputs,
+  username ? "hakula",
   isNixOS ? false,
   isDesktop ? false,
   ...
@@ -13,6 +14,14 @@
 
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
+
+  homeDir =
+    if isDarwin then
+      "/Users/${username}"
+    else if username == "root" then
+      "/root"
+    else
+      "/home/${username}";
 in
 {
   imports = [
@@ -36,8 +45,8 @@ in
   # Home Manager Settings
   # ----------------------------------------------------------------------------
   home = {
-    username = lib.mkDefault "hakula";
-    homeDirectory = lib.mkDefault (if isDarwin then "/Users/hakula" else "/home/hakula");
+    inherit username;
+    homeDirectory = lib.mkDefault homeDir;
     stateVersion = lib.mkDefault "25.11";
   };
 
@@ -65,5 +74,6 @@ in
       enable = isDesktop;
       prune = true;
     };
+    nixd.flakePath = if isDesktop then "${homeDir}/GitHub/nixos-config" else "${homeDir}/nixos-config";
   };
 }

@@ -131,6 +131,7 @@
               inherit
                 inputs
                 secrets
+                username
                 isNixOS
                 isDesktop
                 enableDevToolchains
@@ -218,6 +219,7 @@
       mkHome =
         {
           configPath,
+          username ? "hakula",
           isDesktop ? true,
           enableDevToolchains ? true,
         }:
@@ -231,6 +233,7 @@
             inherit
               inputs
               secrets
+              username
               isDesktop
               enableDevToolchains
               ;
