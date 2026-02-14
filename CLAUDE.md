@@ -260,7 +260,7 @@ age.secrets.my-secret = secrets.mkHomeSecret {
 
 **GitHub Actions** (`.github/workflows/ci.yml`):
 
-1. **Flake Check**: Validates flake structure (`nix flake check --all-systems`), then runs `statix check` and `deadnix --fail`
+1. **Flake Check**: Validates flake structure (`nix flake check --all-systems`)
 2. **Build Matrix**: Builds 8 configurations in parallel
    - NixOS servers: `us-1`, `us-2`, `us-3`, `us-4`, `sg-1` (x86_64-linux)
    - macOS: `hakula-macbook` (aarch64-darwin)
