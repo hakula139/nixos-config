@@ -206,6 +206,7 @@
   "prettier.singleQuote": true,
   "prettier.trailingComma": "all",
   "redhat.telemetry.enabled": true,
+  "remote.autoForwardPortsSource": "hybrid",
   "remote.extensionKind": {
     "WakaTime.vscode-wakatime": [
       "ui"

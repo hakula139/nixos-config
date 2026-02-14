@@ -37,7 +37,7 @@ in
   };
 
   us-4 = {
-    ip = "64.186.229.64";
+    ip = "64.186.235.130";
     port = 35060;
     name = "us-4";
     displayName = "DMIT-US-4";
