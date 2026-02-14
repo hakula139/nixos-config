@@ -40,7 +40,10 @@ in
       enable = true;
       inherit (cfg) package;
       settings = {
-        listen_addresses = lib.mkForce "localhost,${config.hakula.podman.network.gateway}";
+        # Bind to all interfaces; the podman bridge (10.88.0.1) may not exist
+        # yet at PostgreSQL startup, causing it to silently skip the address.
+        # Access is restricted by the firewall (podman0 only) and pg_hba.conf.
+        listen_addresses = lib.mkForce "*";
         inherit (cfg) port;
         password_encryption = "scram-sha-256";
       };
