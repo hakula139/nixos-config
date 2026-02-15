@@ -101,7 +101,7 @@ in
         ''
           install -d -m 0700 "${syncDir}"
 
-          for file in ${builtins.toString files}; do
+          for file in ${toString files}; do
             if [[ ! -e "${homeDir}/$file" ]]; then
               mkdir -p "$(dirname "${syncDir}/$file")"
               mkdir -p "$(dirname "${homeDir}/$file")"
