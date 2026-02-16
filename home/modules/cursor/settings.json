@@ -228,8 +228,8 @@
   "search.useGlobalIgnoreFiles": true,
   "search.useParentIgnoreFiles": true,
   "terminal.external.osxExec": "Warp.app",
-  "terminal.integrated.defaultProfile.linux": "zsh",
-  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.defaultProfile.linux": "tmux",
+  "terminal.integrated.defaultProfile.osx": "tmux",
   "terminal.integrated.fontFamily": "Maple Mono NF CN, JetBrainsMono Nerd Font, Sarasa Term SC, monospace",
   "terminal.integrated.fontSize": 14,
   "terminal.integrated.profiles.linux": {
@@ -240,6 +240,13 @@
       "icon": "terminal-bash",
       "path": "bash"
     },
+    "tmux": {
+      "args": [
+        "new-session"
+      ],
+      "icon": "terminal-tmux",
+      "path": "tmux"
+    },
     "zsh": {
       "args": [
         "-l",
@@ -249,6 +256,13 @@
     }
   },
   "terminal.integrated.profiles.osx": {
+    "tmux": {
+      "args": [
+        "new-session"
+      ],
+      "icon": "terminal-tmux",
+      "path": "tmux"
+    },
     "zsh": {
       "args": [
         "-l",

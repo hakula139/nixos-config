@@ -135,6 +135,7 @@ pmem
 pmset
 pname
 ppid
+precmd
 psql
 pulumi
 pushd

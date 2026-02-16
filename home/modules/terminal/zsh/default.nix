@@ -15,15 +15,6 @@ let
   cfg = config.hakula.zsh;
 in
 {
-  imports = [
-    ./direnv.nix
-    ./fzf.nix
-    ./neovim.nix
-    ./starship.nix
-    ./tools.nix
-    ./zoxide.nix
-  ];
-
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
@@ -259,6 +250,15 @@ in
     + ''
       # Create directory and cd into it
       mkcd() { mkdir -p "$1" && cd "$1"; }
+
+      # Refresh VS Code / Cursor env vars from tmux session on each prompt,
+      # so existing panes pick up fresh tokens after reattach
+      if [[ -n "$TMUX" ]]; then
+        _refresh_cursor_env() {
+          eval "$(tmux show-environment -s 2>/dev/null | grep -E '(VSCODE_|GIT_ASKPASS)')"
+        }
+        precmd_functions+=(_refresh_cursor_env)
+      fi
 
       # Set EDITOR based on available editors (cursor > code > nvim > vim)
       if command -v cursor &>/dev/null; then
