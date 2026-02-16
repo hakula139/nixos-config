@@ -160,8 +160,16 @@ The flake uses a **builder function pattern** to reduce duplication:
 │       ├── notify/              # Cross-platform notification support
 │       ├── ssh/                 # SSH client config
 │       ├── syncthing/           # Syncthing file synchronization
+│       ├── terminal/            # Terminal, shell & CLI tools
+│       │   ├── direnv/          # Direnv (auto env switching)
+│       │   ├── fzf/             # FZF (fuzzy finder)
+│       │   ├── neovim/          # Neovim editor
+│       │   ├── starship/        # Starship prompt
+│       │   ├── tmux/            # tmux multiplexer
+│       │   ├── tools/           # CLI tools (btop, jq)
+│       │   ├── zoxide/          # Zoxide (smart cd)
+│       │   └── zsh/             # Zsh shell
 │       ├── wakatime/            # Wakatime time tracking
-│       ├── zsh/                 # Shell configuration
 │       ├── darwin.nix           # macOS user-level settings
 │       └── shared.nix           # Shared module configuration
 ├── packages/                    # Custom package definitions
