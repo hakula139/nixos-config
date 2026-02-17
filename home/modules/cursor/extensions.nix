@@ -107,6 +107,7 @@ let
     "streetsidesoftware.code-spell-checker-ancient-greek"
     "streetsidesoftware.code-spell-checker-french"
     "streetsidesoftware.code-spell-checker-german"
+    "streetsidesoftware.code-spell-checker-italian"
     "streetsidesoftware.code-spell-checker-latin"
 
     # --------------------------------------------------------------------------
