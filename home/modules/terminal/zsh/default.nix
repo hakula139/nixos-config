@@ -255,7 +255,7 @@ in
       # so existing panes pick up fresh tokens after reattach
       if [[ -n "$TMUX" ]]; then
         _refresh_cursor_env() {
-          eval "$(tmux show-environment -s 2>/dev/null | grep -E '(VSCODE_|GIT_ASKPASS)')"
+          eval "$(tmux show-environment -s 2>/dev/null | grep -E '(VSCODE_|GIT_ASKPASS|CLAUDE_CODE_SSE_PORT)')"
         }
         precmd_functions+=(_refresh_cursor_env)
       fi
