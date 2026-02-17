@@ -73,30 +73,31 @@
       bind k select-pane -U
       bind l select-pane -R
 
-      # Restore last-window
-      bind Tab last-window
-
       # Pane resizing
       bind -r H resize-pane -L 5
       bind -r J resize-pane -D 5
       bind -r K resize-pane -U 5
       bind -r L resize-pane -R 5
 
+      # Restore last-window
+      bind Tab last-window
+
       # New windows inherit current path
       bind c new-window -c "#{pane_current_path}"
 
-      # Mouse wheel: enter copy mode without half-page jump, scroll 1 line at a time
+      # Mouse wheel: scroll 1 line at a time
       bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'copy-mode -e'"
-      bind -T copy-mode-vi WheelUpPane select-pane \; send-keys -X -N 1 scroll-up
-      bind -T copy-mode-vi WheelDownPane select-pane \; send-keys -X -N 1 scroll-down
+      bind -T copy-mode-vi WheelUpPane select-pane \; send-keys -X scroll-up
+      bind -T copy-mode-vi WheelDownPane select-pane \; send-keys -X scroll-down
 
-      # Refresh VS Code / Cursor env vars on reattach (prevents stale auth tokens)
+      # Refresh env vars on reattach (prevents stale auth tokens)
       set -ga update-environment " VSCODE_GIT_ASKPASS_NODE"
       set -ga update-environment " VSCODE_GIT_ASKPASS_EXTRA_ARGS"
       set -ga update-environment " VSCODE_GIT_ASKPASS_MAIN"
       set -ga update-environment " VSCODE_GIT_IPC_HANDLE"
       set -ga update-environment " VSCODE_IPC_HOOK_CLI"
       set -ga update-environment " GIT_ASKPASS"
+      set -ga update-environment " CLAUDE_CODE_SSE_PORT"
 
       # Renumber windows when one is closed
       set -g renumber-windows on
