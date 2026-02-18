@@ -281,3 +281,15 @@ In **team mode**, agents additionally:
 - **Claim tasks** from the shared task list via `TaskList` / `TaskUpdate`
 - **Send findings** to the lead and relevant peers via `SendMessage`
 - **Stay available** by checking `TaskList` for more work after completing a task
+
+## Context Compaction Guidance
+
+When summarizing this conversation for compaction, preserve the following:
+
+- **Current task state**: What is being worked on, what has been completed, what remains
+- **Modified files**: The full list of files that have been created or changed
+- **Architecture decisions**: Any design choices or trade-offs discussed during the session
+- **Code style requirements**: Formatting rules, linting conventions, project-specific patterns
+- **Unresolved issues**: Any open questions, blockers, or known problems not yet addressed
+
+After compaction, re-read CLAUDE.md files to restore project conventions before continuing work.
