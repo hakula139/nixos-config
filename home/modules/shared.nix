@@ -88,7 +88,7 @@ in
       yq
       fontconfig
       git-filter-repo
-      hugo
+      unstable.hugo
       scc
     ]
     ++ tooling.nix
