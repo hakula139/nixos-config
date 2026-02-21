@@ -25,6 +25,10 @@ lib.mkIf pkgs.stdenv.isDarwin {
   # ----------------------------------------------------------------------------
   # Shell Configuration (macOS)
   # ----------------------------------------------------------------------------
+  programs.zsh.envExtra = ''
+    export LIBRARY_PATH="$(xcrun --show-sdk-path)/usr/lib''${LIBRARY_PATH:+:$LIBRARY_PATH}"
+  '';
+
   programs.zsh.initContent = lib.mkAfter ''
     # --------------------------------------------------------------------------
     # Homebrew Environment
