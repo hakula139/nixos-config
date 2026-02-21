@@ -196,6 +196,7 @@ wakatime
 whereis
 wimpysworld
 wslpath
+xcrun
 xtls
 yzhang
 zstd
