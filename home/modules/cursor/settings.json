@@ -239,7 +239,10 @@
     },
     "tmux": {
       "args": [
-        "new-session"
+        "new-session",
+        "-A",
+        "-s",
+        "${workspaceFolderBasename}"
       ],
       "icon": "terminal-tmux",
       "path": "tmux"
@@ -255,7 +258,10 @@
   "terminal.integrated.profiles.osx": {
     "tmux": {
       "args": [
-        "new-session"
+        "new-session",
+        "-A",
+        "-s",
+        "${workspaceFolderBasename}"
       ],
       "icon": "terminal-tmux",
       "path": "tmux"
