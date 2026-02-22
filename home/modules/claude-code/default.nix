@@ -143,7 +143,8 @@ in
             inherit hooks permissions;
             inherit (plugins) enabledPlugins extraKnownMarketplaces;
 
-            model = "claude-opus-4-6";
+            model = "opus";
+            plansDirectory = "./.claude/plans";
 
             theme = "dark";
             statusLine = {
@@ -157,6 +158,7 @@ in
             };
 
             env = {
+              CLAUDE_AUTOCOMPACT_PCT_OVERRIDE = "95";
               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
               CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
               DISABLE_INSTALLATION_CHECKS = "1";
