@@ -85,6 +85,9 @@
       # New windows inherit current path
       bind c new-window -c "#{pane_current_path}"
 
+      # Reload config
+      bind r source-file ~/.config/tmux/tmux.conf \; run-shell 'tmux display "Config reloaded"'
+
       # Don't auto-copy on mouse drag release; require explicit yank (y)
       unbind -T copy-mode-vi MouseDragEnd1Pane
 
