@@ -148,6 +148,23 @@ Available for file operations with built-in directory sandboxing. Use when the n
 
 Prefer MCP Git tools for all git operations, both in the current working directory and in other repositories. They accept a `repo_path` parameter, keeping the working directory unchanged and avoiding `git -C` which bypasses Bash permission patterns.
 
+**Important**: These tools are NOT raw git commands. Parameters are simple values — do NOT use git CLI range syntax (e.g., `main...branch`). Pass plain refs instead.
+
+**Tools:**
+
+- `git_status`: `repo_path`
+- `git_diff_unstaged`: `repo_path`, `context_lines` (optional, default 3)
+- `git_diff_staged`: `repo_path`, `context_lines` (optional, default 3)
+- `git_diff`: `repo_path`, `target` (a single ref: branch name, commit hash, or tag — NOT range syntax like `A...B`), `context_lines` (optional, default 3)
+- `git_log`: `repo_path`, `max_count` (optional), `start_timestamp` / `end_timestamp` (optional, ISO 8601 or relative like "2 weeks ago")
+- `git_show`: `repo_path`, `revision` (single ref)
+- `git_commit`: `repo_path`, `message`
+- `git_add`: `repo_path`, `files` (array of paths)
+- `git_reset`: `repo_path`, `files` (optional array — if empty, resets all staged)
+- `git_create_branch`: `repo_path`, `branch_name`, `start_point` (optional)
+- `git_checkout`: `repo_path`, `branch_name`
+- `git_branch`: `repo_path`, `branch_type` (`"local"` | `"remote"` | `"all"`), optional `contains` / `not_contains` filters
+
 ### GitHub (`mcp__GitHub__*`)
 
 Use for all GitHub API interactions — issues, pull requests, code search, repository management, and reviews. Prefer over `gh` CLI commands as MCP provides structured responses and proper pagination.
