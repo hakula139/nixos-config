@@ -85,6 +85,9 @@
       # New windows inherit current path
       bind c new-window -c "#{pane_current_path}"
 
+      # Don't auto-copy on mouse drag release; require explicit yank (y)
+      unbind -T copy-mode-vi MouseDragEnd1Pane
+
       # Mouse wheel: scroll 1 line at a time
       bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'copy-mode -e'"
       bind -T copy-mode-vi WheelUpPane select-pane \; send-keys -X scroll-up
