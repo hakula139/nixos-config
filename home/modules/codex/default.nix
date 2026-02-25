@@ -115,7 +115,7 @@ in
             # ------------------------------------------------------------------
             features = {
               apps = true;
-              collab = true;
+              multi_agent = true;
               shell_snapshot = true;
             };
           };
