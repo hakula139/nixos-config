@@ -12,6 +12,27 @@
 let
   homeDir = config.home.homeDirectory;
   syncDir = "${homeDir}/synced";
+  syncDevices = [
+    "hakula-macbook"
+    "hakula-work"
+    "us-1"
+    "us-2"
+    "us-3"
+    "us-4"
+  ];
+
+  mkVersionedFolder = path: {
+    inherit path;
+    devices = syncDevices;
+    ignorePerms = false;
+    versioning = {
+      type = "staggered";
+      params = {
+        cleanInterval = "3600";
+        maxAge = "604800"; # 7 days
+      };
+    };
+  };
 
   claudeCodeSyncDir = "${syncDir}/claude-code";
   claudeCodeFiles = [
@@ -58,31 +79,8 @@ in
       };
 
       folders = {
-        "claude-code" = {
-          path = claudeCodeSyncDir;
-          devices = [
-            "hakula-macbook"
-            "hakula-work"
-            "us-1"
-            "us-2"
-            "us-3"
-            "us-4"
-          ];
-          ignorePerms = false;
-        };
-
-        "codex" = {
-          path = codexSyncDir;
-          devices = [
-            "hakula-macbook"
-            "hakula-work"
-            "us-1"
-            "us-2"
-            "us-3"
-            "us-4"
-          ];
-          ignorePerms = false;
-        };
+        "claude-code" = mkVersionedFolder claudeCodeSyncDir;
+        "codex" = mkVersionedFolder codexSyncDir;
       };
     };
 
