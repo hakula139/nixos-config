@@ -22,7 +22,6 @@
     "commit-commands@claude-plugins-official" = true;
     "explanatory-output-style@claude-plugins-official" = true;
     "feature-dev@claude-plugins-official" = true;
-    "frontend-design@claude-plugins-official" = true;
     "hookify@claude-plugins-official" = true;
     "learning-output-style@claude-plugins-official" = true;
     "pr-review-toolkit@claude-plugins-official" = true;
