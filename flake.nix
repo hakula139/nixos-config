@@ -41,6 +41,12 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    # Open Agent Skills (shared between Claude Code and Codex)
+    agent-skills = {
+      url = "github:anthropics/skills";
+      flake = false;
+    };
+
     # Pre-commit hooks
     # Note: Don't follow nixpkgs - let git-hooks-nix use its own nixpkgs
     # to avoid dotnet build failures on aarch64-darwin (nixpkgs#450126)

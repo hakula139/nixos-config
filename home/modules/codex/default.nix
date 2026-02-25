@@ -39,6 +39,8 @@ in
           ;
       };
 
+      skills = import ./skills.nix { inherit lib inputs; };
+
       codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
       noProxy = lib.concatStringsSep "," cfg.proxy.noProxy;
 
@@ -120,6 +122,11 @@ in
             };
           };
         };
+
+        # ----------------------------------------------------------------------
+        # Skills
+        # ----------------------------------------------------------------------
+        home.activation.codexSkills = skills.activation;
       }
     ]
   );
