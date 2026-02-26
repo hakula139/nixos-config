@@ -17,7 +17,10 @@
     enable = true;
     proxy.enable = true;
   };
-  hakula.cursor.extensions.prune = lib.mkForce false;
+  hakula.cursor.extensions = {
+    enable = lib.mkForce true;
+    prune = lib.mkForce false;
+  };
   hakula.fonts.windowsSync.enable = true;
   hakula.mihomo = {
     enable = true;
