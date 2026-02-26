@@ -74,6 +74,6 @@ in
       enable = isDesktop;
       prune = true;
     };
-    nixd.flakePath = if isDesktop then "${homeDir}/GitHub/nixos-config" else "${homeDir}/nixos-config";
+    nixd.flakePath = lib.mkDefault "${homeDir}/nixos-config";
   };
 }
