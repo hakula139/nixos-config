@@ -392,6 +392,7 @@
         # ----------------------------------------------------------------------
         hakula-linux = mkHome {
           configPath = ./hosts/hakula-linux;
+          isDesktop = false;
         };
       };
 
