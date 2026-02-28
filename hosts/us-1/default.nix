@@ -61,6 +61,10 @@
     enable = true;
     serverKeyAgeFile = ../../secrets/cloudcone-server-key-${hostName}.age;
   };
+  hakula.services.peertube = {
+    enable = true;
+    b2Bucket = "hakula-videos";
+  };
 
   # ============================================================================
   # System State

@@ -397,13 +397,13 @@
       };
 
       # ========================================================================
-      # Docker Images (for air-gapped deployment)
+      # Packages
       # ========================================================================
-      packages.x86_64-linux = {
+      packages = {
         # ----------------------------------------------------------------------
-        # Hakula's DevVM (Docker Image)
+        # Docker Images (for air-gapped deployment)
         # ----------------------------------------------------------------------
-        hakula-devvm-docker = mkDocker {
+        x86_64-linux.hakula-devvm-docker = mkDocker {
           name = "hakula-devvm";
           configPath = ./hosts/hakula-devvm;
           username = "root";

@@ -3,6 +3,7 @@ alnum
 anthropics
 autocd
 autocmd
+backblazeb2
 bdelete
 bnext
 bprevious
@@ -14,6 +15,7 @@ catppuccin
 ccache
 ccagent
 chgrp
+chocobozzz
 cidr
 cloudreve
 cncidr

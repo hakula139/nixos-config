@@ -28,6 +28,7 @@ let
   cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
   cloveUpstream = "http://127.0.0.1:${toString config.hakula.services.clove.port}";
   fuclaudeUpstream = "http://127.0.0.1:${toString config.hakula.services.fuclaude.port}";
+  peertubeUpstream = "http://127.0.0.1:${toString config.hakula.services.peertube.port}";
   piclistUpstream = "http://127.0.0.1:${toString config.hakula.services.piclist.port}";
   umamiUpstream = "http://127.0.0.1:${toString config.hakula.services.umami.port}";
 
@@ -313,6 +314,21 @@ in
         // {
           locations."/" = {
             proxyPass = "${umamiUpstream}/";
+          };
+        }
+      );
+
+      # PeerTube (video streaming)
+      virtualHosts."v.hakula.xyz" = lib.mkIf config.hakula.services.peertube.enable (
+        cloudflareVhostConfig
+        // {
+          locations."/" = {
+            proxyPass = "${peertubeUpstream}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              ${noBufferingExtraConfig}
+              client_max_body_size 0;
+            '';
           };
         }
       );
