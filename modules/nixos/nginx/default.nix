@@ -64,6 +64,12 @@ let
     proxy_max_temp_file_size 0;
   '';
 
+  longTimeoutExtraConfig = ''
+    client_body_timeout 300s;
+    proxy_send_timeout 600s;
+    proxy_read_timeout 600s;
+  '';
+
   noCacheExtraConfig = ''
     add_header Cache-Control 'no-cache, no-store, must-revalidate' always;
     add_header Pragma 'no-cache' always;
@@ -217,10 +223,7 @@ in
       virtualHosts."claude.hakula.xyz" = lib.mkIf config.hakula.services.fuclaude.enable (
         cloudflareVhostConfig
         // {
-          extraConfig = cloudflareVhostConfig.extraConfig + ''
-            proxy_read_timeout 600s;
-            proxy_send_timeout 600s;
-          '';
+          extraConfig = cloudflareVhostConfig.extraConfig + longTimeoutExtraConfig;
           locations."/" = {
             proxyPass = "${fuclaudeUpstream}/";
             proxyWebsockets = true;
@@ -239,13 +242,7 @@ in
       virtualHosts."cloud.hakula.xyz" = lib.mkIf config.hakula.services.cloudreve.enable (
         cloudflareVhostConfig
         // {
-          extraConfig = cloudflareVhostConfig.extraConfig + ''
-            client_body_timeout 300s;
-            client_header_timeout 60s;
-            proxy_connect_timeout 60s;
-            proxy_send_timeout 600s;
-            proxy_read_timeout 600s;
-          '';
+          extraConfig = cloudflareVhostConfig.extraConfig + longTimeoutExtraConfig;
           locations."= /index.html" = {
             proxyPass = "${cloudreveUpstream}/index.html";
             extraConfig = noCacheExtraConfig;
@@ -322,6 +319,7 @@ in
       virtualHosts."v.hakula.xyz" = lib.mkIf config.hakula.services.peertube.enable (
         cloudflareVhostConfig
         // {
+          extraConfig = cloudflareVhostConfig.extraConfig + longTimeoutExtraConfig;
           locations."/" = {
             proxyPass = "${peertubeUpstream}/";
             proxyWebsockets = true;
