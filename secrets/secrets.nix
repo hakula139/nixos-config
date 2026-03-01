@@ -41,6 +41,8 @@ in
   # ----------------------------------------------------------------------------
   # All-server secrets
   # ----------------------------------------------------------------------------
+  "backup-env.age".publicKeys = allServers;
+  "backup-restic-password.age".publicKeys = allServers;
   "cloudflare-credentials.age".publicKeys = allServers;
   "qq-smtp-authcode.age".publicKeys = allServers;
   "xray-config.json.age".publicKeys = allServers;
@@ -49,8 +51,6 @@ in
   # Host-specific secrets
   # ----------------------------------------------------------------------------
   "aria2-rpc-secret.age".publicKeys = us4Only;
-  "backup-env.age".publicKeys = us4Only;
-  "backup-restic-password.age".publicKeys = us4Only;
   "clash-users.json.age".publicKeys = us4Only;
   "cloudcone-server-key-us-1.age".publicKeys = us1Only;
   "cloudcone-server-key-us-3.age".publicKeys = us3Only;

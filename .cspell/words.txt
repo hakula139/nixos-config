@@ -146,6 +146,7 @@ pytest
 qdisc
 raku
 recents
+regenerable
 rerere
 resolv
 resolvectl
