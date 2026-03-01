@@ -108,11 +108,20 @@ in
           streaming_playlists = mkBucket "streaming-playlists";
         };
 
-        # Offloaded to MacBook via remote runner
+        # Offloaded to MacBook via remote runner:
+        #
+        #   ssh -L 9000:127.0.0.1:9000 CloudCone-US-1 -N
+        #   peertube-runner server
+        #   peertube-runner register \
+        #     --url http://localhost:9000 \
+        #     --registration-token <token> \
+        #     --runner-name macbook
         transcoding = {
           enabled = true;
           remote_runners.enabled = true;
         };
+
+        http_timeouts.request = "30 minutes";
       };
     };
   };
