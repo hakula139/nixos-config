@@ -51,6 +51,7 @@ envrc
 esac
 esbenp
 fchownat
+ffprobe
 findutils
 fuclaude
 geoip

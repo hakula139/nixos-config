@@ -81,9 +81,16 @@
             localSystem = final.stdenv.hostPlatform.system;
             config.allowUnfree = true;
           };
+
           agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
           cloudreve = final.callPackage ./packages/cloudreve { };
           github-mcp-server = final.callPackage ./packages/github-mcp-server { };
+          peertube = final.unstable.peertube.overrideAttrs (old: {
+            patches = (old.patches or [ ]) ++ [ ./packages/peertube/hq-transcode.patch ];
+            meta = old.meta // {
+              platforms = old.meta.platforms ++ [ "aarch64-darwin" ];
+            };
+          });
         })
       ];
 
@@ -108,7 +115,10 @@
             };
             trim-trailing-whitespace = {
               enable = true;
-              excludes = [ "\\.age$" ];
+              excludes = [
+                "\\.age$"
+                "\\.patch$"
+              ];
             };
             nixfmt.enable = true;
             statix.enable = true;

@@ -78,7 +78,6 @@ in
     # --------------------------------------------------------------------------
     services.peertube = {
       enable = true;
-      package = pkgs.unstable.peertube;
 
       localDomain = domain;
       listenHttp = cfg.port;
