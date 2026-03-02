@@ -50,6 +50,7 @@ env
 envrc
 esac
 esbenp
+fchownat
 findutils
 fuclaude
 geoip
@@ -84,6 +85,7 @@ lancidr
 lcount
 libkrb
 libuuid
+libuv
 linkify
 lldb
 localectl
@@ -162,6 +164,7 @@ shellenv
 shfmt
 showcmd
 signup
+sigsys
 slaac
 spack
 statix

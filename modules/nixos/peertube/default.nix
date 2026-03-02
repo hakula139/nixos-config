@@ -136,6 +136,16 @@ in
       # PeerTube uses pnpm to install plugins, but the NixOS module only
       # includes yarn in the service PATH.
       path = [ pkgs.pnpm ];
+
+      # pnpm's libuv worker calls chown / fchownat when extracting packages.
+      # The upstream module blocks these via SystemCallFilter, killing the
+      # process with SIGSYS. Safe to allow: the non-root service user can
+      # only chown files it already owns.
+      serviceConfig.SystemCallFilter = [
+        "chown"
+        "chown32"
+        "fchownat"
+      ];
     };
   };
 }
