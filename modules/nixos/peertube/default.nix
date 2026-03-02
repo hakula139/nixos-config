@@ -19,7 +19,7 @@ let
 
   mkBucket = suffix: {
     bucket_name = cfg.b2Bucket;
-    base_url = cdnBaseUrl;
+    base_url = "${cdnBaseUrl}/${cfg.b2Bucket}";
     prefix =
       (lib.concatStringsSep "/" (
         lib.filter (p: p != "") [
