@@ -76,6 +76,10 @@ in
     # --------------------------------------------------------------------------
     # Service
     # --------------------------------------------------------------------------
+    # PeerTube uses pnpm to install plugins, but the NixOS module only
+    # includes yarn in the service PATH.
+    systemd.services.peertube.path = [ pkgs.pnpm ];
+
     services.peertube = {
       enable = true;
       package = pkgs.unstable.peertube;
