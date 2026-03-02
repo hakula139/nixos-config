@@ -102,9 +102,12 @@ in
             public = null;
             private = null;
           };
+
+          captions = mkBucket "captions";
           original_video_files = mkBucket "original-video-files";
-          web_videos = mkBucket "web-videos";
           streaming_playlists = mkBucket "streaming-playlists";
+          user_exports = mkBucket "user-exports";
+          web_videos = mkBucket "web-videos";
         };
 
         # Offloaded to MacBook via remote runner:
