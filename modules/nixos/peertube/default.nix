@@ -74,12 +74,8 @@ in
     };
 
     # --------------------------------------------------------------------------
-    # Service
+    # PeerTube service
     # --------------------------------------------------------------------------
-    # PeerTube uses pnpm to install plugins, but the NixOS module only
-    # includes yarn in the service PATH.
-    systemd.services.peertube.path = [ pkgs.pnpm ];
-
     services.peertube = {
       enable = true;
       package = pkgs.unstable.peertube;
@@ -127,6 +123,19 @@ in
 
         http_timeouts.request = "30 minutes";
       };
+    };
+
+    # --------------------------------------------------------------------------
+    # Systemd service
+    # --------------------------------------------------------------------------
+    systemd.services.peertube = {
+      # The upstream NixOS module sets HOME to the read-only Nix store package
+      # path, which breaks pnpm (it tries to create $HOME/.local/ for its store).
+      environment.HOME = lib.mkForce "/var/lib/peertube";
+
+      # PeerTube uses pnpm to install plugins, but the NixOS module only
+      # includes yarn in the service PATH.
+      path = [ pkgs.pnpm ];
     };
   };
 }
