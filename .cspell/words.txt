@@ -141,6 +141,7 @@ pmset
 pname
 ppid
 precmd
+proxify
 psql
 pulumi
 pushd
