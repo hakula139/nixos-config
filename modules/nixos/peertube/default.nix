@@ -112,7 +112,8 @@ in
 
         # Offloaded to MacBook via remote runner:
         #
-        #   ssh -L 9000:127.0.0.1:9000 CloudCone-US-1 -N
+        #   ssh -L 9000:127.0.0.1:9000 CloudCone-US-1 -N \
+        #     -o ServerAliveInterval=30 -o ServerAliveCountMax=3
         #   peertube-runner server
         #   peertube-runner register \
         #     --url http://localhost:9000 \
