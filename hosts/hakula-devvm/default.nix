@@ -1,4 +1,8 @@
-{ lib, ... }:
+{
+  lib,
+  secrets,
+  ...
+}:
 
 {
   imports = [
@@ -33,6 +37,11 @@
     services.ssh-agent.enable = lib.mkForce false;
     services.syncthing.enable = lib.mkForce false;
   };
+
+  # ============================================================================
+  # Secret Overrides
+  # ============================================================================
+  age.secrets.github-pat.file = lib.mkForce (secrets.secretFile "github-pat-work");
 
   # ============================================================================
   # System State

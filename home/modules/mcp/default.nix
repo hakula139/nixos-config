@@ -158,8 +158,9 @@ in
       };
 
       github-pat = secrets.mkHomeSecret {
-        name = "github-pat";
+        name = "github-pat-personal";
         inherit homeDir;
+        path = "${secretsDir}/github-pat";
       };
     };
   };
