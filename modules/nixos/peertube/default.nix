@@ -110,11 +110,12 @@ in
           web_videos = mkBucket "web-videos";
         };
 
-        # Offloaded to MacBook via remote runner:
+        # Offloaded to MacBook via remote runner (connects via direct HTTPS,
+        # bypassing Cloudflare to avoid upload size limits and timeouts):
         #
         #   peertube-runner server
         #   peertube-runner register \
-        #     --url https://v.hakula.xyz \
+        #     --url https://v-direct.hakula.xyz \
         #     --registration-token <token> \
         #     --runner-name macbook
         transcoding = {

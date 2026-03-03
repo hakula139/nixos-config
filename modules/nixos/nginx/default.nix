@@ -75,6 +75,17 @@ let
     add_header Pragma 'no-cache' always;
     add_header Expires '0' always;
   '';
+
+  peertubeLocations = {
+    locations."/" = {
+      proxyPass = "${peertubeUpstream}/";
+      proxyWebsockets = true;
+      extraConfig = ''
+        ${noBufferingExtraConfig}
+        client_max_body_size 0;
+      '';
+    };
+  };
 in
 {
   # ----------------------------------------------------------------------------
@@ -317,17 +328,20 @@ in
 
       # PeerTube (video streaming)
       virtualHosts."v.hakula.xyz" = lib.mkIf config.hakula.services.peertube.enable (
-        cloudflareVhostConfig
+        cloudflareVhostConfig // peertubeLocations
+      );
+
+      # PeerTube remote runner (direct HTTPS, bypasses Cloudflare)
+      virtualHosts."v-direct.hakula.xyz" = lib.mkIf config.hakula.services.peertube.enable (
+        baseVhostConfig
+        // peertubeLocations
         // {
-          extraConfig = cloudflareVhostConfig.extraConfig + longTimeoutExtraConfig;
-          locations."/" = {
-            proxyPass = "${peertubeUpstream}/";
-            proxyWebsockets = true;
-            extraConfig = ''
-              ${noBufferingExtraConfig}
-              client_max_body_size 0;
-            '';
-          };
+          # Matches PeerTube's http_timeouts.request = "2 hours"
+          extraConfig = baseVhostConfig.extraConfig + ''
+            client_body_timeout 7200s;
+            proxy_send_timeout 7200s;
+            proxy_read_timeout 7200s;
+          '';
         }
       );
 
