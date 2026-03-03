@@ -350,6 +350,13 @@ in
               proxy_set_header Host v.hakula.xyz;
             '';
           };
+          locations."/socket.io/" = {
+            proxyPass = peertubeUpstream;
+            proxyWebsockets = true;
+            extraConfig = ''
+              proxy_set_header Host v.hakula.xyz;
+            '';
+          };
           locations."/" = {
             return = "302 https://v.hakula.xyz$request_uri";
           };
