@@ -29,7 +29,8 @@ in
   "brave-api-key.age".publicKeys = allKeys;
   "claude-code-oauth-token.age".publicKeys = allKeys;
   "context7-api-key.age".publicKeys = allKeys;
-  "github-pat.age".publicKeys = allKeys;
+  "github-pat-personal.age".publicKeys = allKeys;
+  "github-pat-work.age".publicKeys = allKeys;
 
   # ----------------------------------------------------------------------------
   # Infrastructure secrets
