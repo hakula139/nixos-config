@@ -125,7 +125,7 @@ in
           remote_runners.enabled = true;
         };
 
-        http_timeouts.request = "2 hours";
+        http_timeouts.request = "24 hours";
       };
     };
 

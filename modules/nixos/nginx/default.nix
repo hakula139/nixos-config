@@ -336,13 +336,13 @@ in
       virtualHosts."v-direct.hakula.xyz" = lib.mkIf config.hakula.services.peertube.enable (
         baseVhostConfig
         // {
-          # All timeouts match PeerTube's http_timeouts.request = "2 hours".
+          # All timeouts match PeerTube's http_timeouts.request = "24 hours".
           extraConfig = baseVhostConfig.extraConfig + ''
-            client_header_timeout 7200s;
-            client_body_timeout 7200s;
-            send_timeout 7200s;
-            proxy_send_timeout 7200s;
-            proxy_read_timeout 7200s;
+            client_header_timeout 86400s;
+            client_body_timeout 86400s;
+            send_timeout 86400s;
+            proxy_send_timeout 86400s;
+            proxy_read_timeout 86400s;
           '';
           locations."/api/v1/runners/" = {
             proxyPass = peertubeUpstream;

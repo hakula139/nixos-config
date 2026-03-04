@@ -89,6 +89,7 @@
             patches = (old.patches or [ ]) ++ [
               ./packages/peertube/cdn-redirect-runner.patch
               ./packages/peertube/hq-transcode.patch
+              ./packages/peertube/runner-download-timeout.patch
             ];
             meta = old.meta // {
               platforms = old.meta.platforms ++ [ "aarch64-darwin" ];
