@@ -17,6 +17,8 @@ let
   endpoint = "s3.us-west-004.backblazeb2.com";
   cdnBaseUrl = "https://b2.hakula.xyz";
 
+  fixTimeoutsScript = ./fix-timeouts.js;
+
   mkBucket = suffix: {
     bucket_name = cfg.b2Bucket;
     base_url = "${cdnBaseUrl}/${cfg.b2Bucket}";
@@ -134,6 +136,9 @@ in
       # The upstream NixOS module sets HOME to the read-only Nix store package
       # path, which breaks pnpm (it tries to create $HOME/.local/ for its store).
       environment.HOME = lib.mkForce "/var/lib/peertube";
+
+      # Preload script to fix Node.js headersTimeout (see fix-timeouts.js)
+      environment.NODE_OPTIONS = "--require ${fixTimeoutsScript}";
 
       # PeerTube uses pnpm to install plugins, but the NixOS module only
       # includes yarn in the service PATH.

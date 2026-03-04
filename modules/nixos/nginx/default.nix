@@ -336,9 +336,11 @@ in
       virtualHosts."v-direct.hakula.xyz" = lib.mkIf config.hakula.services.peertube.enable (
         baseVhostConfig
         // {
-          # Matches PeerTube's http_timeouts.request = "2 hours"
+          # All timeouts match PeerTube's http_timeouts.request = "2 hours".
           extraConfig = baseVhostConfig.extraConfig + ''
+            client_header_timeout 7200s;
             client_body_timeout 7200s;
+            send_timeout 7200s;
             proxy_send_timeout 7200s;
             proxy_read_timeout 7200s;
           '';
@@ -347,15 +349,11 @@ in
             extraConfig = ''
               ${noBufferingExtraConfig}
               client_max_body_size 0;
-              proxy_set_header Host v.hakula.xyz;
             '';
           };
           locations."/socket.io/" = {
             proxyPass = peertubeUpstream;
             proxyWebsockets = true;
-            extraConfig = ''
-              proxy_set_header Host v.hakula.xyz;
-            '';
           };
           locations."/" = {
             return = "302 https://v.hakula.xyz$request_uri";
