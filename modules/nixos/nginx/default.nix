@@ -28,8 +28,11 @@ let
   cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
   cloveUpstream = "http://127.0.0.1:${toString config.hakula.services.clove.port}";
   fuclaudeUpstream = "http://127.0.0.1:${toString config.hakula.services.fuclaude.port}";
+  netdataUpstream = "http://127.0.0.1:${toString config.hakula.services.netdata.port}";
+  peertubeUpstream = "http://127.0.0.1:${toString config.hakula.services.peertube.port}";
   piclistUpstream = "http://127.0.0.1:${toString config.hakula.services.piclist.port}";
   umamiUpstream = "http://127.0.0.1:${toString config.hakula.services.umami.port}";
+  xrayWsUpstream = "http://127.0.0.1:${toString config.hakula.services.xray.ws.port}";
 
   # ----------------------------------------------------------------------------
   # Shared Configuration
@@ -61,6 +64,12 @@ let
     proxy_buffering off;
     proxy_request_buffering off;
     proxy_max_temp_file_size 0;
+  '';
+
+  longTimeoutExtraConfig = ''
+    client_body_timeout 300s;
+    proxy_send_timeout 600s;
+    proxy_read_timeout 600s;
   '';
 
   noCacheExtraConfig = ''
@@ -205,7 +214,7 @@ in
         cloudflareVhostConfig
         // {
           locations."/" = {
-            proxyPass = "${cloveUpstream}/";
+            proxyPass = cloveUpstream;
             proxyWebsockets = true;
             extraConfig = noBufferingExtraConfig;
           };
@@ -216,12 +225,9 @@ in
       virtualHosts."claude.hakula.xyz" = lib.mkIf config.hakula.services.fuclaude.enable (
         cloudflareVhostConfig
         // {
-          extraConfig = cloudflareVhostConfig.extraConfig + ''
-            proxy_read_timeout 600s;
-            proxy_send_timeout 600s;
-          '';
+          extraConfig = cloudflareVhostConfig.extraConfig + longTimeoutExtraConfig;
           locations."/" = {
-            proxyPass = "${fuclaudeUpstream}/";
+            proxyPass = fuclaudeUpstream;
             proxyWebsockets = true;
             extraConfig = ''
               ${noBufferingExtraConfig}
@@ -238,23 +244,17 @@ in
       virtualHosts."cloud.hakula.xyz" = lib.mkIf config.hakula.services.cloudreve.enable (
         cloudflareVhostConfig
         // {
-          extraConfig = cloudflareVhostConfig.extraConfig + ''
-            client_body_timeout 300s;
-            client_header_timeout 60s;
-            proxy_connect_timeout 60s;
-            proxy_send_timeout 600s;
-            proxy_read_timeout 600s;
-          '';
+          extraConfig = cloudflareVhostConfig.extraConfig + longTimeoutExtraConfig;
           locations."= /index.html" = {
-            proxyPass = "${cloudreveUpstream}/index.html";
+            proxyPass = cloudreveUpstream;
             extraConfig = noCacheExtraConfig;
           };
           locations."= /sw.js" = {
-            proxyPass = "${cloudreveUpstream}/sw.js";
+            proxyPass = cloudreveUpstream;
             extraConfig = noCacheExtraConfig;
           };
           locations."= /manifest.json" = {
-            proxyPass = "${cloudreveUpstream}/manifest.json";
+            proxyPass = cloudreveUpstream;
             extraConfig = noCacheExtraConfig;
           };
           locations."/api/v4/ws" = {
@@ -270,11 +270,11 @@ in
             extraConfig = noBufferingExtraConfig;
           };
           locations."/dav" = {
-            proxyPass = "${cloudreveUpstream}/dav";
+            proxyPass = cloudreveUpstream;
             extraConfig = noBufferingExtraConfig;
           };
           locations."/" = {
-            proxyPass = "${cloudreveUpstream}/";
+            proxyPass = cloudreveUpstream;
           };
         }
       );
@@ -286,7 +286,7 @@ in
             cloudflareVhostConfig
             // {
               locations."/" = {
-                proxyPass = "http://127.0.0.1:19999/";
+                proxyPass = netdataUpstream;
                 proxyWebsockets = true;
                 extraConfig = noBufferingExtraConfig;
               };
@@ -298,7 +298,7 @@ in
         cloudflareVhostConfig
         // {
           locations."/upload" = {
-            proxyPass = "${piclistUpstream}/upload";
+            proxyPass = piclistUpstream;
             extraConfig = noBufferingExtraConfig;
           };
           locations."/" = {
@@ -312,7 +312,51 @@ in
         cloudflareVhostConfig
         // {
           locations."/" = {
-            proxyPass = "${umamiUpstream}/";
+            proxyPass = umamiUpstream;
+          };
+        }
+      );
+
+      # PeerTube (video streaming)
+      virtualHosts."v.hakula.xyz" = lib.mkIf config.hakula.services.peertube.enable (
+        cloudflareVhostConfig
+        // {
+          locations."/" = {
+            proxyPass = peertubeUpstream;
+            proxyWebsockets = true;
+            extraConfig = ''
+              ${noBufferingExtraConfig}
+              client_max_body_size 0;
+            '';
+          };
+        }
+      );
+
+      # PeerTube remote runner (direct HTTPS, bypasses Cloudflare)
+      virtualHosts."v-direct.hakula.xyz" = lib.mkIf config.hakula.services.peertube.enable (
+        baseVhostConfig
+        // {
+          # All timeouts match PeerTube's http_timeouts.request = "24 hours".
+          extraConfig = baseVhostConfig.extraConfig + ''
+            client_header_timeout 86400s;
+            client_body_timeout 86400s;
+            send_timeout 86400s;
+            proxy_send_timeout 86400s;
+            proxy_read_timeout 86400s;
+          '';
+          locations."/api/v1/runners/" = {
+            proxyPass = peertubeUpstream;
+            extraConfig = ''
+              ${noBufferingExtraConfig}
+              client_max_body_size 0;
+            '';
+          };
+          locations."/socket.io/" = {
+            proxyPass = peertubeUpstream;
+            proxyWebsockets = true;
+          };
+          locations."/" = {
+            return = "302 https://v.hakula.xyz$request_uri";
           };
         }
       );
@@ -326,7 +370,7 @@ in
             // {
               http2 = false;
               locations."/ws" = {
-                proxyPass = "http://127.0.0.1:${toString config.hakula.services.xray.ws.port}";
+                proxyPass = xrayWsUpstream;
                 proxyWebsockets = true;
                 extraConfig = ''
                   proxy_redirect off;

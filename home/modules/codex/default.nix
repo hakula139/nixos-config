@@ -81,7 +81,7 @@ in
           # Settings
           # --------------------------------------------------------------------
           settings = {
-            model = "gpt-5.3-codex";
+            model = "gpt-5.4";
             model_reasoning_effort = "high";
             personality = "pragmatic";
 

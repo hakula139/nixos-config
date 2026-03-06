@@ -3,7 +3,9 @@ alnum
 anthropics
 autocd
 autocmd
+backblazeb2
 bdelete
+bframes
 bnext
 bprevious
 bradlc
@@ -14,6 +16,7 @@ catppuccin
 ccache
 ccagent
 chgrp
+chocobozzz
 cidr
 cloudreve
 cncidr
@@ -48,7 +51,10 @@ env
 envrc
 esac
 esbenp
+fchownat
+ffprobe
 findutils
+fmp4
 fuclaude
 geoip
 ghcup
@@ -82,6 +88,8 @@ lancidr
 lcount
 libkrb
 libuuid
+libuv
+libx
 linkify
 lldb
 localectl
@@ -123,6 +131,7 @@ pcup
 pcupb
 pcupd
 pcupdb
+peertube
 pengzhile
 pgrep
 phoityne
@@ -136,6 +145,7 @@ pmset
 pname
 ppid
 precmd
+proxify
 psql
 pulumi
 pushd
@@ -144,6 +154,9 @@ pytest
 qdisc
 raku
 recents
+regen
+regenerable
+remux
 rerere
 resolv
 resolvectl
@@ -159,11 +172,13 @@ shellenv
 shfmt
 showcmd
 signup
+sigsys
 slaac
 spack
 statix
 stdenv
 subcmd
+subme
 substituters
 sudoe
 suid

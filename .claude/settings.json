@@ -5,6 +5,11 @@
   ],
   "permissions": {
     "allow": [
+      "Bash(ffmpeg *)",
+      "Bash(ffprobe *)",
+      "Bash(shellcheck *)",
+      "Bash(shfmt *)",
+      "Skill(agent-browser)",
       "mcp__NixOS"
     ]
   }
