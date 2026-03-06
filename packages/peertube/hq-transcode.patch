@@ -1,0 +1,35 @@
+--- a/packages/ffmpeg/src/ffmpeg-default-transcoding-profile.ts
++++ b/packages/ffmpeg/src/ffmpeg-default-transcoding-profile.ts
+@@ -12,13 +12,11 @@
+ import { FfprobeData } from 'fluent-ffmpeg'
+ 
+ const defaultX264VODOptionsBuilder: EncoderOptionsBuilder = (options: EncoderOptionsBuilderParams) => {
+-  const { fps, inputRatio, inputBitrate, resolution } = options
+-
+-  const targetBitrate = getTargetBitrate({ inputBitrate, ratio: inputRatio, fps, resolution })
++  const { fps } = options
+ 
+   return {
+     outputOptions: [
+-      ...getCommonOutputOptions(targetBitrate),
++      ...getVODOutputOptions(),
+ 
+       `-r ${fps}`
+     ]
+@@ -170,6 +168,16 @@
+   return Math.min(targetBitrate, inputBitrateWithMargin)
+ }
+ 
++function getVODOutputOptions () {
++  return [
++    `-preset slow`,
++    `-profile:v high`,
++    `-crf 20`,
++    `-b_strategy 1`,
++    `-bf 16`
++  ]
++}
++
+ function getCommonOutputOptions (targetBitrate: number, streamNum?: number) {
+   return [
+     `-preset veryfast`,

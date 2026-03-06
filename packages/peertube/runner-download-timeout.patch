@@ -1,0 +1,10 @@
+--- a/apps/peertube-runner/src/shared/http.ts
++++ b/apps/peertube-runner/src/shared/http.ts
+@@ -64,6 +64,6 @@ export function downloadFile (options: {
+
+     setTimeout(() => {
+       request.destroy(new Error('Global request timeout'))
+-    }, 2 * 3600 * 1000) // 2 hours
++    }, 24 * 3600 * 1000) // 24 hours
+   })
+ }

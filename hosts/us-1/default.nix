@@ -57,9 +57,21 @@
   # ============================================================================
   # Services
   # ============================================================================
+  hakula.services.backup = {
+    enable = true;
+    b2Bucket = "hakula-backup";
+    peertube = {
+      enable = true;
+      schedule = "*-*-* 03:00:00";
+    };
+  };
   hakula.services.cloudconeAgent = {
     enable = true;
     serverKeyAgeFile = ../../secrets/cloudcone-server-key-${hostName}.age;
+  };
+  hakula.services.peertube = {
+    enable = true;
+    b2Bucket = "hakula-videos";
   };
 
   # ============================================================================
