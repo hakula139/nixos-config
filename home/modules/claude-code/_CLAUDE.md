@@ -72,13 +72,13 @@ Prefer MCP tools over equivalent Bash commands or web searches. MCPs provide str
 
 ### Codex (`mcp__Codex__*`)
 
-Use for delegating **self-contained, multi-step coding tasks** to an autonomous agent powered by GPT-5.3-codex. Codex runs with full shell access and its own MCP servers (Context7, DeepWiki, Filesystem, Git, GitHub), making it capable of independent exploration, code generation, and command execution.
+Use for delegating **self-contained, multi-step coding tasks** to an autonomous agent powered by GPT-5.4. Codex runs with full shell access and its own MCP servers (Context7, DeepWiki, Filesystem, Git, GitHub), making it capable of independent exploration, code generation, and command execution.
 
 **When to use Codex:**
 
 - Tasks that require autonomous multi-step work with shell commands (e.g., refactoring across files, writing and running scripts, building and testing code)
 - Offloading work to a separate context window — useful when Claude Code's context is already large or the task is orthogonal to the current conversation
-- Leveraging GPT-5.3-codex's strengths for code generation or analysis
+- Leveraging GPT's strengths for code generation or analysis
 - Tasks where an independent second opinion or alternative approach is valuable
 
 **When NOT to use Codex:**
