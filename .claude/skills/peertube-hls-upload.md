@@ -154,21 +154,36 @@ To also update the stored ffprobe metadata (recommended for re-encodes):
 
 ### Step 7: Update Segments SHA256
 
-**This step is NOT optional.** PeerTube verifies HLS segment integrity using a SHA256 JSON file. Stale hashes cause playback errors:
+**This step is NOT optional.** PeerTube verifies HLS segment integrity using a SHA256 JSON file. PeerTube does **not** auto-regenerate this file — not even when the runner transcodes a new resolution.
 
-```text
-Hashes does not correspond for segment <UUID>-<RES>-fragmented.mp4/<RANGE>
-(expected: <old_hash> instead of <new_hash>)
-```
+**Symptoms of missing / stale hashes:**
 
-PeerTube does **not** auto-regenerate this file. Regenerate and upload manually:
+- **Missing key** (fMP4 filename absent from JSON): The resolution **silently disappears** from the quality selector — no error in the UI, no console message about hashes. Diagnose by checking whether the SHA256 JSON has an entry for the fMP4 filename.
+- **Hash mismatch** (key exists but hashes are wrong): The resolution appears but segments fail to play, with console errors:
+
+  ```text
+  Hashes does not correspond for segment <UUID>-<RES>-fragmented.mp4/<RANGE>
+  (expected: <old_hash> instead of <new_hash>)
+  ```
+
+**Regenerate and upload:**
 
 ```bash
 ./peertube-hls.sh regen-sha256 <VIDEO_UUID> <SHA256_FILENAME> <FILE_UUID> <RESOLUTION>
 ./peertube-hls.sh upload <VIDEO_UUID> /tmp/peertube-hls/segments-sha256.json <SHA256_FILENAME>
 ```
 
-**Note**: The `regen-sha256` command downloads the current SHA256 JSON from B2 CDN with a `Cache-Control: no-cache` header. If the CDN still serves a stale cached version, download directly via the S3 API instead.
+**Note**: The `regen-sha256` command requires the fMP4 and m3u8 files locally in `/tmp/peertube-hls/`. If you're fixing a runner-transcoded file (not a manual transcode), download them from B2 first:
+
+```bash
+mkdir -p /tmp/peertube-hls
+curl -o /tmp/peertube-hls/<FILE_UUID>-<RESOLUTION>.m3u8 \
+  'https://b2.hakula.xyz/hakula-videos/streaming-playlists/hls/<VIDEO_UUID>/<FILE_UUID>-<RESOLUTION>.m3u8'
+curl -o /tmp/peertube-hls/<FILE_UUID>-<RESOLUTION>-fragmented.mp4 \
+  'https://b2.hakula.xyz/hakula-videos/streaming-playlists/hls/<VIDEO_UUID>/<FILE_UUID>-<RESOLUTION>-fragmented.mp4'
+```
+
+The `regen-sha256` command downloads the current SHA256 JSON from B2 CDN with a `Cache-Control: no-cache` header. If the CDN still serves a stale cached version, download directly via the S3 API instead.
 
 ### Step 8: Purge Cloudflare CDN Cache
 
