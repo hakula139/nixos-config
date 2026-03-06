@@ -43,6 +43,12 @@ in
   # ----------------------------------------------------------------------------
   options.hakula.services.netdata = {
     enable = lib.mkEnableOption "Netdata monitoring system";
+
+    port = lib.mkOption {
+      type = lib.types.port;
+      default = 19999;
+      description = "Port for Netdata web interface";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -79,7 +85,7 @@ in
           "dbengine tier 1 disk space MB" = 256;
         };
         web = {
-          "bind to" = "127.0.0.1:19999";
+          "bind to" = "127.0.0.1:${toString cfg.port}";
           "enable gzip compression" = "yes";
         };
       };

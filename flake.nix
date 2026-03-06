@@ -81,9 +81,20 @@
             localSystem = final.stdenv.hostPlatform.system;
             config.allowUnfree = true;
           };
+
           agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
           cloudreve = final.callPackage ./packages/cloudreve { };
           github-mcp-server = final.callPackage ./packages/github-mcp-server { };
+          peertube = final.unstable.peertube.overrideAttrs (old: {
+            patches = (old.patches or [ ]) ++ [
+              ./packages/peertube/cdn-redirect-runner.patch
+              ./packages/peertube/hq-transcode.patch
+              ./packages/peertube/runner-download-timeout.patch
+            ];
+            meta = old.meta // {
+              platforms = old.meta.platforms ++ [ "aarch64-darwin" ];
+            };
+          });
         })
       ];
 
@@ -108,7 +119,10 @@
             };
             trim-trailing-whitespace = {
               enable = true;
-              excludes = [ "\\.age$" ];
+              excludes = [
+                "\\.age$"
+                "\\.patch$"
+              ];
             };
             nixfmt.enable = true;
             statix.enable = true;
@@ -397,13 +411,13 @@
       };
 
       # ========================================================================
-      # Docker Images (for air-gapped deployment)
+      # Packages
       # ========================================================================
-      packages.x86_64-linux = {
+      packages = {
         # ----------------------------------------------------------------------
-        # Hakula's DevVM (Docker Image)
+        # Docker Images (for air-gapped deployment)
         # ----------------------------------------------------------------------
-        hakula-devvm-docker = mkDocker {
+        x86_64-linux.hakula-devvm-docker = mkDocker {
           name = "hakula-devvm";
           configPath = ./hosts/hakula-devvm;
           username = "root";

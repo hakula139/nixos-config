@@ -34,6 +34,7 @@ in
     ./mcp
     ./netdata
     ./nginx
+    ./peertube
     ./piclist
     ./podman
     ./postgresql
