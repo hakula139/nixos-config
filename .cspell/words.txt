@@ -5,6 +5,7 @@ autocd
 autocmd
 backblazeb2
 bdelete
+bframes
 bnext
 bprevious
 bradlc
@@ -53,6 +54,7 @@ esbenp
 fchownat
 ffprobe
 findutils
+fmp4
 fuclaude
 geoip
 ghcup
@@ -87,6 +89,7 @@ lcount
 libkrb
 libuuid
 libuv
+libx
 linkify
 lldb
 localectl
@@ -128,6 +131,7 @@ pcup
 pcupb
 pcupd
 pcupdb
+peertube
 pengzhile
 pgrep
 phoityne
@@ -150,7 +154,9 @@ pytest
 qdisc
 raku
 recents
+regen
 regenerable
+remux
 rerere
 resolv
 resolvectl
@@ -172,6 +178,7 @@ spack
 statix
 stdenv
 subcmd
+subme
 substituters
 sudoe
 suid
