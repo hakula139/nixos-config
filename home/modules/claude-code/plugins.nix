@@ -34,7 +34,6 @@
 
     # Third-party plugins
     "agent-browser@agent-browser" = true;
-    "claude-code-wakatime@wakatime" = true;
     "context7-plugin@context7-marketplace" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
@@ -71,12 +70,6 @@
       source = {
         source = "github";
         repo = "upstash/context7";
-      };
-    };
-    wakatime = {
-      source = {
-        source = "github";
-        repo = "wakatime/claude-code-wakatime";
       };
     };
   };
