@@ -12,6 +12,7 @@ let
   notify = import ../../notify { inherit pkgs lib; };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
   enforceMcpScript = pkgs.writeShellScript "enforce-mcp" (builtins.readFile ./enforce-mcp.sh);
+  wakatimeScript = pkgs.writeShellScript "wakatime-heartbeat" (builtins.readFile ./wakatime.sh);
 in
 {
   PreToolUse = [
@@ -28,6 +29,17 @@ in
   ];
 
   PostToolUse = [
+    # WakaTime heartbeat for AI-generated file edits
+    {
+      matcher = "Edit|Write";
+      hooks = [
+        {
+          type = "command";
+          command = "${wakatimeScript}";
+          async = true;
+        }
+      ];
+    }
     # Shell formatting and linting
     {
       matcher = "Edit|Write";
