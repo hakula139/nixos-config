@@ -144,6 +144,7 @@ in
             inherit (plugins) enabledPlugins extraKnownMarketplaces;
 
             model = "opus";
+            effortLevel = "high";
             plansDirectory = "./.claude/plans";
 
             theme = "dark";
