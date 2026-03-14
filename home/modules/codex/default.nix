@@ -137,10 +137,10 @@ in
             # ------------------------------------------------------------------
             # Features
             # ------------------------------------------------------------------
+            suppress_unstable_features_warning = true;
             features = {
               apply_patch_freeform = true;
               apps = true;
-              apps_mcp_gateway = true;
               child_agents_md = true;
               code_mode = true;
               memories = true;
