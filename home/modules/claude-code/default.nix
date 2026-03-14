@@ -17,6 +17,7 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
+  instructions = import ../lib/instructions;
   agentRoleOptions = import ../lib/agent-roles/options.nix { inherit lib; };
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
 in
@@ -103,7 +104,7 @@ in
         # ----------------------------------------------------------------------
         # User configuration files
         # ----------------------------------------------------------------------
-        home.file.".claude/CLAUDE.md".source = ./_CLAUDE.md;
+        home.file.".claude/CLAUDE.md".text = instructions.claudeCode;
 
         home.file.".claude/statusline-command.sh" = {
           source = statusLineScript;

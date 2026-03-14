@@ -14,6 +14,7 @@
 
 let
   cfg = config.hakula.codex;
+  instructions = import ../lib/instructions;
   agentRoleOptions = import ../lib/agent-roles/options.nix { inherit lib; };
 in
 {
@@ -87,12 +88,15 @@ in
           # --------------------------------------------------------------------
           # AGENTS.md
           # --------------------------------------------------------------------
-          custom-instructions = builtins.readFile ./_AGENTS.md;
+          custom-instructions = instructions.codex;
 
           # --------------------------------------------------------------------
           # Settings
           # --------------------------------------------------------------------
           settings = {
+            # ------------------------------------------------------------------
+            # Model
+            # ------------------------------------------------------------------
             model = "gpt-5.4";
             model_reasoning_effort = "high";
             plan_mode_reasoning_effort = "high";
@@ -100,14 +104,13 @@ in
             personality = "pragmatic";
 
             # ------------------------------------------------------------------
-            # Security
+            # Execution
             # ------------------------------------------------------------------
             approval_policy = "never";
             sandbox_mode = "danger-full-access";
             shell_environment_policy = {
               "inherit" = "all";
             };
-            web_search = "live";
 
             # ------------------------------------------------------------------
             # Project context
@@ -132,23 +135,19 @@ in
             };
 
             # ------------------------------------------------------------------
-            # Notifications
+            # Features
             # ------------------------------------------------------------------
-            notify = [
-              "${notify.mkProjectNotifyScript}"
-              "Codex"
-              "Response complete"
-            ];
-
-            # ------------------------------------------------------------------
-            # Apps
-            # ------------------------------------------------------------------
-            apps = {
-              _default = {
-                enabled = true;
-                destructive_enabled = true;
-                open_world_enabled = true;
-              };
+            features = {
+              apply_patch_freeform = true;
+              apps = true;
+              apps_mcp_gateway = true;
+              child_agents_md = true;
+              code_mode = true;
+              memories = true;
+              multi_agent = true;
+              plugins = true;
+              shell_snapshot = true;
+              unified_exec = true;
             };
 
             # ------------------------------------------------------------------
@@ -167,14 +166,35 @@ in
             };
 
             # ------------------------------------------------------------------
-            # Tools
+            # Apps
             # ------------------------------------------------------------------
+            apps = {
+              _default = {
+                enabled = true;
+                destructive_enabled = true;
+                open_world_enabled = true;
+              };
+            };
+
+            # ------------------------------------------------------------------
+            # Tools / search
+            # ------------------------------------------------------------------
+            web_search = "live";
             tools = {
               view_image = true;
               web_search = {
                 context_size = "high";
               };
             };
+
+            # ------------------------------------------------------------------
+            # Notifications
+            # ------------------------------------------------------------------
+            notify = [
+              "${notify.mkProjectNotifyScript}"
+              "Codex"
+              "Response complete"
+            ];
 
             # ------------------------------------------------------------------
             # MCP servers
@@ -186,22 +206,6 @@ in
               Filesystem.command = mcp.servers.filesystem.command;
               Git.command = mcp.servers.git.command;
               GitHub.command = mcp.servers.github.command;
-            };
-
-            # ------------------------------------------------------------------
-            # Experimental features
-            # ------------------------------------------------------------------
-            features = {
-              apply_patch_freeform = true;
-              apps = true;
-              apps_mcp_gateway = true;
-              child_agents_md = true;
-              code_mode = true;
-              memories = true;
-              multi_agent = true;
-              plugins = true;
-              shell_snapshot = true;
-              unified_exec = true;
             };
           };
         };
