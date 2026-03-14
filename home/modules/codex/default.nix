@@ -14,6 +14,7 @@
 
 let
   cfg = config.hakula.codex;
+  agentRoleOptions = import ../lib/agent-roles/options.nix { inherit lib; };
 in
 {
   # ----------------------------------------------------------------------------
@@ -22,12 +23,23 @@ in
   options.hakula.codex = {
     enable = lib.mkEnableOption "OpenAI Codex CLI";
 
+    agents = {
+      enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
+        description = "List of custom Codex agent roles to enable";
+      };
+    };
+
     proxy = (import ../lib/proxy.nix { inherit lib; }).mkProxyOptions "Codex";
   };
 
   config = lib.mkIf cfg.enable (
     let
       notify = import ../notify { inherit pkgs lib; };
+
+      agents = import ./agents.nix {
+        inherit lib pkgs;
+        inherit (cfg.agents) enabledAgents;
+      };
 
       mcp = import ../mcp {
         inherit
@@ -83,6 +95,8 @@ in
           settings = {
             model = "gpt-5.4";
             model_reasoning_effort = "high";
+            plan_mode_reasoning_effort = "high";
+            model_verbosity = "high";
             personality = "pragmatic";
 
             # ------------------------------------------------------------------
@@ -90,7 +104,32 @@ in
             # ------------------------------------------------------------------
             approval_policy = "never";
             sandbox_mode = "danger-full-access";
-            web_search = "cached";
+            shell_environment_policy = {
+              "inherit" = "all";
+            };
+            web_search = "live";
+
+            # ------------------------------------------------------------------
+            # Project context
+            # ------------------------------------------------------------------
+            project_doc_fallback_filenames = [ "CLAUDE.md" ];
+
+            # ------------------------------------------------------------------
+            # History / memory
+            # ------------------------------------------------------------------
+            history = {
+              persistence = "save-all";
+              max_bytes = 268435456; # 256 MB
+            };
+
+            memories = {
+              generate_memories = true;
+              use_memories = true;
+              no_memories_if_mcp_or_web_search = true;
+              min_rollout_idle_hours = 24;
+              max_rollouts_per_startup = 6;
+              max_raw_memories_for_consolidation = 50;
+            };
 
             # ------------------------------------------------------------------
             # Notifications
@@ -102,11 +141,48 @@ in
             ];
 
             # ------------------------------------------------------------------
+            # Apps
+            # ------------------------------------------------------------------
+            apps = {
+              _default = {
+                enabled = true;
+                destructive_enabled = true;
+                open_world_enabled = true;
+              };
+            };
+
+            # ------------------------------------------------------------------
+            # Agents
+            # ------------------------------------------------------------------
+            agents = agents.settings;
+
+            # ------------------------------------------------------------------
+            # Skills
+            # ------------------------------------------------------------------
+            skills = {
+              bundled = {
+                enabled = true;
+              };
+              config = skills.configEntries;
+            };
+
+            # ------------------------------------------------------------------
+            # Tools
+            # ------------------------------------------------------------------
+            tools = {
+              view_image = true;
+              web_search = {
+                context_size = "high";
+              };
+            };
+
+            # ------------------------------------------------------------------
             # MCP servers
             # ------------------------------------------------------------------
             mcp_servers = {
               Context7.command = mcp.servers.context7.command;
               DeepWiki.command = mcp.servers.deepwiki.command;
+              Fetcher.command = mcp.servers.fetcher.command;
               Filesystem.command = mcp.servers.filesystem.command;
               Git.command = mcp.servers.git.command;
               GitHub.command = mcp.servers.github.command;
@@ -116,9 +192,16 @@ in
             # Experimental features
             # ------------------------------------------------------------------
             features = {
+              apply_patch_freeform = true;
               apps = true;
+              apps_mcp_gateway = true;
+              child_agents_md = true;
+              code_mode = true;
+              memories = true;
               multi_agent = true;
+              plugins = true;
               shell_snapshot = true;
+              unified_exec = true;
             };
           };
         };

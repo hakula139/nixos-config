@@ -17,6 +17,8 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
+  agentRoleOptions = import ../lib/agent-roles/options.nix { inherit lib; };
+  claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -30,29 +32,9 @@ in
     };
 
     agents = {
-      enabledAgents = lib.mkOption {
-        type = lib.types.listOf (
-          lib.types.enum [
-            "architect"
-            "codex-worker"
-            "debugger"
-            "implementer"
-            "researcher"
-            "reviewer"
-            "tester"
-            "usability-reviewer"
-          ]
-        );
-        default = [
-          "architect"
-          "codex-worker"
-          "debugger"
-          "implementer"
-          "researcher"
-          "reviewer"
-          "tester"
-          "usability-reviewer"
-        ];
+      enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
+        names = claudeAgentNames;
+        default = claudeAgentNames;
         description = "List of custom agents to enable";
       };
     };
