@@ -1,3 +1,7 @@
+# ==============================================================================
+# Shared Agent Roles
+# ==============================================================================
+
 {
   architect = {
     description = "Architecture review and design critique. Use when you need analysis of code structure, design patterns, dependency relationships, or feedback on an approach before implementation.";
@@ -85,7 +89,7 @@
     };
   };
 
-  "usability-reviewer" = {
+  usability-reviewer = {
     description = "Usability and clarity review from a non-expert perspective. Use after implementation to evaluate user-facing surfaces such as APIs, docs, CLI help text, error messages, and UI copy for intuitiveness and clarity.";
     prompt = builtins.readFile ./prompts/usability-reviewer.md;
     claude = {

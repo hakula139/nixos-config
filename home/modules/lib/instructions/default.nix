@@ -1,6 +1,10 @@
+# ==============================================================================
+# Shared Instruction Documents
+# ==============================================================================
+
 let
   sharedBody = builtins.readFile ./shared.md;
-  claudeBody = builtins.readFile ./claude-code.md;
+  claudeCodeBody = builtins.readFile ./claude-code.md;
   codexBody = builtins.readFile ./codex.md;
 
   render =
@@ -20,7 +24,7 @@ in
   claudeCode = render {
     title = "CLAUDE.md";
     intro = "Global instructions for Claude Code behavior across all projects.";
-    body = claudeBody;
+    body = claudeCodeBody;
   };
 
   codex = render {
