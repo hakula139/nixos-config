@@ -14,8 +14,8 @@
 
 let
   cfg = config.hakula.codex;
-  instructions = import ../lib/instructions;
-  agentRoleOptions = import ../lib/agent-roles/options.nix { inherit lib; };
+  instructions = import ../shared/instructions;
+  agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
 in
 {
   # ----------------------------------------------------------------------------
@@ -30,19 +30,19 @@ in
       };
     };
 
-    proxy = (import ../lib/proxy.nix { inherit lib; }).mkProxyOptions "Codex";
+    proxy = (import ../shared/proxy.nix { inherit lib; }).mkProxyOptions "Codex";
   };
 
   config = lib.mkIf cfg.enable (
     let
-      notify = import ../notify { inherit pkgs lib; };
+      notify = import ../shared/notify.nix { inherit pkgs lib; };
 
       agents = import ./agents.nix {
         inherit lib pkgs;
         inherit (cfg.agents) enabledAgents;
       };
 
-      mcp = import ../mcp {
+      mcp = import ../shared/mcp.nix {
         inherit
           config
           pkgs

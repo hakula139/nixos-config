@@ -10,7 +10,7 @@
 # ==============================================================================
 
 let
-  sharedAgents = import ../lib/agent-roles;
+  sharedAgents = import ../shared/agent-roles;
   tomlFormat = pkgs.formats.toml { };
 
   mkAgentConfig =

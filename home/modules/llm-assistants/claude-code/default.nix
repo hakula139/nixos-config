@@ -17,8 +17,8 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
-  instructions = import ../lib/instructions;
-  agentRoleOptions = import ../lib/agent-roles/options.nix { inherit lib; };
+  instructions = import ../shared/instructions;
+  agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
 in
 {
@@ -40,7 +40,7 @@ in
       };
     };
 
-    proxy = (import ../lib/proxy.nix { inherit lib; }).mkProxyOptions "Claude Code";
+    proxy = (import ../shared/proxy.nix { inherit lib; }).mkProxyOptions "Claude Code";
   };
 
   config = lib.mkIf cfg.enable (
@@ -55,7 +55,7 @@ in
         codexEnabled = config.hakula.codex.enable;
       };
 
-      mcp = import ../mcp {
+      mcp = import ../shared/mcp.nix {
         inherit
           config
           pkgs
@@ -65,7 +65,7 @@ in
           ;
       };
 
-      notify = import ../notify { inherit pkgs lib; };
+      notify = import ../shared/notify.nix { inherit pkgs lib; };
 
       statusLineScript = pkgs.writeShellScript "statusline-command" (
         builtins.replaceStrings [ "@npx@" "@getTtyNum@" ] [ "${pkgs.nodejs}/bin/npx" "${notify.getTtyNum}" ]
