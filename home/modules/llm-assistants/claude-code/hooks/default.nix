@@ -9,7 +9,7 @@
 # ==============================================================================
 
 let
-  notify = import ../../notify { inherit pkgs lib; };
+  notify = import ../../shared/notify.nix { inherit pkgs lib; };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
   enforceMcpScript = pkgs.writeShellScript "enforce-mcp" (builtins.readFile ./enforce-mcp.sh);
   wakatimeScript = pkgs.writeShellScript "wakatime-heartbeat" (builtins.readFile ./wakatime.sh);

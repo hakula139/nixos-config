@@ -106,7 +106,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 - `mkDarwin`: Creates Darwin configurations with agenix and Home Manager integrated
 - `mkHome`: Creates standalone Home Manager configurations for non-NixOS Linux
 - `mkDocker`: Creates layered NixOS Docker images using `dockerTools.buildLayeredImageWithNixDb` for air-gapped deployment
-- `overlays`: Provides `unstable` packages, `agenix` CLI, and custom packages (`cloudreve`, `github-mcp-server`)
+- `overlays`: Provides `unstable` packages, `agenix` CLI, custom packages (`cloudreve`, `github-mcp-server`), and a patched `peertube`
 - `inputs.llm-agents`: Provides `claude-code` and `codex` packages from [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix)
 - `forAllSystems`: Handles both x86_64-linux and aarch64-darwin
 
@@ -119,7 +119,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 - `packages.x86_64-linux.hakula-devvm-docker`: Docker image for air-gapped deployment
 - `checks.*.pre-commit`: Pre-commit hook validation
 - `devShells.default`: Development environment with pre-commit hooks
-- `formatter`: nixfmt-rfc-style
+- `formatter`: nixfmt
 
 ### Directory Layout
 
@@ -133,6 +133,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 │   │   ├── cloudcone-vps/       # CloudCone VPS hardware profile
 │   │   ├── dmit/                # DMIT hardware profile
 │   │   ├── docker/              # Docker container profile
+│   │   ├── server-baseline/     # Shared server defaults (builders, MCP, services, HM)
 │   │   └── tencent-lighthouse/  # Tencent Lighthouse hardware profile
 │   ├── us-1/                    # CloudCone SC2 server
 │   ├── us-2/                    # CloudCone VPS
@@ -144,20 +145,20 @@ The flake uses a **builder function pattern** to reduce duplication:
 │   └── hakula-devvm/            # DevVM (Docker image for air-gapped deployment)
 ├── modules/
 │   ├── shared.nix               # Cross-platform base config
-│   ├── nixos/                   # NixOS service modules (21 modules)
+│   ├── nixos/                   # NixOS service modules (22 modules)
 │   └── darwin/                  # macOS-specific modules (with ssh/ submodule)
 ├── home/
 │   ├── hakula.nix               # Main user configuration entry
 │   └── modules/                 # Home Manager modules
-│       ├── claude-code/         # Claude Code configuration
-│       ├── codex/               # OpenAI Codex CLI configuration
-│       ├── cursor/              # Cursor editor config
+│       ├── fonts/               # Windows font sync (WSL only)
 │       ├── git/                 # Git configuration
-│       ├── mcp/                 # MCP server definitions (shared)
+│       ├── llm-assistants/      # LLM assistant tooling
+│       │   ├── claude-code/     # Claude Code configuration
+│       │   ├── codex/           # OpenAI Codex CLI configuration
+│       │   ├── cursor/          # Cursor editor config
+│       │   └── shared/          # Shared assistant support (agents, instructions, MCP, notify, proxy)
 │       ├── mihomo/              # Mihomo proxy client
-│       ├── lib/                 # Shared helper functions (e.g., proxy options)
 │       ├── nix/                 # User-level nix.conf for standalone HM
-│       ├── notify/              # Cross-platform notification support
 │       ├── ssh/                 # SSH client config
 │       ├── syncthing/           # Syncthing file synchronization
 │       ├── terminal/            # Terminal, shell & CLI tools
@@ -191,7 +192,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 **NixOS modules** (`modules/nixos/`) are **optionally enabled** services configured per-host. Key modules:
 
 - **Infrastructure**: `nginx`, `xray`, `clash`, `postgresql`, `podman`
-- **Services**: `aria2`, `cloudreve`, `clove`, `fuclaude`, `netdata`, `piclist`, `umami`, `wakatime`
+- **Services**: `aria2`, `cloudreve`, `clove`, `fuclaude`, `netdata`, `peertube`, `piclist`, `umami`
 - **System**: `backup`, `builders`, `cachix`, `claude-code`, `cloudcone`, `cloudflare`, `dockerhub`, `mcp`, `ssh`
 
 Each module typically exports an `enable` option and service-specific configuration. Host configurations import modules and enable them selectively.
@@ -217,7 +218,7 @@ Host configurations import `shared.nix` and extend with platform/host-specific s
 Secrets are encrypted with **age** using SSH keys defined in `secrets/keys.nix`:
 
 - **User keys**: `hakula-cloudcone`, `hakula-dmit`, `hakula-tencent` (for remote management)
-- **Host keys**: `us-1`, `us-2`, `us-3`, `us-4`, `sg-1` (for host decryption)
+- **Host keys**: `us-1`, `us-2`, `us-3`, `us-4`, `sg-1`, `hakula-devvm` (for host decryption)
 - **Workstation keys**: `hakula-macbook`, `hakula-work` (for local editing)
 
 Secrets in `secrets/*.age` are **decrypted at activation time** by agenix and placed in `/run/agenix` (NixOS) or `/run/agenix.d` (Darwin). Reference them in modules via `config.age.secrets.<secret-name>.path`.
@@ -286,15 +287,17 @@ age.secrets.my-secret = secrets.mkHomeSecret {
 
 - `check-added-large-files`
 - `check-yaml`
+- `deadnix`
 - `end-of-file-fixer`
+- `statix`
 - `trim-trailing-whitespace`
-- `nixfmt-rfc-style`
+- `nixfmt`
 
 ## Code Style
 
 ### Nix
 
-- **Formatter**: `nixfmt-rfc-style` (enforced by pre-commit)
+- **Formatter**: `nixfmt` (enforced by pre-commit)
 - **Linting**: `statix` and `deadnix` (enforced in CI)
 - **Line width**: Default (100 characters)
 - **Import style**: Use `with pkgs;` in package lists for brevity

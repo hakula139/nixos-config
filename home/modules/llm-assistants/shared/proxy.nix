@@ -3,8 +3,6 @@
 # ==============================================================================
 # Shared Proxy Options
 # ==============================================================================
-# Reusable NixOS module option set for HTTP proxy configuration.
-# Used by claude-code and codex Home Manager modules.
 
 {
   mkProxyOptions = name: {
