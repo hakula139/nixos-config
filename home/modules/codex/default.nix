@@ -135,19 +135,12 @@ in
             };
 
             # ------------------------------------------------------------------
-            # Features
+            # Tools / search
             # ------------------------------------------------------------------
-            suppress_unstable_features_warning = true;
-            features = {
-              apply_patch_freeform = true;
-              apps = true;
-              child_agents_md = true;
-              code_mode = true;
-              memories = true;
-              multi_agent = true;
-              plugins = true;
-              shell_snapshot = true;
-              unified_exec = true;
+            web_search = "live";
+            tools = {
+              view_image = true;
+              web_search.context_size = "high";
             };
 
             # ------------------------------------------------------------------
@@ -156,12 +149,22 @@ in
             agents = agents.settings;
 
             # ------------------------------------------------------------------
+            # MCP servers
+            # ------------------------------------------------------------------
+            mcp_servers = {
+              Context7.command = mcp.servers.context7.command;
+              DeepWiki.command = mcp.servers.deepwiki.command;
+              Fetcher.command = mcp.servers.fetcher.command;
+              Filesystem.command = mcp.servers.filesystem.command;
+              Git.command = mcp.servers.git.command;
+              GitHub.command = mcp.servers.github.command;
+            };
+
+            # ------------------------------------------------------------------
             # Skills
             # ------------------------------------------------------------------
             skills = {
-              bundled = {
-                enabled = true;
-              };
+              bundled.enabled = true;
               config = skills.configEntries;
             };
 
@@ -177,18 +180,7 @@ in
             };
 
             # ------------------------------------------------------------------
-            # Tools / search
-            # ------------------------------------------------------------------
-            web_search = "live";
-            tools = {
-              view_image = true;
-              web_search = {
-                context_size = "high";
-              };
-            };
-
-            # ------------------------------------------------------------------
-            # Notifications
+            # Interface
             # ------------------------------------------------------------------
             notify = [
               "${notify.mkProjectNotifyScript}"
@@ -196,16 +188,31 @@ in
               "Response complete"
             ];
 
+            tui = {
+              status_line = [
+                "current-dir"
+                "git-branch"
+                "model-with-reasoning"
+                "context-used"
+                "five-hour-limit"
+                "weekly-limit"
+              ];
+            };
+
             # ------------------------------------------------------------------
-            # MCP servers
+            # Features
             # ------------------------------------------------------------------
-            mcp_servers = {
-              Context7.command = mcp.servers.context7.command;
-              DeepWiki.command = mcp.servers.deepwiki.command;
-              Fetcher.command = mcp.servers.fetcher.command;
-              Filesystem.command = mcp.servers.filesystem.command;
-              Git.command = mcp.servers.git.command;
-              GitHub.command = mcp.servers.github.command;
+            suppress_unstable_features_warning = true;
+            features = {
+              apply_patch_freeform = true;
+              apps = true;
+              child_agents_md = true;
+              code_mode = true;
+              memories = true;
+              multi_agent = true;
+              plugins = true;
+              shell_snapshot = true;
+              unified_exec = true;
             };
           };
         };
