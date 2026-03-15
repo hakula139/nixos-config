@@ -28,11 +28,9 @@ in
     inputs.agenix.homeManagerModules.default
     ./modules/shared.nix
     ./modules/darwin.nix
-    ./modules/claude-code
-    ./modules/codex
-    ./modules/cursor
     ./modules/fonts
     ./modules/git
+    ./modules/llm-assistants
     ./modules/mihomo
     ./modules/nix
     ./modules/ssh

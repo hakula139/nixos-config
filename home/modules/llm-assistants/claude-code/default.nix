@@ -17,6 +17,9 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
+  instructions = import ../shared/instructions;
+  agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
+  claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -30,34 +33,14 @@ in
     };
 
     agents = {
-      enabledAgents = lib.mkOption {
-        type = lib.types.listOf (
-          lib.types.enum [
-            "architect"
-            "codex-worker"
-            "debugger"
-            "implementer"
-            "researcher"
-            "reviewer"
-            "tester"
-            "usability-reviewer"
-          ]
-        );
-        default = [
-          "architect"
-          "codex-worker"
-          "debugger"
-          "implementer"
-          "researcher"
-          "reviewer"
-          "tester"
-          "usability-reviewer"
-        ];
+      enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
+        names = claudeAgentNames;
+        default = claudeAgentNames;
         description = "List of custom agents to enable";
       };
     };
 
-    proxy = (import ../lib/proxy.nix { inherit lib; }).mkProxyOptions "Claude Code";
+    proxy = (import ../shared/proxy.nix { inherit lib; }).mkProxyOptions "Claude Code";
   };
 
   config = lib.mkIf cfg.enable (
@@ -72,7 +55,7 @@ in
         codexEnabled = config.hakula.codex.enable;
       };
 
-      mcp = import ../mcp {
+      mcp = import ../shared/mcp.nix {
         inherit
           config
           pkgs
@@ -82,7 +65,7 @@ in
           ;
       };
 
-      notify = import ../notify { inherit pkgs lib; };
+      notify = import ../shared/notify.nix { inherit pkgs lib; };
 
       statusLineScript = pkgs.writeShellScript "statusline-command" (
         builtins.replaceStrings [ "@npx@" "@getTtyNum@" ] [ "${pkgs.nodejs}/bin/npx" "${notify.getTtyNum}" ]
@@ -121,7 +104,7 @@ in
         # ----------------------------------------------------------------------
         # User configuration files
         # ----------------------------------------------------------------------
-        home.file.".claude/CLAUDE.md".source = ./_CLAUDE.md;
+        home.file.".claude/CLAUDE.md".text = instructions.claudeCode;
 
         home.file.".claude/statusline-command.sh" = {
           source = statusLineScript;
