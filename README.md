@@ -158,7 +158,7 @@ nix flake update
 
 ## Formatting
 
-This repository uses [nixfmt-rfc-style](https://github.com/NixOS/nixfmt). Format all Nix files with:
+This repository uses [nixfmt](https://github.com/NixOS/nixfmt). Format all Nix files with:
 
 ```bash
 git ls-files '*.nix' -z | xargs -0 nix fmt

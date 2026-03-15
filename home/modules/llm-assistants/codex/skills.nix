@@ -40,6 +40,11 @@ in
 {
   inherit enabledSkills;
 
+  configEntries = lib.mapAttrsToList (_: src: {
+    path = "${src}/SKILL.md";
+    enabled = true;
+  }) enabledSkills;
+
   # ----------------------------------------------------------------------------
   # Activation script
   # ----------------------------------------------------------------------------
