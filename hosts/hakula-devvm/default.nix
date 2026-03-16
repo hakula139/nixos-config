@@ -36,6 +36,15 @@
 
     services.ssh-agent.enable = lib.mkForce false;
     services.syncthing.enable = lib.mkForce false;
+
+    hakula.claude-code = {
+      mcp.enabledServers = [
+        "codex"
+        "filesystem"
+        "git"
+      ];
+      plugins.bundle = true;
+    };
   };
 
   # ============================================================================
