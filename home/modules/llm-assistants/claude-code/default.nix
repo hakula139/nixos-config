@@ -45,6 +45,9 @@ in
 
   config = lib.mkIf cfg.enable (
     let
+      # ------------------------------------------------------------------------
+      # Module imports
+      # ------------------------------------------------------------------------
       hooks = import ./hooks { inherit pkgs lib; };
       permissions = import ./permissions.nix;
       plugins = import ./plugins.nix { inherit lib enableDevToolchains; };
@@ -67,27 +70,73 @@ in
 
       notify = import ../shared/notify.nix { inherit pkgs lib; };
 
+      # ------------------------------------------------------------------------
+      # Status line
+      # ------------------------------------------------------------------------
       statusLineScript = pkgs.writeShellScript "statusline-command" (
         builtins.replaceStrings [ "@npx@" "@getTtyNum@" ] [ "${pkgs.nodejs}/bin/npx" "${notify.getTtyNum}" ]
           (builtins.readFile ./statusline-command.sh)
       );
 
+      # ------------------------------------------------------------------------
+      # Package wrapper
+      # ------------------------------------------------------------------------
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
       oauthTokenFile = "${secretsDir}/claude-code-oauth-token";
+      json = pkgs.formats.json { };
 
-      claudeCodeBin =
-        if cfg.auth.useOAuthToken then
-          pkgs.symlinkJoin {
-            name = "claude-code-${claudeCodePkg.version}";
-            paths = [ claudeCodePkg ];
-            nativeBuildInputs = [ pkgs.makeWrapper ];
-            postBuild = ''
-              wrapProgram $out/bin/claude \
-                --run '[ -f "${oauthTokenFile}" ] && export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"'
-            '';
-          }
-        else
-          claudeCodePkg;
+      mcpServersConfig = {
+        DeepWiki = mcp.servers.deepwiki;
+        Fetcher = mcp.servers.fetcher;
+        Filesystem = mcp.servers.filesystem;
+        Git = mcp.servers.git;
+        GitHub = mcp.servers.github;
+      }
+      // lib.optionalAttrs config.hakula.codex.enable {
+        Codex = mcp.servers.codex;
+      };
+
+      mcpConfigFile = json.generate "claude-code-mcp-config.json" {
+        mcpServers = mcpServersConfig;
+      };
+
+      # Workaround: home-manager's programs.claude-code.mcpServers injects
+      # --mcp-config via --append-flags, but Commander.js's variadic option
+      # parsing greedily consumes subcommand names (setup-token, auth, etc.)
+      # as config file paths. We handle --mcp-config ourselves, skipping it
+      # when a subcommand is detected.
+      mcpConfigGuard = pkgs.writeShellScript "claude-mcp-config-guard" ''
+        for __cc_arg in "$@"; do
+          case "$__cc_arg" in
+            agents|auth|doctor|install|mcp|plugin|plugins|setup-token|update|upgrade)
+              return 0
+              ;;
+            --)
+              break
+              ;;
+          esac
+        done
+        set -- --mcp-config ${mcpConfigFile} "$@"
+      '';
+
+      wrapArgs =
+        lib.optionals cfg.auth.useOAuthToken [
+          "--run"
+          ''[ -f "${oauthTokenFile}" ] && export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"''
+        ]
+        ++ [
+          "--run"
+          "source ${mcpConfigGuard}"
+        ];
+
+      claudeCodeBin = pkgs.symlinkJoin {
+        name = "claude-code-${claudeCodePkg.version}";
+        paths = [ claudeCodePkg ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/claude ${lib.escapeShellArgs wrapArgs}
+        '';
+      };
     in
     lib.mkMerge [
       mcp.secrets
@@ -153,20 +202,6 @@ in
               HTTPS_PROXY = cfg.proxy.url;
               NO_PROXY = lib.concatStringsSep "," cfg.proxy.noProxy;
             };
-          };
-
-          # --------------------------------------------------------------------
-          # MCP servers
-          # --------------------------------------------------------------------
-          mcpServers = {
-            DeepWiki = mcp.servers.deepwiki;
-            Fetcher = mcp.servers.fetcher;
-            Filesystem = mcp.servers.filesystem;
-            Git = mcp.servers.git;
-            GitHub = mcp.servers.github;
-          }
-          // lib.optionalAttrs config.hakula.codex.enable {
-            Codex = mcp.servers.codex;
           };
         };
       }
