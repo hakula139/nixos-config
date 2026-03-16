@@ -43,6 +43,7 @@ services:
       - ~/.cargo/config.toml:/root/.cargo/config.toml:ro
       - ~/.condarc:/root/.condarc:ro
       - ~/.config/containers/registries.conf:/root/.config/containers/registries.conf:ro
+      - ~/.config/devvm/proxy.conf:/root/.config/devvm/proxy.conf:ro
       - ~/.config/go/env:/root/.config/go/env:ro
       - ~/.config/pip/pip.conf:/root/.config/pip/pip.conf:ro
       - ~/.gitconfig:/root/.gitconfig
