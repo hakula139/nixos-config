@@ -10,8 +10,11 @@
   # Credentials
   # ============================================================================
   hakula.cachix.enable = true;
-  hakula.claude-code.enable = lib.mkDefault true;
-  hakula.mcp.enable = true;
+
+  # ============================================================================
+  # Assistant Tooling
+  # ============================================================================
+  hakula.llm-assistants.enable = lib.mkDefault true;
 
   # ============================================================================
   # Services
@@ -24,9 +27,4 @@
     ws.enable = true;
   };
 
-  # ============================================================================
-  # Home Manager Modules
-  # ============================================================================
-  home-manager.users.hakula.hakula.claude-code.enable = lib.mkDefault true;
-  home-manager.users.hakula.hakula.codex.enable = lib.mkDefault true;
 }
