@@ -23,9 +23,9 @@
   hakula.user.name = "root";
 
   # ============================================================================
-  # Credentials
+  # Assistant Tooling
   # ============================================================================
-  hakula.mcp.enable = true;
+  hakula.llm-assistants.enable = lib.mkDefault true;
 
   # ============================================================================
   # Home Manager Overrides

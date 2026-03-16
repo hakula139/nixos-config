@@ -21,15 +21,9 @@
   hakula.access.ssh.authorizedKeys = [ keys.users.hakula-tencent ];
 
   # ============================================================================
-  # Credentials
+  # Assistant Tooling
   # ============================================================================
-  hakula.claude-code.enable = false;
-
-  # ============================================================================
-  # Home Manager Modules
-  # ============================================================================
-  home-manager.users.hakula.hakula.claude-code.enable = false;
-  home-manager.users.hakula.hakula.codex.enable = false;
+  hakula.llm-assistants.enable = false;
 
   # ============================================================================
   # System State

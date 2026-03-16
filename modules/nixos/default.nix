@@ -13,6 +13,7 @@
 
 let
   shared = import ../shared.nix { inherit pkgs lib; };
+  proxyOptions = import ../../home/modules/llm-assistants/shared/proxy.nix { inherit lib; };
 
   cfg = config.hakula;
   sshCfg = cfg.access.ssh;
@@ -67,139 +68,167 @@ in
     description = "Primary user account name";
   };
 
-  config = {
-    # --------------------------------------------------------------------------
-    # Core System
-    # --------------------------------------------------------------------------
-    time.timeZone = "Asia/Shanghai";
+  options.hakula.llm-assistants = {
+    enable = lib.mkEnableOption "LLM assistants for the primary interactive user";
 
-    i18n = {
-      defaultLocale = "en_US.UTF-8";
-      supportedLocales = [ "en_US.UTF-8/UTF-8" ];
-      extraLocaleSettings.LC_ALL = "en_US.UTF-8";
+    user = lib.mkOption {
+      type = lib.types.str;
+      default = cfg.user.name;
+      description = "Home Manager user to receive assistant defaults";
     };
 
-    console.keyMap = "us";
-
-    # --------------------------------------------------------------------------
-    # Nix Configuration
-    # --------------------------------------------------------------------------
-    nix = {
-      settings =
-        shared.nixSettings
-        // lib.optionalAttrs config.hakula.cachix.enable {
-          inherit (shared.binaryCaches) substituters trusted-public-keys;
-        };
-
-      gc = {
-        automatic = true;
-        dates = "weekly";
-        options = "--delete-older-than 7d";
-      };
-      optimise.automatic = true;
-    };
-
-    nixpkgs.config.allowUnfree = true;
-
-    # --------------------------------------------------------------------------
-    # Boot & Kernel
-    # --------------------------------------------------------------------------
-    boot.kernel.sysctl = {
-      # TCP BBR: Better throughput on high-latency / lossy networks
-      "net.core.default_qdisc" = "fq";
-      "net.ipv4.tcp_congestion_control" = "bbr";
-      # Memory: Reduce swap usage on memory-constrained servers
-      "vm.swappiness" = 10;
-      "vm.vfs_cache_pressure" = 50;
-    };
-
-    # --------------------------------------------------------------------------
-    # Disk Optimization
-    # --------------------------------------------------------------------------
-    # Limit journal size to prevent excessive disk usage
-    services.journald.extraConfig = ''
-      SystemMaxUse=200M
-      MaxRetentionSec=7day
-    '';
-
-    # --------------------------------------------------------------------------
-    # Networking
-    # --------------------------------------------------------------------------
-    networking = {
-      domain = "hakula.xyz";
-      firewall = {
-        enable = true;
-        allowPing = true;
-        allowedTCPPorts = [
-          80
-          443
-        ];
-      };
-    };
-
-    # --------------------------------------------------------------------------
-    # Users & Security
-    # --------------------------------------------------------------------------
-    users.defaultUserShell = pkgs.zsh;
-
-    users.users = {
-      root.openssh.authorizedKeys.keys = sshCfg.authorizedKeys ++ [ keys.builder ];
-    }
-    // lib.optionalAttrs (cfg.user.name != "root") {
-      ${cfg.user.name} = {
-        isNormalUser = true;
-        extraGroups = [ "wheel" ];
-        openssh.authorizedKeys.keys = sshCfg.authorizedKeys;
-        linger = true;
-      };
-    };
-
-    security.sudo.wheelNeedsPassword = false;
-
-    # --------------------------------------------------------------------------
-    # Environment
-    # --------------------------------------------------------------------------
-    programs.zsh.enable = true;
-    environment.shells = [ pkgs.zsh ];
-
-    # /bin/bash symlink for scripts with #!/bin/bash shebangs
-    system.activationScripts.binbash.text = ''
-      mkdir -p /bin
-      ln -sfn ${pkgs.bash}/bin/bash /bin/bash
-    '';
-
-    environment.variables = {
-      LANG = "en_US.UTF-8";
-      LC_ALL = "en_US.UTF-8";
-    };
-
-    environment.systemPackages = shared.basePackages;
-
-    fonts = {
-      packages = shared.fonts;
-      fontconfig.enable = true;
-    };
-
-    # Nix-LD: Run unpatched Linux binaries
-    programs.nix-ld.enable = true;
-    programs.nix-ld.libraries = with pkgs; [
-      curl
-      glib
-      glibc
-      icu
-      libkrb5
-      libsecret
-      libunwind
-      libuuid
-      openssl
-      stdenv.cc.cc.lib
-      util-linux
-      zlib
-    ];
-
-    # --------------------------------------------------------------------------
-    # Secrets Configuration (agenix)
-    # --------------------------------------------------------------------------
-    systemd.tmpfiles.rules = secrets.mkSecretsDir userCfg userCfg.group;
+    proxy = proxyOptions.mkProxyOptions "LLM assistants";
   };
+
+  config = lib.mkMerge [
+    {
+      # ------------------------------------------------------------------------
+      # Core System
+      # ------------------------------------------------------------------------
+      time.timeZone = "Asia/Shanghai";
+
+      i18n = {
+        defaultLocale = "en_US.UTF-8";
+        supportedLocales = [ "en_US.UTF-8/UTF-8" ];
+        extraLocaleSettings.LC_ALL = "en_US.UTF-8";
+      };
+
+      console.keyMap = "us";
+
+      # ------------------------------------------------------------------------
+      # Nix Configuration
+      # ------------------------------------------------------------------------
+      nix = {
+        settings =
+          shared.nixSettings
+          // lib.optionalAttrs config.hakula.cachix.enable {
+            inherit (shared.binaryCaches) substituters trusted-public-keys;
+          };
+
+        gc = {
+          automatic = true;
+          dates = "weekly";
+          options = "--delete-older-than 7d";
+        };
+        optimise.automatic = true;
+      };
+
+      nixpkgs.config.allowUnfree = true;
+
+      # ------------------------------------------------------------------------
+      # Boot & Kernel
+      # ------------------------------------------------------------------------
+      boot.kernel.sysctl = {
+        # TCP BBR: Better throughput on high-latency / lossy networks
+        "net.core.default_qdisc" = "fq";
+        "net.ipv4.tcp_congestion_control" = "bbr";
+        # Memory: Reduce swap usage on memory-constrained servers
+        "vm.swappiness" = 10;
+        "vm.vfs_cache_pressure" = 50;
+      };
+
+      # ------------------------------------------------------------------------
+      # Disk Optimization
+      # ------------------------------------------------------------------------
+      # Limit journal size to prevent excessive disk usage
+      services.journald.extraConfig = ''
+        SystemMaxUse=200M
+        MaxRetentionSec=7day
+      '';
+
+      # ------------------------------------------------------------------------
+      # Networking
+      # ------------------------------------------------------------------------
+      networking = {
+        domain = "hakula.xyz";
+        firewall = {
+          enable = true;
+          allowPing = true;
+          allowedTCPPorts = [
+            80
+            443
+          ];
+        };
+      };
+
+      # ------------------------------------------------------------------------
+      # Users & Security
+      # ------------------------------------------------------------------------
+      users.defaultUserShell = pkgs.zsh;
+
+      users.users = {
+        root.openssh.authorizedKeys.keys = sshCfg.authorizedKeys ++ [ keys.builder ];
+      }
+      // lib.optionalAttrs (cfg.user.name != "root") {
+        ${cfg.user.name} = {
+          isNormalUser = true;
+          extraGroups = [ "wheel" ];
+          openssh.authorizedKeys.keys = sshCfg.authorizedKeys;
+          linger = true;
+        };
+      };
+
+      security.sudo.wheelNeedsPassword = false;
+
+      # ------------------------------------------------------------------------
+      # Environment
+      # ------------------------------------------------------------------------
+      programs.zsh.enable = true;
+      environment.shells = [ pkgs.zsh ];
+
+      # /bin/bash symlink for scripts with #!/bin/bash shebangs
+      system.activationScripts.binbash.text = ''
+        mkdir -p /bin
+        ln -sfn ${pkgs.bash}/bin/bash /bin/bash
+      '';
+
+      environment.variables = {
+        LANG = "en_US.UTF-8";
+        LC_ALL = "en_US.UTF-8";
+      };
+
+      environment.systemPackages = shared.basePackages;
+
+      fonts = {
+        packages = shared.fonts;
+        fontconfig.enable = true;
+      };
+
+      # Nix-LD: Run unpatched Linux binaries
+      programs.nix-ld.enable = true;
+      programs.nix-ld.libraries = with pkgs; [
+        curl
+        glib
+        glibc
+        icu
+        libkrb5
+        libsecret
+        libunwind
+        libuuid
+        openssl
+        stdenv.cc.cc.lib
+        util-linux
+        zlib
+      ];
+
+      # ------------------------------------------------------------------------
+      # Secrets Configuration (agenix)
+      # ------------------------------------------------------------------------
+      systemd.tmpfiles.rules = secrets.mkSecretsDir userCfg userCfg.group;
+    }
+
+    (lib.mkIf cfg.llm-assistants.enable {
+      hakula.claude-code.enable = lib.mkDefault true;
+      hakula.mcp.enable = lib.mkDefault true;
+
+      home-manager.users.${cfg.llm-assistants.user}.hakula.llm-assistants = {
+        enable = lib.mkDefault true;
+        proxy = lib.mkIf cfg.llm-assistants.proxy.enable {
+          enable = lib.mkDefault true;
+          url = lib.mkDefault cfg.llm-assistants.proxy.url;
+          noProxy = lib.mkDefault cfg.llm-assistants.proxy.noProxy;
+        };
+      };
+    })
+  ];
 }

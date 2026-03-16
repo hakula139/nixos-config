@@ -34,6 +34,14 @@
   hakula.cachix.enable = true;
 
   # ============================================================================
+  # Assistant Tooling
+  # ============================================================================
+  hakula.llm-assistants = {
+    enable = true;
+    proxy.enable = true;
+  };
+
+  # ============================================================================
   # Packages
   # ============================================================================
   environment.systemPackages = [ pkgs.peertube.runner ];
@@ -47,14 +55,6 @@
   # Home Manager Overrides
   # ============================================================================
   home-manager.users.hakula = {
-    hakula.claude-code = {
-      enable = true;
-      proxy.enable = true;
-    };
-    hakula.codex = {
-      enable = true;
-      proxy.enable = true;
-    };
     hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
   };
 

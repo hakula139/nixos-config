@@ -20,7 +20,7 @@ services:
       HOME: /root
       HOST_HOME: ${HOME}
       HOST_DOCKER_SOCKET: ${XDG_RUNTIME_DIR}/docker.sock
-      PATH: /run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin
+      PATH: /etc/profiles/per-user/root/bin:/root/.nix-profile/bin:/run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin
       http_proxy: ${http_proxy:-}
       https_proxy: ${http_proxy:-}
       no_proxy: ${no_proxy:-}
@@ -64,9 +64,6 @@ services:
       nofile:
         soft: 1048576
         hard: 1048576
-      nproc:
-        soft: 966085
-        hard: 966085
 
 volumes:
   devvm-root:

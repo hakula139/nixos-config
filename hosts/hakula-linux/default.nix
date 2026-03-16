@@ -13,11 +13,7 @@
   # ============================================================================
   # Home Manager Modules
   # ============================================================================
-  hakula.claude-code = {
-    enable = true;
-    proxy.enable = true;
-  };
-  hakula.codex = {
+  hakula.llm-assistants = {
     enable = true;
     proxy.enable = true;
   };
