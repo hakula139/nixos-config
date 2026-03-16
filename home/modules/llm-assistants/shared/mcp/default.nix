@@ -66,15 +66,14 @@ let
   # Filesystem
   # ----------------------------------------------------------------------------
   filesystemBin = pkgs.writeShellScriptBin "filesystem-mcp" ''
-    export PATH="${pkgs.nodejs}/bin:$PATH"
-    exec npx -y @modelcontextprotocol/server-filesystem "${homeDir}" "$@"
+    exec ${pkgs.mcp-server-filesystem}/bin/mcp-server-filesystem "${homeDir}" "$@"
   '';
 
   # ----------------------------------------------------------------------------
   # Git
   # ----------------------------------------------------------------------------
   gitBin = pkgs.writeShellScriptBin "git-mcp" ''
-    exec ${pkgs.uv}/bin/uvx mcp-server-git "$@"
+    exec ${pkgs.mcp-server-git}/bin/mcp-server-git "$@"
   '';
 
   # ----------------------------------------------------------------------------
@@ -85,7 +84,7 @@ let
     if [ -f "${githubPatFile}" ]; then
       export GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${githubPatFile})"
     fi
-    exec ${pkgs.github-mcp-server}/bin/github-mcp-server stdio "$@"
+    exec ${pkgs.mcp-server-github}/bin/mcp-server-github stdio "$@"
   '';
 in
 {
@@ -94,49 +93,41 @@ in
   # ----------------------------------------------------------------------------
   servers = {
     braveSearch = {
-      name = "BraveSearch";
       command = "${braveSearchBin}/bin/brave-search-mcp";
       type = "stdio";
     };
 
     codex = {
-      name = "Codex";
       command = "${codexBin}/bin/codex-mcp";
       type = "stdio";
     };
 
     context7 = {
-      name = "Context7";
       command = "${context7Bin}/bin/context7-mcp";
       type = "stdio";
     };
 
     deepwiki = {
-      name = "DeepWiki";
       command = "${deepwikiBin}/bin/deepwiki-mcp";
       type = "stdio";
     };
 
     fetcher = {
-      name = "Fetcher";
       command = "${fetcherBin}/bin/fetcher-mcp";
       type = "stdio";
     };
 
     filesystem = {
-      name = "Filesystem";
       command = "${filesystemBin}/bin/filesystem-mcp";
       type = "stdio";
     };
 
     git = {
-      name = "Git";
       command = "${gitBin}/bin/git-mcp";
       type = "stdio";
     };
 
     github = {
-      name = "GitHub";
       command = "${githubBin}/bin/github-mcp";
       type = "stdio";
     };

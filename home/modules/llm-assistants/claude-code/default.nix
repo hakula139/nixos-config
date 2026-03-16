@@ -17,9 +17,21 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
+
   instructions = import ../shared/instructions;
+
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
+
+  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
+  claudeMcpServers = [
+    "codex"
+    "deepwiki"
+    "fetcher"
+    "filesystem"
+    "git"
+    "github"
+  ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -36,7 +48,15 @@ in
       enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
         names = claudeAgentNames;
         default = claudeAgentNames;
-        description = "List of custom agents to enable";
+        description = "Custom agents to enable";
+      };
+    };
+
+    mcp = {
+      enabledServers = mcpOptions.mkEnabledServersOption {
+        names = claudeMcpServers;
+        default = claudeMcpServers;
+        description = "MCP servers to enable";
       };
     };
 
@@ -58,7 +78,7 @@ in
         codexEnabled = config.hakula.codex.enable;
       };
 
-      mcp = import ../shared/mcp.nix {
+      mcp = import ../shared/mcp {
         inherit
           config
           pkgs
@@ -74,8 +94,28 @@ in
       # Status line
       # ------------------------------------------------------------------------
       statusLineScript = pkgs.writeShellScript "statusline-command" (
-        builtins.replaceStrings [ "@npx@" "@getTtyNum@" ] [ "${pkgs.nodejs}/bin/npx" "${notify.getTtyNum}" ]
+        builtins.replaceStrings
+          [ "@npx@" "@getTtyNum@" ]
+          [
+            "${pkgs.nodejs}/bin/npx"
+            "${notify.getTtyNum}"
+          ]
           (builtins.readFile ./statusline-command.sh)
+      );
+
+      # ------------------------------------------------------------------------
+      # MCP server selection
+      # ------------------------------------------------------------------------
+      # Codex requires the codex module to be enabled
+      effectiveServers = builtins.filter (
+        s: s != "codex" || config.hakula.codex.enable
+      ) cfg.mcp.enabledServers;
+
+      mcpServersConfig = builtins.listToAttrs (
+        map (s: {
+          name = mcpOptions.serverDisplayNames.${s};
+          value = mcp.servers.${s};
+        }) effectiveServers
       );
 
       # ------------------------------------------------------------------------
@@ -84,17 +124,6 @@ in
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
       oauthTokenFile = "${secretsDir}/claude-code-oauth-token";
       json = pkgs.formats.json { };
-
-      mcpServersConfig = {
-        DeepWiki = mcp.servers.deepwiki;
-        Fetcher = mcp.servers.fetcher;
-        Filesystem = mcp.servers.filesystem;
-        Git = mcp.servers.git;
-        GitHub = mcp.servers.github;
-      }
-      // lib.optionalAttrs config.hakula.codex.enable {
-        Codex = mcp.servers.codex;
-      };
 
       mcpConfigFile = json.generate "claude-code-mcp-config.json" {
         mcpServers = mcpServersConfig;
@@ -172,24 +201,39 @@ in
           # Settings
           # --------------------------------------------------------------------
           settings = {
+            # ------------------------------------------------------------------
+            # Hooks / permissions / plugins
+            # ------------------------------------------------------------------
             inherit hooks permissions;
             inherit (plugins) enabledPlugins extraKnownMarketplaces;
 
+            # ------------------------------------------------------------------
+            # Model
+            # ------------------------------------------------------------------
             model = "opus";
             effortLevel = "high";
-            plansDirectory = "./.claude/plans";
 
+            # ------------------------------------------------------------------
+            # Project
+            # ------------------------------------------------------------------
+            plansDirectory = "./.claude/plans";
+            attribution = {
+              commit = "";
+              pr = "";
+            };
+
+            # ------------------------------------------------------------------
+            # Interface
+            # ------------------------------------------------------------------
             theme = "dark";
             statusLine = {
               type = "command";
               command = "${homeDir}/.claude/statusline-command.sh";
             };
 
-            attribution = {
-              commit = "";
-              pr = "";
-            };
-
+            # ------------------------------------------------------------------
+            # Environment
+            # ------------------------------------------------------------------
             env = {
               CLAUDE_AUTOCOMPACT_PCT_OVERRIDE = "95";
               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
