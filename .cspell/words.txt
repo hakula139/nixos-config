@@ -39,6 +39,7 @@ dhcpcd
 direnv
 disko
 dmit
+dont
 drblury
 dreamin
 dropdb
@@ -149,6 +150,9 @@ proxify
 psql
 pulumi
 pushd
+pydantic
+pypi
+pyproject
 pyright
 pytest
 qdisc
@@ -166,6 +170,7 @@ rprx
 rustc
 ryantm
 sarasa
+sdist
 sess
 sgid
 shellenv
@@ -213,6 +218,7 @@ wimpysworld
 wslpath
 xcrun
 xtls
+xtype
 yzhang
 zstd
 zstyle

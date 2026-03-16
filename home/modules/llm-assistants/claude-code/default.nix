@@ -60,6 +60,10 @@ in
       };
     };
 
+    plugins = {
+      bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
+    };
+
     proxy = (import ../shared/proxy.nix { inherit lib; }).mkProxyOptions "Claude Code";
   };
 
@@ -70,7 +74,13 @@ in
       # ------------------------------------------------------------------------
       hooks = import ./hooks { inherit pkgs lib; };
       permissions = import ./permissions.nix;
-      plugins = import ./plugins.nix { inherit lib enableDevToolchains; };
+      plugins = import ./plugins.nix {
+        inherit
+          lib
+          pkgs
+          enableDevToolchains
+          ;
+      };
 
       agents = import ./agents {
         inherit lib;
@@ -166,6 +176,11 @@ in
           wrapProgram $out/bin/claude ${lib.escapeShellArgs wrapArgs}
         '';
       };
+
+      # ------------------------------------------------------------------------
+      # Plugin bundling
+      # ------------------------------------------------------------------------
+      pluginBundle = plugins.mkPluginBundle homeDir;
     in
     lib.mkMerge [
       mcp.secrets
@@ -239,7 +254,7 @@ in
               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
               CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
               DISABLE_INSTALLATION_CHECKS = "1";
-              FORCE_AUTOUPDATE_PLUGINS = "true";
+              FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "false" else "true";
             }
             // lib.optionalAttrs cfg.proxy.enable {
               HTTP_PROXY = cfg.proxy.url;
@@ -249,6 +264,19 @@ in
           };
         };
       }
+
+      # ------------------------------------------------------------------------
+      # Plugin bundling (air-gapped deployment)
+      # ------------------------------------------------------------------------
+      (lib.mkIf cfg.plugins.bundle {
+        home.file.".claude/plugins/cache" = {
+          source = "${pluginBundle}/cache";
+          recursive = true;
+        };
+
+        home.file.".claude/plugins/installed_plugins.json".source =
+          "${pluginBundle}/installed_plugins.json";
+      })
     ]
   );
 }
