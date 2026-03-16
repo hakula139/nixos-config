@@ -5,7 +5,7 @@
 }:
 
 # ==============================================================================
-# GitHub MCP Server
+# MCP Server – GitHub
 # ==============================================================================
 
 let
@@ -28,7 +28,7 @@ let
   source = sources.${platform} or (throw "Unsupported platform: ${platform}");
 in
 pkgs.stdenv.mkDerivation {
-  pname = "github-mcp-server";
+  pname = "mcp-server-github";
   inherit version;
 
   src = pkgs.fetchurl {
@@ -42,15 +42,15 @@ pkgs.stdenv.mkDerivation {
 
   installPhase = ''
     runHook preInstall
-    install -D -m 0755 github-mcp-server $out/bin/github-mcp-server
+    install -D -m 0755 github-mcp-server $out/bin/mcp-server-github
     runHook postInstall
   '';
 
   meta = {
-    description = "GitHub's official MCP Server";
+    description = "MCP server for GitHub API operations";
     homepage = "https://github.com/github/github-mcp-server";
     license = lib.licenses.mit;
     platforms = builtins.attrNames sources;
-    mainProgram = "github-mcp-server";
+    mainProgram = "mcp-server-github";
   };
 }
