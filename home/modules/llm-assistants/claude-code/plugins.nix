@@ -162,6 +162,24 @@ let
           }) entries
         );
       };
+
+      # Registry that maps marketplace names to their install locations;
+      # Claude Code reads this to discover which marketplaces are available.
+      knownMarketplaces = lib.genAttrs usedMarketplaceNames (
+        name:
+        let
+          m = marketplaces.${name};
+        in
+        {
+          source = {
+            source = "github";
+            repo = "${m.github.owner}/${m.github.repo}";
+          };
+          installLocation = "${homeDir}/.claude/plugins/marketplaces/${name}";
+          lastUpdated = "1970-01-01T00:00:00.000Z";
+          autoUpdate = false;
+        }
+      );
     in
     pkgs.runCommand "claude-plugins-bundle" { } ''
       mkdir -p $out/cache $out/marketplaces
@@ -173,6 +191,7 @@ let
         cp -r "${marketplaceSrc.${name}}" "$out/marketplaces/${name}"
       '') usedMarketplaceNames}
       cp ${json.generate "installed_plugins.json" installedPlugins} $out/installed_plugins.json
+      cp ${json.generate "known_marketplaces.json" knownMarketplaces} $out/known_marketplaces.json
     '';
 in
 {

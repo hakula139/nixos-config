@@ -197,11 +197,12 @@ in
         # ----------------------------------------------------------------------
         # User configuration files
         # ----------------------------------------------------------------------
-        home.file.".claude/CLAUDE.md".text = instructions.claudeCode;
-
-        home.file.".claude/statusline-command.sh" = {
-          source = statusLineScript;
-          executable = true;
+        home.file = {
+          ".claude/CLAUDE.md".text = instructions.claudeCode;
+          ".claude/statusline-command.sh" = {
+            source = statusLineScript;
+            executable = true;
+          };
         };
 
         # ----------------------------------------------------------------------
@@ -269,18 +270,22 @@ in
       # Plugin bundling (air-gapped deployment)
       # ------------------------------------------------------------------------
       (lib.mkIf cfg.plugins.bundle {
-        home.file.".claude/plugins/cache" = {
-          source = "${pluginBundle}/cache";
-          recursive = true;
+        home.file = {
+          ".claude/plugins/cache" = {
+            source = "${pluginBundle}/cache";
+            recursive = true;
+          };
+          ".claude/plugins/marketplaces" = {
+            source = "${pluginBundle}/marketplaces";
+            recursive = true;
+          };
+          ".claude/plugins/installed_plugins.json" = {
+            source = "${pluginBundle}/installed_plugins.json";
+          };
+          ".claude/plugins/known_marketplaces.json" = {
+            source = "${pluginBundle}/known_marketplaces.json";
+          };
         };
-
-        home.file.".claude/plugins/marketplaces" = {
-          source = "${pluginBundle}/marketplaces";
-          recursive = true;
-        };
-
-        home.file.".claude/plugins/installed_plugins.json".source =
-          "${pluginBundle}/installed_plugins.json";
       })
     ]
   );
