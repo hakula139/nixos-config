@@ -274,6 +274,11 @@ in
           recursive = true;
         };
 
+        home.file.".claude/plugins/marketplaces" = {
+          source = "${pluginBundle}/marketplaces";
+          recursive = true;
+        };
+
         home.file.".claude/plugins/installed_plugins.json".source =
           "${pluginBundle}/installed_plugins.json";
       })

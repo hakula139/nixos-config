@@ -107,6 +107,20 @@ let
   mkPluginBundle =
     homeDir:
     let
+      # Unique marketplace names referenced by enabled plugins
+      usedMarketplaceNames = lib.unique (
+        map (id: builtins.elemAt (lib.splitString "@" id) 1) (builtins.attrNames enabledPlugins)
+      );
+
+      # Pre-fetched marketplace sources (shared between plugin cache and manifests)
+      marketplaceSrc = lib.genAttrs usedMarketplaceNames (
+        name:
+        pkgs.fetchFromGitHub {
+          inherit (marketplaces.${name}.github) owner repo;
+          inherit (marketplaces.${name}) rev hash;
+        }
+      );
+
       entries = map (
         id:
         let
@@ -114,10 +128,7 @@ let
           plugin = builtins.head parts;
           marketplace = builtins.elemAt parts 1;
           m = marketplaces.${marketplace};
-          src = pkgs.fetchFromGitHub {
-            inherit (m.github) owner repo;
-            inherit (m) rev hash;
-          };
+          src = marketplaceSrc.${marketplace};
           # 12-char commit prefix used as plugin version
           version = builtins.substring 0 12 m.rev;
           pluginSrc = if m.pluginsDir == null then src else "${src}/${m.pluginsDir}/${plugin}";
@@ -153,11 +164,14 @@ let
       };
     in
     pkgs.runCommand "claude-plugins-bundle" { } ''
-      mkdir -p $out/cache
+      mkdir -p $out/cache $out/marketplaces
       ${lib.concatMapStrings (e: ''
         mkdir -p "$out/cache/${e.marketplace}/${e.plugin}"
         cp -r "${e.pluginSrc}" "$out/${e.cachePath}"
       '') entries}
+      ${lib.concatMapStrings (name: ''
+        cp -r "${marketplaceSrc.${name}}" "$out/marketplaces/${name}"
+      '') usedMarketplaceNames}
       cp ${json.generate "installed_plugins.json" installedPlugins} $out/installed_plugins.json
     '';
 in
