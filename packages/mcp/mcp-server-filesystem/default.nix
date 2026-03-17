@@ -24,13 +24,32 @@ pkgs.buildNpmPackage rec {
   # Monorepo: build the filesystem workspace
   npmWorkspace = "src/filesystem";
 
-  # The `prepare` script re-runs `tsc` during prune, but devDependencies
-  # (typescript) are already gone at that point.
+  nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
+
+  # Workaround: npm v11 fires workspace build/prepare scripts during `npm ci`
+  # despite --ignore-scripts, and their tsc shebangs fail in the sandbox.
+  # Strip them before install, then build the target workspace manually after
+  # npmConfigHook has run patchShebangs on node_modules.
+  postUnpack = ''
+    for pkg in source/src/*/package.json; do
+      ${pkgs.jq}/bin/jq 'del(.scripts.build, .scripts.prepare)' "$pkg" > tmp
+      mv tmp "$pkg"
+    done
+  '';
+
+  dontNpmBuild = true;
   dontNpmPrune = true;
 
-  # Remove broken symlinks from other workspaces in the monorepo
+  preBuild = ''
+    node_modules/.bin/tsc -p src/filesystem
+  '';
+
+  # npmInstallHook copies `npm pack` output which excludes workspace sources.
+  # Copy them manually and create a wrapper pointing to the built entry point.
   postInstall = ''
-    find $out -xtype l -delete
+    cp -r src "$out/lib/node_modules/@modelcontextprotocol/servers/src"
+    makeWrapper "${pkgs.nodejs}/bin/node" "$out/bin/mcp-server-filesystem" \
+      --add-flags "$out/lib/node_modules/@modelcontextprotocol/servers/src/filesystem/dist/index.js"
   '';
 
   meta = {
