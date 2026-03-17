@@ -80,6 +80,7 @@ in
           pkgs
           enableDevToolchains
           ;
+        enableOnlinePlugins = !cfg.plugins.bundle;
       };
 
       agents = import ./agents {
@@ -221,8 +222,14 @@ in
             # Hooks / permissions / plugins
             # ------------------------------------------------------------------
             inherit hooks permissions;
-            inherit (plugins) enabledPlugins extraKnownMarketplaces;
-
+            inherit (plugins) enabledPlugins;
+          }
+          # When bundling, known_marketplaces.json handles discovery;
+          # extraKnownMarketplaces in settings would trigger failed GitHub installs.
+          // lib.optionalAttrs (!cfg.plugins.bundle) {
+            inherit (plugins) extraKnownMarketplaces;
+          }
+          // {
             # ------------------------------------------------------------------
             # Model
             # ------------------------------------------------------------------

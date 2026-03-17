@@ -2,6 +2,7 @@
   pkgs,
   lib,
   enableDevToolchains ? false,
+  enableOnlinePlugins ? true,
 }:
 
 # ==============================================================================
@@ -77,9 +78,6 @@ let
     "pyright-lsp@claude-plugins-official" = true;
     "typescript-lsp@claude-plugins-official" = true;
 
-    # Third-party plugins
-    "agent-browser@agent-browser" = true;
-    "context7-plugin@context7-marketplace" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
   // lib.optionalAttrs enableDevToolchains {
@@ -87,6 +85,12 @@ let
     "clangd-lsp@claude-plugins-official" = true;
     "gopls-lsp@claude-plugins-official" = true;
     "rust-analyzer-lsp@claude-plugins-official" = true;
+  }
+  # Online plugins (require network access to external services)
+  // lib.optionalAttrs enableOnlinePlugins {
+    # Third-party plugins
+    "agent-browser@agent-browser" = true;
+    "context7-plugin@context7-marketplace" = true;
   };
 
   # ----------------------------------------------------------------------------
