@@ -20,7 +20,7 @@ let
       };
       rev = "b0cbd3df1533b396d281a6886d5132f623393a9c";
       hash = "sha256-GzNpraXV85qUwyGs5XDe0zHYr2AazqFppWtH9JvO3QE=";
-      pluginsDir = "skills";
+      pluginsDir = null;
     };
 
     claude-plugins-official = {
