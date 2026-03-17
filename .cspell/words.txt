@@ -124,6 +124,7 @@ nslookup
 numtide
 nvim
 osascript
+osc
 pcall
 pcdn
 pcpu
@@ -216,7 +217,9 @@ wakatime
 whereis
 wimpysworld
 wslpath
+xclip
 xcrun
+xsel
 xtls
 xtype
 yzhang
