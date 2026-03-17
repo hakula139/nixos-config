@@ -90,13 +90,28 @@ let
   };
 
   # ----------------------------------------------------------------------------
-  # Derived: settings.json fields
+  # Helpers
+  # ----------------------------------------------------------------------------
+  mkGithubSource = m: {
+    source = "github";
+    repo = "${m.github.owner}/${m.github.repo}";
+  };
+
+  parsePluginId =
+    id:
+    let
+      parts = lib.splitString "@" id;
+    in
+    {
+      plugin = builtins.head parts;
+      marketplace = builtins.elemAt parts 1;
+    };
+
+  # ----------------------------------------------------------------------------
+  # Derived Settings
   # ----------------------------------------------------------------------------
   extraKnownMarketplaces = lib.mapAttrs (_: m: {
-    source = {
-      source = "github";
-      repo = "${m.github.owner}/${m.github.repo}";
-    };
+    source = mkGithubSource m;
   }) marketplaces;
 
   # ----------------------------------------------------------------------------
@@ -109,7 +124,7 @@ let
     let
       # Unique marketplace names referenced by enabled plugins
       usedMarketplaceNames = lib.unique (
-        map (id: builtins.elemAt (lib.splitString "@" id) 1) (builtins.attrNames enabledPlugins)
+        map (id: (parsePluginId id).marketplace) (builtins.attrNames enabledPlugins)
       );
 
       # Pre-fetched marketplace sources (shared between plugin cache and manifests)
@@ -124,9 +139,7 @@ let
       entries = map (
         id:
         let
-          parts = lib.splitString "@" id;
-          plugin = builtins.head parts;
-          marketplace = builtins.elemAt parts 1;
+          inherit (parsePluginId id) plugin marketplace;
           m = marketplaces.${marketplace};
           src = marketplaceSrc.${marketplace};
           # 12-char commit prefix used as plugin version
@@ -165,21 +178,12 @@ let
 
       # Registry that maps marketplace names to their install locations;
       # Claude Code reads this to discover which marketplaces are available.
-      knownMarketplaces = lib.genAttrs usedMarketplaceNames (
-        name:
-        let
-          m = marketplaces.${name};
-        in
-        {
-          source = {
-            source = "github";
-            repo = "${m.github.owner}/${m.github.repo}";
-          };
-          installLocation = "${homeDir}/.claude/plugins/marketplaces/${name}";
-          lastUpdated = "1970-01-01T00:00:00.000Z";
-          autoUpdate = false;
-        }
-      );
+      knownMarketplaces = lib.genAttrs usedMarketplaceNames (name: {
+        source = mkGithubSource marketplaces.${name};
+        installLocation = "${homeDir}/.claude/plugins/marketplaces/${name}";
+        lastUpdated = "1970-01-01T00:00:00.000Z";
+        autoUpdate = false;
+      });
     in
     pkgs.runCommand "claude-plugins-bundle" { } ''
       mkdir -p $out/cache $out/marketplaces
