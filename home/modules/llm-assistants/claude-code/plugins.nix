@@ -1,8 +1,8 @@
 {
   pkgs,
   lib,
-  enableDevToolchains ? false,
-  enableOnlinePlugins ? true,
+  devToolchains ? false,
+  online ? true,
 }:
 
 # ==============================================================================
@@ -80,14 +80,14 @@ let
 
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
-  // lib.optionalAttrs enableDevToolchains {
+  // lib.optionalAttrs devToolchains {
     # Official LSP plugins
     "clangd-lsp@claude-plugins-official" = true;
     "gopls-lsp@claude-plugins-official" = true;
     "rust-analyzer-lsp@claude-plugins-official" = true;
   }
   # Online plugins (require network access to external services)
-  // lib.optionalAttrs enableOnlinePlugins {
+  // lib.optionalAttrs online {
     # Third-party plugins
     "agent-browser@agent-browser" = true;
     "context7-plugin@context7-marketplace" = true;

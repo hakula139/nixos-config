@@ -62,6 +62,18 @@ in
 
     plugins = {
       bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
+
+      devToolchains = lib.mkOption {
+        type = lib.types.bool;
+        default = enableDevToolchains;
+        description = "Whether to enable dev toolchain LSP plugins (clangd, gopls, rust-analyzer).";
+      };
+
+      online = lib.mkOption {
+        type = lib.types.bool;
+        default = !cfg.plugins.bundle;
+        description = "Whether to enable plugins requiring internet access (context7, agent-browser).";
+      };
     };
 
     proxy = (import ../shared/proxy.nix { inherit lib; }).mkProxyOptions "Claude Code";
@@ -75,12 +87,8 @@ in
       hooks = import ./hooks { inherit pkgs lib; };
       permissions = import ./permissions.nix;
       plugins = import ./plugins.nix {
-        inherit
-          lib
-          pkgs
-          enableDevToolchains
-          ;
-        enableOnlinePlugins = !cfg.plugins.bundle;
+        inherit lib pkgs;
+        inherit (cfg.plugins) devToolchains online;
       };
 
       agents = import ./agents {
