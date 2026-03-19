@@ -84,7 +84,9 @@
 
           agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
           cloudreve = final.callPackage ./packages/cloudreve { };
-          github-mcp-server = final.callPackage ./packages/github-mcp-server { };
+          mcp-server-filesystem = final.callPackage ./packages/mcp/mcp-server-filesystem { };
+          mcp-server-git = final.callPackage ./packages/mcp/mcp-server-git { };
+          mcp-server-github = final.callPackage ./packages/mcp/mcp-server-github { };
           peertube = final.unstable.peertube.overrideAttrs (old: {
             patches = (old.patches or [ ]) ++ [
               ./packages/peertube/cdn-redirect-runner.patch
