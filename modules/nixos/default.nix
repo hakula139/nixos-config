@@ -187,29 +187,33 @@ in
         LC_ALL = "en_US.UTF-8";
       };
 
-      environment.systemPackages = shared.basePackages;
+      # Nix-LD: Run unpatched Linux binaries
+      programs.nix-ld = {
+        enable = true;
+        libraries = with pkgs; [
+          curl
+          glib
+          glibc
+          icu
+          libkrb5
+          libsecret
+          libunwind
+          libuuid
+          openssl
+          stdenv.cc.cc.lib
+          util-linux
+          zlib
+        ];
+      };
 
+      # ------------------------------------------------------------------------
+      # Fonts & Packages
+      # ------------------------------------------------------------------------
       fonts = {
         packages = shared.fonts;
         fontconfig.enable = true;
       };
-
-      # Nix-LD: Run unpatched Linux binaries
-      programs.nix-ld.enable = true;
-      programs.nix-ld.libraries = with pkgs; [
-        curl
-        glib
-        glibc
-        icu
-        libkrb5
-        libsecret
-        libunwind
-        libuuid
-        openssl
-        stdenv.cc.cc.lib
-        util-linux
-        zlib
-      ];
+      environment.systemPackages = shared.basePackages;
 
       # ------------------------------------------------------------------------
       # Secrets Configuration (agenix)
@@ -217,6 +221,9 @@ in
       systemd.tmpfiles.rules = secrets.mkSecretsDir userCfg userCfg.group;
     }
 
+    # --------------------------------------------------------------------------
+    # LLM Assistants
+    # --------------------------------------------------------------------------
     (lib.mkIf cfg.llm-assistants.enable {
       hakula.claude-code.enable = lib.mkDefault true;
       hakula.mcp.enable = lib.mkDefault true;

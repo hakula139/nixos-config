@@ -72,6 +72,10 @@ let
       }
       // nixdCompletions;
     };
+    # Use Nix-provided rust-analyzer instead of the extension's bundled binary.
+    # On NixOS this bypasses the ELF patching bootstrap that fails in
+    # air-gapped environments; on other platforms it simply pins the version.
+    "rust-analyzer.server.path" = "${pkgs.unstable.rust-analyzer}/bin/rust-analyzer";
   };
 
   # ----------------------------------------------------------------------------

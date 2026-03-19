@@ -16,6 +16,15 @@ let
   cfg = config.hakula.codex;
   instructions = import ../shared/instructions;
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
+  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
+  codexMcpServers = [
+    "context7"
+    "deepwiki"
+    "fetcher"
+    "filesystem"
+    "git"
+    "github"
+  ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -26,7 +35,15 @@ in
 
     agents = {
       enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
-        description = "List of custom Codex agent roles to enable";
+        description = "Custom agents to enable";
+      };
+    };
+
+    mcp = {
+      enabledServers = mcpOptions.mkEnabledServersOption {
+        names = codexMcpServers;
+        default = codexMcpServers;
+        description = "MCP servers to enable";
       };
     };
 
@@ -42,7 +59,7 @@ in
         inherit (cfg.agents) enabledAgents;
       };
 
-      mcp = import ../shared/mcp.nix {
+      mcp = import ../shared/mcp {
         inherit
           config
           pkgs
@@ -151,14 +168,12 @@ in
             # ------------------------------------------------------------------
             # MCP servers
             # ------------------------------------------------------------------
-            mcp_servers = {
-              Context7.command = mcp.servers.context7.command;
-              DeepWiki.command = mcp.servers.deepwiki.command;
-              Fetcher.command = mcp.servers.fetcher.command;
-              Filesystem.command = mcp.servers.filesystem.command;
-              Git.command = mcp.servers.git.command;
-              GitHub.command = mcp.servers.github.command;
-            };
+            mcp_servers = builtins.listToAttrs (
+              map (s: {
+                name = mcpOptions.serverDisplayNames.${s};
+                value.command = mcp.servers.${s}.command;
+              }) cfg.mcp.enabledServers
+            );
 
             # ------------------------------------------------------------------
             # Skills

@@ -3,12 +3,13 @@
 # ==============================================================================
 # Enforce MCP Tool Usage
 # ==============================================================================
-# PreToolUse hook that blocks Bash commands which have MCP equivalents,
-# forcing Claude Code to use the structured MCP tools instead.
+# PreToolUse hook that encourages MCP tool usage over Bash equivalents.
 #
-# Blocks:
-# - git subcommands with MCP Git equivalents (status, diff, add, etc.)
+# Denies:
 # - git -C (use MCP Git repo_path parameter)
+#
+# Hints (allows with suggestion):
+# - git subcommands with MCP Git equivalents (status, diff, add, etc.)
 # - gh CLI (use MCP GitHub tools)
 # - Shell comment prefix (use Bash tool's description parameter)
 #
@@ -32,21 +33,32 @@ deny() {
   exit 0
 }
 
-# Block shell comment prefix — use the Bash tool's description parameter
+hint() {
+  jq -n --arg reason "$1" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "allow",
+      permissionDecisionReason: $reason
+    }
+  }'
+  exit 0
+}
+
+# Hint: shell comment prefix — use the Bash tool's description parameter
 if [[ "$COMMAND" =~ ^[[:space:]]*\# ]]; then
-  deny "Do not prefix Bash commands with shell comments. Use the Bash tool's description parameter instead."
+  hint "Do not prefix Bash commands with shell comments. Use the Bash tool's description parameter instead."
 fi
 
-# Block gh CLI — use MCP GitHub tools
+# Hint: gh CLI — use MCP GitHub tools
 if [[ "$COMMAND" =~ ^[[:space:]]*gh[[:space:]] ]]; then
-  deny "Use MCP GitHub tools (mcp__GitHub__*) instead of the gh CLI."
+  hint "Use MCP GitHub tools (mcp__GitHub__*) instead of the gh CLI."
 fi
 
-# Block git subcommands that have MCP equivalents
+# Hint / deny git subcommands that have MCP equivalents
 if [[ "$COMMAND" =~ ^[[:space:]]*git[[:space:]]+(.*) ]]; then
   REST="${BASH_REMATCH[1]}"
 
-  # Block git -C — use MCP Git repo_path parameter
+  # Deny git -C — use MCP Git repo_path parameter
   if [[ "$REST" =~ ^-C[[:space:]] ]]; then
     deny "Use MCP Git tools with the repo_path parameter instead of git -C."
   fi
@@ -54,33 +66,33 @@ if [[ "$COMMAND" =~ ^[[:space:]]*git[[:space:]]+(.*) ]]; then
   SUBCMD="${REST%% *}"
 
   case "$SUBCMD" in
-    add) deny "Use mcp__Git__git_add instead." ;;
+    add) hint "Use mcp__Git__git_add instead." ;;
     branch)
       # Allow git branch -d/-D (no MCP equivalent)
       if [[ "$COMMAND" =~ [[:space:]]-[dD]([[:space:]]|$) ]]; then
         exit 0
       fi
-      deny "Use mcp__Git__git_branch or git_create_branch instead."
+      hint "Use mcp__Git__git_branch or git_create_branch instead."
       ;;
-    checkout) deny "Use mcp__Git__git_checkout or git_create_branch instead." ;;
+    checkout) hint "Use mcp__Git__git_checkout or git_create_branch instead." ;;
     commit)
       # Allow git commit --amend (no MCP equivalent)
       if [[ "$COMMAND" =~ --amend ]]; then
         exit 0
       fi
-      deny "Use mcp__Git__git_commit instead."
+      hint "Use mcp__Git__git_commit instead."
       ;;
-    diff) deny "Use mcp__Git__git_diff / git_diff_unstaged / git_diff_staged instead." ;;
-    log) deny "Use mcp__Git__git_log instead." ;;
+    diff) hint "Use mcp__Git__git_diff / git_diff_unstaged / git_diff_staged instead." ;;
+    log) hint "Use mcp__Git__git_log instead." ;;
     reset)
       # Allow git reset --hard (no MCP equivalent)
       if [[ "$COMMAND" =~ --hard ]]; then
         exit 0
       fi
-      deny "Use mcp__Git__git_reset instead."
+      hint "Use mcp__Git__git_reset instead."
       ;;
-    show) deny "Use mcp__Git__git_show instead." ;;
-    status) deny "Use mcp__Git__git_status instead." ;;
+    show) hint "Use mcp__Git__git_show instead." ;;
+    status) hint "Use mcp__Git__git_status instead." ;;
   esac
 fi
 
