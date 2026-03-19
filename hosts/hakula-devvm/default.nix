@@ -1,4 +1,5 @@
 {
+  pkgs,
   lib,
   secrets,
   ...
@@ -28,6 +29,13 @@
   hakula.llm-assistants.enable = lib.mkDefault true;
 
   # ============================================================================
+  # Packages
+  # ============================================================================
+  # xclip satisfies tmux-yank's clipboard tool dependency check; the actual
+  # clipboard transport uses OSC 52 via the terminal emulator (Cursor SSH).
+  environment.systemPackages = [ pkgs.xclip ];
+
+  # ============================================================================
   # Home Manager Overrides
   # ============================================================================
   home-manager.users.root = {
@@ -36,6 +44,15 @@
 
     services.ssh-agent.enable = lib.mkForce false;
     services.syncthing.enable = lib.mkForce false;
+
+    hakula.claude-code = {
+      mcp.enabledServers = [
+        "codex"
+        "filesystem"
+        "git"
+      ];
+      plugins.bundle = true;
+    };
   };
 
   # ============================================================================

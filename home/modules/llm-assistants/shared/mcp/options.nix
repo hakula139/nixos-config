@@ -1,0 +1,34 @@
+{ lib }:
+
+# ==============================================================================
+# Shared MCP Server Options
+# ==============================================================================
+
+let
+  serverDisplayNames = {
+    braveSearch = "BraveSearch";
+    codex = "Codex";
+    context7 = "Context7";
+    deepwiki = "DeepWiki";
+    fetcher = "Fetcher";
+    filesystem = "Filesystem";
+    git = "Git";
+    github = "GitHub";
+  };
+
+  allServerNames = builtins.attrNames serverDisplayNames;
+in
+{
+  inherit allServerNames serverDisplayNames;
+
+  mkEnabledServersOption =
+    {
+      description,
+      names ? allServerNames,
+      default ? names,
+    }:
+    lib.mkOption {
+      type = lib.types.listOf (lib.types.enum names);
+      inherit default description;
+    };
+}

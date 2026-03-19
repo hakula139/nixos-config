@@ -333,6 +333,9 @@ in
       };
     }
 
+    # --------------------------------------------------------------------------
+    # LLM Assistants
+    # --------------------------------------------------------------------------
     (lib.mkIf config.hakula.llm-assistants.enable {
       home-manager.users.${config.hakula.llm-assistants.user}.hakula.llm-assistants = {
         enable = lib.mkDefault true;

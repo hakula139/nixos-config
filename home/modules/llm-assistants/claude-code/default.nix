@@ -17,9 +17,21 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
+
   instructions = import ../shared/instructions;
+
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
+
+  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
+  claudeMcpServers = [
+    "codex"
+    "deepwiki"
+    "fetcher"
+    "filesystem"
+    "git"
+    "github"
+  ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -36,7 +48,31 @@ in
       enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
         names = claudeAgentNames;
         default = claudeAgentNames;
-        description = "List of custom agents to enable";
+        description = "Custom agents to enable";
+      };
+    };
+
+    mcp = {
+      enabledServers = mcpOptions.mkEnabledServersOption {
+        names = claudeMcpServers;
+        default = claudeMcpServers;
+        description = "MCP servers to enable";
+      };
+    };
+
+    plugins = {
+      bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
+
+      devToolchains = lib.mkOption {
+        type = lib.types.bool;
+        default = enableDevToolchains;
+        description = "Whether to enable dev toolchain LSP plugins (clangd, gopls, rust-analyzer).";
+      };
+
+      online = lib.mkOption {
+        type = lib.types.bool;
+        default = !cfg.plugins.bundle;
+        description = "Whether to enable plugins requiring internet access (context7, agent-browser).";
       };
     };
 
@@ -50,7 +86,10 @@ in
       # ------------------------------------------------------------------------
       hooks = import ./hooks { inherit pkgs lib; };
       permissions = import ./permissions.nix;
-      plugins = import ./plugins.nix { inherit lib enableDevToolchains; };
+      plugins = import ./plugins.nix {
+        inherit lib pkgs;
+        inherit (cfg.plugins) devToolchains online;
+      };
 
       agents = import ./agents {
         inherit lib;
@@ -58,7 +97,7 @@ in
         codexEnabled = config.hakula.codex.enable;
       };
 
-      mcp = import ../shared/mcp.nix {
+      mcp = import ../shared/mcp {
         inherit
           config
           pkgs
@@ -74,8 +113,28 @@ in
       # Status line
       # ------------------------------------------------------------------------
       statusLineScript = pkgs.writeShellScript "statusline-command" (
-        builtins.replaceStrings [ "@npx@" "@getTtyNum@" ] [ "${pkgs.nodejs}/bin/npx" "${notify.getTtyNum}" ]
+        builtins.replaceStrings
+          [ "@npx@" "@getTtyNum@" ]
+          [
+            "${pkgs.nodejs}/bin/npx"
+            "${notify.getTtyNum}"
+          ]
           (builtins.readFile ./statusline-command.sh)
+      );
+
+      # ------------------------------------------------------------------------
+      # MCP server selection
+      # ------------------------------------------------------------------------
+      # Codex requires the codex module to be enabled
+      effectiveServers = builtins.filter (
+        s: s != "codex" || config.hakula.codex.enable
+      ) cfg.mcp.enabledServers;
+
+      mcpServersConfig = builtins.listToAttrs (
+        map (s: {
+          name = mcpOptions.serverDisplayNames.${s};
+          value = mcp.servers.${s};
+        }) effectiveServers
       );
 
       # ------------------------------------------------------------------------
@@ -84,17 +143,6 @@ in
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
       oauthTokenFile = "${secretsDir}/claude-code-oauth-token";
       json = pkgs.formats.json { };
-
-      mcpServersConfig = {
-        DeepWiki = mcp.servers.deepwiki;
-        Fetcher = mcp.servers.fetcher;
-        Filesystem = mcp.servers.filesystem;
-        Git = mcp.servers.git;
-        GitHub = mcp.servers.github;
-      }
-      // lib.optionalAttrs config.hakula.codex.enable {
-        Codex = mcp.servers.codex;
-      };
 
       mcpConfigFile = json.generate "claude-code-mcp-config.json" {
         mcpServers = mcpServersConfig;
@@ -137,6 +185,11 @@ in
           wrapProgram $out/bin/claude ${lib.escapeShellArgs wrapArgs}
         '';
       };
+
+      # ------------------------------------------------------------------------
+      # Plugin bundling
+      # ------------------------------------------------------------------------
+      pluginBundle = plugins.mkPluginBundle homeDir;
     in
     lib.mkMerge [
       mcp.secrets
@@ -153,11 +206,12 @@ in
         # ----------------------------------------------------------------------
         # User configuration files
         # ----------------------------------------------------------------------
-        home.file.".claude/CLAUDE.md".text = instructions.claudeCode;
-
-        home.file.".claude/statusline-command.sh" = {
-          source = statusLineScript;
-          executable = true;
+        home.file = {
+          ".claude/CLAUDE.md".text = instructions.claudeCode;
+          ".claude/statusline-command.sh" = {
+            source = statusLineScript;
+            executable = true;
+          };
         };
 
         # ----------------------------------------------------------------------
@@ -172,30 +226,51 @@ in
           # Settings
           # --------------------------------------------------------------------
           settings = {
+            # ------------------------------------------------------------------
+            # Hooks / permissions / plugins
+            # ------------------------------------------------------------------
             inherit hooks permissions;
-            inherit (plugins) enabledPlugins extraKnownMarketplaces;
-
+            inherit (plugins) enabledPlugins;
+          }
+          # When bundling, known_marketplaces.json handles discovery;
+          # extraKnownMarketplaces in settings would trigger failed GitHub installs.
+          // lib.optionalAttrs (!cfg.plugins.bundle) {
+            inherit (plugins) extraKnownMarketplaces;
+          }
+          // {
+            # ------------------------------------------------------------------
+            # Model
+            # ------------------------------------------------------------------
             model = "opus";
             effortLevel = "high";
-            plansDirectory = "./.claude/plans";
 
+            # ------------------------------------------------------------------
+            # Project
+            # ------------------------------------------------------------------
+            plansDirectory = "./.claude/plans";
+            attribution = {
+              commit = "";
+              pr = "";
+            };
+
+            # ------------------------------------------------------------------
+            # Interface
+            # ------------------------------------------------------------------
             theme = "dark";
             statusLine = {
               type = "command";
               command = "${homeDir}/.claude/statusline-command.sh";
             };
 
-            attribution = {
-              commit = "";
-              pr = "";
-            };
-
+            # ------------------------------------------------------------------
+            # Environment
+            # ------------------------------------------------------------------
             env = {
               CLAUDE_AUTOCOMPACT_PCT_OVERRIDE = "95";
               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
               CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
               DISABLE_INSTALLATION_CHECKS = "1";
-              FORCE_AUTOUPDATE_PLUGINS = "true";
+              FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "false" else "true";
             }
             // lib.optionalAttrs cfg.proxy.enable {
               HTTP_PROXY = cfg.proxy.url;
@@ -205,6 +280,28 @@ in
           };
         };
       }
+
+      # ------------------------------------------------------------------------
+      # Plugin bundling (air-gapped deployment)
+      # ------------------------------------------------------------------------
+      (lib.mkIf cfg.plugins.bundle {
+        home.file = {
+          ".claude/plugins/cache" = {
+            source = "${pluginBundle}/cache";
+            recursive = true;
+          };
+          ".claude/plugins/marketplaces" = {
+            source = "${pluginBundle}/marketplaces";
+            recursive = true;
+          };
+          ".claude/plugins/installed_plugins.json" = {
+            source = "${pluginBundle}/installed_plugins.json";
+          };
+          ".claude/plugins/known_marketplaces.json" = {
+            source = "${pluginBundle}/known_marketplaces.json";
+          };
+        };
+      })
     ]
   );
 }

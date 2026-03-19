@@ -106,7 +106,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 - `mkDarwin`: Creates Darwin configurations with agenix and Home Manager integrated
 - `mkHome`: Creates standalone Home Manager configurations for non-NixOS Linux
 - `mkDocker`: Creates layered NixOS Docker images using `dockerTools.buildLayeredImageWithNixDb` for air-gapped deployment
-- `overlays`: Provides `unstable` packages, `agenix` CLI, custom packages (`cloudreve`, `github-mcp-server`), and a patched `peertube`
+- `overlays`: Provides `unstable` packages, `agenix` CLI, custom packages (`cloudreve`, `mcp-server-*`), and a patched `peertube`
 - `inputs.llm-agents`: Provides `claude-code` and `codex` packages from [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix)
 - `forAllSystems`: Handles both x86_64-linux and aarch64-darwin
 

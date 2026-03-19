@@ -14,7 +14,7 @@
 let
   json = pkgs.formats.json { };
 
-  mcp = import ../shared/mcp.nix {
+  mcp = import ../shared/mcp {
     inherit
       config
       pkgs
