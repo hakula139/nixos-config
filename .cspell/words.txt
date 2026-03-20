@@ -59,6 +59,7 @@ fmp4
 fuclaude
 geoip
 ghcup
+glab
 gnused
 gopath
 gopls
