@@ -86,6 +86,13 @@ let
     fi
     exec ${pkgs.mcp-server-github}/bin/mcp-server-github stdio "$@"
   '';
+
+  # ----------------------------------------------------------------------------
+  # GitLab
+  # ----------------------------------------------------------------------------
+  gitlabBin = pkgs.writeShellScriptBin "gitlab-mcp" ''
+    exec "${config.home.profileDirectory}/bin/glab" mcp serve "$@"
+  '';
 in
 {
   # ----------------------------------------------------------------------------
@@ -129,6 +136,11 @@ in
 
     github = {
       command = "${githubBin}/bin/github-mcp";
+      type = "stdio";
+    };
+
+    gitlab = {
+      command = "${gitlabBin}/bin/gitlab-mcp";
       type = "stdio";
     };
   };

@@ -33,6 +33,7 @@ let
       Filesystem = mcp.servers.filesystem;
       Git = mcp.servers.git;
       GitHub = mcp.servers.github;
+      GitLab = mcp.servers.gitlab;
     };
   };
 in

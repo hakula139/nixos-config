@@ -24,6 +24,7 @@ let
     "filesystem"
     "git"
     "github"
+    "gitlab"
   ];
 in
 {

@@ -50,6 +50,7 @@
         "codex"
         "filesystem"
         "git"
+        "gitlab"
       ];
       plugins.bundle = true;
     };
