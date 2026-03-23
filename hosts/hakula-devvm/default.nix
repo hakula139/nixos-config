@@ -5,6 +5,9 @@
   ...
 }:
 
+let
+  corpDomain = import ../../lib/corp-domain.nix;
+in
 {
   imports = [
     ../_profiles/docker
@@ -49,6 +52,12 @@
       proxy = {
         enable = true;
         secretUrlFile = config.age.secrets.devvm-proxy-url.path;
+        noProxy = [
+          "localhost"
+          "127.0.0.1"
+          "10.*"
+          ".${corpDomain}"
+        ];
       };
     };
   };
