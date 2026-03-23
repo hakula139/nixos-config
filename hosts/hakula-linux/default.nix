@@ -4,6 +4,9 @@
   ...
 }:
 
+let
+  corpDomain = import ../../lib/corp-domain.nix;
+in
 {
   # ============================================================================
   # Home Manager Settings
@@ -15,7 +18,15 @@
   # ============================================================================
   hakula.llm-assistants = {
     enable = true;
-    proxy.enable = true;
+    proxy = {
+      enable = true;
+      noProxy = [
+        "localhost"
+        "127.0.0.1"
+        "10.*"
+        ".${corpDomain}"
+      ];
+    };
   };
   hakula.cursor.extensions = {
     enable = lib.mkForce true;
@@ -26,6 +37,16 @@
     enable = true;
     port = 7897;
     controllerPort = 59386;
+  };
+
+  # ============================================================================
+  # SSH Configuration
+  # ============================================================================
+  programs.ssh.matchBlocks."gitlab-public.${corpDomain}" = {
+    host = "gitlab-public.${corpDomain}";
+    hostname = "gitlab-public.${corpDomain}";
+    user = "git";
+    port = 8022;
   };
 
   # ============================================================================

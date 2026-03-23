@@ -13,7 +13,12 @@ let
   allKeys = allServers ++ allWorkstations;
 
   # Per-host shortcuts
-  inherit (keys.hosts) us-1 us-3 us-4;
+  inherit (keys.hosts)
+    us-1
+    us-3
+    us-4
+    hakula-devvm
+    ;
   inherit (keys.workstations) hakula-macbook;
 
   # Common groupings
@@ -29,6 +34,7 @@ in
   "brave-api-key.age".publicKeys = allKeys;
   "claude-code-oauth-token.age".publicKeys = allKeys;
   "context7-api-key.age".publicKeys = allKeys;
+  "devvm-proxy-url.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
   "github-pat-personal.age".publicKeys = allKeys;
   "github-pat-work.age".publicKeys = allKeys;
 
