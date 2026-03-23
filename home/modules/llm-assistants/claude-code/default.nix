@@ -188,6 +188,11 @@ in
             export NO_PROXY=${noProxy}
           ''
         ]
+        ++ lib.optionals cfg.plugins.bundle [
+          "--set"
+          "CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL"
+          "1"
+        ]
         ++ [
           "--run"
           "source ${mcpConfigGuard}"
@@ -287,9 +292,6 @@ in
               CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
               DISABLE_INSTALLATION_CHECKS = "1";
               FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "false" else "true";
-            }
-            // lib.optionalAttrs cfg.plugins.bundle {
-              CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL = "1";
             };
           };
         };
