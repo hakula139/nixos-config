@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   lib,
   secrets,
   ...
@@ -28,13 +27,6 @@
   # Assistant Tooling
   # ============================================================================
   hakula.llm-assistants.enable = lib.mkDefault true;
-
-  # ============================================================================
-  # Packages
-  # ============================================================================
-  # xclip satisfies tmux-yank's clipboard tool dependency check; the actual
-  # clipboard transport uses OSC 52 via the terminal emulator (Cursor SSH).
-  environment.systemPackages = [ pkgs.xclip ];
 
   # ============================================================================
   # Home Manager Overrides

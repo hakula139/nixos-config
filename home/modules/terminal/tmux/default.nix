@@ -35,9 +35,6 @@
         '';
       }
 
-      # System clipboard integration
-      yank
-
       # Session persistence
       {
         plugin = resurrect;
@@ -63,6 +60,10 @@
       # True color support for modern terminals
       set -sa terminal-features ",xterm*:RGB"
 
+      # Use OSC 52 escape sequences for system clipboard (works in WSL2, SSH,
+      # macOS terminals, etc. without encoding issues unlike clip.exe / xclip)
+      set -s set-clipboard on
+
       # Intuitive split keys
       bind | split-window -h -c "#{pane_current_path}"
       bind - split-window -v -c "#{pane_current_path}"
@@ -87,6 +88,10 @@
 
       # Reload config
       bind r source-file ~/.config/tmux/tmux.conf \; run-shell 'tmux display "Config reloaded"'
+
+      # Vi copy-mode bindings (replaces tmux-yank plugin)
+      bind -T copy-mode-vi v send-keys -X begin-selection
+      bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
 
       # Don't auto-copy on mouse drag release; require explicit yank (y)
       unbind -T copy-mode-vi MouseDragEnd1Pane
