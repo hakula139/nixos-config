@@ -54,6 +54,11 @@ if [[ "$COMMAND" =~ ^[[:space:]]*gh[[:space:]] ]]; then
   hint "Use MCP GitHub tools (mcp__GitHub__*) instead of the gh CLI."
 fi
 
+# Hint: glab CLI — use MCP GitLab tools
+if [[ "$COMMAND" =~ ^[[:space:]]*glab[[:space:]] ]]; then
+  hint "Use MCP GitLab tools (mcp__GitLab__*) instead of the glab CLI."
+fi
+
 # Hint / deny git subcommands that have MCP equivalents
 if [[ "$COMMAND" =~ ^[[:space:]]*git[[:space:]]+(.*) ]]; then
   REST="${BASH_REMATCH[1]}"

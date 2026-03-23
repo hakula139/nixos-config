@@ -14,6 +14,7 @@ let
     filesystem = "Filesystem";
     git = "Git";
     github = "GitHub";
+    gitlab = "GitLab";
   };
 
   allServerNames = builtins.attrNames serverDisplayNames;

@@ -79,12 +79,22 @@ let
   # ----------------------------------------------------------------------------
   # GitHub
   # ----------------------------------------------------------------------------
+  ghBin = "${config.home.profileDirectory}/bin/gh";
   githubPatFile = "${secretsDir}/github-pat";
   githubBin = pkgs.writeShellScriptBin "github-mcp" ''
-    if [ -f "${githubPatFile}" ]; then
+    if [ -x "${ghBin}" ] && token=$("${ghBin}" auth token 2>/dev/null); then
+      export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
+    elif [ -f "${githubPatFile}" ]; then
       export GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${githubPatFile})"
     fi
     exec ${pkgs.mcp-server-github}/bin/mcp-server-github stdio "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
+  # GitLab
+  # ----------------------------------------------------------------------------
+  gitlabBin = pkgs.writeShellScriptBin "gitlab-mcp" ''
+    exec "${config.home.profileDirectory}/bin/glab" mcp serve "$@"
   '';
 in
 {
@@ -129,6 +139,11 @@ in
 
     github = {
       command = "${githubBin}/bin/github-mcp";
+      type = "stdio";
+    };
+
+    gitlab = {
+      command = "${gitlabBin}/bin/gitlab-mcp";
       type = "stdio";
     };
   };

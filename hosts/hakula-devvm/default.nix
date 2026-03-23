@@ -1,10 +1,13 @@
 {
-  pkgs,
+  config,
   lib,
   secrets,
   ...
 }:
 
+let
+  corpDomain = import ../../lib/corp-domain.nix;
+in
 {
   imports = [
     ../_profiles/docker
@@ -29,13 +32,6 @@
   hakula.llm-assistants.enable = lib.mkDefault true;
 
   # ============================================================================
-  # Packages
-  # ============================================================================
-  # xclip satisfies tmux-yank's clipboard tool dependency check; the actual
-  # clipboard transport uses OSC 52 via the terminal emulator (Cursor SSH).
-  environment.systemPackages = [ pkgs.xclip ];
-
-  # ============================================================================
   # Home Manager Overrides
   # ============================================================================
   home-manager.users.root = {
@@ -50,8 +46,19 @@
         "codex"
         "filesystem"
         "git"
+        "gitlab"
       ];
       plugins.bundle = true;
+      proxy = {
+        enable = true;
+        secretUrlFile = config.age.secrets.devvm-proxy-url.path;
+        noProxy = [
+          "localhost"
+          "127.0.0.1"
+          "10.*"
+          ".${corpDomain}"
+        ];
+      };
     };
   };
 
@@ -59,6 +66,12 @@
   # Secret Overrides
   # ============================================================================
   age.secrets.github-pat.file = lib.mkForce (secrets.secretFile "github-pat-work");
+
+  age.secrets.devvm-proxy-url = secrets.mkSecret {
+    name = "devvm-proxy-url";
+    owner = "root";
+    group = "root";
+  };
 
   # ============================================================================
   # System State

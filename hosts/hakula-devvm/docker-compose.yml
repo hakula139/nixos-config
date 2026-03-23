@@ -21,9 +21,6 @@ services:
       HOST_HOME: ${HOME}
       HOST_DOCKER_SOCKET: ${XDG_RUNTIME_DIR}/docker.sock
       PATH: /etc/profiles/per-user/root/bin:/root/.nix-profile/bin:/run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin
-      http_proxy: ${http_proxy:-}
-      https_proxy: ${http_proxy:-}
-      no_proxy: ${no_proxy:-}
 
     # -------------------------------------------------------------------------
     # Network
@@ -37,8 +34,6 @@ services:
       - devvm-root:/root
 
       - /etc/resolv.conf:/etc/resolv.conf:ro
-      - /etc/ssh/ssh_host_ed25519_key:/etc/ssh/ssh_host_ed25519_key:ro
-      - /etc/ssh/ssh_host_ed25519_key.pub:/etc/ssh/ssh_host_ed25519_key.pub:ro
       - /usr/local/share/ca-certificates:/usr/local/share/ca-certificates:ro
       - ~/.cargo/config.toml:/root/.cargo/config.toml:ro
       - ~/.condarc:/root/.condarc:ro

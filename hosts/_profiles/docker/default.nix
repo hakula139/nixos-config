@@ -27,8 +27,8 @@ in
   boot.isContainer = true;
 
   # Agenix needs an identity path for secret decryption. Containers don't run
-  # openssh, so the host key must be bind-mounted at runtime.
-  age.identityPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+  # openssh, so we use a dedicated key stored in the persistent Docker volume.
+  age.identityPaths = [ "/root/.config/agenix/identity" ];
 
   # ============================================================================
   # Networking

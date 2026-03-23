@@ -31,6 +31,7 @@ let
     "filesystem"
     "git"
     "github"
+    "gitlab"
   ];
 in
 {
@@ -141,8 +142,15 @@ in
       # Package wrapper
       # ------------------------------------------------------------------------
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
-      oauthTokenFile = "${secretsDir}/claude-code-oauth-token";
+      oauthTokenFile = lib.escapeShellArg "${secretsDir}/claude-code-oauth-token";
       json = pkgs.formats.json { };
+
+      proxyUrl =
+        if cfg.proxy.secretUrlFile != null then
+          "$(cat ${lib.escapeShellArg cfg.proxy.secretUrlFile})"
+        else
+          lib.escapeShellArg cfg.proxy.url;
+      noProxy = lib.escapeShellArg (lib.concatStringsSep "," cfg.proxy.noProxy);
 
       mcpConfigFile = json.generate "claude-code-mcp-config.json" {
         mcpServers = mcpServersConfig;
@@ -170,7 +178,20 @@ in
       wrapArgs =
         lib.optionals cfg.auth.useOAuthToken [
           "--run"
-          ''[ -f "${oauthTokenFile}" ] && export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"''
+          ''export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"''
+        ]
+        ++ lib.optionals cfg.proxy.enable [
+          "--run"
+          ''
+            export HTTP_PROXY=${proxyUrl}
+            export HTTPS_PROXY=${proxyUrl}
+            export NO_PROXY=${noProxy}
+          ''
+        ]
+        ++ lib.optionals cfg.plugins.bundle [
+          "--set"
+          "CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL"
+          "1"
         ]
         ++ [
           "--run"
@@ -271,11 +292,6 @@ in
               CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
               DISABLE_INSTALLATION_CHECKS = "1";
               FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "false" else "true";
-            }
-            // lib.optionalAttrs cfg.proxy.enable {
-              HTTP_PROXY = cfg.proxy.url;
-              HTTPS_PROXY = cfg.proxy.url;
-              NO_PROXY = lib.concatStringsSep "," cfg.proxy.noProxy;
             };
           };
         };
