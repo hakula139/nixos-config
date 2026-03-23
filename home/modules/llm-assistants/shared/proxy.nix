@@ -11,7 +11,13 @@
     url = lib.mkOption {
       type = lib.types.str;
       default = "http://127.0.0.1:7897";
-      description = "HTTP proxy URL for ${name}";
+      description = "HTTP proxy URL for ${name}. Ignored when secretUrlFile is set.";
+    };
+
+    secretUrlFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Path to a file containing the proxy URL (for secret-based proxy configuration). Overrides url when set.";
     };
 
     noProxy = lib.mkOption {
@@ -19,6 +25,7 @@
       default = [
         "localhost"
         "127.0.0.1"
+        "10.*"
       ];
       description = "Domains to bypass the proxy";
     };

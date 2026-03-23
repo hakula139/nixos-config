@@ -217,9 +217,10 @@
     "mcp__Git__git_status"
 
     # --------------------------------------------------------------------------
-    # GitHub
+    # GitHub / GitLab
     # --------------------------------------------------------------------------
     "mcp__GitHub"
+    "mcp__GitLab"
 
     # --------------------------------------------------------------------------
     # Development
@@ -373,12 +374,29 @@
     "mcp__Git__git_reset"
 
     # --------------------------------------------------------------------------
-    # GitHub
+    # GitHub / GitLab
     # --------------------------------------------------------------------------
     "mcp__GitHub__create_or_update_file"
+    "mcp__GitHub__create_pull_request"
+    "mcp__GitHub__create_repository"
     "mcp__GitHub__delete_file"
+    "mcp__GitHub__fork_repository"
+    "mcp__GitHub__issue_write"
     "mcp__GitHub__merge_pull_request"
     "mcp__GitHub__push_files"
+    "mcp__GitHub__sub_issue_write"
+    "mcp__GitHub__update_pull_request"
+    "mcp__GitLab__glab_mr_create"
+    "mcp__GitLab__glab_mr_merge"
+    "mcp__GitLab__glab_mr_close"
+    "mcp__GitLab__glab_mr_delete"
+    "mcp__GitLab__glab_issue_create"
+    "mcp__GitLab__glab_issue_close"
+    "mcp__GitLab__glab_issue_delete"
+    "mcp__GitLab__glab_release_create"
+    "mcp__GitLab__glab_release_delete"
+    "mcp__GitLab__glab_repo_create"
+    "mcp__GitLab__glab_repo_delete"
 
     # --------------------------------------------------------------------------
     # Nix
