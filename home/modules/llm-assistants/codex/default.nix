@@ -73,7 +73,19 @@ in
       skills = import ./skills.nix { inherit lib inputs; };
 
       codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
-      noProxy = lib.concatStringsSep "," cfg.proxy.noProxy;
+
+      proxyUrl =
+        if cfg.proxy.secretUrlFile != null then
+          "$(cat ${lib.escapeShellArg cfg.proxy.secretUrlFile})"
+        else
+          lib.escapeShellArg cfg.proxy.url;
+      noProxy = lib.escapeShellArg (lib.concatStringsSep "," cfg.proxy.noProxy);
+
+      proxyRunScript = ''
+        export HTTP_PROXY=${proxyUrl}
+        export HTTPS_PROXY=${proxyUrl}
+        export NO_PROXY=${noProxy}
+      '';
 
       codexBin =
         if cfg.proxy.enable then
@@ -85,9 +97,7 @@ in
             nativeBuildInputs = [ pkgs.makeWrapper ];
             postBuild = ''
               wrapProgram $out/bin/codex \
-                --set HTTP_PROXY ${lib.escapeShellArg cfg.proxy.url} \
-                --set HTTPS_PROXY ${lib.escapeShellArg cfg.proxy.url} \
-                --set NO_PROXY ${lib.escapeShellArg noProxy}
+                --run ${lib.escapeShellArg proxyRunScript}
             '';
           }
         else

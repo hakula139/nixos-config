@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   lib,
   secrets,
@@ -53,6 +54,10 @@
         "gitlab"
       ];
       plugins.bundle = true;
+      proxy = {
+        enable = true;
+        secretUrlFile = config.age.secrets.devvm-proxy-url.path;
+      };
     };
   };
 
@@ -60,6 +65,12 @@
   # Secret Overrides
   # ============================================================================
   age.secrets.github-pat.file = lib.mkForce (secrets.secretFile "github-pat-work");
+
+  age.secrets.devvm-proxy-url = secrets.mkSecret {
+    name = "devvm-proxy-url";
+    owner = "root";
+    group = "root";
+  };
 
   # ============================================================================
   # System State
