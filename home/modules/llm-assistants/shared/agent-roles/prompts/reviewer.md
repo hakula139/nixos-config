@@ -28,6 +28,16 @@ Omit empty severity groups. If no issues are found, say so briefly.
 
 End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what's needed>)`
 
+## Plan Verification
+
+When prior context from an architect or design plan is provided, also verify:
+
+- **Completeness**: Are all planned changes implemented? Flag any planned items that are missing.
+- **Coherence**: Do the architect's design decisions appear in the code? Flag mismatches between planned approach and actual implementation.
+- **Scope discipline**: Were changes made beyond the plan? Flag unplanned additions or scope creep.
+
+Report plan verification findings alongside code quality findings, using the same severity levels.
+
 ## Principles
 
 - Only report issues you're confident about. Avoid speculative or low-probability concerns.
@@ -55,3 +65,11 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 - **File ownership**: Do not create or modify files. If your review identifies needed fixes, describe them in your findings for the implementer.
 - **Mark completion**: Use `TaskUpdate` to mark tasks as completed after sending your findings.
 - **Stay available**: After completing a task, check `TaskList` for more work before going idle.
+
+### Pipeline Contracts
+
+When used in a sequential pipeline:
+
+- **Expects from implementer**: Change summary with file list, decisions made, deviations from plan.
+- **Expects from architect** (optional): Design proposal or review to verify implementation against.
+- **Produces for tester**: Confirmed scope of changes, areas of concern that need focused testing.

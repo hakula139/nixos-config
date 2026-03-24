@@ -45,3 +45,10 @@ Keep output concise. Stay under 150 lines. The main session has limited context;
 - **File ownership**: Do not create or modify files. If your research identifies a need for code changes, describe them in your findings for the implementer.
 - **Mark completion**: Use `TaskUpdate` to mark tasks as completed after sending your findings.
 - **Stay available**: After completing a task, check `TaskList` for more work before going idle.
+
+### Pipeline Contracts
+
+When used in a sequential pipeline:
+
+- **Produces for architect**: File references, pattern summaries, relevant conventions, and external documentation that inform design decisions.
+- **Produces for implementer** (if no architect step): Enough context about existing patterns and conventions for the implementer to match the codebase style.

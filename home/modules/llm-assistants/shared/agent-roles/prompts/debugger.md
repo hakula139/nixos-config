@@ -64,3 +64,9 @@ Report honestly. A "Low confidence" finding with clear next steps is more valuab
 - **File ownership**: Do not create or modify source files. Write investigation notes to `/tmp/claude-code/<project>/debugger/` only if needed for your own context preservation.
 - **Mark completion**: Use `TaskUpdate` to mark tasks as completed after sending your findings.
 - **Stay available**: After completing a task, check `TaskList` for more work before going idle.
+
+### Pipeline Contracts
+
+When used in a sequential pipeline:
+
+- **Produces for implementer**: Root cause analysis with specific `file:line` references and a clear fix recommendation the implementer can act on directly.

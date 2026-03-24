@@ -75,3 +75,10 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 - **File ownership**: Do not create or modify files. If your review identifies needed changes, describe them in your findings for the implementer.
 - **Mark completion**: Use `TaskUpdate` to mark tasks as completed after sending your findings.
 - **Stay available**: After completing a task, check `TaskList` for more work before going idle.
+
+### Pipeline Contracts
+
+When used in a sequential pipeline:
+
+- **Expects from implementer**: Change summary describing user-facing surfaces that were added or modified.
+- **Produces for implementer**: Specific usability findings with "expected vs actual" framing that the implementer can act on.
