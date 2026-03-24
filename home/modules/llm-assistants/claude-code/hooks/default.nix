@@ -13,6 +13,7 @@ let
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
   enforceMcpScript = pkgs.writeShellScript "enforce-mcp" (builtins.readFile ./enforce-mcp.sh);
   wakatimeScript = pkgs.writeShellScript "wakatime-heartbeat" (builtins.readFile ./wakatime.sh);
+  autoFormatScript = pkgs.writeShellScript "auto-format" (builtins.readFile ./auto-format.sh);
 in
 {
   PreToolUse = [
@@ -40,36 +41,13 @@ in
         }
       ];
     }
-    # Shell formatting and linting
+    # Auto-format and lint edited files
     {
       matcher = "Edit|Write";
       hooks = [
         {
           type = "command";
-          command = ''
-            for file in $CLAUDE_FILE_PATHS; do
-              if [[ "$file" == *.sh ]]; then
-                ${pkgs.shfmt}/bin/shfmt -w "$file" 2>/dev/null || true
-                ${pkgs.shellcheck}/bin/shellcheck "$file" || true
-              fi
-            done
-          '';
-        }
-      ];
-    }
-    # Nix formatting
-    {
-      matcher = "Edit|Write";
-      hooks = [
-        {
-          type = "command";
-          command = ''
-            for file in $CLAUDE_FILE_PATHS; do
-              if [[ "$file" == *.nix ]]; then
-                nix fmt "$file" 2>/dev/null || true
-              fi
-            done
-          '';
+          command = "${autoFormatScript}";
         }
       ];
     }
