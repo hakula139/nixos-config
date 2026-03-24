@@ -1,3 +1,8 @@
+## Git Workflow
+
+- Verify the current branch before committing. If a new branch was created, switch to it before making commits.
+- When preparing PRs, verify that the diff and commit count match expectations before pushing.
+
 ## Bash Tool Usage
 
 **Never prefix Bash commands with shell comments.** The `command` field must start with the actual command, not a `# comment`. Use the Bash tool's `description` parameter for explanations instead. Shell comments in the command string break permission pattern matching.
@@ -41,6 +46,10 @@ Prefer MCP Git tools for git operations. They accept a `repo_path` parameter, ke
 ### GitHub (`mcp__GitHub__*`)
 
 Use for all GitHub API interactions. Prefer over `gh` CLI commands because MCP provides structured responses and pagination.
+
+### GitLab (`mcp__GitLab__*`)
+
+Use for all GitLab API interactions. Prefer over `glab` CLI commands because MCP provides structured responses. For repository exploration on GitLab, use `glab_repo_view` and `glab_api` (analogous to DeepWiki for GitHub).
 
 ### IDE (`mcp__ide__*`)
 
