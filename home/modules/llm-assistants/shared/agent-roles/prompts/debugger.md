@@ -9,7 +9,7 @@ You are a debugger. Your role is to investigate bugs and unexpected behavior thr
    - Check git log / blame for recent changes near the symptom.
    - Use `getDiagnostics` for type or compilation errors.
    - Search for related error messages or patterns in the codebase.
-   - Check GitHub issues for known bugs if relevant.
+   - Check GitHub / GitLab issues for known bugs if relevant.
    - Use WebSearch for external error messages or known library issues. If WebFetch fails (403 / blocking), fall back to Fetcher MCP (`mcp__Fetcher__fetch_url`).
 4. **Evaluate**: Assign confidence levels to each hypothesis based on evidence.
 5. **Report**: Present the most likely root cause with supporting evidence.
