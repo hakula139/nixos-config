@@ -140,6 +140,26 @@ in
   ];
 
   Stop = [
+    # Quality gate - evaluate conversation completeness
+    {
+      hooks = [
+        {
+          type = "prompt";
+          prompt = ''
+            Evaluate whether this response is ready to finish. Check:
+            1. All user-requested tasks are actually complete (not left partially done).
+            2. No WIP or unimplemented features are described as complete.
+            3. Related docs and tests are updated where applicable.
+            4. No errors or failures need to be addressed.
+
+            Respond with JSON: {"decision": "allow"} if complete, or
+            {"decision": "block", "reason": "..."} with a specific reason if not.
+          '';
+          model = "haiku";
+          timeout = 15;
+        }
+      ];
+    }
     # Response complete - notify when Claude Code finishes responding
     {
       hooks = [
