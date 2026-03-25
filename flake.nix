@@ -36,10 +36,7 @@
     };
 
     # AI coding agents
-    llm-agents = {
-      url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
+    llm-agents.url = "github:numtide/llm-agents.nix";
 
     # Open Agent Skills (shared between Claude Code and Codex)
     agent-skills = {
@@ -48,8 +45,6 @@
     };
 
     # Pre-commit hooks
-    # Note: Don't follow nixpkgs - let git-hooks-nix use its own nixpkgs
-    # to avoid dotnet build failures on aarch64-darwin (nixpkgs#450126)
     git-hooks-nix.url = "github:cachix/git-hooks.nix";
   };
 
