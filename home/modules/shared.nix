@@ -86,6 +86,7 @@ in
       httpie
       jq
       yq
+      taplo
       fontconfig
       git-filter-repo
       unstable.hugo

@@ -13,6 +13,7 @@ let
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
   enforceMcpScript = pkgs.writeShellScript "enforce-mcp" (builtins.readFile ./enforce-mcp.sh);
   wakatimeScript = pkgs.writeShellScript "wakatime-heartbeat" (builtins.readFile ./wakatime.sh);
+  autoFormatScript = pkgs.writeShellScript "auto-format" (builtins.readFile ./auto-format.sh);
 in
 {
   PreToolUse = [
@@ -40,36 +41,13 @@ in
         }
       ];
     }
-    # Shell formatting and linting
+    # Auto-format and lint edited files
     {
       matcher = "Edit|Write";
       hooks = [
         {
           type = "command";
-          command = ''
-            for file in $CLAUDE_FILE_PATHS; do
-              if [[ "$file" == *.sh ]]; then
-                ${pkgs.shfmt}/bin/shfmt -w "$file" 2>/dev/null || true
-                ${pkgs.shellcheck}/bin/shellcheck "$file" || true
-              fi
-            done
-          '';
-        }
-      ];
-    }
-    # Nix formatting
-    {
-      matcher = "Edit|Write";
-      hooks = [
-        {
-          type = "command";
-          command = ''
-            for file in $CLAUDE_FILE_PATHS; do
-              if [[ "$file" == *.nix ]]; then
-                nix fmt "$file" 2>/dev/null || true
-              fi
-            done
-          '';
+          command = "${autoFormatScript}";
         }
       ];
     }
@@ -140,6 +118,26 @@ in
   ];
 
   Stop = [
+    # Quality gate - evaluate conversation completeness
+    # Disabled: prompt-type Stop hooks have a known JSON validation bug.
+    # https://github.com/anthropics/claude-code/issues/11947
+    # {
+    #   hooks = [
+    #     {
+    #       type = "prompt";
+    #       prompt = ''
+    #         Should the agent stop working? Evaluate whether all requested tasks are complete:
+    #         1. All user-requested tasks are actually done (not left partially done).
+    #         2. No WIP or unimplemented features are described as complete.
+    #         3. If code was modified, related docs and tests are updated where applicable.
+    #         4. No errors or failures remain unaddressed.
+    #       '';
+    #       model = "sonnet";
+    #       timeout = 15;
+    #     }
+    #   ];
+    # }
+
     # Response complete - notify when Claude Code finishes responding
     {
       hooks = [

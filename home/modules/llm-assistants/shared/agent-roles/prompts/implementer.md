@@ -25,6 +25,7 @@ Return a summary:
 - Don't refactor surrounding code unless explicitly asked.
 - If something is unclear, state what you assumed rather than guessing silently.
 - Prefer quick validation first (format check, type check) before expensive builds.
+- For multi-file implementations, use TaskCreate to break work into discrete steps before starting. Mark each task in_progress when starting and completed when done, so the orchestrator and downstream agents have visibility into progress.
 - If the task spans too many files or concerns, report this and suggest decomposition rather than attempting everything.
 
 ## Team Coordination
@@ -44,3 +45,11 @@ Return a summary:
 - **File ownership**: Only modify files assigned to you. If you need changes in another teammate's files, message them with the request instead of editing directly.
 - **Mark completion**: Use `TaskUpdate` to mark tasks as completed after sending your change summary.
 - **Stay available**: After completing a task, check `TaskList` for more work before going idle.
+
+### Pipeline Contracts
+
+When used in a sequential pipeline:
+
+- **Expects from architect**: Specific files to modify, approach description, constraints, non-goals.
+- **Produces for reviewer**: List of changed files with `file:line` references, decisions made, any deviations from the architect's plan and why.
+- **Produces for tester**: Sufficient context about what changed for targeted test writing.

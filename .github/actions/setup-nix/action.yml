@@ -18,7 +18,7 @@ runs:
   steps:
     - name: General cleanup
       if: ${{ runner.os == 'Linux' }}
-      uses: wimpysworld/nothing-but-nix@v6
+      uses: wimpysworld/nothing-but-nix@v10
       with:
         nix-permission-edict: true
         root-safe-haven: '24576' # 24 GB
@@ -33,7 +33,7 @@ runs:
 
     - name: Setup Cachix
       if: ${{ inputs.cachix_name }}
-      uses: cachix/cachix-action@v16
+      uses: cachix/cachix-action@v17
       with:
         name: ${{ inputs.cachix_name }}
         authToken: ${{ inputs.cachix_auth_token }}
