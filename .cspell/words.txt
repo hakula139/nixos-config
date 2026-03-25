@@ -206,6 +206,7 @@ toolsai
 tulanp
 twikoo
 ulimits
+unapprove
 unhinted
 usernamehw
 utun
@@ -228,5 +229,6 @@ xsel
 xtls
 xtype
 yzhang
+zereight
 zstd
 zstyle

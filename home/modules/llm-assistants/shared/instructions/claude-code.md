@@ -49,7 +49,7 @@ Use for all GitHub API interactions. Prefer over `gh` CLI commands because MCP p
 
 ### GitLab (`mcp__GitLab__*`)
 
-Use for all GitLab API interactions. Prefer over `glab` CLI commands because MCP provides structured responses. For repository exploration on GitLab, use `glab_repo_view` and `glab_api` (analogous to DeepWiki for GitHub).
+Use for all GitLab API interactions. Powered by `@zereight/mcp-gitlab` with flat, descriptive parameter schemas. Prefer over `glab` CLI commands. Use `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
 
 ### IDE (`mcp__ide__*`)
 
