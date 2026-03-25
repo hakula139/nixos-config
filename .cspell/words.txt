@@ -18,6 +18,7 @@ ccagent
 chgrp
 chocobozzz
 cidr
+clippy
 cloudreve
 cncidr
 colmena
@@ -61,6 +62,8 @@ geoip
 ghcup
 glab
 gnused
+gofmt
+goimports
 gopath
 gopls
 gsub
@@ -193,6 +196,7 @@ sysctls
 t3dotgg
 tabdo
 tamasfe
+taplo
 telegramcidr
 timedatectl
 tmp

@@ -33,6 +33,11 @@ When documentation is requested, make it:
 - Focused on "why" and "how to use" rather than "what" (which code should show).
 - Up-to-date with the actual implementation.
 
+## Accuracy and Scope
+
+- Only reference implemented functionality. Never describe WIP, TODO, or planned features as if they exist.
+- When editing documentation that cites data, statistics, or behavior: verify claims against the actual codebase or data first. Do not write unverified claims.
+
 ## Commenting Guidelines
 
 Comment the WHY, not the WHAT.
