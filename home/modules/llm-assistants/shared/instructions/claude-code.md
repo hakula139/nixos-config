@@ -1,3 +1,8 @@
+## Git Workflow
+
+- Verify the current branch before committing. If a new branch was created, switch to it before making commits.
+- When preparing PRs, verify that the diff and commit count match expectations before pushing.
+
 ## Bash Tool Usage
 
 **Never prefix Bash commands with shell comments.** The `command` field must start with the actual command, not a `# comment`. Use the Bash tool's `description` parameter for explanations instead. Shell comments in the command string break permission pattern matching.
@@ -41,6 +46,10 @@ Prefer MCP Git tools for git operations. They accept a `repo_path` parameter, ke
 ### GitHub (`mcp__GitHub__*`)
 
 Use for all GitHub API interactions. Prefer over `gh` CLI commands because MCP provides structured responses and pagination.
+
+### GitLab (`mcp__GitLab__*`)
+
+Use for all GitLab API interactions. Prefer over `glab` CLI commands because MCP provides structured responses. For repository exploration on GitLab, use `glab_repo_view` and `glab_api` (analogous to DeepWiki for GitHub).
 
 ### IDE (`mcp__ide__*`)
 
@@ -90,7 +99,21 @@ Do not use agents when:
 - **Parallel exploration**: Launch multiple researchers across different areas.
 - **Review gate**: Run reviewer after significant implementation changes.
 - **Codex offloading**: Use codex-worker for orthogonal tasks that benefit from a separate context window.
+- **Exploration gate**: researcher(s) → architect (proposal mode) → user decision → implementer → reviewer → tester. Use when the approach is unclear and premature implementation would waste effort.
 - **Bug investigation**: Spawn one or more debuggers with distinct hypotheses.
+
+### Feature Development Workflow
+
+For non-trivial features, follow the structured pipeline to prevent wasted implementation effort:
+
+1. **Explore** (optional): Use researcher(s) to investigate the problem space, gather context on existing patterns, and evaluate options. Skip for well-understood changes.
+2. **Propose**: Use architect in "Design Proposal" mode to produce a structured plan with motivation, scope, approach, impact, and risks.
+3. **Decide**: Present the proposal to the user. Approve, request changes, or reject before any code is written.
+4. **Implement**: Use implementer with the architect's proposal as input. For multi-file work, the implementer tracks progress via TaskCreate / TaskUpdate.
+5. **Verify**: Use reviewer with both the architect's proposal and implementer's changes. The reviewer checks code quality AND plan adherence (completeness, coherence, scope discipline).
+6. **Test**: Use tester with the implementer's change summary and reviewer's risk areas.
+
+Steps 1-3 prevent building the wrong thing. Steps 5-6 catch both code defects and plan deviations. Each agent's output is shaped by pipeline contracts that define what it expects from upstream and produces for downstream.
 
 ## Context Compaction Guidance
 

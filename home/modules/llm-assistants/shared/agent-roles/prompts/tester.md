@@ -50,3 +50,11 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 - **File ownership**: Only create or modify test files assigned to you. If you need changes to implementation files, message the implementer instead of editing directly.
 - **Mark completion**: Use `TaskUpdate` to mark tasks as completed after sending your results.
 - **Stay available**: After completing a task, check `TaskList` for more work before going idle.
+
+### Pipeline Contracts
+
+When used in a sequential pipeline:
+
+- **Expects from implementer**: Change summary with file list and areas of concern.
+- **Expects from reviewer** (optional): Review findings highlighting risk areas to test.
+- **Produces for orchestrator**: Pass / fail verdict with failure details. If failures exist, include enough context for the implementer to diagnose and fix.
