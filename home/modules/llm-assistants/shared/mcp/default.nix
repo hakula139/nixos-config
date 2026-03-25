@@ -93,8 +93,33 @@ let
   # ----------------------------------------------------------------------------
   # GitLab
   # ----------------------------------------------------------------------------
+  glabBin = "${config.home.profileDirectory}/bin/glab";
+  gitlabPatFile = "${secretsDir}/gitlab-pat";
+  gitlabToolsets = lib.concatStringsSep "," [
+    "branches"
+    "issues"
+    "labels"
+    "merge_requests"
+    "pipelines"
+    "projects"
+    "repositories"
+  ];
   gitlabBin = pkgs.writeShellScriptBin "gitlab-mcp" ''
-    exec "${config.home.profileDirectory}/bin/glab" mcp serve "$@"
+    if [ -x "${glabBin}" ]; then
+      host=$("${glabBin}" config get host 2>/dev/null || true)
+      if [ -n "$host" ]; then
+        token=$("${glabBin}" config get token --host "$host" 2>/dev/null || true)
+        if [ -n "$token" ]; then
+          export GITLAB_PERSONAL_ACCESS_TOKEN="$token"
+          export GITLAB_API_URL="https://''${host}/api/v4"
+        fi
+      fi
+    fi
+    if [ -z "''${GITLAB_PERSONAL_ACCESS_TOKEN:-}" ] && [ -f "${gitlabPatFile}" ]; then
+      export GITLAB_PERSONAL_ACCESS_TOKEN="$(cat ${gitlabPatFile})"
+    fi
+    export GITLAB_TOOLSETS="${gitlabToolsets}"
+    exec ${pkgs.mcp-server-gitlab}/bin/mcp-server-gitlab "$@"
   '';
 in
 {
