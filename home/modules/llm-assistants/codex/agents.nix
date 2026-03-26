@@ -18,7 +18,7 @@ let
     let
       configFile = tomlFormat.generate "codex-agent-${name}" {
         developer_instructions = agent.prompt;
-        model_reasoning_effort = "high";
+        model_reasoning_effort = "xhigh";
         personality = "pragmatic";
       };
     in
