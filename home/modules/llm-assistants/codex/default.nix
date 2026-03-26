@@ -126,9 +126,7 @@ in
             # Model
             # ------------------------------------------------------------------
             model = "gpt-5.4";
-            model_reasoning_effort = "high";
-            plan_mode_reasoning_effort = "high";
-            model_verbosity = "high";
+            model_reasoning_effort = "xhigh";
             personality = "pragmatic";
 
             # ------------------------------------------------------------------

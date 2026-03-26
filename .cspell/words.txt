@@ -225,6 +225,7 @@ wimpysworld
 wslpath
 xclip
 xcrun
+xhigh
 xsel
 xtls
 xtype
