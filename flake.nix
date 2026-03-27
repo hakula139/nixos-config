@@ -71,7 +71,7 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
       overlays = [
-        (final: prev: {
+        (final: _: {
           unstable = import nixpkgs-unstable {
             localSystem = final.stdenv.hostPlatform.system;
             config.allowUnfree = true;
@@ -79,11 +79,6 @@
 
           agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
           cloudreve = final.callPackage ./packages/cloudreve { };
-          direnv = prev.direnv.overrideAttrs (old: {
-            env = (old.env or { }) // {
-              CGO_ENABLED = "1";
-            };
-          });
           mcp-server-filesystem = final.callPackage ./packages/mcp/mcp-server-filesystem { };
           mcp-server-git = final.callPackage ./packages/mcp/mcp-server-git { };
           mcp-server-github = final.callPackage ./packages/mcp/mcp-server-github { };
