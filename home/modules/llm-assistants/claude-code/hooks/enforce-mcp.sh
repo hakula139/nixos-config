@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# Enforce MCP Tool Usage
+# Enforce MCP Tool Usage (PreToolUse)
 # ==============================================================================
 # PreToolUse hook that encourages MCP tool usage over Bash equivalents.
 #

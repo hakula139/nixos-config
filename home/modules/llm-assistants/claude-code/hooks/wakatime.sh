@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ==============================================================================
-# WakaTime Heartbeat for AI-Generated Code
+# WakaTime Heartbeat for AI-Generated Code (PostToolUse)
 # ==============================================================================
 # PostToolUse hook that sends a file-level WakaTime heartbeat with
 # --ai-line-changes for each Edit or Write tool invocation.

@@ -13,9 +13,6 @@ let
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
   autoFormatScript = pkgs.writeShellScript "auto-format" (builtins.readFile ./auto-format.sh);
   enforceMcpScript = pkgs.writeShellScript "enforce-mcp" (builtins.readFile ./enforce-mcp.sh);
-  networkTrackerScript = pkgs.writeShellScript "network-tracker" (
-    builtins.readFile ./network-tracker.sh
-  );
   wakatimeScript = pkgs.writeShellScript "wakatime-heartbeat" (builtins.readFile ./wakatime.sh);
 in
 {
@@ -33,16 +30,6 @@ in
   ];
 
   PostToolUse = [
-    # Track network access by tool
-    {
-      hooks = [
-        {
-          type = "command";
-          command = "${networkTrackerScript}";
-          async = true;
-        }
-      ];
-    }
     # WakaTime heartbeat for AI-generated file edits
     {
       matcher = "Edit|Write";
