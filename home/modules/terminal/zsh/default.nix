@@ -251,13 +251,21 @@ in
       # Create directory and cd into it
       mkcd() { mkdir -p "$1" && cd "$1"; }
 
-      # Refresh VS Code / Cursor env vars from tmux session on each prompt,
-      # so existing panes pick up fresh tokens after reattach
+      # Refresh env vars from tmux session on each prompt, so existing
+      # panes pick up fresh tokens and sockets after reattach
       if [[ -n "$TMUX" ]]; then
-        _refresh_cursor_env() {
+        _refresh_tmux_env() {
           eval "$(tmux show-environment -s 2>/dev/null | grep -E '(VSCODE_|GIT_ASKPASS|CLAUDE_CODE_SSE_PORT)')"
+          # Stale WSL_INTEROP sockets cause slow Windows interop and Crashpad
+          # errors; always pick the newest socket rather than trusting the
+          # value inherited from tmux-resurrect or an old attach
+          if [[ -d /run/WSL ]]; then
+            local newest
+            newest=$(find /run/WSL -maxdepth 1 -name '*_interop' -type s -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
+            [[ -n "$newest" ]] && export WSL_INTEROP="$newest"
+          fi
         }
-        precmd_functions+=(_refresh_cursor_env)
+        precmd_functions+=(_refresh_tmux_env)
       fi
 
       # Set EDITOR based on available editors (cursor > code > nvim > vim)
