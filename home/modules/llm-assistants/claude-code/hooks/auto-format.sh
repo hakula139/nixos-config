@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# Auto-Format and Lint
+# Auto-Format and Lint (PostToolUse)
 # ==============================================================================
 # PostToolUse hook that formats and lints files after Edit / Write operations.
 # Reads tool_input.file_path from stdin JSON and dispatches based on file
