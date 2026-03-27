@@ -101,7 +101,7 @@
       bind -T copy-mode-vi WheelUpPane select-pane \; send-keys -X scroll-up
       bind -T copy-mode-vi WheelDownPane select-pane \; send-keys -X scroll-down
 
-      # Refresh env vars on reattach (prevents stale auth tokens)
+      # Refresh env vars on reattach (prevents stale tokens and sockets)
       set -ga update-environment " VSCODE_GIT_ASKPASS_NODE"
       set -ga update-environment " VSCODE_GIT_ASKPASS_EXTRA_ARGS"
       set -ga update-environment " VSCODE_GIT_ASKPASS_MAIN"
@@ -109,6 +109,7 @@
       set -ga update-environment " VSCODE_IPC_HOOK_CLI"
       set -ga update-environment " GIT_ASKPASS"
       set -ga update-environment " CLAUDE_CODE_SSE_PORT"
+      set -ga update-environment " WSL_INTEROP"
 
       # Renumber windows when one is closed
       set -g renumber-windows on
