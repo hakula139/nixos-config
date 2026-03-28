@@ -54,6 +54,10 @@
   # Services
   # ----------------------------------------------------------------------------
   hakula.services.openssh.enable = true;
+  hakula.services.tailscale = {
+    enable = true;
+    userspaceNetworking = true;
+  };
 
   # ----------------------------------------------------------------------------
   # Home Manager Overrides
