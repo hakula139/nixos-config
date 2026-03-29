@@ -19,8 +19,8 @@ let
         owner = "anthropics";
         repo = "skills";
       };
-      rev = "b0cbd3df1533b396d281a6886d5132f623393a9c";
-      hash = "sha256-GzNpraXV85qUwyGs5XDe0zHYr2AazqFppWtH9JvO3QE=";
+      rev = "98669c11ca63e9c81c11501e1437e5c47b556621";
+      hash = "sha256-w//9LB1OVG9jlllY+VDse7Js0dn5x6Ys2vPuQACKsTM=";
       pluginsDir = null;
     };
 
@@ -29,8 +29,8 @@ let
         owner = "anthropics";
         repo = "claude-plugins-official";
       };
-      rev = "d5c15b861cd23e3102215c26020368ad5134dc47";
-      hash = "sha256-ETeWt0onsC/TDVaZLHqm2Qptqds+Cs1PMZ85GgWlBcg=";
+      rev = "183a6ca35d5f6b4ba99bf89777bd0aa432fa3d2e";
+      hash = "sha256-IUrfycw/bzuuuTTYNZGWnOE5vSygGa+ORCqbEo6/J0k=";
       pluginsDir = "plugins";
     };
 
@@ -39,8 +39,8 @@ let
         owner = "vercel-labs";
         repo = "agent-browser";
       };
-      rev = "8163f6cdca1aebb9a77f058f1ae93455bbc00974";
-      hash = "sha256-b68m3/bhiAPZ4l5C0ike3CMnLaec+997gRwLZfmvOZA=";
+      rev = "dc26ff76679a1f3b0cf22651d06d79e40dfe88fe";
+      hash = "sha256-JPmZFzo9GvHfRoRMJB9tNIFV92NOld51Saa4LBWC4jY=";
       pluginsDir = null;
     };
 
@@ -49,8 +49,8 @@ let
         owner = "upstash";
         repo = "context7";
       };
-      rev = "800afc31fc49b5c94b6b7f52cbb345b7c11508ba";
-      hash = "sha256-MjtCPPcjd/Dc9YkkJp37aNnVYWbU1qk5V2RUc6mIdrM=";
+      rev = "658ec6796ec2085e6a24bdab842b6949e4aa2fe8";
+      hash = "sha256-+OGk7PHZyb8Cny8nM2p3+4IBSQeVf6MXO2G/UFyEugc=";
       pluginsDir = null;
     };
   };
@@ -60,24 +60,28 @@ let
   # ----------------------------------------------------------------------------
   enabledPlugins = {
     # Official skills
+    "claude-api@anthropic-agent-skills" = true;
     "document-skills@anthropic-agent-skills" = true;
-    "example-skills@anthropic-agent-skills" = true;
 
     # Official plugins
+    "claude-code-setup@claude-plugins-official" = true;
+    "claude-md-management@claude-plugins-official" = true;
     "code-review@claude-plugins-official" = true;
     "commit-commands@claude-plugins-official" = true;
     "explanatory-output-style@claude-plugins-official" = true;
     "feature-dev@claude-plugins-official" = true;
+    "frontend-design@claude-plugins-official" = true;
     "hookify@claude-plugins-official" = true;
     "learning-output-style@claude-plugins-official" = true;
+    "mcp-server-dev@claude-plugins-official" = true;
     "pr-review-toolkit@claude-plugins-official" = true;
     "ralph-loop@claude-plugins-official" = true;
     "security-guidance@claude-plugins-official" = true;
+    "skill-creator@claude-plugins-official" = true;
 
     # Official LSP plugins
     "pyright-lsp@claude-plugins-official" = true;
     "typescript-lsp@claude-plugins-official" = true;
-
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
   // lib.optionalAttrs devToolchains {
