@@ -19,10 +19,8 @@ let
   secretsDir = secrets.secretsPath homeDir;
 
   instructions = import ../shared/instructions;
-
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
-
   mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
   claudeMcpServers = [
     "codex"

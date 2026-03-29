@@ -17,6 +17,16 @@ let
   inherit (pkgs.stdenv) isDarwin;
   cfg = config.hakula.cursor;
 
+  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
+  cursorMcpServers = [
+    "deepwiki"
+    "fetcher"
+    "filesystem"
+    "git"
+    "github"
+    "gitlab"
+  ];
+
   settings = import ./settings.nix {
     inherit pkgs isDarwin isNixOS;
     inherit (cfg.nixd) flakePath;
@@ -57,6 +67,14 @@ in
       prune = lib.mkEnableOption "Prune Cursor extensions not in the provisioned list";
     };
 
+    mcp = {
+      enabledServers = mcpOptions.mkEnabledServersOption {
+        names = cursorMcpServers;
+        default = cursorMcpServers;
+        description = "MCP servers to enable";
+      };
+    };
+
     nixd.flakePath = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
@@ -74,6 +92,7 @@ in
           secrets
           isNixOS
           ;
+        inherit (cfg.mcp) enabledServers;
       };
 
       darwinFiles = {
