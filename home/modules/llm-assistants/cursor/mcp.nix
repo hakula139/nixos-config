@@ -8,12 +8,14 @@
   lib,
   secrets,
   isNixOS ? false,
+  enabledServers,
   ...
 }:
 
 let
   json = pkgs.formats.json { };
 
+  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
   mcp = import ../shared/mcp {
     inherit
       config
@@ -27,15 +29,12 @@ let
   # ----------------------------------------------------------------------------
   # MCP configuration
   # ----------------------------------------------------------------------------
-  mcpConfig = {
-    mcpServers = {
-      DeepWiki = mcp.servers.deepwiki;
-      Filesystem = mcp.servers.filesystem;
-      Git = mcp.servers.git;
-      GitHub = mcp.servers.github;
-      GitLab = mcp.servers.gitlab;
-    };
-  };
+  mcpConfig.mcpServers = builtins.listToAttrs (
+    map (s: {
+      name = mcpOptions.serverDisplayNames.${s};
+      value = mcp.servers.${s};
+    }) enabledServers
+  );
 in
 {
   inherit (mcp) secrets;
