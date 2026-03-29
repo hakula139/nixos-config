@@ -70,8 +70,6 @@ in
           ;
       };
 
-      skills = import ./skills.nix { inherit lib inputs; };
-
       codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
 
       proxyUrl =
@@ -187,10 +185,7 @@ in
             # ------------------------------------------------------------------
             # Skills
             # ------------------------------------------------------------------
-            skills = {
-              bundled.enabled = true;
-              config = skills.configEntries;
-            };
+            skills.bundled.enabled = true;
 
             # ------------------------------------------------------------------
             # Apps
@@ -242,9 +237,17 @@ in
         };
 
         # ----------------------------------------------------------------------
-        # Skills
+        # Legacy cleanup
         # ----------------------------------------------------------------------
-        home.activation.codexSkills = skills.activation;
+        home.activation.codexLegacySkillsCleanup = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          skillsDir="$HOME/.agents/skills"
+
+          if [[ -d "$skillsDir" ]]; then
+            for entry in "$skillsDir"/*; do
+              [[ -L "$entry" ]] && rm "$entry"
+            done
+          fi
+        '';
       }
     ]
   );
