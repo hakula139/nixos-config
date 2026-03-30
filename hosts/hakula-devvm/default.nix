@@ -11,6 +11,28 @@
 
 let
   corpDomain = import ../../lib/corp-domain.nix;
+
+  commonMcpServers = [
+    "filesystem"
+    "git"
+    "gitlab"
+  ];
+
+  claudeMcpServers = [
+    "codex"
+  ]
+  ++ commonMcpServers;
+
+  proxy = {
+    enable = true;
+    secretUrlFile = config.age.secrets.devvm-proxy-url.path;
+    noProxy = [
+      "localhost"
+      "127.0.0.1"
+      "10.*"
+      ".${corpDomain}"
+    ];
+  };
 in
 {
   imports = [
@@ -46,23 +68,20 @@ in
     services.syncthing.enable = lib.mkForce false;
 
     hakula.claude-code = {
-      mcp.enabledServers = [
-        "codex"
-        "filesystem"
-        "git"
-        "gitlab"
-      ];
+      mcp.enabledServers = claudeMcpServers;
       plugins.bundle = true;
-      proxy = {
-        enable = true;
-        secretUrlFile = config.age.secrets.devvm-proxy-url.path;
-        noProxy = [
-          "localhost"
-          "127.0.0.1"
-          "10.*"
-          ".${corpDomain}"
-        ];
-      };
+      inherit proxy;
+    };
+
+    hakula.codex = {
+      mcp.enabledServers = commonMcpServers;
+      inherit proxy;
+    };
+
+    hakula.opencode = {
+      mcp.enabledServers = commonMcpServers;
+      plugins.bundle = true;
+      inherit proxy;
     };
   };
 
