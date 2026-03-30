@@ -66,7 +66,7 @@ let
     # --------------------------------------------------------------------------
     # Other Languages
     # --------------------------------------------------------------------------
-    "drblury.protobuf-vsc"
+    "DrBlury.protobuf-vsc"
     "jnoortheen.nix-ide"
     "mads-hartmann.bash-ide-vscode"
     "mechatroner.rainbow-csv"
