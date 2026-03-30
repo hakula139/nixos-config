@@ -1,0 +1,201 @@
+# ==============================================================================
+# OpenCode Configuration
+# ==============================================================================
+
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  secrets,
+  isNixOS ? false,
+  ...
+}:
+
+let
+  cfg = config.hakula.opencode;
+  instructions = import ../shared/instructions;
+  agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
+  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
+  opencodeMcpServers = [
+    "codex"
+    "context7"
+    "deepwiki"
+    "fetcher"
+    "filesystem"
+    "git"
+    "github"
+    "gitlab"
+  ];
+in
+{
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
+  options.hakula.opencode = {
+    enable = lib.mkEnableOption "OpenCode";
+
+    agents = {
+      enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
+        description = "Custom agents to enable";
+      };
+    };
+
+    mcp = {
+      enabledServers = mcpOptions.mkEnabledServersOption {
+        names = opencodeMcpServers;
+        description = "MCP servers to enable";
+      };
+      disabledServers = mcpOptions.mkDisabledServersOption {
+        description = "MCP servers to disable";
+      };
+    };
+
+    plugins = {
+      bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
+
+      ohMyOpenCode = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Whether to enable the oh-my-opencode plugin.";
+      };
+    };
+
+    proxy = (import ../shared/proxy.nix { inherit lib; }).mkProxyOptions "OpenCode";
+  };
+
+  config = lib.mkIf cfg.enable (
+    let
+      # ------------------------------------------------------------------------
+      # Module imports
+      # ------------------------------------------------------------------------
+      agents = import ./agents.nix {
+        inherit lib;
+        inherit (cfg.agents) enabledAgents;
+      };
+
+      mcp = import ../shared/mcp {
+        inherit
+          config
+          pkgs
+          lib
+          secrets
+          isNixOS
+          ;
+      };
+
+      # ------------------------------------------------------------------------
+      # MCP server mapping
+      # ------------------------------------------------------------------------
+      effectiveServers = builtins.filter (
+        s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)
+      ) cfg.mcp.enabledServers;
+
+      mcpServersConfig = builtins.listToAttrs (
+        map (s: {
+          name = mcpOptions.serverDisplayNames.${s};
+          value = {
+            type = "local";
+            command = [ mcp.servers.${s}.command ];
+          };
+        }) effectiveServers
+      );
+
+      # ------------------------------------------------------------------------
+      # Package wrapper
+      # ------------------------------------------------------------------------
+      opencodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
+
+      proxyUrl =
+        if cfg.proxy.secretUrlFile != null then
+          "$(cat ${lib.escapeShellArg cfg.proxy.secretUrlFile})"
+        else
+          lib.escapeShellArg cfg.proxy.url;
+      noProxy = lib.escapeShellArg (lib.concatStringsSep "," cfg.proxy.noProxy);
+
+      proxyRunScript = ''
+        export HTTP_PROXY=${proxyUrl}
+        export HTTPS_PROXY=${proxyUrl}
+        export NO_PROXY=${noProxy}
+      '';
+
+      opencodeBin =
+        if cfg.proxy.enable then
+          pkgs.symlinkJoin {
+            name = "opencode-${opencodePkg.version}";
+            paths = [ opencodePkg ];
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+            postBuild = ''
+              wrapProgram $out/bin/opencode \
+                --run ${lib.escapeShellArg proxyRunScript}
+            '';
+          }
+        else
+          opencodePkg;
+
+      # ------------------------------------------------------------------------
+      # oh-my-opencode plugin
+      # ------------------------------------------------------------------------
+      ohMyOpenCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.oh-my-opencode;
+    in
+    lib.mkMerge [
+      mcp.secrets
+      {
+        # ----------------------------------------------------------------------
+        # Program configuration
+        # ----------------------------------------------------------------------
+        programs.opencode = {
+          enable = true;
+          package = opencodeBin;
+
+          # --------------------------------------------------------------------
+          # AGENTS.md
+          # --------------------------------------------------------------------
+          rules = instructions.opencode;
+
+          # --------------------------------------------------------------------
+          # Agents
+          # --------------------------------------------------------------------
+          inherit agents;
+
+          # --------------------------------------------------------------------
+          # Settings
+          # --------------------------------------------------------------------
+          settings = {
+            # ------------------------------------------------------------------
+            # Model
+            # ------------------------------------------------------------------
+            model = "openai/gpt-5.4";
+            small_model = "openai/gpt-5.4-mini";
+
+            # ------------------------------------------------------------------
+            # MCP servers
+            # ------------------------------------------------------------------
+            mcp = mcpServersConfig;
+
+            # ------------------------------------------------------------------
+            # Plugins (online: npm install at runtime)
+            # ------------------------------------------------------------------
+            plugin = lib.optionals (cfg.plugins.ohMyOpenCode && !cfg.plugins.bundle) [
+              "oh-my-openagent"
+            ];
+
+            # ------------------------------------------------------------------
+            # Updates
+            # ------------------------------------------------------------------
+            autoupdate = false;
+            autoshare = false;
+          };
+        };
+      }
+
+      # ------------------------------------------------------------------------
+      # oh-my-opencode plugin bundle (air-gapped: symlink from Nix store)
+      # ------------------------------------------------------------------------
+      (lib.mkIf (cfg.plugins.ohMyOpenCode && cfg.plugins.bundle) {
+        xdg.configFile."opencode/plugins/oh-my-openagent.js".source =
+          "${ohMyOpenCodePkg}/lib/oh-my-opencode/dist/index.js";
+      })
+    ]
+  );
+}
