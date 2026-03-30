@@ -108,6 +108,7 @@ in
       # ------------------------------------------------------------------------
       tuiConfigFile = json.generate "opencode-tui.json" {
         "$schema" = "https://opencode.ai/tui.json";
+        theme = "catppuccin";
         keybinds = {
           input_line_home = "home";
           input_line_end = "end";
@@ -115,7 +116,6 @@ in
           input_select_line_end = "shift+end";
           input_buffer_home = "ctrl+home";
           input_buffer_end = "ctrl+end";
-
           messages_first = "<leader>home";
           messages_last = "<leader>end";
         };
@@ -157,6 +157,7 @@ in
       # oh-my-openagent
       # ------------------------------------------------------------------------
       ohMyOpenCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.oh-my-opencode;
+      ohMyOpenCodeRoot = "${ohMyOpenCodePkg}/lib/oh-my-opencode";
 
       pluginConfigFile = json.generate "oh-my-openagent.json" {
         git_master = {
@@ -222,8 +223,15 @@ in
       }
 
       (lib.mkIf (cfg.plugins.ohMyOpenCode && cfg.plugins.bundle) {
-        xdg.configFile."opencode/plugins/oh-my-openagent.js".source =
-          "${ohMyOpenCodePkg}/lib/oh-my-opencode/dist/index.js";
+        xdg.configFile = {
+          "opencode/oh-my-opencode" = {
+            source = ohMyOpenCodeRoot;
+            recursive = true;
+          };
+          "opencode/plugins/oh-my-openagent.js".text = ''
+            export { default } from "../oh-my-opencode/dist/index.js";
+          '';
+        };
       })
     ]
   );
