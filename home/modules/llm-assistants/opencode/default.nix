@@ -154,9 +154,16 @@ in
           opencodePkg;
 
       # ------------------------------------------------------------------------
-      # oh-my-opencode plugin
+      # oh-my-openagent
       # ------------------------------------------------------------------------
       ohMyOpenCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.oh-my-opencode;
+
+      pluginConfigFile = json.generate "oh-my-openagent.json" {
+        git_master = {
+          commit_footer = false;
+          include_co_authored_by = false;
+        };
+      };
     in
     lib.mkMerge [
       mcp.secrets
@@ -164,7 +171,10 @@ in
         # ----------------------------------------------------------------------
         # Program configuration
         # ----------------------------------------------------------------------
-        xdg.configFile."opencode/tui.json".source = tuiConfigFile;
+        xdg.configFile = {
+          "opencode/oh-my-openagent.json".source = pluginConfigFile;
+          "opencode/tui.json".source = tuiConfigFile;
+        };
 
         programs.opencode = {
           enable = true;
@@ -211,9 +221,6 @@ in
         };
       }
 
-      # ------------------------------------------------------------------------
-      # oh-my-opencode plugin bundle (air-gapped: symlink from Nix store)
-      # ------------------------------------------------------------------------
       (lib.mkIf (cfg.plugins.ohMyOpenCode && cfg.plugins.bundle) {
         xdg.configFile."opencode/plugins/oh-my-openagent.js".source =
           "${ohMyOpenCodePkg}/lib/oh-my-opencode/dist/index.js";
