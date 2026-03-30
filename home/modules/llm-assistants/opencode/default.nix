@@ -66,6 +66,8 @@ in
 
   config = lib.mkIf cfg.enable (
     let
+      json = pkgs.formats.json { };
+
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
@@ -100,6 +102,24 @@ in
           };
         }) effectiveServers
       );
+
+      # ------------------------------------------------------------------------
+      # TUI config
+      # ------------------------------------------------------------------------
+      tuiConfigFile = json.generate "opencode-tui.json" {
+        "$schema" = "https://opencode.ai/tui.json";
+        keybinds = {
+          input_line_home = "home";
+          input_line_end = "end";
+          input_select_line_home = "shift+home";
+          input_select_line_end = "shift+end";
+          input_buffer_home = "ctrl+home";
+          input_buffer_end = "ctrl+end";
+
+          messages_first = "<leader>home";
+          messages_last = "<leader>end";
+        };
+      };
 
       # ------------------------------------------------------------------------
       # Package wrapper
@@ -144,6 +164,8 @@ in
         # ----------------------------------------------------------------------
         # Program configuration
         # ----------------------------------------------------------------------
+        xdg.configFile."opencode/tui.json".source = tuiConfigFile;
+
         programs.opencode = {
           enable = true;
           package = opencodeBin;
