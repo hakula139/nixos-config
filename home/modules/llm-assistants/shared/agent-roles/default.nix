@@ -19,6 +19,13 @@ in
         "arch"
       ];
     };
+    opencode = {
+      tools = {
+        write = false;
+        edit = false;
+        bash = false;
+      };
+    };
   };
 
   debugger = {
@@ -33,6 +40,7 @@ in
         "debug"
       ];
     };
+    opencode = { };
   };
 
   implementer = {
@@ -47,6 +55,7 @@ in
         "builder"
       ];
     };
+    opencode = { };
   };
 
   researcher = {
@@ -62,6 +71,13 @@ in
         "explorer"
       ];
     };
+    opencode = {
+      tools = {
+        write = false;
+        edit = false;
+        bash = false;
+      };
+    };
   };
 
   reviewer = {
@@ -75,6 +91,13 @@ in
         "reviewer"
         "audit"
       ];
+    };
+    opencode = {
+      tools = {
+        write = false;
+        edit = false;
+        bash = false;
+      };
     };
   };
 
@@ -91,6 +114,7 @@ in
         "qa"
       ];
     };
+    opencode = { };
   };
 
   usability-reviewer = {
@@ -104,6 +128,13 @@ in
         "usability"
         "ux-review"
       ];
+    };
+    opencode = {
+      tools = {
+        write = false;
+        edit = false;
+        bash = false;
+      };
     };
   };
 }
