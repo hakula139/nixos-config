@@ -39,8 +39,8 @@ let
         owner = "vercel-labs";
         repo = "agent-browser";
       };
-      rev = "dc26ff76679a1f3b0cf22651d06d79e40dfe88fe";
-      hash = "sha256-JPmZFzo9GvHfRoRMJB9tNIFV92NOld51Saa4LBWC4jY=";
+      rev = "312db04e5e2e68a9c1725548b12352d0a55e84db";
+      hash = "sha256-E6IHEyd5voAyNXQyl4bCvyfeZQaSoztplXlKe449EEI=";
       pluginsDir = null;
     };
 
