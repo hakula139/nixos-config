@@ -28,6 +28,9 @@ in
   # Files (shared)
   # ----------------------------------------------------------------------------
   home.file = {
+    ".duckdbrc".text = ''
+      .autopilot on
+    '';
     ".editorconfig".source = ../../.editorconfig;
     "ruff.toml".source = ../../ruff.toml;
   };

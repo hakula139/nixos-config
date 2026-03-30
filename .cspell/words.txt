@@ -46,6 +46,7 @@ dreamin
 dropdb
 dscacheutil
 duckdb
+duckdbrc
 dups
 e2fsprogs
 eamodio
