@@ -210,7 +210,7 @@ in
             # Plugins (online: npm install at runtime)
             # ------------------------------------------------------------------
             plugin = lib.optionals (cfg.plugins.ohMyOpenCode && !cfg.plugins.bundle) [
-              "oh-my-openagent"
+              "oh-my-opencode"
             ];
 
             # ------------------------------------------------------------------
