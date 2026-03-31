@@ -13,6 +13,7 @@
 
 let
   shared = import ../shared.nix { inherit pkgs lib; };
+  mcpOptions = import ../../home/modules/llm-assistants/shared/mcp/options.nix { inherit lib; };
   proxyOptions = import ../../home/modules/llm-assistants/shared/proxy.nix { inherit lib; };
 
   sshCfg = config.hakula.access.ssh;
@@ -47,6 +48,12 @@ in
       type = lib.types.str;
       default = "hakula";
       description = "Home Manager user to receive assistant defaults";
+    };
+
+    mcp = {
+      disabledServers = mcpOptions.mkDisabledServersOption {
+        description = "MCP servers to disable across all LLM assistants";
+      };
     };
 
     proxy = proxyOptions.mkProxyOptions "LLM assistants";
@@ -335,6 +342,7 @@ in
     (lib.mkIf config.hakula.llm-assistants.enable {
       home-manager.users.${config.hakula.llm-assistants.user}.hakula.llm-assistants = {
         enable = lib.mkDefault true;
+        mcp.disabledServers = lib.mkDefault config.hakula.llm-assistants.mcp.disabledServers;
         proxy = lib.mkIf config.hakula.llm-assistants.proxy.enable {
           enable = lib.mkDefault true;
           url = lib.mkDefault config.hakula.llm-assistants.proxy.url;

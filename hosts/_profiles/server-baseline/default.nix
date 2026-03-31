@@ -2,11 +2,7 @@
 # Server Baseline Profile
 # ==============================================================================
 
-{
-  config,
-  lib,
-  ...
-}:
+{ lib, ... }:
 
 {
   # ----------------------------------------------------------------------------
@@ -22,25 +18,9 @@
   # ----------------------------------------------------------------------------
   # Assistant Tooling
   # ----------------------------------------------------------------------------
-  hakula.llm-assistants.enable = lib.mkDefault true;
-
-  home-manager.users.${config.hakula.user.name} = {
-    hakula.claude-code.mcp.enabledServers = lib.mkDefault [
-      "codex"
-      "deepwiki"
-      "fetcher"
-      "filesystem"
-      "git"
-      "github"
-    ];
-    hakula.codex.mcp.enabledServers = lib.mkDefault [
-      "context7"
-      "deepwiki"
-      "fetcher"
-      "filesystem"
-      "git"
-      "github"
-    ];
+  hakula.llm-assistants = {
+    enable = lib.mkDefault true;
+    mcp.disabledServers = lib.mkDefault [ "gitlab" ];
   };
 
   # ----------------------------------------------------------------------------

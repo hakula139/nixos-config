@@ -4,8 +4,8 @@
 
 let
   sharedBody = builtins.readFile ./shared.md;
-  claudeCodeBody = builtins.readFile ./claude-code.md;
-  codexBody = builtins.readFile ./codex.md;
+  claudeBody = builtins.readFile ./claude-code.md;
+  agentsBody = builtins.readFile ./agents.md;
 
   render =
     {
@@ -24,12 +24,18 @@ in
   claudeCode = render {
     title = "CLAUDE.md";
     intro = "Global instructions for Claude Code behavior across all projects.";
-    body = claudeCodeBody;
+    body = claudeBody;
   };
 
   codex = render {
     title = "AGENTS.md";
     intro = "Global instructions for Codex behavior across all projects.";
-    body = codexBody;
+    body = agentsBody;
+  };
+
+  opencode = render {
+    title = "AGENTS.md";
+    intro = "Global instructions for OpenCode behavior across all projects.";
+    body = agentsBody;
   };
 }
