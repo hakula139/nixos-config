@@ -19,7 +19,6 @@ let
   mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
   opencodeMcpServers = [
     "codex"
-    "context7"
     "deepwiki"
     "fetcher"
     "filesystem"
