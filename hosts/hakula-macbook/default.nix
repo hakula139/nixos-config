@@ -42,6 +42,7 @@
   # ----------------------------------------------------------------------------
   hakula.llm-assistants = {
     enable = true;
+    mcp.disabledServers = [ "gitlab" ];
     proxy.enable = true;
   };
 
@@ -63,32 +64,7 @@
   # Home Manager Overrides
   # ----------------------------------------------------------------------------
   home-manager.users.hakula = {
-    hakula.claude-code.mcp.enabledServers = [
-      "codex"
-      "deepwiki"
-      "fetcher"
-      "filesystem"
-      "git"
-      "github"
-    ];
-    hakula.codex.mcp.enabledServers = [
-      "context7"
-      "deepwiki"
-      "fetcher"
-      "filesystem"
-      "git"
-      "github"
-    ];
-    hakula.cursor = {
-      mcp.enabledServers = [
-        "deepwiki"
-        "fetcher"
-        "filesystem"
-        "git"
-        "github"
-      ];
-      nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
-    };
+    hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
   };
 
   # ----------------------------------------------------------------------------

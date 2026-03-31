@@ -94,7 +94,6 @@ let
   # GitLab
   # ----------------------------------------------------------------------------
   glabBin = "${config.home.profileDirectory}/bin/glab";
-  gitlabPatFile = "${secretsDir}/gitlab-pat";
   gitlabToolsets = lib.concatStringsSep "," [
     "branches"
     "issues"
@@ -114,9 +113,6 @@ let
           export GITLAB_API_URL="https://''${host}/api/v4"
         fi
       fi
-    fi
-    if [ -z "''${GITLAB_PERSONAL_ACCESS_TOKEN:-}" ] && [ -f "${gitlabPatFile}" ]; then
-      export GITLAB_PERSONAL_ACCESS_TOKEN="$(cat ${gitlabPatFile})"
     fi
     export GITLAB_TOOLSETS="${gitlabToolsets}"
     exec ${pkgs.mcp-server-gitlab}/bin/mcp-server-gitlab "$@"

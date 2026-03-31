@@ -32,7 +32,7 @@ Use the native web search capability for current public-web information. Use Fet
 
 ## Custom Agent Roles
 
-This Codex profile exposes custom agent roles in addition to the built-in worker types. Use the most specific role that matches the task:
+Custom agent roles are available in addition to built-in agents. Use the most specific role that matches the task:
 
 - **architect** for design and structure review.
 - **debugger** for root-cause analysis.

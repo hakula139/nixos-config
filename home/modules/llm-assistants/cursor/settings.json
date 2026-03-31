@@ -42,7 +42,7 @@
     "editor.defaultFormatter": "jnoortheen.nix-ide"
   },
   "[proto3]": {
-    "editor.defaultFormatter": "drblury.protobuf-vsc"
+    "editor.defaultFormatter": "DrBlury.protobuf-vsc"
   },
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff"

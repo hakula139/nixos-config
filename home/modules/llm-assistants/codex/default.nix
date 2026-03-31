@@ -43,8 +43,10 @@ in
     mcp = {
       enabledServers = mcpOptions.mkEnabledServersOption {
         names = codexMcpServers;
-        default = codexMcpServers;
         description = "MCP servers to enable";
+      };
+      disabledServers = mcpOptions.mkDisabledServersOption {
+        description = "MCP servers to disable";
       };
     };
 
@@ -53,6 +55,9 @@ in
 
   config = lib.mkIf cfg.enable (
     let
+      # ------------------------------------------------------------------------
+      # Module imports
+      # ------------------------------------------------------------------------
       notify = import ../shared/notify.nix { inherit pkgs lib; };
 
       agents = import ./agents.nix {
@@ -70,6 +75,9 @@ in
           ;
       };
 
+      # ------------------------------------------------------------------------
+      # Package wrapper
+      # ------------------------------------------------------------------------
       codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
 
       proxyUrl =
@@ -179,7 +187,7 @@ in
               map (s: {
                 name = mcpOptions.serverDisplayNames.${s};
                 value.command = mcp.servers.${s}.command;
-              }) cfg.mcp.enabledServers
+              }) (builtins.filter (s: !(lib.elem s cfg.mcp.disabledServers)) cfg.mcp.enabledServers)
             );
 
             # ------------------------------------------------------------------
