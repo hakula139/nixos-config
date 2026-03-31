@@ -247,6 +247,14 @@ in
                 "-w"
                 "$FILE"
               ];
+              taplo = {
+                command = [
+                  (lib.getExe pkgs.taplo)
+                  "fmt"
+                  "$FILE"
+                ];
+                extensions = [ ".toml" ];
+              };
             }
             // lib.optionalAttrs enableDevToolchains {
               gofmt.command = [
