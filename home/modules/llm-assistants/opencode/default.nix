@@ -108,7 +108,6 @@ in
       # ------------------------------------------------------------------------
       tuiConfigFile = json.generate "opencode-tui.json" {
         "$schema" = "https://opencode.ai/tui.json";
-        theme = "catppuccin";
         keybinds = {
           input_line_home = "home";
           input_line_end = "end";
