@@ -54,8 +54,10 @@ in
     mcp = {
       enabledServers = mcpOptions.mkEnabledServersOption {
         names = claudeMcpServers;
-        default = claudeMcpServers;
         description = "MCP servers to enable";
+      };
+      disabledServers = mcpOptions.mkDisabledServersOption {
+        description = "MCP servers to disable";
       };
     };
 
@@ -126,7 +128,7 @@ in
       # ------------------------------------------------------------------------
       # Codex requires the codex module to be enabled
       effectiveServers = builtins.filter (
-        s: s != "codex" || config.hakula.codex.enable
+        s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)
       ) cfg.mcp.enabledServers;
 
       mcpServersConfig = builtins.listToAttrs (

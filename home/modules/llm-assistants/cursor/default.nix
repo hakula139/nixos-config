@@ -70,8 +70,10 @@ in
     mcp = {
       enabledServers = mcpOptions.mkEnabledServersOption {
         names = cursorMcpServers;
-        default = cursorMcpServers;
         description = "MCP servers to enable";
+      };
+      disabledServers = mcpOptions.mkDisabledServersOption {
+        description = "MCP servers to disable";
       };
     };
 
@@ -92,7 +94,7 @@ in
           secrets
           isNixOS
           ;
-        inherit (cfg.mcp) enabledServers;
+        enabledServers = builtins.filter (s: !(lib.elem s cfg.mcp.disabledServers)) cfg.mcp.enabledServers;
       };
 
       darwinFiles = {

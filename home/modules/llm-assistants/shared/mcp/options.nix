@@ -32,4 +32,12 @@ in
       type = lib.types.listOf (lib.types.enum names);
       inherit default description;
     };
+
+  mkDisabledServersOption =
+    { description }:
+    lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      inherit description;
+    };
 }
