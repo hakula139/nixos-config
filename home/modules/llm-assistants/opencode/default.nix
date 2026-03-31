@@ -195,10 +195,15 @@ in
           # --------------------------------------------------------------------
           settings = {
             # ------------------------------------------------------------------
-            # Model
+            # Models
             # ------------------------------------------------------------------
             model = "openai/gpt-5.4";
             small_model = "openai/gpt-5.4-mini";
+            provider = {
+              openai.models."gpt-5.4".options = {
+                reasoningEffort = "xhigh";
+              };
+            };
 
             # ------------------------------------------------------------------
             # MCP servers
@@ -206,7 +211,7 @@ in
             mcp = mcpServersConfig;
 
             # ------------------------------------------------------------------
-            # Plugins (online: npm install at runtime)
+            # Plugins
             # ------------------------------------------------------------------
             plugin = lib.optionals (cfg.plugins.ohMyOpenCode && !cfg.plugins.bundle) [
               "oh-my-opencode"
