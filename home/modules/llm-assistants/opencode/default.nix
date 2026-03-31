@@ -9,6 +9,7 @@
   inputs,
   secrets,
   isNixOS ? false,
+  enableDevToolchains ? false,
   ...
 }:
 
@@ -137,6 +138,19 @@ in
         export NO_PROXY=${noProxy}
       '';
 
+      ruffFormatScript = pkgs.writeShellScript "opencode-ruff-format" ''
+        ${lib.getExe pkgs.ruff} format "$1"
+        ${lib.getExe pkgs.ruff} check --fix "$1" >/dev/null 2>&1 || true
+      '';
+
+      goFormatScript = pkgs.writeShellScript "opencode-go-format" ''
+        if command -v goimports >/dev/null 2>&1; then
+          exec goimports -w "$1"
+        fi
+
+        exec ${lib.getExe' pkgs.go "gofmt"} -w "$1"
+      '';
+
       opencodeBin =
         if cfg.proxy.enable then
           pkgs.symlinkJoin {
@@ -215,6 +229,31 @@ in
             plugin = lib.optionals (cfg.plugins.ohMyOpenCode && !cfg.plugins.bundle) [
               "oh-my-opencode"
             ];
+
+            # ------------------------------------------------------------------
+            # Formatters
+            # ------------------------------------------------------------------
+            formatter = {
+              nixfmt.command = [
+                (lib.getExe pkgs.nixfmt)
+                "$FILE"
+              ];
+              ruff.command = [
+                "${ruffFormatScript}"
+                "$FILE"
+              ];
+              shfmt.command = [
+                (lib.getExe pkgs.shfmt)
+                "-w"
+                "$FILE"
+              ];
+            }
+            // lib.optionalAttrs enableDevToolchains {
+              gofmt.command = [
+                "${goFormatScript}"
+                "$FILE"
+              ];
+            };
 
             # ------------------------------------------------------------------
             # Updates
