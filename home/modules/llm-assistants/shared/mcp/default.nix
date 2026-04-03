@@ -14,6 +14,23 @@
 let
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
+  corpDomain = import ../../../../../lib/corp-domain.nix;
+
+  # ----------------------------------------------------------------------------
+  # Atlassian (Confluence)
+  # ----------------------------------------------------------------------------
+  confluencePatFile = "${secretsDir}/confluence-pat";
+  atlassianBin = pkgs.writeShellScriptBin "atlassian-mcp" ''
+    export PATH="${pkgs.uv}/bin:$PATH"
+    if [ -f "${confluencePatFile}" ]; then
+      export CONFLUENCE_PERSONAL_TOKEN="$(cat ${confluencePatFile})"
+    fi
+    export CONFLUENCE_URL="https://wiki.${corpDomain}"
+    # mcp-atlassian reads HTTP(S)_PROXY into session.proxies but ignores NO_PROXY
+    # due to trust_env=False (PAT auth). Unset proxy for internal Confluence.
+    unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
+    exec uvx mcp-atlassian "$@"
+  '';
 
   # ----------------------------------------------------------------------------
   # Brave Search
@@ -123,6 +140,11 @@ in
   # MCP servers
   # ----------------------------------------------------------------------------
   servers = {
+    atlassian = {
+      command = "${atlassianBin}/bin/atlassian-mcp";
+      type = "stdio";
+    };
+
     braveSearch = {
       command = "${braveSearchBin}/bin/brave-search-mcp";
       type = "stdio";
@@ -174,6 +196,11 @@ in
   # ----------------------------------------------------------------------------
   secrets = lib.mkIf (!isNixOS) {
     age.secrets = {
+      confluence-pat = secrets.mkHomeSecret {
+        name = "confluence-pat";
+        inherit homeDir;
+      };
+
       brave-api-key = secrets.mkHomeSecret {
         name = "brave-api-key";
         inherit homeDir;

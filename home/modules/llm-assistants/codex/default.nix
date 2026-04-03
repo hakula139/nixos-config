@@ -14,10 +14,12 @@
 
 let
   cfg = config.hakula.codex;
-  instructions = import ../shared/instructions;
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
+  proxyLib = import ../shared/proxy.nix { inherit lib; };
+  instructions = import ../shared/instructions;
   codexMcpServers = [
+    "atlassian"
     "context7"
     "deepwiki"
     "fetcher"
@@ -50,7 +52,7 @@ in
       };
     };
 
-    proxy = (import ../shared/proxy.nix { inherit lib; }).mkProxyOptions "Codex";
+    proxy = proxyLib.mkProxyOptions "Codex";
   };
 
   config = lib.mkIf cfg.enable (
@@ -80,18 +82,7 @@ in
       # ------------------------------------------------------------------------
       codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
 
-      proxyUrl =
-        if cfg.proxy.secretUrlFile != null then
-          "$(cat ${lib.escapeShellArg cfg.proxy.secretUrlFile})"
-        else
-          lib.escapeShellArg cfg.proxy.url;
-      noProxy = lib.escapeShellArg (lib.concatStringsSep "," cfg.proxy.noProxy);
-
-      proxyRunScript = ''
-        export HTTP_PROXY=${proxyUrl}
-        export HTTPS_PROXY=${proxyUrl}
-        export NO_PROXY=${noProxy}
-      '';
+      proxyRunScript = proxyLib.mkProxyScript cfg.proxy;
 
       codexBin =
         if cfg.proxy.enable then

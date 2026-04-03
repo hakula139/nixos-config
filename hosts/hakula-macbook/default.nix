@@ -42,7 +42,10 @@
   # ----------------------------------------------------------------------------
   hakula.llm-assistants = {
     enable = true;
-    mcp.disabledServers = [ "gitlab" ];
+    mcp.disabledServers = [
+      "atlassian"
+      "gitlab"
+    ];
     proxy.enable = true;
   };
 

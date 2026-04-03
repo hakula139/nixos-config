@@ -30,4 +30,24 @@
       description = "Domains to bypass the proxy";
     };
   };
+
+  # Shell script snippet that exports proxy env vars (both cases for compatibility).
+  mkProxyScript =
+    proxyCfg:
+    let
+      proxyUrl =
+        if proxyCfg.secretUrlFile != null then
+          "$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})"
+        else
+          lib.escapeShellArg proxyCfg.url;
+      noProxy = lib.escapeShellArg (lib.concatStringsSep "," proxyCfg.noProxy);
+    in
+    ''
+      export HTTP_PROXY=${proxyUrl}
+      export HTTPS_PROXY=${proxyUrl}
+      export NO_PROXY=${noProxy}
+      export http_proxy=${proxyUrl}
+      export https_proxy=${proxyUrl}
+      export no_proxy=${noProxy}
+    '';
 }
