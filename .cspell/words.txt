@@ -11,6 +11,7 @@ bprevious
 bradlc
 btop
 busctl
+cachain
 cachix
 catppuccin
 ccache
@@ -98,6 +99,7 @@ libuuid
 libuv
 libx
 linkify
+litellm
 lldb
 localectl
 marp

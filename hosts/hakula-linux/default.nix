@@ -32,6 +32,7 @@ in
       ];
     };
   };
+  hakula.claude-code.gateway.enable = true;
   hakula.cursor.extensions = {
     enable = lib.mkForce true;
     prune = lib.mkForce false;

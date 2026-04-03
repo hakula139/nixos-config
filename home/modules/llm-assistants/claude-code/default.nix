@@ -17,6 +17,7 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
+  corpDomain = import ../../../../lib/corp-domain.nix;
 
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
@@ -69,17 +70,57 @@ in
       devToolchains = lib.mkOption {
         type = lib.types.bool;
         default = enableDevToolchains;
-        description = "Whether to enable dev toolchain LSP plugins (clangd, gopls, rust-analyzer).";
+        description = "Whether to enable dev toolchain LSP plugins (clangd, gopls, rust-analyzer)";
       };
 
       online = lib.mkOption {
         type = lib.types.bool;
         default = !cfg.plugins.bundle;
-        description = "Whether to enable plugins requiring internet access (context7, agent-browser).";
+        description = "Whether to enable plugins requiring internet access (context7, agent-browser)";
       };
     };
 
     proxy = proxyLib.mkProxyOptions "Claude Code";
+
+    gateway = {
+      enable = lib.mkEnableOption "internal LiteLLM gateway";
+
+      url = lib.mkOption {
+        type = lib.types.str;
+        default = "https://gw.llm.${corpDomain}/";
+        description = "LiteLLM gateway base URL";
+      };
+
+      secretKeyFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "Path to file containing the LiteLLM API key. When null, uses agenix-managed secret.";
+      };
+
+      caCertFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "Path to CA certificate chain for the gateway. When null, defaults to ~/.claude/cachain.crt.";
+      };
+
+      models = {
+        opus = lib.mkOption {
+          type = lib.types.str;
+          default = "bedrock/global.anthropic.claude-opus-4-6-v1";
+          description = "Opus model identifier for the gateway";
+        };
+        sonnet = lib.mkOption {
+          type = lib.types.str;
+          default = "bedrock/global.anthropic.claude-sonnet-4-6";
+          description = "Sonnet model identifier for the gateway";
+        };
+        haiku = lib.mkOption {
+          type = lib.types.str;
+          default = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
+          description = "Haiku model identifier for the gateway";
+        };
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable (
@@ -145,6 +186,14 @@ in
       # ------------------------------------------------------------------------
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
       oauthTokenFile = lib.escapeShellArg "${secretsDir}/claude-code-oauth-token";
+      gatewayKeyFile = lib.escapeShellArg (
+        if cfg.gateway.secretKeyFile != null then
+          cfg.gateway.secretKeyFile
+        else
+          "${secretsDir}/litellm-api-key"
+      );
+      gatewayCaCertFile =
+        if cfg.gateway.caCertFile != null then cfg.gateway.caCertFile else "${secretsDir}/corp-cachain-crt";
       json = pkgs.formats.json { };
 
       mcpConfigFile = json.generate "claude-code-mcp-config.json" {
@@ -174,6 +223,13 @@ in
         lib.optionals cfg.auth.useOAuthToken [
           "--run"
           ''export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"''
+        ]
+        ++ lib.optionals cfg.gateway.enable [
+          "--run"
+          ''export ANTHROPIC_AUTH_TOKEN="$(cat ${gatewayKeyFile})"''
+          "--set"
+          "NODE_EXTRA_CA_CERTS"
+          gatewayCaCertFile
         ]
         ++ lib.optionals cfg.proxy.enable [
           "--run"
@@ -205,6 +261,14 @@ in
     in
     lib.mkMerge [
       mcp.secrets
+      {
+        assertions = [
+          {
+            assertion = !(cfg.gateway.enable && cfg.auth.useOAuthToken);
+            message = "hakula.claude-code: gateway and OAuth token auth are mutually exclusive";
+          }
+        ];
+      }
       (lib.mkIf (!isNixOS && cfg.auth.useOAuthToken) {
         # ----------------------------------------------------------------------
         # Secrets
@@ -214,6 +278,19 @@ in
           inherit homeDir;
         };
       })
+      (lib.mkIf (!isNixOS && cfg.gateway.enable && cfg.gateway.secretKeyFile == null) {
+        age.secrets.litellm-api-key = secrets.mkHomeSecret {
+          name = "litellm-api-key";
+          inherit homeDir;
+        };
+      })
+      (lib.mkIf (!isNixOS && cfg.gateway.enable && cfg.gateway.caCertFile == null) {
+        age.secrets.corp-cachain-crt = secrets.mkHomeSecret {
+          name = "corp-cachain-crt";
+          inherit homeDir;
+        };
+      })
+
       {
         # ----------------------------------------------------------------------
         # User configuration files
@@ -284,6 +361,13 @@ in
               DISABLE_INSTALLATION_CHECKS = "1";
               ENABLE_CLAUDEAI_MCP_SERVERS = "false";
               FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "false" else "true";
+            }
+            // lib.optionalAttrs cfg.gateway.enable {
+              ANTHROPIC_BASE_URL = cfg.gateway.url;
+              API_TIMEOUT_MS = "3000000";
+              ANTHROPIC_DEFAULT_HAIKU_MODEL = cfg.gateway.models.haiku;
+              ANTHROPIC_DEFAULT_SONNET_MODEL = cfg.gateway.models.sonnet;
+              ANTHROPIC_DEFAULT_OPUS_MODEL = cfg.gateway.models.opus;
             };
           };
         };
