@@ -39,6 +39,13 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
+    age.secrets.confluence-pat = secrets.mkSecret {
+      name = "confluence-pat";
+      owner = cfg.user;
+      inherit (userCfg) group;
+      path = "${secretsDir}/confluence-pat";
+    };
+
     age.secrets.brave-api-key = secrets.mkSecret {
       name = "brave-api-key";
       owner = cfg.user;

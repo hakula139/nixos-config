@@ -23,6 +23,7 @@ let
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
   mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
   claudeMcpServers = [
+    "atlassian"
     "codex"
     "deepwiki"
     "fetcher"

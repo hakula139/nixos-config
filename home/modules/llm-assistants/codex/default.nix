@@ -18,6 +18,7 @@ let
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
   codexMcpServers = [
+    "atlassian"
     "context7"
     "deepwiki"
     "fetcher"

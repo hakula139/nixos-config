@@ -6,6 +6,7 @@
 
 let
   serverDisplayNames = {
+    atlassian = "Atlassian";
     braveSearch = "BraveSearch";
     codex = "Codex";
     context7 = "Context7";

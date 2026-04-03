@@ -33,6 +33,7 @@ in
   # ----------------------------------------------------------------------------
   "brave-api-key.age".publicKeys = allKeys;
   "claude-code-oauth-token.age".publicKeys = allKeys;
+  "confluence-pat.age".publicKeys = allKeys;
   "context7-api-key.age".publicKeys = allKeys;
   "devvm-proxy-url.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
   "github-pat-personal.age".publicKeys = allKeys;
