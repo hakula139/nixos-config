@@ -20,7 +20,10 @@
   # ----------------------------------------------------------------------------
   hakula.llm-assistants = {
     enable = lib.mkDefault true;
-    mcp.disabledServers = lib.mkDefault [ "gitlab" ];
+    mcp.disabledServers = lib.mkDefault [
+      "atlassian"
+      "gitlab"
+    ];
   };
 
   # ----------------------------------------------------------------------------

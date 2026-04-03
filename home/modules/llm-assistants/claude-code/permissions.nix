@@ -21,6 +21,7 @@
     "Bash(* --help)"
     "Bash(* --help *)"
     "Bash(man *)"
+    "mcp__Atlassian"
     "mcp__DeepWiki"
     "mcp__plugin_context7-plugin_context7"
 
@@ -362,6 +363,20 @@
     "Bash(killall *)"
     "Bash(pkill *)"
     "Bash(sudo *)"
+
+    # --------------------------------------------------------------------------
+    # Atlassian
+    # --------------------------------------------------------------------------
+    "mcp__Atlassian__confluence_add_comment"
+    "mcp__Atlassian__confluence_add_label"
+    "mcp__Atlassian__confluence_create_page"
+    "mcp__Atlassian__confluence_delete_attachment"
+    "mcp__Atlassian__confluence_delete_page"
+    "mcp__Atlassian__confluence_move_page"
+    "mcp__Atlassian__confluence_reply_to_comment"
+    "mcp__Atlassian__confluence_update_page"
+    "mcp__Atlassian__confluence_upload_attachment"
+    "mcp__Atlassian__confluence_upload_attachments"
 
     # --------------------------------------------------------------------------
     # Git
