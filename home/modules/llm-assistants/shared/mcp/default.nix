@@ -26,6 +26,9 @@ let
       export CONFLUENCE_PERSONAL_TOKEN="$(cat ${confluencePatFile})"
     fi
     export CONFLUENCE_URL="https://wiki.${corpDomain}"
+    # mcp-atlassian reads HTTP(S)_PROXY into session.proxies but ignores NO_PROXY
+    # due to trust_env=False (PAT auth). Unset proxy for internal Confluence.
+    unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
     exec uvx mcp-atlassian "$@"
   '';
 

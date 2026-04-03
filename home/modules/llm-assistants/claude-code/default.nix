@@ -18,10 +18,11 @@ let
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
 
-  instructions = import ../shared/instructions;
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
   mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
+  proxyLib = import ../shared/proxy.nix { inherit lib; };
+  instructions = import ../shared/instructions;
   claudeMcpServers = [
     "atlassian"
     "codex"
@@ -78,7 +79,7 @@ in
       };
     };
 
-    proxy = (import ../shared/proxy.nix { inherit lib; }).mkProxyOptions "Claude Code";
+    proxy = proxyLib.mkProxyOptions "Claude Code";
   };
 
   config = lib.mkIf cfg.enable (
@@ -146,13 +147,6 @@ in
       oauthTokenFile = lib.escapeShellArg "${secretsDir}/claude-code-oauth-token";
       json = pkgs.formats.json { };
 
-      proxyUrl =
-        if cfg.proxy.secretUrlFile != null then
-          "$(cat ${lib.escapeShellArg cfg.proxy.secretUrlFile})"
-        else
-          lib.escapeShellArg cfg.proxy.url;
-      noProxy = lib.escapeShellArg (lib.concatStringsSep "," cfg.proxy.noProxy);
-
       mcpConfigFile = json.generate "claude-code-mcp-config.json" {
         mcpServers = mcpServersConfig;
       };
@@ -183,11 +177,7 @@ in
         ]
         ++ lib.optionals cfg.proxy.enable [
           "--run"
-          ''
-            export HTTP_PROXY=${proxyUrl}
-            export HTTPS_PROXY=${proxyUrl}
-            export NO_PROXY=${noProxy}
-          ''
+          (proxyLib.mkProxyScript cfg.proxy)
         ]
         ++ lib.optionals cfg.plugins.bundle [
           "--set"
