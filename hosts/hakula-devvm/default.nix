@@ -13,6 +13,7 @@ let
   corpDomain = import ../../lib/corp-domain.nix;
 
   commonMcpServers = [
+    "atlassian"
     "filesystem"
     "git"
     "gitlab"
