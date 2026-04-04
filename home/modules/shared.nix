@@ -94,7 +94,6 @@ in
       git-filter-repo
       unstable.hugo
       scc
-      yt-dlp
     ]
     ++ tooling.nix
     ++ tooling.secrets
@@ -152,6 +151,8 @@ in
         # ----------------------------------------------------------------------
         ffmpeg
         imagemagick
+        gallery-dl
+        yt-dlp
       ]
     );
 
