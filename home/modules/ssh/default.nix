@@ -50,6 +50,16 @@ in
         user = "hakula";
         port = 22;
         identityFile = "${homeDir}/.ssh/id_ed25519";
+        proxyCommand = "tailscale nc %h %p";
+        forwardAgent = true;
+      };
+      "Hakula-Work" = {
+        host = "Hakula-Work";
+        hostname = "hakula-work";
+        user = "hakula";
+        port = 22;
+        identityFile = "${homeDir}/.ssh/id_ed25519";
+        proxyCommand = "tailscale nc %h %p";
         forwardAgent = true;
       };
     }
