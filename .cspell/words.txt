@@ -186,6 +186,7 @@ showcmd
 signup
 sigsys
 slaac
+socat
 spack
 statix
 stdenv
