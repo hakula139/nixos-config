@@ -47,6 +47,11 @@ case "$FILE_PATH" in
       taplo fmt "$FILE_PATH" 2>/dev/null || true
     fi
     ;;
+  *.css | *.js)
+    if command -v npx &>/dev/null; then
+      npx --no prettier --write "$FILE_PATH" 2>/dev/null || true
+    fi
+    ;;
   *.md)
     if command -v npx &>/dev/null; then
       npx --no markdownlint-cli2 "$FILE_PATH" 2>&1 | head -20 || true
