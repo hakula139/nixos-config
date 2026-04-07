@@ -5,7 +5,7 @@ set -euo pipefail
 # Claude Code Status Line Command
 # ==============================================================================
 # Row 1: #tty <directory> <git>
-# Row 2: [Model] | Ctx: X% (XXk/200k) | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
+# Row 2: Model | Ctx: X% (XXk/200k) | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
 # ==============================================================================
 
 readonly RED='\033[0;31m'
@@ -52,6 +52,25 @@ join_parts() {
   done
 
   printf '%b' "${result}"
+}
+
+# ------------------------------------------------------------------------------
+# Model Name
+# ------------------------------------------------------------------------------
+
+# Simplifies verbose model identifiers to human-friendly names
+# e.g., "bedrock/global.anthropic.claude-opus-4-6-v1[1m]" → "Opus[1m]"
+simplify_model_name() {
+  local raw="$1"
+  local suffix=""
+  [[ "${raw}" =~ \[([^\]]+)\]$ ]] && suffix="[${BASH_REMATCH[1]}]"
+
+  case "${raw}" in
+    *opus*) echo "Opus${suffix}" ;;
+    *sonnet*) echo "Sonnet${suffix}" ;;
+    *haiku*) echo "Haiku${suffix}" ;;
+    *) echo "${raw}" ;;
+  esac
 }
 
 # ------------------------------------------------------------------------------
@@ -269,10 +288,11 @@ main() {
   # ----------------------------------------------------------------------------
   local model_name
   model_name="$(echo "${input}" | jq -r '.model.display_name // empty')"
+  model_name="$(simplify_model_name "${model_name}")"
 
   local model_output=""
   if [[ -n "${model_name}" ]]; then
-    model_output="$(printf '%b[%s]%b' "${CYAN}" "${model_name}" "${RESET}")"
+    model_output="$(printf '%b%s%b' "${CYAN}" "${model_name}" "${RESET}")"
   fi
 
   local claude_info ccusage_data ccusage_info
