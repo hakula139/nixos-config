@@ -57,7 +57,7 @@ in
   # Assistant Tooling
   # ----------------------------------------------------------------------------
   hakula.llm-assistants.enable = lib.mkDefault true;
-  hakula.claude-code.gateway.enable = true;
+  hakula.claude-code.auth.useGateway = true;
 
   # ----------------------------------------------------------------------------
   # Home Manager Overrides
@@ -73,7 +73,7 @@ in
       mcp.enabledServers = claudeMcpServers;
       plugins.bundle = true;
       inherit proxy;
-      gateway.enable = true;
+      auth.useGateway = true;
     };
 
     hakula.codex = {

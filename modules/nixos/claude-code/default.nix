@@ -23,10 +23,7 @@ in
 
     auth = {
       useOAuthToken = lib.mkEnableOption "long-lived OAuth token for authentication";
-    };
-
-    gateway = {
-      enable = lib.mkEnableOption "internal LiteLLM gateway secrets";
+      useGateway = lib.mkEnableOption "LiteLLM gateway authentication secrets";
     };
 
     user = lib.mkOption {
@@ -56,7 +53,7 @@ in
       }
     );
 
-    age.secrets.litellm-api-key = lib.mkIf cfg.gateway.enable (
+    age.secrets.litellm-api-key = lib.mkIf cfg.auth.useGateway (
       secrets.mkSecret {
         name = "litellm-api-key";
         owner = cfg.user;
@@ -65,7 +62,7 @@ in
       }
     );
 
-    age.secrets.corp-cachain-crt = lib.mkIf cfg.gateway.enable (
+    age.secrets.corp-cachain-crt = lib.mkIf cfg.auth.useGateway (
       secrets.mkSecret {
         name = "corp-cachain-crt";
         owner = cfg.user;

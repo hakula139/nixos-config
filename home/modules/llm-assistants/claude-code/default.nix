@@ -46,6 +46,7 @@ in
 
     auth = {
       useOAuthToken = lib.mkEnableOption "long-lived OAuth token for authentication";
+      useGateway = lib.mkEnableOption "LiteLLM gateway authentication";
     };
 
     agents = {
@@ -83,34 +84,6 @@ in
     };
 
     proxy = proxyLib.mkProxyOptions "Claude Code";
-
-    gateway = {
-      enable = lib.mkEnableOption "internal LiteLLM gateway";
-
-      url = lib.mkOption {
-        type = lib.types.str;
-        default = "https://gw.llm.${corpDomain}/";
-        description = "LiteLLM gateway base URL";
-      };
-
-      models = {
-        opus = lib.mkOption {
-          type = lib.types.str;
-          default = "bedrock/global.anthropic.claude-opus-4-6-v1";
-          description = "Opus model identifier for the gateway";
-        };
-        sonnet = lib.mkOption {
-          type = lib.types.str;
-          default = "bedrock/global.anthropic.claude-sonnet-4-6";
-          description = "Sonnet model identifier for the gateway";
-        };
-        haiku = lib.mkOption {
-          type = lib.types.str;
-          default = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
-          description = "Haiku model identifier for the gateway";
-        };
-      };
-    };
   };
 
   config = lib.mkIf cfg.enable (
@@ -207,7 +180,7 @@ in
           "--run"
           ''export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"''
         ]
-        ++ lib.optionals cfg.gateway.enable [
+        ++ lib.optionals cfg.auth.useGateway [
           "--run"
           ''export ANTHROPIC_AUTH_TOKEN="$(cat ${gatewayKeyFile})"''
           "--set"
@@ -244,14 +217,16 @@ in
     in
     lib.mkMerge [
       mcp.secrets
+
       {
         assertions = [
           {
-            assertion = !(cfg.gateway.enable && cfg.auth.useOAuthToken);
-            message = "hakula.claude-code: gateway and OAuth token auth are mutually exclusive";
+            assertion = !(cfg.auth.useOAuthToken && cfg.auth.useGateway);
+            message = "hakula.claude-code: OAuth token and gateway auth are mutually exclusive";
           }
         ];
       }
+
       (lib.mkIf (!isNixOS && cfg.auth.useOAuthToken) {
         # ----------------------------------------------------------------------
         # Secrets
@@ -261,7 +236,8 @@ in
           inherit homeDir;
         };
       })
-      (lib.mkIf (!isNixOS && cfg.gateway.enable) {
+
+      (lib.mkIf (!isNixOS && cfg.auth.useGateway) {
         age.secrets.litellm-api-key = secrets.mkHomeSecret {
           name = "litellm-api-key";
           inherit homeDir;
@@ -339,16 +315,17 @@ in
               CLAUDE_AUTOCOMPACT_PCT_OVERRIDE = "95";
               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
               CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
+              CLAUDE_CODE_NO_FLICKER = "1";
+              CLAUDE_CODE_SCROLL_SPEED = "1";
               DISABLE_INSTALLATION_CHECKS = "1";
               ENABLE_CLAUDEAI_MCP_SERVERS = "false";
               FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "false" else "true";
             }
-            // lib.optionalAttrs cfg.gateway.enable {
-              ANTHROPIC_BASE_URL = cfg.gateway.url;
-              API_TIMEOUT_MS = "3000000";
-              ANTHROPIC_DEFAULT_HAIKU_MODEL = cfg.gateway.models.haiku;
-              ANTHROPIC_DEFAULT_SONNET_MODEL = cfg.gateway.models.sonnet;
-              ANTHROPIC_DEFAULT_OPUS_MODEL = cfg.gateway.models.opus;
+            // lib.optionalAttrs cfg.auth.useGateway {
+              ANTHROPIC_BASE_URL = "https://gw.llm.${corpDomain}/";
+              ANTHROPIC_DEFAULT_OPUS_MODEL = "bedrock/global.anthropic.claude-opus-4-6-v1";
+              ANTHROPIC_DEFAULT_SONNET_MODEL = "bedrock/global.anthropic.claude-sonnet-4-6";
+              ANTHROPIC_DEFAULT_HAIKU_MODEL = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
             };
           };
         };

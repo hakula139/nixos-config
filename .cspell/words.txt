@@ -19,6 +19,7 @@ ccagent
 chgrp
 chocobozzz
 cidr
+claudeai
 clippy
 cloudreve
 cncidr
