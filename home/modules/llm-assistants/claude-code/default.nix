@@ -14,9 +14,12 @@
 }:
 
 let
+  json = pkgs.formats.json { };
+
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
+  corpDomain = import ../../../../lib/corp-domain.nix;
 
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
@@ -43,6 +46,7 @@ in
 
     auth = {
       useOAuthToken = lib.mkEnableOption "long-lived OAuth token for authentication";
+      useGateway = lib.mkEnableOption "LiteLLM gateway authentication";
     };
 
     agents = {
@@ -69,13 +73,13 @@ in
       devToolchains = lib.mkOption {
         type = lib.types.bool;
         default = enableDevToolchains;
-        description = "Whether to enable dev toolchain LSP plugins (clangd, gopls, rust-analyzer).";
+        description = "Whether to enable dev toolchain LSP plugins (clangd, gopls, rust-analyzer)";
       };
 
       online = lib.mkOption {
         type = lib.types.bool;
         default = !cfg.plugins.bundle;
-        description = "Whether to enable plugins requiring internet access (context7, agent-browser).";
+        description = "Whether to enable plugins requiring internet access (context7, agent-browser)";
       };
     };
 
@@ -145,7 +149,8 @@ in
       # ------------------------------------------------------------------------
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
       oauthTokenFile = lib.escapeShellArg "${secretsDir}/claude-code-oauth-token";
-      json = pkgs.formats.json { };
+      gatewayKeyFile = lib.escapeShellArg "${secretsDir}/litellm-api-key";
+      gatewayCaCertFile = "${secretsDir}/corp-cachain.crt";
 
       mcpConfigFile = json.generate "claude-code-mcp-config.json" {
         mcpServers = mcpServersConfig;
@@ -174,6 +179,13 @@ in
         lib.optionals cfg.auth.useOAuthToken [
           "--run"
           ''export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"''
+        ]
+        ++ lib.optionals cfg.auth.useGateway [
+          "--run"
+          ''export ANTHROPIC_AUTH_TOKEN="$(cat ${gatewayKeyFile})"''
+          "--set"
+          "NODE_EXTRA_CA_CERTS"
+          gatewayCaCertFile
         ]
         ++ lib.optionals cfg.proxy.enable [
           "--run"
@@ -205,6 +217,16 @@ in
     in
     lib.mkMerge [
       mcp.secrets
+
+      {
+        assertions = [
+          {
+            assertion = !(cfg.auth.useOAuthToken && cfg.auth.useGateway);
+            message = "hakula.claude-code: OAuth token and gateway auth are mutually exclusive";
+          }
+        ];
+      }
+
       (lib.mkIf (!isNixOS && cfg.auth.useOAuthToken) {
         # ----------------------------------------------------------------------
         # Secrets
@@ -214,6 +236,18 @@ in
           inherit homeDir;
         };
       })
+
+      (lib.mkIf (!isNixOS && cfg.auth.useGateway) {
+        age.secrets.litellm-api-key = secrets.mkHomeSecret {
+          name = "litellm-api-key";
+          inherit homeDir;
+        };
+        age.secrets.corp-cachain-crt = secrets.mkHomeSecret {
+          name = "corp-cachain.crt";
+          inherit homeDir;
+        };
+      })
+
       {
         # ----------------------------------------------------------------------
         # User configuration files
@@ -281,9 +315,17 @@ in
               CLAUDE_AUTOCOMPACT_PCT_OVERRIDE = "95";
               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
               CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
+              CLAUDE_CODE_NO_FLICKER = "1";
+              CLAUDE_CODE_SCROLL_SPEED = "1";
               DISABLE_INSTALLATION_CHECKS = "1";
               ENABLE_CLAUDEAI_MCP_SERVERS = "false";
               FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "false" else "true";
+            }
+            // lib.optionalAttrs cfg.auth.useGateway {
+              ANTHROPIC_BASE_URL = "https://gw.llm.${corpDomain}/";
+              ANTHROPIC_DEFAULT_OPUS_MODEL = "bedrock/global.anthropic.claude-opus-4-6-v1";
+              ANTHROPIC_DEFAULT_SONNET_MODEL = "bedrock/global.anthropic.claude-sonnet-4-6";
+              ANTHROPIC_DEFAULT_HAIKU_MODEL = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
             };
           };
         };

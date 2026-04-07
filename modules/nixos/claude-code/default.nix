@@ -23,6 +23,7 @@ in
 
     auth = {
       useOAuthToken = lib.mkEnableOption "long-lived OAuth token for authentication";
+      useGateway = lib.mkEnableOption "LiteLLM gateway authentication secrets";
     };
 
     user = lib.mkOption {
@@ -49,6 +50,24 @@ in
         owner = cfg.user;
         inherit (userCfg) group;
         path = "${secretsDir}/claude-code-oauth-token";
+      }
+    );
+
+    age.secrets.litellm-api-key = lib.mkIf cfg.auth.useGateway (
+      secrets.mkSecret {
+        name = "litellm-api-key";
+        owner = cfg.user;
+        inherit (userCfg) group;
+        path = "${secretsDir}/litellm-api-key";
+      }
+    );
+
+    age.secrets.corp-cachain-crt = lib.mkIf cfg.auth.useGateway (
+      secrets.mkSecret {
+        name = "corp-cachain.crt";
+        owner = cfg.user;
+        inherit (userCfg) group;
+        path = "${secretsDir}/corp-cachain.crt";
       }
     );
   };
