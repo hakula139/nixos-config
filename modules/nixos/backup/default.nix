@@ -61,7 +61,7 @@ in
       type = lib.types.str;
       default = "";
       example = "cloudcone-sc2";
-      description = "Base path within the B2 bucket (each target appends its name).";
+      description = "Base path within the B2 bucket (each target appends its name)";
     };
 
     schedule = lib.mkOption {
