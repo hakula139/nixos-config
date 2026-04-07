@@ -69,6 +69,7 @@ in
     services.syncthing.enable = lib.mkForce false;
 
     hakula.claude-code = {
+      auth.useGateway = true;
       mcp.enabledServers = claudeMcpServers;
       plugins.bundle = true;
       inherit proxy;

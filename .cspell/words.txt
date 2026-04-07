@@ -11,6 +11,7 @@ bprevious
 bradlc
 btop
 busctl
+cachain
 cachix
 catppuccin
 ccache
@@ -18,6 +19,7 @@ ccagent
 chgrp
 chocobozzz
 cidr
+claudeai
 clippy
 cloudreve
 cncidr
@@ -98,6 +100,7 @@ libuuid
 libuv
 libx
 linkify
+litellm
 lldb
 localectl
 marp
