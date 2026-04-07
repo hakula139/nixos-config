@@ -25,6 +25,10 @@ in
       useOAuthToken = lib.mkEnableOption "long-lived OAuth token for authentication";
     };
 
+    gateway = {
+      enable = lib.mkEnableOption "internal LiteLLM gateway secrets";
+    };
+
     user = lib.mkOption {
       type = lib.types.str;
       default = config.hakula.user.name;
@@ -49,6 +53,24 @@ in
         owner = cfg.user;
         inherit (userCfg) group;
         path = "${secretsDir}/claude-code-oauth-token";
+      }
+    );
+
+    age.secrets.litellm-api-key = lib.mkIf cfg.gateway.enable (
+      secrets.mkSecret {
+        name = "litellm-api-key";
+        owner = cfg.user;
+        inherit (userCfg) group;
+        path = "${secretsDir}/litellm-api-key";
+      }
+    );
+
+    age.secrets.corp-cachain-crt = lib.mkIf cfg.gateway.enable (
+      secrets.mkSecret {
+        name = "corp-cachain-crt";
+        owner = cfg.user;
+        inherit (userCfg) group;
+        path = "${secretsDir}/corp-cachain-crt";
       }
     );
   };

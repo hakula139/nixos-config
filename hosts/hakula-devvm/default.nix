@@ -57,6 +57,7 @@ in
   # Assistant Tooling
   # ----------------------------------------------------------------------------
   hakula.llm-assistants.enable = lib.mkDefault true;
+  hakula.claude-code.gateway.enable = true;
 
   # ----------------------------------------------------------------------------
   # Home Manager Overrides
@@ -72,11 +73,7 @@ in
       mcp.enabledServers = claudeMcpServers;
       plugins.bundle = true;
       inherit proxy;
-      gateway = {
-        enable = true;
-        secretKeyFile = config.age.secrets.litellm-api-key.path;
-        caCertFile = config.age.secrets.corp-cachain-crt.path;
-      };
+      gateway.enable = true;
     };
 
     hakula.codex = {
@@ -98,18 +95,6 @@ in
 
   age.secrets.devvm-proxy-url = secrets.mkSecret {
     name = "devvm-proxy-url";
-    owner = "root";
-    group = "root";
-  };
-
-  age.secrets.litellm-api-key = secrets.mkSecret {
-    name = "litellm-api-key";
-    owner = "root";
-    group = "root";
-  };
-
-  age.secrets.corp-cachain-crt = secrets.mkSecret {
-    name = "corp-cachain-crt";
     owner = "root";
     group = "root";
   };

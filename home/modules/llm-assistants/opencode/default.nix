@@ -14,6 +14,8 @@
 }:
 
 let
+  json = pkgs.formats.json { };
+
   cfg = config.hakula.opencode;
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
@@ -68,8 +70,6 @@ in
 
   config = lib.mkIf cfg.enable (
     let
-      json = pkgs.formats.json { };
-
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------

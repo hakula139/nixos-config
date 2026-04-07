@@ -14,6 +14,8 @@
 }:
 
 let
+  json = pkgs.formats.json { };
+
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
@@ -89,18 +91,6 @@ in
         type = lib.types.str;
         default = "https://gw.llm.${corpDomain}/";
         description = "LiteLLM gateway base URL";
-      };
-
-      secretKeyFile = lib.mkOption {
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        description = "Path to file containing the LiteLLM API key. When null, uses agenix-managed secret.";
-      };
-
-      caCertFile = lib.mkOption {
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        description = "Path to CA certificate chain for the gateway. When null, defaults to ~/.claude/cachain.crt.";
       };
 
       models = {
@@ -186,15 +176,8 @@ in
       # ------------------------------------------------------------------------
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
       oauthTokenFile = lib.escapeShellArg "${secretsDir}/claude-code-oauth-token";
-      gatewayKeyFile = lib.escapeShellArg (
-        if cfg.gateway.secretKeyFile != null then
-          cfg.gateway.secretKeyFile
-        else
-          "${secretsDir}/litellm-api-key"
-      );
-      gatewayCaCertFile =
-        if cfg.gateway.caCertFile != null then cfg.gateway.caCertFile else "${secretsDir}/corp-cachain-crt";
-      json = pkgs.formats.json { };
+      gatewayKeyFile = lib.escapeShellArg "${secretsDir}/litellm-api-key";
+      gatewayCaCertFile = "${secretsDir}/corp-cachain-crt";
 
       mcpConfigFile = json.generate "claude-code-mcp-config.json" {
         mcpServers = mcpServersConfig;
@@ -278,13 +261,11 @@ in
           inherit homeDir;
         };
       })
-      (lib.mkIf (!isNixOS && cfg.gateway.enable && cfg.gateway.secretKeyFile == null) {
+      (lib.mkIf (!isNixOS && cfg.gateway.enable) {
         age.secrets.litellm-api-key = secrets.mkHomeSecret {
           name = "litellm-api-key";
           inherit homeDir;
         };
-      })
-      (lib.mkIf (!isNixOS && cfg.gateway.enable && cfg.gateway.caCertFile == null) {
         age.secrets.corp-cachain-crt = secrets.mkHomeSecret {
           name = "corp-cachain-crt";
           inherit homeDir;
