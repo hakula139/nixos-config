@@ -59,7 +59,7 @@ in
       ohMyOpenCode = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Whether to enable the oh-my-opencode plugin.";
+        description = "Whether to enable the oh-my-opencode plugin";
       };
     };
 
