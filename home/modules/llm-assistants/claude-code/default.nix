@@ -150,7 +150,7 @@ in
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
       oauthTokenFile = lib.escapeShellArg "${secretsDir}/claude-code-oauth-token";
       gatewayKeyFile = lib.escapeShellArg "${secretsDir}/litellm-api-key";
-      gatewayCaCertFile = "${secretsDir}/corp-cachain-crt";
+      gatewayCaCertFile = "${secretsDir}/corp-cachain.crt";
 
       mcpConfigFile = json.generate "claude-code-mcp-config.json" {
         mcpServers = mcpServersConfig;
@@ -243,7 +243,7 @@ in
           inherit homeDir;
         };
         age.secrets.corp-cachain-crt = secrets.mkHomeSecret {
-          name = "corp-cachain-crt";
+          name = "corp-cachain.crt";
           inherit homeDir;
         };
       })

@@ -64,10 +64,10 @@ in
 
     age.secrets.corp-cachain-crt = lib.mkIf cfg.auth.useGateway (
       secrets.mkSecret {
-        name = "corp-cachain-crt";
+        name = "corp-cachain.crt";
         owner = cfg.user;
         inherit (userCfg) group;
-        path = "${secretsDir}/corp-cachain-crt";
+        path = "${secretsDir}/corp-cachain.crt";
       }
     );
   };
