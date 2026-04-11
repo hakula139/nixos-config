@@ -15,61 +15,65 @@ let
   secretsDir = secrets.secretsPath homeDir;
   corpDomain = import ../../../../lib/corp-domain.nix;
 
-  isApiKey = cfg.auth.method == "api-key";
   isOAuthToken = cfg.auth.method == "oauth-token";
+  isApiKey = cfg.auth.method == "api-key";
   isGateway = cfg.auth.method == "gateway";
+  isApiAuth = isApiKey || isGateway;
 
-  apiKeyFile = lib.escapeShellArg "${secretsDir}/claude-code-api-key";
-  oauthTokenFile = lib.escapeShellArg "${secretsDir}/claude-code-oauth-token";
-  gatewayKeyFile = lib.escapeShellArg "${secretsDir}/litellm-api-key";
-  gatewayCaCertFile = "${secretsDir}/corp-cachain.crt";
+  secretFile = name: lib.escapeShellArg "${secretsDir}/${name}";
+
+  apiAuthDefs = {
+    api-key = {
+      tokenSecret = "claude-code-api-key";
+      defaultBaseUrl = "https://co.yes.vg";
+      extraEnv = { };
+      extraWrapArgs = [ ];
+      extraSecrets = [ ];
+    };
+
+    gateway = {
+      tokenSecret = "litellm-api-key";
+      defaultBaseUrl = "https://gw.llm.${corpDomain}/";
+      extraEnv = {
+        ANTHROPIC_DEFAULT_OPUS_MODEL = "bedrock/global.anthropic.claude-opus-4-6-v1";
+        ANTHROPIC_DEFAULT_SONNET_MODEL = "bedrock/global.anthropic.claude-sonnet-4-6";
+        ANTHROPIC_DEFAULT_HAIKU_MODEL = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
+      };
+      extraWrapArgs = [
+        "--set"
+        "NODE_EXTRA_CA_CERTS"
+        "${secretsDir}/corp-cachain.crt"
+      ];
+      extraSecrets = [ "corp-cachain.crt" ];
+    };
+  };
+
+  apiAuth = if isApiAuth then apiAuthDefs.${cfg.auth.method} else null;
 
   requiredSecrets =
-    if isApiKey then
-      [ "claude-code-api-key" ]
-    else if isOAuthToken then
+    if isOAuthToken then
       [ "claude-code-oauth-token" ]
-    else if isGateway then
-      [
-        "litellm-api-key"
-        "corp-cachain.crt"
-      ]
+    else if apiAuth != null then
+      [ apiAuth.tokenSecret ] ++ apiAuth.extraSecrets
     else
       [ ];
 
-  tokenAuth =
-    if isApiKey then
-      {
-        tokenFile = apiKeyFile;
-        inherit (cfg.auth) baseUrl;
-        extraEnv = { };
-        extraWrapArgs = [ ];
+  mkProvisioned =
+    secretName:
+    lib.mkIf (lib.elem secretName requiredSecrets) (
+      secrets.mkHomeSecret {
+        name = secretName;
+        inherit homeDir;
       }
-    else if isGateway then
-      {
-        tokenFile = gatewayKeyFile;
-        baseUrl = "https://gw.llm.${corpDomain}/";
-        extraEnv = {
-          ANTHROPIC_DEFAULT_OPUS_MODEL = "bedrock/global.anthropic.claude-opus-4-6-v1";
-          ANTHROPIC_DEFAULT_SONNET_MODEL = "bedrock/global.anthropic.claude-sonnet-4-6";
-          ANTHROPIC_DEFAULT_HAIKU_MODEL = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
-        };
-        extraWrapArgs = [
-          "--set"
-          "NODE_EXTRA_CA_CERTS"
-          gatewayCaCertFile
-        ];
-      }
-    else
-      null;
+    );
 in
 {
   options = {
     method = lib.mkOption {
       type = lib.types.nullOr (
         lib.types.enum [
-          "api-key"
           "oauth-token"
+          "api-key"
           "gateway"
         ]
       );
@@ -80,14 +84,14 @@ in
     baseUrl = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
-      description = "Base URL for plain API key authentication";
+      description = "Base URL for token-based authentication (`api-key`, `gateway`)";
     };
 
     _provision.requiredSecrets = lib.mkOption {
       type = lib.types.listOf (
         lib.types.enum [
-          "claude-code-api-key"
           "claude-code-oauth-token"
+          "claude-code-api-key"
           "litellm-api-key"
           "corp-cachain.crt"
         ]
@@ -101,35 +105,23 @@ in
     {
       assertions = [
         {
-          assertion = !isApiKey || cfg.auth.baseUrl != null;
-          message = "hakula.claude-code: auth.baseUrl must be set when auth.method is `api-key`";
+          assertion = !isApiAuth || cfg.auth.baseUrl != null;
+          message = "hakula.claude-code: auth.baseUrl must be set when auth.method is `api-key` or `gateway`";
         }
       ];
       hakula.claude-code.auth._provision.requiredSecrets = requiredSecrets;
     }
 
-    (lib.mkIf (!isNixOS && isApiKey) {
-      age.secrets.claude-code-api-key = secrets.mkHomeSecret {
-        name = "claude-code-api-key";
-        inherit homeDir;
-      };
+    (lib.mkIf (apiAuth != null) {
+      hakula.claude-code.auth.baseUrl = lib.mkDefault apiAuth.defaultBaseUrl;
     })
 
-    (lib.mkIf (!isNixOS && isOAuthToken) {
-      age.secrets.claude-code-oauth-token = secrets.mkHomeSecret {
-        name = "claude-code-oauth-token";
-        inherit homeDir;
-      };
-    })
-
-    (lib.mkIf (!isNixOS && isGateway) {
-      age.secrets.litellm-api-key = secrets.mkHomeSecret {
-        name = "litellm-api-key";
-        inherit homeDir;
-      };
-      age.secrets.corp-cachain-crt = secrets.mkHomeSecret {
-        name = "corp-cachain.crt";
-        inherit homeDir;
+    (lib.mkIf (!isNixOS) {
+      age.secrets = {
+        claude-code-oauth-token = mkProvisioned "claude-code-oauth-token";
+        claude-code-api-key = mkProvisioned "claude-code-api-key";
+        litellm-api-key = mkProvisioned "litellm-api-key";
+        corp-cachain-crt = mkProvisioned "corp-cachain.crt";
       };
     })
   ];
@@ -137,18 +129,20 @@ in
   wrapArgs =
     lib.optionals isOAuthToken [
       "--run"
-      ''export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"''
+      ''export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${secretFile "claude-code-oauth-token"})"''
     ]
-    ++ lib.optionals (tokenAuth != null) [
-      "--run"
-      ''export ANTHROPIC_AUTH_TOKEN="$(cat ${tokenAuth.tokenFile})"''
-    ]
-    ++ lib.optionals (tokenAuth != null) tokenAuth.extraWrapArgs;
+    ++ lib.optionals (apiAuth != null) (
+      [
+        "--run"
+        ''export ANTHROPIC_AUTH_TOKEN="$(cat ${secretFile apiAuth.tokenSecret})"''
+      ]
+      ++ apiAuth.extraWrapArgs
+    );
 
-  env = lib.optionalAttrs (tokenAuth != null) (
+  env = lib.optionalAttrs (apiAuth != null) (
     {
-      ANTHROPIC_BASE_URL = tokenAuth.baseUrl;
+      ANTHROPIC_BASE_URL = cfg.auth.baseUrl;
     }
-    // tokenAuth.extraEnv
+    // apiAuth.extraEnv
   );
 }
