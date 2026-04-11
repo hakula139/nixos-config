@@ -22,8 +22,23 @@ in
     enable = lib.mkEnableOption "Claude Code secrets";
 
     auth = {
-      useOAuthToken = lib.mkEnableOption "long-lived OAuth token for authentication";
-      useGateway = lib.mkEnableOption "LiteLLM gateway authentication secrets";
+      method = lib.mkOption {
+        type = lib.types.nullOr (
+          lib.types.enum [
+            "api-key"
+            "oauth-token"
+            "gateway"
+          ]
+        );
+        default = null;
+        description = "Authentication method for Claude Code";
+      };
+
+      baseUrl = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "Base URL for plain API key authentication";
+      };
     };
 
     user = lib.mkOption {
@@ -44,7 +59,16 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.claude-code-oauth-token = lib.mkIf cfg.auth.useOAuthToken (
+    age.secrets.claude-code-api-key = lib.mkIf (cfg.auth.method == "api-key") (
+      secrets.mkSecret {
+        name = "claude-code-api-key";
+        owner = cfg.user;
+        inherit (userCfg) group;
+        path = "${secretsDir}/claude-code-api-key";
+      }
+    );
+
+    age.secrets.claude-code-oauth-token = lib.mkIf (cfg.auth.method == "oauth-token") (
       secrets.mkSecret {
         name = "claude-code-oauth-token";
         owner = cfg.user;
@@ -53,7 +77,7 @@ in
       }
     );
 
-    age.secrets.litellm-api-key = lib.mkIf cfg.auth.useGateway (
+    age.secrets.litellm-api-key = lib.mkIf (cfg.auth.method == "gateway") (
       secrets.mkSecret {
         name = "litellm-api-key";
         owner = cfg.user;
@@ -62,7 +86,7 @@ in
       }
     );
 
-    age.secrets.corp-cachain-crt = lib.mkIf cfg.auth.useGateway (
+    age.secrets.corp-cachain-crt = lib.mkIf (cfg.auth.method == "gateway") (
       secrets.mkSecret {
         name = "corp-cachain.crt";
         owner = cfg.user;

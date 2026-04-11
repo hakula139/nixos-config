@@ -18,14 +18,21 @@ let
 
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
-  secretsDir = secrets.secretsPath homeDir;
-  corpDomain = import ../../../../lib/corp-domain.nix;
 
+  auth = import ./auth.nix {
+    inherit
+      config
+      lib
+      secrets
+      isNixOS
+      ;
+  };
+
+  instructions = import ../shared/instructions;
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
+
   mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
-  proxyLib = import ../shared/proxy.nix { inherit lib; };
-  instructions = import ../shared/instructions;
   claudeMcpServers = [
     "atlassian"
     "codex"
@@ -36,6 +43,8 @@ let
     "github"
     "gitlab"
   ];
+
+  proxyLib = import ../shared/proxy.nix { inherit lib; };
 in
 {
   # ----------------------------------------------------------------------------
@@ -44,10 +53,7 @@ in
   options.hakula.claude-code = {
     enable = lib.mkEnableOption "Claude Code";
 
-    auth = {
-      useOAuthToken = lib.mkEnableOption "long-lived OAuth token for authentication";
-      useGateway = lib.mkEnableOption "LiteLLM gateway authentication";
-    };
+    auth = auth.options;
 
     agents = {
       enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
@@ -148,9 +154,6 @@ in
       # Package wrapper
       # ------------------------------------------------------------------------
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
-      oauthTokenFile = lib.escapeShellArg "${secretsDir}/claude-code-oauth-token";
-      gatewayKeyFile = lib.escapeShellArg "${secretsDir}/litellm-api-key";
-      gatewayCaCertFile = "${secretsDir}/corp-cachain.crt";
 
       mcpConfigFile = json.generate "claude-code-mcp-config.json" {
         mcpServers = mcpServersConfig;
@@ -176,25 +179,15 @@ in
       '';
 
       wrapArgs =
-        lib.optionals cfg.auth.useOAuthToken [
-          "--run"
-          ''export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${oauthTokenFile})"''
-        ]
-        ++ lib.optionals cfg.auth.useGateway [
-          "--run"
-          ''export ANTHROPIC_AUTH_TOKEN="$(cat ${gatewayKeyFile})"''
-          "--set"
-          "NODE_EXTRA_CA_CERTS"
-          gatewayCaCertFile
-        ]
-        ++ lib.optionals cfg.proxy.enable [
-          "--run"
-          (proxyLib.mkProxyScript cfg.proxy)
-        ]
+        auth.wrapArgs
         ++ lib.optionals cfg.plugins.bundle [
           "--set"
           "CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL"
           "1"
+        ]
+        ++ lib.optionals cfg.proxy.enable [
+          "--run"
+          (proxyLib.mkProxyScript cfg.proxy)
         ]
         ++ [
           "--run"
@@ -217,36 +210,7 @@ in
     in
     lib.mkMerge [
       mcp.secrets
-
-      {
-        assertions = [
-          {
-            assertion = !(cfg.auth.useOAuthToken && cfg.auth.useGateway);
-            message = "hakula.claude-code: OAuth token and gateway auth are mutually exclusive";
-          }
-        ];
-      }
-
-      (lib.mkIf (!isNixOS && cfg.auth.useOAuthToken) {
-        # ----------------------------------------------------------------------
-        # Secrets
-        # ----------------------------------------------------------------------
-        age.secrets.claude-code-oauth-token = secrets.mkHomeSecret {
-          name = "claude-code-oauth-token";
-          inherit homeDir;
-        };
-      })
-
-      (lib.mkIf (!isNixOS && cfg.auth.useGateway) {
-        age.secrets.litellm-api-key = secrets.mkHomeSecret {
-          name = "litellm-api-key";
-          inherit homeDir;
-        };
-        age.secrets.corp-cachain-crt = secrets.mkHomeSecret {
-          name = "corp-cachain.crt";
-          inherit homeDir;
-        };
-      })
+      auth.config
 
       {
         # ----------------------------------------------------------------------
@@ -321,12 +285,7 @@ in
               ENABLE_CLAUDEAI_MCP_SERVERS = "false";
               FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "false" else "true";
             }
-            // lib.optionalAttrs cfg.auth.useGateway {
-              ANTHROPIC_BASE_URL = "https://gw.llm.${corpDomain}/";
-              ANTHROPIC_DEFAULT_OPUS_MODEL = "bedrock/global.anthropic.claude-opus-4-6-v1";
-              ANTHROPIC_DEFAULT_SONNET_MODEL = "bedrock/global.anthropic.claude-sonnet-4-6";
-              ANTHROPIC_DEFAULT_HAIKU_MODEL = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
-            };
+            // auth.env;
           };
         };
       }
