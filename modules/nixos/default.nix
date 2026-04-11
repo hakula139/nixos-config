@@ -25,14 +25,12 @@ in
     ./builders
     ./cachix
     ./clash
-    ./claude-code
     ./cloudcone
     ./cloudreve
     ./clove
     ./dockerhub
     ./fuclaude
     ./llm-assistants
-    ./mcp
     ./netdata
     ./nginx
     ./peertube

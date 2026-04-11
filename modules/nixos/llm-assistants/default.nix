@@ -13,6 +13,11 @@ let
   llmAssistants = import ../../../lib/llm-assistants.nix { inherit lib; };
 in
 {
+  imports = [
+    ./claude-code
+    ./mcp
+  ];
+
   options.hakula.llm-assistants = llmAssistants.mkOptions {
     enableDescription = "LLM assistants for the primary interactive user";
     defaultUser = config.hakula.user.name;
