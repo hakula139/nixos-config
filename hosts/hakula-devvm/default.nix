@@ -23,17 +23,6 @@ let
     "codex"
   ]
   ++ commonMcpServers;
-
-  proxy = {
-    enable = true;
-    secretUrlFile = config.age.secrets.devvm-proxy-url.path;
-    noProxy = [
-      "localhost"
-      "127.0.0.1"
-      "10.*"
-      ".${corpDomain}"
-    ];
-  };
 in
 {
   imports = [
@@ -56,7 +45,19 @@ in
   # ----------------------------------------------------------------------------
   # Assistant Tooling
   # ----------------------------------------------------------------------------
-  hakula.llm-assistants.enable = lib.mkDefault true;
+  hakula.llm-assistants = {
+    enable = lib.mkDefault true;
+    proxy = {
+      enable = true;
+      secretUrlFile = config.age.secrets.devvm-proxy-url.path;
+      noProxy = [
+        "localhost"
+        "127.0.0.1"
+        "10.*"
+        ".${corpDomain}"
+      ];
+    };
+  };
 
   # ----------------------------------------------------------------------------
   # Home Manager Overrides
@@ -72,18 +73,13 @@ in
       auth.method = "gateway";
       mcp.enabledServers = claudeMcpServers;
       plugins.bundle = true;
-      inherit proxy;
     };
 
-    hakula.codex = {
-      mcp.enabledServers = commonMcpServers;
-      inherit proxy;
-    };
+    hakula.codex.mcp.enabledServers = commonMcpServers;
 
     hakula.opencode = {
       mcp.enabledServers = commonMcpServers;
       plugins.bundle = true;
-      inherit proxy;
     };
   };
 

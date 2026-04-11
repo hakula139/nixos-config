@@ -64,18 +64,21 @@ in
         hakula.claude-code.proxy = {
           enable = lib.mkDefault true;
           url = lib.mkDefault cfg.proxy.url;
+          secretUrlFile = lib.mkDefault cfg.proxy.secretUrlFile;
           noProxy = lib.mkDefault cfg.proxy.noProxy;
         };
 
         hakula.codex.proxy = {
           enable = lib.mkDefault true;
           url = lib.mkDefault cfg.proxy.url;
+          secretUrlFile = lib.mkDefault cfg.proxy.secretUrlFile;
           noProxy = lib.mkDefault cfg.proxy.noProxy;
         };
 
         hakula.opencode.proxy = {
           enable = lib.mkDefault true;
           url = lib.mkDefault cfg.proxy.url;
+          secretUrlFile = lib.mkDefault cfg.proxy.secretUrlFile;
           noProxy = lib.mkDefault cfg.proxy.noProxy;
         };
       })
