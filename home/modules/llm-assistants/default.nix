@@ -38,6 +38,10 @@ in
       {
         hakula.claude-code = {
           enable = lib.mkDefault true;
+          auth = {
+            method = lib.mkDefault "api-key";
+            baseUrl = lib.mkDefault "https://co.yes.vg";
+          };
           mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
         };
 

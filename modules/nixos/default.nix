@@ -12,13 +12,13 @@
 }:
 
 let
-  shared = import ../shared.nix { inherit pkgs lib; };
-  mcpOptions = import ../../home/modules/llm-assistants/shared/mcp/options.nix { inherit lib; };
-  proxyOptions = import ../../home/modules/llm-assistants/shared/proxy.nix { inherit lib; };
-
   cfg = config.hakula;
   sshCfg = cfg.access.ssh;
   userCfg = config.users.users.${cfg.user.name};
+
+  shared = import ../shared.nix { inherit pkgs lib; };
+  mcpOptions = import ../../home/modules/llm-assistants/shared/mcp/options.nix { inherit lib; };
+  proxyOptions = import ../../home/modules/llm-assistants/shared/proxy.nix { inherit lib; };
 in
 {
   imports = [
@@ -232,16 +232,29 @@ in
     # LLM Assistants
     # --------------------------------------------------------------------------
     (lib.mkIf cfg.llm-assistants.enable {
-      hakula.claude-code.enable = lib.mkDefault true;
+      hakula.claude-code = {
+        enable = lib.mkDefault true;
+        auth = {
+          method = lib.mkDefault "api-key";
+          baseUrl = lib.mkDefault "https://co.yes.vg";
+        };
+      };
       hakula.mcp.enable = lib.mkDefault true;
 
-      home-manager.users.${cfg.llm-assistants.user}.hakula.llm-assistants = {
-        enable = lib.mkDefault true;
-        mcp.disabledServers = lib.mkDefault cfg.llm-assistants.mcp.disabledServers;
-        proxy = lib.mkIf cfg.llm-assistants.proxy.enable {
+      home-manager.users.${cfg.llm-assistants.user}.hakula = {
+        llm-assistants = {
           enable = lib.mkDefault true;
-          url = lib.mkDefault cfg.llm-assistants.proxy.url;
-          noProxy = lib.mkDefault cfg.llm-assistants.proxy.noProxy;
+          mcp.disabledServers = lib.mkDefault cfg.llm-assistants.mcp.disabledServers;
+          proxy = lib.mkIf cfg.llm-assistants.proxy.enable {
+            enable = lib.mkDefault true;
+            url = lib.mkDefault cfg.llm-assistants.proxy.url;
+            noProxy = lib.mkDefault cfg.llm-assistants.proxy.noProxy;
+          };
+        };
+
+        claude-code.auth = {
+          method = lib.mkOverride 900 config.hakula.claude-code.auth.method;
+          baseUrl = lib.mkOverride 900 config.hakula.claude-code.auth.baseUrl;
         };
       };
     })
