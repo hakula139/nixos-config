@@ -12,6 +12,13 @@ let
   cfg = config.hakula.llm-assistants;
   mcpOptions = import ./shared/mcp/options.nix { inherit lib; };
   proxyOptions = import ./shared/proxy.nix { inherit lib; };
+
+  assistantProxy = {
+    enable = lib.mkDefault true;
+    url = lib.mkDefault cfg.proxy.url;
+    secretUrlFile = lib.mkDefault cfg.proxy.secretUrlFile;
+    noProxy = lib.mkDefault cfg.proxy.noProxy;
+  };
 in
 {
   imports = [
@@ -38,6 +45,7 @@ in
       {
         hakula.claude-code = {
           enable = lib.mkDefault true;
+          auth.method = lib.mkDefault "api-key";
           mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
         };
 
@@ -57,23 +65,9 @@ in
       }
 
       (lib.mkIf cfg.proxy.enable {
-        hakula.claude-code.proxy = {
-          enable = lib.mkDefault true;
-          url = lib.mkDefault cfg.proxy.url;
-          noProxy = lib.mkDefault cfg.proxy.noProxy;
-        };
-
-        hakula.codex.proxy = {
-          enable = lib.mkDefault true;
-          url = lib.mkDefault cfg.proxy.url;
-          noProxy = lib.mkDefault cfg.proxy.noProxy;
-        };
-
-        hakula.opencode.proxy = {
-          enable = lib.mkDefault true;
-          url = lib.mkDefault cfg.proxy.url;
-          noProxy = lib.mkDefault cfg.proxy.noProxy;
-        };
+        hakula.claude-code.proxy = assistantProxy;
+        hakula.codex.proxy = assistantProxy;
+        hakula.opencode.proxy = assistantProxy;
       })
     ]
   );
