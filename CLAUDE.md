@@ -156,6 +156,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 │       │   ├── claude-code/     # Claude Code configuration
 │       │   ├── codex/           # OpenAI Codex CLI configuration
 │       │   ├── cursor/          # Cursor editor config
+│       │   ├── opencode/        # opencode CLI configuration
 │       │   └── shared/          # Shared assistant support (agents, instructions, MCP, notify, proxy)
 │       ├── mihomo/              # Mihomo proxy client
 │       ├── nix/                 # User-level nix.conf for standalone HM
@@ -193,7 +194,9 @@ The flake uses a **builder function pattern** to reduce duplication:
 
 - **Infrastructure**: `nginx`, `xray`, `clash`, `postgresql`, `podman`
 - **Services**: `aria2`, `cloudreve`, `clove`, `fuclaude`, `netdata`, `peertube`, `piclist`, `umami`
-- **System**: `backup`, `builders`, `cachix`, `claude-code`, `cloudcone`, `cloudflare`, `dockerhub`, `mcp`, `ssh`
+- **System**: `backup`, `builders`, `cachix`, `cloudcone`, `cloudflare`, `dockerhub`, `llm-assistants`, `ssh`
+
+The `llm-assistants` module acts as an integration layer for the primary interactive user, nesting `claude-code` and `mcp` sub-modules that mirror the `home/modules/llm-assistants/` structure.
 
 Each module typically exports an `enable` option and service-specific configuration. Host configurations import modules and enable them selectively.
 
@@ -382,9 +385,10 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 
 ## Proxy Configuration
 
-Some hosts use **HTTP proxy** (`http://127.0.0.1:7897`) for Claude Code, Codex, and other tools. This is configured per-host via `hakula.claude-code.proxy.enable` and `hakula.codex.proxy.enable` in the host's `default.nix`. Currently enabled on:
+Some hosts route Claude Code, Codex, and other LLM assistants through an **HTTP proxy**. This is configured per-host via `hakula.llm-assistants.proxy.*` in the host's `default.nix`, which fans out to the individual assistants (`claude-code`, `codex`, `opencode`). The proxy URL defaults to `http://127.0.0.1:7897` (local mihomo) but can be overridden via `url` or loaded from an agenix secret via `secretUrlFile`. Currently enabled on:
 
 - `hakula-macbook`
 - `hakula-linux`
+- `hakula-devvm` (via `secretUrlFile`)
 
 When working with network operations on these hosts, be aware that tools may route through this proxy.
