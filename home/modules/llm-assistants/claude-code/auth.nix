@@ -24,6 +24,19 @@ let
   gatewayKeyFile = lib.escapeShellArg "${secretsDir}/litellm-api-key";
   gatewayCaCertFile = "${secretsDir}/corp-cachain.crt";
 
+  requiredSecrets =
+    if isApiKey then
+      [ "claude-code-api-key" ]
+    else if isOAuthToken then
+      [ "claude-code-oauth-token" ]
+    else if isGateway then
+      [
+        "litellm-api-key"
+        "corp-cachain.crt"
+      ]
+    else
+      [ ];
+
   tokenAuth =
     if isApiKey then
       {
@@ -69,6 +82,19 @@ in
       default = null;
       description = "Base URL for plain API key authentication";
     };
+
+    _provision.requiredSecrets = lib.mkOption {
+      type = lib.types.listOf (
+        lib.types.enum [
+          "claude-code-api-key"
+          "claude-code-oauth-token"
+          "litellm-api-key"
+          "corp-cachain.crt"
+        ]
+      );
+      internal = true;
+      readOnly = true;
+    };
   };
 
   config = lib.mkMerge [
@@ -79,6 +105,7 @@ in
           message = "hakula.claude-code: auth.baseUrl must be set when auth.method is `api-key`";
         }
       ];
+      hakula.claude-code.auth._provision.requiredSecrets = requiredSecrets;
     }
 
     (lib.mkIf (!isNixOS && isApiKey) {

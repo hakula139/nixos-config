@@ -1,0 +1,31 @@
+# ==============================================================================
+# LLM Assistants Integration
+# ==============================================================================
+
+{
+  config,
+  lib,
+  ...
+}:
+
+let
+  cfg = config.hakula.llm-assistants;
+  llmAssistants = import ../../../lib/llm-assistants.nix { inherit lib; };
+in
+{
+  options.hakula.llm-assistants = llmAssistants.mkOptions {
+    enableDescription = "LLM assistants for the primary interactive user";
+    defaultUser = config.hakula.user.name;
+  };
+
+  config = lib.mkIf cfg.enable (
+    lib.mkMerge [
+      {
+        hakula.claude-code.enable = lib.mkDefault true;
+        hakula.mcp.enable = lib.mkDefault true;
+      }
+
+      (llmAssistants.mkHomeManagerConfig cfg)
+    ]
+  );
+}
