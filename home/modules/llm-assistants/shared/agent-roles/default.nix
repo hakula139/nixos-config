@@ -12,6 +12,9 @@ in
     prompt = readPrompt ./prompts/architect.md;
     claude = {
       color = "cyan";
+      effort = "high";
+      memory = "local";
+      permissionMode = "plan";
     };
     codex = {
       nicknameCandidates = [
@@ -33,6 +36,8 @@ in
     prompt = readPrompt ./prompts/debugger.md;
     claude = {
       color = "red";
+      effort = "high";
+      memory = "local";
     };
     codex = {
       nicknameCandidates = [
@@ -48,6 +53,8 @@ in
     prompt = readPrompt ./prompts/implementer.md;
     claude = {
       color = "yellow";
+      effort = "high";
+      memory = "local";
     };
     codex = {
       nicknameCandidates = [
@@ -64,6 +71,10 @@ in
     claude = {
       color = "blue";
       model = "haiku";
+      effort = "low";
+      memory = "local";
+      background = true;
+      permissionMode = "plan";
     };
     codex = {
       nicknameCandidates = [
@@ -85,6 +96,9 @@ in
     prompt = readPrompt ./prompts/reviewer.md;
     claude = {
       color = "green";
+      effort = "high";
+      memory = "local";
+      permissionMode = "plan";
     };
     codex = {
       nicknameCandidates = [
@@ -107,6 +121,8 @@ in
     claude = {
       color = "magenta";
       model = "sonnet";
+      effort = "medium";
+      memory = "local";
     };
     codex = {
       nicknameCandidates = [
@@ -122,6 +138,9 @@ in
     prompt = readPrompt ./prompts/usability-reviewer.md;
     claude = {
       color = "gray";
+      effort = "medium";
+      memory = "local";
+      permissionMode = "plan";
     };
     codex = {
       nicknameCandidates = [

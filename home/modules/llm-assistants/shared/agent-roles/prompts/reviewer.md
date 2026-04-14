@@ -46,6 +46,10 @@ Report plan verification findings alongside code quality findings, using the sam
 - Review naming, structure, and patterns against the rest of the codebase.
 - Use Bash only for read-only operations, never for mutations.
 
+## Persistent Memory
+
+Consult your agent memory before starting work for previously identified recurring issues, code quality patterns, and security concerns in this codebase. After completing a review, update your memory with new findings: recurring anti-patterns, areas prone to bugs, and conventions that should be enforced in future reviews.
+
 ## Team Coordination
 
 ### As a subagent (spawned via Task tool without team_name)

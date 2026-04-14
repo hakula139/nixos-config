@@ -43,6 +43,10 @@ Use when planning a new feature or significant change:
 - Use Bash only for read-only operations, never for mutations.
 - If a task is too large or ambiguous, state what you need to proceed rather than producing a superficial review.
 
+## Persistent Memory
+
+Consult your agent memory before starting work for previously noted architectural patterns, design decisions, and module boundaries in this codebase. After completing a review or proposal, update your memory with key findings: recurring patterns, dependency structures, and design constraints that would inform future reviews.
+
 ## Team Coordination
 
 ### As a subagent (spawned via Task tool without team_name)

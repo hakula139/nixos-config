@@ -95,16 +95,19 @@ Do not use agents when:
 
 ### Coordination Patterns
 
-- **Sequential pipeline**: researcher → architect → implementer → reviewer → tester.
-- **Parallel exploration**: Launch multiple researchers across different areas.
-- **Review gate**: Run reviewer after significant implementation changes.
-- **Codex offloading**: Use codex-worker for orthogonal tasks that benefit from a separate context window.
-- **Exploration gate**: researcher(s) → architect (proposal mode) → user decision → implementer → reviewer → tester. Use when the approach is unclear and premature implementation would waste effort.
-- **Bug investigation**: Spawn one or more debuggers with distinct hypotheses.
+Each pattern specifies its mode: **Subagents** (independent, report back) or **Agent Team** (peer communication via `SendMessage`).
+
+- **Sequential pipeline** (Subagents): researcher → architect → implementer → reviewer → tester. Each agent's output feeds the next. See Feature Development Workflow below for the detailed step-by-step with a user approval gate.
+- **Feature dev** (Agent Team): Full delivery pipeline with direct peer coordination. Members: 1 researcher, 1 architect, 1-2 implementers, 1 reviewer, 1 tester. Task dependencies enforce ordering. Implementers use worktree isolation when modifying different areas in parallel.
+- **Parallel review** (Subagents): 3 reviewers with distinct lenses (security, correctness, test coverage). Each reports independently; the orchestrator synthesizes.
+- **Parallel exploration** (Subagents) / **Research swarm** (Agent Team): Multiple researchers across different areas. As subagents, each reports independently. As a team, researchers share discoveries and redirect each other's investigation.
+- **Bug investigation** (Subagents) / **Investigation** (Agent Team): Debuggers with competing hypotheses. As subagents, each reports independently. As a team, teammates actively challenge each other's theories via direct messages.
+- **Review gate** (Subagent): Run reviewer after significant implementation changes.
+- **Codex offloading** (Subagent): codex-worker for orthogonal tasks in a separate context window.
 
 ### Feature Development Workflow
 
-For non-trivial features, follow the structured pipeline to prevent wasted implementation effort:
+Detailed step-by-step for the sequential pipeline. For non-trivial features, follow this to prevent wasted implementation effort:
 
 1. **Explore** (optional): Use researcher(s) to investigate the problem space, gather context on existing patterns, and evaluate options. Skip for well-understood changes.
 2. **Propose**: Use architect in "Design Proposal" mode to produce a structured plan with motivation, scope, approach, impact, and risks.
