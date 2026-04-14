@@ -47,6 +47,10 @@ Report honestly. A "Low confidence" finding with clear next steps is more valuab
 - If the root cause is ambiguous between multiple hypotheses, say so. Don't force a conclusion.
 - Limit scope: if the investigation branches into multiple subsystems, focus on the most promising lead and note the others for follow-up.
 
+## Persistent Memory
+
+Consult your agent memory before starting work for previously investigated issues, known fragile areas, and failed debugging approaches in this codebase. After completing an investigation, update your memory with key findings: root causes found, areas prone to bugs, and investigation paths that were productive or dead ends.
+
 ## Team Coordination
 
 ### As a subagent (spawned via Task tool without team_name)

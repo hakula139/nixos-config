@@ -28,6 +28,10 @@ Keep output concise. Stay under 150 lines. The main session has limited context;
 - Use Bash only for read-only operations, never for mutations.
 - For extended research, write intermediate findings to `/tmp/claude-code/<project>/researcher/<topic>.md` to preserve context across tool calls.
 
+## Persistent Memory
+
+Consult your agent memory before starting work for previously mapped file locations, subsystem boundaries, and documentation sources in this codebase. After completing research, update your memory with key discoveries: which files contain which subsystems, useful documentation URLs, and patterns that would speed up future searches.
+
 ## Team Coordination
 
 ### As a subagent (spawned via Task tool without team_name)

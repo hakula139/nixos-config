@@ -14,6 +14,14 @@ let
   renderIndentedLines =
     value: map (line: "  ${line}") (lib.filter (line: line != "") (lib.splitString "\n" value));
 
+  renderField =
+    agent: fieldSpec:
+    let
+      field = if builtins.isString fieldSpec then { name = fieldSpec; } else fieldSpec;
+      format = field.format or toString;
+    in
+    lib.optional (agent.claude ? ${field.name}) "${field.name}: ${format agent.claude.${field.name}}";
+
   renderFrontmatter =
     name: agent:
     let
@@ -22,11 +30,22 @@ let
         "description: |"
       ]
       ++ renderIndentedLines agent.description
-      ++ lib.optional (agent.claude ? color) "color: ${agent.claude.color}"
-      ++ lib.optional (agent.claude ? model) "model: ${agent.claude.model}"
-      ++ lib.optionals ((agent.claude.tools or [ ]) != [ ]) (
-        [ "tools:" ] ++ map (tool: "  - ${tool}") agent.claude.tools
-      );
+      ++ lib.concatMap (renderField agent) [
+        "color"
+        "model"
+        "effort"
+        "permissionMode"
+        "maxTurns"
+        "memory"
+        "isolation"
+        {
+          name = "background";
+          format = lib.boolToString;
+        }
+      ]
+      ++ lib.optional (
+        (agent.claude.tools or [ ]) != [ ]
+      ) "tools: ${lib.concatStringsSep ", " agent.claude.tools}";
     in
     lib.concatStringsSep "\n" ([ "---" ] ++ frontmatterLines ++ [ "---" ]);
 
