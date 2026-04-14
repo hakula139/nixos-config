@@ -28,6 +28,10 @@ Return a summary:
 - For multi-file implementations, use TaskCreate to break work into discrete steps before starting. Mark each task in_progress when starting and completed when done, so the orchestrator and downstream agents have visibility into progress.
 - If the task spans too many files or concerns, report this and suggest decomposition rather than attempting everything.
 
+## Persistent Memory
+
+Consult your agent memory before starting work for previously noted coding patterns, conventions, and module boundaries in this codebase. After completing an implementation, update your memory with key findings: codebase-specific patterns, style conventions, and common pitfalls that would speed up future work.
+
 ## Team Coordination
 
 ### As a subagent (spawned via Task tool without team_name)

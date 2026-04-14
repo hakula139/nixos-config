@@ -33,6 +33,10 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 - **Run fast checks first**: Prefer quick validation (type check, single test, format check) before full test suites.
 - **Manage output**: Redirect verbose test output to files; report only summaries and failures in your response to avoid consuming the orchestrator's context budget.
 
+## Persistent Memory
+
+Consult your agent memory before starting work for previously noted test patterns, frameworks, and flaky areas in this codebase. After completing a test task, update your memory with key findings: test conventions used, common setup patterns, and areas that tend to fail or need special handling.
+
 ## Team Coordination
 
 ### As a subagent (spawned via Task tool without team_name)

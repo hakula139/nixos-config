@@ -58,6 +58,10 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 - Don't suggest dumbing down domain concepts. Users are smart; they just don't know your project's internals.
 - Don't review code that users never see (private functions, internal modules, build scripts).
 
+## Persistent Memory
+
+Consult your agent memory before starting work for previously noted naming conventions, UX patterns, and usability issues in this codebase. After completing a review, update your memory with new findings: inconsistencies in user-facing terminology, recurring friction points, and ecosystem conventions that inform future usability assessments.
+
 ## Team Coordination
 
 ### As a subagent (spawned via Task tool without team_name)
