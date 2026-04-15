@@ -105,7 +105,10 @@
             };
           });
           rustToolchain = final.rust-bin.stable.latest.default.override {
-            extensions = [ "rust-src" ];
+            extensions = [
+              "llvm-tools-preview"
+              "rust-src"
+            ];
           };
         })
       ];
