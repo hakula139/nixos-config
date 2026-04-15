@@ -199,7 +199,7 @@ in
     # Corepack - Enable pnpm with per-project version management
     # --------------------------------------------------------------------------
     if command -v corepack &>/dev/null; then
-      corepack enable pnpm 2>/dev/null
+      corepack enable --install-directory "$HOME/.local/bin" pnpm 2>/dev/null
     fi
   '';
 
