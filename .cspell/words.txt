@@ -134,6 +134,7 @@ numtide
 nvim
 osascript
 osc
+oxalica
 pcall
 pcdn
 pcpu

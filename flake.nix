@@ -39,6 +39,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Rust toolchains
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Pre-commit hooks
+    git-hooks-nix.url = "github:cachix/git-hooks.nix";
+
     # AI coding agents
     llm-agents.url = "github:numtide/llm-agents.nix";
 
@@ -47,9 +56,6 @@
       url = "github:anthropics/skills";
       flake = false;
     };
-
-    # Pre-commit hooks
-    git-hooks-nix.url = "github:cachix/git-hooks.nix";
   };
 
   # ----------------------------------------------------------------------------
@@ -75,6 +81,7 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
       overlays = [
+        inputs.rust-overlay.overlays.default
         (final: _: {
           unstable = import nixpkgs-unstable {
             localSystem = final.stdenv.hostPlatform.system;
@@ -97,6 +104,9 @@
               platforms = old.meta.platforms ++ [ "aarch64-darwin" ];
             };
           });
+          rustToolchain = final.rust-bin.stable.latest.default.override {
+            extensions = [ "rust-src" ];
+          };
         })
       ];
 

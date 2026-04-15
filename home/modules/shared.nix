@@ -136,7 +136,7 @@ in
         # ----------------------------------------------------------------------
         # Rust Development
         # ----------------------------------------------------------------------
-        rustup
+        rustToolchain
 
         # ----------------------------------------------------------------------
         # Data / SQL Development
@@ -175,8 +175,7 @@ in
     # Go
     GOPATH = "$HOME/go";
 
-    # Rust
-    RUSTUP_HOME = "$HOME/.rustup";
+    # Rust (CARGO_HOME for user-installed binaries and registry cache)
     CARGO_HOME = "$HOME/.cargo";
   };
 
