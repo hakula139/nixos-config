@@ -87,7 +87,7 @@ in
       # ------------------------------------------------------------------------
       # Node.js Development
       # ------------------------------------------------------------------------
-      fnm
+      nodejs_24
       nodePackages.typescript
       nodePackages.typescript-language-server
 
@@ -195,14 +195,6 @@ in
   # Shell Configuration
   # ----------------------------------------------------------------------------
   programs.zsh.initContent = lib.mkAfter ''
-    # --------------------------------------------------------------------------
-    # fnm (Fast Node Manager) - replacement for nvm
-    # Use `fnm use <version>` to switch Node.js versions.
-    # --------------------------------------------------------------------------
-    if command -v fnm &>/dev/null; then
-      eval "$(fnm env --use-on-cd)"
-    fi
-
     # --------------------------------------------------------------------------
     # Corepack - Enable pnpm with per-project version management
     # --------------------------------------------------------------------------
