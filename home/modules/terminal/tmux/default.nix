@@ -15,6 +15,7 @@
     clock24 = true;
     disableConfirmationPrompt = true;
     escapeTime = 1;
+    focusEvents = true;
     keyMode = "vi";
     mouse = true;
     prefix = "C-a";
