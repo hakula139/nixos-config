@@ -58,19 +58,17 @@ join_parts() {
 # Model Name
 # ------------------------------------------------------------------------------
 
-# Simplifies verbose model identifiers to human-friendly names
-# e.g., "bedrock/global.anthropic.claude-opus-4-6-v1[1m]" → "Opus[1m]"
+# Simplifies display names: "Opus 4.6 (1M context)" → "Opus[1m]"
 simplify_model_name() {
-  local raw="$1"
-  local suffix=""
-  [[ "${raw}" =~ \[([^\]]+)\]$ ]] && suffix="[${BASH_REMATCH[1]}]"
-
-  case "${raw}" in
-    *opus*) echo "Opus${suffix}" ;;
-    *sonnet*) echo "Sonnet${suffix}" ;;
-    *haiku*) echo "Haiku${suffix}" ;;
-    *) echo "${raw}" ;;
+  local raw="$1" name=""
+  case "${raw,,}" in
+    *opus*) name=Opus ;;
+    *sonnet*) name=Sonnet ;;
+    *haiku*) name=Haiku ;;
+    *) name="${raw}" ;;
   esac
+  [[ "${raw,,}" == *1m* ]] && name+="[1m]"
+  echo "${name}"
 }
 
 # ------------------------------------------------------------------------------
