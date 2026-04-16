@@ -26,7 +26,7 @@ lib.mkIf pkgs.stdenv.isDarwin {
   # Cargo Configuration (macOS)
   # ----------------------------------------------------------------------------
   # Use the system linker to avoid SDK mismatch between Nix's cc wrapper
-  # (apple-sdk sysroot) and rustup's pre-built stdlib (system Xcode SDK).
+  # (apple-sdk sysroot) and the Rust stdlib (system Xcode SDK).
   home.file.".cargo/config.toml".text = ''
     [target.aarch64-apple-darwin]
     linker = "/usr/bin/cc"

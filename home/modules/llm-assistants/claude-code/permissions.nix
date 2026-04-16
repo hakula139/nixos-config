@@ -248,7 +248,6 @@
     "Bash(python3 *)"
     "Bash(ruff *)"
     "Bash(rustc *)"
-    "Bash(rustup *)"
     "Bash(shellcheck *)"
     "Bash(uv *)"
     "Bash(uvx *)"
