@@ -20,6 +20,7 @@ let
   instructions = import ../shared/instructions;
   codexMcpServers = [
     "atlassian"
+    "braveSearch"
     "context7"
     "deepwiki"
     "fetcher"
