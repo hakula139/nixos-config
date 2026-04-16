@@ -10,21 +10,21 @@
 
 pkgs.buildNpmPackage rec {
   pname = "mcp-server-gitlab";
-  version = "2.0.34";
+  version = "2.1.0";
 
   src = pkgs.fetchFromGitHub {
     owner = "zereight";
     repo = "gitlab-mcp";
     rev = "v${version}";
-    hash = "sha256-g7r0hInk4u4thR/8c8dVOqSc9VWHkx8jYa7sO6l8B+U=";
+    hash = "sha256-jte+sMNQ0ltgQsw2IUyNb2kK+G3k3j8J/0ZSPp4i9xY=";
   };
 
-  npmDepsHash = "sha256-tJou/TMZZvlPiMJgEEpE7oj3+B1XMrcCdQBDcNHsNxE=";
+  npmDepsHash = "sha256-D+BtfbN7Y9pM2XZ/K5LcyRDyqTlD8qoTpdkTC5asIn8=";
 
   nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
 
   postInstall = ''
-    makeWrapper "${pkgs.nodejs}/bin/node" "$out/bin/mcp-server-gitlab" \
+    makeWrapper "${pkgs.nodejs_24}/bin/node" "$out/bin/mcp-server-gitlab" \
       --add-flags "$out/lib/node_modules/@zereight/mcp-gitlab/build/index.js"
   '';
 

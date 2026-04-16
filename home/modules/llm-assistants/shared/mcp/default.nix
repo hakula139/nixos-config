@@ -16,6 +16,15 @@ let
   secretsDir = secrets.secretsPath homeDir;
   corpDomain = import ../../../../../lib/corp-domain.nix;
 
+  # Node.js's built-in fetch (undici) ignores HTTP_PROXY / HTTPS_PROXY by
+  # default. --use-env-proxy makes it honour the env vars, which is required
+  # on hosts that route traffic through a proxy.
+  nodejs = pkgs.nodejs_24;
+  nodeSetup = ''
+    export PATH="${nodejs}/bin:$PATH"
+    export NODE_OPTIONS="''${NODE_OPTIONS:+$NODE_OPTIONS }--use-env-proxy"
+  '';
+
   # ----------------------------------------------------------------------------
   # Atlassian (Confluence)
   # ----------------------------------------------------------------------------
@@ -37,7 +46,7 @@ let
   # ----------------------------------------------------------------------------
   braveApiKeyFile = "${secretsDir}/brave-api-key";
   braveSearchBin = pkgs.writeShellScriptBin "brave-search-mcp" ''
-    export PATH="${pkgs.nodejs}/bin:$PATH"
+    ${nodeSetup}
     if [ -f "${braveApiKeyFile}" ]; then
       export BRAVE_API_KEY="$(cat ${braveApiKeyFile})"
     fi
@@ -56,7 +65,7 @@ let
   # ----------------------------------------------------------------------------
   context7ApiKeyFile = "${secretsDir}/context7-api-key";
   context7Bin = pkgs.writeShellScriptBin "context7-mcp" ''
-    export PATH="${pkgs.nodejs}/bin:$PATH"
+    ${nodeSetup}
     if [ -f "${context7ApiKeyFile}" ]; then
       export CONTEXT7_API_KEY="$(cat ${context7ApiKeyFile})"
     fi
@@ -67,7 +76,7 @@ let
   # DeepWiki
   # ----------------------------------------------------------------------------
   deepwikiBin = pkgs.writeShellScriptBin "deepwiki-mcp" ''
-    export PATH="${pkgs.nodejs}/bin:$PATH"
+    ${nodeSetup}
     exec npx -y mcp-remote https://mcp.deepwiki.com/mcp --transport http-first "$@"
   '';
 
@@ -75,7 +84,7 @@ let
   # Fetcher (Playwright-based web fetcher, fallback for sites that block WebFetch)
   # ----------------------------------------------------------------------------
   fetcherBin = pkgs.writeShellScriptBin "fetcher-mcp" ''
-    export PATH="${pkgs.nodejs}/bin:$PATH"
+    ${nodeSetup}
     exec npx -y fetcher-mcp "$@"
   '';
 
