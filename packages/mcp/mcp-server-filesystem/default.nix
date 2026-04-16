@@ -48,7 +48,7 @@ pkgs.buildNpmPackage rec {
   # Copy them manually and create a wrapper pointing to the built entry point.
   postInstall = ''
     cp -r src "$out/lib/node_modules/@modelcontextprotocol/servers/src"
-    makeWrapper "${pkgs.nodejs}/bin/node" "$out/bin/mcp-server-filesystem" \
+    makeWrapper "${pkgs.nodejs_24}/bin/node" "$out/bin/mcp-server-filesystem" \
       --add-flags "$out/lib/node_modules/@modelcontextprotocol/servers/src/filesystem/dist/index.js"
   '';
 
