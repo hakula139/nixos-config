@@ -20,6 +20,7 @@ let
   mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
   cursorMcpServers = [
     "atlassian"
+    "braveSearch"
     "deepwiki"
     "fetcher"
     "filesystem"

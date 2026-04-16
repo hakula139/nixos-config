@@ -35,6 +35,7 @@ let
   mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
   claudeMcpServers = [
     "atlassian"
+    "braveSearch"
     "codex"
     "deepwiki"
     "fetcher"
