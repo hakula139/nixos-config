@@ -11,9 +11,17 @@
 
 Prefer MCP tools over equivalent Bash commands or web searches. MCPs provide structured interfaces, better error handling, and work within the configured permission model.
 
+### Atlassian (`mcp__Atlassian__*`)
+
+Scoped to Confluence. Use for searching, reading, and navigating Confluence pages, spaces, and page hierarchies. Read operations are auto-approved. Write operations (create / update / delete pages, add comments / labels, upload attachments) require user confirmation.
+
+### Brave Search (`mcp__BraveSearch__*`)
+
+Fallback web search. Use only when the native `WebSearch` tool fails, returns unhelpful results, or when a specialized search type is needed (news, images, video, local businesses). Supports summarization of search results. Do not use as the primary search path — prefer `WebSearch` by default.
+
 ### Codex (`mcp__Codex__*`)
 
-Use for delegating self-contained, multi-step coding tasks to an autonomous agent powered by GPT-5.4. Codex runs with full shell access and its own MCP servers, making it useful for independent exploration, code generation, and command execution in a separate context window.
+Delegates self-contained, multi-step coding tasks to an autonomous agent. Codex runs with full shell access and its own MCP servers in a separate context window.
 
 Use Codex when:
 
@@ -29,27 +37,27 @@ Do not use Codex when:
 
 ### DeepWiki (`mcp__DeepWiki__*`)
 
-Use when exploring or asking questions about GitHub repositories.
+AI-powered documentation for public GitHub repositories. Use for understanding unfamiliar repos — architecture, patterns, API design. Query specific questions or browse the generated wiki structure.
 
 ### Fetcher (`mcp__Fetcher__*`)
 
-Fallback web fetcher using Playwright. Use only when the native web fetch path fails with blocking errors such as 403 responses or bot protection.
+Browser-based web fetcher using Playwright. Fallback for when native web fetch is blocked (403 responses, bot protection) or the page requires JavaScript rendering. Supports content extraction and multi-URL fetching.
 
 ### Filesystem (`mcp__Filesystem__*`)
 
-Available for file operations with built-in directory sandboxing. Use when the native Read / Write / Edit tools are insufficient or when you need operations such as `move_file`, `directory_tree`, or `search_files`.
+Structured file operations with directory sandboxing. Use for operations beyond native Read / Write / Edit tools: moving files, directory trees, reading multiple files at once, glob-based search. Sandboxed to allowed directories.
 
 ### Git (`mcp__Git__*`)
 
-Prefer MCP Git tools for git operations. They accept a `repo_path` parameter, keeping the working directory unchanged and avoiding `git -C` patterns that bypass Bash permission matching.
+Structured git operations. Prefer over Bash `git` commands — they accept a `repo_path` parameter, keeping the working directory unchanged and avoiding permission pattern issues with `git -C`.
 
 ### GitHub (`mcp__GitHub__*`)
 
-Use for all GitHub API interactions. Prefer over `gh` CLI commands because MCP provides structured responses and pagination.
+GitHub API — issues, PRs, code search, reviews, releases, repository management. Prefer over `gh` CLI for structured responses and pagination.
 
 ### GitLab (`mcp__GitLab__*`)
 
-Use for all GitLab API interactions. Powered by `@zereight/mcp-gitlab` with flat, descriptive parameter schemas. Prefer over `glab` CLI commands. Use `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
+GitLab API — issues, merge requests, pipelines, labels, repository management. Prefer over `glab` CLI. Use `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
 
 ### IDE (`mcp__ide__*`)
 
