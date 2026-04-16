@@ -23,6 +23,7 @@ let
   instructions = import ../shared/instructions;
   opencodeMcpServers = [
     "atlassian"
+    "braveSearch"
     "codex"
     "deepwiki"
     "fetcher"
