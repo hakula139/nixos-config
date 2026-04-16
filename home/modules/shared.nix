@@ -87,7 +87,7 @@ in
       # ------------------------------------------------------------------------
       # Node.js Development
       # ------------------------------------------------------------------------
-      fnm
+      nodejs_24
       nodePackages.typescript
       nodePackages.typescript-language-server
 
@@ -136,7 +136,7 @@ in
         # ----------------------------------------------------------------------
         # Rust Development
         # ----------------------------------------------------------------------
-        rustup
+        rustToolchain
 
         # ----------------------------------------------------------------------
         # Data / SQL Development
@@ -175,8 +175,7 @@ in
     # Go
     GOPATH = "$HOME/go";
 
-    # Rust
-    RUSTUP_HOME = "$HOME/.rustup";
+    # Rust (CARGO_HOME for user-installed binaries and registry cache)
     CARGO_HOME = "$HOME/.cargo";
   };
 
@@ -197,18 +196,10 @@ in
   # ----------------------------------------------------------------------------
   programs.zsh.initContent = lib.mkAfter ''
     # --------------------------------------------------------------------------
-    # fnm (Fast Node Manager) - replacement for nvm
-    # Use `fnm use <version>` to switch Node.js versions.
-    # --------------------------------------------------------------------------
-    if command -v fnm &>/dev/null; then
-      eval "$(fnm env --use-on-cd)"
-    fi
-
-    # --------------------------------------------------------------------------
     # Corepack - Enable pnpm with per-project version management
     # --------------------------------------------------------------------------
     if command -v corepack &>/dev/null; then
-      corepack enable pnpm 2>/dev/null
+      corepack enable --install-directory "$HOME/.local/bin" pnpm 2>/dev/null
     fi
   '';
 
