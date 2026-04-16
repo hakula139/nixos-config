@@ -107,6 +107,7 @@
           rustToolchain = final.rust-bin.stable.latest.default.override {
             extensions = [
               "llvm-tools-preview"
+              "rust-analyzer"
               "rust-src"
             ];
           };
