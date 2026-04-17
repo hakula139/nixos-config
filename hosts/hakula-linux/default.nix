@@ -3,6 +3,7 @@
 # ==============================================================================
 
 {
+  config,
   lib,
   secrets,
   ...
@@ -32,7 +33,13 @@ in
       ];
     };
   };
-  hakula.claude-code.auth.method = "gateway";
+  hakula.claude-code.auth = {
+    defaultProfile = "corp-gateway";
+    profiles = import ../../lib/claude-profiles.nix {
+      inherit corpDomain;
+      secretsDir = secrets.secretsPath config.home.homeDirectory;
+    };
+  };
   hakula.cursor.extensions = {
     enable = lib.mkForce true;
     prune = lib.mkForce false;

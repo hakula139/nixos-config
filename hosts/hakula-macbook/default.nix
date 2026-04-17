@@ -5,6 +5,7 @@
 {
   pkgs,
   keys,
+  secrets,
   hostName,
   displayName,
   ...
@@ -66,9 +67,21 @@
   # ----------------------------------------------------------------------------
   # Home Manager Overrides
   # ----------------------------------------------------------------------------
-  home-manager.users.hakula = {
-    hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
-  };
+  home-manager.users.hakula =
+    let
+      corpDomain = import ../../lib/corp-domain.nix;
+    in
+    {
+      hakula.claude-code.auth = {
+        defaultProfile = "official";
+        profiles = import ../../lib/claude-profiles.nix {
+          inherit corpDomain;
+          secretsDir = secrets.secretsPath "/Users/hakula";
+        };
+      };
+
+      hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
+    };
 
   # ----------------------------------------------------------------------------
   # System State

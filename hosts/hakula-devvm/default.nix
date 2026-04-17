@@ -70,7 +70,13 @@ in
     services.syncthing.enable = lib.mkForce false;
 
     hakula.claude-code = {
-      auth.method = "gateway";
+      auth = {
+        defaultProfile = "corp-gateway";
+        profiles = import ../../lib/claude-profiles.nix {
+          inherit corpDomain;
+          secretsDir = secrets.secretsPath config.users.users.root.home;
+        };
+      };
       mcp.enabledServers = claudeMcpServers;
       plugins.bundle = true;
     };
