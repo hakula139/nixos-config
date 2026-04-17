@@ -1,5 +1,5 @@
 # ==============================================================================
-# Claude Code Authentication Profiles
+# Claude Code Auth Profiles
 # ==============================================================================
 
 {
@@ -14,10 +14,8 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
-
-  hasProfiles = cfg.auth.profiles != { };
-
   secretFile = name: lib.escapeShellArg "${secretsDir}/${name}";
+  hasProfiles = cfg.auth.profiles != { };
 
   # ----------------------------------------------------------------------------
   # Profile submodule

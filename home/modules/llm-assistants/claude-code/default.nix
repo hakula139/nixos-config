@@ -19,7 +19,7 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
 
-  auth = import ./auth.nix {
+  auth = import ./profiles.nix {
     inherit
       config
       pkgs
