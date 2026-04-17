@@ -19,7 +19,7 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
 
-  auth = import ./profiles.nix {
+  profiles = import ./profiles.nix {
     inherit
       config
       pkgs
@@ -55,7 +55,7 @@ in
   options.hakula.claude-code = {
     enable = lib.mkEnableOption "Claude Code";
 
-    auth = auth.options;
+    auth = profiles.options;
 
     agents = {
       enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
@@ -181,7 +181,7 @@ in
       '';
 
       wrapArgs =
-        auth.wrapArgs
+        profiles.wrapArgs
         ++ lib.optionals cfg.plugins.bundle [
           "--set"
           "CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL"
@@ -212,7 +212,7 @@ in
     in
     lib.mkMerge [
       mcp.secrets
-      auth.config
+      profiles.config
 
       {
         # ----------------------------------------------------------------------
@@ -225,13 +225,13 @@ in
             executable = true;
           };
         }
-        // auth.homeFiles;
+        // profiles.homeFiles;
 
         # ----------------------------------------------------------------------
         # Auth profile switching
         # ----------------------------------------------------------------------
-        home.packages = auth.packages;
-        home.activation.claudeCodeProfile = auth.activation;
+        home.packages = profiles.packages;
+        home.activation.claudeCodeProfile = profiles.activation;
 
         # ----------------------------------------------------------------------
         # Program configuration
