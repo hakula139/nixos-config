@@ -12,7 +12,7 @@ in
     prompt = readPrompt ./prompts/architect.md;
     claude = {
       color = "cyan";
-      effort = "high";
+      effort = "xhigh";
       memory = "local";
       permissionMode = "plan";
     };
@@ -36,7 +36,7 @@ in
     prompt = readPrompt ./prompts/debugger.md;
     claude = {
       color = "red";
-      effort = "high";
+      effort = "xhigh";
       memory = "local";
     };
     codex = {
@@ -96,7 +96,7 @@ in
     prompt = readPrompt ./prompts/reviewer.md;
     claude = {
       color = "green";
-      effort = "high";
+      effort = "xhigh";
       memory = "local";
       permissionMode = "plan";
     };
