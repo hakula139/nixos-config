@@ -2,8 +2,13 @@
 # Lists and switches between authentication profiles by updating the
 # active-profile symlink in the state directory.
 
-readonly GREEN='\033[1;32m'
-readonly RESET='\033[0m'
+if [[ -t 1 ]]; then
+  readonly GREEN='\033[1;32m'
+  readonly RESET='\033[0m'
+else
+  readonly GREEN=''
+  readonly RESET=''
+fi
 
 readonly PROFILES_DIR="@stateDir@/profiles"
 readonly ACTIVE_LINK="@stateDir@/active-profile"

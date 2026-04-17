@@ -83,28 +83,38 @@ let
 
   mkProvisioned =
     secretName:
-    lib.mkIf (lib.elem secretName requiredSecrets) (
-      secrets.mkHomeSecret {
-        name = secretName;
-        inherit homeDir;
-      }
-    );
+    secrets.mkHomeSecret {
+      name = secretName;
+      inherit homeDir;
+    };
 
   # ----------------------------------------------------------------------------
   # Profile script generation
   # ----------------------------------------------------------------------------
+  readSecretFn = ''
+    __read_secret() {
+      if [ ! -s "$1" ]; then
+        echo "claude: secret file missing or empty: $1" >&2
+        return 1
+      fi
+      cat "$1"
+    }
+  '';
+
   mkProfileScript =
     name: profile:
     let
       isOAuth = profile.type == "oauth-token";
       esc = lib.escapeShellArg;
+      sf = secretFile profile.tokenSecret;
 
       lines = [
+        readSecretFn
         (
           if isOAuth then
-            ''export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${secretFile profile.tokenSecret})"''
+            ''export CLAUDE_CODE_OAUTH_TOKEN="$(__read_secret ${sf})"''
           else
-            ''export ANTHROPIC_AUTH_TOKEN="$(cat ${secretFile profile.tokenSecret})"''
+            ''export ANTHROPIC_AUTH_TOKEN="$(__read_secret ${sf})"''
         )
       ]
       ++ lib.optional (profile.baseUrl != null) "export ANTHROPIC_BASE_URL=${esc profile.baseUrl}"
@@ -134,10 +144,7 @@ let
           if profile.type == "oauth-token" then
             [ "CLAUDE_CODE_OAUTH_TOKEN" ]
           else
-            [
-              "ANTHROPIC_AUTH_TOKEN"
-              "ANTHROPIC_BASE_URL"
-            ];
+            [ "ANTHROPIC_AUTH_TOKEN" ] ++ lib.optional (profile.baseUrl != null) "ANTHROPIC_BASE_URL";
         modelVars =
           lib.optional (profile.modelOverrides.opus != null) "ANTHROPIC_DEFAULT_OPUS_MODEL"
           ++ lib.optional (profile.modelOverrides.sonnet != null) "ANTHROPIC_DEFAULT_SONNET_MODEL"
@@ -265,6 +272,12 @@ in
                 );
               message = "hakula.claude-code: profile '${name}' (oauth-token) must not set baseUrl or modelOverrides";
             }
+            {
+              assertion = builtins.all (k: builtins.match "[A-Za-z_][A-Za-z0-9_]*" k != null) (
+                builtins.attrNames profile.extraEnv
+              );
+              message = "hakula.claude-code: profile '${name}' has extraEnv keys that are not valid POSIX variable names";
+            }
           ]) cfg.auth.profiles
         );
 
@@ -288,8 +301,6 @@ in
     "--run"
     "source ${profileLoader}"
   ];
-
-  env = { };
 
   packages = lib.optionals hasProfiles [ claudeSwitch ];
 

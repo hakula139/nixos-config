@@ -293,8 +293,7 @@ in
               DISABLE_INSTALLATION_CHECKS = "1";
               ENABLE_CLAUDEAI_MCP_SERVERS = "false";
               FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "false" else "true";
-            }
-            // auth.env;
+            };
           };
         };
       }
