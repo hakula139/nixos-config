@@ -1,9 +1,11 @@
 # ==============================================================================
 # Claude Code Auth Profiles
-# Shared profile definitions reused across hosts.
 # ==============================================================================
 
-{ corpDomain, secretsDir }:
+{
+  corpDomain,
+  secretsDir,
+}:
 
 {
   official = {
@@ -26,7 +28,7 @@
 
   yescode = {
     type = "api-key";
-    tokenSecret = "claude-code-api-key";
+    tokenSecret = "yescode-api-key";
     baseUrl = "https://co.yes.vg";
   };
 

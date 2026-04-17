@@ -22,6 +22,7 @@ let
   auth = import ./auth.nix {
     inherit
       config
+      pkgs
       lib
       secrets
       isNixOS
@@ -223,7 +224,14 @@ in
             source = statusLineScript;
             executable = true;
           };
-        };
+        }
+        // auth.homeFiles;
+
+        # ----------------------------------------------------------------------
+        # Auth profile switching
+        # ----------------------------------------------------------------------
+        home.packages = auth.packages;
+        home.activation.claudeCodeProfile = auth.activation;
 
         # ----------------------------------------------------------------------
         # Program configuration

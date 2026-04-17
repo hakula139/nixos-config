@@ -19,14 +19,12 @@ let
 
   mkProvisioned =
     secretName:
-    lib.mkIf (lib.elem secretName requiredSecrets) (
-      secrets.mkSecret {
-        name = secretName;
-        owner = cfg.user;
-        inherit (userCfg) group;
-        path = "${secretsDir}/${secretName}";
-      }
-    );
+    secrets.mkSecret {
+      name = secretName;
+      owner = cfg.user;
+      inherit (userCfg) group;
+      path = "${secretsDir}/${secretName}";
+    };
 in
 {
   # ----------------------------------------------------------------------------
@@ -54,14 +52,14 @@ in
       }
     ];
 
-    # --------------------------------------------------------------------------
-    # Secrets
-    # --------------------------------------------------------------------------
-    age.secrets = {
-      claude-code-api-key = mkProvisioned "claude-code-api-key";
-      claude-code-oauth-token = mkProvisioned "claude-code-oauth-token";
-      litellm-api-key = mkProvisioned "litellm-api-key";
-      corp-cachain-crt = mkProvisioned "corp-cachain.crt";
-    };
+    # ------------------------------------------------------------------------
+    # Secrets (dynamically provisioned from HM-computed requiredSecrets)
+    # ------------------------------------------------------------------------
+    age.secrets = builtins.listToAttrs (
+      map (name: {
+        name = lib.replaceStrings [ "." ] [ "-" ] name;
+        value = mkProvisioned name;
+      }) requiredSecrets
+    );
   };
 }

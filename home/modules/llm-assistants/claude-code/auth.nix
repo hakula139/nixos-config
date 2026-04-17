@@ -1,9 +1,10 @@
 # ==============================================================================
-# Claude Code Authentication
+# Claude Code Authentication Profiles
 # ==============================================================================
 
 {
   config,
+  pkgs,
   lib,
   secrets,
   isNixOS ? false,
@@ -13,50 +14,74 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   secretsDir = secrets.secretsPath homeDir;
-  corpDomain = import ../../../../lib/corp-domain.nix;
 
-  isOAuthToken = cfg.auth.method == "oauth-token";
-  isApiKey = cfg.auth.method == "api-key";
-  isGateway = cfg.auth.method == "gateway";
-  isApiAuth = isApiKey || isGateway;
+  hasProfiles = cfg.auth.profiles != { };
 
   secretFile = name: lib.escapeShellArg "${secretsDir}/${name}";
 
-  apiAuthDefs = {
-    api-key = {
-      tokenSecret = "claude-code-api-key";
-      defaultBaseUrl = "https://co.yes.vg";
-      extraEnv = { };
-      extraWrapArgs = [ ];
-      extraSecrets = [ ];
-    };
-
-    gateway = {
-      tokenSecret = "litellm-api-key";
-      defaultBaseUrl = "https://gw.llm.${corpDomain}/";
-      extraEnv = {
-        ANTHROPIC_DEFAULT_OPUS_MODEL = "bedrock/global.anthropic.claude-opus-4-6-v1";
-        ANTHROPIC_DEFAULT_SONNET_MODEL = "bedrock/global.anthropic.claude-sonnet-4-6";
-        ANTHROPIC_DEFAULT_HAIKU_MODEL = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
+  # ----------------------------------------------------------------------------
+  # Profile submodule
+  # ----------------------------------------------------------------------------
+  profileType = lib.types.submodule {
+    options = {
+      type = lib.mkOption {
+        type = lib.types.enum [
+          "oauth-token"
+          "api-key"
+        ];
+        default = "api-key";
+        description = "Authentication type";
       };
-      extraWrapArgs = [
-        "--set"
-        "NODE_EXTRA_CA_CERTS"
-        "${secretsDir}/corp-cachain.crt"
-      ];
-      extraSecrets = [ "corp-cachain.crt" ];
+
+      tokenSecret = lib.mkOption {
+        type = lib.types.str;
+        description = "Name of the agenix secret containing the auth token";
+      };
+
+      baseUrl = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "API base URL (required for `api-key`, forbidden for `oauth-token`)";
+      };
+
+      modelOverrides = {
+        opus = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = "Override for ANTHROPIC_DEFAULT_OPUS_MODEL";
+        };
+        sonnet = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = "Override for ANTHROPIC_DEFAULT_SONNET_MODEL";
+        };
+        haiku = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = "Override for ANTHROPIC_DEFAULT_HAIKU_MODEL";
+        };
+      };
+
+      extraEnv = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = { };
+        description = "Additional environment variables for this profile";
+      };
+
+      extraSecrets = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = "Additional secrets to provision for this profile";
+      };
     };
   };
 
-  apiAuth = if isApiAuth then apiAuthDefs.${cfg.auth.method} else null;
-
-  requiredSecrets =
-    if isOAuthToken then
-      [ "claude-code-oauth-token" ]
-    else if apiAuth != null then
-      [ apiAuth.tokenSecret ] ++ apiAuth.extraSecrets
-    else
-      [ ];
+  # ----------------------------------------------------------------------------
+  # Required secrets (union across all profiles)
+  # ----------------------------------------------------------------------------
+  requiredSecrets = lib.unique (
+    lib.concatMap (p: [ p.tokenSecret ] ++ p.extraSecrets) (builtins.attrValues cfg.auth.profiles)
+  );
 
   mkProvisioned =
     secretName:
@@ -66,83 +91,231 @@ let
         inherit homeDir;
       }
     );
+
+  # ----------------------------------------------------------------------------
+  # Profile script generation
+  # ----------------------------------------------------------------------------
+  mkProfileScript =
+    name: profile:
+    let
+      isOAuth = profile.type == "oauth-token";
+      esc = lib.escapeShellArg;
+
+      lines = [
+        (
+          if isOAuth then
+            ''export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${secretFile profile.tokenSecret})"''
+          else
+            ''export ANTHROPIC_AUTH_TOKEN="$(cat ${secretFile profile.tokenSecret})"''
+        )
+      ]
+      ++ lib.optional (profile.baseUrl != null) "export ANTHROPIC_BASE_URL=${esc profile.baseUrl}"
+      ++ lib.optional (
+        profile.modelOverrides.opus != null
+      ) "export ANTHROPIC_DEFAULT_OPUS_MODEL=${esc profile.modelOverrides.opus}"
+      ++ lib.optional (
+        profile.modelOverrides.sonnet != null
+      ) "export ANTHROPIC_DEFAULT_SONNET_MODEL=${esc profile.modelOverrides.sonnet}"
+      ++ lib.optional (
+        profile.modelOverrides.haiku != null
+      ) "export ANTHROPIC_DEFAULT_HAIKU_MODEL=${esc profile.modelOverrides.haiku}"
+      ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv;
+    in
+    pkgs.writeShellScript "claude-profile-${name}" (lib.concatStringsSep "\n" lines);
+
+  profileScripts = lib.mapAttrs mkProfileScript cfg.auth.profiles;
+
+  # ----------------------------------------------------------------------------
+  # All auth env var names (union for reset)
+  # ----------------------------------------------------------------------------
+  allAuthEnvVars = lib.unique (
+    lib.concatMap (
+      profile:
+      let
+        baseVars =
+          if profile.type == "oauth-token" then
+            [ "CLAUDE_CODE_OAUTH_TOKEN" ]
+          else
+            [
+              "ANTHROPIC_AUTH_TOKEN"
+              "ANTHROPIC_BASE_URL"
+            ];
+        modelVars =
+          lib.optional (profile.modelOverrides.opus != null) "ANTHROPIC_DEFAULT_OPUS_MODEL"
+          ++ lib.optional (profile.modelOverrides.sonnet != null) "ANTHROPIC_DEFAULT_SONNET_MODEL"
+          ++ lib.optional (profile.modelOverrides.haiku != null) "ANTHROPIC_DEFAULT_HAIKU_MODEL";
+        extraVars = builtins.attrNames profile.extraEnv;
+      in
+      baseVars ++ modelVars ++ extraVars
+    ) (builtins.attrValues cfg.auth.profiles)
+  );
+
+  # ----------------------------------------------------------------------------
+  # Profile loader (sourced by wrapper at startup)
+  # ----------------------------------------------------------------------------
+  stateDir = "${homeDir}/.local/state/claude-code";
+
+  profileLoader = pkgs.writeShellScript "claude-profile-loader" ''
+    ${lib.concatMapStringsSep "\n" (v: "unset ${v}") allAuthEnvVars}
+    __claude_profile="${stateDir}/active-profile"
+    if [ -f "$__claude_profile" ]; then
+      . "$__claude_profile"
+    else
+      printf 'claude: no active auth profile at %s\n' "$__claude_profile" >&2
+    fi
+  '';
+
+  # ----------------------------------------------------------------------------
+  # claude-switch script
+  # ----------------------------------------------------------------------------
+  profileNames = builtins.attrNames cfg.auth.profiles;
+
+  claudeSwitch = pkgs.writeShellScriptBin "claude-switch" ''
+    __profiles_dir="${stateDir}/profiles"
+    __active_link="${stateDir}/active-profile"
+
+    __list_profiles() {
+      __current="$(readlink "$__active_link" 2>/dev/null)"
+      __current="''${__current##*/}"
+      __current="''${__current%.sh}"
+      for __name in ${lib.escapeShellArgs profileNames}; do
+        if [ "$__name" = "$__current" ]; then
+          printf '  \033[1;32m* %s\033[0m (active)\n' "$__name"
+        else
+          printf '    %s\n' "$__name"
+        fi
+      done
+    }
+
+    case "''${1:-}" in
+      ""|-l|--list)
+        __list_profiles
+        ;;
+      -h|--help)
+        printf 'Usage: claude-switch [<profile> | --list]\n\nAvailable profiles:\n'
+        __list_profiles
+        ;;
+      *)
+        __profile="$__profiles_dir/$1.sh"
+        if [ ! -f "$__profile" ]; then
+          printf 'Unknown profile: %s\n\nAvailable profiles:\n' "$1" >&2
+          __list_profiles >&2
+          exit 1
+        fi
+        ln -sf "$__profile" "$__active_link"
+        printf 'Switched to profile: %s\nRestart Claude Code for changes to take effect.\n' "$1"
+        ;;
+    esac
+  '';
+
+  # ----------------------------------------------------------------------------
+  # Home files (deploy profile scripts to state dir)
+  # ----------------------------------------------------------------------------
+  homeFiles = lib.mapAttrs' (name: script: {
+    name = ".local/state/claude-code/profiles/${name}.sh";
+    value = {
+      source = script;
+    };
+  }) profileScripts;
+
+  # ----------------------------------------------------------------------------
+  # Activation (create default symlink if missing or broken)
+  # ----------------------------------------------------------------------------
+  activation =
+    if hasProfiles && cfg.auth.defaultProfile != null then
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        __dir="${stateDir}"
+        __link="$__dir/active-profile"
+        if [ ! -e "$__link" ]; then
+          mkdir -p "$__dir"
+          ln -sf "$__dir/profiles/${cfg.auth.defaultProfile}.sh" "$__link"
+        fi
+      ''
+    else
+      lib.hm.dag.entryAfter [ "writeBoundary" ] "";
 in
 {
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
   options = {
-    method = lib.mkOption {
-      type = lib.types.nullOr (
-        lib.types.enum [
-          "oauth-token"
-          "api-key"
-          "gateway"
-        ]
-      );
-      default = null;
-      description = "Authentication method for Claude Code";
-    };
-
-    baseUrl = lib.mkOption {
+    defaultProfile = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
-      description = "Base URL for token-based authentication (`api-key`, `gateway`)";
+      description = "Name of the active auth profile after rebuild (null = no auth)";
+    };
+
+    profiles = lib.mkOption {
+      type = lib.types.attrsOf profileType;
+      default = { };
+      description = "Named authentication profiles for Claude Code";
     };
 
     _provision.requiredSecrets = lib.mkOption {
-      type = lib.types.listOf (
-        lib.types.enum [
-          "claude-code-oauth-token"
-          "claude-code-api-key"
-          "litellm-api-key"
-          "corp-cachain.crt"
-        ]
-      );
+      type = lib.types.listOf lib.types.str;
       internal = true;
       readOnly = true;
     };
   };
 
+  # ----------------------------------------------------------------------------
+  # Module config
+  # ----------------------------------------------------------------------------
   config = lib.mkMerge [
     {
-      assertions = [
-        {
-          assertion = !isApiAuth || cfg.auth.baseUrl != null;
-          message = "hakula.claude-code: auth.baseUrl must be set when auth.method is `api-key` or `gateway`";
+      assertions =
+        lib.optional (cfg.auth.defaultProfile != null && hasProfiles) {
+          assertion = lib.hasAttr cfg.auth.defaultProfile cfg.auth.profiles;
+          message = "hakula.claude-code: auth.defaultProfile '${cfg.auth.defaultProfile}' is not in auth.profiles";
         }
-      ];
+        ++ lib.optional (hasProfiles && cfg.auth.defaultProfile == null) {
+          assertion = false;
+          message = "hakula.claude-code: auth.defaultProfile must be set when profiles are defined";
+        }
+        ++ lib.concatLists (
+          lib.mapAttrsToList (name: profile: [
+            {
+              assertion = profile.type == "api-key" -> profile.baseUrl != null;
+              message = "hakula.claude-code: profile '${name}' (api-key) requires baseUrl";
+            }
+            {
+              assertion =
+                profile.type == "oauth-token"
+                -> (
+                  profile.baseUrl == null
+                  && profile.modelOverrides.opus == null
+                  && profile.modelOverrides.sonnet == null
+                  && profile.modelOverrides.haiku == null
+                );
+              message = "hakula.claude-code: profile '${name}' (oauth-token) must not set baseUrl or modelOverrides";
+            }
+          ]) cfg.auth.profiles
+        );
+
       hakula.claude-code.auth._provision.requiredSecrets = requiredSecrets;
     }
 
-    (lib.mkIf (apiAuth != null) {
-      hakula.claude-code.auth.baseUrl = lib.mkDefault apiAuth.defaultBaseUrl;
-    })
-
-    (lib.mkIf (!isNixOS) {
-      age.secrets = {
-        claude-code-oauth-token = mkProvisioned "claude-code-oauth-token";
-        claude-code-api-key = mkProvisioned "claude-code-api-key";
-        litellm-api-key = mkProvisioned "litellm-api-key";
-        corp-cachain-crt = mkProvisioned "corp-cachain.crt";
-      };
+    (lib.mkIf (!isNixOS && hasProfiles) {
+      age.secrets = builtins.listToAttrs (
+        map (secretName: {
+          name = lib.replaceStrings [ "." ] [ "-" ] secretName;
+          value = mkProvisioned secretName;
+        }) requiredSecrets
+      );
     })
   ];
 
-  wrapArgs =
-    lib.optionals isOAuthToken [
-      "--run"
-      ''export CLAUDE_CODE_OAUTH_TOKEN="$(cat ${secretFile "claude-code-oauth-token"})"''
-    ]
-    ++ lib.optionals (apiAuth != null) (
-      [
-        "--run"
-        ''export ANTHROPIC_AUTH_TOKEN="$(cat ${secretFile apiAuth.tokenSecret})"''
-      ]
-      ++ apiAuth.extraWrapArgs
-    );
+  # ----------------------------------------------------------------------------
+  # Exports consumed by default.nix
+  # ----------------------------------------------------------------------------
+  wrapArgs = lib.optionals hasProfiles [
+    "--run"
+    "source ${profileLoader}"
+  ];
 
-  env = lib.optionalAttrs (apiAuth != null) (
-    {
-      ANTHROPIC_BASE_URL = cfg.auth.baseUrl;
-    }
-    // apiAuth.extraEnv
-  );
+  env = { };
+
+  packages = lib.optionals hasProfiles [ claudeSwitch ];
+
+  inherit homeFiles activation;
 }

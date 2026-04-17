@@ -45,7 +45,6 @@ in
       {
         hakula.claude-code = {
           enable = lib.mkDefault true;
-          auth.method = lib.mkDefault "api-key";
           mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
         };
 
