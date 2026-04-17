@@ -7,5 +7,5 @@ __claude_profile="@stateDir@/active-profile"
 if [ -f "$__claude_profile" ]; then
   . "$__claude_profile"
 else
-  printf 'claude: no active auth profile at %s\n' "$__claude_profile" >&2
+  echo "claude: no active auth profile at ${__claude_profile}" >&2
 fi

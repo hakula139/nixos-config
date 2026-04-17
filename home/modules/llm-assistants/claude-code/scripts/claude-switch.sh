@@ -2,6 +2,9 @@
 # Lists and switches between authentication profiles by updating the
 # active-profile symlink in the state directory.
 
+readonly GREEN='\033[1;32m'
+readonly RESET='\033[0m'
+
 readonly PROFILES_DIR="@stateDir@/profiles"
 readonly ACTIVE_LINK="@stateDir@/active-profile"
 
@@ -14,7 +17,7 @@ list_profiles() {
   # shellcheck disable=SC2043  # @profileNames@ expands to multiple words at build time
   for name in @profileNames@; do
     if [[ "${name}" == "${current}" ]]; then
-      printf '  \033[1;32m* %s\033[0m (active)\n' "${name}"
+      printf '%b\n' "  ${GREEN}* ${name}${RESET} (active)"
     else
       echo "    ${name}"
     fi

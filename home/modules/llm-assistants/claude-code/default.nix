@@ -134,7 +134,7 @@ in
             "${pkgs.nodejs}/bin/npx"
             "${notify.getTtyNum}"
           ]
-          (builtins.readFile ./statusline-command.sh)
+          (builtins.readFile ./scripts/statusline-command.sh)
       );
 
       # ------------------------------------------------------------------------

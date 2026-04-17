@@ -163,7 +163,7 @@ let
         (lib.concatMapStringsSep "\n" (v: "unset ${v}") allAuthEnvVars)
         stateDir
       ]
-      (builtins.readFile ./profile-loader.sh)
+      (builtins.readFile ./scripts/profile-loader.sh)
   );
 
   # ----------------------------------------------------------------------------
@@ -181,7 +181,7 @@ let
         stateDir
         (lib.escapeShellArgs profileNames)
       ]
-      (builtins.readFile ./claude-switch.sh)
+      (builtins.readFile ./scripts/claude-switch.sh)
   );
 
   # ----------------------------------------------------------------------------
