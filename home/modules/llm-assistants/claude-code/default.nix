@@ -131,7 +131,7 @@ in
         builtins.replaceStrings
           [ "@npx@" "@getTtyNum@" ]
           [
-            "${pkgs.nodejs}/bin/npx"
+            "${pkgs.nodejs_24}/bin/npx"
             "${notify.getTtyNum}"
           ]
           (builtins.readFile ./scripts/statusline-command.sh)
