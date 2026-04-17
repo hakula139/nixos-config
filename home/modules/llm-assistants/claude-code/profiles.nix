@@ -17,6 +17,12 @@ let
   secretFile = name: lib.escapeShellArg "${secretsDir}/${name}";
   hasProfiles = cfg.auth.profiles != { };
 
+  modelEnvVars = {
+    opus = "ANTHROPIC_DEFAULT_OPUS_MODEL";
+    sonnet = "ANTHROPIC_DEFAULT_SONNET_MODEL";
+    haiku = "ANTHROPIC_DEFAULT_HAIKU_MODEL";
+  };
+
   # ----------------------------------------------------------------------------
   # Profile submodule
   # ----------------------------------------------------------------------------
@@ -44,23 +50,14 @@ let
         description = "API base URL (required for `api-key`, forbidden for `oauth-token`)";
       };
 
-      modelOverrides = {
-        opus = lib.mkOption {
+      modelOverrides = lib.mapAttrs (
+        _: envVar:
+        lib.mkOption {
           type = lib.types.nullOr lib.types.str;
           default = null;
-          description = "Override for ANTHROPIC_DEFAULT_OPUS_MODEL";
-        };
-        sonnet = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-          description = "Override for ANTHROPIC_DEFAULT_SONNET_MODEL";
-        };
-        haiku = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-          description = "Override for ANTHROPIC_DEFAULT_HAIKU_MODEL";
-        };
-      };
+          description = "Override for ${envVar}";
+        }
+      ) modelEnvVars;
 
       extraEnv = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;
@@ -129,15 +126,13 @@ let
 
       envLines =
         lib.optional (profile.baseUrl != null) "export ANTHROPIC_BASE_URL=${esc profile.baseUrl}"
-        ++ lib.optional (
-          profile.modelOverrides.opus != null
-        ) "export ANTHROPIC_DEFAULT_OPUS_MODEL=${esc profile.modelOverrides.opus}"
-        ++ lib.optional (
-          profile.modelOverrides.sonnet != null
-        ) "export ANTHROPIC_DEFAULT_SONNET_MODEL=${esc profile.modelOverrides.sonnet}"
-        ++ lib.optional (
-          profile.modelOverrides.haiku != null
-        ) "export ANTHROPIC_DEFAULT_HAIKU_MODEL=${esc profile.modelOverrides.haiku}"
+        ++ lib.concatLists (
+          lib.mapAttrsToList (
+            k: envVar:
+            lib.optional (profile.modelOverrides.${k} != null)
+              "export ${envVar}=${esc profile.modelOverrides.${k}}"
+          ) modelEnvVars
+        )
         ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv;
     in
     pkgs.writeShellScript "claude-profile-${name}" (lib.concatStringsSep "\n" (tokenLines ++ envLines));
@@ -161,10 +156,11 @@ let
     ++ lib.concatMap (
       profile:
       let
-        modelVars =
-          lib.optional (profile.modelOverrides.opus != null) "ANTHROPIC_DEFAULT_OPUS_MODEL"
-          ++ lib.optional (profile.modelOverrides.sonnet != null) "ANTHROPIC_DEFAULT_SONNET_MODEL"
-          ++ lib.optional (profile.modelOverrides.haiku != null) "ANTHROPIC_DEFAULT_HAIKU_MODEL";
+        modelVars = lib.concatLists (
+          lib.mapAttrsToList (
+            k: envVar: lib.optional (profile.modelOverrides.${k} != null) envVar
+          ) modelEnvVars
+        );
         extraVars = builtins.attrNames profile.extraEnv;
       in
       modelVars ++ extraVars
@@ -287,9 +283,7 @@ in
                 (profile.type == "oauth-token" || profile.type == "subscription")
                 -> (
                   profile.baseUrl == null
-                  && profile.modelOverrides.opus == null
-                  && profile.modelOverrides.sonnet == null
-                  && profile.modelOverrides.haiku == null
+                  && builtins.all (k: profile.modelOverrides.${k} == null) (builtins.attrNames modelEnvVars)
                 );
               message = "hakula.claude-code: profile '${name}' (${profile.type}) must not set baseUrl or modelOverrides";
             }
