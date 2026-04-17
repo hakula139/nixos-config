@@ -24,6 +24,7 @@ let
     options = {
       type = lib.mkOption {
         type = lib.types.enum [
+          "subscription"
           "oauth-token"
           "api-key"
         ];
@@ -32,8 +33,9 @@ let
       };
 
       tokenSecret = lib.mkOption {
-        type = lib.types.str;
-        description = "Name of the agenix secret containing the auth token";
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "Name of the agenix secret containing the auth token (not used for `subscription`)";
       };
 
       baseUrl = lib.mkOption {
@@ -78,7 +80,9 @@ let
   # Required secrets (union across all profiles)
   # ----------------------------------------------------------------------------
   requiredSecrets = lib.unique (
-    lib.concatMap (p: [ p.tokenSecret ] ++ p.extraSecrets) (builtins.attrValues cfg.auth.profiles)
+    lib.concatMap (p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ p.extraSecrets) (
+      builtins.attrValues cfg.auth.profiles
+    )
   );
 
   mkProvisioned =
@@ -104,54 +108,66 @@ let
   mkProfileScript =
     name: profile:
     let
-      isOAuth = profile.type == "oauth-token";
       esc = lib.escapeShellArg;
-      sf = secretFile profile.tokenSecret;
 
-      lines = [
-        readSecretFn
-        (
-          if isOAuth then
-            ''export CLAUDE_CODE_OAUTH_TOKEN="$(__read_secret ${sf})"''
-          else
-            ''export ANTHROPIC_AUTH_TOKEN="$(__read_secret ${sf})"''
-        )
-      ]
-      ++ lib.optional (profile.baseUrl != null) "export ANTHROPIC_BASE_URL=${esc profile.baseUrl}"
-      ++ lib.optional (
-        profile.modelOverrides.opus != null
-      ) "export ANTHROPIC_DEFAULT_OPUS_MODEL=${esc profile.modelOverrides.opus}"
-      ++ lib.optional (
-        profile.modelOverrides.sonnet != null
-      ) "export ANTHROPIC_DEFAULT_SONNET_MODEL=${esc profile.modelOverrides.sonnet}"
-      ++ lib.optional (
-        profile.modelOverrides.haiku != null
-      ) "export ANTHROPIC_DEFAULT_HAIKU_MODEL=${esc profile.modelOverrides.haiku}"
-      ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv;
+      tokenLines =
+        if profile.type == "subscription" then
+          [ "# subscription mode: auth via interactive OAuth (.credentials.json)" ]
+        else
+          let
+            sf = secretFile profile.tokenSecret;
+          in
+          [
+            readSecretFn
+            (
+              if profile.type == "oauth-token" then
+                ''export CLAUDE_CODE_OAUTH_TOKEN="$(__read_secret ${sf})"''
+              else
+                ''export ANTHROPIC_AUTH_TOKEN="$(__read_secret ${sf})"''
+            )
+          ];
+
+      envLines =
+        lib.optional (profile.baseUrl != null) "export ANTHROPIC_BASE_URL=${esc profile.baseUrl}"
+        ++ lib.optional (
+          profile.modelOverrides.opus != null
+        ) "export ANTHROPIC_DEFAULT_OPUS_MODEL=${esc profile.modelOverrides.opus}"
+        ++ lib.optional (
+          profile.modelOverrides.sonnet != null
+        ) "export ANTHROPIC_DEFAULT_SONNET_MODEL=${esc profile.modelOverrides.sonnet}"
+        ++ lib.optional (
+          profile.modelOverrides.haiku != null
+        ) "export ANTHROPIC_DEFAULT_HAIKU_MODEL=${esc profile.modelOverrides.haiku}"
+        ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv;
     in
-    pkgs.writeShellScript "claude-profile-${name}" (lib.concatStringsSep "\n" lines);
+    pkgs.writeShellScript "claude-profile-${name}" (lib.concatStringsSep "\n" (tokenLines ++ envLines));
 
   profileScripts = lib.mapAttrs mkProfileScript cfg.auth.profiles;
 
   # ----------------------------------------------------------------------------
   # All auth env var names (union for reset)
   # ----------------------------------------------------------------------------
+  # Hardcoded blocklist: always unset regardless of which profiles are declared.
+  # Prevents externally-set auth vars from bypassing profile switching.
+  knownAuthEnvVars = [
+    "ANTHROPIC_API_KEY"
+    "ANTHROPIC_AUTH_TOKEN"
+    "ANTHROPIC_BASE_URL"
+    "CLAUDE_CODE_OAUTH_TOKEN"
+  ];
+
   allAuthEnvVars = lib.unique (
-    lib.concatMap (
+    knownAuthEnvVars
+    ++ lib.concatMap (
       profile:
       let
-        baseVars =
-          if profile.type == "oauth-token" then
-            [ "CLAUDE_CODE_OAUTH_TOKEN" ]
-          else
-            [ "ANTHROPIC_AUTH_TOKEN" ] ++ lib.optional (profile.baseUrl != null) "ANTHROPIC_BASE_URL";
         modelVars =
           lib.optional (profile.modelOverrides.opus != null) "ANTHROPIC_DEFAULT_OPUS_MODEL"
           ++ lib.optional (profile.modelOverrides.sonnet != null) "ANTHROPIC_DEFAULT_SONNET_MODEL"
           ++ lib.optional (profile.modelOverrides.haiku != null) "ANTHROPIC_DEFAULT_HAIKU_MODEL";
         extraVars = builtins.attrNames profile.extraEnv;
       in
-      baseVars ++ modelVars ++ extraVars
+      modelVars ++ extraVars
     ) (builtins.attrValues cfg.auth.profiles)
   );
 
@@ -258,19 +274,29 @@ in
         ++ lib.concatLists (
           lib.mapAttrsToList (name: profile: [
             {
+              assertion =
+                (profile.type == "oauth-token" || profile.type == "api-key") -> profile.tokenSecret != null;
+              message = "hakula.claude-code: profile '${name}' (${profile.type}) requires tokenSecret";
+            }
+            {
               assertion = profile.type == "api-key" -> profile.baseUrl != null;
               message = "hakula.claude-code: profile '${name}' (api-key) requires baseUrl";
             }
             {
               assertion =
-                profile.type == "oauth-token"
+                (profile.type == "oauth-token" || profile.type == "subscription")
                 -> (
                   profile.baseUrl == null
                   && profile.modelOverrides.opus == null
                   && profile.modelOverrides.sonnet == null
                   && profile.modelOverrides.haiku == null
                 );
-              message = "hakula.claude-code: profile '${name}' (oauth-token) must not set baseUrl or modelOverrides";
+              message = "hakula.claude-code: profile '${name}' (${profile.type}) must not set baseUrl or modelOverrides";
+            }
+            {
+              assertion =
+                profile.type == "subscription" -> (profile.tokenSecret == null && profile.extraSecrets == [ ]);
+              message = "hakula.claude-code: profile '${name}' (subscription) must not set tokenSecret or extraSecrets";
             }
             {
               assertion = builtins.all (k: builtins.match "[A-Za-z_][A-Za-z0-9_]*" k != null) (

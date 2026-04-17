@@ -9,6 +9,10 @@
 
 {
   official = {
+    type = "subscription";
+  };
+
+  official-token = {
     type = "oauth-token";
     tokenSecret = "claude-code-oauth-token";
   };
