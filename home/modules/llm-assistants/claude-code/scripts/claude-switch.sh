@@ -1,6 +1,11 @@
-# Claude Code auth profile switcher.
+#!/usr/bin/env bash
+
+# ==============================================================================
+# Claude Code Auth Profile Switcher
+# ==============================================================================
 # Lists and switches between authentication profiles by updating the
 # active-profile symlink in the state directory.
+# ==============================================================================
 
 if [[ -t 1 ]]; then
   readonly GREEN='\033[1;32m'
