@@ -97,7 +97,7 @@ let
   # ----------------------------------------------------------------------------
   readSecretFn = ''
     __read_secret() {
-      if [ ! -s "$1" ]; then
+      if [[ ! -s "$1" ]]; then
         echo "claude: secret file missing or empty: $1" >&2
         return 1
       fi
