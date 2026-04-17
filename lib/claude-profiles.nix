@@ -28,13 +28,13 @@
 
   yescode = {
     type = "api-key";
-    tokenSecret = "yescode-api-key";
+    tokenSecret = "claude-yescode-api-key";
     baseUrl = "https://co.yes.vg";
   };
 
   ikuncode = {
     type = "api-key";
-    tokenSecret = "ikuncode-api-key";
+    tokenSecret = "claude-ikuncode-api-key";
     baseUrl = "https://api.ikuncode.cc";
   };
 }
