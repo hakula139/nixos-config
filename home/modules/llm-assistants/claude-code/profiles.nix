@@ -153,58 +153,36 @@ let
   # ----------------------------------------------------------------------------
   stateDir = "${homeDir}/.local/state/claude-code";
 
-  profileLoader = pkgs.writeShellScript "claude-profile-loader" ''
-    ${lib.concatMapStringsSep "\n" (v: "unset ${v}") allAuthEnvVars}
-    __claude_profile="${stateDir}/active-profile"
-    if [ -f "$__claude_profile" ]; then
-      . "$__claude_profile"
-    else
-      printf 'claude: no active auth profile at %s\n' "$__claude_profile" >&2
-    fi
-  '';
+  profileLoader = pkgs.writeShellScript "claude-profile-loader" (
+    builtins.replaceStrings
+      [
+        "@unsetVars@"
+        "@stateDir@"
+      ]
+      [
+        (lib.concatMapStringsSep "\n" (v: "unset ${v}") allAuthEnvVars)
+        stateDir
+      ]
+      (builtins.readFile ./profile-loader.sh)
+  );
 
   # ----------------------------------------------------------------------------
   # claude-switch script
   # ----------------------------------------------------------------------------
   profileNames = builtins.attrNames cfg.auth.profiles;
 
-  claudeSwitch = pkgs.writeShellScriptBin "claude-switch" ''
-    __profiles_dir="${stateDir}/profiles"
-    __active_link="${stateDir}/active-profile"
-
-    __list_profiles() {
-      __current="$(readlink "$__active_link" 2>/dev/null)"
-      __current="''${__current##*/}"
-      __current="''${__current%.sh}"
-      for __name in ${lib.escapeShellArgs profileNames}; do
-        if [ "$__name" = "$__current" ]; then
-          printf '  \033[1;32m* %s\033[0m (active)\n' "$__name"
-        else
-          printf '    %s\n' "$__name"
-        fi
-      done
-    }
-
-    case "''${1:-}" in
-      ""|-l|--list)
-        __list_profiles
-        ;;
-      -h|--help)
-        printf 'Usage: claude-switch [<profile> | --list]\n\nAvailable profiles:\n'
-        __list_profiles
-        ;;
-      *)
-        __profile="$__profiles_dir/$1.sh"
-        if [ ! -f "$__profile" ]; then
-          printf 'Unknown profile: %s\n\nAvailable profiles:\n' "$1" >&2
-          __list_profiles >&2
-          exit 1
-        fi
-        ln -sf "$__profile" "$__active_link"
-        printf 'Switched to profile: %s\nRestart Claude Code for changes to take effect.\n' "$1"
-        ;;
-    esac
-  '';
+  claudeSwitch = pkgs.writeShellScriptBin "claude-switch" (
+    builtins.replaceStrings
+      [
+        "@stateDir@"
+        "@profileNames@"
+      ]
+      [
+        stateDir
+        (lib.escapeShellArgs profileNames)
+      ]
+      (builtins.readFile ./claude-switch.sh)
+  );
 
   # ----------------------------------------------------------------------------
   # Home files (deploy profile scripts to state dir)
