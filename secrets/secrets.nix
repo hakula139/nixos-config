@@ -55,7 +55,7 @@ in
   "backup/env.age".publicKeys = allServers;
   "backup/restic-password.age".publicKeys = allServers;
   "cloudflare/credentials.age".publicKeys = allServers;
-  "qq-smtp-authcode.age".publicKeys = allServers;
+  "netdata/qq-smtp-authcode.age".publicKeys = allServers;
   "xray-config.json.age".publicKeys = allServers;
 
   # ----------------------------------------------------------------------------
