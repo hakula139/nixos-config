@@ -1,10 +1,11 @@
 # ==============================================================================
-# Claude Code Auth Profiles
+# Claude Code Auth Profiles — public subset
+# ==============================================================================
+# Decryptable by every agenix recipient (secrets are `allKeys`-scoped).
+# Corp profiles live in `lib/claude-profiles-corp.nix`; hosts with workstation-
+# level secret access layer them in on top.
 # ==============================================================================
 
-let
-  corpDomain = import ./corp-domain.nix;
-in
 {
   official = {
     type = "subscription";
@@ -13,20 +14,6 @@ in
   official-token = {
     type = "oauth-token";
     tokenSecret = "llm-assistants/claude-oauth-token";
-  };
-
-  corp-gateway = {
-    type = "api-key";
-    tokenSecret = "llm-assistants/litellm-api-key";
-    baseUrl = "https://gw.llm.${corpDomain}";
-    modelOverrides = {
-      opus = "bedrock/global.anthropic.claude-opus-4-6-v1";
-      sonnet = "bedrock/global.anthropic.claude-sonnet-4-6";
-      haiku = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
-    };
-    extraSecretEnv = {
-      NODE_EXTRA_CA_CERTS = "llm-assistants/corp-cachain.crt";
-    };
   };
 
   ikuncode = {
