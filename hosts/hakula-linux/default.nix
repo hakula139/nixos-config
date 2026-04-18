@@ -32,7 +32,7 @@ in
       ];
     };
   };
-  hakula.claude-code.auth.method = "gateway";
+  hakula.claude-code.auth.defaultProfile = "corp-gateway";
   hakula.cursor.extensions = {
     enable = lib.mkForce true;
     prune = lib.mkForce false;

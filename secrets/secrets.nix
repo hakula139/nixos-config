@@ -32,8 +32,9 @@ in
   # Dev tool secrets
   # ----------------------------------------------------------------------------
   "brave-api-key.age".publicKeys = allKeys;
-  "claude-code-api-key.age".publicKeys = allKeys;
   "claude-code-oauth-token.age".publicKeys = allKeys;
+  "claude-ikuncode-api-key.age".publicKeys = allKeys;
+  "claude-yescode-api-key.age".publicKeys = allKeys;
   "confluence-pat.age".publicKeys = allKeys;
   "context7-api-key.age".publicKeys = allKeys;
   "corp-cachain.crt.age".publicKeys = allWorkstations ++ [ hakula-devvm ];

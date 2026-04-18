@@ -80,6 +80,7 @@ hlsearch
 hookify
 horiz
 iface
+ikuncode
 inetutils
 inodes
 inotify
