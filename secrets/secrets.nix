@@ -56,7 +56,7 @@ in
   "backup/restic-password.age".publicKeys = allServers;
   "cloudflare/credentials.age".publicKeys = allServers;
   "netdata/qq-smtp-authcode.age".publicKeys = allServers;
-  "xray-config.json.age".publicKeys = allServers;
+  "xray/config.json.age".publicKeys = allServers;
 
   # ----------------------------------------------------------------------------
   # Host-specific secrets

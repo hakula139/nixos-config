@@ -56,7 +56,7 @@ in
     default = "www.microsoft.com";
     description = ''
       REALITY SNI host used for TLS camouflage in Xray and SNI-based routing in nginx.
-      If you change this, also update secrets/xray-config.json.age.
+      If you change this, also update secrets/xray/config.json.age.
     '';
   };
 

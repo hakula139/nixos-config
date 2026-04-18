@@ -35,7 +35,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.xray-config = secrets.mkSecret {
-      name = "xray-config.json";
+      name = "xray/config.json";
       owner = "root";
       group = "root";
     };
