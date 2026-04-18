@@ -53,7 +53,7 @@ This runs three queries (PeerTube API, HLS file details, streaming playlist meta
 ### Step 2: Get B2 Credentials
 
 ```bash
-eval "$(agenix -d peertube-env.age -i ~/.ssh/CloudCone/id_ed25519)"
+eval "$(agenix -d peertube/env.age -i ~/.ssh/CloudCone/id_ed25519)"
 export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
 ```
 

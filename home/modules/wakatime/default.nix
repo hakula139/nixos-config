@@ -19,7 +19,7 @@ in
   # ----------------------------------------------------------------------------
   config = lib.mkIf (!isNixOS) {
     age.secrets.wakatime-config = secrets.mkHomeSecret {
-      name = "wakatime-config";
+      name = "wakatime/config";
       inherit homeDir;
       path = "${homeDir}/.wakatime.cfg";
     };

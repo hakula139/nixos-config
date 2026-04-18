@@ -31,54 +31,59 @@ in
   # ----------------------------------------------------------------------------
   # Dev tool secrets
   # ----------------------------------------------------------------------------
-  "brave-api-key.age".publicKeys = allKeys;
-  "claude-code-oauth-token.age".publicKeys = allKeys;
-  "claude-ikuncode-api-key.age".publicKeys = allKeys;
-  "claude-yescode-api-key.age".publicKeys = allKeys;
-  "confluence-pat.age".publicKeys = allKeys;
-  "context7-api-key.age".publicKeys = allKeys;
-  "corp-cachain.crt.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
-  "devvm-proxy-url.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
-  "github-pat-personal.age".publicKeys = allKeys;
-  "github-pat-work.age".publicKeys = allKeys;
-  "litellm-api-key.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
+  "github/pat-personal.age".publicKeys = allKeys;
+  "github/pat-work.age".publicKeys = allKeys;
+
+  "hakula-devvm/proxy-url.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
+
+  "llm-assistants/claude-oauth-token.age".publicKeys = allKeys;
+  "llm-assistants/ikuncode-api-key.age".publicKeys = allKeys;
+  "llm-assistants/yescode-api-key.age".publicKeys = allKeys;
+  "llm-assistants/litellm-api-key.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
+  "llm-assistants/corp-cachain.crt.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
+
+  "llm-assistants/mcp/brave-api-key.age".publicKeys = allKeys;
+  "llm-assistants/mcp/confluence-pat.age".publicKeys = allKeys;
+  "llm-assistants/mcp/context7-api-key.age".publicKeys = allKeys;
 
   # ----------------------------------------------------------------------------
   # Infrastructure secrets
   # ----------------------------------------------------------------------------
-  "builder-ssh-key.age".publicKeys = allServersAndMacbook;
-  "cachix-auth-token.age".publicKeys = allServersAndMacbook;
+  "builders/ssh-key.age".publicKeys = allServersAndMacbook;
+  "cachix/auth-token.age".publicKeys = allServersAndMacbook;
 
   # ----------------------------------------------------------------------------
   # All-server secrets
   # ----------------------------------------------------------------------------
-  "backup-env.age".publicKeys = allServers;
-  "backup-restic-password.age".publicKeys = allServers;
-  "cloudflare-credentials.age".publicKeys = allServers;
-  "qq-smtp-authcode.age".publicKeys = allServers;
-  "xray-config.json.age".publicKeys = allServers;
+  "backup/env.age".publicKeys = allServers;
+  "backup/restic-password.age".publicKeys = allServers;
+  "cloudflare/credentials.age".publicKeys = allServers;
+  "netdata/qq-smtp-authcode.age".publicKeys = allServers;
+  "xray/config.json.age".publicKeys = allServers;
 
   # ----------------------------------------------------------------------------
-  # Host-specific secrets
+  # Host-specific secrets (grouped by host scope)
   # ----------------------------------------------------------------------------
-  "aria2-rpc-secret.age".publicKeys = us4Only;
-  "clash-users.json.age".publicKeys = us4Only;
-  "cloudcone-server-key-us-1.age".publicKeys = us1Only;
-  "cloudcone-server-key-us-3.age".publicKeys = us3Only;
-  "clove-env.age".publicKeys = us4Only;
-  "dockerhub-token.age".publicKeys = us4Only;
-  "fuclaude-env.age".publicKeys = us4Only;
-  "peertube-env.age".publicKeys = us1Only;
-  "peertube-secret.age".publicKeys = us1Only;
-  "piclist-config.json.age".publicKeys = us4Only;
-  "piclist-token.age".publicKeys = us4Only;
-  "twikoo-access-token.age".publicKeys = us4Only;
-  "umami-env.age".publicKeys = us4Only;
+  "cloudcone/server-key-us-1.age".publicKeys = us1Only;
+  "peertube/env.age".publicKeys = us1Only;
+  "peertube/secret.age".publicKeys = us1Only;
+
+  "cloudcone/server-key-us-3.age".publicKeys = us3Only;
+
+  "clash/users.json.age".publicKeys = us4Only;
+  "cloudreve/aria2-rpc-secret.age".publicKeys = us4Only;
+  "clove/env.age".publicKeys = us4Only;
+  "dockerhub/token.age".publicKeys = us4Only;
+  "fuclaude/env.age".publicKeys = us4Only;
+  "piclist/config.json.age".publicKeys = us4Only;
+  "piclist/token.age".publicKeys = us4Only;
+  "twikoo/access-token.age".publicKeys = us4Only;
+  "umami/env.age".publicKeys = us4Only;
 
   # ----------------------------------------------------------------------------
   # Workstation-only secrets
   # ----------------------------------------------------------------------------
-  "mihomo-secret.age".publicKeys = allWorkstations;
-  "mihomo-subscription-url.age".publicKeys = allWorkstations;
-  "wakatime-config.age".publicKeys = allWorkstations;
+  "mihomo/secret.age".publicKeys = allWorkstations;
+  "mihomo/subscription-url.age".publicKeys = allWorkstations;
+  "wakatime/config.age".publicKeys = allWorkstations;
 }

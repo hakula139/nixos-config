@@ -45,7 +45,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.builder-ssh-key = secrets.mkSecret {
-      name = "builder-ssh-key";
+      name = "builders/ssh-key";
       owner = "hakula";
       group = "staff";
     };

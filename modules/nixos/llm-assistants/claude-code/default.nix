@@ -73,7 +73,7 @@ in
     # ------------------------------------------------------------------------
     age.secrets = builtins.listToAttrs (
       map (name: {
-        name = lib.replaceStrings [ "." ] [ "-" ] name;
+        name = lib.replaceStrings [ "." "/" ] [ "-" "-" ] name;
         value = mkProvisioned name;
       }) requiredSecrets
     );

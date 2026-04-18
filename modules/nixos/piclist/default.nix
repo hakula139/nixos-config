@@ -54,13 +54,13 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.piclist-config = secrets.mkSecret {
-      name = "piclist-config.json";
+      name = "piclist/config.json";
       owner = "piclist";
       group = "piclist";
     };
 
     age.secrets.piclist-token = secrets.mkSecret {
-      name = "piclist-token";
+      name = "piclist/token";
       owner = "piclist";
       group = "piclist";
     };
