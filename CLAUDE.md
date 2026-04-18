@@ -224,7 +224,7 @@ Secrets are encrypted with **age** using SSH keys defined in `secrets/keys.nix`:
 - **Host keys**: `us-1`, `us-2`, `us-3`, `us-4`, `sg-1`, `hakula-devvm` (for host decryption)
 - **Workstation keys**: `hakula-macbook`, `hakula-work` (for local editing)
 
-Secrets in `secrets/*.age` are **decrypted at activation time** by agenix and placed in `/run/agenix` (NixOS) or `/run/agenix.d` (Darwin). Reference them in modules via `config.age.secrets.<secret-name>.path`.
+Secrets live in `secrets/` — flat for standalone secrets, nested by service for groups of related ones (e.g., `secrets/claude-*` moved under `secrets/llm-assistants/`, `secrets/peertube-*` under `secrets/peertube/`). They are **decrypted at activation time** by agenix and placed in `/run/agenix` (NixOS) or `/run/agenix.d` (Darwin). Reference them in modules via `config.age.secrets.<secret-name>.path`.
 
 #### Secrets Helper Library (`lib/secrets.nix`)
 
@@ -234,11 +234,11 @@ All modules use centralized helper functions from `lib/secrets.nix` to declare s
 
 ```nix
 age.secrets.my-secret = secrets.mkSecret {
-  name = "my-secret";      # Secret file name (matches secrets/<name>.age)
-  owner = "service-user";  # File owner
-  group = "service-group"; # File group
-  mode = "0400";           # Optional: file permissions (defaults to "0400")
-  path = "/custom/path";   # Optional: custom destination path
+  name = "my-service/my-secret"; # Path under secrets/ (sans .age); can be nested
+  owner = "service-user";        # File owner
+  group = "service-group";       # File group
+  mode = "0400";                 # Optional: file permissions (defaults to "0400")
+  path = "/custom/path";         # Optional: custom destination path
 };
 ```
 
@@ -246,20 +246,20 @@ age.secrets.my-secret = secrets.mkSecret {
 
 ```nix
 age.secrets.my-secret = secrets.mkHomeSecret {
-  name = "my-secret";      # Secret file name (matches secrets/<name>.age)
-  homeDir = homeDir;       # User's home directory
-  mode = "0400";           # Optional: file permissions (defaults to "0400")
-  path = "/custom/path";   # Optional: custom destination path
+  name = "my-service/my-secret"; # Path under secrets/ (sans .age); can be nested
+  homeDir = homeDir;             # User's home directory
+  mode = "0400";                 # Optional: file permissions (defaults to "0400")
+  path = "/custom/path";         # Optional: custom destination path
 };
 ```
 
 **Parameters:**
 
-- `name` (required): Secret filename (without `.age` extension), stored flat in `secrets/`
+- `name` (required): Path under `secrets/` (without `.age` extension). May be flat (`confluence-pat`) or nested by service (`llm-assistants/oauth-token`) — the helper resolves to `secrets/<name>.age` either way.
 - `owner` / `group` (NixOS only): File ownership for decrypted secret
 - `homeDir` (Home Manager only): User's home directory for path construction
 - `mode` (optional): File permissions, defaults to `"0400"` (read-only for owner)
-- `path` (optional): Custom destination path; if omitted, uses default location
+- `path` (optional): Custom destination path; if omitted, uses default location (for Home Manager, defaults to `${homeDir}/.secrets/<name>`, which nests if `<name>` does)
 
 **Helper functions:**
 
