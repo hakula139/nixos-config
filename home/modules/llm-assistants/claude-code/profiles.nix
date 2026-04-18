@@ -41,13 +41,13 @@ let
       tokenSecret = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        description = "Name of the agenix secret containing the auth token (not used for `subscription`)";
+        description = "Name of the agenix secret containing the auth token (required for `oauth-token` and `api-key`, forbidden for `subscription`)";
       };
 
       baseUrl = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        description = "API base URL (required for `api-key`, forbidden for `oauth-token`)";
+        description = "API base URL (required for `api-key`, forbidden for `oauth-token` and `subscription`)";
       };
 
       modelOverrides = lib.mapAttrs (
@@ -68,7 +68,7 @@ let
       extraSecrets = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
-        description = "Additional secrets to provision for this profile";
+        description = "Additional secrets to provision for this profile (forbidden for `subscription`)";
       };
     };
   };
@@ -221,13 +221,82 @@ let
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         __dir="${stateDir}"
         __link="$__dir/active-profile"
-        if [ ! -e "$__link" ]; then
+        if [[ ! -e "$__link" ]]; then
           mkdir -p "$__dir"
           ln -sf "$__dir/profiles/${cfg.auth.defaultProfile}.sh" "$__link"
         fi
       ''
     else
       lib.hm.dag.entryAfter [ "writeBoundary" ] "";
+
+  # ----------------------------------------------------------------------------
+  # Per-profile assertions
+  # ----------------------------------------------------------------------------
+  # Declares which auth types require or forbid each field. Order matches the
+  # field declarations in profileType above.
+  fieldConstraints = [
+    {
+      field = "tokenSecret";
+      isSet = p: p.tokenSecret != null;
+      required = [
+        "oauth-token"
+        "api-key"
+      ];
+      forbidden = [ "subscription" ];
+    }
+    {
+      field = "baseUrl";
+      isSet = p: p.baseUrl != null;
+      required = [ "api-key" ];
+      forbidden = [
+        "oauth-token"
+        "subscription"
+      ];
+    }
+    {
+      field = "modelOverrides";
+      isSet = p: builtins.any (v: v != null) (builtins.attrValues p.modelOverrides);
+      forbidden = [
+        "oauth-token"
+        "subscription"
+      ];
+    }
+    {
+      field = "extraSecrets";
+      isSet = p: p.extraSecrets != [ ];
+      forbidden = [ "subscription" ];
+    }
+  ];
+
+  mkProfileAssertions =
+    name: profile:
+    let
+      prefix = "hakula.claude-code: profile '${name}' (${profile.type})";
+      fieldAssertions =
+        {
+          field,
+          isSet,
+          required ? [ ],
+          forbidden ? [ ],
+        }:
+        lib.optional (required != [ ]) {
+          assertion = lib.elem profile.type required -> isSet profile;
+          message = "${prefix} requires ${field}";
+        }
+        ++ lib.optional (forbidden != [ ]) {
+          assertion = lib.elem profile.type forbidden -> !isSet profile;
+          message = "${prefix} must not set ${field}";
+        };
+    in
+    lib.concatMap fieldAssertions fieldConstraints
+    ++ [
+      {
+        assertion = builtins.all (k: builtins.match "[A-Za-z_][A-Za-z0-9_]*" k != null) (
+          builtins.attrNames profile.extraEnv
+        );
+        message = "${prefix} has extraEnv keys that are not valid POSIX variable names";
+      }
+    ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -259,47 +328,15 @@ in
   config = lib.mkMerge [
     {
       assertions =
-        lib.optional (cfg.auth.defaultProfile != null && hasProfiles) {
-          assertion = lib.hasAttr cfg.auth.defaultProfile cfg.auth.profiles;
-          message = "hakula.claude-code: auth.defaultProfile '${cfg.auth.defaultProfile}' is not in auth.profiles";
-        }
-        ++ lib.optional (hasProfiles && cfg.auth.defaultProfile == null) {
+        lib.optional (hasProfiles && cfg.auth.defaultProfile == null) {
           assertion = false;
           message = "hakula.claude-code: auth.defaultProfile must be set when profiles are defined";
         }
-        ++ lib.concatLists (
-          lib.mapAttrsToList (name: profile: [
-            {
-              assertion =
-                (profile.type == "oauth-token" || profile.type == "api-key") -> profile.tokenSecret != null;
-              message = "hakula.claude-code: profile '${name}' (${profile.type}) requires tokenSecret";
-            }
-            {
-              assertion = profile.type == "api-key" -> profile.baseUrl != null;
-              message = "hakula.claude-code: profile '${name}' (api-key) requires baseUrl";
-            }
-            {
-              assertion =
-                (profile.type == "oauth-token" || profile.type == "subscription")
-                -> (
-                  profile.baseUrl == null
-                  && builtins.all (k: profile.modelOverrides.${k} == null) (builtins.attrNames modelEnvVars)
-                );
-              message = "hakula.claude-code: profile '${name}' (${profile.type}) must not set baseUrl or modelOverrides";
-            }
-            {
-              assertion =
-                profile.type == "subscription" -> (profile.tokenSecret == null && profile.extraSecrets == [ ]);
-              message = "hakula.claude-code: profile '${name}' (subscription) must not set tokenSecret or extraSecrets";
-            }
-            {
-              assertion = builtins.all (k: builtins.match "[A-Za-z_][A-Za-z0-9_]*" k != null) (
-                builtins.attrNames profile.extraEnv
-              );
-              message = "hakula.claude-code: profile '${name}' has extraEnv keys that are not valid POSIX variable names";
-            }
-          ]) cfg.auth.profiles
-        );
+        ++ lib.optional (cfg.auth.defaultProfile != null && hasProfiles) {
+          assertion = lib.hasAttr cfg.auth.defaultProfile cfg.auth.profiles;
+          message = "hakula.claude-code: auth.defaultProfile '${cfg.auth.defaultProfile}' is not in auth.profiles";
+        }
+        ++ lib.concatLists (lib.mapAttrsToList mkProfileAssertions cfg.auth.profiles);
 
       hakula.claude-code.auth._provision.requiredSecrets = requiredSecrets;
     }
