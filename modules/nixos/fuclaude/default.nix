@@ -56,7 +56,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.fuclaude-env = secrets.mkSecret {
-      name = "fuclaude-env";
+      name = "fuclaude/env";
       owner = "root";
       group = "root";
     };

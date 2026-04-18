@@ -354,7 +354,7 @@ in
     (lib.mkIf (!isNixOS && hasProfiles) {
       age.secrets = builtins.listToAttrs (
         map (secretName: {
-          name = lib.replaceStrings [ "." ] [ "-" ] secretName;
+          name = lib.replaceStrings [ "." "/" ] [ "-" "-" ] secretName;
           value = secrets.mkHomeSecret {
             name = secretName;
             inherit homeDir;

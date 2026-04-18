@@ -39,7 +39,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.clove-env = secrets.mkSecret {
-      name = "clove-env";
+      name = "clove/env";
       owner = "root";
       group = "root";
     };

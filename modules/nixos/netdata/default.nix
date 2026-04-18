@@ -56,7 +56,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.qq-smtp-authcode = secrets.mkSecret {
-      name = "qq-smtp-authcode";
+      name = "netdata/qq-smtp-authcode";
       owner = "netdata";
       group = "netdata";
     };

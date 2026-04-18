@@ -48,7 +48,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.twikoo-access-token = secrets.mkSecret {
-      name = "twikoo-access-token";
+      name = "twikoo/access-token";
       owner = backupServiceName;
       group = backupServiceName;
     };

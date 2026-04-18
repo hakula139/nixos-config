@@ -110,7 +110,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.cloudflare-credentials = secrets.mkSecret {
-      name = "cloudflare-credentials";
+      name = "cloudflare/credentials";
       owner = "acme";
       group = "acme";
     };
