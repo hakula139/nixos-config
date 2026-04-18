@@ -32,16 +32,16 @@ in
   # Dev tool secrets
   # ----------------------------------------------------------------------------
   "brave-api-key.age".publicKeys = allKeys;
-  "claude-code-oauth-token.age".publicKeys = allKeys;
-  "claude-ikuncode-api-key.age".publicKeys = allKeys;
-  "claude-yescode-api-key.age".publicKeys = allKeys;
   "confluence-pat.age".publicKeys = allKeys;
   "context7-api-key.age".publicKeys = allKeys;
   "corp-cachain.crt.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
   "devvm-proxy-url.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
   "github/pat-personal.age".publicKeys = allKeys;
   "github/pat-work.age".publicKeys = allKeys;
-  "litellm-api-key.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
+  "llm-assistants/ikuncode-api-key.age".publicKeys = allKeys;
+  "llm-assistants/litellm-api-key.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
+  "llm-assistants/oauth-token.age".publicKeys = allKeys;
+  "llm-assistants/yescode-api-key.age".publicKeys = allKeys;
 
   # ----------------------------------------------------------------------------
   # Infrastructure secrets

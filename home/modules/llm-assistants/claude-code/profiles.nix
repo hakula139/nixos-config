@@ -227,9 +227,17 @@ let
   # ----------------------------------------------------------------------------
   # Activation
   # ----------------------------------------------------------------------------
-  # Creates the default active-profile symlink on first rebuild if missing.
+  # Creates the default active-profile symlink on first rebuild if missing,
+  # and removes stale flat secret symlinks left over from the pre-reorg layout
+  # (safe to drop the rm -f block a few rebuilds after everyone has migrated).
   activation = lib.hm.dag.entryAfter [ "writeBoundary" ] (
-    lib.optionalString (hasProfiles && cfg.auth.defaultProfile != null) ''
+    ''
+      rm -f "${secretsDir}/claude-code-oauth-token" \
+            "${secretsDir}/claude-ikuncode-api-key" \
+            "${secretsDir}/claude-yescode-api-key" \
+            "${secretsDir}/litellm-api-key"
+    ''
+    + lib.optionalString (hasProfiles && cfg.auth.defaultProfile != null) ''
       __dir="${stateDir}"
       __link="$__dir/active-profile"
       if [[ ! -e "$__link" ]]; then
@@ -354,7 +362,7 @@ in
     (lib.mkIf (!isNixOS && hasProfiles) {
       age.secrets = builtins.listToAttrs (
         map (secretName: {
-          name = lib.replaceStrings [ "." ] [ "-" ] secretName;
+          name = lib.replaceStrings [ "." "/" ] [ "-" "-" ] secretName;
           value = secrets.mkHomeSecret {
             name = secretName;
             inherit homeDir;
