@@ -92,6 +92,7 @@ in
       # ------------------------------------------------------------------------
       nodejs_24
       pnpm
+      bun
       nodePackages.typescript
       nodePackages.typescript-language-server
 
