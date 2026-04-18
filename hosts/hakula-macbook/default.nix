@@ -69,7 +69,7 @@
   home-manager.users.hakula = {
     hakula.claude-code.auth = {
       defaultProfile = "official";
-      profiles = import ../../lib/claude-profiles-corp.nix;
+      profiles = import ../../lib/llm-assistants/claude-profiles-corp.nix;
     };
     hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
   };

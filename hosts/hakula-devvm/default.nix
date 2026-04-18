@@ -72,7 +72,7 @@ in
     hakula.claude-code = {
       auth = {
         defaultProfile = "corp-gateway";
-        profiles = import ../../lib/claude-profiles-corp.nix;
+        profiles = import ../../lib/llm-assistants/claude-profiles-corp.nix;
       };
       mcp.enabledServers = claudeMcpServers;
       plugins.bundle = true;

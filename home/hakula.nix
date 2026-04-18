@@ -69,11 +69,14 @@ in
   # ----------------------------------------------------------------------------
   # Hosts that opt in by setting `defaultProfile` get the shared public profile
   # library. Corp-capable hosts (workstations + hakula-devvm) additionally merge
-  # in `lib/claude-profiles-corp.nix` to layer the corp-gateway profile on top —
-  # servers cannot decrypt its secrets and must stay on the public subset.
+  # in `lib/llm-assistants/claude-profiles-corp.nix` to layer the corp-gateway
+  # profile on top — servers cannot decrypt its secrets and must stay on the
+  # public subset. No `mkDefault` here: equal priority lets attrsOf combine
+  # both definitions; a host that truly wants to replace the set can use
+  # `mkForce`.
   hakula.claude-code.auth.profiles = lib.mkIf (
     config.hakula.claude-code.auth.defaultProfile != null
-  ) (lib.mkDefault (import ../lib/claude-profiles.nix));
+  ) (import ../lib/llm-assistants/claude-profiles.nix);
 
   hakula.cursor = {
     enable = true;

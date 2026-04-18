@@ -1,14 +1,14 @@
 # ==============================================================================
 # Claude Code Auth Profiles — corp subset
 # ==============================================================================
-# Layered on top of `lib/claude-profiles.nix` by hosts with workstation-level
+# Layered on top of `./claude-profiles.nix` by hosts with workstation-level
 # agenix access (workstations + hakula-devvm). Do NOT import on servers —
 # `llm-assistants/litellm-api-key.age` and `llm-assistants/corp-cachain.crt.age`
 # are not decryptable by server host keys.
 # ==============================================================================
 
 let
-  corpDomain = import ./corp-domain.nix;
+  corpDomain = import ../corp-domain.nix;
 in
 {
   corp-gateway = {

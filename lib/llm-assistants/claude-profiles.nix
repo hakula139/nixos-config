@@ -2,8 +2,8 @@
 # Claude Code Auth Profiles — public subset
 # ==============================================================================
 # Decryptable by every agenix recipient (secrets are `allKeys`-scoped).
-# Corp profiles live in `lib/claude-profiles-corp.nix`; hosts with workstation-
-# level secret access layer them in on top.
+# Corp profiles live alongside in `./claude-profiles-corp.nix`; hosts with
+# workstation-level secret access layer them in on top.
 # ==============================================================================
 
 {

@@ -5,8 +5,8 @@
 { lib }:
 
 let
-  mcpOptions = import ../home/modules/llm-assistants/shared/mcp/options.nix { inherit lib; };
-  proxyOptions = import ../home/modules/llm-assistants/shared/proxy.nix { inherit lib; };
+  mcpOptions = import ../../home/modules/llm-assistants/shared/mcp/options.nix { inherit lib; };
+  proxyOptions = import ../../home/modules/llm-assistants/shared/proxy.nix { inherit lib; };
 in
 {
   mkOptions =

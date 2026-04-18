@@ -115,7 +115,7 @@ The flake uses a **builder function pattern** to reduce duplication:
 - `modules/darwin/` — macOS-specific modules
 - `home/hakula.nix` + `home/modules/` — Home Manager user configuration
 - `packages/` — custom package definitions
-- `lib/` — shared helpers (`caches.nix`, `secrets.nix`, `servers.nix`, `tooling.nix`)
+- `lib/` — shared helpers (`caches.nix`, `corp-domain.nix`, `secrets.nix`, `servers.nix`, `tooling.nix`; `llm-assistants/` for assistant-specific helpers and Claude profile sets)
 - `secrets/` — agenix-encrypted secrets (`keys.nix` for SSH public keys, `secrets.nix` for recipient mapping)
 - `.github/workflows/ci.yml` — CI pipeline
 
