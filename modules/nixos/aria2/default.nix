@@ -25,7 +25,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.aria2-rpc-secret = secrets.mkSecret {
-      name = "aria2-rpc-secret";
+      name = "cloudreve/aria2-rpc-secret";
       owner = "aria2";
       group = "aria2";
     };
