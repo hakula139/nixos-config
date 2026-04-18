@@ -227,18 +227,9 @@ let
   # ----------------------------------------------------------------------------
   # Activation
   # ----------------------------------------------------------------------------
-  # Creates the default active-profile symlink on first rebuild if missing,
-  # and removes stale flat secret symlinks left over from the pre-reorg layout
-  # (safe to drop the rm -f block a few rebuilds after everyone has migrated).
+  # Creates the default active-profile symlink on first rebuild if missing.
   activation = lib.hm.dag.entryAfter [ "writeBoundary" ] (
-    ''
-      rm -f "${secretsDir}/claude-code-oauth-token" \
-            "${secretsDir}/claude-ikuncode-api-key" \
-            "${secretsDir}/claude-yescode-api-key" \
-            "${secretsDir}/corp-cachain.crt" \
-            "${secretsDir}/litellm-api-key"
-    ''
-    + lib.optionalString (hasProfiles && cfg.auth.defaultProfile != null) ''
+    lib.optionalString (hasProfiles && cfg.auth.defaultProfile != null) ''
       __dir="${stateDir}"
       __link="$__dir/active-profile"
       if [[ ! -e "$__link" ]]; then
