@@ -10,7 +10,7 @@
 
 let
   cfg = config.hakula.llm-assistants;
-  llmAssistants = import ../../../lib/llm-assistants.nix { inherit lib; };
+  llmAssistants = import ../../../lib/llm-assistants { inherit lib; };
 in
 {
   imports = [
