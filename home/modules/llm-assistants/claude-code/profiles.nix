@@ -13,6 +13,7 @@
 let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
+  stateDir = "${homeDir}/.local/state/claude-code";
   secretsDir = secrets.secretsPath homeDir;
   secretFile = name: lib.escapeShellArg "${secretsDir}/${name}";
   hasProfiles = cfg.auth.profiles != { };
@@ -74,7 +75,7 @@ let
   };
 
   # ----------------------------------------------------------------------------
-  # Required secrets (union across all profiles)
+  # Secrets
   # ----------------------------------------------------------------------------
   requiredSecrets = lib.unique (
     lib.concatMap (p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ p.extraSecrets) (
@@ -90,7 +91,7 @@ let
     };
 
   # ----------------------------------------------------------------------------
-  # Profile script generation
+  # Profile scripts
   # ----------------------------------------------------------------------------
   readSecretFn = ''
     __read_secret() {
@@ -140,7 +141,7 @@ let
   profileScripts = lib.mapAttrs mkProfileScript cfg.auth.profiles;
 
   # ----------------------------------------------------------------------------
-  # All auth env var names (union for reset)
+  # Auth env vars
   # ----------------------------------------------------------------------------
   # Hardcoded blocklist: always unset regardless of which profiles are declared.
   # Prevents externally-set auth vars from bypassing profile switching.
@@ -168,10 +169,10 @@ let
   );
 
   # ----------------------------------------------------------------------------
-  # Profile loader (sourced by wrapper at startup)
+  # Profile loader
   # ----------------------------------------------------------------------------
-  stateDir = "${homeDir}/.local/state/claude-code";
-
+  # Sourced by the claude wrapper at startup to unset stale auth env vars and
+  # export the active profile's variables.
   profileLoader = pkgs.writeShellScript "claude-profile-loader" (
     builtins.replaceStrings
       [
@@ -186,7 +187,7 @@ let
   );
 
   # ----------------------------------------------------------------------------
-  # claude-switch script
+  # Profile switcher
   # ----------------------------------------------------------------------------
   profileNames = builtins.attrNames cfg.auth.profiles;
 
@@ -204,7 +205,7 @@ let
   );
 
   # ----------------------------------------------------------------------------
-  # Home files (deploy profile scripts to state dir)
+  # Home files
   # ----------------------------------------------------------------------------
   homeFiles = lib.mapAttrs' (name: script: {
     name = ".local/state/claude-code/profiles/${name}.sh";
@@ -214,8 +215,9 @@ let
   }) profileScripts;
 
   # ----------------------------------------------------------------------------
-  # Activation (create default symlink if missing or broken)
+  # Activation
   # ----------------------------------------------------------------------------
+  # Creates the default active-profile symlink on first rebuild if missing.
   activation =
     if hasProfiles && cfg.auth.defaultProfile != null then
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -352,7 +354,7 @@ in
   ];
 
   # ----------------------------------------------------------------------------
-  # Exports consumed by default.nix
+  # Exports
   # ----------------------------------------------------------------------------
   wrapArgs = lib.optionals hasProfiles [
     "--run"
