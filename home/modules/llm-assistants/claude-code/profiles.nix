@@ -82,18 +82,8 @@ let
         default = { };
         description = ''
           Environment variables whose values are absolute paths to provisioned
-          secrets. Keys are env var names, values are secret names; each referenced
-          secret is auto-provisioned (no need to also list it in `extraSecrets`).
-          Forbidden for `subscription`.
-        '';
-      };
-
-      extraSecrets = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [ ];
-        description = ''
-          Additional secrets to provision for this profile (forbidden for
-          `subscription`).
+          secrets. Keys are env var names, values are secret names; referenced
+          secrets are auto-provisioned. Forbidden for `subscription`.
         '';
       };
     };
@@ -104,10 +94,7 @@ let
   # ----------------------------------------------------------------------------
   requiredSecrets = lib.unique (
     lib.concatMap (
-      p:
-      lib.optional (p.tokenSecret != null) p.tokenSecret
-      ++ p.extraSecrets
-      ++ builtins.attrValues p.extraSecretEnv
+      p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
     ) (builtins.attrValues cfg.auth.profiles)
   );
 
@@ -287,11 +274,6 @@ let
     {
       field = "extraSecretEnv";
       isSet = p: p.extraSecretEnv != { };
-      forbidden = [ "subscription" ];
-    }
-    {
-      field = "extraSecrets";
-      isSet = p: p.extraSecrets != [ ];
       forbidden = [ "subscription" ];
     }
   ];
