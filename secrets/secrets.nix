@@ -52,8 +52,8 @@ in
   # ----------------------------------------------------------------------------
   # All-server secrets
   # ----------------------------------------------------------------------------
-  "backup-env.age".publicKeys = allServers;
-  "backup-restic-password.age".publicKeys = allServers;
+  "backup/env.age".publicKeys = allServers;
+  "backup/restic-password.age".publicKeys = allServers;
   "cloudflare-credentials.age".publicKeys = allServers;
   "qq-smtp-authcode.age".publicKeys = allServers;
   "xray-config.json.age".publicKeys = allServers;
