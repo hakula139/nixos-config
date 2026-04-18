@@ -3,6 +3,7 @@
 # ==============================================================================
 
 {
+  config,
   pkgs,
   lib,
   inputs,
@@ -66,6 +67,12 @@ in
   # ----------------------------------------------------------------------------
   # Custom Modules
   # ----------------------------------------------------------------------------
+  # Only hosts that opt in by setting `defaultProfile` get the shared profile
+  # library; servers keep `profiles = { }` (the module default).
+  hakula.claude-code.auth.profiles = lib.mkIf (
+    config.hakula.claude-code.auth.defaultProfile != null
+  ) (lib.mkDefault (import ../lib/claude-profiles.nix));
+
   hakula.cursor = {
     enable = true;
     extensions = {

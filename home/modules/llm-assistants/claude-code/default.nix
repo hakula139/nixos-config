@@ -19,9 +19,10 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
 
-  auth = import ./auth.nix {
+  profiles = import ./profiles.nix {
     inherit
       config
+      pkgs
       lib
       secrets
       isNixOS
@@ -54,7 +55,7 @@ in
   options.hakula.claude-code = {
     enable = lib.mkEnableOption "Claude Code";
 
-    auth = auth.options;
+    auth = profiles.options;
 
     agents = {
       enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
@@ -130,10 +131,10 @@ in
         builtins.replaceStrings
           [ "@npx@" "@getTtyNum@" ]
           [
-            "${pkgs.nodejs}/bin/npx"
+            "${pkgs.nodejs_24}/bin/npx"
             "${notify.getTtyNum}"
           ]
-          (builtins.readFile ./statusline-command.sh)
+          (builtins.readFile ./scripts/statusline-command.sh)
       );
 
       # ------------------------------------------------------------------------
@@ -180,7 +181,7 @@ in
       '';
 
       wrapArgs =
-        auth.wrapArgs
+        profiles.wrapArgs
         ++ lib.optionals cfg.plugins.bundle [
           "--set"
           "CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL"
@@ -211,7 +212,7 @@ in
     in
     lib.mkMerge [
       mcp.secrets
-      auth.config
+      profiles.config
 
       {
         # ----------------------------------------------------------------------
@@ -223,7 +224,14 @@ in
             source = statusLineScript;
             executable = true;
           };
-        };
+        }
+        // profiles.homeFiles;
+
+        # ----------------------------------------------------------------------
+        # Auth profile switching
+        # ----------------------------------------------------------------------
+        home.packages = profiles.packages;
+        home.activation.claudeCodeProfile = profiles.activation;
 
         # ----------------------------------------------------------------------
         # Program configuration
@@ -253,7 +261,7 @@ in
             # Model
             # ------------------------------------------------------------------
             model = "opus[1m]";
-            effortLevel = "high";
+            effortLevel = "xhigh";
 
             # ------------------------------------------------------------------
             # Project
@@ -284,9 +292,9 @@ in
               CLAUDE_CODE_SCROLL_SPEED = "1";
               DISABLE_INSTALLATION_CHECKS = "1";
               ENABLE_CLAUDEAI_MCP_SERVERS = "false";
+              ENABLE_TOOL_SEARCH = "true";
               FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "false" else "true";
-            }
-            // auth.env;
+            };
           };
         };
       }
