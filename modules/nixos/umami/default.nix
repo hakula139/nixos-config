@@ -52,7 +52,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.umami-env = secrets.mkSecret {
-      name = "umami-env";
+      name = "umami/env";
       owner = "root";
       group = "postgres";
       mode = "0440"; # postgresql postStart needs to read this file

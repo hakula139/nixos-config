@@ -73,7 +73,7 @@ in
   "piclist/config.json.age".publicKeys = us4Only;
   "piclist/token.age".publicKeys = us4Only;
   "twikoo/access-token.age".publicKeys = us4Only;
-  "umami-env.age".publicKeys = us4Only;
+  "umami/env.age".publicKeys = us4Only;
 
   # ----------------------------------------------------------------------------
   # Workstation-only secrets
