@@ -15,13 +15,18 @@ let
   homeDir = config.home.homeDirectory;
   stateDir = "${homeDir}/.local/state/claude-code";
   secretsDir = secrets.secretsPath homeDir;
-  secretFile = name: lib.escapeShellArg "${secretsDir}/${name}";
   hasProfiles = cfg.auth.profiles != { };
 
   modelEnvVars = {
     opus = "ANTHROPIC_DEFAULT_OPUS_MODEL";
     sonnet = "ANTHROPIC_DEFAULT_SONNET_MODEL";
     haiku = "ANTHROPIC_DEFAULT_HAIKU_MODEL";
+  };
+
+  # Which env var carries the auth token for each non-subscription profile type.
+  authEnvByType = {
+    oauth-token = "CLAUDE_CODE_OAUTH_TOKEN";
+    api-key = "ANTHROPIC_AUTH_TOKEN";
   };
 
   # ----------------------------------------------------------------------------
@@ -42,13 +47,19 @@ let
       tokenSecret = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        description = "Name of the agenix secret containing the auth token (required for `oauth-token` and `api-key`, forbidden for `subscription`)";
+        description = ''
+          Name of the agenix secret containing the auth token (required for
+          `oauth-token` and `api-key`, forbidden for `subscription`).
+        '';
       };
 
       baseUrl = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        description = "API base URL (required for `api-key`, forbidden for `oauth-token` and `subscription`)";
+        description = ''
+          API base URL (required for `api-key`, forbidden for `oauth-token` and
+          `subscription`).
+        '';
       };
 
       modelOverrides = lib.mapAttrs (
@@ -66,10 +77,24 @@ let
         description = "Additional environment variables for this profile";
       };
 
+      extraSecretEnv = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = { };
+        description = ''
+          Environment variables whose values are absolute paths to provisioned
+          secrets. Keys are env var names, values are secret names; each referenced
+          secret is auto-provisioned (no need to also list it in `extraSecrets`).
+          Forbidden for `subscription`.
+        '';
+      };
+
       extraSecrets = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
-        description = "Additional secrets to provision for this profile (forbidden for `subscription`)";
+        description = ''
+          Additional secrets to provision for this profile (forbidden for
+          `subscription`).
+        '';
       };
     };
   };
@@ -78,17 +103,13 @@ let
   # Secrets
   # ----------------------------------------------------------------------------
   requiredSecrets = lib.unique (
-    lib.concatMap (p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ p.extraSecrets) (
-      builtins.attrValues cfg.auth.profiles
-    )
+    lib.concatMap (
+      p:
+      lib.optional (p.tokenSecret != null) p.tokenSecret
+      ++ p.extraSecrets
+      ++ builtins.attrValues p.extraSecretEnv
+    ) (builtins.attrValues cfg.auth.profiles)
   );
-
-  mkProvisioned =
-    secretName:
-    secrets.mkHomeSecret {
-      name = secretName;
-      inherit homeDir;
-    };
 
   # ----------------------------------------------------------------------------
   # Profile scripts
@@ -113,16 +134,12 @@ let
           [ "# subscription mode: auth via interactive OAuth (.credentials.json)" ]
         else
           let
-            sf = secretFile profile.tokenSecret;
+            sf = lib.escapeShellArg "${secretsDir}/${profile.tokenSecret}";
+            envVar = authEnvByType.${profile.type};
           in
           [
             readSecretFn
-            (
-              if profile.type == "oauth-token" then
-                ''export CLAUDE_CODE_OAUTH_TOKEN="$(__read_secret ${sf})"''
-              else
-                ''export ANTHROPIC_AUTH_TOKEN="$(__read_secret ${sf})"''
-            )
+            ''export ${envVar}="$(__read_secret ${sf})"''
           ];
 
       envLines =
@@ -134,7 +151,10 @@ let
               "export ${envVar}=${esc profile.modelOverrides.${k}}"
           ) modelEnvVars
         )
-        ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv;
+        ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv
+        ++ lib.mapAttrsToList (
+          k: secretName: "export ${k}=${esc "${secretsDir}/${secretName}"}"
+        ) profile.extraSecretEnv;
     in
     pkgs.writeShellScript "claude-profile-${name}" (lib.concatStringsSep "\n" (tokenLines ++ envLines));
 
@@ -143,14 +163,17 @@ let
   # ----------------------------------------------------------------------------
   # Auth env vars
   # ----------------------------------------------------------------------------
-  # Hardcoded blocklist: always unset regardless of which profiles are declared.
-  # Prevents externally-set auth vars from bypassing profile switching.
-  knownAuthEnvVars = [
-    "ANTHROPIC_API_KEY"
-    "ANTHROPIC_AUTH_TOKEN"
-    "ANTHROPIC_BASE_URL"
-    "CLAUDE_CODE_OAUTH_TOKEN"
-  ];
+  # Blocklist: always unset regardless of which profiles are declared. Prevents
+  # externally-set auth vars from bypassing profile switching. Covers every env
+  # var the profile scripts may export (via authEnvByType or ANTHROPIC_BASE_URL),
+  # plus ANTHROPIC_API_KEY, which no profile writes but external callers might.
+  knownAuthEnvVars = lib.naturalSort (
+    builtins.attrValues authEnvByType
+    ++ [
+      "ANTHROPIC_API_KEY"
+      "ANTHROPIC_BASE_URL"
+    ]
+  );
 
   allAuthEnvVars = lib.unique (
     knownAuthEnvVars
@@ -162,7 +185,7 @@ let
             k: envVar: lib.optional (profile.modelOverrides.${k} != null) envVar
           ) modelEnvVars
         );
-        extraVars = builtins.attrNames profile.extraEnv;
+        extraVars = builtins.attrNames profile.extraEnv ++ builtins.attrNames profile.extraSecretEnv;
       in
       modelVars ++ extraVars
     ) (builtins.attrValues cfg.auth.profiles)
@@ -218,18 +241,16 @@ let
   # Activation
   # ----------------------------------------------------------------------------
   # Creates the default active-profile symlink on first rebuild if missing.
-  activation =
-    if hasProfiles && cfg.auth.defaultProfile != null then
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        __dir="${stateDir}"
-        __link="$__dir/active-profile"
-        if [[ ! -e "$__link" ]]; then
-          mkdir -p "$__dir"
-          ln -sf "$__dir/profiles/${cfg.auth.defaultProfile}.sh" "$__link"
-        fi
-      ''
-    else
-      lib.hm.dag.entryAfter [ "writeBoundary" ] "";
+  activation = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+    lib.optionalString (hasProfiles && cfg.auth.defaultProfile != null) ''
+      __dir="${stateDir}"
+      __link="$__dir/active-profile"
+      if [[ ! -e "$__link" ]]; then
+        mkdir -p "$__dir"
+        ln -sf "$__dir/profiles/${cfg.auth.defaultProfile}.sh" "$__link"
+      fi
+    ''
+  );
 
   # ----------------------------------------------------------------------------
   # Per-profile assertions
@@ -264,6 +285,11 @@ let
       ];
     }
     {
+      field = "extraSecretEnv";
+      isSet = p: p.extraSecretEnv != { };
+      forbidden = [ "subscription" ];
+    }
+    {
       field = "extraSecrets";
       isSet = p: p.extraSecrets != [ ];
       forbidden = [ "subscription" ];
@@ -289,15 +315,15 @@ let
           assertion = lib.elem profile.type forbidden -> !isSet profile;
           message = "${prefix} must not set ${field}";
         };
+      mkPosixNameAssertion = field: keys: {
+        assertion = builtins.all (k: builtins.match "[A-Za-z_][A-Za-z0-9_]*" k != null) keys;
+        message = "${prefix} has ${field} keys that are not valid POSIX variable names";
+      };
     in
     lib.concatMap fieldAssertions fieldConstraints
     ++ [
-      {
-        assertion = builtins.all (k: builtins.match "[A-Za-z_][A-Za-z0-9_]*" k != null) (
-          builtins.attrNames profile.extraEnv
-        );
-        message = "${prefix} has extraEnv keys that are not valid POSIX variable names";
-      }
+      (mkPosixNameAssertion "extraEnv" (builtins.attrNames profile.extraEnv))
+      (mkPosixNameAssertion "extraSecretEnv" (builtins.attrNames profile.extraSecretEnv))
     ];
 in
 {
@@ -334,7 +360,7 @@ in
           assertion = false;
           message = "hakula.claude-code: auth.defaultProfile must be set when profiles are defined";
         }
-        ++ lib.optional (cfg.auth.defaultProfile != null && hasProfiles) {
+        ++ lib.optional (hasProfiles && cfg.auth.defaultProfile != null) {
           assertion = lib.hasAttr cfg.auth.defaultProfile cfg.auth.profiles;
           message = "hakula.claude-code: auth.defaultProfile '${cfg.auth.defaultProfile}' is not in auth.profiles";
         }
@@ -347,7 +373,10 @@ in
       age.secrets = builtins.listToAttrs (
         map (secretName: {
           name = lib.replaceStrings [ "." ] [ "-" ] secretName;
-          value = mkProvisioned secretName;
+          value = secrets.mkHomeSecret {
+            name = secretName;
+            inherit homeDir;
+          };
         }) requiredSecrets
       );
     })

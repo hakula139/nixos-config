@@ -66,6 +66,8 @@ in
   # ----------------------------------------------------------------------------
   # Custom Modules
   # ----------------------------------------------------------------------------
+  hakula.claude-code.auth.profiles = lib.mkDefault (import ../lib/claude-profiles.nix);
+
   hakula.cursor = {
     enable = true;
     extensions = {
