@@ -32,6 +32,9 @@ in
       .autopilot on
     '';
     ".editorconfig".source = ../../.editorconfig;
+    ".npmrc".text = ''
+      manage-package-manager-versions=true
+    '';
     "ruff.toml".source = ../../ruff.toml;
   };
 
@@ -88,6 +91,7 @@ in
       # Node.js Development
       # ------------------------------------------------------------------------
       nodejs_24
+      pnpm
       nodePackages.typescript
       nodePackages.typescript-language-server
 
@@ -190,18 +194,6 @@ in
     "$HOME/go/bin"
     "$HOME/.cargo/bin"
   ];
-
-  # ----------------------------------------------------------------------------
-  # Shell Configuration
-  # ----------------------------------------------------------------------------
-  programs.zsh.initContent = lib.mkAfter ''
-    # --------------------------------------------------------------------------
-    # Corepack - Enable pnpm with per-project version management
-    # --------------------------------------------------------------------------
-    if command -v corepack &>/dev/null; then
-      corepack enable --install-directory "$HOME/.local/bin" pnpm 2>/dev/null
-    fi
-  '';
 
   # ----------------------------------------------------------------------------
   # Secrets Configuration (agenix)
