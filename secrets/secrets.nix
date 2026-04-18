@@ -61,7 +61,7 @@ in
   # ----------------------------------------------------------------------------
   # Host-specific secrets
   # ----------------------------------------------------------------------------
-  "clash-users.json.age".publicKeys = us4Only;
+  "clash/users.json.age".publicKeys = us4Only;
   "cloudcone/server-key-us-1.age".publicKeys = us1Only;
   "cloudcone/server-key-us-3.age".publicKeys = us3Only;
   "cloudreve/aria2-rpc-secret.age".publicKeys = us4Only;

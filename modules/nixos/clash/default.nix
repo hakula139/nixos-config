@@ -42,7 +42,7 @@ in
       # Secrets
       # ------------------------------------------------------------------------
       age.secrets.clash-users = secrets.mkSecret {
-        name = "clash-users.json";
+        name = "clash/users.json";
         owner = "clashgen";
         group = "clashgen";
       };
