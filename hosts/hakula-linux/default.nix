@@ -34,7 +34,7 @@ in
   };
   hakula.claude-code.auth = {
     defaultProfile = "corp-gateway";
-    profiles = import ../../lib/llm-assistants/claude-profiles-corp.nix;
+    enableCorpGateway = true;
   };
   hakula.cursor.extensions = {
     enable = lib.mkForce true;

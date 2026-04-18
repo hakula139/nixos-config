@@ -325,6 +325,12 @@ in
       description = "Named authentication profiles for Claude Code";
     };
 
+    enableCorpGateway = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Include the `corp-gateway` profile. Requires corp-scoped agenix access.";
+    };
+
     _provision.requiredSecrets = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       internal = true;
