@@ -47,7 +47,7 @@ in
   # Infrastructure secrets
   # ----------------------------------------------------------------------------
   "builders/ssh-key.age".publicKeys = allServersAndMacbook;
-  "cachix-auth-token.age".publicKeys = allServersAndMacbook;
+  "cachix/auth-token.age".publicKeys = allServersAndMacbook;
 
   # ----------------------------------------------------------------------------
   # All-server secrets

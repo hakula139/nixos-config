@@ -39,7 +39,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.cachix-auth-token = secrets.mkSecret {
-      name = "cachix-auth-token";
+      name = "cachix/auth-token";
       owner = cfg.user;
       inherit (userCfg) group;
     };
