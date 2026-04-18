@@ -118,12 +118,12 @@ in
     # --------------------------------------------------------------------------
     age.secrets = lib.mkIf (!isNixOS) {
       mihomo-subscription-url = secrets.mkHomeSecret {
-        name = "mihomo-subscription-url";
+        name = "mihomo/subscription-url";
         inherit homeDir;
       };
 
       mihomo-secret = secrets.mkHomeSecret {
-        name = "mihomo-secret";
+        name = "mihomo/secret";
         inherit homeDir;
       };
     };

@@ -64,13 +64,13 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.peertube-env = secrets.mkSecret {
-      name = "peertube-env";
+      name = "peertube/env";
       owner = "peertube";
       group = "peertube";
     };
 
     age.secrets.peertube-secret = secrets.mkSecret {
-      name = "peertube-secret";
+      name = "peertube/secret";
       owner = "peertube";
       group = "peertube";
     };

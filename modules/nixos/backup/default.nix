@@ -119,13 +119,13 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.backup-env = secrets.mkSecret {
-      name = "backup-env";
+      name = "backup/env";
       owner = serviceName;
       group = serviceName;
     };
 
     age.secrets.backup-restic-password = secrets.mkSecret {
-      name = "backup-restic-password";
+      name = "backup/restic-password";
       owner = serviceName;
       group = serviceName;
     };

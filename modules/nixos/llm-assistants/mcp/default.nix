@@ -40,31 +40,31 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.confluence-pat = secrets.mkSecret {
-      name = "confluence-pat";
+      name = "llm-assistants/mcp/confluence-pat";
       owner = cfg.user;
       inherit (userCfg) group;
-      path = "${secretsDir}/confluence-pat";
+      path = "${secretsDir}/llm-assistants/mcp/confluence-pat";
     };
 
     age.secrets.brave-api-key = secrets.mkSecret {
-      name = "brave-api-key";
+      name = "llm-assistants/mcp/brave-api-key";
       owner = cfg.user;
       inherit (userCfg) group;
-      path = "${secretsDir}/brave-api-key";
+      path = "${secretsDir}/llm-assistants/mcp/brave-api-key";
     };
 
     age.secrets.context7-api-key = secrets.mkSecret {
-      name = "context7-api-key";
+      name = "llm-assistants/mcp/context7-api-key";
       owner = cfg.user;
       inherit (userCfg) group;
-      path = "${secretsDir}/context7-api-key";
+      path = "${secretsDir}/llm-assistants/mcp/context7-api-key";
     };
 
     age.secrets.github-pat = secrets.mkSecret {
-      name = "github-pat-personal";
+      name = "github/pat-personal";
       owner = cfg.user;
       inherit (userCfg) group;
-      path = "${secretsDir}/github-pat";
+      path = "${secretsDir}/github/pat";
     };
   };
 }

@@ -12,12 +12,12 @@ in
 
   official-token = {
     type = "oauth-token";
-    tokenSecret = "claude-code-oauth-token";
+    tokenSecret = "llm-assistants/claude-oauth-token";
   };
 
   corp-gateway = {
     type = "api-key";
-    tokenSecret = "litellm-api-key";
+    tokenSecret = "llm-assistants/litellm-api-key";
     baseUrl = "https://gw.llm.${corpDomain}";
     modelOverrides = {
       opus = "bedrock/global.anthropic.claude-opus-4-6-v1";
@@ -25,19 +25,19 @@ in
       haiku = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
     };
     extraSecretEnv = {
-      NODE_EXTRA_CA_CERTS = "corp-cachain.crt";
+      NODE_EXTRA_CA_CERTS = "llm-assistants/corp-cachain.crt";
     };
   };
 
   ikuncode = {
     type = "api-key";
-    tokenSecret = "claude-ikuncode-api-key";
+    tokenSecret = "llm-assistants/ikuncode-api-key";
     baseUrl = "https://api.ikuncode.cc";
   };
 
   yescode = {
     type = "api-key";
-    tokenSecret = "claude-yescode-api-key";
+    tokenSecret = "llm-assistants/yescode-api-key";
     baseUrl = "https://co.yes.vg";
   };
 }
