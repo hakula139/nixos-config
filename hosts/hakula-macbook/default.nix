@@ -67,6 +67,7 @@
   # Home Manager Overrides
   # ----------------------------------------------------------------------------
   home-manager.users.hakula = {
+    hakula.claude-code.auth.defaultProfile = "official";
     hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
   };
 

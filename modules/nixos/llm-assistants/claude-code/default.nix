@@ -19,14 +19,12 @@ let
 
   mkProvisioned =
     secretName:
-    lib.mkIf (lib.elem secretName requiredSecrets) (
-      secrets.mkSecret {
-        name = secretName;
-        owner = cfg.user;
-        inherit (userCfg) group;
-        path = "${secretsDir}/${secretName}";
-      }
-    );
+    secrets.mkSecret {
+      name = secretName;
+      owner = cfg.user;
+      inherit (userCfg) group;
+      path = "${secretsDir}/${secretName}";
+    };
 in
 {
   # ----------------------------------------------------------------------------
@@ -39,6 +37,16 @@ in
       type = lib.types.str;
       default = config.hakula.llm-assistants.user;
       description = "User to store Claude Code secrets for";
+    };
+
+    defaultProfile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = ''
+        Default Claude Code auth profile to activate on first build. Bridges to
+        `home-manager.users.<user>.hakula.claude-code.auth.defaultProfile` via
+        `lib.mkDefault`, so HM-level assignments still take precedence.
+      '';
     };
   };
 
@@ -54,14 +62,20 @@ in
       }
     ];
 
-    # --------------------------------------------------------------------------
-    # Secrets
-    # --------------------------------------------------------------------------
-    age.secrets = {
-      claude-code-api-key = mkProvisioned "claude-code-api-key";
-      claude-code-oauth-token = mkProvisioned "claude-code-oauth-token";
-      litellm-api-key = mkProvisioned "litellm-api-key";
-      corp-cachain-crt = mkProvisioned "corp-cachain.crt";
-    };
+    # ------------------------------------------------------------------------
+    # Propagate defaultProfile to the HM user
+    # ------------------------------------------------------------------------
+    home-manager.users.${cfg.user}.hakula.claude-code.auth.defaultProfile =
+      lib.mkDefault cfg.defaultProfile;
+
+    # ------------------------------------------------------------------------
+    # Secrets (dynamically provisioned from HM-computed requiredSecrets)
+    # ------------------------------------------------------------------------
+    age.secrets = builtins.listToAttrs (
+      map (name: {
+        name = lib.replaceStrings [ "." ] [ "-" ] name;
+        value = mkProvisioned name;
+      }) requiredSecrets
+    );
   };
 }
