@@ -78,7 +78,7 @@ in
   # ----------------------------------------------------------------------------
   # Workstation-only secrets
   # ----------------------------------------------------------------------------
-  "mihomo-secret.age".publicKeys = allWorkstations;
-  "mihomo-subscription-url.age".publicKeys = allWorkstations;
+  "mihomo/secret.age".publicKeys = allWorkstations;
+  "mihomo/subscription-url.age".publicKeys = allWorkstations;
   "wakatime-config.age".publicKeys = allWorkstations;
 }

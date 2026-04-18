@@ -118,12 +118,12 @@ in
     # --------------------------------------------------------------------------
     age.secrets = lib.mkIf (!isNixOS) {
       mihomo-subscription-url = secrets.mkHomeSecret {
-        name = "mihomo-subscription-url";
+        name = "mihomo/subscription-url";
         inherit homeDir;
       };
 
       mihomo-secret = secrets.mkHomeSecret {
-        name = "mihomo-secret";
+        name = "mihomo/secret";
         inherit homeDir;
       };
     };
@@ -245,8 +245,13 @@ in
     # --------------------------------------------------------------------------
     # Directory management
     # --------------------------------------------------------------------------
+    # The rm -f block cleans up stale flat symlinks left over from the
+    # pre-reorg layout; safe to drop a few rebuilds after everyone has
+    # migrated.
     home.activation.mihomoSetup = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       install -d -m 0700 "${configDir}"
+      rm -f "${secrets.secretsPath homeDir}/mihomo-secret" \
+            "${secrets.secretsPath homeDir}/mihomo-subscription-url"
     '';
   };
 }
