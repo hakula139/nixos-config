@@ -106,7 +106,7 @@ let
   # GitHub
   # ----------------------------------------------------------------------------
   ghBin = "${config.home.profileDirectory}/bin/gh";
-  githubPatFile = "${secretsDir}/github-pat";
+  githubPatFile = "${secretsDir}/github/pat";
   githubBin = pkgs.writeShellScriptBin "github-mcp" ''
     if [ -x "${ghBin}" ] && token=$("${ghBin}" auth token 2>/dev/null); then
       export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
@@ -223,7 +223,7 @@ in
       github-pat = secrets.mkHomeSecret {
         name = "github/pat-personal";
         inherit homeDir;
-        path = "${secretsDir}/github-pat";
+        path = "${secretsDir}/github/pat";
       };
     };
   };

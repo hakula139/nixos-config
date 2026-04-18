@@ -64,7 +64,7 @@ in
       name = "github/pat-personal";
       owner = cfg.user;
       inherit (userCfg) group;
-      path = "${secretsDir}/github-pat";
+      path = "${secretsDir}/github/pat";
     };
   };
 }
