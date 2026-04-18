@@ -89,7 +89,7 @@ in
   age.secrets.github-pat.file = lib.mkForce (secrets.secretFile "github/pat-work");
 
   age.secrets.devvm-proxy-url = secrets.mkSecret {
-    name = "devvm-proxy-url";
+    name = "hakula-devvm/proxy-url";
     owner = "root";
     group = "root";
   };
