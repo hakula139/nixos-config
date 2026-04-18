@@ -69,19 +69,15 @@ nix flake check
 ### Development Environment
 
 ```bash
-# Enter development shell with all tooling
+# Enter development shell (tooling declared in lib/tooling.nix)
 nix develop -c zsh
-
-# Available tools include:
-# - Nix: cachix, colmena, deadnix, nh, nixd, nix-tree, nixfmt, nom, nvd, statix
-# - Secrets: age, agenix
 ```
 
 ### Secrets Management
 
 ```bash
 cd secrets
-agenix -e <secret-name>.age -i ~/.ssh/<private-key>
+agenix -e <service>/<name>.age -i ~/.ssh/<private-key>
 ```
 
 #### Re-keying Secrets
@@ -110,97 +106,26 @@ The flake uses a **builder function pattern** to reduce duplication:
 - `inputs.llm-agents`: Provides `claude-code` and `codex` packages from [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix)
 - `forAllSystems`: Handles both x86_64-linux and aarch64-darwin
 
-**Key outputs**:
-
-- `nixosConfigurations.*`: Server configurations (us-1, us-2, us-3, us-4, sg-1)
-- `colmena`: Multi-server deployment with per-node SSH config and provider tags (builds on target)
-- `darwinConfigurations.hakula-macbook`: macOS configuration
-- `homeConfigurations.hakula-linux`: Standalone Home Manager for generic Linux
-- `packages.x86_64-linux.hakula-devvm-docker`: Docker image for air-gapped deployment
-- `checks.*.pre-commit`: Pre-commit hook validation
-- `devShells.default`: Development environment with pre-commit hooks
-- `formatter`: nixfmt
-
 ### Directory Layout
 
-```text
-.
-├── flake.nix                    # Main entry point
-├── hosts/                       # Per-host configurations
-│   ├── _profiles/               # Reusable hardware / boot / container profiles
-│   │   ├── disk-config.nix      # Shared GPT + ext4 disk layout
-│   │   ├── cloudcone-sc2/       # CloudCone SC2 hardware profile (MBR, own disk layout)
-│   │   ├── cloudcone-vps/       # CloudCone VPS hardware profile
-│   │   ├── dmit/                # DMIT hardware profile
-│   │   ├── docker/              # Docker container profile
-│   │   ├── server-baseline/     # Shared server defaults (builders, MCP, services, HM)
-│   │   └── tencent-lighthouse/  # Tencent Lighthouse hardware profile
-│   ├── us-1/                    # CloudCone SC2 server
-│   ├── us-2/                    # CloudCone VPS
-│   ├── us-3/                    # CloudCone SC2 server
-│   ├── us-4/                    # DMIT server
-│   ├── sg-1/                    # Tencent Lighthouse server
-│   ├── hakula-macbook/          # macOS workstation
-│   ├── hakula-linux/             # Generic Linux (standalone Home Manager)
-│   └── hakula-devvm/            # DevVM (Docker image for air-gapped deployment)
-├── modules/
-│   ├── shared.nix               # Cross-platform base config
-│   ├── nixos/                   # NixOS service modules (22 modules)
-│   └── darwin/                  # macOS-specific modules (with ssh/ submodule)
-├── home/
-│   ├── hakula.nix               # Main user configuration entry
-│   └── modules/                 # Home Manager modules
-│       ├── fonts/               # Windows font sync (WSL only)
-│       ├── git/                 # Git configuration
-│       ├── llm-assistants/      # LLM assistant tooling
-│       │   ├── claude-code/     # Claude Code configuration
-│       │   ├── codex/           # OpenAI Codex CLI configuration
-│       │   ├── cursor/          # Cursor editor config
-│       │   ├── opencode/        # opencode CLI configuration
-│       │   └── shared/          # Shared assistant support (agents, instructions, MCP, notify, proxy)
-│       ├── mihomo/              # Mihomo proxy client
-│       ├── nix/                 # User-level nix.conf for standalone HM
-│       ├── ssh/                 # SSH client config
-│       ├── syncthing/           # Syncthing file synchronization
-│       ├── terminal/            # Terminal, shell & CLI tools
-│       │   ├── direnv/          # Direnv (auto env switching)
-│       │   ├── fzf/             # FZF (fuzzy finder)
-│       │   ├── neovim/          # Neovim editor
-│       │   ├── starship/        # Starship prompt
-│       │   ├── tmux/            # tmux multiplexer
-│       │   ├── tools/           # CLI tools (btop, jq)
-│       │   ├── zoxide/          # Zoxide (smart cd)
-│       │   └── zsh/             # Zsh shell
-│       ├── wakatime/            # Wakatime time tracking
-│       ├── darwin.nix           # macOS user-level settings
-│       └── shared.nix           # Shared module configuration
-├── packages/                    # Custom package definitions
-├── lib/
-│   ├── caches.nix               # Binary cache configuration
-│   ├── secrets.nix              # Secrets helper library
-│   ├── servers.nix              # Server inventory (IP, port, provider, keys)
-│   └── tooling.nix              # Shared development tools
-├── secrets/                     # agenix-encrypted secrets
-│   ├── keys.nix                 # SSH public keys for age encryption
-│   └── secrets.nix              # Age recipient configuration
-└── .github/
-    ├── workflows/ci.yml         # CI pipeline
-    └── actions/setup-nix/       # Reusable Nix setup action
-```
+- `flake.nix` — main entry point; outputs `nixosConfigurations`, `darwinConfigurations`, `homeConfigurations`, `packages`, `colmena`, `checks`, `devShells`, `formatter`
+- `hosts/` — per-host configurations; `hosts/_profiles/` holds reusable hardware / container profiles
+- `modules/shared.nix` — cross-platform base config
+- `modules/nixos/` — optional NixOS service modules (enabled per-host)
+- `modules/darwin/` — macOS-specific modules
+- `home/hakula.nix` + `home/modules/` — Home Manager user configuration
+- `packages/` — custom package definitions
+- `lib/` — shared helpers (`caches.nix`, `secrets.nix`, `servers.nix`, `tooling.nix`)
+- `secrets/` — agenix-encrypted secrets (`keys.nix` for SSH public keys, `secrets.nix` for recipient mapping)
+- `.github/workflows/ci.yml` — CI pipeline
 
 ### Module System
 
-**NixOS modules** (`modules/nixos/`) are **optionally enabled** services configured per-host. Key modules:
-
-- **Infrastructure**: `nginx`, `xray`, `clash`, `postgresql`, `podman`
-- **Services**: `aria2`, `cloudreve`, `clove`, `fuclaude`, `netdata`, `peertube`, `piclist`, `umami`
-- **System**: `backup`, `builders`, `cachix`, `cloudcone`, `cloudflare`, `dockerhub`, `llm-assistants`, `ssh`
+NixOS modules in `modules/nixos/` are **optionally enabled** services, each exporting an `enable` option. Host configurations import and enable them selectively.
 
 The `llm-assistants` module acts as an integration layer for the primary interactive user, nesting `claude-code` and `mcp` sub-modules that mirror the `home/modules/llm-assistants/` structure.
 
-Each module typically exports an `enable` option and service-specific configuration. Host configurations import modules and enable them selectively.
-
-**Home Manager modules** (`home/modules/`) configure user environments. The `isNixOS` and `isDesktop` flags control conditional configuration (e.g., NixOS vs. standalone, desktop vs. server).
+Home Manager modules in `home/modules/` configure user environments. The `isNixOS` and `isDesktop` flags drive conditional configuration (e.g., NixOS vs. standalone, desktop vs. server).
 
 ### Shared Configuration Pattern
 
@@ -218,83 +143,45 @@ Host configurations import `shared.nix` and extend with platform/host-specific s
 
 ### Secrets with agenix
 
-Secrets are encrypted with **age** using SSH keys defined in `secrets/keys.nix`:
+Secrets are encrypted with **age** using SSH keys declared in `secrets/keys.nix` (grouped as `users` / `hosts` / `workstations`). Recipient rules live in `secrets/secrets.nix`.
 
-- **User keys**: `hakula-cloudcone`, `hakula-dmit`, `hakula-tencent` (for remote management)
-- **Host keys**: `us-1`, `us-2`, `us-3`, `us-4`, `sg-1`, `hakula-devvm` (for host decryption)
-- **Workstation keys**: `hakula-macbook`, `hakula-work` (for local editing)
-
-Secrets live in `secrets/` — flat for standalone secrets, nested by service for groups of related ones (e.g., `secrets/claude-*` moved under `secrets/llm-assistants/`, `secrets/peertube-*` under `secrets/peertube/`). They are **decrypted at activation time** by agenix and placed in `/run/agenix` (NixOS) or `/run/agenix.d` (Darwin). Reference them in modules via `config.age.secrets.<secret-name>.path`.
+Secrets live in `secrets/` nested by service (e.g., `secrets/llm-assistants/claude-oauth-token.age`, `secrets/peertube/env.age`). They are **decrypted at activation time** by agenix and placed under `/run/agenix` (NixOS) or `/run/agenix.d` (Darwin). Reference them in modules via `config.age.secrets.<attr-name>.path`.
 
 #### Secrets Helper Library (`lib/secrets.nix`)
 
-All modules use centralized helper functions from `lib/secrets.nix` to declare secrets with consistent configuration:
+All modules declare secrets through helpers for consistent configuration. See `lib/secrets.nix` for full signatures (`mkSecret`, `mkHomeSecret`, `mkSecretsDir`, `mkHomeSecretsDir`).
 
-**For NixOS modules:**
+**NixOS modules:**
 
 ```nix
 age.secrets.my-secret = secrets.mkSecret {
-  name = "my-service/my-secret"; # Path under secrets/ (sans .age); can be nested
-  owner = "service-user";        # File owner
-  group = "service-group";       # File group
-  mode = "0400";                 # Optional: file permissions (defaults to "0400")
-  path = "/custom/path";         # Optional: custom destination path
+  name = "my-service/my-secret"; # Path under secrets/ (sans .age)
+  owner = "service-user";
+  group = "service-group";
 };
 ```
 
-**For Home Manager modules:**
+**Home Manager modules:**
 
 ```nix
 age.secrets.my-secret = secrets.mkHomeSecret {
-  name = "my-service/my-secret"; # Path under secrets/ (sans .age); can be nested
-  homeDir = homeDir;             # User's home directory
-  mode = "0400";                 # Optional: file permissions (defaults to "0400")
-  path = "/custom/path";         # Optional: custom destination path
+  name = "my-service/my-secret";
+  homeDir = homeDir;
 };
 ```
 
-**Parameters:**
-
-- `name` (required): Path under `secrets/` (without `.age` extension). May be flat (`confluence-pat`) or nested by service (`llm-assistants/oauth-token`) — the helper resolves to `secrets/<name>.age` either way.
-- `owner` / `group` (NixOS only): File ownership for decrypted secret
-- `homeDir` (Home Manager only): User's home directory for path construction
-- `mode` (optional): File permissions, defaults to `"0400"` (read-only for owner)
-- `path` (optional): Custom destination path; if omitted, uses default location (for Home Manager, defaults to `${homeDir}/.secrets/<name>`, which nests if `<name>` does)
-
-**Helper functions:**
-
-- `mkSecret`: Creates NixOS system-level secret configuration
-- `mkHomeSecret`: Creates Home Manager user-level secret configuration
-- `mkSecretsDir`: Generates systemd tmpfiles rule for secrets directory (NixOS)
-- `mkHomeSecretsDir`: Generates home activation script for secrets directory (Home Manager)
+Both accept optional `mode` (defaults to `"0400"`) and `path` (custom destination). Home Manager secrets default to `${homeDir}/.secrets/<name>`.
 
 ## CI/CD Pipeline
 
-**GitHub Actions** (`.github/workflows/ci.yml`):
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push / PR:
 
-1. **Flake Check**: Validates flake structure (`nix flake check --all-systems`)
-2. **Build Matrix**: Builds 8 configurations in parallel
-   - NixOS servers: `us-1`, `us-2`, `us-3`, `us-4`, `sg-1` (x86_64-linux)
-   - macOS: `hakula-macbook` (aarch64-darwin)
-   - Generic Linux: `hakula-linux` (x86_64-linux)
-   - Docker: `hakula-devvm-docker` (x86_64-linux)
+1. `nix flake check --all-systems` — validates flake structure and runs pre-commit hooks (`nixfmt`, `statix`, `deadnix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
+2. Parallel builds of every host config (`us-1`..`us-4`, `sg-1`, `hakula-macbook`, `hakula-linux`, `hakula-devvm-docker`).
 
-**Cachix integration**: Builds are cached in the "hakula" cache. Uploads to Cachix happen on `main` branch or when the actor is `hakula139`.
+Successful builds are uploaded to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
 
-**Linting** (enforced in CI):
-
-- `statix`: Catches Nix anti-patterns (W20 `repeated_keys` suppressed via `statix.toml` — flat key style is intentional)
-- `deadnix`: Detects unused bindings (`--fail` mode)
-
-**Pre-commit hooks** run in CI via `nix flake check`:
-
-- `check-added-large-files`
-- `check-yaml`
-- `deadnix`
-- `end-of-file-fixer`
-- `statix`
-- `trim-trailing-whitespace`
-- `nixfmt`
+> `statix.toml` suppresses W20 `repeated_keys` — the flat-key style is intentional.
 
 ## Code Style
 
@@ -310,10 +197,8 @@ age.secrets.my-secret = secrets.mkHomeSecret {
 
 ### Bash Scripts
 
-**Formatting principles** - DRY the logic, but expand the formatting:
-
-- Use **multi-line formatting** for complex commands: `if/else` blocks, multi-argument `printf`, process substitutions
-- Use **descriptive variable names**
+- Multi-line formatting for complex commands (`if` / `else`, multi-argument `printf`, process substitutions)
+- Descriptive variable names over terse ones
 
 ## Testing Changes
 
@@ -377,11 +262,11 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 
 1. Add `secrets` parameter to the module's function signature (if not already present)
 2. Declare the secret using the helper library:
-   - **NixOS**: `age.secrets.<name> = secrets.mkSecret { name = "..."; owner = "..."; group = "..."; };`
-   - **Home Manager**: `age.secrets.<name> = secrets.mkHomeSecret { name = "..."; homeDir = homeDir; };`
-3. Create the encrypted secret file: `cd secrets && agenix -e <name>.age`
-4. Reference the secret in your module via `config.age.secrets.<name>.path`
-5. Optional: Override `mode` or `path` parameters if custom permissions or location needed
+   - **NixOS**: `age.secrets.<attr> = secrets.mkSecret { name = "<service>/<secret>"; owner = "..."; group = "..."; };`
+   - **Home Manager**: `age.secrets.<attr> = secrets.mkHomeSecret { name = "<service>/<secret>"; homeDir = homeDir; };`
+3. Register the recipient list in `secrets/secrets.nix` and create the encrypted file: `cd secrets && agenix -e <service>/<secret>.age`
+4. Reference the secret in your module via `config.age.secrets.<attr>.path`
+5. Optional: override `mode` or `path` for custom permissions or location
 
 ## Proxy Configuration
 
