@@ -28,7 +28,7 @@ let
   # ----------------------------------------------------------------------------
   # Atlassian (Confluence)
   # ----------------------------------------------------------------------------
-  confluencePatFile = "${secretsDir}/confluence-pat";
+  confluencePatFile = "${secretsDir}/llm-assistants/mcp/confluence-pat";
   atlassianBin = pkgs.writeShellScriptBin "atlassian-mcp" ''
     export PATH="${pkgs.uv}/bin:$PATH"
     if [ -f "${confluencePatFile}" ]; then
@@ -44,7 +44,7 @@ let
   # ----------------------------------------------------------------------------
   # Brave Search
   # ----------------------------------------------------------------------------
-  braveApiKeyFile = "${secretsDir}/brave-api-key";
+  braveApiKeyFile = "${secretsDir}/llm-assistants/mcp/brave-api-key";
   braveSearchBin = pkgs.writeShellScriptBin "brave-search-mcp" ''
     ${nodeSetup}
     if [ -f "${braveApiKeyFile}" ]; then
@@ -63,7 +63,7 @@ let
   # ----------------------------------------------------------------------------
   # Context7
   # ----------------------------------------------------------------------------
-  context7ApiKeyFile = "${secretsDir}/context7-api-key";
+  context7ApiKeyFile = "${secretsDir}/llm-assistants/mcp/context7-api-key";
   context7Bin = pkgs.writeShellScriptBin "context7-mcp" ''
     ${nodeSetup}
     if [ -f "${context7ApiKeyFile}" ]; then
@@ -206,17 +206,17 @@ in
   secrets = lib.mkIf (!isNixOS) {
     age.secrets = {
       confluence-pat = secrets.mkHomeSecret {
-        name = "confluence-pat";
+        name = "llm-assistants/mcp/confluence-pat";
         inherit homeDir;
       };
 
       brave-api-key = secrets.mkHomeSecret {
-        name = "brave-api-key";
+        name = "llm-assistants/mcp/brave-api-key";
         inherit homeDir;
       };
 
       context7-api-key = secrets.mkHomeSecret {
-        name = "context7-api-key";
+        name = "llm-assistants/mcp/context7-api-key";
         inherit homeDir;
       };
 
