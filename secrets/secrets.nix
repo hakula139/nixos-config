@@ -34,7 +34,7 @@ in
   "brave-api-key.age".publicKeys = allKeys;
   "confluence-pat.age".publicKeys = allKeys;
   "context7-api-key.age".publicKeys = allKeys;
-  "corp-cachain.crt.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
+  "llm-assistants/corp-cachain.crt.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
   "hakula-devvm/proxy-url.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
   "github/pat-personal.age".publicKeys = allKeys;
   "github/pat-work.age".publicKeys = allKeys;

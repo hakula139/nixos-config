@@ -235,6 +235,7 @@ let
       rm -f "${secretsDir}/claude-code-oauth-token" \
             "${secretsDir}/claude-ikuncode-api-key" \
             "${secretsDir}/claude-yescode-api-key" \
+            "${secretsDir}/corp-cachain.crt" \
             "${secretsDir}/litellm-api-key"
     ''
     + lib.optionalString (hasProfiles && cfg.auth.defaultProfile != null) ''
