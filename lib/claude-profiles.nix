@@ -12,7 +12,7 @@ in
 
   official-token = {
     type = "oauth-token";
-    tokenSecret = "llm-assistants/oauth-token";
+    tokenSecret = "llm-assistants/claude-oauth-token";
   };
 
   corp-gateway = {

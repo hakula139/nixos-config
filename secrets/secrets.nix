@@ -38,9 +38,9 @@ in
   "devvm-proxy-url.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
   "github/pat-personal.age".publicKeys = allKeys;
   "github/pat-work.age".publicKeys = allKeys;
+  "llm-assistants/claude-oauth-token.age".publicKeys = allKeys;
   "llm-assistants/ikuncode-api-key.age".publicKeys = allKeys;
   "llm-assistants/litellm-api-key.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
-  "llm-assistants/oauth-token.age".publicKeys = allKeys;
   "llm-assistants/yescode-api-key.age".publicKeys = allKeys;
 
   # ----------------------------------------------------------------------------
