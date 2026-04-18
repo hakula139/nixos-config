@@ -55,7 +55,7 @@ in
       # Secrets
       # ------------------------------------------------------------------------
       age.secrets.dockerhub-token = secrets.mkSecret {
-        name = "dockerhub-token";
+        name = "dockerhub/token";
         owner = "root";
         group = "dockerhub";
         mode = "0440";
