@@ -39,8 +39,8 @@ in
   "context7-api-key.age".publicKeys = allKeys;
   "corp-cachain.crt.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
   "devvm-proxy-url.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
-  "github-pat-personal.age".publicKeys = allKeys;
-  "github-pat-work.age".publicKeys = allKeys;
+  "github/pat-personal.age".publicKeys = allKeys;
+  "github/pat-work.age".publicKeys = allKeys;
   "litellm-api-key.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
 
   # ----------------------------------------------------------------------------

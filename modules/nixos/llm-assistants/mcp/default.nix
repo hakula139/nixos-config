@@ -61,7 +61,7 @@ in
     };
 
     age.secrets.github-pat = secrets.mkSecret {
-      name = "github-pat-personal";
+      name = "github/pat-personal";
       owner = cfg.user;
       inherit (userCfg) group;
       path = "${secretsDir}/github-pat";

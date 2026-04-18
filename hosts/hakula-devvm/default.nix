@@ -86,7 +86,7 @@ in
   # ----------------------------------------------------------------------------
   # Secret Overrides
   # ----------------------------------------------------------------------------
-  age.secrets.github-pat.file = lib.mkForce (secrets.secretFile "github-pat-work");
+  age.secrets.github-pat.file = lib.mkForce (secrets.secretFile "github/pat-work");
 
   age.secrets.devvm-proxy-url = secrets.mkSecret {
     name = "devvm-proxy-url";
