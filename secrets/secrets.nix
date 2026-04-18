@@ -63,8 +63,8 @@ in
   # ----------------------------------------------------------------------------
   "aria2-rpc-secret.age".publicKeys = us4Only;
   "clash-users.json.age".publicKeys = us4Only;
-  "cloudcone-server-key-us-1.age".publicKeys = us1Only;
-  "cloudcone-server-key-us-3.age".publicKeys = us3Only;
+  "cloudcone/server-key-us-1.age".publicKeys = us1Only;
+  "cloudcone/server-key-us-3.age".publicKeys = us3Only;
   "clove-env.age".publicKeys = us4Only;
   "dockerhub-token.age".publicKeys = us4Only;
   "fuclaude-env.age".publicKeys = us4Only;

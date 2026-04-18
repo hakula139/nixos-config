@@ -71,7 +71,7 @@
   };
   hakula.services.cloudconeAgent = {
     enable = true;
-    serverKeyAgeFile = ../../secrets/cloudcone-server-key-${hostName}.age;
+    serverKeyAgeFile = ../../secrets/cloudcone/server-key-${hostName}.age;
   };
   hakula.services.peertube = {
     enable = true;
