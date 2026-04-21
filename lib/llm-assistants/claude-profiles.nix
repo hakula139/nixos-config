@@ -38,7 +38,7 @@ in
     tokenSecret = "llm-assistants/litellm-api-key";
     baseUrl = "https://gw.llm.${corpDomain}";
     modelOverrides = {
-      opus = "bedrock/global.anthropic.claude-opus-4-6-v1";
+      opus = "bedrock/global.anthropic.claude-opus-4-7";
       sonnet = "bedrock/global.anthropic.claude-sonnet-4-6";
       haiku = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
     };
