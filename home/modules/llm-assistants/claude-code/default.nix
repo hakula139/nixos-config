@@ -292,6 +292,7 @@ in
               CLAUDE_CODE_SCROLL_SPEED = "1";
               DISABLE_INSTALLATION_CHECKS = "1";
               ENABLE_CLAUDEAI_MCP_SERVERS = "false";
+              ENABLE_PROMPT_CACHING_1H = "1";
               ENABLE_TOOL_SEARCH = "true";
               FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "false" else "true";
             };
