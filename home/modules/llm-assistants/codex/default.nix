@@ -124,7 +124,7 @@ in
             # Model
             # ------------------------------------------------------------------
             model = "gpt-5.5";
-            model_reasoning_effort = "xhigh";
+            model_reasoning_effort = "high";
             personality = "pragmatic";
 
             # ------------------------------------------------------------------
