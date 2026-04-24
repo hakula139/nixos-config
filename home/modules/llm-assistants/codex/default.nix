@@ -233,6 +233,8 @@ in
             features = {
               apps = true;
               memories = true;
+              prevent_idle_sleep = true;
+              undo = true;
             };
           };
         };
