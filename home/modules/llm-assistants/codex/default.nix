@@ -152,7 +152,7 @@ in
             memories = {
               generate_memories = true;
               use_memories = true;
-              no_memories_if_mcp_or_web_search = true;
+              disable_on_external_context = true;
               min_rollout_idle_hours = 24;
               max_rollouts_per_startup = 6;
               max_raw_memories_for_consolidation = 50;
@@ -230,15 +230,8 @@ in
             # ------------------------------------------------------------------
             suppress_unstable_features_warning = true;
             features = {
-              apply_patch_freeform = true;
               apps = true;
-              child_agents_md = true;
-              code_mode = true;
               memories = true;
-              multi_agent = true;
-              plugins = true;
-              shell_snapshot = true;
-              unified_exec = true;
             };
           };
         };
