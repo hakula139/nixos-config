@@ -1,3 +1,12 @@
+## Session Patterns
+
+Claude Code runs with Opus 4.7 at `xhigh` effort. Treat it like a capable engineer you delegate to, not a pair programmer you steer line by line.
+
+- **Specify the task up front.** State intent, constraints, acceptance criteria, and relevant file locations in the first turn. Well-scoped first turns produce stronger results and spend fewer tokens than progressively clarifying across many turns.
+- **Batch questions.** Every user turn adds reasoning overhead. Collect clarifications and ask them together.
+- **Trust adaptive thinking.** Opus 4.7 decides per step whether to think. Do not add scaffolding like `"think hard"` or `"summarize progress every N tool calls"`. If specific steering is needed, state it positively (`"This problem is harder than it looks; think step by step"`) rather than prescribing cadence.
+- **Literal instruction following.** Opus 4.7 reads instructions literally. If an instruction should apply broadly, state the scope explicitly (`"Apply to every section, not just the first"`). Ambiguity will be scoped narrowly, not generalized.
+
 ## Git Workflow
 
 - Verify the current branch before committing. If a new branch was created, switch to it before making commits.
@@ -65,66 +74,53 @@ Use `getDiagnostics` to check for language server errors / warnings in files. Us
 
 ## Agent Team Workflow
 
-Custom agents are available for delegation when tasks benefit from specialization or parallelism. Agents support two modes: **subagents** and **Agent Teams**.
+Agents run in two modes:
+
+- **Subagents**: focused workers that report only to the orchestrator. Use when agents do not need to talk to each other.
+- **Agent Teams**: peer-to-peer coordination via shared task state and `SendMessage`. Use when agents need to share findings, challenge conclusions, or hand work off directly.
+
+All agents inherit the parent tool set. Behavioral boundaries live in each agent's prompt, not in hard tool restrictions — except **codex-worker**, which keeps a narrower tool set so it actually delegates to Codex instead of doing the work itself.
 
 ### Available Agents
 
-All agents inherit the full tool set from the parent session. Behavioral boundaries are enforced by each agent's prompt, not hard tool restrictions, except for **codex-worker**, which keeps a narrower tool set so it actually delegates to Codex rather than doing the work itself.
-
-- **architect**: Architecture review, design critique, and pattern analysis.
-- **codex-worker**: Delegates self-contained tasks to Codex MCP for independent parallel work.
-- **implementer**: Code writing, feature implementation, and refactoring.
-- **researcher**: Codebase exploration and documentation lookup.
-- **reviewer**: Code quality, security, and bug detection.
+- **architect**: Architecture review, design critique, pattern analysis.
+- **codex-worker**: Delegates self-contained tasks to Codex MCP.
 - **debugger**: Hypothesis-driven debugging and root cause analysis.
-- **tester**: Test writing and execution, and failure analysis.
-- **usability-reviewer**: Usability and clarity review for user-facing surfaces.
-
-### Subagents vs Agent Teams
-
-**Subagents** are focused workers that report only to the orchestrator. Use them when agents do not need to communicate with each other.
-
-**Agent Teams** provide peer-to-peer coordination via shared task state and direct messages. Use them when agents need to share findings, challenge conclusions, or hand work off directly.
+- **implementer**: Code writing, feature implementation, refactoring.
+- **researcher**: Codebase exploration and documentation lookup.
+- **reviewer**: Code quality, security, bug detection.
+- **tester**: Test writing, execution, failure analysis.
+- **usability-reviewer**: Clarity and ergonomics review for user-facing surfaces.
 
 ### When to Use Agents
 
-Use agents when:
+Opus 4.7 is more judicious about spawning subagents by default. When parallel work genuinely helps, ask for it explicitly — describe the fan-out shape (e.g., `"launch parallel researchers across these three directories"`).
 
-- A task benefits from parallel work.
-- The task is self-contained.
-- A focused specialist perspective is useful.
-- The main conversation context is getting large.
+Use agents when the task benefits from parallelism across independent items, a specialist perspective, or offloading from a crowded context window.
 
-Do not use agents when:
-
-- The task is simple and direct.
-- The task requires continuous user interaction.
-- Delegation overhead outweighs the benefit.
+Do not use agents when the work fits in a single response (e.g., refactoring a function already visible in context), requires continuous user interaction, or the delegation overhead outweighs the benefit.
 
 ### Coordination Patterns
 
-Each pattern specifies its mode: **Subagents** (independent, report back) or **Agent Team** (peer communication via `SendMessage`).
-
-- **Sequential pipeline** (Subagents): researcher → architect → implementer → reviewer → tester. Each agent's output feeds the next. See Feature Development Workflow below for the detailed step-by-step with a user approval gate.
-- **Feature dev** (Agent Team): Full delivery pipeline with direct peer coordination. Members: 1 researcher, 1 architect, 1-2 implementers, 1 reviewer, 1 tester. Task dependencies enforce ordering. Implementers use worktree isolation when modifying different areas in parallel.
-- **Parallel review** (Subagents): 3 reviewers with distinct lenses (security, correctness, test coverage). Each reports independently; the orchestrator synthesizes.
-- **Parallel exploration** (Subagents) / **Research swarm** (Agent Team): Multiple researchers across different areas. As subagents, each reports independently. As a team, researchers share discoveries and redirect each other's investigation.
-- **Bug investigation** (Subagents) / **Investigation** (Agent Team): Debuggers with competing hypotheses. As subagents, each reports independently. As a team, teammates actively challenge each other's theories via direct messages.
-- **Review gate** (Subagent): Run reviewer after significant implementation changes.
+- **Sequential pipeline** (Subagents): researcher → architect → implementer → reviewer → tester. Each agent's output feeds the next. See Feature Development Workflow below.
+- **Feature dev** (Agent Team): full delivery pipeline with peer coordination. 1 researcher, 1 architect, 1–2 implementers, 1 reviewer, 1 tester. Task dependencies enforce ordering; implementers use worktree isolation for parallel work.
+- **Parallel fan-out**: multiple agents of the same role across independent areas (e.g., 3 reviewers with security / correctness / coverage lenses, or N researchers across subsystems). As **Subagents** they report independently and the orchestrator synthesizes; as an **Agent Team** they share discoveries and redirect each other.
+- **Competing hypotheses**: debuggers chasing different theories. As **Subagents** each reports independently; as an **Agent Team** teammates actively challenge each other.
+- **Review gate** (Subagent): reviewer after significant implementation changes.
 - **Codex offloading** (Subagent): codex-worker for orthogonal tasks in a separate context window.
 
 ### Feature Development Workflow
 
-Detailed step-by-step for the sequential pipeline. For non-trivial features, follow this to prevent wasted implementation effort:
+Sequential pipeline for non-trivial features. Prevents wasted implementation effort.
 
-1. **Explore** (optional): Use researcher(s) to investigate the problem space, gather context on existing patterns, and evaluate options. Skip for well-understood changes.
-2. **Propose**: Use architect in "Design Proposal" mode to produce a structured plan with motivation, scope, approach, impact, and risks.
-3. **Decide**: Present the proposal to the user. Approve, request changes, or reject before any code is written.
-4. **Implement**: Use implementer with the architect's proposal as input. For multi-file work, the implementer tracks progress via TaskCreate / TaskUpdate.
-5. **Verify**: Use reviewer with both the architect's proposal and implementer's changes. The reviewer checks code quality AND plan adherence (completeness, coherence, scope discipline).
-6. **Test**: Use tester with the implementer's change summary and reviewer's risk areas.
+1. **Explore** (optional): researcher gathers context on existing patterns. Skip for well-understood changes.
+2. **Propose**: architect produces a "Design Proposal" with motivation, scope, approach, impact, risks.
+3. **Decide**: present to the user. Approve, request changes, or reject before any code is written.
+4. **Implement**: implementer works from the proposal; tracks multi-file progress via TaskCreate / TaskUpdate.
+5. **Verify**: reviewer checks code quality AND plan adherence (completeness, coherence, scope discipline).
+6. **Test**: tester works from the implementer's change summary and the reviewer's risk areas.
 
-Steps 1-3 prevent building the wrong thing. Steps 5-6 catch both code defects and plan deviations. Each agent's output is shaped by pipeline contracts that define what it expects from upstream and produces for downstream.
+Steps 1–3 prevent building the wrong thing. Steps 5–6 catch both code defects and plan deviations.
 
 ## Context Compaction Guidance
 

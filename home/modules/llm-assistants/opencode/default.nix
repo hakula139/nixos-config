@@ -206,7 +206,8 @@ in
             small_model = "openai/gpt-5.5-mini";
             provider = {
               openai.models."gpt-5.5".options = {
-                reasoningEffort = "xhigh";
+                reasoningEffort = "high";
+                textVerbosity = "low";
               };
             };
 
