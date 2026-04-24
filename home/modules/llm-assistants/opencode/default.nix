@@ -207,6 +207,7 @@ in
             provider = {
               openai.models."gpt-5.5".options = {
                 reasoningEffort = "high";
+                textVerbosity = "low";
               };
             };
 
