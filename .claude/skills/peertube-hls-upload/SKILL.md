@@ -1,8 +1,13 @@
+---
+name: peertube-hls-upload
+description: Manually transcode a video to HLS fragmented MP4 and upload it to the self-hosted PeerTube B2 bucket (v.hakula.xyz / hakula-videos), bypassing the PeerTube runner. Use this skill whenever the user is fixing a broken or missing PeerTube video resolution, working around a failed or too-slow runner transcode, regenerating the segments-sha256 hashes that PeerTube uses for HLS integrity, editing an HLS master playlist to add or replace a quality variant, purging stale Cloudflare CDN cache for v.hakula.xyz / b2.hakula.xyz, or doing any manual HLS / B2 / ffmpeg / database work tied to PeerTube — even if they don't say "skill" or name the script directly. Trigger on phrases like "peertube transcode failed", "fix broken peertube video", "re-encode this resolution", "upload HLS to B2", "regen sha256 for peertube", "missing quality on v.hakula.xyz", or any PeerTube troubleshooting that involves touching B2 / Cloudflare / fMP4 files.
+---
+
 # PeerTube HLS Manual Transcode & Upload
 
 Manually transcode a video to HLS fragmented MP4 and upload it to the PeerTube B2 object storage bucket, bypassing the PeerTube runner workflow. Use when re-transcoding fails, is too slow via the runner, or when fixing broken / missing HLS files.
 
-**Script**: `.claude/skills/peertube-hls.sh` — all operations are implemented as subcommands. Run with `help` for full usage.
+**Script**: `peertube-hls.sh` (sibling to this `SKILL.md`) — all operations are implemented as subcommands. Run with `help` for full usage. The Python helper `regen-sha256.py` lives next to it and is invoked by the `regen-sha256` subcommand.
 
 ## Prerequisites
 
