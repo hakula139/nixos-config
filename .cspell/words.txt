@@ -57,6 +57,7 @@ env
 envrc
 esac
 esbenp
+esbuild
 fchownat
 ffprobe
 findutils

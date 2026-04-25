@@ -92,7 +92,7 @@ jobs:
           matrix.config.id == 'macos' &&
           (github.ref == 'refs/heads/main' || github.actor == 'hakula139')
         run: |
-          store_path=$(nix eval --raw '.#darwinConfigurations.hakula-macbook.pkgs.peertube.runner.outPath')
+          store_path=$(nix eval --raw '.#darwinConfigurations.hakula-macbook.pkgs.peertube-runner.outPath')
           cachix push hakula "$store_path"
           cachix pin hakula peertube-runner "$store_path" --keep-revisions 2
 
