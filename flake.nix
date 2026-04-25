@@ -104,6 +104,7 @@
               platforms = old.meta.platforms ++ [ "aarch64-darwin" ];
             };
           });
+          peertube-runner = final.callPackage ./packages/peertube/runner.nix { };
           rustToolchain = final.rust-bin.stable.latest.default.override {
             extensions = [
               "llvm-tools-preview"
