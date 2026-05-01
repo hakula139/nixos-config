@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import sys
+from enum import IntEnum
 from pathlib import Path
 from typing import Any, TypedDict, cast
 
@@ -22,14 +23,21 @@ logging.basicConfig(
 )
 
 
+class UserLevel(IntEnum):
+    USER = 0
+    ADMIN = 1
+
+
 class UserConfig(TypedDict):
     uuid: str
     shortId: str
+    level: UserLevel
 
 
 class ServerConfig(TypedDict):
     id: str
     name: str
+    min_level: UserLevel
 
 
 REGION_FLAGS: dict[str, str] = {
@@ -37,21 +45,29 @@ REGION_FLAGS: dict[str, str] = {
     'sg': '🇸🇬',
 }
 
-SERVER_IDS = ['us-1', 'us-2', 'us-3', 'us-4', 'sg-1']
 
-
-def build_server_config(server_id: str) -> ServerConfig:
+def build_server_config(server_id: str, min_level: UserLevel) -> ServerConfig:
     region = server_id.rsplit('-', 1)[0]
     flag = REGION_FLAGS.get(region, '🏳️')
-    name = f'{flag} {server_id.upper()}'
 
     return {
         'id': server_id,
-        'name': name,
+        'name': f'{flag} {server_id.upper()}',
+        'min_level': min_level,
     }
 
 
-SERVERS: list[ServerConfig] = [build_server_config(sid) for sid in SERVER_IDS]
+SERVERS: list[ServerConfig] = [
+    build_server_config('us-1', UserLevel.USER),
+    build_server_config('us-2', UserLevel.USER),
+    build_server_config('us-3', UserLevel.USER),
+    build_server_config('us-4', UserLevel.ADMIN),
+    build_server_config('sg-1', UserLevel.USER),
+]
+
+
+def servers_for_level(level: UserLevel) -> list[ServerConfig]:
+    return [s for s in SERVERS if level >= s['min_level']]
 
 
 def parse_args() -> argparse.Namespace:
@@ -61,6 +77,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('-s', '--sni-host', type=str, required=True)
     parser.add_argument('-o', '--output-dir', type=Path, required=True)
     return parser.parse_args()
+
+
+def parse_user_level(name: str, raw: Any) -> UserLevel | None:
+    if raw is None:
+        return UserLevel.USER
+    if not isinstance(raw, str):
+        logging.warning('User %s has non-string level; skipping', name)
+        return None
+    try:
+        return UserLevel[raw.upper()]
+    except KeyError:
+        logging.warning('User %s has unknown level %r; skipping', name, raw)
+        return None
 
 
 def build_user_config(name: str, data: Any) -> UserConfig | None:
@@ -76,9 +105,14 @@ def build_user_config(name: str, data: Any) -> UserConfig | None:
         logging.warning('User %s is missing required fields: uuid, shortId', name)
         return None
 
+    level = parse_user_level(name, user_dict.get('level'))
+    if level is None:
+        return None
+
     return {
         'uuid': uuid,
         'shortId': short_id,
+        'level': level,
     }
 
 
@@ -132,9 +166,10 @@ def main() -> int:
     failure_count = 0
 
     for name, user in users.items():
+        user_servers = servers_for_level(user['level'])
         try:
             config = template.render(
-                servers=SERVERS,
+                servers=user_servers,
                 uuid=user['uuid'],
                 short_id=user['shortId'],
                 sni_host=args.sni_host,
@@ -153,7 +188,12 @@ def main() -> int:
             failure_count += 1
             continue
 
-        logging.info('Generated Clash subscription for %s', name)
+        logging.info(
+            'Generated Clash subscription for %s (level=%s, %d servers)',
+            name,
+            user['level'].name.lower(),
+            len(user_servers),
+        )
         success_count += 1
 
     if failure_count:
