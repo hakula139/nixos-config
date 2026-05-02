@@ -1,4 +1,5 @@
 aipopup
+algif
 alnum
 anthropics
 autocd
