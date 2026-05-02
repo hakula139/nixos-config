@@ -112,6 +112,9 @@ in
       "vm.vfs_cache_pressure" = 50;
     };
 
+    # CVE-2026-31431 ("Copy Fail"): drop once nixos-25.11 ships linux_6_12 >= 6.12.85.
+    boot.blacklistedKernelModules = [ "algif_aead" ];
+
     # --------------------------------------------------------------------------
     # Disk Optimization
     # --------------------------------------------------------------------------
