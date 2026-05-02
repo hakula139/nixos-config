@@ -136,6 +136,8 @@
             };
             trim-trailing-whitespace = {
               enable = true;
+              # Preserve Markdown's two-trailing-space hard-break syntax.
+              args = [ "--markdown-linebreak-ext=md" ];
               excludes = [
                 "\\.age$"
                 "\\.patch$"
