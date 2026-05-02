@@ -4,11 +4,11 @@ Prefer MCP tools over equivalent shell commands or web searches. MCPs provide st
 
 ### Atlassian
 
-Scoped to Confluence. Use for searching, reading, and navigating Confluence pages, spaces, and page hierarchies. Read operations are auto-approved. Write operations (create / update / delete pages, add comments / labels, upload attachments) require user confirmation.
+Scoped to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Read operations auto-approved; writes require user confirmation.
 
 ### Brave Search
 
-Fallback web search. Use only when the native web search fails, returns unhelpful results, or when a specialized search type is needed (news, images, video, local businesses). Supports summarization of search results. Do not use as the primary search path — prefer native web search by default.
+Fallback web search. Use when native web search fails, returns unhelpful results, or when a specialized search type is needed (news, images, video, local businesses). Supports result summarization.
 
 ### Context7
 
@@ -16,7 +16,7 @@ Library and framework documentation lookups. Always resolve the library ID first
 
 ### DeepWiki
 
-AI-powered documentation for public GitHub repositories. Use for understanding unfamiliar repos — architecture, patterns, API design. Query specific questions or browse the generated wiki structure.
+AI-powered documentation for public GitHub repositories. Use for unfamiliar repos — architecture, patterns, API design.
 
 ### Fetcher
 
@@ -40,7 +40,7 @@ GitLab API — issues, merge requests, pipelines, labels, repository management.
 
 ## Custom Agent Roles
 
-Custom agent roles are available in addition to built-in agents. Use the most specific role that matches the task:
+Custom roles supplement built-in agents. Use the most specific role for the task:
 
 - **architect** for design and structure review.
 - **debugger** for root-cause analysis.
@@ -50,8 +50,8 @@ Custom agent roles are available in addition to built-in agents. Use the most sp
 - **tester** for tests and test failures.
 - **usability-reviewer** for user-facing clarity and ergonomics.
 
-Use these roles when parallelism or a narrower perspective helps. Do not spawn agents for trivial single-step work.
+Spawn agents when parallelism or a narrower perspective helps. Skip them for trivial single-step work.
 
 ## Skills
 
-Prefer installed skills when a task clearly matches one. Reuse the skill workflow, scripts, and templates instead of rebuilding the same process ad hoc.
+Prefer installed skills that match the task. Reuse their workflow, scripts, and templates instead of rebuilding ad hoc.

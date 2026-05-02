@@ -1,20 +1,20 @@
 ## Session Patterns
 
-Claude Code runs with Opus 4.7 at `xhigh` effort. Treat it like a capable engineer you delegate to, not a pair programmer you steer line by line.
+Claude Code runs with Opus 4.7 at `xhigh` effort. Treat it as a capable engineer you delegate to. Avoid line-by-line steering.
 
-- **Specify the task up front.** State intent, constraints, acceptance criteria, and relevant file locations in the first turn. Well-scoped first turns produce stronger results and spend fewer tokens than progressively clarifying across many turns.
-- **Batch questions.** Every user turn adds reasoning overhead. Collect clarifications and ask them together.
-- **Trust adaptive thinking.** Opus 4.7 decides per step whether to think. Do not add scaffolding like `"think hard"` or `"summarize progress every N tool calls"`. If specific steering is needed, state it positively (`"This problem is harder than it looks; think step by step"`) rather than prescribing cadence.
-- **Literal instruction following.** Opus 4.7 reads instructions literally. If an instruction should apply broadly, state the scope explicitly (`"Apply to every section, not just the first"`). Ambiguity will be scoped narrowly, not generalized.
+- **Specify the task up front.** State intent, constraints, acceptance criteria, and relevant file locations in the first turn. Well-scoped first turns spend fewer tokens than progressively clarifying across many.
+- **Batch questions.** Every user turn adds reasoning overhead. Collect clarifications and ask together.
+- **Trust adaptive thinking.** Opus 4.7 decides per step whether to think. Skip scaffolding like `"think hard"` or `"summarize every N tool calls"`. When specific steering helps, state it positively (`"This problem is harder than it looks; think step by step"`) rather than prescribing cadence.
+- **Literal instruction following.** Opus 4.7 reads instructions literally. State scope explicitly (`"Apply to every section, not just the first"`) — ambiguity is scoped narrowly.
 
 ## Git Workflow
 
-- Verify the current branch before committing. If a new branch was created, switch to it before making commits.
+- Verify the current branch before committing; switch first if a new branch was created.
 - When preparing PRs, verify that the diff and commit count match expectations before pushing.
 
 ## Bash Tool Usage
 
-**Never prefix Bash commands with shell comments.** The `command` field must start with the actual command, not a `# comment`. Use the Bash tool's `description` parameter for explanations instead. Shell comments in the command string break permission pattern matching.
+**Never prefix Bash commands with shell comments.** The `command` field must start with the actual command — leading comments break permission pattern matching. Use the Bash tool's `description` parameter for explanations instead.
 
 ## MCP Server Usage
 
@@ -22,11 +22,11 @@ Prefer MCP tools over equivalent Bash commands or web searches. MCPs provide str
 
 ### Atlassian (`mcp__Atlassian__*`)
 
-Scoped to Confluence. Use for searching, reading, and navigating Confluence pages, spaces, and page hierarchies. Read operations are auto-approved. Write operations (create / update / delete pages, add comments / labels, upload attachments) require user confirmation.
+Scoped to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Read operations auto-approved; writes require user confirmation.
 
 ### Brave Search (`mcp__BraveSearch__*`)
 
-Fallback web search. Use only when the native `WebSearch` tool fails, returns unhelpful results, or when a specialized search type is needed (news, images, video, local businesses). Supports summarization of search results. Do not use as the primary search path — prefer `WebSearch` by default.
+Fallback web search. Use when `WebSearch` fails, returns unhelpful results, or when a specialized search type is needed (news, images, video, local businesses). Supports result summarization.
 
 ### Codex (`mcp__Codex__*`)
 
@@ -46,7 +46,7 @@ Do not use Codex when:
 
 ### DeepWiki (`mcp__DeepWiki__*`)
 
-AI-powered documentation for public GitHub repositories. Use for understanding unfamiliar repos — architecture, patterns, API design. Query specific questions or browse the generated wiki structure.
+AI-powered documentation for public GitHub repositories. Use for unfamiliar repos — architecture, patterns, API design.
 
 ### Fetcher (`mcp__Fetcher__*`)
 
@@ -94,11 +94,9 @@ All agents inherit the parent tool set. Behavioral boundaries live in each agent
 
 ### When to Use Agents
 
-Opus 4.7 is more judicious about spawning subagents by default. When parallel work genuinely helps, ask for it explicitly — describe the fan-out shape (e.g., `"launch parallel researchers across these three directories"`).
+Opus 4.7 spawns subagents conservatively by default. When parallel work genuinely helps, ask explicitly and describe the fan-out (e.g., `"launch parallel researchers across these three directories"`).
 
-Use agents when the task benefits from parallelism across independent items, a specialist perspective, or offloading from a crowded context window.
-
-Do not use agents when the work fits in a single response (e.g., refactoring a function already visible in context), requires continuous user interaction, or the delegation overhead outweighs the benefit.
+Use agents for parallelism across independent items, a specialist perspective, or to offload from a crowded context window. Skip them when the work fits in a single response, needs continuous user interaction, or the delegation overhead exceeds the benefit.
 
 ### Coordination Patterns
 
@@ -124,12 +122,4 @@ Steps 1–3 prevent building the wrong thing. Steps 5–6 catch both code defect
 
 ## Context Compaction Guidance
 
-When summarizing the conversation for compaction, preserve:
-
-- Current task state.
-- Modified files.
-- Architecture decisions.
-- Code style requirements.
-- Unresolved issues.
-
-After compaction, re-read project CLAUDE.md files before continuing work.
+When summarizing for compaction, preserve current task state, modified files, architecture decisions, code style requirements, and unresolved issues. After compaction, re-read project CLAUDE.md files before continuing.
