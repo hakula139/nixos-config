@@ -18,6 +18,7 @@ setopt PUSHD_SILENT
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 zstyle ':completion:*' menu select
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' special-dirs false
 
 # Load zmv for batch renaming
 autoload -U zmv
