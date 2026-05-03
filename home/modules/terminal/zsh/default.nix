@@ -24,7 +24,7 @@ in
     # History settings
     # --------------------------------------------------------------------------
     history = {
-      size = 50000;
+      size = 100000;
       save = 50000;
       path = "${config.xdg.dataHome}/zsh/history";
       extended = true;
