@@ -113,6 +113,7 @@ let
     # --------------------------------------------------------------------------
     # Utilities & Tools
     # --------------------------------------------------------------------------
+    "mkhl.direnv"
     "usernamehw.errorlens"
     "hediet.vscode-drawio"
     "lucien-martijn.parquet-visualizer"
