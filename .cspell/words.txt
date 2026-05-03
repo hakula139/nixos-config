@@ -115,6 +115,7 @@ metacubex
 mihomo
 mirrorange
 mkcd
+mkhl
 msdos
 msmtp
 msmtprc
