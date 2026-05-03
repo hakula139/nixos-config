@@ -96,7 +96,14 @@ in
     # --------------------------------------------------------------------------
     # Plugins
     # --------------------------------------------------------------------------
-    plugins = lib.optionals cfg.fzfTab.enable [
+    plugins = [
+      {
+        name = "zsh-hist";
+        src = pkgs.zsh-hist;
+        file = "share/zsh-hist/zsh-hist.plugin.zsh";
+      }
+    ]
+    ++ lib.optionals cfg.fzfTab.enable [
       {
         name = "fzf-tab";
         src = pkgs.zsh-fzf-tab;
