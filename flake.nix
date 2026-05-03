@@ -112,6 +112,7 @@
               "rust-src"
             ];
           };
+          zsh-hist = final.callPackage ./packages/zsh-hist { };
         })
       ];
 
