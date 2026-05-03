@@ -22,8 +22,8 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # Load zmv for batch renaming
 autoload -U zmv
 
-# fzf-tab styling
-zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border
+# fzf-tab styling. one:accept auto-selects a unique match.
+zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border --bind=one:accept
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
 
