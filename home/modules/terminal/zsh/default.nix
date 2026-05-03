@@ -12,21 +12,9 @@
 
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
-  cfg = config.hakula.zsh;
 in
 {
-  # ----------------------------------------------------------------------------
-  # Module options
-  # ----------------------------------------------------------------------------
-  options.hakula.zsh = {
-    fzfTab.enable = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Whether to enable fzf-tab plugin (requires compatible glibc)";
-    };
-  };
-
-  config.programs.zsh = {
+  programs.zsh = {
     enable = true;
     enableCompletion = true;
     autosuggestion.enable = true;
@@ -102,8 +90,6 @@ in
         src = pkgs.zsh-hist;
         file = "share/zsh-hist/zsh-hist.plugin.zsh";
       }
-    ]
-    ++ lib.optionals cfg.fzfTab.enable [
       {
         name = "fzf-tab";
         src = pkgs.zsh-fzf-tab;
@@ -246,15 +232,11 @@ in
       # Load zmv for batch renaming
       autoload -U zmv
 
-    ''
-    + lib.optionalString cfg.fzfTab.enable ''
       # fzf-tab styling
       zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border
       zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
       zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
 
-    ''
-    + ''
       # Create directory and cd into it
       mkcd() { mkdir -p "$1" && cd "$1"; }
 
