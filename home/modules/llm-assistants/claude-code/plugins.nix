@@ -5,6 +5,7 @@
 {
   pkgs,
   lib,
+  codexEnabled ? false,
   devToolchains ? false,
   online ? true,
 }:
@@ -21,8 +22,8 @@ let
         owner = "anthropics";
         repo = "skills";
       };
-      rev = "98669c11ca63e9c81c11501e1437e5c47b556621";
-      hash = "sha256-w//9LB1OVG9jlllY+VDse7Js0dn5x6Ys2vPuQACKsTM=";
+      rev = "5128e1865d670f5d6c9cef000e6dfc4e951fb5b9"; # 2026-04-23
+      hash = "sha256-xFsg66TCtKzSgRIW6Ab771FWEIhei3jPgfE4byMiB44=";
       pluginsDir = null;
     };
 
@@ -31,8 +32,8 @@ let
         owner = "anthropics";
         repo = "claude-plugins-official";
       };
-      rev = "183a6ca35d5f6b4ba99bf89777bd0aa432fa3d2e";
-      hash = "sha256-IUrfycw/bzuuuTTYNZGWnOE5vSygGa+ORCqbEo6/J0k=";
+      rev = "b392f51899343f35a203260a4b344803de236d13"; # 2026-05-01
+      hash = "sha256-zUogHhL7MWXqpRDzjKI3giqyWJMArQDoSKooxhwfj/8=";
       pluginsDir = "plugins";
     };
 
@@ -41,8 +42,8 @@ let
         owner = "vercel-labs";
         repo = "agent-browser";
       };
-      rev = "312db04e5e2e68a9c1725548b12352d0a55e84db";
-      hash = "sha256-E6IHEyd5voAyNXQyl4bCvyfeZQaSoztplXlKe449EEI=";
+      rev = "717d1b09e1c841a4c0206033886a1a861e3ca5d9"; # v0.26.0
+      hash = "sha256-q3UcFTB8OMOrfx5xcNPtBBAwOxoscwrjGg+y8tdETm0=";
       pluginsDir = null;
     };
 
@@ -51,9 +52,19 @@ let
         owner = "upstash";
         repo = "context7";
       };
-      rev = "658ec6796ec2085e6a24bdab842b6949e4aa2fe8";
-      hash = "sha256-+OGk7PHZyb8Cny8nM2p3+4IBSQeVf6MXO2G/UFyEugc=";
+      rev = "795d5da720e16c417ae30a548a475672ae35e92f"; # 2026-04-30
+      hash = "sha256-FS4JNh9QXCicV2mRuN7jMos4nEbr7eqO/g97HLQJAyU=";
       pluginsDir = null;
+    };
+
+    openai-codex = {
+      github = {
+        owner = "openai";
+        repo = "codex-plugin-cc";
+      };
+      rev = "807e03ac9d5aa23bc395fdec8c3767500a86b3cf"; # v1.0.4
+      hash = "sha256-zWddz18c3E15TPuEvjMkBkrwiFlK3ZqIG5YP5xX6ZII=";
+      pluginsDir = "plugins";
     };
   };
 
@@ -84,6 +95,10 @@ let
     # Official LSP plugins
     "pyright-lsp@claude-plugins-official" = true;
     "typescript-lsp@claude-plugins-official" = true;
+  }
+  # Codex plugin (requires the codex CLI from the codex module)
+  // lib.optionalAttrs codexEnabled {
+    "codex@openai-codex" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
   // lib.optionalAttrs devToolchains {
