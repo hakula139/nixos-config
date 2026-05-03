@@ -105,6 +105,7 @@ in
       yq
       taplo
       fontconfig
+      git-cliff
       git-filter-repo
       unstable.hugo
       scc
