@@ -58,17 +58,29 @@ join_parts() {
 # Model Name
 # ------------------------------------------------------------------------------
 
-# Simplifies display names: "Opus 4.6 (1M context)" → "Opus[1m]"
+# Simplifies display names: "Opus 4.6 (1M context)" → "Opus 4.6 (1M)";
+# also handles Bedrock raw IDs like "global.anthropic.claude-opus-4-6-v1[1m]".
 simplify_model_name() {
-  local raw="$1" name=""
-  case "${raw,,}" in
+  local raw="$1" lc="${1,,}" name="" version=""
+  case "${lc}" in
     *opus*) name=Opus ;;
     *sonnet*) name=Sonnet ;;
     *haiku*) name=Haiku ;;
-    *) name="${raw}" ;;
+    *)
+      echo "${raw}"
+      return
+      ;;
   esac
-  [[ "${raw,,}" == *1m* ]] && name+="[1m]"
-  echo "${name}"
+
+  local version_re='(opus|sonnet|haiku)[- ]([0-9]+)[-.]([0-9]+)'
+  if [[ "${lc}" =~ ${version_re} ]]; then
+    version="${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
+  fi
+
+  local result="${name}"
+  [[ -n "${version}" ]] && result+=" ${version}"
+  [[ "${lc}" == *1m* ]] && result+=" (1M)"
+  echo "${result}"
 }
 
 # ------------------------------------------------------------------------------
