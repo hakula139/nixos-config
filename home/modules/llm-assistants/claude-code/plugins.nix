@@ -5,6 +5,7 @@
 {
   pkgs,
   lib,
+  codexEnabled ? false,
   devToolchains ? false,
   online ? true,
 }:
@@ -55,6 +56,16 @@ let
       hash = "sha256-+OGk7PHZyb8Cny8nM2p3+4IBSQeVf6MXO2G/UFyEugc=";
       pluginsDir = null;
     };
+
+    openai-codex = {
+      github = {
+        owner = "openai";
+        repo = "codex-plugin-cc";
+      };
+      rev = "807e03ac9d5aa23bc395fdec8c3767500a86b3cf"; # v1.0.4
+      hash = "sha256-zWddz18c3E15TPuEvjMkBkrwiFlK3ZqIG5YP5xX6ZII=";
+      pluginsDir = "plugins";
+    };
   };
 
   # ----------------------------------------------------------------------------
@@ -84,6 +95,10 @@ let
     # Official LSP plugins
     "pyright-lsp@claude-plugins-official" = true;
     "typescript-lsp@claude-plugins-official" = true;
+  }
+  # Codex plugin (requires the codex CLI from the codex module)
+  // lib.optionalAttrs codexEnabled {
+    "codex@openai-codex" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
   // lib.optionalAttrs devToolchains {
