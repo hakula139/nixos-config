@@ -165,7 +165,6 @@ in
       week = "date +%V";
       h = "history";
       hg = "history | grep";
-      eh = ''e "$HISTFILE"'';
       c = "clear";
       q = "exit";
 
