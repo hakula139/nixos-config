@@ -71,6 +71,8 @@ When writing documentation:
 
 ## Punctuation
 
-Use spaces around `/` when separating distinct words (e.g., `"Read / Write"`). Omit spaces for abbreviations and compound terms (e.g., `"I/O"`, `"TCP/IP"`).
+Use spaces around connector symbols when they separate distinct words or phrases. This applies to `/`, arrows (`→`, `←`, `↔`, `⇒`, `⇔`), and comparison operators (`≤`, `≥`, `≠`) used in prose, comments, and docs (e.g., `"Read / Write"`, `"Speed ↔ Intelligence"`, `"low → high"`, `"size ≥ 4"`).
+
+Omit spaces for abbreviations, compound terms, and tight notation (`"I/O"`, `"TCP/IP"`, `"k≥0"` as a math constraint, `"2x"` as a multiplier). Single-character UI labels like `←/→` (arrow keys) are compact strings. Leave them alone.
 
 Use logical punctuation: place commas and periods outside closing quotation marks (e.g., `"foobar",` not `"foobar,"`).
