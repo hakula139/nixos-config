@@ -35,6 +35,8 @@ The test: every changed line should trace back to the requested change.
 
 When a comment is justified, **1–2 short lines is the target**. Longer multi-line blocks are fine when the context genuinely warrants it, but they should remain exceptional.
 
+**Keep `///` docstrings on items.** The "default to no comments" rule applies to inline `//` comments and narrative blocks. Docstrings on functions, methods, and types are API documentation, including for crate-internal or non-public items. Trim only when the docstring purely restates the item name.
+
 Avoid:
 
 - Comments that restate WHAT the code does (`// increment counter`).
