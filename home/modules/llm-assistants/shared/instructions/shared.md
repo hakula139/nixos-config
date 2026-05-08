@@ -68,7 +68,7 @@ Keep commit messages and PR descriptions focused on _why_, not a prose restateme
 - **Branches**: `<type>/<short-name>`, reusing the commit type set.
 - **PR Summary**: 1–3 bullets stating the goal and any notable decisions.
 - **PR descriptions describe the merged unit.** Fold review-driven fixes into existing sections (Summary, Design decisions, Changes). Avoid "Post-review follow-ups" or "Cleanup commits" segments. The Commits tab already records the sequence.
-- **No local-only paths in committed artifacts.** Keep `.claude/plans/`, `.claude/settings.local.json``.dev.vars`,  and similar out of code comments, commit messages, PR descriptions, and issue replies. Gitignored paths leak personal state and rot for everyone else.
+- **No local-only paths in committed artifacts.** Keep `.claude/plans/`, `.claude/settings.local.json`, `.dev.vars` and similar out of code comments, commit messages, PR descriptions, and issue replies. Gitignored paths leak personal state and rot for everyone else.
 - **Skip boilerplate sections** that do not apply.
 - **No generated-by attributions or emojis** unless explicitly requested.
 
