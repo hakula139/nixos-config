@@ -29,6 +29,18 @@ Write the minimum code that solves the problem.
 
 The test: every changed line should trace back to the requested change.
 
+## Workflow Discipline
+
+How to make changes, debug, and finish.
+
+- **Think from first principles.** Before applying a familiar pattern, check whether the actual constraints still call for it. Cached intuitions are starting points only.
+- **Act on findings.** A real bug, broken contract, or simple correctness win uncovered during investigation gets fixed in the same response. Destructive or hard-to-reverse actions still confirm first.
+- **Root cause before symptom.** When tests fail, coverage drops, or behavior breaks, investigate why before patching around. Temporary mitigations need an explicit ask.
+- **Inspect, then iterate.** When a fix does not work, look at real state (DOM, traces, logs, payloads) before guessing again. One inspection beats several blind retries.
+- **Use the framework's primitive.** Reach for the library's own pattern before writing a helper that reproduces it.
+- **When told to clean up, delete.** "Trim", "remove stale", and "clean up" mean removing sections. Paraphrasing them shorter just preserves the noise.
+- **Verify before declaring done.** Confirm async or external work actually landed: API responses, advanced git refs, multi-repo build pass. For UI changes you cannot test in a browser, say so explicitly.
+
 ## Commenting Guidelines
 
 **Default to no comments.** Code should be self-explanatory through clear naming and structure. Add a comment only when the WHY is non-obvious to a future reader: a hidden constraint, a subtle invariant, a non-trivial algorithm, a magic number, a workaround for a known bug, or a security / performance consideration. If removing the comment would not confuse a reader, do not write it.
@@ -69,6 +81,12 @@ When writing documentation:
 - Focus on "why" and "how to use". Code should already show "what".
 - Only reference implemented functionality. Never describe WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them.
+
+## Test Quality
+
+Tests must fail against a plausible bug. Avoid structural-only assertions like `assert_eq!(items.len(), 3)` that would pass against a wrong implementation.
+
+After writing tests, audit each one: does it add unique coverage? Drop or merge subsumed tests.
 
 ## Phrasing
 
