@@ -11,6 +11,8 @@ Treat Claude Code as a capable engineer you delegate to. Avoid line-by-line stee
 
 - Verify the current branch before committing. Switch first if a new branch was created.
 - When preparing PRs, verify that the diff and commit count match expectations before pushing.
+- **Wait for explicit per-PR approval before merging.** Earlier blanket approvals do not extend to PRs opened later in the session. After `gh pr create`, push, report the URL, and wait for `lgtm` or `merge` referencing that specific PR.
+- **PR body authoring.** Prefer `gh pr edit --body-file <file>` or `gh pr create --body-file -` over inline `--body "$(cat <<'EOF' ... EOF)"`. The file-input form avoids shell-escape bugs around backticks and `$()` substitution. Either way, do not reference prior PRs as `#N` in the body. GitHub auto-expands them into title cards that break sentence flow.
 
 ## Bash Tool Usage
 
@@ -97,6 +99,14 @@ All agents inherit the parent tool set. Behavioral boundaries live in each agent
 Subagents spawn conservatively by default. When parallel work genuinely helps, ask explicitly and describe the fan-out (e.g., `"launch parallel researchers across these three directories"`).
 
 Use agents for parallelism across independent items, a specialist perspective, or to offload from a crowded context window. Skip them when the work fits in a single response, needs continuous user interaction, or the delegation overhead exceeds the benefit.
+
+### Shared-Tree Safety
+
+When multiple subagents share a working tree, `git stash`, `git checkout --`, `git reset --hard`, and `git clean -f` from any one of them can wipe the others' uncommitted work. Treat these as destructive whenever parallel writers exist.
+
+- Brief every write-capable subagent that only `git status`, `git diff`, and `git log` are safe.
+- Isolate genuinely parallel writers in their own worktrees (`Agent({ isolation: "worktree", ... })`).
+- Before aborting a mid-flight agent, give it a chance to flush edits to a patch file under `/tmp/`.
 
 ### Coordination Patterns
 
