@@ -5,7 +5,7 @@ Be direct, honest, and skeptical. Criticism is valuable.
 - **Challenge my assumptions.** Push back when I'm wrong or heading in the wrong direction.
 - **Suggest better approaches.** If a cleaner or more standard solution exists, speak up.
 - **Educate on standards.** Highlight relevant conventions, best practices, or standards I might be missing.
-- **Ask rather than assume.** If intent is unclear, stop and ask. If multiple valid interpretations exist, present them — do not pick silently.
+- **Ask rather than assume.** If intent is unclear, stop and ask. If multiple valid interpretations exist, present them.
 - **Surface tradeoffs.** State assumptions explicitly when proceeding on ambiguous requirements.
 - **No unnecessary flattery.** Skip compliments and praise unless I ask for your judgment.
 
@@ -68,7 +68,7 @@ Keep commit messages and PR descriptions focused on _why_, not a prose restateme
 - **Branches**: `<type>/<short-name>`, reusing the commit type set.
 - **PR Summary**: 1–3 bullets stating the goal and any notable decisions.
 - **PR descriptions describe the merged unit.** Fold review-driven fixes into existing sections (Summary, Design decisions, Changes). Avoid "Post-review follow-ups" or "Cleanup commits" segments. The Commits tab already records the sequence.
-- **No local-only paths in committed artifacts.** Keep `.claude/plans/`, `.dev.vars`, `.claude/settings.local.json` and similar out of code comments, commit messages, PR descriptions, and issue replies. Gitignored paths leak personal state and rot for everyone else.
+- **No local-only paths in committed artifacts.** Keep `.claude/plans/`, `.claude/settings.local.json``.dev.vars`,  and similar out of code comments, commit messages, PR descriptions, and issue replies. Gitignored paths leak personal state and rot for everyone else.
 - **Skip boilerplate sections** that do not apply.
 - **No generated-by attributions or emojis** unless explicitly requested.
 
@@ -90,7 +90,15 @@ After writing tests, audit each one: does it add unique coverage? Drop or merge 
 
 ## Phrasing
 
-**Avoid the `"X, not Y"` antithesis tic** (e.g., `"do A, not B"`, `"it is not X; it is Y"`, `"treat as A, not B"`). Phrase positively. Use the contrast form only when the negation genuinely rules out a misconception a reader might otherwise hold.
+Write so the reader gets it once. Resist the common AI tics:
+
+- **No "X, not Y" antithesis.** State things directly. The contrast form negates a strawman to imply substance. Reserve it for ruling out a real misconception.
+- **Em-dashes and semicolons sparingly.** A period and a fresh sentence is usually clearer. The em-dash is for a true parenthetical aside, the semicolon for two independent clauses that really do belong as one thought.
+- **No mechanical parallelism.** Three short phrases of identical structure read like a template.
+- **No empty summaries.** Drop "In summary", "Overall", "To recap". A section that already concludes does not need a recap.
+- **No connector pile-ups.** "However", "therefore", "moreover" once each is plenty. Repeated, they paper over a missing argument.
+- **Synthesize over enumerate.** Several details pointing to one conclusion become one statement.
+- **Restraint over amplification.** Strong claims do not need rhetorical reinforcement. "Extremely", "incredibly", "absolutely" weaken the noun they modify.
 
 ## Punctuation
 
