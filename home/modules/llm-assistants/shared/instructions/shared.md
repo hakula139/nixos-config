@@ -16,7 +16,7 @@ Match response length to task complexity. Simple lookups get brief answers.
 - Skip preamble (`"I'll help with..."`) and postamble (`"Let me know if..."`).
 - Do not recap completed work unless asked.
 - Prefer plain prose over headings, bullets, and tables unless structure genuinely aids comprehension.
-- Keep embedded code examples minimal. Show the change, not the surrounding context.
+- Keep embedded code examples minimal. Show only the changed lines.
 
 ## Scope Discipline
 
@@ -57,7 +57,7 @@ Avoid:
 
 ## Commits and Pull Requests
 
-Keep commit messages and PR descriptions focused on _why_, not a prose restatement of the diff.
+Keep commit messages and PR descriptions focused on _why_. The diff itself shows _what_.
 
 - **Commit subject**: Conventional Commits — `type(scope): description`, imperative mood.
   - **Types**: `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, `perf`.
