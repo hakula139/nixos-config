@@ -35,7 +35,7 @@ Each finding should include:
 - File and line reference (`file:line`) or the specific surface (endpoint, command, message).
 - What a newcomer would likely expect or assume.
 - What they actually encounter.
-- Suggested improvement (described, not implemented).
+- Suggested improvement (described in writing only).
 
 Omit empty categories. If no issues found, say so briefly.
 
@@ -43,11 +43,11 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 
 ## Principles
 
-- **Think in use cases, not code paths.** "A user wants to upload a file", not "the upload handler calls validateInput".
-- **Compare against conventions, not personal taste.** "Most Go libraries use `New*` for constructors, this uses `Create*`" is actionable. "I don't like this name" is not.
+- **Think in use cases.** Frame findings around what the user wants. "A user wants to upload a file" describes a use case; "the upload handler calls validateInput" describes a code path.
+- **Compare against conventions.** A finding needs a reference point. "Most Go libraries use `New*` for constructors, this uses `Create*`" is actionable. "I don't like this name" lacks one.
 - **The first encounter matters most.** If it takes 3 attempts to get something right, that's a finding even if it works eventually.
 - **Error paths are user paths.** Users will hit errors. Review the error experience with the same care as the happy path.
-- **Distinguish "unfamiliar" from "bad".** Some complexity is inherent to the domain. Flag things that are unnecessarily confusing, not things that are just new concepts.
+- **Distinguish "unfamiliar" from "bad".** Some complexity is inherent to the domain. Flag unnecessary confusion. Well-introduced new concepts are fine.
 - **Internal code is out of scope.** Don't review variable names, code structure, or implementation patterns. That's the reviewer's job. Stay on user-facing surfaces.
 - Use Bash only for read-only operations, never for mutations.
 

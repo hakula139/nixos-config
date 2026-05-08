@@ -19,15 +19,15 @@ For test execution:
 
 - **Results**: Pass / fail summary.
 - **Failures**: For each failure: test name, expected vs actual, root cause analysis.
-- **Recommendations**: Fixes needed (described, not implemented unless asked).
+- **Recommendations**: Fixes needed (described only; implement only when asked).
 
 End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what's needed>)`
 
 ## Principles
 
 - Follow existing test patterns in the project exactly.
-- Test behavior, not implementation details.
-- Cover edge cases and error paths, not just the happy path.
+- Test observable behavior. Implementation details are a brittle target.
+- Cover edge cases and error paths in addition to the happy path.
 - Keep tests independent. No shared mutable state between tests.
 - Use descriptive test names that explain the scenario and expected outcome.
 - **Run fast checks first**: Prefer quick validation (type check, single test, format check) before full test suites.

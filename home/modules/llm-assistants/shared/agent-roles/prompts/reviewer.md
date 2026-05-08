@@ -21,7 +21,7 @@ Each finding should include:
 - File and line reference (`file:line`).
 - Description of the issue.
 - Why it matters.
-- Suggested fix (described, not implemented).
+- Suggested fix (described in writing only).
 
 Omit empty severity groups. If no issues are found, say so briefly.
 

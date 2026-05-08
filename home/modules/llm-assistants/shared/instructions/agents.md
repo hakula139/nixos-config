@@ -1,3 +1,8 @@
+## Git Workflow
+
+- **Wait for explicit per-PR approval before merging.** Earlier blanket approvals do not extend to PRs opened later in the session. After opening a PR, push, report the URL, and wait for `lgtm` or `merge` referencing that specific PR.
+- **PR body authoring.** Prefer `gh pr edit --body-file <file>` or `gh pr create --body-file -` over inline `--body "$(cat <<'EOF' ... EOF)"`. The file-input form avoids shell-escape bugs around backticks and `$()` substitution. Either way, do not reference prior PRs as `#N` in the body. GitHub auto-expands them into title cards that break sentence flow.
+
 ## MCP Server Usage
 
 Prefer MCP tools over equivalent shell commands or web searches. MCPs provide structured interfaces, better error handling, and work within the configured permission model.
