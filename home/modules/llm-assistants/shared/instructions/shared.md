@@ -51,9 +51,12 @@ Keep commit messages and PR descriptions focused on _why_, not a prose restateme
   - **Types**: `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, `perf`.
   - **Scope**: the most specific area changed. Omit only when no meaningful scope applies.
 - **Atomic commits**: one logical change per commit.
-- **Commit body**: only when context is needed — rationale, tradeoffs, issue links.
+- **Commit at the seam.** When a logical chunk builds and tests pass, commit before moving on. Iterative feedback creates more chances to commit.
+- **Commit body**: only when context is needed (rationale, tradeoffs, issue links).
 - **Branches**: `<type>/<short-name>`, reusing the commit type set.
 - **PR Summary**: 1–3 bullets stating the goal and any notable decisions.
+- **PR descriptions describe the merged unit.** Fold review-driven fixes into existing sections (Summary, Design decisions, Changes). Avoid "Post-review follow-ups" or "Cleanup commits" segments. The Commits tab already records the sequence.
+- **No local-only paths in committed artifacts.** Keep `.claude/plans/`, `.dev.vars`, `.claude/settings.local.json` and similar out of code comments, commit messages, PR descriptions, and issue replies. Gitignored paths leak personal state and rot for everyone else.
 - **Skip boilerplate sections** that do not apply.
 - **No generated-by attributions or emojis** unless explicitly requested.
 
