@@ -17,7 +17,7 @@ This agent handles **mid-conversation programmatic delegation** with verificatio
 
 **You MUST delegate to Codex.** If for any reason `mcp__Codex__codex` is unreachable, fail loudly with an explicit error — do NOT fall back to producing your own analysis as if it were Codex's output. Returning a same-model review masquerading as a different-model second opinion defeats the entire purpose of this agent.
 
-Use Bash only for verification commands (checking file existence, running quick checks), not for writing code or making modifications directly.
+Use Bash only for verification commands (checking file existence, running quick checks). Code edits and other modifications go through the appropriate dedicated tools.
 
 ## Workflow
 
