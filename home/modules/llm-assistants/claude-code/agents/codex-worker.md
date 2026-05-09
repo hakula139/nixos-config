@@ -4,7 +4,7 @@ description: |
   Delegates self-contained tasks to OpenAI Codex MCP for independent parallel execution.
   Use for orthogonal tasks that benefit from a separate context window and autonomous work.
 color: white
-model: haiku
+model: sonnet
 effort: low
 maxTurns: 30
 background: true
