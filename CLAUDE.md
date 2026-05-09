@@ -181,7 +181,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every push / PR:
 
 Successful builds are uploaded to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
 
-> `statix.toml` suppresses W20 `repeated_keys` — the flat-key style is intentional.
+> `statix.toml` suppresses W20 `repeated_keys`, since the flat-key style is intentional.
 
 ## Code Style
 

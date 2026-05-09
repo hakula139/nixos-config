@@ -21,7 +21,7 @@ Library and framework documentation lookups. Always resolve the library ID first
 
 ### DeepWiki
 
-AI-powered documentation for public GitHub repositories. Use for unfamiliar repos — architecture, patterns, API design.
+AI-powered documentation for public GitHub repositories. Use for unfamiliar repos: architecture, patterns, API design.
 
 ### Fetcher
 
@@ -33,15 +33,15 @@ Structured file operations with directory sandboxing. Use for operations beyond 
 
 ### Git
 
-Structured git operations. Prefer over shell `git` commands — they accept a `repo_path` parameter, keeping the working directory unchanged and avoiding permission pattern issues.
+Structured git operations. Prefer over shell `git` commands, since they accept a `repo_path` parameter, keeping the working directory unchanged and avoiding permission pattern issues.
 
 ### GitHub
 
-GitHub API — issues, PRs, code search, reviews, releases, repository management. Prefer over `gh` CLI for structured responses and pagination.
+GitHub API for issues, PRs, code search, reviews, releases, and repository management. Prefer over `gh` CLI for structured responses and pagination.
 
 ### GitLab
 
-GitLab API — issues, merge requests, pipelines, labels, repository management. Prefer over `glab` CLI. Use `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
+GitLab API for issues, merge requests, pipelines, labels, and repository management. Prefer over `glab` CLI. Use `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
 
 ## Custom Agent Roles
 

@@ -24,7 +24,7 @@ Prefer MCP tools over equivalent Bash commands or web searches. MCPs provide str
 
 ### Atlassian (`mcp__Atlassian__*`)
 
-Scoped to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Read operations are auto-approved. Writes require user confirmation.
+Scoped to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Read operations are auto-approved; writes require user confirmation.
 
 ### Brave Search (`mcp__BraveSearch__*`)
 
@@ -60,7 +60,7 @@ Structured file operations with directory sandboxing. Use for operations beyond 
 
 ### Git (`mcp__Git__*`)
 
-Structured git operations. Prefer over Bash `git` commands. They accept a `repo_path` parameter, keeping the working directory unchanged and avoiding permission pattern issues with `git -C`.
+Structured git operations. Prefer over Bash `git` commands, since they accept a `repo_path` parameter, keeping the working directory unchanged and avoiding permission pattern issues with `git -C`.
 
 ### GitHub (`mcp__GitHub__*`)
 

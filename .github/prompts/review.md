@@ -21,7 +21,7 @@ Review this PR. This is a flake-based NixOS / nix-darwin configuration repo.
 ### Scope
 
 - Only review **changed lines** in the diff. Do not flag pre-existing code unless a change makes it newly broken.
-- Check existing patterns in the codebase before suggesting alternatives — if the code follows an established convention, it is not a finding.
+- Check existing patterns in the codebase before suggesting alternatives. If the code follows an established convention, it is not a finding.
 
 ### Hard exclusions — never flag these
 
@@ -31,10 +31,10 @@ Review this PR. This is a flake-based NixOS / nix-darwin configuration repo.
 
 ### Signal quality — every finding must pass ALL of these
 
-1. **Concrete failure**: You can describe a specific, reproducible scenario where the code breaks, produces wrong output, or creates a vulnerability. "This could fail" is not sufficient — explain exactly *when* and *how*.
+1. **Concrete failure**: You can describe a specific, reproducible scenario where the code breaks, produces wrong output, or creates a vulnerability. "This could fail" is not sufficient. Explain exactly *when* and *how*.
 2. **Not already addressed**: You have checked inline comments, commit messages, and surrounding context. The author has not already documented the rationale for the pattern you are questioning.
-3. **Verified behavior**: If your finding depends on how a platform feature works (GitHub Actions expressions, Nix evaluator, systemd, etc.), you have confirmed the actual behavior — not assumed it from another language or platform.
-4. **Actionable fix**: You can propose a specific code change. "Verify that X works" or "consider whether Y" are not actionable — either show the fix or do not report it.
+3. **Verified behavior**: If your finding depends on how a platform feature works (GitHub Actions expressions, Nix evaluator, systemd, etc.), you have confirmed the actual behavior, not assumed it from another language or platform.
+4. **Actionable fix**: You can propose a specific code change. "Verify that X works" or "consider whether Y" are not actionable. Either show the fix or do not report it.
 
 ### Severity rules
 
@@ -47,7 +47,7 @@ Use these definitions consistently in both inline comments and the summary:
 
 ## Posting the review
 
-You MUST post your review to the PR using GitHub tools — do not just output text.
+You MUST post your review to the PR using GitHub tools. Do not just output text.
 
 ### Inline review comments
 
