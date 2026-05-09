@@ -62,7 +62,7 @@ eval "$(agenix -d peertube/env.age -i ~/.ssh/CloudCone/id_ed25519)"
 export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
 ```
 
-The `export` is required — without it, credentials don't propagate into the `nix-shell` subshells that the script uses for `aws` commands.
+The `export` is required, since without it credentials don't propagate into the `nix-shell` subshells that the script uses for `aws` commands.
 
 ### Step 3: Transcode
 
@@ -86,7 +86,7 @@ Use when transcoding from VP9 / AV1 / other to H.264, or re-encoding with differ
 
 Key parameters applied by the script (matching `hq-transcode.patch`):
 
-- `-an`: Strip audio (PeerTube uses separated audio — shared across resolutions)
+- `-an`: Strip audio (PeerTube uses separated audio, shared across resolutions)
 - `-preset slow -crf 20 -profile:v high -b_strategy 1 -bf 16`
 - `-hls_flags single_file`: Single fragmented MP4 with byte-range addressing
 
@@ -159,11 +159,11 @@ To also update the stored ffprobe metadata (recommended for re-encodes):
 
 ### Step 7: Update Segments SHA256
 
-**This step is NOT optional.** PeerTube verifies HLS segment integrity using a SHA256 JSON file. PeerTube does **not** auto-regenerate this file — not even when the runner transcodes a new resolution.
+**This step is NOT optional.** PeerTube verifies HLS segment integrity using a SHA256 JSON file. PeerTube does **not** auto-regenerate this file, not even when the runner transcodes a new resolution.
 
 **Symptoms of missing / stale hashes:**
 
-- **Missing key** (fMP4 filename absent from JSON): The resolution **silently disappears** from the quality selector — no error in the UI, no console message about hashes. Diagnose by checking whether the SHA256 JSON has an entry for the fMP4 filename.
+- **Missing key** (fMP4 filename absent from JSON): The resolution **silently disappears** from the quality selector: no error in the UI, no console message about hashes. Diagnose by checking whether the SHA256 JSON has an entry for the fMP4 filename.
 - **Hash mismatch** (key exists but hashes are wrong): The resolution appears but segments fail to play, with console errors:
 
   ```text
