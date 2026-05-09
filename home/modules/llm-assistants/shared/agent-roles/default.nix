@@ -70,7 +70,7 @@ in
     prompt = readPrompt ./prompts/researcher.md;
     claude = {
       color = "blue";
-      model = "haiku";
+      model = "sonnet";
       effort = "low";
       memory = "local";
       background = true;
