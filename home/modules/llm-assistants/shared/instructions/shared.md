@@ -93,7 +93,7 @@ After writing tests, audit each one: does it add unique coverage? Drop or merge 
 Write so the reader gets it once. Resist the common AI tics:
 
 - **No "X, not Y" antithesis.** State things directly. The contrast form negates a strawman to imply substance. Reserve it for ruling out a real misconception.
-- **Em-dashes and semicolons sparingly.** A period and a fresh sentence is usually clearer. The em-dash is for a true parenthetical aside, the semicolon for two independent clauses that really do belong as one thought.
+- **Em-dashes and semicolons sparingly.** The em-dash is for a true parenthetical aside, the semicolon for two independent clauses that really do belong as one thought. For everything else, prefer a transition word (`since`, `because`, `while`, `where`, `so`, `but`) plus a comma. Period fragmentation reads as AI cadence the same way em-dashes do.
 - **No mechanical parallelism.** Three short phrases of identical structure read like a template.
 - **No empty summaries.** Drop "In summary", "Overall", "To recap". A section that already concludes does not need a recap.
 - **No connector pile-ups.** "However", "therefore", "moreover" once each is plenty. Repeated, they paper over a missing argument.
