@@ -56,6 +56,18 @@
       url = "github:anthropics/skills";
       flake = false;
     };
+
+    # OpenAI Codex skills
+    openai-skills = {
+      url = "github:openai/skills";
+      flake = false;
+    };
+
+    # Community Codex skills
+    codex-skills = {
+      url = "github:jMerta/codex-skills";
+      flake = false;
+    };
   };
 
   # ----------------------------------------------------------------------------

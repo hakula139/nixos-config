@@ -58,12 +58,14 @@ in
 
   config = lib.mkIf cfg.enable (
     let
+      toml = pkgs.formats.toml { };
+
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
       hooks = import ./hooks { inherit pkgs lib; };
+      skills = import ./skills { inherit lib inputs; };
       notify = import ../shared/notify.nix { inherit pkgs lib; };
-      tomlFormat = pkgs.formats.toml { };
 
       agents = import ./agents.nix {
         inherit lib pkgs;
@@ -175,7 +177,7 @@ in
         # ------------------------------------------------------------------
         # Skills
         # ------------------------------------------------------------------
-        skills.bundled.enabled = true;
+        skills = skills.settings;
 
         # ------------------------------------------------------------------
         # Interface
@@ -223,7 +225,7 @@ in
         };
       };
 
-      codexConfig = tomlFormat.generate "codex-config" codexSettings;
+      codexConfig = toml.generate "codex-config" codexSettings;
       codexConfigDir =
         if config.home.preferXdgDirectories then
           "${config.xdg.configHome}/codex"
@@ -282,18 +284,7 @@ in
           trap - EXIT
         '';
 
-        # ----------------------------------------------------------------------
-        # Legacy cleanup
-        # ----------------------------------------------------------------------
-        home.activation.codexLegacySkillsCleanup = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          skillsDir="$HOME/.agents/skills"
-
-          if [[ -d "$skillsDir" ]]; then
-            for entry in "$skillsDir"/*; do
-              [[ -L "$entry" ]] && rm "$entry"
-            done
-          fi
-        '';
+        home.file = skills.homeFiles;
       }
     ]
   );
