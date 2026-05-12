@@ -195,17 +195,6 @@ in
             skills.bundled.enabled = true;
 
             # ------------------------------------------------------------------
-            # Apps
-            # ------------------------------------------------------------------
-            apps = {
-              _default = {
-                enabled = true;
-                destructive_enabled = true;
-                open_world_enabled = true;
-              };
-            };
-
-            # ------------------------------------------------------------------
             # Interface
             # ------------------------------------------------------------------
             notify = [
@@ -237,7 +226,6 @@ in
             # ------------------------------------------------------------------
             suppress_unstable_features_warning = true;
             features = {
-              apps = true;
               codex_hooks = true;
               memories = true;
               prevent_idle_sleep = true;
