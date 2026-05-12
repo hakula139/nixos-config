@@ -4,91 +4,49 @@ set -euo pipefail
 # ==============================================================================
 # WakaTime Heartbeat for AI-Generated Code (PostToolUse)
 # ==============================================================================
-# PostToolUse hook that sends a file-level WakaTime heartbeat with
-# --ai-line-changes for each edit tool invocation.
+# PostToolUse hook that asks wakatime-cli to parse AI assistant transcripts and
+# send the resulting file-level AI heartbeats.
 #
-# Claude Code sends Edit / Write payloads with direct file and content fields.
-# Codex sends apply_patch payloads, so patch text is parsed to recover changed
-# files and approximate net line changes.
-#
-# This replaces app-level heartbeats, which lack language detection (reported
-# as "Other") and rarely include AI line attribution.
+# This mirrors the current claude-code-wakatime plugin behavior without letting
+# the hook download or install its own CLI binary.
 # ==============================================================================
 
 INPUT=$(cat)
-TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
 readonly PLUGIN_NAME="@pluginName@"
 
-# Resolve platform-specific wakatime-cli binary.
-WAKATIME_CLI="$HOME/.wakatime/wakatime-cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
-[[ -x "$WAKATIME_CLI" ]] || exit 0
+if ! wakatime-cli --help 2>/dev/null | grep -q -- '--sync-ai-activity'; then
+  exit 0
+fi
 
-PROJECT_FOLDER=$(printf '%s' "$INPUT" | jq -r '.cwd // empty')
+PROJECT_FOLDER=$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null || true)
+STATE_ID=$(
+  printf '%s' "$INPUT" |
+    jq -r '.transcript_path // .session_id // ."thread-id" // .thread_id // .cwd // "unknown"' 2>/dev/null ||
+    true
+)
 
-emit_changed_files() {
-  local file_path line_changes
+WAKATIME_HOME_DIR="${WAKATIME_HOME:-${HOME:-}}"
+[[ -n "$WAKATIME_HOME_DIR" ]] || exit 0
 
-  case "$TOOL_NAME" in
-    apply_patch)
-      printf '%s' "$INPUT" | jq -r '.tool_input.command // ""' | awk '
-        /^\*\*\* (Add|Update) File: / {
-          file = substr($0, index($0, ": ") + 2)
-          files[file] = 1
-          next
-        }
-        /^\*\*\* Delete File: / {
-          file = ""
-          next
-        }
-        file != "" && /^\+/ && $0 !~ /^\+\+\+/ {
-          changes[file]++
-          next
-        }
-        file != "" && /^-/ && $0 !~ /^---/ {
-          changes[file]--
-          next
-        }
-        END {
-          for (file in files) {
-            print file "\t" changes[file] + 0
-          }
-        }
-      '
-      ;;
-    Edit)
-      file_path=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
-      line_changes=$(
-        printf '%s' "$INPUT" | jq '
-          ((.tool_input.new_string // "") | split("\n") | length)
-          - ((.tool_input.old_string // "") | split("\n") | length)
-        '
-      )
-      [[ -n "$file_path" ]] && printf '%s\t%s\n' "$file_path" "$line_changes"
-      ;;
-    Write)
-      file_path=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
-      line_changes=$(printf '%s' "$INPUT" | jq '(.tool_input.content // "") | split("\n") | length')
-      [[ -n "$file_path" ]] && printf '%s\t%s\n' "$file_path" "$line_changes"
-      ;;
-    *)
-      file_path=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
-      [[ -n "$file_path" ]] && printf '%s\t0\n' "$file_path"
-      ;;
-  esac
-}
+STATE_DIR="$WAKATIME_HOME_DIR/.wakatime/llm-assistants"
+STATE_ID=$(printf '%s' "$STATE_ID" | LC_ALL=C tr -c 'A-Za-z0-9._-' '_' | cut -c1-160)
+PLUGIN_ID=$(printf '%s' "$PLUGIN_NAME" | LC_ALL=C tr -c 'A-Za-z0-9._-' '_' | cut -c1-80)
+STATE_FILE="$STATE_DIR/${PLUGIN_ID}-${STATE_ID:-unknown}.wakatime"
 
-emit_changed_files | while IFS=$'\t' read -r FILE_PATH LINE_CHANGES; do
-  [[ -z "$FILE_PATH" || ! -e "$FILE_PATH" ]] && continue
+NOW=$(date +%s)
+if [[ -r "$STATE_FILE" ]]; then
+  LAST=$(<"$STATE_FILE")
+  if [[ "$LAST" =~ ^[0-9]+$ ]] && ((NOW - LAST < 60)); then
+    exit 0
+  fi
+fi
 
-  ARGS=(
-    --entity "$FILE_PATH"
-    --entity-type file
-    --write
-    --category "ai coding"
-    --plugin "$PLUGIN_NAME"
-    --ai-line-changes "$LINE_CHANGES"
-  )
-  [[ -n "$PROJECT_FOLDER" ]] && ARGS+=(--project-folder "$PROJECT_FOLDER")
+ARGS=(
+  --sync-ai-activity
+  --plugin "$PLUGIN_NAME"
+)
+[[ -n "$PROJECT_FOLDER" ]] && ARGS+=(--project-folder "$PROJECT_FOLDER")
 
-  "$WAKATIME_CLI" "${ARGS[@]}" >/dev/null 2>&1 || true
-done
+mkdir -p "$STATE_DIR"
+wakatime-cli "${ARGS[@]}" >/dev/null 2>&1 || true
+printf '%s\n' "$NOW" >"$STATE_FILE"

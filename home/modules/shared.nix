@@ -108,6 +108,7 @@ in
       git-cliff
       git-filter-repo
       unstable.hugo
+      unstable.wakatime-cli
       scc
     ]
     ++ tooling.nix
