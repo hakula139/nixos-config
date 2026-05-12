@@ -209,9 +209,12 @@ in
         # ------------------------------------------------------------------
         suppress_unstable_features_warning = true;
         features = {
+          external_migration = true;
+          goals = true;
           hooks = true;
           memories = true;
           prevent_idle_sleep = true;
+          terminal_resize_reflow = true;
         };
       };
 
@@ -264,14 +267,7 @@ in
           trap 'rm -f "$tmpFile"' EXIT
 
           if [[ -s "$configFile" ]]; then
-            # Migration cleanup for stale keys from earlier declarative configs.
-            ${pkgs.yq}/bin/tomlq -s -t '
-              (.[0]
-                | del(.apps)
-                | del(.features.apps)
-                | del(.features.codex_hooks)
-                | del(.mcp_servers.codex_apps)) * .[1]
-            ' "$configFile" "$baseline" >"$tmpFile"
+            ${pkgs.yq}/bin/tomlq -s -t '.[0] * .[1]' "$configFile" "$baseline" >"$tmpFile"
           else
             cp "$baseline" "$tmpFile"
           fi
