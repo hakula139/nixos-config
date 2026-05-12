@@ -226,7 +226,7 @@ in
             # ------------------------------------------------------------------
             suppress_unstable_features_warning = true;
             features = {
-              codex_hooks = true;
+              hooks = true;
               memories = true;
               prevent_idle_sleep = true;
             };

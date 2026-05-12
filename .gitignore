@@ -14,5 +14,5 @@ result-*
 .claude/plans/
 .claude/settings.local.json
 .claude/worktrees/
-.codex/plans/
-.codex/worktrees/
+.codex-local/plans/
+.codex-local/worktrees/
