@@ -97,19 +97,27 @@ in
       nodePackages.typescript-language-server
 
       # ------------------------------------------------------------------------
-      # Other Tools
+      # Data & Config Tools
+      # ------------------------------------------------------------------------
+      jq
+      taplo
+      yq # includes xq and tomlq
+
+      # ------------------------------------------------------------------------
+      # Network Tools
       # ------------------------------------------------------------------------
       httpie
       mitmproxy
-      jq
-      yq
-      taplo
+
+      # ------------------------------------------------------------------------
+      # Project Tools
+      # ------------------------------------------------------------------------
       fontconfig
       git-cliff
       git-filter-repo
+      scc
       unstable.hugo
       unstable.wakatime-cli
-      scc
     ]
     ++ tooling.nix
     ++ tooling.secrets
