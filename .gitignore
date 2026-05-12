@@ -9,6 +9,10 @@ result-*
 # Secrets
 .env
 
-# Editor / tool local settings
+# Editor / assistant local settings
+.claude/agent-memory-local/
+.claude/plans/
 .claude/settings.local.json
+.claude/worktrees/
 .codex/plans/
+.codex/worktrees/

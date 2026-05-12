@@ -1,18 +1,33 @@
 set -euo pipefail
 
-input=$(cat)
-tool_name=$(printf '%s' "$input" | jq -r '.tool_name // empty')
-plugin_name="${HAKULA_WAKATIME_PLUGIN:-llm-assistant-hook/1.0}"
+# ==============================================================================
+# WakaTime Heartbeat for AI-Generated Code (PostToolUse)
+# ==============================================================================
+# PostToolUse hook that sends a file-level WakaTime heartbeat with
+# --ai-line-changes for each edit tool invocation.
+#
+# Claude Code sends Edit / Write payloads with direct file and content fields.
+# Codex sends apply_patch payloads, so patch text is parsed to recover changed
+# files and approximate net line changes.
+#
+# This replaces app-level heartbeats, which lack language detection (reported
+# as "Other") and rarely include AI line attribution.
+# ==============================================================================
 
-wakatime_cli="$HOME/.wakatime/wakatime-cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
-[[ -x "$wakatime_cli" ]] || exit 0
+INPUT=$(cat)
+TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
+PLUGIN_NAME="${HAKULA_WAKATIME_PLUGIN:-llm-assistant-hook/1.0}"
 
-project_folder=$(printf '%s' "$input" | jq -r '.cwd // empty')
+# Resolve platform-specific wakatime-cli binary.
+WAKATIME_CLI="$HOME/.wakatime/wakatime-cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+[[ -x "$WAKATIME_CLI" ]] || exit 0
+
+PROJECT_FOLDER=$(printf '%s' "$INPUT" | jq -r '.cwd // empty')
 
 emit_changed_files() {
-  case "$tool_name" in
+  case "$TOOL_NAME" in
     apply_patch)
-      printf '%s' "$input" | jq -r '.tool_input.command // ""' | awk '
+      printf '%s' "$INPUT" | jq -r '.tool_input.command // ""' | awk '
         /^\*\*\* (Add|Update) File: / {
           file = substr($0, index($0, ": ") + 2)
           files[file] = 1
@@ -38,39 +53,39 @@ emit_changed_files() {
       '
       ;;
     Edit)
-      file_path=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')
-      line_changes=$(
-        printf '%s' "$input" | jq '
+      FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
+      LINE_CHANGES=$(
+        printf '%s' "$INPUT" | jq '
           ((.tool_input.new_string // "") | split("\n") | length)
           - ((.tool_input.old_string // "") | split("\n") | length)
         '
       )
-      [[ -n "$file_path" ]] && printf '%s\t%s\n' "$file_path" "$line_changes"
+      [[ -n "$FILE_PATH" ]] && printf '%s\t%s\n' "$FILE_PATH" "$LINE_CHANGES"
       ;;
     Write)
-      file_path=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')
-      line_changes=$(printf '%s' "$input" | jq '(.tool_input.content // "") | split("\n") | length')
-      [[ -n "$file_path" ]] && printf '%s\t%s\n' "$file_path" "$line_changes"
+      FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
+      LINE_CHANGES=$(printf '%s' "$INPUT" | jq '(.tool_input.content // "") | split("\n") | length')
+      [[ -n "$FILE_PATH" ]] && printf '%s\t%s\n' "$FILE_PATH" "$LINE_CHANGES"
       ;;
     *)
-      file_path=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')
-      [[ -n "$file_path" ]] && printf '%s\t0\n' "$file_path"
+      FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
+      [[ -n "$FILE_PATH" ]] && printf '%s\t0\n' "$FILE_PATH"
       ;;
   esac
 }
 
-emit_changed_files | while IFS=$'\t' read -r file_path line_changes; do
-  [[ -z "$file_path" || ! -e "$file_path" ]] && continue
+emit_changed_files | while IFS=$'\t' read -r FILE_PATH LINE_CHANGES; do
+  [[ -z "$FILE_PATH" || ! -e "$FILE_PATH" ]] && continue
 
-  args=(
-    --entity "$file_path"
+  ARGS=(
+    --entity "$FILE_PATH"
     --entity-type file
     --write
     --category "ai coding"
-    --plugin "$plugin_name"
-    --ai-line-changes "$line_changes"
+    --plugin "$PLUGIN_NAME"
+    --ai-line-changes "$LINE_CHANGES"
   )
-  [[ -n "$project_folder" ]] && args+=(--project-folder "$project_folder")
+  [[ -n "$PROJECT_FOLDER" ]] && ARGS+=(--project-folder "$PROJECT_FOLDER")
 
-  "$wakatime_cli" "${args[@]}" >/dev/null 2>&1 || true
+  "$WAKATIME_CLI" "${ARGS[@]}" >/dev/null 2>&1 || true
 done

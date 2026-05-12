@@ -2,7 +2,11 @@
 # Shared Hook Scripts
 # ==============================================================================
 
-{ pkgs, lib, ... }:
+{
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   mkEnvExports = lib.mapAttrsToList (name: value: "export ${name}=${lib.escapeShellArg value}");
