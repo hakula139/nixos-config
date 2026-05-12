@@ -4,21 +4,20 @@
 
 {
   pkgs,
-  lib,
   ...
 }:
 
 let
-  mkEnvExports = lib.mapAttrsToList (name: value: "export ${name}=${lib.escapeShellArg value}");
-
   mkHookScript =
     {
       name,
       script,
-      env ? { },
+      substitutions ? { },
     }:
     pkgs.writeShellScript name (
-      lib.concatStringsSep "\n" (mkEnvExports env ++ [ (builtins.readFile script) ])
+      builtins.replaceStrings (builtins.attrNames substitutions) (builtins.attrValues substitutions) (
+        builtins.readFile script
+      )
     );
 in
 {
@@ -39,7 +38,7 @@ in
     mkHookScript {
       inherit name;
       script = ./scripts/enforce-mcp.sh;
-      env.HAKULA_HOOK_HINT_MODE = hintMode;
+      substitutions."@hintMode@" = hintMode;
     };
 
   mkWakatimeScript =
@@ -50,6 +49,6 @@ in
     mkHookScript {
       inherit name;
       script = ./scripts/wakatime.sh;
-      env.HAKULA_WAKATIME_PLUGIN = pluginName;
+      substitutions."@pluginName@" = pluginName;
     };
 }

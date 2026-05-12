@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 # ==============================================================================
@@ -16,7 +17,7 @@ set -euo pipefail
 
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
-PLUGIN_NAME="${HAKULA_WAKATIME_PLUGIN:-llm-assistant-hook/1.0}"
+readonly PLUGIN_NAME="@pluginName@"
 
 # Resolve platform-specific wakatime-cli binary.
 WAKATIME_CLI="$HOME/.wakatime/wakatime-cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
@@ -25,6 +26,8 @@ WAKATIME_CLI="$HOME/.wakatime/wakatime-cli-$(uname -s | tr '[:upper:]' '[:lower:
 PROJECT_FOLDER=$(printf '%s' "$INPUT" | jq -r '.cwd // empty')
 
 emit_changed_files() {
+  local file_path line_changes
+
   case "$TOOL_NAME" in
     apply_patch)
       printf '%s' "$INPUT" | jq -r '.tool_input.command // ""' | awk '
@@ -53,23 +56,23 @@ emit_changed_files() {
       '
       ;;
     Edit)
-      FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
-      LINE_CHANGES=$(
+      file_path=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
+      line_changes=$(
         printf '%s' "$INPUT" | jq '
           ((.tool_input.new_string // "") | split("\n") | length)
           - ((.tool_input.old_string // "") | split("\n") | length)
         '
       )
-      [[ -n "$FILE_PATH" ]] && printf '%s\t%s\n' "$FILE_PATH" "$LINE_CHANGES"
+      [[ -n "$file_path" ]] && printf '%s\t%s\n' "$file_path" "$line_changes"
       ;;
     Write)
-      FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
-      LINE_CHANGES=$(printf '%s' "$INPUT" | jq '(.tool_input.content // "") | split("\n") | length')
-      [[ -n "$FILE_PATH" ]] && printf '%s\t%s\n' "$FILE_PATH" "$LINE_CHANGES"
+      file_path=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
+      line_changes=$(printf '%s' "$INPUT" | jq '(.tool_input.content // "") | split("\n") | length')
+      [[ -n "$file_path" ]] && printf '%s\t%s\n' "$file_path" "$line_changes"
       ;;
     *)
-      FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
-      [[ -n "$FILE_PATH" ]] && printf '%s\t0\n' "$FILE_PATH"
+      file_path=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
+      [[ -n "$file_path" ]] && printf '%s\t0\n' "$file_path"
       ;;
   esac
 }

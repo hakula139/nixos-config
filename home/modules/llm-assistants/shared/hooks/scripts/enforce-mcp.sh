@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # ==============================================================================
 # Enforce MCP Tool Usage (PreToolUse)
 # ==============================================================================
@@ -23,7 +25,7 @@
 # ==============================================================================
 
 COMMAND=$(jq -r '.tool_input.command // empty')
-HINT_MODE="${HAKULA_HOOK_HINT_MODE:-system-message}"
+readonly HINT_MODE="@hintMode@"
 
 deny() {
   jq -n --arg reason "$1" '{

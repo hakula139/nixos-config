@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # ==============================================================================
 # Auto-Format and Lint (PostToolUse)
 # ==============================================================================
@@ -66,6 +68,7 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
       ;;
     *.md)
       if command -v npx &>/dev/null; then
+        npx --no markdownlint-cli2 --fix "$FILE_PATH" 2>/dev/null || true
         npx --no markdownlint-cli2 "$FILE_PATH" 2>&1 | head -20 || true
         npx --no cspell --no-progress "$FILE_PATH" 2>&1 | head -20 || true
       fi
