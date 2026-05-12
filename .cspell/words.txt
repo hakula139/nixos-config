@@ -213,6 +213,7 @@ timedatectl
 tmp
 tmpfiles
 tmpfs
+tomlq
 toolsai
 tulanp
 twikoo

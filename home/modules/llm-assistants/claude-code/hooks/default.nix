@@ -10,10 +10,17 @@
 
 let
   notify = import ../../shared/notify.nix { inherit pkgs lib; };
+  hookScripts = import ../../shared/hooks { inherit pkgs lib; };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
-  autoFormatScript = pkgs.writeShellScript "auto-format" (builtins.readFile ./auto-format.sh);
-  enforceMcpScript = pkgs.writeShellScript "enforce-mcp" (builtins.readFile ./enforce-mcp.sh);
-  wakatimeScript = pkgs.writeShellScript "wakatime-heartbeat" (builtins.readFile ./wakatime.sh);
+  autoFormatScript = hookScripts.mkAutoFormatScript { name = "claude-code-auto-format"; };
+  enforceMcpScript = hookScripts.mkEnforceMcpScript {
+    name = "claude-code-enforce-mcp";
+    hintMode = "permission-allow";
+  };
+  wakatimeScript = hookScripts.mkWakatimeScript {
+    name = "claude-code-wakatime-heartbeat";
+    pluginName = "claude-code-hook/1.0";
+  };
 in
 {
   PreToolUse = [
