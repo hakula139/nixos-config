@@ -194,7 +194,12 @@ in
             "context-used"
             "five-hour-limit"
             "weekly-limit"
+            "pull-request-number"
+            "run-state"
+            "thread-title"
+            "task-progress"
           ];
+          status_line_use_colors = true;
         };
 
         # ------------------------------------------------------------------
