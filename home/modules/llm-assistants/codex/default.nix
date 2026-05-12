@@ -61,6 +61,7 @@ in
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
+      hooks = import ./hooks { inherit pkgs lib; };
       notify = import ../shared/notify.nix { inherit pkgs lib; };
 
       agents = import ./agents.nix {
@@ -174,6 +175,11 @@ in
             agents = agents.settings;
 
             # ------------------------------------------------------------------
+            # Hooks
+            # ------------------------------------------------------------------
+            inherit hooks;
+
+            # ------------------------------------------------------------------
             # MCP servers
             # ------------------------------------------------------------------
             mcp_servers = builtins.listToAttrs (
@@ -232,9 +238,9 @@ in
             suppress_unstable_features_warning = true;
             features = {
               apps = true;
+              codex_hooks = true;
               memories = true;
               prevent_idle_sleep = true;
-              undo = true;
             };
           };
         };

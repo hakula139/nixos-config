@@ -11,3 +11,4 @@ result-*
 
 # Editor / tool local settings
 .claude/settings.local.json
+.codex/plans/
