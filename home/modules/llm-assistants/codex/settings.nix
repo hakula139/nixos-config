@@ -6,8 +6,8 @@
   agents,
   hooks,
   mcp,
-  skills,
   notify,
+  skills,
   ...
 }:
 

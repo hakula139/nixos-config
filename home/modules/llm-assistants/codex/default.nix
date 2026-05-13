@@ -80,7 +80,7 @@ in
       skills = import ./skills { inherit pkgs lib inputs; };
 
       agents = import ./agents.nix {
-        inherit lib pkgs;
+        inherit pkgs lib;
         inherit (cfg.agents) enabledAgents;
       };
 
@@ -112,8 +112,8 @@ in
           agents
           hooks
           mcp
-          skills
           notify
+          skills
           ;
       };
 
