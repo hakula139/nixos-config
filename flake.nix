@@ -62,12 +62,6 @@
       url = "github:openai/skills";
       flake = false;
     };
-
-    # Community Codex skills
-    codex-skills = {
-      url = "github:jMerta/codex-skills";
-      flake = false;
-    };
   };
 
   # ----------------------------------------------------------------------------

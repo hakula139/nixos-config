@@ -13,7 +13,6 @@ let
   catalogs = {
     anthropic = inputs.anthropics-skills + "/skills";
     openai = inputs.openai-skills + "/skills/.curated";
-    codexCommunity = inputs.codex-skills;
   }
   // lib.optionalAttrs (localCodexSkills != null) {
     localCodex = localCodexSkills;
@@ -39,12 +38,6 @@ let
     frontend-design = catalogs.anthropic + "/frontend-design";
     mcp-builder = catalogs.anthropic + "/mcp-builder";
     webapp-testing = catalogs.anthropic + "/webapp-testing";
-
-    # Community Codex workflow skills.
-    commit-work = catalogs.codexCommunity + "/commit-work";
-    create-pr = catalogs.codexCommunity + "/create-pr";
-    rebase-assistant = catalogs.codexCommunity + "/rebase-assistant";
-    release-notes = catalogs.codexCommunity + "/release-notes";
   }
   // lib.optionalAttrs (localCodexSkills != null) {
     pr-draft-summary = catalogs.localCodex + "/pr-draft-summary";

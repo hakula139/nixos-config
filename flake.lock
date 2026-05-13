@@ -98,22 +98,6 @@
         "type": "github"
       }
     },
-    "codex-skills": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1770378002,
-        "narHash": "sha256-PZXZdB3cxDOHxs984wOfxMj2gkHsK8oWcNCj3YWMCcA=",
-        "owner": "jMerta",
-        "repo": "codex-skills",
-        "rev": "1be063de2a730d61133e957dfc01a670cce7abd4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "jMerta",
-        "repo": "codex-skills",
-        "type": "github"
-      }
-    },
     "darwin": {
       "inputs": {
         "nixpkgs": [
@@ -404,7 +388,6 @@
       "inputs": {
         "agenix": "agenix",
         "anthropics-skills": "anthropics-skills",
-        "codex-skills": "codex-skills",
         "disko": "disko",
         "git-hooks-nix": "git-hooks-nix",
         "home-manager": "home-manager_2",
