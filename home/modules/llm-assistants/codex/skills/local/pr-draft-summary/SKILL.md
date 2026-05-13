@@ -19,24 +19,14 @@ Produce a PR-ready block after substantive work is complete. The result should m
 
 ## Inputs to Collect Automatically
 
-Do not ask the user for information that can be derived from git or the repository.
+Do not ask the user for information that can be derived from git or the repository. Prefer the consolidated commands below over per-mode variants; the short status format already includes untracked files, and a single range diff covers both staged and unstaged changes when comparing against the base.
 
 - Current branch: `git rev-parse --abbrev-ref HEAD`.
-- Working tree: `git status -sb`.
-- Untracked files: `git ls-files --others --exclude-standard`.
-- Changed files:
-  - `git diff --name-only`
-  - `git diff --name-only --cached`
-  - `git diff --stat`
-  - `git diff --stat --cached`
-- Default branch:
-  - Prefer `git remote show origin`.
-  - Fall back to `origin/main`.
-- Base commit:
-  - Prefer `git merge-base --fork-point <base-ref> HEAD`.
-  - Fall back to `git merge-base <base-ref> HEAD`.
-- Commits ahead of base: `git log --oneline --no-merges <base-commit>..HEAD`.
-- Recent local context: `git log --oneline --decorate -n 8`.
+- Working tree and untracked files: `git status -sb`.
+- Default branch: `git symbolic-ref refs/remotes/origin/HEAD --short 2>/dev/null || echo origin/main`. Avoids the slow network round-trip from `git remote show origin`.
+- Base commit: `git merge-base <base-ref> HEAD`. Use `--fork-point` only when the local reflog is needed to disambiguate.
+- Range against base: `git diff --stat <base>...HEAD` plus `git log --oneline --no-merges <base>..HEAD`. Together these subsume the four separate `git diff --name-only / --stat (--cached)` variants.
+- Recent local context: `git log --oneline --decorate -n 8`. Reach for this only when the range above is empty (clean tree, draft-from-history mode).
 - PR template:
   - `.github/pull_request_template.md`
   - `.github/PULL_REQUEST_TEMPLATE/*`
