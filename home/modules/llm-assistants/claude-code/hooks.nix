@@ -9,8 +9,8 @@
 }:
 
 let
-  notify = import ../../shared/notify.nix { inherit pkgs lib; };
-  hookScripts = import ../../shared/hooks { inherit pkgs lib; };
+  notify = import ../shared/notify.nix { inherit pkgs lib; };
+  hookScripts = import ../shared/hooks { inherit pkgs lib; };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
   autoFormatScript = hookScripts.mkAutoFormatScript { name = "claude-code-auto-format"; };
   enforceMcpScript = hookScripts.mkEnforceMcpScript {

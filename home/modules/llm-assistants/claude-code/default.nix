@@ -97,7 +97,7 @@ in
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
-      hooks = import ./hooks { inherit pkgs lib; };
+      hooks = import ./hooks.nix { inherit pkgs lib; };
       permissions = import ./permissions.nix;
       plugins = import ./plugins.nix {
         inherit pkgs lib inputs;

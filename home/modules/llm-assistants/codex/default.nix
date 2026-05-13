@@ -63,7 +63,7 @@ in
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
-      hooks = import ./hooks { inherit pkgs lib; };
+      hooks = import ./hooks.nix { inherit pkgs lib; };
       skills = import ./skills { inherit pkgs lib inputs; };
       notify = import ../shared/notify.nix { inherit pkgs lib; };
 
