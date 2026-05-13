@@ -102,7 +102,7 @@ in
       hooks = import ./hooks { inherit pkgs lib; };
       permissions = import ./permissions.nix;
       plugins = import ./plugins.nix {
-        inherit lib pkgs;
+        inherit pkgs lib inputs;
         inherit (cfg.plugins) devToolchains online;
         codexEnabled = config.hakula.codex.enable;
       };

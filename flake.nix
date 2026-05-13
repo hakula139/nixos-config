@@ -51,9 +51,15 @@
     # AI coding agents
     llm-agents.url = "github:numtide/llm-agents.nix";
 
-    # Open Agent Skills (shared between Claude Code and Codex)
-    agent-skills = {
+    # Anthropic skills
+    anthropics-skills = {
       url = "github:anthropics/skills";
+      flake = false;
+    };
+
+    # OpenAI Codex skills
+    openai-skills = {
+      url = "github:openai/skills";
       flake = false;
     };
   };
