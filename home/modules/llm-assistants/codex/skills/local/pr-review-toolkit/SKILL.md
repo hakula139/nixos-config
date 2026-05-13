@@ -80,12 +80,13 @@ Use the minimum context needed to make defensible findings.
 
 ## Severity Guide
 
-- `P0`: breaks core functionality, data integrity, security, or deployment broadly.
-- `P1`: likely user-visible bug, regression, secret/auth risk, or failing required workflow.
-- `P2`: maintainability, edge case, missing targeted test, confusing API, or important style consistency issue.
-- `P3`: minor nit worth fixing but not merge-blocking.
+Match the repo's existing reviewer agent severity scheme so findings translate cleanly across tools.
 
-Do not inflate severity. A style nit is normally `P2` or `P3`.
+- `Critical`: breaks core functionality, data integrity, security, deployment, or introduces a likely user-visible regression. Includes secret or auth risk and failing required workflows.
+- `Warning`: maintainability problem, edge case, missing targeted test, confusing API, or important style consistency issue.
+- `Suggestion`: minor nit worth fixing but not merge-blocking.
+
+Do not inflate severity. A style nit is normally `Suggestion`.
 
 ## Output
 
