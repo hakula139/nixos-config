@@ -3,21 +3,47 @@
 # ==============================================================================
 
 {
+  pkgs,
   lib,
   inputs,
   ...
 }:
 
 let
-  skills = import ../../shared/skills {
-    inherit lib inputs;
-    localCodexSkills = ./local;
+  sources = {
+    anthropic = inputs.anthropics-skills + "/skills";
+    openai = inputs.openai-skills + "/skills/.curated";
   };
+
+  skills = {
+    # OpenAI-maintained Codex skills.
+    gh-address-comments = sources.openai + "/gh-address-comments";
+    gh-fix-ci = sources.openai + "/gh-fix-ci";
+    security-best-practices = sources.openai + "/security-best-practices";
+
+    # Generic Anthropic Agent Skills that follow the open skill format.
+    frontend-design = sources.anthropic + "/frontend-design";
+    mcp-builder = sources.anthropic + "/mcp-builder";
+    webapp-testing = sources.anthropic + "/webapp-testing";
+
+    # Local skills (sibling directories).
+    pr-draft-summary = ./pr-draft-summary;
+    pr-review-toolkit = ./pr-review-toolkit;
+  };
+
+  bundle = pkgs.linkFarm "codex-skills" (
+    lib.mapAttrsToList (name: path: { inherit name path; }) skills
+  );
 in
 {
   settings = {
     bundled.enabled = true;
   };
 
-  homeFiles = skills.mkSkillHomeFiles ".agents/skills" skills.codexSkills;
+  homeFile = {
+    ".agents/skills" = {
+      source = bundle;
+      recursive = true;
+    };
+  };
 }

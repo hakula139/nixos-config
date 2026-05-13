@@ -64,7 +64,7 @@ in
       # Module imports
       # ------------------------------------------------------------------------
       hooks = import ./hooks { inherit pkgs lib; };
-      skills = import ./skills { inherit lib inputs; };
+      skills = import ./skills { inherit pkgs lib inputs; };
       notify = import ../shared/notify.nix { inherit pkgs lib; };
 
       agents = import ./agents.nix {
@@ -284,7 +284,7 @@ in
           trap - EXIT
         '';
 
-        home.file = skills.homeFiles;
+        home.file = skills.homeFile;
       }
     ]
   );
