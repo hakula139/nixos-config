@@ -56,7 +56,7 @@ Use the minimum context needed to make defensible findings.
    - Run targeted commands only when they materially improve confidence.
 3. Check correctness and regression risk.
    - Broken assumptions, null / empty cases, path handling, permissions, data shape changes, race conditions, and lifecycle ordering.
-   - Nix-specific risks such as evaluation scope, store path visibility, activation behavior, platform gating, secret path ownership, and flake input drift.
+   - Language- or framework-specific risks for the project stack: evaluation or build-time side effects, platform or host gating, dependency or lockfile drift, secret handling, and configuration activation.
 4. Check security and operational risk.
    - Secret exposure, auth scope changes, network-facing behavior, command execution, filesystem writes, and destructive operations.
    - Deployment and rollback implications.

@@ -42,7 +42,7 @@ Do not ask the user for information that can be derived from git or the reposito
    - `docs`: docs with behavior impact.
    - `chore`: dependency, lockfile, tooling, or maintenance work.
 4. Identify the main touched area from changed paths.
-   - Use a specific scope when obvious, such as `codex`, `claude-code`, `mcp`, `flake`, `home`, `nixos`, `darwin`, or a service name.
+   - Pick the most specific scope reflected in the diff (typically a module, package, component, or service name).
    - Omit the scope only when no meaningful single area exists.
 5. Summarize the change in one to three short paragraphs.
    - Use the top changed paths and diff stats.
