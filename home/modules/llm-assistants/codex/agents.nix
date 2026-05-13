@@ -10,13 +10,14 @@
 }:
 
 let
+  toml = pkgs.formats.toml { };
+
   sharedAgents = import ../shared/agent-roles;
-  tomlFormat = pkgs.formats.toml { };
 
   mkAgentConfig =
     name: agent:
     let
-      configFile = tomlFormat.generate "codex-agent-${name}" {
+      configFile = toml.generate "codex-agent-${name}" {
         developer_instructions = agent.prompt;
         model_reasoning_effort = "high";
         personality = "pragmatic";
