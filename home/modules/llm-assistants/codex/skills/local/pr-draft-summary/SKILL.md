@@ -1,6 +1,6 @@
 ---
 name: pr-draft-summary
-description: Create a PR-ready summary block, branch suggestion, title, and draft description after substantive code changes are finished. Trigger when wrapping up moderate-or-larger work touching runtime code, tests, build/test config, deployment config, or docs with behavior impact. Trigger on phrases like "wrap up the PR", "draft a PR", "summarize my changes for a PR", "what should the PR title be", "prep a PR description", or any handoff request immediately after substantive code changes.
+description: Create a PR-ready summary block, branch suggestion, title, and draft description after substantive code changes are finished. Trigger when wrapping up moderate-or-larger work touching runtime code, tests, build / test config, deployment config, or docs with behavior impact. Trigger on phrases like "wrap up the PR", "draft a PR", "summarize my changes for a PR", "what should the PR title be", "prep a PR description", or any handoff request immediately after substantive code changes.
 ---
 
 # PR Draft Summary
@@ -14,8 +14,8 @@ Produce a PR-ready block after substantive work is complete. The result should m
 ## When to Trigger
 
 - The task is finished or ready for review.
-- The change touched runtime code, tests, examples, build/test configuration, deployment configuration, secrets wiring, or docs with behavior impact.
-- Skip for trivial conversation-only work, repo-meta/doc-only work without behavior impact, or when the user explicitly says not to include a PR draft.
+- The change touched runtime code, tests, examples, build / test configuration, deployment configuration, secrets wiring, or docs with behavior impact.
+- Skip for trivial conversation-only work, repo-meta / doc-only work without behavior impact, or when the user explicitly says not to include a PR draft.
 
 ## Inputs to Collect Automatically
 
@@ -81,7 +81,7 @@ git checkout -b <type>/<short-kebab-topic>
 
 ## Description
 
-<PR body ready for gh pr create/edit>
+<PR body ready for gh pr create / edit>
 ```
 
 Keep surrounding prose short. The PR block is the deliverable.

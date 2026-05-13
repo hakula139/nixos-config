@@ -41,7 +41,7 @@ Use the minimum context needed to make defensible findings.
 - Existing conventions:
   - nearby code style
   - repository instructions
-  - formatting/lint config
+  - formatting / lint config
   - naming and module boundary patterns
 
 ## Workflow
@@ -55,7 +55,7 @@ Use the minimum context needed to make defensible findings.
    - Check tests, schemas, config, deployment paths, and docs when the diff touches their contracts.
    - Run targeted commands only when they materially improve confidence.
 3. Check correctness and regression risk.
-   - Broken assumptions, null/empty cases, path handling, permissions, data shape changes, race conditions, and lifecycle ordering.
+   - Broken assumptions, null / empty cases, path handling, permissions, data shape changes, race conditions, and lifecycle ordering.
    - Nix-specific risks such as evaluation scope, store path visibility, activation behavior, platform gating, secret path ownership, and flake input drift.
 4. Check security and operational risk.
    - Secret exposure, auth scope changes, network-facing behavior, command execution, filesystem writes, and destructive operations.
