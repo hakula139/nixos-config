@@ -35,12 +35,10 @@ in
 // lib.optionalAttrs enableCorpGateway {
   corp-gateway = {
     type = "api-key";
-    tokenSecret = "llm-assistants/litellm-api-key";
-    baseUrl = "https://gw.llm.${corpDomain}";
-    modelOverrides = {
-      opus = "bedrock/global.anthropic.claude-opus-4-7";
-      sonnet = "bedrock/global.anthropic.claude-sonnet-4-6";
-      haiku = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
+    tokenSecret = "llm-assistants/bifrost-api-key";
+    baseUrl = "https://gw1.llm.${corpDomain}/anthropic";
+    extraEnv = {
+      CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
     };
     extraSecretEnv = {
       NODE_EXTRA_CA_CERTS = "llm-assistants/corp-cachain.crt";
