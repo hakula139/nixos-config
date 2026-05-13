@@ -51,7 +51,7 @@
     # AI coding agents
     llm-agents.url = "github:numtide/llm-agents.nix";
 
-    # Anthropic Agent Skills
+    # Anthropic skills
     anthropics-skills = {
       url = "github:anthropics/skills";
       flake = false;
