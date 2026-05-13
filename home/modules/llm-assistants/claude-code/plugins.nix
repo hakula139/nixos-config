@@ -23,7 +23,7 @@ let
         owner = "anthropics";
         repo = "skills";
       };
-      source = inputs.agent-skills;
+      source = inputs.anthropics-skills;
       version = "flake-input";
       pluginsDir = null;
     };

@@ -11,7 +11,7 @@
 
 let
   catalogs = {
-    anthropic = inputs.agent-skills + "/skills";
+    anthropic = inputs.anthropics-skills + "/skills";
     openai = inputs.openai-skills + "/skills/.curated";
     codexCommunity = inputs.codex-skills;
   }

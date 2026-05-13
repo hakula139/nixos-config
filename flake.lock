@@ -23,7 +23,7 @@
         "type": "github"
       }
     },
-    "agent-skills": {
+    "anthropics-skills": {
       "flake": false,
       "locked": {
         "lastModified": 1778286877,
@@ -403,7 +403,7 @@
     "root": {
       "inputs": {
         "agenix": "agenix",
-        "agent-skills": "agent-skills",
+        "anthropics-skills": "anthropics-skills",
         "codex-skills": "codex-skills",
         "disko": "disko",
         "git-hooks-nix": "git-hooks-nix",
