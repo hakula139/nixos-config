@@ -37,10 +37,9 @@ let
     mcpServers = serversConfig;
   };
 
-  # home-manager's programs.claude-code.mcpServers injects --mcp-config via
-  # --append-flags, but Commander.js's variadic option parsing greedily
-  # consumes subcommand names (setup-token, auth, etc.) as config file paths.
-  # Handle --mcp-config here and skip injection for subcommands.
+  # home-manager's programs.claude-code.mcpServers injection trips
+  # Commander.js's variadic parsing, which eats subcommand names as
+  # config paths. Inject --mcp-config here, skipping for subcommands.
   configGuard = pkgs.writeShellScript "claude-mcp-config-guard" ''
     for __cc_arg in "$@"; do
       case "$__cc_arg" in
