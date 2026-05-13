@@ -63,14 +63,8 @@ in
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
-      hooks = import ./hooks.nix { inherit pkgs lib; };
       notify = import ../shared/notify.nix { inherit pkgs lib; };
-      skills = import ./skills { inherit pkgs lib inputs; };
-
-      agents = import ./agents.nix {
-        inherit lib pkgs;
-        inherit (cfg.agents) enabledAgents;
-      };
+      hooks = import ./hooks.nix { inherit pkgs lib; };
 
       mcp = import ./mcp.nix {
         inherit
@@ -81,6 +75,13 @@ in
           isNixOS
           ;
         enabledServers = lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers;
+      };
+
+      skills = import ./skills { inherit pkgs lib inputs; };
+
+      agents = import ./agents.nix {
+        inherit lib pkgs;
+        inherit (cfg.agents) enabledAgents;
       };
 
       # ------------------------------------------------------------------------

@@ -97,15 +97,10 @@ in
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
-      hooks = import ./hooks.nix { inherit pkgs lib; };
-      notify = import ../shared/notify.nix { inherit pkgs lib; };
       permissions = import ./permissions.nix;
 
-      agents = import ./agents {
-        inherit lib;
-        inherit (cfg.agents) enabledAgents;
-        codexEnabled = config.hakula.codex.enable;
-      };
+      notify = import ../shared/notify.nix { inherit pkgs lib; };
+      hooks = import ./hooks.nix { inherit pkgs lib; };
 
       mcp = import ./mcp.nix {
         inherit
@@ -123,6 +118,12 @@ in
       plugins = import ./plugins.nix {
         inherit pkgs lib inputs;
         inherit (cfg.plugins) devToolchains online;
+        codexEnabled = config.hakula.codex.enable;
+      };
+
+      agents = import ./agents {
+        inherit lib;
+        inherit (cfg.agents) enabledAgents;
         codexEnabled = config.hakula.codex.enable;
       };
 
