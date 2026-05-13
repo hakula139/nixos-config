@@ -39,7 +39,7 @@ in
   "llm-assistants/claude-oauth-token.age".publicKeys = allKeys;
   "llm-assistants/ikuncode-api-key.age".publicKeys = allKeys;
   "llm-assistants/yescode-api-key.age".publicKeys = allKeys;
-  "llm-assistants/litellm-api-key.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
+  "llm-assistants/bifrost-api-key.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
   "llm-assistants/corp-cachain.crt.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
 
   "llm-assistants/mcp/brave-api-key.age".publicKeys = allKeys;
