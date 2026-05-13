@@ -79,7 +79,7 @@ in
         inherit (cfg.agents) enabledAgents;
       };
 
-      mcp = import ../shared/mcp {
+      mcp = import ./mcp.nix {
         inherit
           config
           pkgs
@@ -87,24 +87,10 @@ in
           secrets
           isNixOS
           ;
+        enabledServers = builtins.filter (
+          s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)
+        ) cfg.mcp.enabledServers;
       };
-
-      # ------------------------------------------------------------------------
-      # MCP server mapping
-      # ------------------------------------------------------------------------
-      effectiveServers = builtins.filter (
-        s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)
-      ) cfg.mcp.enabledServers;
-
-      mcpServersConfig = builtins.listToAttrs (
-        map (s: {
-          name = mcpOptions.serverDisplayNames.${s};
-          value = {
-            type = "local";
-            command = [ mcp.servers.${s}.command ];
-          };
-        }) effectiveServers
-      );
 
       # ------------------------------------------------------------------------
       # TUI config
@@ -214,7 +200,7 @@ in
             # ------------------------------------------------------------------
             # MCP servers
             # ------------------------------------------------------------------
-            mcp = mcpServersConfig;
+            mcp = mcp.serversConfig;
 
             # ------------------------------------------------------------------
             # Plugins
