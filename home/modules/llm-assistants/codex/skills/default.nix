@@ -16,14 +16,17 @@ let
   };
 
   skills = {
+    # OpenAI Codex skills
     gh-address-comments = sources.openai + "/gh-address-comments";
     gh-fix-ci = sources.openai + "/gh-fix-ci";
     security-best-practices = sources.openai + "/security-best-practices";
 
+    # Anthropic skills
     frontend-design = sources.anthropic + "/frontend-design";
     mcp-builder = sources.anthropic + "/mcp-builder";
     webapp-testing = sources.anthropic + "/webapp-testing";
 
+    # Local skills
     pr-draft-summary = ./pr-draft-summary;
     pr-review-toolkit = ./pr-review-toolkit;
   };
