@@ -52,7 +52,6 @@ Do not ask the user for information that can be derived from git or the reposito
    - Keep the current branch if it is already descriptive and not `main`.
    - Otherwise propose `<type>/<short-kebab-topic>`.
 7. Draft a Conventional Commit style title.
-   - Use imperative mood.
    - Prefer the most specific scope changed.
 8. Draft the PR body.
    - Match the repository's PR template when one exists.
@@ -61,8 +60,6 @@ Do not ask the user for information that can be derived from git or the reposito
 9. Keep the draft honest.
    - Include only validation commands that actually ran.
    - State when validation was not run.
-   - Do not mention local-only planning files.
-   - Do not include generated-by attributions.
 
 ## Output
 
