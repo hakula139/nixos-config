@@ -89,6 +89,19 @@ in
 
       proxyRunScript = proxyLib.mkProxyScript cfg.proxy;
 
+      codexMcpFieldRenames = {
+        command = "command";
+        startupTimeoutSec = "startup_timeout_sec";
+      };
+
+      mkCodexMcpEntry =
+        name:
+        lib.nameValuePair mcpOptions.serverDisplayNames.${name} (
+          lib.mapAttrs' (field: toml: lib.nameValuePair toml mcp.servers.${name}.${field}) (
+            lib.intersectAttrs mcp.servers.${name} codexMcpFieldRenames
+          )
+        );
+
       codexBin =
         if cfg.proxy.enable then
           pkgs.symlinkJoin {
@@ -168,10 +181,7 @@ in
         # MCP servers
         # ------------------------------------------------------------------
         mcp_servers = builtins.listToAttrs (
-          map (s: {
-            name = mcpOptions.serverDisplayNames.${s};
-            value.command = mcp.servers.${s}.command;
-          }) (builtins.filter (s: !(lib.elem s cfg.mcp.disabledServers)) cfg.mcp.enabledServers)
+          map mkCodexMcpEntry (lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers)
         );
 
         # ------------------------------------------------------------------
@@ -265,6 +275,10 @@ in
 
           install -d -m 0700 "$configDir"
 
+          # The claude-code migrator writes a sibling hooks.json; Codex then
+          # warns about dual hook sources. Nix owns the hooks table.
+          rm -f "$configDir/hooks.json"
+
           if [[ -e "$configFile" && ! -f "$configFile" ]]; then
             echo "Refusing to replace non-file Codex config: $configFile" >&2
             exit 1
@@ -274,7 +288,15 @@ in
           trap 'rm -f "$tmpFile"' EXIT
 
           if [[ -s "$configFile" ]]; then
-            ${pkgs.yq}/bin/tomlq -s -t '.[0] * .[1]' "$configFile" "$baseline" >"$tmpFile"
+            # Drop tables the claude-code migrator copied but Codex ignores.
+            ${pkgs.yq}/bin/tomlq -s -t '
+              . as $a
+              | ($a[0]
+                  | del(.shell_environment_policy.set)
+                  | del(.marketplaces)
+                  | del(.plugins))
+                * $a[1]
+            ' "$configFile" "$baseline" >"$tmpFile"
           else
             cp "$baseline" "$tmpFile"
           fi
