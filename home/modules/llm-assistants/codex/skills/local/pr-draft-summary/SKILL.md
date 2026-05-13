@@ -81,4 +81,4 @@ git checkout -b <type>/<short-kebab-topic>
 <PR body ready for gh pr create / edit>
 ```
 
-Keep surrounding prose short. The PR block is the deliverable.
+Keep surrounding prose short, since the PR block is the deliverable.
