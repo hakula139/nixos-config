@@ -274,10 +274,6 @@ in
 
           install -d -m 0700 "$configDir"
 
-          # The claude-code migrator writes a sibling hooks.json; Codex then
-          # warns about dual hook sources. Nix owns the hooks table.
-          rm -f "$configDir/hooks.json"
-
           if [[ -e "$configFile" && ! -f "$configFile" ]]; then
             echo "Refusing to replace non-file Codex config: $configFile" >&2
             exit 1
@@ -287,15 +283,7 @@ in
           trap 'rm -f "$tmpFile"' EXIT
 
           if [[ -s "$configFile" ]]; then
-            # Drop tables the claude-code migrator copied but Codex ignores.
-            ${pkgs.yq}/bin/tomlq -s -t '
-              . as $a
-              | ($a[0]
-                  | del(.shell_environment_policy.set)
-                  | del(.marketplaces)
-                  | del(.plugins))
-                * $a[1]
-            ' "$configFile" "$baseline" >"$tmpFile"
+            ${pkgs.yq}/bin/tomlq -s -t '.[0] * .[1]' "$configFile" "$baseline" >"$tmpFile"
           else
             cp "$baseline" "$tmpFile"
           fi
