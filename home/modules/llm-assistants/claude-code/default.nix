@@ -14,8 +14,6 @@
 }:
 
 let
-  json = pkgs.formats.json { };
-
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
 
@@ -113,7 +111,7 @@ in
         codexEnabled = config.hakula.codex.enable;
       };
 
-      mcp = import ../shared/mcp {
+      mcp = import ./mcp.nix {
         inherit
           config
           pkgs
@@ -121,6 +119,9 @@ in
           secrets
           isNixOS
           ;
+        enabledServers = builtins.filter (
+          s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)
+        ) cfg.mcp.enabledServers;
       };
 
       notify = import ../shared/notify.nix { inherit pkgs lib; };
@@ -139,47 +140,9 @@ in
       );
 
       # ------------------------------------------------------------------------
-      # MCP server selection
-      # ------------------------------------------------------------------------
-      # Codex requires the codex module to be enabled
-      effectiveServers = builtins.filter (
-        s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)
-      ) cfg.mcp.enabledServers;
-
-      mcpServersConfig = builtins.listToAttrs (
-        map (s: {
-          name = mcpOptions.serverDisplayNames.${s};
-          value = mcp.servers.${s};
-        }) effectiveServers
-      );
-
-      # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
-
-      mcpConfigFile = json.generate "claude-code-mcp-config.json" {
-        mcpServers = mcpServersConfig;
-      };
-
-      # Workaround: home-manager's programs.claude-code.mcpServers injects
-      # --mcp-config via --append-flags, but Commander.js's variadic option
-      # parsing greedily consumes subcommand names (setup-token, auth, etc.)
-      # as config file paths. We handle --mcp-config ourselves, skipping it
-      # when a subcommand is detected.
-      mcpConfigGuard = pkgs.writeShellScript "claude-mcp-config-guard" ''
-        for __cc_arg in "$@"; do
-          case "$__cc_arg" in
-            agents|auth|doctor|install|mcp|plugin|plugins|setup-token|update|upgrade)
-              return 0
-              ;;
-            --)
-              break
-              ;;
-          esac
-        done
-        set -- --mcp-config ${mcpConfigFile} "$@"
-      '';
 
       wrapArgs =
         profiles.wrapArgs
@@ -194,7 +157,7 @@ in
         ]
         ++ [
           "--run"
-          "source ${mcpConfigGuard}"
+          "source ${mcp.configGuard}"
         ];
 
       claudeCodeBin = pkgs.symlinkJoin {

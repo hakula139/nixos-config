@@ -72,7 +72,7 @@ in
         inherit (cfg.agents) enabledAgents;
       };
 
-      mcp = import ../shared/mcp {
+      mcp = import ./mcp.nix {
         inherit
           config
           pkgs
@@ -80,27 +80,8 @@ in
           secrets
           isNixOS
           ;
+        enabledServers = lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers;
       };
-
-      # ------------------------------------------------------------------------
-      # MCP server mapping
-      # ------------------------------------------------------------------------
-      effectiveServers = lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers;
-
-      codexMcpFieldRenames = {
-        command = "command";
-        startupTimeoutSec = "startup_timeout_sec";
-      };
-
-      mkCodexMcpEntry =
-        name:
-        lib.nameValuePair mcpOptions.serverDisplayNames.${name} (
-          lib.mapAttrs' (field: toml: lib.nameValuePair toml mcp.servers.${name}.${field}) (
-            lib.intersectAttrs mcp.servers.${name} codexMcpFieldRenames
-          )
-        );
-
-      mcpServersConfig = builtins.listToAttrs (map mkCodexMcpEntry effectiveServers);
 
       # ------------------------------------------------------------------------
       # Package wrapper
@@ -187,7 +168,7 @@ in
         # ------------------------------------------------------------------
         # MCP servers
         # ------------------------------------------------------------------
-        mcp_servers = mcpServersConfig;
+        mcp_servers = mcp.serversConfig;
 
         # ------------------------------------------------------------------
         # Skills
