@@ -14,8 +14,6 @@
 }:
 
 let
-  json = pkgs.formats.json { };
-
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
 
@@ -99,8 +97,24 @@ in
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
-      hooks = import ./hooks { inherit pkgs lib; };
       permissions = import ./permissions.nix;
+
+      notify = import ../shared/notify.nix { inherit pkgs lib; };
+      hooks = import ./hooks.nix { inherit pkgs lib; };
+
+      mcp = import ./mcp.nix {
+        inherit
+          config
+          pkgs
+          lib
+          secrets
+          isNixOS
+          ;
+        enabledServers = builtins.filter (
+          s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)
+        ) cfg.mcp.enabledServers;
+      };
+
       plugins = import ./plugins.nix {
         inherit pkgs lib inputs;
         inherit (cfg.plugins) devToolchains online;
@@ -112,18 +126,6 @@ in
         inherit (cfg.agents) enabledAgents;
         codexEnabled = config.hakula.codex.enable;
       };
-
-      mcp = import ../shared/mcp {
-        inherit
-          config
-          pkgs
-          lib
-          secrets
-          isNixOS
-          ;
-      };
-
-      notify = import ../shared/notify.nix { inherit pkgs lib; };
 
       # ------------------------------------------------------------------------
       # Status line
@@ -139,34 +141,13 @@ in
       );
 
       # ------------------------------------------------------------------------
-      # MCP server selection
-      # ------------------------------------------------------------------------
-      # Codex requires the codex module to be enabled
-      effectiveServers = builtins.filter (
-        s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)
-      ) cfg.mcp.enabledServers;
-
-      mcpServersConfig = builtins.listToAttrs (
-        map (s: {
-          name = mcpOptions.serverDisplayNames.${s};
-          value = mcp.servers.${s};
-        }) effectiveServers
-      );
-
-      # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
 
-      mcpConfigFile = json.generate "claude-code-mcp-config.json" {
-        mcpServers = mcpServersConfig;
-      };
-
-      # Workaround: home-manager's programs.claude-code.mcpServers injects
-      # --mcp-config via --append-flags, but Commander.js's variadic option
-      # parsing greedily consumes subcommand names (setup-token, auth, etc.)
-      # as config file paths. We handle --mcp-config ourselves, skipping it
-      # when a subcommand is detected.
+      # home-manager's programs.claude-code.mcpServers injection trips
+      # Commander.js's variadic parsing, which eats subcommand names as
+      # config paths. Inject --mcp-config here, skipping for subcommands.
       mcpConfigGuard = pkgs.writeShellScript "claude-mcp-config-guard" ''
         for __cc_arg in "$@"; do
           case "$__cc_arg" in
@@ -178,7 +159,7 @@ in
               ;;
           esac
         done
-        set -- --mcp-config ${mcpConfigFile} "$@"
+        set -- --mcp-config ${mcp.configFile} "$@"
       '';
 
       wrapArgs =
@@ -242,61 +223,15 @@ in
           package = claudeCodeBin;
           inherit agents;
 
-          # --------------------------------------------------------------------
-          # Settings
-          # --------------------------------------------------------------------
-          settings = {
-            # ------------------------------------------------------------------
-            # Hooks / permissions / plugins
-            # ------------------------------------------------------------------
-            inherit hooks permissions;
-            inherit (plugins) enabledPlugins;
-          }
-          # When bundling, known_marketplaces.json handles discovery;
-          # extraKnownMarketplaces in settings would trigger failed GitHub installs.
-          // lib.optionalAttrs (!cfg.plugins.bundle) {
-            inherit (plugins) extraKnownMarketplaces;
-          }
-          // {
-            # ------------------------------------------------------------------
-            # Model
-            # ------------------------------------------------------------------
-            model = "opus[1m]";
-            effortLevel = "xhigh";
-
-            # ------------------------------------------------------------------
-            # Project
-            # ------------------------------------------------------------------
-            plansDirectory = "./.claude/plans";
-            attribution = {
-              commit = "";
-              pr = "";
-            };
-
-            # ------------------------------------------------------------------
-            # Interface
-            # ------------------------------------------------------------------
-            theme = "dark";
-            statusLine = {
-              type = "command";
-              command = "${homeDir}/.claude/statusline-command.sh";
-            };
-
-            # ------------------------------------------------------------------
-            # Environment
-            # ------------------------------------------------------------------
-            env = {
-              CLAUDE_CODE_AUTO_COMPACT_WINDOW = "400000";
-              CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
-              CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
-              CLAUDE_CODE_NO_FLICKER = "1";
-              CLAUDE_CODE_SCROLL_SPEED = "1";
-              DISABLE_INSTALLATION_CHECKS = "1";
-              ENABLE_CLAUDEAI_MCP_SERVERS = "0";
-              ENABLE_PROMPT_CACHING_1H = "1";
-              ENABLE_TOOL_SEARCH = "1";
-              FORCE_AUTOUPDATE_PLUGINS = if cfg.plugins.bundle then "0" else "1";
-            };
+          settings = import ./settings.nix {
+            inherit
+              lib
+              homeDir
+              hooks
+              permissions
+              plugins
+              ;
+            bundlePlugins = cfg.plugins.bundle;
           };
         };
       }

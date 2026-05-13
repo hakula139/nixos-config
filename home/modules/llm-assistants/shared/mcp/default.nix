@@ -177,6 +177,8 @@ in
     fetcher = {
       command = "${fetcherBin}/bin/fetcher-mcp";
       type = "stdio";
+      # Playwright downloads browser binaries on first launch.
+      startupTimeoutSec = 60;
     };
 
     filesystem = {

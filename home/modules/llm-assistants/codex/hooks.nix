@@ -9,8 +9,8 @@
 }:
 
 let
-  notify = import ../../shared/notify.nix { inherit pkgs lib; };
-  hookScripts = import ../../shared/hooks { inherit pkgs lib; };
+  notify = import ../shared/notify.nix { inherit pkgs lib; };
+  hookScripts = import ../shared/hooks { inherit pkgs lib; };
   projectNotify = "${notify.mkProjectNotifyScript} 'Codex'";
 
   enforceMcpScript = hookScripts.mkEnforceMcpScript {
