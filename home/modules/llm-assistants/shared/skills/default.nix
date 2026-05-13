@@ -14,6 +14,8 @@ let
     anthropic = inputs.agent-skills + "/skills";
     openai = inputs.openai-skills + "/skills/.curated";
     codexCommunity = inputs.codex-skills;
+  }
+  // lib.optionalAttrs (localCodexSkills != null) {
     localCodex = localCodexSkills;
   };
 
