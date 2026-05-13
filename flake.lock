@@ -23,7 +23,7 @@
         "type": "github"
       }
     },
-    "agent-skills": {
+    "anthropics-skills": {
       "flake": false,
       "locked": {
         "lastModified": 1778286877,
@@ -368,10 +368,26 @@
         "type": "github"
       }
     },
+    "openai-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778090515,
+        "narHash": "sha256-EJIWRKs8m0cQ1EsFdusDgaeCqpxc7//1XH4Rm/ED35s=",
+        "owner": "openai",
+        "repo": "skills",
+        "rev": "4c4058ebf44f6734e62c70ab4a81246d4d093fc8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "openai",
+        "repo": "skills",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "agenix": "agenix",
-        "agent-skills": "agent-skills",
+        "anthropics-skills": "anthropics-skills",
         "disko": "disko",
         "git-hooks-nix": "git-hooks-nix",
         "home-manager": "home-manager_2",
@@ -379,6 +395,7 @@
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "openai-skills": "openai-skills",
         "rust-overlay": "rust-overlay"
       }
     },

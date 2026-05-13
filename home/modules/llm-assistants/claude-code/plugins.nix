@@ -5,6 +5,7 @@
 {
   pkgs,
   lib,
+  inputs,
   codexEnabled ? false,
   devToolchains ? false,
   online ? true,
@@ -22,8 +23,8 @@ let
         owner = "anthropics";
         repo = "skills";
       };
-      rev = "5128e1865d670f5d6c9cef000e6dfc4e951fb5b9"; # 2026-04-23
-      hash = "sha256-xFsg66TCtKzSgRIW6Ab771FWEIhei3jPgfE4byMiB44=";
+      source = inputs.anthropics-skills;
+      version = "flake-input";
       pluginsDir = null;
     };
 
@@ -153,10 +154,13 @@ let
       # Pre-fetched marketplace sources (shared between plugin cache and manifests)
       marketplaceSrc = lib.genAttrs usedMarketplaceNames (
         name:
-        pkgs.fetchFromGitHub {
-          inherit (marketplaces.${name}.github) owner repo;
-          inherit (marketplaces.${name}) rev hash;
-        }
+        let
+          m = marketplaces.${name};
+        in
+        m.source or (pkgs.fetchFromGitHub {
+          inherit (m.github) owner repo;
+          inherit (m) rev hash;
+        })
       );
 
       entries = map (
@@ -166,7 +170,7 @@ let
           m = marketplaces.${marketplace};
           src = marketplaceSrc.${marketplace};
           # 12-char commit prefix used as plugin version
-          version = builtins.substring 0 12 m.rev;
+          version = m.version or (builtins.substring 0 12 m.rev);
           pluginSrc = if m.pluginsDir == null then src else "${src}/${m.pluginsDir}/${plugin}";
           cachePath = "cache/${marketplace}/${plugin}/${version}";
         in
