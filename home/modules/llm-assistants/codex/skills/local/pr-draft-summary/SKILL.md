@@ -1,6 +1,6 @@
 ---
 name: pr-draft-summary
-description: Create a PR-ready summary block, branch suggestion, title, and draft description after substantive code changes are finished. Trigger when wrapping up moderate-or-larger work touching runtime code, tests, build/test config, deployment config, or docs with behavior impact.
+description: Create a PR-ready summary block, branch suggestion, title, and draft description after substantive code changes are finished. Trigger when wrapping up moderate-or-larger work touching runtime code, tests, build/test config, deployment config, or docs with behavior impact. Trigger on phrases like "wrap up the PR", "draft a PR", "summarize my changes for a PR", "what should the PR title be", "prep a PR description", or any handoff request immediately after substantive code changes.
 ---
 
 # PR Draft Summary

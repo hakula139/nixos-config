@@ -1,6 +1,6 @@
 ---
 name: pr-review-toolkit
-description: Perform a rigorous PR or pre-commit code review. Trigger for review requests, PR review, checking a branch before merge, finding bugs in a diff, or reviewing style consistency and maintainability.
+description: Perform a rigorous PR or pre-commit code review. Trigger for review requests, PR review, checking a branch before merge, finding bugs in a diff, or reviewing style consistency and maintainability. Trigger on phrases like "review this PR", "review PR #N", "check my branch before merge", "look for bugs in the diff", "spot regressions in these changes", or "audit this code for issues".
 ---
 
 # PR Review Toolkit
