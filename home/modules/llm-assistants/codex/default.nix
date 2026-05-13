@@ -226,7 +226,6 @@ in
         # ------------------------------------------------------------------
         suppress_unstable_features_warning = true;
         features = {
-          external_migration = true;
           goals = true;
           hooks = true;
           memories = true;
