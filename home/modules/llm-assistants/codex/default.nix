@@ -83,11 +83,9 @@ in
       };
 
       # ------------------------------------------------------------------------
-      # Package wrapper
+      # MCP server mapping
       # ------------------------------------------------------------------------
-      codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
-
-      proxyRunScript = proxyLib.mkProxyScript cfg.proxy;
+      effectiveServers = lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers;
 
       codexMcpFieldRenames = {
         command = "command";
@@ -101,6 +99,15 @@ in
             lib.intersectAttrs mcp.servers.${name} codexMcpFieldRenames
           )
         );
+
+      mcpServersConfig = builtins.listToAttrs (map mkCodexMcpEntry effectiveServers);
+
+      # ------------------------------------------------------------------------
+      # Package wrapper
+      # ------------------------------------------------------------------------
+      codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
+
+      proxyRunScript = proxyLib.mkProxyScript cfg.proxy;
 
       codexBin =
         if cfg.proxy.enable then
@@ -180,9 +187,7 @@ in
         # ------------------------------------------------------------------
         # MCP servers
         # ------------------------------------------------------------------
-        mcp_servers = builtins.listToAttrs (
-          map mkCodexMcpEntry (lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers)
-        );
+        mcp_servers = mcpServersConfig;
 
         # ------------------------------------------------------------------
         # Skills
