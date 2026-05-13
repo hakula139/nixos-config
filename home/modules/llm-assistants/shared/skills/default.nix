@@ -31,7 +31,6 @@ let
     # OpenAI-maintained Codex skills.
     gh-address-comments = catalogs.openai + "/gh-address-comments";
     gh-fix-ci = catalogs.openai + "/gh-fix-ci";
-    openai-docs = catalogs.openai + "/openai-docs";
     security-best-practices = catalogs.openai + "/security-best-practices";
 
     # Generic Anthropic Agent Skills that follow the open skill format.
