@@ -98,12 +98,8 @@ in
       # Module imports
       # ------------------------------------------------------------------------
       hooks = import ./hooks.nix { inherit pkgs lib; };
+      notify = import ../shared/notify.nix { inherit pkgs lib; };
       permissions = import ./permissions.nix;
-      plugins = import ./plugins.nix {
-        inherit pkgs lib inputs;
-        inherit (cfg.plugins) devToolchains online;
-        codexEnabled = config.hakula.codex.enable;
-      };
 
       agents = import ./agents {
         inherit lib;
@@ -124,7 +120,11 @@ in
         ) cfg.mcp.enabledServers;
       };
 
-      notify = import ../shared/notify.nix { inherit pkgs lib; };
+      plugins = import ./plugins.nix {
+        inherit pkgs lib inputs;
+        inherit (cfg.plugins) devToolchains online;
+        codexEnabled = config.hakula.codex.enable;
+      };
 
       # ------------------------------------------------------------------------
       # Status line
