@@ -123,7 +123,7 @@ rec {
         let
           normalized = if builtins.isString spec then { name = spec; } else spec;
           name = normalized.name or (throw "mkUserSecretSpecs requires each spec to define name");
-          attrName = normalized.attrName or secretAttrName name;
+          attrName = normalized.attrName or name;
         in
         {
           name = attrName;

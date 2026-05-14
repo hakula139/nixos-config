@@ -3,6 +3,7 @@
 # ==============================================================================
 
 {
+  config,
   lib,
   secrets,
   ...
@@ -49,11 +50,22 @@ let
         }
       )
     );
+
+  resolveSecretPath = name: config.hakula.secrets.required.${name}.path;
 in
 {
-  options.hakula.secrets.required = lib.mkOption {
-    type = lib.types.attrsOf secretSpecType;
-    default = { };
-    description = "User-owned age secrets required by this Home Manager configuration";
+  options.hakula.secrets = {
+    required = lib.mkOption {
+      type = lib.types.attrsOf secretSpecType;
+      default = { };
+      description = "User-owned age secrets required by this Home Manager configuration";
+    };
+
+    path = lib.mkOption {
+      type = lib.types.functionTo lib.types.str;
+      default = resolveSecretPath;
+      readOnly = true;
+      description = "Resolve a declared user secret to its decrypted runtime path";
+    };
   };
 }

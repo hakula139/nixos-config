@@ -12,7 +12,7 @@
 
 let
   homeDir = config.home.homeDirectory;
-  mcpSecretPath = name: config.hakula.secrets.required.${name}.path;
+  secretPath = config.hakula.secrets.path;
 
   # Node.js's built-in fetch (undici) ignores HTTP_PROXY / HTTPS_PROXY by
   # default. --use-env-proxy makes it honour the env vars, which is required
@@ -26,7 +26,7 @@ let
   # ----------------------------------------------------------------------------
   # Atlassian (Confluence)
   # ----------------------------------------------------------------------------
-  confluencePatFile = mcpSecretPath "confluence-pat";
+  confluencePatFile = secretPath "confluence-pat";
   atlassianBin = pkgs.writeShellScriptBin "atlassian-mcp" ''
     export PATH="${pkgs.uv}/bin:$PATH"
     if [ -f "${confluencePatFile}" ]; then
@@ -42,7 +42,7 @@ let
   # ----------------------------------------------------------------------------
   # Brave Search
   # ----------------------------------------------------------------------------
-  braveApiKeyFile = mcpSecretPath "brave-api-key";
+  braveApiKeyFile = secretPath "brave-api-key";
   braveSearchBin = pkgs.writeShellScriptBin "brave-search-mcp" ''
     ${nodeSetup}
     if [ -f "${braveApiKeyFile}" ]; then
@@ -61,7 +61,7 @@ let
   # ----------------------------------------------------------------------------
   # Context7
   # ----------------------------------------------------------------------------
-  context7ApiKeyFile = mcpSecretPath "context7-api-key";
+  context7ApiKeyFile = secretPath "context7-api-key";
   context7Bin = pkgs.writeShellScriptBin "context7-mcp" ''
     ${nodeSetup}
     if [ -f "${context7ApiKeyFile}" ]; then
@@ -104,7 +104,7 @@ let
   # GitHub
   # ----------------------------------------------------------------------------
   ghBin = "${config.home.profileDirectory}/bin/gh";
-  githubPatFile = mcpSecretPath "github-pat";
+  githubPatFile = secretPath "github-pat";
   githubBin = pkgs.writeShellScriptBin "github-mcp" ''
     if [ -x "${ghBin}" ] && token=$("${ghBin}" auth token 2>/dev/null); then
       export GITHUB_PERSONAL_ACCESS_TOKEN="$token"

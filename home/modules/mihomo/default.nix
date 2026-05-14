@@ -22,9 +22,9 @@ let
     "mihomo/secret" = { };
     "mihomo/subscription-url" = { };
   };
-  mihomoSecretPath = name: config.hakula.secrets.required.${name}.path;
-  secretFile = mihomoSecretPath "mihomo/secret";
-  subscriptionUrlFile = mihomoSecretPath "mihomo/subscription-url";
+  secretPath = config.hakula.secrets.path;
+  secretFile = secretPath "mihomo/secret";
+  subscriptionUrlFile = secretPath "mihomo/subscription-url";
 
   updateScript =
     let

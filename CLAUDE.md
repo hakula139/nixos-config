@@ -173,7 +173,13 @@ Use a string value only when a tool requires a fixed destination:
 hakula.secrets.required."my-service/my-secret" = "${config.home.homeDirectory}/.my-secret";
 ```
 
-The attrset form accepts optional `mode` (defaults to `"0400"`) and `path` (custom destination). Home Manager secret requirements default to runtime `age.secrets` paths under `/run/agenix`.
+The requirement attr name is the logical key used by Home Manager consumers. The attrset form accepts optional `name` (encrypted source path, defaulting to the logical key), `mode` (defaults to `"0400"`), and `path` (custom destination). Home Manager secret requirements default to runtime `age.secrets` paths under `/run/agenix`.
+
+Reference declared Home Manager secrets through the shared resolver:
+
+```nix
+config.hakula.secrets.path "<logical-key>"
+```
 
 ## CI/CD Pipeline
 
@@ -268,7 +274,7 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
    - **NixOS**: `age.secrets.<attr> = secrets.mkSecret { name = "<service>/<secret>"; owner = "..."; group = "..."; };`
    - **Home Manager**: `hakula.secrets.required."<service>/<secret>" = { };`
 3. Register the recipient list in `secrets/secrets.nix` and create the encrypted file: `cd secrets && agenix -e <service>/<secret>.age`
-4. Reference Home Manager secrets through `config.hakula.secrets.required."<service>/<secret>".path`, or set the option to a path string only when a tool requires a fixed destination
+4. Reference Home Manager secrets through `config.hakula.secrets.path "<service>/<secret>"`, or set the option to a path string only when a tool requires a fixed destination
 5. Optional: override `mode` or `path` for custom permissions or location
 
 ## Proxy Configuration
