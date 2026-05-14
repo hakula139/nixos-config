@@ -17,8 +17,14 @@ let
   configDir = "${homeDir}/.config/mihomo";
   configFile = "${configDir}/config.yaml";
   baseConfigTemplate = builtins.readFile ./config.yaml;
-  secretFile = config.hakula.secrets.required."mihomo/secret".path;
-  subscriptionUrlFile = config.hakula.secrets.required."mihomo/subscription-url".path;
+
+  requiredSecrets = {
+    "mihomo/secret" = { };
+    "mihomo/subscription-url" = { };
+  };
+  mihomoSecretPath = name: config.hakula.secrets.required.${name}.path;
+  secretFile = mihomoSecretPath "mihomo/secret";
+  subscriptionUrlFile = mihomoSecretPath "mihomo/subscription-url";
 
   updateScript =
     let
@@ -111,10 +117,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    hakula.secrets.required = {
-      "mihomo/secret" = { };
-      "mihomo/subscription-url" = { };
-    };
+    hakula.secrets.required = requiredSecrets;
 
     # --------------------------------------------------------------------------
     # Packages
