@@ -6,12 +6,11 @@
   config,
   lib,
   secrets,
+  corpDomain,
   ...
 }:
 
 let
-  corpDomain = import ../../lib/corp-domain.nix;
-
   commonMcpServers = [
     "atlassian"
     "filesystem"

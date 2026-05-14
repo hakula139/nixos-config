@@ -8,6 +8,8 @@
   lib,
   inputs,
   secrets,
+  corpDomain,
+  llmAssistantLib,
   isNixOS ? false,
   enableDevToolchains ? false,
   ...
@@ -17,10 +19,12 @@ let
   json = pkgs.formats.json { };
 
   cfg = config.hakula.opencode;
+
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
-  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
-  proxyLib = import ../shared/proxy.nix { inherit lib; };
+  inherit (llmAssistantLib) mcpOptions;
+  proxyLib = llmAssistantLib.proxy;
   instructions = import ../shared/instructions;
+
   opencodeMcpServers = [
     "atlassian"
     "braveSearch"
@@ -85,6 +89,8 @@ in
           pkgs
           lib
           secrets
+          llmAssistantLib
+          corpDomain
           isNixOS
           ;
         enabledServers = builtins.filter (

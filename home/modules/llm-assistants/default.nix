@@ -5,13 +5,20 @@
 {
   config,
   lib,
+  secrets,
+  llmAssistantLib,
   ...
 }:
 
 let
   cfg = config.hakula.llm-assistants;
-  mcpOptions = import ./shared/mcp/options.nix { inherit lib; };
-  proxyOptions = import ./shared/proxy.nix { inherit lib; };
+  homeDir = config.home.homeDirectory;
+  assistantSecrets = llmAssistantLib.mkSecretSpecs {
+    inherit secrets homeDir;
+  };
+
+  inherit (llmAssistantLib) mcpOptions;
+  proxyLib = llmAssistantLib.proxy;
 
   assistantProxy = {
     enable = lib.mkDefault true;
@@ -37,7 +44,7 @@ in
       };
     };
 
-    proxy = proxyOptions.mkProxyOptions "LLM assistants";
+    proxy = proxyLib.mkProxyOptions "LLM assistants";
   };
 
   config = lib.mkIf cfg.enable (
@@ -61,6 +68,8 @@ in
           enable = lib.mkDefault true;
           mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
         };
+
+        hakula.secrets.required = assistantSecrets.mcp;
       }
 
       (lib.mkIf cfg.proxy.enable {

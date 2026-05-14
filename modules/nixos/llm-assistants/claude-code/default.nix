@@ -5,20 +5,11 @@
 {
   config,
   lib,
-  secrets,
   ...
 }:
 
 let
   cfg = config.hakula.claude-code;
-  userCfg = config.users.users.${cfg.user};
-  hmUser = config.home-manager.users.${cfg.user} or { };
-  requiredSecrets = hmUser.hakula.claude-code.auth._provision.requiredSecrets or [ ];
-
-  requiredSecretAttrs = secrets.mkUserSecrets {
-    names = requiredSecrets;
-    user = userCfg;
-  };
 in
 {
   # ----------------------------------------------------------------------------
@@ -62,9 +53,5 @@ in
     home-manager.users.${cfg.user}.hakula.claude-code.auth.defaultProfile =
       lib.mkDefault cfg.defaultProfile;
 
-    # ------------------------------------------------------------------------
-    # Secrets (dynamically provisioned from HM-computed requiredSecrets)
-    # ------------------------------------------------------------------------
-    age.secrets = requiredSecretAttrs;
   };
 }

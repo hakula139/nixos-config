@@ -166,6 +166,27 @@
 
       secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
       keys = import ./secrets/keys.nix;
+      caches = import ./lib/caches.nix;
+      corpDomain = import ./lib/corp-domain.nix;
+      llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
+      repoModules = {
+        nixos = ./modules/nixos;
+      };
+      sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
+      toolingFor = pkgs: import ./lib/tooling.nix { inherit pkgs; };
+      commonSpecialArgs = {
+        inherit
+          inputs
+          secrets
+          keys
+          caches
+          corpDomain
+          llmAssistantLib
+          repoModules
+          sharedConfig
+          toolingFor
+          ;
+      };
 
       # Shared Home Manager integration block used by mkServer, mkDarwin, and mkDocker
       mkHomeManagerConfig =
@@ -186,6 +207,11 @@
               inherit
                 inputs
                 secrets
+                caches
+                corpDomain
+                llmAssistantLib
+                sharedConfig
+                toolingFor
                 username
                 isNixOS
                 isDesktop
@@ -216,13 +242,8 @@
           configPath,
         }:
         nixpkgs.lib.nixosSystem {
-          specialArgs = {
-            inherit
-              inputs
-              secrets
-              keys
-              hostName
-              ;
+          specialArgs = commonSpecialArgs // {
+            inherit hostName;
           };
           modules = [
             {
@@ -244,11 +265,8 @@
           configPath,
         }:
         nix-darwin.lib.darwinSystem {
-          specialArgs = {
+          specialArgs = commonSpecialArgs // {
             inherit
-              inputs
-              secrets
-              keys
               hostName
               displayName
               ;
@@ -300,13 +318,8 @@
             configPath
           ];
           inherit overlays;
-          specialArgs = {
-            inherit
-              inputs
-              secrets
-              keys
-              hostName
-              ;
+          specialArgs = commonSpecialArgs // {
+            inherit hostName;
           };
         };
 
@@ -324,9 +337,7 @@
         let
           pkgs = pkgsFor "x86_64-linux";
           nixosConfig = nixpkgs.lib.nixosSystem {
-            specialArgs = {
-              inherit inputs secrets keys;
-            };
+            specialArgs = commonSpecialArgs;
             modules = [
               {
                 nixpkgs.hostPlatform = "x86_64-linux";
@@ -411,7 +422,7 @@
               system = "x86_64-linux";
               config.allowUnfree = true;
             };
-            specialArgs = { inherit inputs secrets keys; };
+            specialArgs = commonSpecialArgs;
             nodeSpecialArgs = builtins.mapAttrs (name: _: { hostName = name; }) servers;
           };
 
@@ -457,7 +468,6 @@
           hostName = "hakula-linux";
           configPath = ./hosts/hakula-linux;
         };
-
       };
 
       # ------------------------------------------------------------------------

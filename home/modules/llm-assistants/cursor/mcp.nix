@@ -7,6 +7,8 @@
   pkgs,
   lib,
   secrets,
+  corpDomain,
+  llmAssistantLib,
   isNixOS ? false,
   enabledServers,
   ...
@@ -15,13 +17,15 @@
 let
   json = pkgs.formats.json { };
 
-  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
+  inherit (llmAssistantLib) mcpOptions;
   mcp = import ../shared/mcp {
     inherit
       config
       pkgs
       lib
       secrets
+      llmAssistantLib
+      corpDomain
       isNixOS
       ;
   };

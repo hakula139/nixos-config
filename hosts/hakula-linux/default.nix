@@ -5,29 +5,19 @@
 {
   config,
   lib,
-  secrets,
+  corpDomain,
   ...
 }:
 
 let
-  corpDomain = import ../../lib/corp-domain.nix;
-
-  user = config.hakula.user.name;
-  userCfg = config.users.users.${user};
-
-  workstationSecrets = secrets.mkUserSecrets {
-    names = [
-      "wakatime/config"
-    ];
-    user = userCfg;
-    overrides.wakatime-config.path = "${userCfg.home}/.wakatime.cfg";
-  };
+  userName = config.hakula.user.name;
+  userConfig = config.users.users.${userName};
 in
 {
   # ----------------------------------------------------------------------------
   # Home Manager Settings
   # ----------------------------------------------------------------------------
-  home-manager.users.${user} = {
+  home-manager.users.${userName} = {
     home.stateVersion = "25.05";
 
     hakula.claude-code.auth.enableCorpGateway = true;
@@ -40,6 +30,14 @@ in
       enable = true;
       port = 7897;
       controllerPort = 59386;
+    };
+    hakula.secrets.required = {
+      github-pat.name = lib.mkForce "github/pat-work";
+
+      wakatime-config = {
+        name = "wakatime/config";
+        path = "${userConfig.home}/.wakatime.cfg";
+      };
     };
 
     programs.ssh.matchBlocks."gitlab-public.${corpDomain}" = {
@@ -67,11 +65,4 @@ in
   };
 
   hakula.claude-code.defaultProfile = "corp-gateway";
-
-  # ----------------------------------------------------------------------------
-  # Workstation Secrets
-  # ----------------------------------------------------------------------------
-  age.secrets = workstationSecrets // {
-    github-pat.file = lib.mkForce (secrets.secretFile "github/pat-work");
-  };
 }

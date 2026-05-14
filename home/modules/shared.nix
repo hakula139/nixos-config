@@ -6,13 +6,14 @@
   config,
   pkgs,
   lib,
+  toolingFor,
   enableDevToolchains ? false,
   ...
 }:
 
 let
   inherit (pkgs.stdenv) isLinux;
-  tooling = import ../../lib/tooling.nix { inherit pkgs; };
+  tooling = toolingFor pkgs;
 in
 {
   # ----------------------------------------------------------------------------

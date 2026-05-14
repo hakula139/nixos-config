@@ -121,16 +121,10 @@ in
       description = "File containing the mihomo external controller secret";
     };
 
-    _provision.secrets = lib.mkOption {
-      type = lib.types.attrs;
-      readOnly = true;
-      internal = true;
-      description = "age secrets required by the mihomo module";
-    };
   };
 
   config = lib.mkIf cfg.enable {
-    hakula.mihomo._provision.secrets = {
+    hakula.secrets.required = {
       mihomo-secret = {
         name = "mihomo/secret";
         path = cfg.secretFile;

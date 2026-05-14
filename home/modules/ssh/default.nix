@@ -6,11 +6,12 @@
   config,
   pkgs,
   lib,
+  sharedConfig,
   ...
 }:
 
 let
-  shared = import ../../../modules/shared.nix { inherit pkgs lib; };
+  shared = sharedConfig { inherit pkgs lib; };
   homeDir = config.home.homeDirectory;
 
   serverMatchBlocks = lib.mapAttrs' (

@@ -6,11 +6,12 @@
   config,
   pkgs,
   lib,
+  sharedConfig,
   ...
 }:
 
 let
-  shared = import ../../../modules/shared.nix { inherit pkgs lib; };
+  shared = sharedConfig { inherit pkgs lib; };
   cfg = config.hakula.fonts;
 
   fontDirs = map (p: "${p}/share/fonts") shared.fonts;

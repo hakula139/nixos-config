@@ -7,6 +7,8 @@
   pkgs,
   lib,
   secrets,
+  corpDomain,
+  llmAssistantLib,
   osConfig ? null,
   isNixOS ? false,
   isDesktop ? false,
@@ -18,7 +20,7 @@ let
   inherit (pkgs.stdenv) isDarwin;
   cfg = config.hakula.cursor;
 
-  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
+  inherit (llmAssistantLib) mcpOptions;
   cursorMcpServers = [
     "atlassian"
     "braveSearch"
@@ -100,6 +102,8 @@ in
           pkgs
           lib
           secrets
+          llmAssistantLib
+          corpDomain
           isNixOS
           ;
         enabledServers = builtins.filter (s: !(lib.elem s cfg.mcp.disabledServers)) cfg.mcp.enabledServers;

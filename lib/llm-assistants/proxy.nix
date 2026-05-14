@@ -1,5 +1,5 @@
 # ==============================================================================
-# Shared Proxy Options
+# Proxy Options
 # ==============================================================================
 
 { lib }:
@@ -31,7 +31,6 @@
     };
   };
 
-  # Shell script snippet that exports proxy env vars (both cases for compatibility).
   mkProxyScript =
     proxyCfg:
     let

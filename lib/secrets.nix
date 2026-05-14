@@ -11,16 +11,16 @@ let
   secretsRoot = ../secrets;
   secretFile = name: "${secretsRoot}/${name}.age";
   secretsPath = homeDir: "${homeDir}/${secretsDir}";
+  secretAttrName = name: lib.replaceStrings [ "." "/" ] [ "-" "-" ] name;
 in
 rec {
-  inherit secretFile secretsPath;
+  inherit secretAttrName secretFile secretsPath;
 
   # ----------------------------------------------------------------------------
   # Secret Declarations
   # ----------------------------------------------------------------------------
 
-  # Standard secret configuration for NixOS modules
-  # Returns an age.secrets.<name> configuration for system-level agenix
+  # Standard secret configuration for an age.secrets entry.
   mkSecret =
     {
       name,
@@ -40,7 +40,7 @@ rec {
     }
     // lib.optionalAttrs (path != null) { inherit path; };
 
-  # User-owned secret decrypted into the shared per-user secret tree
+  # User-owned secret decrypted into the shared per-user secret tree.
   mkUserSecret =
     {
       name,
@@ -67,7 +67,7 @@ rec {
         else if isUserAttrs && user ? home then
           user.home
         else
-          builtins.throw "mkUserSecret requires homeDir when user has no home";
+          throw "mkUserSecret requires homeDir when user has no home";
     in
     mkSecret {
       inherit
@@ -82,38 +82,6 @@ rec {
 
   mkUserSecrets =
     {
-      names,
-      user,
-      group ? null,
-      homeDir ? null,
-      mode ? "0400",
-      rename ? name: lib.replaceStrings [ "." "/" ] [ "-" "-" ] name,
-      overrides ? { },
-    }:
-    builtins.listToAttrs (
-      map (
-        secretName:
-        let
-          attrName = rename secretName;
-          override = overrides.${attrName} or overrides.${secretName} or { };
-        in
-        {
-          name = attrName;
-          value = mkUserSecret (
-            {
-              name = secretName;
-              inherit user mode;
-            }
-            // lib.optionalAttrs (group != null) { inherit group; }
-            // lib.optionalAttrs (homeDir != null) { inherit homeDir; }
-            // override
-          );
-        }
-      ) names
-    );
-
-  mkUserSecretsFromSpecs =
-    {
       specs,
       user,
       group ? null,
@@ -121,33 +89,80 @@ rec {
       mode ? "0400",
       overrides ? { },
     }:
-    lib.mapAttrs (
-      attrName: spec:
-      let
-        secret = spec // (overrides.${attrName} or { });
-      in
-      mkUserSecret (
+    builtins.listToAttrs (
+      lib.mapAttrsToList (
+        attrName: spec:
+        let
+          secret = spec // (overrides.${attrName} or overrides.${spec.name or attrName} or { });
+
+          secretGroup = if (secret.group or null) != null then secret.group else group;
+          secretHomeDir = if (secret.homeDir or null) != null then secret.homeDir else homeDir;
+        in
         {
-          name = secret.name or attrName;
-          inherit user;
-          mode = secret.mode or mode;
+          name = attrName;
+          value = mkUserSecret (
+            {
+              name = secret.name or attrName;
+              inherit user;
+              mode = secret.mode or mode;
+            }
+            // lib.optionalAttrs ((secret.file or null) != null) { inherit (secret) file; }
+            // lib.optionalAttrs ((secret.path or null) != null) { inherit (secret) path; }
+            // lib.optionalAttrs (secretGroup != null) { group = secretGroup; }
+            // lib.optionalAttrs (secretHomeDir != null) { homeDir = secretHomeDir; }
+          );
         }
-        // lib.optionalAttrs (secret ? file) { inherit (secret) file; }
-        // lib.optionalAttrs (secret ? path) { inherit (secret) path; }
-        // lib.optionalAttrs (group != null) { inherit group; }
-        // lib.optionalAttrs (homeDir != null) { inherit homeDir; }
-      )
-    ) specs;
+      ) specs
+    );
+
+  mkUserSecretSpecs =
+    specs:
+    builtins.listToAttrs (
+      map (
+        spec:
+        let
+          normalized = if builtins.isString spec then { name = spec; } else spec;
+          name = normalized.name or (throw "mkUserSecretSpecs requires each spec to define name");
+          attrName = normalized.attrName or secretAttrName name;
+        in
+        {
+          name = attrName;
+          value = builtins.removeAttrs normalized [ "attrName" ];
+        }
+      ) specs
+    );
+
+  mkRequiredUserSecrets =
+    {
+      homeConfig,
+      userConfig,
+      group ? null,
+      homeDir ? null,
+      mode ? "0400",
+      overrides ? { },
+    }:
+    mkUserSecrets (
+      {
+        specs = homeConfig.hakula.secrets.required or { };
+        user = userConfig;
+        inherit
+          mode
+          overrides
+          ;
+      }
+      // lib.optionalAttrs (group != null) { inherit group; }
+      // lib.optionalAttrs (homeDir != null) { inherit homeDir; }
+    );
 
   # ----------------------------------------------------------------------------
   # Directory Management
   # ----------------------------------------------------------------------------
 
-  # Generate systemd.tmpfiles.rules entry for secrets directory (NixOS)
+  # Generate systemd.tmpfiles.rules entry for the user secrets directory.
   mkSecretsDir =
     user: group:
     let
-      owner = user.name or (builtins.throw "mkSecretsDir requires user.name");
+      owner = user.name or (throw "mkSecretsDir requires user.name");
     in
     [
       "d ${secretsPath user.home} 0700 ${owner} ${group} - -"

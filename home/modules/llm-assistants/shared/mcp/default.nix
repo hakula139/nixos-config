@@ -7,15 +7,16 @@
   pkgs,
   lib,
   secrets,
+  corpDomain,
+  llmAssistantLib,
   ...
 }:
 
 let
   homeDir = config.home.homeDirectory;
-  assistantSecrets = import ../../../../../lib/llm-assistants/secrets.nix {
+  assistantSecrets = llmAssistantLib.mkSecretSpecs {
     inherit secrets homeDir;
   };
-  corpDomain = import ../../../../../lib/corp-domain.nix;
 
   # Node.js's built-in fetch (undici) ignores HTTP_PROXY / HTTPS_PROXY by
   # default. --use-env-proxy makes it honour the env vars, which is required
@@ -146,6 +147,8 @@ let
   '';
 in
 {
+  inherit (assistantSecrets) mcp;
+
   # ----------------------------------------------------------------------------
   # MCP servers
   # ----------------------------------------------------------------------------

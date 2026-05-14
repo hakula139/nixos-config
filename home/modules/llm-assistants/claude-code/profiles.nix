@@ -17,6 +17,21 @@ let
   secretsDir = secrets.secretsPath homeDir;
   hasProfiles = cfg.auth.profiles != { };
 
+  requiredSecrets = secrets.mkUserSecretSpecs (
+    lib.unique (
+      lib.concatMap (
+        p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
+      ) (builtins.attrValues cfg.auth.profiles)
+    )
+  );
+
+  secretPath =
+    secretName:
+    let
+      secretSpec = config.hakula.secrets.required.${secrets.secretAttrName secretName};
+    in
+    if secretSpec.path != null then secretSpec.path else "${secretsDir}/${secretSpec.name}";
+
   modelEnvVars = {
     opus = "ANTHROPIC_DEFAULT_OPUS_MODEL";
     sonnet = "ANTHROPIC_DEFAULT_SONNET_MODEL";
@@ -90,15 +105,6 @@ let
   };
 
   # ----------------------------------------------------------------------------
-  # Secrets
-  # ----------------------------------------------------------------------------
-  requiredSecrets = lib.unique (
-    lib.concatMap (
-      p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
-    ) (builtins.attrValues cfg.auth.profiles)
-  );
-
-  # ----------------------------------------------------------------------------
   # Profile scripts
   # ----------------------------------------------------------------------------
   readSecretFn = ''
@@ -121,7 +127,7 @@ let
           [ "# subscription mode: auth via interactive OAuth (.credentials.json)" ]
         else
           let
-            sf = lib.escapeShellArg "${secretsDir}/${profile.tokenSecret}";
+            sf = lib.escapeShellArg (secretPath profile.tokenSecret);
             envVar = authEnvByType.${profile.type};
           in
           [
@@ -140,7 +146,7 @@ let
         )
         ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv
         ++ lib.mapAttrsToList (
-          k: secretName: "export ${k}=${esc "${secretsDir}/${secretName}"}"
+          k: secretName: "export ${k}=${esc (secretPath secretName)}"
         ) profile.extraSecretEnv;
     in
     pkgs.writeShellScript "claude-profile-${name}" (lib.concatStringsSep "\n" (tokenLines ++ envLines));
@@ -330,12 +336,6 @@ in
       default = false;
       description = "Include the `corp-gateway` profile. Requires corp-scoped agenix access.";
     };
-
-    _provision.requiredSecrets = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      internal = true;
-      readOnly = true;
-    };
   };
 
   # ----------------------------------------------------------------------------
@@ -353,7 +353,7 @@ in
       }
       ++ lib.concatLists (lib.mapAttrsToList mkProfileAssertions cfg.auth.profiles);
 
-    hakula.claude-code.auth._provision.requiredSecrets = requiredSecrets;
+    hakula.secrets.required = requiredSecrets;
   };
 
   # ----------------------------------------------------------------------------

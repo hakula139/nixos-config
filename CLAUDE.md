@@ -149,7 +149,7 @@ Secrets live in `secrets/` nested by service (e.g., `secrets/llm-assistants/clau
 
 #### Secrets Helper Library (`lib/secrets.nix`)
 
-All modules declare secrets through helpers for consistent configuration. See `lib/secrets.nix` for full signatures (`mkSecret`, `mkHomeSecret`, `mkSecretsDir`, `mkHomeSecretsDir`).
+All platform modules materialize secrets through `age.secrets`. NixOS, Darwin, and system-manager collect user secrets from `home-manager.users.<user>.hakula.secrets.required`, then convert them with `secrets.mkRequiredUserSecrets`.
 
 **NixOS modules:**
 
@@ -164,13 +164,12 @@ age.secrets.my-secret = secrets.mkSecret {
 **Home Manager modules:**
 
 ```nix
-age.secrets.my-secret = secrets.mkHomeSecret {
-  name = "my-service/my-secret";
-  homeDir = homeDir;
+hakula.secrets.required.my-secret = {
+  name = "my-service/my-secret"; # Path under secrets/ (sans .age)
 };
 ```
 
-Both accept optional `mode` (defaults to `"0400"`) and `path` (custom destination). Home Manager secrets default to `${homeDir}/.secrets/<name>`.
+Both accept optional `mode` (defaults to `"0400"`) and `path` (custom destination). User secrets default to `${homeDir}/.secrets/<name>`.
 
 ## CI/CD Pipeline
 
@@ -260,12 +259,12 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 
 ### Adding Secrets to a Module
 
-1. Add `secrets` parameter to the module's function signature (if not already present)
+1. Add `secrets` parameter to the module's function signature if the module needs helper paths
 2. Declare the secret using the helper library:
    - **NixOS**: `age.secrets.<attr> = secrets.mkSecret { name = "<service>/<secret>"; owner = "..."; group = "..."; };`
-   - **Home Manager**: `age.secrets.<attr> = secrets.mkHomeSecret { name = "<service>/<secret>"; homeDir = homeDir; };`
+   - **Home Manager**: `hakula.secrets.required.<attr> = { name = "<service>/<secret>"; };`
 3. Register the recipient list in `secrets/secrets.nix` and create the encrypted file: `cd secrets && agenix -e <service>/<secret>.age`
-4. Reference the secret in your module via `config.age.secrets.<attr>.path`
+4. Reference Home Manager secrets through the expected user secret path, or set `path` explicitly in `hakula.secrets.required.<attr>`
 5. Optional: override `mode` or `path` for custom permissions or location
 
 ## Proxy Configuration

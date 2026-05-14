@@ -8,17 +8,17 @@
   lib,
   secrets,
   keys,
+  sharedConfig,
   ...
 }:
 
 let
   cfg = config.hakula;
-  userCfg = config.users.users.${cfg.user.name};
-  hmUser = config.home-manager.users.${cfg.user.name};
+  userConfig = config.users.users.${cfg.user.name};
+  homeConfig = config.home-manager.users.${cfg.user.name};
   sshCfg = cfg.access.ssh;
-  provisionedUserSecrets = hmUser.hakula.mihomo._provision.secrets or { };
 
-  shared = import ../shared.nix { inherit pkgs lib; };
+  shared = sharedConfig { inherit pkgs lib; };
   systemManagerHealthCheck = pkgs.writeShellScriptBin "system-manager-health-check" ''
     set -euo pipefail
 
@@ -100,13 +100,12 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets = secrets.mkUserSecretsFromSpecs {
-      specs = provisionedUserSecrets;
-      user = userCfg;
+    age.secrets = secrets.mkRequiredUserSecrets {
+      inherit homeConfig userConfig;
     };
 
-    age.identityPaths = [ "${userCfg.home}/.ssh/id_ed25519" ];
-    systemd.tmpfiles.rules = secrets.mkSecretsDir userCfg userCfg.group;
+    age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
+    systemd.tmpfiles.rules = secrets.mkSecretsDir userConfig userConfig.group;
 
     systemd.services."home-manager-${cfg.user.name}" = lib.mkIf (config.age.secrets != { }) {
       after = [ "agenix-install-secrets.service" ];

@@ -8,15 +8,17 @@
   lib,
   secrets,
   keys,
+  sharedConfig,
   ...
 }:
 
 let
   cfg = config.hakula;
   sshCfg = cfg.access.ssh;
-  userCfg = config.users.users.${cfg.user.name};
+  userConfig = config.users.users.${cfg.user.name};
+  homeConfig = config.home-manager.users.${cfg.user.name} or { };
 
-  shared = import ../shared.nix { inherit pkgs lib; };
+  shared = sharedConfig { inherit pkgs lib; };
 in
 {
   imports = [
@@ -208,6 +210,10 @@ in
     # --------------------------------------------------------------------------
     # Secrets Configuration (agenix)
     # --------------------------------------------------------------------------
-    systemd.tmpfiles.rules = secrets.mkSecretsDir userCfg userCfg.group;
+    age.secrets = secrets.mkRequiredUserSecrets {
+      inherit homeConfig userConfig;
+    };
+
+    systemd.tmpfiles.rules = secrets.mkSecretsDir userConfig userConfig.group;
   };
 }

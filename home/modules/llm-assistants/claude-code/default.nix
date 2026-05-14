@@ -8,6 +8,8 @@
   lib,
   inputs,
   secrets,
+  corpDomain,
+  llmAssistantLib,
   isNixOS ? false,
   enableDevToolchains ? false,
   ...
@@ -16,6 +18,11 @@
 let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
+
+  instructions = import ../shared/instructions;
+  agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
+  inherit (llmAssistantLib) mcpOptions;
+  proxyLib = llmAssistantLib.proxy;
 
   profiles = import ./profiles.nix {
     inherit
@@ -27,11 +34,7 @@ let
       ;
   };
 
-  instructions = import ../shared/instructions;
-  agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
-
-  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
   claudeMcpServers = [
     "atlassian"
     "braveSearch"
@@ -43,8 +46,6 @@ let
     "github"
     "gitlab"
   ];
-
-  proxyLib = import ../shared/proxy.nix { inherit lib; };
 in
 {
   # ----------------------------------------------------------------------------
@@ -108,6 +109,8 @@ in
           pkgs
           lib
           secrets
+          llmAssistantLib
+          corpDomain
           isNixOS
           ;
         enabledServers = builtins.filter (

@@ -8,16 +8,20 @@
   lib,
   inputs,
   secrets,
+  corpDomain,
+  llmAssistantLib,
   isNixOS ? false,
   ...
 }:
 
 let
   cfg = config.hakula.codex;
+
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
-  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
-  proxyLib = import ../shared/proxy.nix { inherit lib; };
+  inherit (llmAssistantLib) mcpOptions;
+  proxyLib = llmAssistantLib.proxy;
   instructions = import ../shared/instructions;
+
   codexMcpServers = [
     "atlassian"
     "braveSearch"
@@ -72,6 +76,8 @@ in
           pkgs
           lib
           secrets
+          llmAssistantLib
+          corpDomain
           isNixOS
           ;
         enabledServers = lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers;
