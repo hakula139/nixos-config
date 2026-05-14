@@ -125,9 +125,9 @@ The flake uses a **builder function pattern** to reduce duplication:
 
 ### Module System
 
-NixOS modules in `modules/nixos/` are **optionally enabled** services, each exporting an `enable` option. Host configurations import and enable them selectively.
+NixOS modules in `modules/nixos/` are typically optionally enabled services exporting an `enable` option. Host configurations import and enable them selectively. A few helpers (`dockerhub`, etc.) export configuration options without an `enable` gate.
 
-The `llm-assistants` module acts as an integration layer for the primary interactive user, nesting `claude-code` and `mcp` sub-modules that mirror the `home/modules/llm-assistants/` structure.
+The `llm-assistants` module acts as an integration layer for the primary interactive user, nesting a `claude-code` sub-module that propagates assistant defaults down to Home Manager.
 
 Home Manager modules in `home/modules/` configure user environments. The `isNixOS` and `isDesktop` flags drive conditional configuration (e.g., NixOS vs. System Manager, desktop vs. server).
 
@@ -136,8 +136,8 @@ Home Manager modules in `home/modules/` configure user environments. The `isNixO
 `modules/shared.nix` exports **cross-platform primitives**:
 
 - `sshKeys`: User SSH public keys from `secrets/keys.nix`
-- `basePackages`: Minimal system packages (curl, wget, git, htop, vim)
-- `fonts`: Nerd Fonts, Sarasa Gothic, Source Han Sans/Serif
+- `basePackages`: Minimal system packages (curl, dig, git, htop, vim, wget)
+- `fonts`: Maple Mono NF CN, Nerd Fonts, Sarasa Gothic, Source Han Sans/Serif
 - `binaryCaches`: Binary cache substituters and public keys from `lib/caches.nix`
 - `nixTooling`: Development tools from `lib/tooling.nix`
 - `nixSettings`: Experimental features, buffer sizes
@@ -153,7 +153,10 @@ Secrets live in `secrets/` nested by service (e.g., `secrets/llm-assistants/clau
 
 #### Secrets Helper Library (`lib/secrets.nix`)
 
-All platform modules materialize secrets through `age.secrets`. NixOS, Darwin, and system-manager collect user secret requirements from `home-manager.users.<user>.hakula.secrets.required`, then convert them with `secrets.mkRequiredUserSecrets`.
+All platform modules materialize secrets through `age.secrets`. The two live helpers are:
+
+- `mkSecret { name, owner, group ? owner, mode ? "0400", path ? null, file ? secretFile name }` — direct platform secret declaration. Used by NixOS / Darwin / system-manager modules that own a secret directly.
+- `mkRequiredUserSecrets { homeConfig, userConfig, group ? null }` — collects entries from `homeConfig.hakula.secrets.required` and lifts them into `age.secrets`. Owner defaults to `userConfig.name`; group falls back to the explicit `group` arg, then `userConfig.group`, then the owner.
 
 **NixOS modules:**
 
@@ -171,20 +174,24 @@ age.secrets.my-secret = secrets.mkSecret {
 hakula.secrets.required."my-service/my-secret" = { };
 ```
 
-Set `path` only when a tool requires a fixed destination:
+The requirement attr name is the logical key. The attrset accepts optional `name` (encrypted source path, defaulting to the logical key) and `path` (decrypted destination, defaulting to `/run/agenix/<key>`). Override `name` when the consumer's logical key differs from the encrypted file:
 
 ```nix
-hakula.secrets.required."my-service/my-secret" = {
-  path = "${config.home.homeDirectory}/.my-secret";
-};
+hakula.secrets.required.github-pat.name = "github/pat-work";
 ```
 
-The requirement attr name is the logical key used by Home Manager consumers. The attrset form accepts optional `name` (encrypted source path, defaulting to the logical key) and `path` (custom destination). Home Manager secret requirements default to runtime `age.secrets` paths under `/run/agenix`.
-
-Reference declared Home Manager secrets through the shared resolver:
+Override `path` only when a tool requires a fixed destination:
 
 ```nix
-config.hakula.secrets.path "<logical-key>"
+hakula.secrets.required."wakatime/config".path = "${config.home.homeDirectory}/.wakatime.cfg";
+```
+
+Resolve a declared user secret to its decrypted runtime path through the `secretPath` module argument:
+
+```nix
+{ secretPath, ... }: {
+  myService.tokenFile = secretPath "my-service/my-secret";
+}
 ```
 
 ## CI/CD Pipeline
@@ -246,8 +253,8 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 ### Adding a Home Manager Module
 
 1. Create `home/modules/my-module/default.nix` (directory-based preferred)
-2. Accept `{ config, pkgs, lib, isNixOS ? false, isDesktop ? false, ... }`
-3. Use `lib.mkIf` to conditionally enable based on `isNixOS` or `isDesktop`
+2. Accept `{ config, pkgs, lib, ... }`. Branch on `pkgs.stdenv.{isDarwin, isLinux}` for platform-specific config; thread `isNixOS` / `isDesktop` only when the host builders set them.
+3. Use `lib.mkIf` for conditional activation
 4. Import in `home/hakula.nix`
 
 ### Adding a Custom Package
@@ -275,20 +282,18 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 
 ### Adding Secrets to a Module
 
-1. Add `secrets` parameter to the module's function signature if the module needs helper paths
-2. Declare the secret using the helper library:
-   - **NixOS**: `age.secrets.<attr> = secrets.mkSecret { name = "<service>/<secret>"; owner = "..."; group = "..."; };`
+1. Declare the secret using the helper library:
+   - **NixOS / Darwin / system-manager**: `age.secrets.<attr> = secrets.mkSecret { name = "<service>/<secret>"; owner = "..."; group = "..."; };`
    - **Home Manager**: `hakula.secrets.required."<service>/<secret>" = { };`
-3. Register the recipient list in `secrets/secrets.nix` and create the encrypted file: `cd secrets && agenix -e <service>/<secret>.age`
-4. Reference Home Manager secrets through `config.hakula.secrets.path "<service>/<secret>"`, or set `path` only when a tool requires a fixed destination
-5. Optional: set `path` only when a tool requires a fixed destination
+2. Register the recipient list in `secrets/secrets.nix` and create the encrypted file: `cd secrets && agenix -e <service>/<secret>.age`
+3. Reference Home Manager secrets through the `secretPath` module argument: `secretPath "<service>/<secret>"`. Set `name` to override the encrypted source path, or `path` only when a tool requires a fixed destination.
 
 ## Proxy Configuration
 
-Some hosts route Claude Code, Codex, and other LLM assistants through an **HTTP proxy**. This is configured per-host via `hakula.llm-assistants.proxy.*` in the host's `default.nix`, which fans out to the individual assistants (`claude-code`, `codex`, `opencode`). The proxy URL defaults to `http://127.0.0.1:7897` (local mihomo) but can be overridden via `url` or loaded from an agenix secret via `secretUrlFile`. Currently enabled on:
+Some hosts route Claude Code, Codex, and other LLM assistants through an **HTTP proxy**. Configured per-host via `hakula.llm-assistants.proxy.*`, which fans out to the individual assistants (`claude-code`, `codex`, `opencode`). The proxy URL defaults to `http://127.0.0.1:7897` (local mihomo) but can be overridden via `url` or loaded from an agenix secret via `secretUrlFile`. Currently enabled on:
 
-- `hakula-macbook`
-- `hakula-linux`
-- `hakula-devvm` (via `secretUrlFile`)
+- `hakula-macbook` — set at the Darwin module level
+- `hakula-linux` — set under `home-manager.users.hakula.hakula.llm-assistants`
+- `hakula-devvm` — set under `home-manager.users.root.hakula.llm-assistants`, sourced from `secretUrlFile`
 
 When working with network operations on these hosts, be aware that tools may route through this proxy.
