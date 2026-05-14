@@ -14,14 +14,7 @@ let
   secretPath = name: "${secretsDir}/${secretAttrName name}";
 
   normalizeSecretSpec =
-    attrName: spec:
-    if builtins.isString spec then
-      {
-        name = attrName;
-        path = spec;
-      }
-    else
-      spec // lib.optionalAttrs (!(spec ? name)) { name = attrName; };
+    attrName: spec: spec // lib.optionalAttrs (!(spec ? name)) { name = attrName; };
 in
 rec {
   inherit secretAttrName secretFile secretPath;

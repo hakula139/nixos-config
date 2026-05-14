@@ -37,6 +37,7 @@ in
     ./modules/ssh
     ./modules/syncthing
     ./modules/terminal
+    ./modules/wakatime
   ];
 
   # ----------------------------------------------------------------------------

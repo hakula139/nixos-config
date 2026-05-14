@@ -12,7 +12,6 @@ in
   inherit mcpOptions proxy;
 
   mkClaudeProfiles = import ./claude-profiles.nix;
-  secretSpecs = import ./secrets.nix;
 
   mkOptions =
     {

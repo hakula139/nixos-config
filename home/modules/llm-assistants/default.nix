@@ -11,6 +11,7 @@
 
 let
   cfg = config.hakula.llm-assistants;
+  mcpSecrets = import ./shared/mcp/secrets.nix;
 
   inherit (llmAssistantLib) mcpOptions;
   proxyLib = llmAssistantLib.proxy;
@@ -51,7 +52,7 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf anyAssistantEnabled {
-      hakula.secrets.required = llmAssistantLib.secretSpecs.mcp;
+      hakula.secrets.required = mcpSecrets;
     })
 
     (lib.mkIf cfg.enable (

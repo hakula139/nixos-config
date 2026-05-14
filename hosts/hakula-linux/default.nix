@@ -11,7 +11,6 @@
 
 let
   userName = config.hakula.user.name;
-  userConfig = config.users.users.${userName};
 in
 {
   # ----------------------------------------------------------------------------
@@ -32,8 +31,9 @@ in
       controllerPort = 59386;
     };
     hakula.secrets.required = {
-      github-pat.name = lib.mkForce "github/pat-work";
-      "wakatime/config" = "${userConfig.home}/.wakatime.cfg";
+      github-pat = {
+        name = lib.mkForce "github/pat-work";
+      };
     };
 
     programs.ssh.matchBlocks."gitlab-public.${corpDomain}" = {
