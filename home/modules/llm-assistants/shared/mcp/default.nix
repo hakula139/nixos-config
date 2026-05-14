@@ -79,7 +79,7 @@ let
   '';
 
   # ----------------------------------------------------------------------------
-  # Fetcher (Playwright-based web fetcher, fallback for sites that block WebFetch)
+  # Fetcher
   # ----------------------------------------------------------------------------
   fetcherBin = pkgs.writeShellScriptBin "fetcher-mcp" ''
     ${nodeSetup}
