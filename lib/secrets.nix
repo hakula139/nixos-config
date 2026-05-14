@@ -51,15 +51,14 @@ in
     lib.mapAttrs' (
       attrName: spec:
       let
-        name = spec.name or attrName;
         owner = userConfig.name;
         secretGroup = if group != null then group else userConfig.group or owner;
       in
       lib.nameValuePair (secretAttrName attrName) (mkSecret {
-        inherit name owner;
+        inherit owner;
+        inherit (spec) name path;
         group = secretGroup;
         mode = "0400";
-        path = if (spec.path or null) != null then spec.path else secretPath attrName;
       })
     ) (homeConfig.hakula.secrets.required or { });
 }
