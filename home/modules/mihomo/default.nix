@@ -18,8 +18,6 @@ let
   secretsDir = secrets.secretsPath homeDir;
   configDir = "${homeDir}/.config/mihomo";
   configFile = "${configDir}/config.yaml";
-  subscriptionUrlFile = "${secretsDir}/mihomo/subscription-url";
-  secretFile = "${secretsDir}/mihomo/secret";
   baseConfigTemplate = builtins.readFile ./config.yaml;
 
   updateScript =
@@ -36,8 +34,8 @@ let
 
       CONFIG_DIR="${configDir}"
       CONFIG_FILE="${configFile}"
-      SUBSCRIPTION_URL="$(cat ${subscriptionUrlFile})"
-      SECRET="$(cat ${secretFile})"
+      SUBSCRIPTION_URL="$(cat ${cfg.subscriptionUrlFile})"
+      SECRET="$(cat ${cfg.secretFile})"
       BASE_CONFIG_TEMPLATE="${baseConfigTemplate}"
 
       mkdir -p "$CONFIG_DIR"
@@ -110,9 +108,40 @@ in
       default = "daily";
       description = "Systemd calendar interval for subscription updates";
     };
+
+    subscriptionUrlFile = lib.mkOption {
+      type = lib.types.str;
+      default = "${secretsDir}/mihomo/subscription-url";
+      description = "File containing the mihomo subscription URL";
+    };
+
+    secretFile = lib.mkOption {
+      type = lib.types.str;
+      default = "${secretsDir}/mihomo/secret";
+      description = "File containing the mihomo external controller secret";
+    };
+
+    _provision.secrets = lib.mkOption {
+      type = lib.types.attrs;
+      readOnly = true;
+      internal = true;
+      description = "age secrets required by the mihomo module";
+    };
   };
 
   config = lib.mkIf cfg.enable {
+    hakula.mihomo._provision.secrets = {
+      mihomo-secret = {
+        name = "mihomo/secret";
+        path = cfg.secretFile;
+      };
+
+      mihomo-subscription-url = {
+        name = "mihomo/subscription-url";
+        path = cfg.subscriptionUrlFile;
+      };
+    };
+
     # --------------------------------------------------------------------------
     # Packages
     # --------------------------------------------------------------------------

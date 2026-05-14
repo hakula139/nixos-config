@@ -14,7 +14,9 @@
 let
   cfg = config.hakula;
   userCfg = config.users.users.${cfg.user.name};
+  hmUser = config.home-manager.users.${cfg.user.name};
   sshCfg = cfg.access.ssh;
+  provisionedUserSecrets = hmUser.hakula.mihomo._provision.secrets or { };
 
   shared = import ../shared.nix { inherit pkgs lib; };
 in
@@ -76,6 +78,11 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
+    age.secrets = secrets.mkUserSecretsFromSpecs {
+      specs = provisionedUserSecrets;
+      user = userCfg;
+    };
+
     age.identityPaths = [ "${userCfg.home}/.ssh/id_ed25519" ];
     systemd.tmpfiles.rules = secrets.mkSecretsDir userCfg userCfg.group;
 
