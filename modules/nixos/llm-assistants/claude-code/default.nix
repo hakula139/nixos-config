@@ -52,6 +52,5 @@ in
     # ------------------------------------------------------------------------
     home-manager.users.${cfg.user}.hakula.claude-code.auth.defaultProfile =
       lib.mkDefault cfg.defaultProfile;
-
   };
 }
