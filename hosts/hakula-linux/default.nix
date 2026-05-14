@@ -23,11 +23,14 @@ in
       defaultProfile = "corp-gateway";
       enableCorpGateway = true;
     };
+
     hakula.cursor.extensions = {
       enable = lib.mkForce true;
       prune = lib.mkForce false;
     };
+
     hakula.fonts.windowsSync.enable = true;
+
     hakula.llm-assistants = {
       enable = true;
       proxy = {
@@ -40,11 +43,13 @@ in
         ];
       };
     };
+
     hakula.mihomo = {
       enable = true;
       port = 7897;
       controllerPort = 59386;
     };
+
     hakula.secrets.required = {
       github-pat = {
         name = lib.mkForce "github/pat-work";
