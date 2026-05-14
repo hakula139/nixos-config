@@ -8,7 +8,7 @@ This is a **flake-based NixOS / nix-darwin configuration** managing multiple sys
 
 - **5 NixOS servers** (us-1, us-2, us-3, us-4, sg-1) on x86_64-linux
 - **1 macOS workstation** (hakula-macbook) on aarch64-darwin
-- **1 generic Linux** (hakula-linux) using standalone Home Manager
+- **1 generic Linux** (hakula-linux) using System Manager with Home Manager
 - **1 Docker image** (hakula-devvm) for air-gapped deployment
 
 The architecture emphasizes modularity, with shared base configuration in `modules/shared.nix` and per-host customization in `hosts/`.
@@ -31,8 +31,8 @@ colmena apply --on @cloudcone  # by provider tag
 nh darwin switch .
 # or with alias: nixsw
 
-# Generic Linux (Home Manager standalone)
-nh home switch . -c hakula-linux
+# Generic Linux / Ubuntu WSL (after bootstrap)
+system-manager switch --flake '.#hakula-linux' --sudo
 # or with alias: nixsw
 
 # Update all dependencies
@@ -47,6 +47,10 @@ nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 
 # First-time macOS setup
 sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#hakula-macbook'
+
+# First-time generic Linux / Ubuntu WSL setup
+nix run '.#system-manager' -- switch --flake '.#hakula-linux' --sudo
+system-manager-health-check agenix-install-secrets.service home-manager-hakula.service
 ```
 
 ### Code Quality
@@ -100,15 +104,15 @@ The flake uses a **builder function pattern** to reduce duplication:
 - `serverSharedModules`: Common NixOS modules (agenix, disko, Home Manager) shared by `mkServer` and Colmena
 - `mkServer`: Creates NixOS configurations with agenix, disko, and Home Manager integrated
 - `mkDarwin`: Creates Darwin configurations with agenix and Home Manager integrated
-- `mkHome`: Creates standalone Home Manager configurations for non-NixOS Linux
+- `mkSystemManager`: Creates System Manager configurations for non-NixOS Linux, with agenix and Home Manager integrated
 - `mkDocker`: Creates layered NixOS Docker images using `dockerTools.buildLayeredImageWithNixDb` for air-gapped deployment
-- `overlays`: Provides `unstable` packages, `agenix` CLI, custom packages (`cloudreve`, `mcp-server-*`), and a patched `peertube`
+- `overlays`: Provides `unstable` packages, `agenix` CLI, `system-manager`, custom packages (`cloudreve`, `mcp-server-*`), and a patched `peertube`
 - `inputs.llm-agents`: Provides `claude-code` and `codex` packages from [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix)
 - `forAllSystems`: Handles both x86_64-linux and aarch64-darwin
 
 ### Directory Layout
 
-- `flake.nix` — main entry point; outputs `nixosConfigurations`, `darwinConfigurations`, `homeConfigurations`, `packages`, `colmena`, `checks`, `devShells`, `formatter`
+- `flake.nix` — main entry point; outputs `nixosConfigurations`, `darwinConfigurations`, `systemConfigs`, `packages`, `colmena`, `checks`, `devShells`, `formatter`
 - `hosts/` — per-host configurations; `hosts/_profiles/` holds reusable hardware / container profiles
 - `modules/shared.nix` — cross-platform base config
 - `modules/nixos/` — optional NixOS service modules (enabled per-host)
@@ -125,7 +129,7 @@ NixOS modules in `modules/nixos/` are **optionally enabled** services, each expo
 
 The `llm-assistants` module acts as an integration layer for the primary interactive user, nesting `claude-code` and `mcp` sub-modules that mirror the `home/modules/llm-assistants/` structure.
 
-Home Manager modules in `home/modules/` configure user environments. The `isNixOS` and `isDesktop` flags drive conditional configuration (e.g., NixOS vs. standalone, desktop vs. server).
+Home Manager modules in `home/modules/` configure user environments. The `isNixOS` and `isDesktop` flags drive conditional configuration (e.g., NixOS vs. System Manager, desktop vs. server).
 
 ### Shared Configuration Pattern
 
@@ -225,7 +229,7 @@ For host-specific testing:
 # Build without activating (faster feedback)
 nix build '.#nixosConfigurations.us-4.config.system.build.toplevel'
 nix build '.#darwinConfigurations.hakula-macbook.system'
-nix build '.#homeConfigurations.hakula-linux.activationPackage'
+nix build '.#systemConfigs.hakula-linux'
 nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 ```
 
@@ -256,7 +260,7 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 ### Adding a Host
 
 1. Create `hosts/my-host/default.nix` with host-specific configuration
-2. Add to `nixosConfigurations`, `darwinConfigurations`, or `homeConfigurations` in `flake.nix` using the appropriate builder (`mkServer`, `mkDarwin`, or `mkHome`)
+2. Add to `nixosConfigurations`, `darwinConfigurations`, or `systemConfigs` in `flake.nix` using the appropriate builder (`mkServer`, `mkDarwin`, or `mkSystemManager`)
 3. For NixOS: generate hardware config with `nixos-generate-config --show-hardware-config`
 4. Optionally reuse profiles from `hosts/_profiles/` for common hardware
 
