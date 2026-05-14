@@ -96,18 +96,13 @@
       overlays = [
         inputs.rust-overlay.overlays.default
         (final: _: {
+          # ------------------------------------------------------------------
+          # Nixpkgs overrides
+          # ------------------------------------------------------------------
           unstable = import nixpkgs-unstable {
             localSystem = final.stdenv.hostPlatform.system;
             config.allowUnfree = true;
           };
-
-          agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
-          system-manager = system-manager.packages.${final.stdenv.hostPlatform.system}.default;
-          cloudreve = final.callPackage ./packages/cloudreve { };
-          mcp-server-filesystem = final.callPackage ./packages/mcp/mcp-server-filesystem { };
-          mcp-server-git = final.callPackage ./packages/mcp/mcp-server-git { };
-          mcp-server-github = final.callPackage ./packages/mcp/mcp-server-github { };
-          mcp-server-gitlab = final.callPackage ./packages/mcp/mcp-server-gitlab { };
           peertube = final.unstable.peertube.overrideAttrs (old: {
             patches = (old.patches or [ ]) ++ [
               ./packages/peertube/cdn-redirect-runner.patch
@@ -118,7 +113,27 @@
               platforms = old.meta.platforms ++ [ "aarch64-darwin" ];
             };
           });
+
+          # ------------------------------------------------------------------
+          # Flake input CLIs
+          # ------------------------------------------------------------------
+          agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
+          system-manager = system-manager.packages.${final.stdenv.hostPlatform.system}.default;
+
+          # ------------------------------------------------------------------
+          # Custom packages
+          # ------------------------------------------------------------------
+          cloudreve = final.callPackage ./packages/cloudreve { };
+          mcp-server-filesystem = final.callPackage ./packages/mcp/mcp-server-filesystem { };
+          mcp-server-git = final.callPackage ./packages/mcp/mcp-server-git { };
+          mcp-server-github = final.callPackage ./packages/mcp/mcp-server-github { };
+          mcp-server-gitlab = final.callPackage ./packages/mcp/mcp-server-gitlab { };
           peertube-runner = final.callPackage ./packages/peertube/runner.nix { };
+          zsh-hist = final.callPackage ./packages/zsh-hist { };
+
+          # ------------------------------------------------------------------
+          # Toolchains
+          # ------------------------------------------------------------------
           rustToolchain = final.rust-bin.stable.latest.default.override {
             extensions = [
               "llvm-tools-preview"
@@ -126,7 +141,6 @@
               "rust-src"
             ];
           };
-          zsh-hist = final.callPackage ./packages/zsh-hist { };
         })
       ];
 
@@ -191,11 +205,11 @@
       # Shared Home Manager integration block used by mkServer, mkDarwin, and mkDocker
       mkHomeManagerConfig =
         {
-          username ? "hakula",
-          isNixOS,
-          isDesktop,
           enableDevToolchains ? false,
+          isDesktop,
+          isNixOS,
           systemManagerConfigName ? null,
+          username ? "hakula",
         }:
         {
           hostName ? null,
@@ -216,12 +230,12 @@
                 llmAssistantLib
                 sharedConfig
                 toolingFor
-                username
-                isNixOS
-                isDesktop
                 enableDevToolchains
                 hostName
+                isDesktop
+                isNixOS
                 systemManagerConfigName
+                username
                 ;
             };
           };
@@ -233,8 +247,8 @@
         disko.nixosModules.disko
         home-manager.nixosModules.home-manager
         (mkHomeManagerConfig {
-          isNixOS = true;
           isDesktop = false;
+          isNixOS = true;
         })
       ];
 
@@ -284,9 +298,9 @@
             agenix.darwinModules.default
             home-manager.darwinModules.home-manager
             (mkHomeManagerConfig {
-              isNixOS = false;
-              isDesktop = true;
               enableDevToolchains = true;
+              isDesktop = true;
+              isNixOS = false;
             })
             configPath
           ];
@@ -299,7 +313,6 @@
         {
           hostName,
           configPath,
-          username ? "hakula",
           isDesktop ? true,
           enableDevToolchains ? true,
         }:
@@ -312,9 +325,8 @@
             home-manager.nixosModules.home-manager
             (mkHomeManagerConfig {
               inherit
-                username
-                isDesktop
                 enableDevToolchains
+                isDesktop
                 ;
               isNixOS = false;
               systemManagerConfigName = hostName;
@@ -342,7 +354,9 @@
         let
           pkgs = pkgsFor "x86_64-linux";
           nixosConfig = nixpkgs.lib.nixosSystem {
-            specialArgs = commonSpecialArgs;
+            specialArgs = commonSpecialArgs // {
+              hostName = name;
+            };
             modules = [
               {
                 nixpkgs.hostPlatform = "x86_64-linux";
@@ -351,9 +365,9 @@
               agenix.nixosModules.default
               home-manager.nixosModules.home-manager
               (mkHomeManagerConfig {
-                inherit username enableDevToolchains;
-                isNixOS = true;
+                inherit enableDevToolchains username;
                 isDesktop = false;
+                isNixOS = true;
               })
               configPath
             ];
