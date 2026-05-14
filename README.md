@@ -9,26 +9,37 @@ Flake-based Nix configuration for Hakula's servers, workstations, and developmen
 
 This repository manages NixOS, nix-darwin, System Manager, Home Manager, custom packages, encrypted secrets, and deployable development images from one flake.
 
-| Output                                      | Platform         | Role                                           |
-| ------------------------------------------- | ---------------- | ---------------------------------------------- |
-| `nixosConfigurations.us-1`                  | `x86_64-linux`   | NixOS server, CloudCone SC2                    |
-| `nixosConfigurations.us-2`                  | `x86_64-linux`   | NixOS server, CloudCone VPS                    |
-| `nixosConfigurations.us-3`                  | `x86_64-linux`   | NixOS server, CloudCone SC2                    |
-| `nixosConfigurations.us-4`                  | `x86_64-linux`   | NixOS server, DMIT                             |
-| `nixosConfigurations.sg-1`                  | `x86_64-linux`   | NixOS server, Tencent Lighthouse               |
-| `darwinConfigurations.hakula-macbook`       | `aarch64-darwin` | macOS workstation with nix-darwin              |
-| `systemConfigs.hakula-linux`                | `x86_64-linux`   | Generic Linux / Ubuntu WSL with System Manager |
-| `packages.x86_64-linux.hakula-devvm-docker` | `x86_64-linux`   | NixOS Docker image for dev containers          |
+| Output                                      | Platform         | Role                                  |
+| ------------------------------------------- | ---------------- | ------------------------------------- |
+| `nixosConfigurations.us-1`                  | `x86_64-linux`   | NixOS server, CloudCone SC2           |
+| `nixosConfigurations.us-2`                  | `x86_64-linux`   | NixOS server, CloudCone VPS           |
+| `nixosConfigurations.us-3`                  | `x86_64-linux`   | NixOS server, CloudCone SC2           |
+| `nixosConfigurations.us-4`                  | `x86_64-linux`   | NixOS server, DMIT                    |
+| `nixosConfigurations.sg-1`                  | `x86_64-linux`   | NixOS server, Tencent Lighthouse      |
+| `darwinConfigurations.hakula-macbook`       | `aarch64-darwin` | macOS workstation with nix-darwin     |
+| `systemConfigs.hakula-linux`                | `x86_64-linux`   | Generic Linux with System Manager     |
+| `packages.x86_64-linux.hakula-devvm-docker` | `x86_64-linux`   | NixOS Docker image for dev containers |
 
 ## Layout
 
-- `flake.nix`: flake inputs, overlays, builders, and outputs
-- `hosts/`: host-specific configuration and reusable host profiles
-- `modules/`: NixOS, nix-darwin, and System Manager modules
-- `home/`: Home Manager configuration and user modules
-- `lib/`: shared helpers, inventories, cache settings, and tooling
-- `packages/`: custom package definitions
-- `secrets/`: agenix encrypted secrets and recipient rules
+```text
+.
+├── flake.nix                        # Inputs, overlays, builders, and outputs
+├── hosts/                           # Per-host configurations
+│   └── _profiles/                   # Reusable hardware / container profiles
+├── modules/
+│   ├── shared.nix                   # Cross-platform primitives
+│   ├── nixos/                       # NixOS service modules
+│   ├── darwin/                      # macOS-specific modules
+│   └── system-manager/              # System Manager activation, agenix port
+├── home/
+│   ├── hakula.nix                   # Home Manager entry point
+│   └── modules/                     # Home Manager modules
+├── lib/                             # Helpers (caches, secrets, servers, tooling)
+├── packages/                        # Custom package definitions
+├── secrets/                         # agenix-encrypted secrets and recipient rules
+└── .github/workflows/ci.yml         # CI pipeline
+```
 
 ## Usage
 
@@ -76,7 +87,7 @@ Apply after bootstrap:
 nh darwin switch .
 ```
 
-### Generic Linux / Ubuntu WSL
+### Generic Linux
 
 `hakula-linux` uses [system-manager](https://github.com/numtide/system-manager) to own the system profile, user shell integration, agenix secret activation, and Home Manager activation service.
 
@@ -99,14 +110,6 @@ Apply after bootstrap:
 system-manager switch --flake '.#hakula-linux' --sudo
 ```
 
-Shell aliases:
-
-```bash
-nixsw    # Switch, then check agenix and Home Manager services
-nixlist  # List System Manager generations
-nixroll  # Roll back the System Manager profile and reactivate it
-```
-
 ### Docker Image
 
 Build the air-gapped development image:
@@ -124,57 +127,29 @@ docker compose -f hosts/hakula-devvm/docker-compose.yml up -d
 
 Attach with the VS Code / Cursor Dev Containers command.
 
+### Shell Aliases
+
+The Home Manager zsh module ships matching aliases on every platform:
+
+| Alias     | NixOS                  | macOS                        | Generic Linux (System Manager)                    |
+| --------- | ---------------------- | ---------------------------- | ------------------------------------------------- |
+| `nixsw`   | `nh os switch .`       | `nh darwin switch .`         | `system-manager switch ...` + post-switch healthcheck |
+| `nixlist` | NixOS generation list  | `darwin-rebuild` generations | System Manager generation list                    |
+| `nixroll` | `nixos-rebuild` rollback | `darwin-rebuild` rollback   | System Manager rollback + reactivate + healthcheck |
+| `nixup`   | `nix flake update`     | same                         | same                                              |
+| `nixgc`   | `nh clean all --keep-since 7d` | same                  | same                                              |
+
 ## Secrets
 
-Secrets are encrypted with [agenix](https://github.com/ryantm/agenix). Recipient rules are declared in `secrets/secrets.nix`, and encrypted files live under `secrets/` with paths matching their logical names.
-
-Home Manager modules declare their secret requirements:
-
-```nix
-hakula.secrets.required = {
-  "mihomo/secret" = { };
-};
-```
-
-Consumers read the runtime path through the shared resolver:
-
-```nix
-config.hakula.secrets.path "mihomo/secret"
-```
-
-Use `name` only when the logical consumer key differs from the encrypted source:
-
-```nix
-hakula.secrets.required.github-pat = {
-  name = "github/pat-work";
-};
-```
-
-Use `path` only when a program requires a fixed destination:
-
-```nix
-hakula.secrets.required."wakatime/config" = {
-  path = "${config.home.homeDirectory}/.wakatime.cfg";
-};
-```
-
-Platform modules collect those requirements and materialize them with `age.secrets`, so Home Manager modules do not configure a second secret backend.
-
-Edit a secret:
+Secrets are encrypted with [agenix](https://github.com/ryantm/agenix). Home Manager modules declare requirements through `hakula.secrets.required`; each platform's system module materializes them as `age.secrets`. See `lib/secrets.nix` for the helper API and `CLAUDE.md` for the recipe.
 
 ```bash
 cd secrets
-agenix -e <service>/<name>.age -i ~/.ssh/<private-key>
+agenix -e <service>/<name>.age -i ~/.ssh/<private-key>  # Edit
+agenix -r -i ~/.ssh/<private-key>                       # Re-key after changing recipients
 ```
 
-Re-key after changing recipients:
-
-```bash
-cd secrets
-agenix -r -i ~/.ssh/<private-key>
-```
-
-Run `agenix -r` from an interactive terminal. In a non-interactive shell, agenix can replace secret contents with empty stdin before re-encrypting them.
+Run `agenix -r` from an interactive terminal — see `CLAUDE.md` for the gotcha.
 
 ## Development
 
@@ -196,4 +171,11 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 
 ## CI
 
-GitHub Actions runs `nix flake check --all-systems`, then builds every managed system output. Successful builds are pushed to the `hakula` Cachix cache on `main` and when the actor is `hakula139`.
+GitHub Actions runs on every push and pull request:
+
+- **Flake Check**: `nix flake check --all-systems` — flake structure and pre-commit hooks (`nixfmt`, `statix`, `deadnix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
+- **Build NixOS**: builds the five server configurations (`us-1`, `us-2`, `us-3`, `us-4`, `sg-1`) on `ubuntu-latest`.
+- **Build macOS**: builds `hakula-macbook` on `macos-latest`, then pins `peertube-runner` to the Cachix cache.
+- **Build Generic Linux**: builds `systemConfigs.hakula-linux` on `ubuntu-latest`.
+- **Build Docker**: builds `hakula-devvm-docker` on `ubuntu-latest`.
+- **Closure size check**: prints `nix path-info -Sh` for each built target.
