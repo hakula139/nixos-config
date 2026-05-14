@@ -7,7 +7,6 @@
   pkgs,
   lib,
   secrets,
-  isNixOS ? false,
   ...
 }:
 
@@ -202,31 +201,5 @@ in
     };
   };
 
-  # ----------------------------------------------------------------------------
-  # Secrets
-  # ----------------------------------------------------------------------------
-  secrets = lib.mkIf (!isNixOS) {
-    age.secrets = {
-      confluence-pat = secrets.mkHomeSecret {
-        name = "llm-assistants/mcp/confluence-pat";
-        inherit homeDir;
-      };
-
-      brave-api-key = secrets.mkHomeSecret {
-        name = "llm-assistants/mcp/brave-api-key";
-        inherit homeDir;
-      };
-
-      context7-api-key = secrets.mkHomeSecret {
-        name = "llm-assistants/mcp/context7-api-key";
-        inherit homeDir;
-      };
-
-      github-pat = secrets.mkHomeSecret {
-        name = "github/pat-personal";
-        inherit homeDir;
-        path = "${secretsDir}/github/pat";
-      };
-    };
-  };
+  secrets = { };
 }

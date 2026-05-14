@@ -7,7 +7,6 @@
   pkgs,
   lib,
   secrets,
-  isNixOS ? false,
   ...
 }:
 
@@ -16,10 +15,11 @@ let
   cfg = config.hakula.mihomo;
 
   homeDir = config.home.homeDirectory;
+  secretsDir = secrets.secretsPath homeDir;
   configDir = "${homeDir}/.config/mihomo";
   configFile = "${configDir}/config.yaml";
-  subscriptionUrlFile = config.age.secrets.mihomo-subscription-url.path;
-  secretFile = config.age.secrets.mihomo-secret.path;
+  subscriptionUrlFile = "${secretsDir}/mihomo/subscription-url";
+  secretFile = "${secretsDir}/mihomo/secret";
   baseConfigTemplate = builtins.readFile ./config.yaml;
 
   updateScript =
@@ -113,21 +113,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # --------------------------------------------------------------------------
-    # Secrets
-    # --------------------------------------------------------------------------
-    age.secrets = lib.mkIf (!isNixOS) {
-      mihomo-subscription-url = secrets.mkHomeSecret {
-        name = "mihomo/subscription-url";
-        inherit homeDir;
-      };
-
-      mihomo-secret = secrets.mkHomeSecret {
-        name = "mihomo/secret";
-        inherit homeDir;
-      };
-    };
-
     # --------------------------------------------------------------------------
     # Packages
     # --------------------------------------------------------------------------

@@ -7,7 +7,7 @@
   pkgs,
   lib,
   secrets,
-  isNixOS ? false,
+  ...
 }:
 
 let
@@ -341,34 +341,20 @@ in
   # ----------------------------------------------------------------------------
   # Module config
   # ----------------------------------------------------------------------------
-  config = lib.mkMerge [
-    {
-      assertions =
-        lib.optional (hasProfiles && cfg.auth.defaultProfile == null) {
-          assertion = false;
-          message = "hakula.claude-code: auth.defaultProfile must be set when profiles are defined";
-        }
-        ++ lib.optional (hasProfiles && cfg.auth.defaultProfile != null) {
-          assertion = lib.hasAttr cfg.auth.defaultProfile cfg.auth.profiles;
-          message = "hakula.claude-code: auth.defaultProfile '${cfg.auth.defaultProfile}' is not in auth.profiles";
-        }
-        ++ lib.concatLists (lib.mapAttrsToList mkProfileAssertions cfg.auth.profiles);
+  config = {
+    assertions =
+      lib.optional (hasProfiles && cfg.auth.defaultProfile == null) {
+        assertion = false;
+        message = "hakula.claude-code: auth.defaultProfile must be set when profiles are defined";
+      }
+      ++ lib.optional (hasProfiles && cfg.auth.defaultProfile != null) {
+        assertion = lib.hasAttr cfg.auth.defaultProfile cfg.auth.profiles;
+        message = "hakula.claude-code: auth.defaultProfile '${cfg.auth.defaultProfile}' is not in auth.profiles";
+      }
+      ++ lib.concatLists (lib.mapAttrsToList mkProfileAssertions cfg.auth.profiles);
 
-      hakula.claude-code.auth._provision.requiredSecrets = requiredSecrets;
-    }
-
-    (lib.mkIf (!isNixOS && hasProfiles) {
-      age.secrets = builtins.listToAttrs (
-        map (secretName: {
-          name = lib.replaceStrings [ "." "/" ] [ "-" "-" ] secretName;
-          value = secrets.mkHomeSecret {
-            name = secretName;
-            inherit homeDir;
-          };
-        }) requiredSecrets
-      );
-    })
-  ];
+    hakula.claude-code.auth._provision.requiredSecrets = requiredSecrets;
+  };
 
   # ----------------------------------------------------------------------------
   # Exports

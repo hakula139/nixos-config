@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  inputs,
   username ? "hakula",
   isNixOS ? false,
   isDesktop ? false,
@@ -26,7 +25,6 @@ let
 in
 {
   imports = [
-    inputs.agenix.homeManagerModules.default
     ./modules/shared.nix
     ./modules/darwin.nix
     ./modules/fonts
@@ -37,7 +35,6 @@ in
     ./modules/ssh
     ./modules/syncthing
     ./modules/terminal
-    ./modules/wakatime
   ];
 
   # ----------------------------------------------------------------------------
