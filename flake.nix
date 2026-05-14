@@ -300,7 +300,7 @@
           hostName,
           configPath,
           username ? "hakula",
-          isDesktop ? false,
+          isDesktop ? true,
           enableDevToolchains ? true,
         }:
         system-manager.lib.makeSystemConfig {

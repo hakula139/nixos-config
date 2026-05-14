@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  isNixOS ? false,
+  isDesktop ? false,
   ...
 }:
 
@@ -16,7 +16,7 @@ in
   # ----------------------------------------------------------------------------
   # Secrets
   # ----------------------------------------------------------------------------
-  config = lib.mkIf (!isNixOS) {
+  config = lib.mkIf isDesktop {
     hakula.secrets.required = {
       "wakatime/config" = {
         path = "${homeDir}/.wakatime.cfg";
