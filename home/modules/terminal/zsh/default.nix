@@ -207,7 +207,7 @@ in
               --list-generations
           ''
         else
-          "home-manager generations | head -n 10";
+          "home-manager generations";
 
       nixroll =
         if systemManagerConfigName != null then
