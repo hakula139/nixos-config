@@ -1,67 +1,53 @@
 --- a/server/core/controllers/api/runners/jobs-files.ts
 +++ b/server/core/controllers/api/runners/jobs-files.ts
-@@ -1,6 +1,10 @@
+@@ -1,5 +1,6 @@
  import { FileStorage, RunnerJobState, VideoFileStream } from '@peertube/peertube-models'
  import { logger, loggerTagsFactory } from '@server/helpers/logger.js'
 +import { CONFIG } from '@server/initializers/config.js'
  import { proxifyHLS, proxifyWebVideoFile } from '@server/lib/object-storage/index.js'
-+import { generateHLSObjectStorageKey, generateWebVideoObjectStorageKey } from '@server/lib/object-storage/keys.js'
-+import { BucketInfo } from '@server/lib/object-storage/shared/index.js'
-+import { getInternalUrl, getObjectStoragePublicFileUrl } from '@server/lib/object-storage/urls.js'
  import { VideoPathManager } from '@server/lib/video-path-manager.js'
  import { getStudioTaskFilePath } from '@server/lib/video-studio.js'
- import { apiRateLimiter, asyncMiddleware } from '@server/middlewares/index.js'
-@@ -93,6 +97,24 @@
-   return serveVideoFile({ video, file, req, res })
- }
-
-+function tryRedirectToCdn (
-+  res: express.Response,
-+  config: BucketInfo & { BASE_URL: string },
-+  key: string,
-+  filename: string
-+) {
-+  if (!config.BASE_URL) {
-+    return false
-+  }
-+
-+  const internalUrl = getInternalUrl(config, key)
-+  const cdnUrl = getObjectStoragePublicFileUrl(internalUrl, config)
-+
-+  logger.debug('Redirecting runner to CDN URL for file %s.', filename, lTags())
-+  res.redirect(303, cdnUrl)
-+  return true
-+}
-+
- async function serveVideoFile (options: {
-   video: MVideoFullLight
-   file: MVideoFileVideo | MVideoFileStreamingPlaylistVideo
-@@ -103,6 +125,14 @@
-
+@@ -102,6 +103,10 @@
+   const { video, file, req, res } = options
+ 
    if (file.storage === FileStorage.OBJECT_STORAGE) {
-     if (file.isHLS()) {
-+      const hlsConfig = CONFIG.OBJECT_STORAGE.STREAMING_PLAYLISTS
-+      const playlist = video.getHLSPlaylist().withVideo(video)
-+      const key = generateHLSObjectStorageKey(playlist, file.filename)
-+
-+      if (tryRedirectToCdn(res, hlsConfig, key, file.filename)) {
-+        return
-+      }
-+
-       return proxifyHLS({
-         req,
-         res,
-@@ -115,6 +145,13 @@
-     }
-
-     // Web video
-+    const webVideoConfig = CONFIG.OBJECT_STORAGE.WEB_VIDEOS
-+    const key = generateWebVideoObjectStorageKey(file.filename)
-+
-+    if (tryRedirectToCdn(res, webVideoConfig, key, file.filename)) {
-+      return
++    if (canRedirectRunnerToCdn({ video, file })) {
++      return redirectRunnerToCdn({ res, video, file })
 +    }
 +
-     return proxifyWebVideoFile({
-       req,
-       res,
+     if (file.isHLS()) {
+       return proxifyHLS({
+         req,
+@@ -162,3 +167,32 @@
+ 
+   return res.sendFile(getStudioTaskFilePath(filename))
+ }
++
++function canRedirectRunnerToCdn (options: {
++  video: MVideoFullLight
++  file: MVideoFileVideo | MVideoFileStreamingPlaylistVideo
++}) {
++  const { video, file } = options
++
++  if (video.hasPrivateStaticPath()) return false
++
++  const bucket = file.isHLS()
++    ? CONFIG.OBJECT_STORAGE.STREAMING_PLAYLISTS
++    : CONFIG.OBJECT_STORAGE.WEB_VIDEOS
++
++  return !!bucket.BASE_URL
++}
++
++function redirectRunnerToCdn (options: {
++  res: express.Response
++  video: MVideoFullLight
++  file: MVideoFileVideo | MVideoFileStreamingPlaylistVideo
++}) {
++  const { res, video, file } = options
++
++  const url = file.getObjectStorageUrl(video)
++
++  logger.debug('Redirecting runner to CDN URL %s for file %s.', url, file.filename, lTags())
++
++  return res.redirect(303, url)
++}
