@@ -7,10 +7,8 @@
   pkgs,
   lib,
   inputs,
-  secrets,
   corpDomain,
   llmAssistantLib,
-  isNixOS ? false,
   ...
 }:
 
@@ -75,10 +73,8 @@ in
           config
           pkgs
           lib
-          secrets
           llmAssistantLib
           corpDomain
-          isNixOS
           ;
         enabledServers = lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers;
       };

@@ -7,10 +7,8 @@
   pkgs,
   lib,
   inputs,
-  secrets,
   corpDomain,
   llmAssistantLib,
-  isNixOS ? false,
   enableDevToolchains ? false,
   ...
 }:
@@ -29,7 +27,6 @@ let
       config
       pkgs
       lib
-      isNixOS
       ;
   };
 
@@ -107,10 +104,8 @@ in
           config
           pkgs
           lib
-          secrets
           llmAssistantLib
           corpDomain
-          isNixOS
           ;
         enabledServers = builtins.filter (
           s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)

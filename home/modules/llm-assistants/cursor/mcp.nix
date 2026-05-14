@@ -6,10 +6,8 @@
   config,
   pkgs,
   lib,
-  secrets,
   corpDomain,
   llmAssistantLib,
-  isNixOS ? false,
   enabledServers,
   ...
 }:
@@ -23,10 +21,8 @@ let
       config
       pkgs
       lib
-      secrets
       llmAssistantLib
       corpDomain
-      isNixOS
       ;
   };
 

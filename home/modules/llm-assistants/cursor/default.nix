@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  secrets,
   corpDomain,
   llmAssistantLib,
   osConfig ? null,
@@ -101,10 +100,8 @@ in
           config
           pkgs
           lib
-          secrets
           llmAssistantLib
           corpDomain
-          isNixOS
           ;
         enabledServers = builtins.filter (s: !(lib.elem s cfg.mcp.disabledServers)) cfg.mcp.enabledServers;
       };
