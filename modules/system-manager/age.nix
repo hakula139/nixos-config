@@ -142,7 +142,7 @@ in
         done
 
         if [ "''${#identityArgs[@]}" -eq 0 ]; then
-          echo "error: no readable age identities found" >&2
+          echo "error: no readable age identities found in: ${lib.concatStringsSep " " cfg.identityPaths}" >&2
           exit 1
         fi
 
