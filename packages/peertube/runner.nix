@@ -18,7 +18,7 @@ peertube.overrideAttrs (old: {
     export HOME=$PWD
 
     npm run build:peertube-runner
-    patchShebangs apps/peertube-runner/dist/peertube-runner.js
+    patchShebangs apps/peertube-runner/dist/peertube-runner.mjs
 
     runHook postBuild
   '';
@@ -27,11 +27,11 @@ peertube.overrideAttrs (old: {
     runHook preInstall
 
     mkdir -p $out/bin $out/lib/peertube-runner
-    cp apps/peertube-runner/dist/peertube-runner.js \
-       $out/lib/peertube-runner/peertube-runner.js
+    cp apps/peertube-runner/dist/peertube-runner.mjs \
+       $out/lib/peertube-runner/peertube-runner.mjs
     cp apps/peertube-runner/package.json \
        $out/lib/peertube-runner/package.json
-    ln -s $out/lib/peertube-runner/peertube-runner.js $out/bin/peertube-runner
+    ln -s $out/lib/peertube-runner/peertube-runner.mjs $out/bin/peertube-runner
 
     runHook postInstall
   '';
