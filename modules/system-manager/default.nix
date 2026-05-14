@@ -19,6 +19,16 @@ let
   provisionedUserSecrets = hmUser.hakula.mihomo._provision.secrets or { };
 
   shared = import ../shared.nix { inherit pkgs lib; };
+  systemManagerHealthCheck = pkgs.writeShellScriptBin "system-manager-health-check" ''
+    set -euo pipefail
+
+    for service in "$@"; do
+      if ! systemctl is-active --quiet "$service"; then
+        systemctl status --no-pager "$service" >&2 || true
+        exit 1
+      fi
+    done
+  '';
 in
 {
   imports = [
@@ -64,12 +74,24 @@ in
     # --------------------------------------------------------------------------
     # Environment
     # --------------------------------------------------------------------------
+    nix = {
+      enable = true;
+      settings = shared.nixSettings // {
+        trusted-users = [
+          "root"
+          cfg.user.name
+        ];
+      };
+    };
+
     environment.variables = {
       LANG = "en_US.UTF-8";
       LC_ALL = "en_US.UTF-8";
     };
 
     environment.systemPackages = shared.basePackages ++ [
+      systemManagerHealthCheck
+      pkgs.system-manager
       pkgs.zsh
     ];
 

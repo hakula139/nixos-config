@@ -11,6 +11,7 @@
 
 let
   cfg = config.age;
+  serviceName = "agenix-install-secrets";
 
   secretType = lib.types.submodule (
     { config, name, ... }:
@@ -59,7 +60,10 @@ let
     tmp="$target.tmp"
 
     echo "decrypting ${lib.escapeShellArg secret.name} to $target"
-    install -d -m 0700 -o ${lib.escapeShellArg secret.owner} -g ${lib.escapeShellArg secret.group} "$(dirname "$target")"
+    target_dir="$(dirname "$target")"
+    if [ ! -d "$target_dir" ]; then
+      install -d -m 0700 -o ${lib.escapeShellArg secret.owner} -g ${lib.escapeShellArg secret.group} "$target_dir"
+    fi
     rm -f "$tmp"
 
     ${cfg.ageBin} --decrypt "''${identityArgs[@]}" -o "$tmp" ${lib.escapeShellArg secret.file}
@@ -67,6 +71,8 @@ let
     chown ${secret.owner}:${secret.group} "$tmp"
     mv -f "$tmp" "$target"
   '';
+
+  secretTargets = map (secret: secret.path) (lib.attrValues cfg.secrets);
 in
 {
   options.age = {
@@ -93,6 +99,12 @@ in
       default = "/run/agenix";
       description = "Default directory for decrypted secrets";
     };
+
+    managedPathsFile = lib.mkOption {
+      type = lib.types.str;
+      default = "/var/lib/system-manager/agenix-managed-secrets";
+      description = "Manifest of secret paths managed by the age installer";
+    };
   };
 
   config = lib.mkIf (cfg.secrets != { }) {
@@ -103,7 +115,7 @@ in
       }
     ];
 
-    systemd.services.agenix-install-secrets = {
+    systemd.services.${serviceName} = {
       description = "Install age secrets";
       wantedBy = [ "system-manager.target" ];
       before = [ "system-manager.target" ];
@@ -135,6 +147,27 @@ in
         fi
 
         ${lib.concatStringsSep "\n" (map decryptSecret (lib.attrValues cfg.secrets))}
+
+        manifest=${lib.escapeShellArg cfg.managedPathsFile}
+        desired="$(mktemp)"
+        trap 'rm -f "$desired"' EXIT
+
+        cat >"$desired" <<'EOF'
+        ${lib.concatStringsSep "\n" secretTargets}
+        EOF
+
+        if [ -f "$manifest" ]; then
+          while IFS= read -r managed_path; do
+            if [ -n "$managed_path" ] && ! grep -Fx -- "$managed_path" "$desired" >/dev/null; then
+              rm -f -- "$managed_path"
+            fi
+          done <"$manifest"
+        fi
+
+        install -d -m 0755 "$(dirname "$manifest")"
+        install -m 0644 "$desired" "$manifest"
+        trap - EXIT
+        rm -f "$desired"
       '';
     };
   };

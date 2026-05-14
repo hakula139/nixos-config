@@ -102,6 +102,7 @@
           };
 
           agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
+          system-manager = system-manager.packages.${final.stdenv.hostPlatform.system}.default;
           cloudreve = final.callPackage ./packages/cloudreve { };
           mcp-server-filesystem = final.callPackage ./packages/mcp/mcp-server-filesystem { };
           mcp-server-git = final.callPackage ./packages/mcp/mcp-server-git { };

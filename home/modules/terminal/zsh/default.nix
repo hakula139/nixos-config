@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  username ? "hakula",
   isNixOS ? false,
   systemManagerConfigName ? null,
   ...
@@ -187,7 +188,7 @@ in
     // lib.optionalAttrs (isLinux && !isNixOS) {
       nixsw =
         if systemManagerConfigName != null then
-          "nix run github:numtide/system-manager -- switch --flake .#${systemManagerConfigName} --sudo"
+          "system-manager switch --flake .#${systemManagerConfigName} --sudo && system-manager-health-check agenix-install-secrets.service home-manager-${username}.service"
         else
           "nh home switch . -c hakula-linux";
       nixlist =
@@ -197,7 +198,7 @@ in
           "home-manager generations | head -n 10";
       nixroll =
         if systemManagerConfigName != null then
-          "sudo nix-env --profile /nix/var/nix/profiles/system-manager-profiles --rollback && nix run github:numtide/system-manager -- activate --sudo"
+          "sudo nix-env --profile /nix/var/nix/profiles/system-manager-profiles --rollback && system-manager activate --sudo && system-manager-health-check agenix-install-secrets.service home-manager-${username}.service"
         else
           "home-manager switch --rollback";
     }
