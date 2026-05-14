@@ -14,22 +14,6 @@
 
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
-
-  systemManagerProfile = "/nix/var/nix/profiles/system-manager-profiles";
-  systemManagerHealthCheckCommand = lib.concatStringsSep " " [
-    "system-manager-health-check"
-    "agenix-install-secrets.service"
-    "home-manager-${username}.service"
-  ];
-  systemManagerSwitchCommand = lib.concatStringsSep " && " [
-    "system-manager switch --flake .#${systemManagerConfigName} --sudo"
-    systemManagerHealthCheckCommand
-  ];
-  systemManagerRollbackCommand = lib.concatStringsSep " && " [
-    "sudo nix-env --profile ${systemManagerProfile} --rollback"
-    "system-manager activate --sudo"
-    systemManagerHealthCheckCommand
-  ];
 in
 {
   programs.zsh = {
@@ -204,19 +188,38 @@ in
     // lib.optionalAttrs (isLinux && !isNixOS) {
       nixsw =
         if systemManagerConfigName != null then
-          systemManagerSwitchCommand
+          ''
+            system-manager switch \
+              --flake '.#${systemManagerConfigName}' \
+              --sudo \
+              && system-manager-health-check \
+                agenix-install-secrets.service \
+                home-manager-${username}.service
+          ''
         else
           "nh home switch . -c hakula-linux";
 
       nixlist =
         if systemManagerConfigName != null then
-          "sudo nix-env --profile ${systemManagerProfile} --list-generations"
+          ''
+            sudo nix-env \
+              --profile /nix/var/nix/profiles/system-manager-profiles \
+              --list-generations
+          ''
         else
           "home-manager generations | head -n 10";
 
       nixroll =
         if systemManagerConfigName != null then
-          systemManagerRollbackCommand
+          ''
+            sudo nix-env \
+              --profile /nix/var/nix/profiles/system-manager-profiles \
+              --rollback \
+              && system-manager activate --sudo \
+              && system-manager-health-check \
+                agenix-install-secrets.service \
+                home-manager-${username}.service
+          ''
         else
           "home-manager switch --rollback";
     }
