@@ -18,10 +18,6 @@ let
   configFile = "${configDir}/config.yaml";
   baseConfigTemplate = builtins.readFile ./config.yaml;
 
-  requiredSecrets = {
-    "mihomo/secret" = { };
-    "mihomo/subscription-url" = { };
-  };
   secretPath = config.hakula.secrets.path;
   secretFile = secretPath "mihomo/secret";
   subscriptionUrlFile = secretPath "mihomo/subscription-url";
@@ -117,7 +113,10 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    hakula.secrets.required = requiredSecrets;
+    hakula.secrets.required = {
+      "mihomo/secret" = { };
+      "mihomo/subscription-url" = { };
+    };
 
     # --------------------------------------------------------------------------
     # Packages
