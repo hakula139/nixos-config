@@ -12,7 +12,7 @@ let
   secretFile = name: "${secretsRoot}/${name}.age";
   secretsPath = homeDir: "${homeDir}/${secretsDir}";
 in
-{
+rec {
   inherit secretFile secretsPath;
 
   # ----------------------------------------------------------------------------
@@ -24,46 +24,105 @@ in
   mkSecret =
     {
       name,
-      owner,
-      group,
+      file ? secretFile name,
+      owner ? "root",
+      group ? owner,
       mode ? "0400",
       path ? null,
     }:
     {
-      file = secretFile name;
-      inherit owner group mode;
+      inherit
+        file
+        owner
+        group
+        mode
+        ;
     }
     // lib.optionalAttrs (path != null) { inherit path; };
 
-  # Standard Home Manager secret configuration
-  # Returns an age.secrets.<name> configuration for home-manager agenix
-  mkHomeSecret =
+  # User-owned secret decrypted into the shared per-user secret tree
+  mkUserSecret =
     {
       name,
-      homeDir,
+      user,
+      file ? secretFile name,
+      group ? null,
+      homeDir ? null,
       mode ? "0400",
       path ? null,
     }:
     let
-      defaultPath = "${secretsPath homeDir}/${name}";
+      isUserAttrs = builtins.isAttrs user;
+      owner = if isUserAttrs then user.name else user;
+      userGroup =
+        if group != null then
+          group
+        else if isUserAttrs && user ? group then
+          user.group
+        else
+          owner;
+      userHome =
+        if homeDir != null then
+          homeDir
+        else if isUserAttrs && user ? home then
+          user.home
+        else
+          builtins.throw "mkUserSecret requires homeDir when user has no home";
     in
-    {
-      file = secretFile name;
-      path = if path != null then path else defaultPath;
-      inherit mode;
+    mkSecret {
+      inherit
+        name
+        file
+        mode
+        ;
+      inherit owner;
+      group = userGroup;
+      path = if path != null then path else "${secretsPath userHome}/${name}";
     };
+
+  mkUserSecrets =
+    {
+      names,
+      user,
+      group ? null,
+      homeDir ? null,
+      mode ? "0400",
+      rename ? name: lib.replaceStrings [ "." "/" ] [ "-" "-" ] name,
+      overrides ? { },
+    }:
+    builtins.listToAttrs (
+      map (
+        secretName:
+        let
+          attrName = rename secretName;
+          override = overrides.${attrName} or overrides.${secretName} or { };
+        in
+        {
+          name = attrName;
+          value = mkUserSecret (
+            {
+              name = secretName;
+              inherit user mode;
+            }
+            // lib.optionalAttrs (group != null) { inherit group; }
+            // lib.optionalAttrs (homeDir != null) { inherit homeDir; }
+            // override
+          );
+        }
+      ) names
+    );
 
   # ----------------------------------------------------------------------------
   # Directory Management
   # ----------------------------------------------------------------------------
 
   # Generate systemd.tmpfiles.rules entry for secrets directory (NixOS)
-  mkSecretsDir = user: group: [
-    "d ${secretsPath user.home} 0700 ${user.name} ${group} - -"
-  ];
-
-  # Generate home.activation script for secrets directory (Home Manager)
-  mkHomeSecretsDir = homeDir: ''
-    install -d -m 0700 "${secretsPath homeDir}"
-  '';
+  mkSecretsDir =
+    user: group:
+    let
+      owner = user.name or (builtins.throw "mkSecretsDir requires user.name");
+    in
+    [
+      "d ${secretsPath user.home} 0700 ${owner} ${group} - -"
+    ];
 }

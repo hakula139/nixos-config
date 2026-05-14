@@ -12,7 +12,6 @@
 let
   cfg = config.hakula.mcp;
   userCfg = config.users.users.${cfg.user};
-  secretsDir = secrets.secretsPath userCfg.home;
 in
 {
   # ----------------------------------------------------------------------------
@@ -39,32 +38,18 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.confluence-pat = secrets.mkSecret {
-      name = "llm-assistants/mcp/confluence-pat";
-      owner = cfg.user;
-      inherit (userCfg) group;
-      path = "${secretsDir}/llm-assistants/mcp/confluence-pat";
-    };
-
-    age.secrets.brave-api-key = secrets.mkSecret {
-      name = "llm-assistants/mcp/brave-api-key";
-      owner = cfg.user;
-      inherit (userCfg) group;
-      path = "${secretsDir}/llm-assistants/mcp/brave-api-key";
-    };
-
-    age.secrets.context7-api-key = secrets.mkSecret {
-      name = "llm-assistants/mcp/context7-api-key";
-      owner = cfg.user;
-      inherit (userCfg) group;
-      path = "${secretsDir}/llm-assistants/mcp/context7-api-key";
-    };
-
-    age.secrets.github-pat = secrets.mkSecret {
-      name = "github/pat-personal";
-      owner = cfg.user;
-      inherit (userCfg) group;
-      path = "${secretsDir}/github/pat";
+    age.secrets = secrets.mkUserSecrets {
+      names = [
+        "llm-assistants/mcp/confluence-pat"
+        "llm-assistants/mcp/brave-api-key"
+        "llm-assistants/mcp/context7-api-key"
+        "github/pat-personal"
+      ];
+      user = userCfg;
+      rename =
+        name:
+        if name == "github/pat-personal" then "github-pat" else lib.removePrefix "llm-assistants/mcp/" name;
+      overrides.github-pat.path = "${secrets.secretsPath userCfg.home}/github/pat";
     };
   };
 }
