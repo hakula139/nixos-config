@@ -7,6 +7,7 @@
   pkgs,
   lib,
   isNixOS ? false,
+  systemManagerConfigName ? null,
   ...
 }:
 
@@ -184,10 +185,21 @@ in
     }
     # Generic Linux (non-NixOS) aliases
     // lib.optionalAttrs (isLinux && !isNixOS) {
-      # Home Manager aliases
-      nixsw = "nh home switch . -c hakula-linux";
-      nixlist = "home-manager generations | head -n 10";
-      nixroll = "home-manager switch --rollback";
+      nixsw =
+        if systemManagerConfigName != null then
+          "nix run github:numtide/system-manager -- switch --flake .#${systemManagerConfigName} --sudo"
+        else
+          "nh home switch . -c hakula-linux";
+      nixlist =
+        if systemManagerConfigName != null then
+          "sudo nix-env --profile /nix/var/nix/profiles/system-manager-profiles --list-generations"
+        else
+          "home-manager generations | head -n 10";
+      nixroll =
+        if systemManagerConfigName != null then
+          "sudo nix-env --profile /nix/var/nix/profiles/system-manager-profiles --rollback && nix run github:numtide/system-manager -- activate --sudo"
+        else
+          "home-manager switch --rollback";
     }
     # macOS-specific aliases
     // lib.optionalAttrs isDarwin {

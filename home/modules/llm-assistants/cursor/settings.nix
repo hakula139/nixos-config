@@ -31,16 +31,12 @@ let
           else if isNixOS then
             "nixosConfigurations"
           else
-            "homeConfigurations";
+            "systemConfigs";
 
         flake = ''builtins.getFlake "${flakePath}"'';
         flakeConfig = "(${flake}).${configAttr}.${configName}";
 
-        hmOptionsExpr =
-          if isDarwin || isNixOS then
-            "${flakeConfig}.options.home-manager.users.type.getSubOptions []"
-          else
-            "${flakeConfig}.options";
+        hmOptionsExpr = "${flakeConfig}.options.home-manager.users.type.getSubOptions []";
       in
       {
         nixpkgs.expr = "import (${flake}).inputs.nixpkgs { }";
@@ -53,7 +49,7 @@ let
           else if isNixOS then
             { nixos.expr = "${flakeConfig}.options"; }
           else
-            { }
+            { system-manager.expr = "${flakeConfig}.options"; }
         );
       }
     else

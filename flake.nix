@@ -27,6 +27,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # NixOS-style system management for non-NixOS Linux hosts
+    system-manager = {
+      url = "github:numtide/system-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Declarative disk partitioning (Linux only)
     disko = {
       url = "github:nix-community/disko";
@@ -73,6 +79,7 @@
       nixpkgs-unstable,
       nix-darwin,
       home-manager,
+      system-manager,
       disko,
       agenix,
       git-hooks-nix,
@@ -166,6 +173,7 @@
           isNixOS,
           isDesktop,
           enableDevToolchains ? false,
+          systemManagerConfigName ? null,
         }:
         {
           home-manager = {
@@ -181,6 +189,7 @@
                 isNixOS
                 isDesktop
                 enableDevToolchains
+                systemManagerConfigName
                 ;
             };
           };
@@ -260,30 +269,43 @@
         };
 
       # ------------------------------------------------------------------------
-      # Home Manager Configuration
+      # System Manager Configuration (non-NixOS Linux)
       # ------------------------------------------------------------------------
-      mkHome =
+      mkSystemManager =
         {
+          hostName,
           configPath,
           username ? "hakula",
-          isDesktop ? true,
+          isDesktop ? false,
           enableDevToolchains ? true,
         }:
-        home-manager.lib.homeManagerConfiguration {
-          pkgs = pkgsFor "x86_64-linux";
+        system-manager.lib.makeSystemConfig {
           modules = [
-            ./home/hakula.nix
+            {
+              nixpkgs.hostPlatform = "x86_64-linux";
+              nixpkgs.config.allowUnfree = true;
+            }
+            home-manager.nixosModules.home-manager
+            (mkHomeManagerConfig {
+              inherit
+                username
+                isDesktop
+                enableDevToolchains
+                ;
+              isNixOS = false;
+              systemManagerConfigName = hostName;
+            })
+            ./modules/system-manager
             configPath
           ];
-          extraSpecialArgs = {
+          inherit overlays;
+          specialArgs = {
             inherit
               inputs
               secrets
-              username
-              isDesktop
-              enableDevToolchains
+              keys
+              hostName
               ;
-            isNixOS = false;
           };
         };
 
@@ -424,16 +446,17 @@
       };
 
       # ------------------------------------------------------------------------
-      # Home Manager Configurations (standalone, for non-NixOS Linux)
+      # System Manager Configurations (non-NixOS Linux)
       # ------------------------------------------------------------------------
-      homeConfigurations = {
+      systemConfigs = {
         # ----------------------------------------------------------------------
-        # Hakula's Generic Linux (standalone Home Manager)
+        # Hakula's Generic Linux workstation
         # ----------------------------------------------------------------------
-        hakula-linux = mkHome {
+        hakula-linux = mkSystemManager {
+          hostName = "hakula-linux";
           configPath = ./hosts/hakula-linux;
-          isDesktop = false;
         };
+
       };
 
       # ------------------------------------------------------------------------

@@ -10,6 +10,7 @@
   osConfig ? null,
   isNixOS ? false,
   isDesktop ? false,
+  systemManagerConfigName ? null,
   ...
 }:
 
@@ -33,7 +34,12 @@ let
     inherit pkgs isDarwin isNixOS;
     inherit (cfg.nixd) flakePath;
     configName = lib.toLower (
-      if osConfig != null then osConfig.networking.hostName else "hakula-linux"
+      if systemManagerConfigName != null then
+        systemManagerConfigName
+      else if osConfig != null && osConfig.networking ? hostName then
+        osConfig.networking.hostName
+      else
+        "hakula-linux"
     );
   };
 
