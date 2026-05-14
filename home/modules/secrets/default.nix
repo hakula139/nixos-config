@@ -23,7 +23,7 @@ let
           };
 
           path = lib.mkOption {
-            type = nullOr str;
+            type = str;
             default = secrets.secretPath name;
             description = "Absolute path where the decrypted secret is installed";
           };
