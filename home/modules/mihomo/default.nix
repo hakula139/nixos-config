@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  secretPath,
   ...
 }:
 
@@ -17,7 +18,6 @@ let
   configDir = "${homeDir}/.config/mihomo";
   configFile = "${configDir}/config.yaml";
 
-  secretPath = config.hakula.secrets.path;
   secretFile = secretPath "mihomo/secret";
   subscriptionUrlFile = secretPath "mihomo/subscription-url";
 

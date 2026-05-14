@@ -9,6 +9,7 @@
   inputs,
   corpDomain,
   llmAssistantLib,
+  secretPath,
   ...
 }:
 
@@ -75,6 +76,7 @@ in
           lib
           llmAssistantLib
           corpDomain
+          secretPath
           ;
         enabledServers = lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers;
       };

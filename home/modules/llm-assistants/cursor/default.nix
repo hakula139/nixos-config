@@ -8,6 +8,7 @@
   lib,
   corpDomain,
   llmAssistantLib,
+  secretPath,
   hostName ? null,
   isNixOS ? false,
   isDesktop ? false,
@@ -94,6 +95,7 @@ in
           lib
           llmAssistantLib
           corpDomain
+          secretPath
           ;
         enabledServers = builtins.filter (s: !(lib.elem s cfg.mcp.disabledServers)) cfg.mcp.enabledServers;
       };

@@ -9,6 +9,7 @@
   inputs,
   corpDomain,
   llmAssistantLib,
+  secretPath,
   enableDevToolchains ? false,
   ...
 }:
@@ -27,6 +28,7 @@ let
       config
       pkgs
       lib
+      secretPath
       ;
   };
 
@@ -106,6 +108,7 @@ in
           lib
           llmAssistantLib
           corpDomain
+          secretPath
           ;
         enabledServers = builtins.filter (
           s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)

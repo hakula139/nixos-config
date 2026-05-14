@@ -43,7 +43,7 @@ in
   # Home Manager Overrides
   # ----------------------------------------------------------------------------
   home-manager.users.root =
-    { config, ... }:
+    { secretPath, ... }:
     {
       # SSH config comes from bind-mounted host ~/.ssh/config.
       programs.ssh.enable = lib.mkForce false;
@@ -66,7 +66,7 @@ in
         enable = lib.mkDefault true;
         proxy = {
           enable = true;
-          secretUrlFile = config.hakula.secrets.path "hakula-devvm/proxy-url";
+          secretUrlFile = secretPath "hakula-devvm/proxy-url";
           noProxy = [
             "localhost"
             "127.0.0.1"

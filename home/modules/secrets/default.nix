@@ -30,22 +30,15 @@ let
         };
       }
     );
-
-  resolveSecretPath = name: config.hakula.secrets.required.${name}.path;
 in
 {
-  options.hakula.secrets = {
-    required = lib.mkOption {
-      type = lib.types.attrsOf secretSpecType;
-      default = { };
-      description = "User-owned age secrets required by this Home Manager configuration";
-    };
-
-    path = lib.mkOption {
-      type = lib.types.functionTo lib.types.str;
-      default = resolveSecretPath;
-      readOnly = true;
-      description = "Resolve a declared user secret to its decrypted runtime path";
-    };
+  options.hakula.secrets.required = lib.mkOption {
+    type = lib.types.attrsOf secretSpecType;
+    default = { };
+    description = "User-owned age secrets required by this Home Manager configuration";
   };
+
+  # Resolver exposed as a module argument so consumers can take it as a
+  # plain function parameter instead of routing through `config.hakula.*`.
+  config._module.args.secretPath = name: config.hakula.secrets.required.${name}.path;
 }

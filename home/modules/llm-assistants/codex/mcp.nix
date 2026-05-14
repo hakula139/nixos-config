@@ -8,6 +8,7 @@
   lib,
   corpDomain,
   llmAssistantLib,
+  secretPath,
   enabledServers,
   ...
 }:
@@ -21,6 +22,7 @@ let
       lib
       llmAssistantLib
       corpDomain
+      secretPath
       ;
   };
 

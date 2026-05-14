@@ -7,12 +7,12 @@
   pkgs,
   lib,
   corpDomain,
+  secretPath,
   ...
 }:
 
 let
   homeDir = config.home.homeDirectory;
-  secretPath = config.hakula.secrets.path;
 
   # Node.js's built-in fetch (undici) ignores HTTP_PROXY / HTTPS_PROXY by
   # default. --use-env-proxy makes it honour the env vars, which is required

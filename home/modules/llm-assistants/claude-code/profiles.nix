@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  secretPath,
   ...
 }:
 
@@ -15,7 +16,6 @@ let
   stateDir = "${homeDir}/.local/state/claude-code";
   hasProfiles = cfg.auth.profiles != { };
 
-  secretPath = config.hakula.secrets.path;
   requiredSecretNames = lib.unique (
     lib.concatMap (
       p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
