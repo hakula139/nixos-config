@@ -19,12 +19,27 @@ in
   home-manager.users.${userName} = {
     home.stateVersion = "25.05";
 
-    hakula.claude-code.auth.enableCorpGateway = true;
+    hakula.claude-code.auth = {
+      defaultProfile = "corp-gateway";
+      enableCorpGateway = true;
+    };
     hakula.cursor.extensions = {
       enable = lib.mkForce true;
       prune = lib.mkForce false;
     };
     hakula.fonts.windowsSync.enable = true;
+    hakula.llm-assistants = {
+      enable = true;
+      proxy = {
+        enable = true;
+        noProxy = [
+          "localhost"
+          "127.0.0.1"
+          "10.*"
+          ".${corpDomain}"
+        ];
+      };
+    };
     hakula.mihomo = {
       enable = true;
       port = 7897;
@@ -43,22 +58,4 @@ in
       port = 8022;
     };
   };
-
-  # ----------------------------------------------------------------------------
-  # Assistant Tooling
-  # ----------------------------------------------------------------------------
-  hakula.llm-assistants = {
-    enable = true;
-    proxy = {
-      enable = true;
-      noProxy = [
-        "localhost"
-        "127.0.0.1"
-        "10.*"
-        ".${corpDomain}"
-      ];
-    };
-  };
-
-  hakula.claude-code.defaultProfile = "corp-gateway";
 }
