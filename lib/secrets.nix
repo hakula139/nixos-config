@@ -120,7 +120,7 @@ rec {
         in
         {
           name = attrName;
-          value = builtins.removeAttrs normalized [ "attrName" ];
+          value = removeAttrs normalized [ "attrName" ];
         }
       ) specs
     );
