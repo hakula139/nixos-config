@@ -22,8 +22,14 @@ let
   systemManagerHealthCheck = pkgs.writeShellScriptBin "system-manager-health-check" ''
     set -euo pipefail
 
+    if [ "$#" -eq 0 ]; then
+      echo "usage: system-manager-health-check <service>..." >&2
+      exit 2
+    fi
+
     for service in "$@"; do
       if ! systemctl is-active --quiet "$service"; then
+        echo "service '$service' is not active" >&2
         systemctl status --no-pager "$service" >&2 || true
         exit 1
       fi
