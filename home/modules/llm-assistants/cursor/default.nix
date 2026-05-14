@@ -8,10 +8,9 @@
   lib,
   corpDomain,
   llmAssistantLib,
-  osConfig ? null,
+  hostName ? null,
   isNixOS ? false,
   isDesktop ? false,
-  systemManagerConfigName ? null,
   ...
 }:
 
@@ -34,14 +33,7 @@ let
   settings = import ./settings.nix {
     inherit pkgs isDarwin isNixOS;
     inherit (cfg.nixd) flakePath;
-    configName = lib.toLower (
-      if systemManagerConfigName != null then
-        systemManagerConfigName
-      else if osConfig != null && osConfig.networking ? hostName then
-        osConfig.networking.hostName
-      else
-        "hakula-linux"
-    );
+    configName = lib.toLower (if hostName != null then hostName else "hakula-linux");
   };
 
   ext = import ./extensions.nix {

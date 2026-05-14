@@ -198,6 +198,10 @@
           systemManagerConfigName ? null,
         }:
         {
+          hostName ? null,
+          ...
+        }:
+        {
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
@@ -216,6 +220,7 @@
                 isNixOS
                 isDesktop
                 enableDevToolchains
+                hostName
                 systemManagerConfigName
                 ;
             };
