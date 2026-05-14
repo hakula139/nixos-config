@@ -16,18 +16,24 @@ let
   homeDir = config.home.homeDirectory;
   configDir = "${homeDir}/.config/mihomo";
   configFile = "${configDir}/config.yaml";
-  baseConfigTemplate = builtins.readFile ./config.yaml;
 
   secretPath = config.hakula.secrets.path;
   secretFile = secretPath "mihomo/secret";
   subscriptionUrlFile = secretPath "mihomo/subscription-url";
+
+  baseConfig =
+    builtins.replaceStrings
+      [ "__PORT__" "__CONTROLLER_PORT__" ]
+      [ (toString cfg.port) (toString cfg.controllerPort) ]
+      (builtins.readFile ./config.yaml);
 
   updateScript =
     let
       runtimePath = lib.makeBinPath [
         pkgs.coreutils
         pkgs.curl
-        pkgs.gnused
+        pkgs.gawk
+        pkgs.yq-go
       ];
     in
     pkgs.writeShellScript "mihomo-update" ''
@@ -37,8 +43,8 @@ let
       CONFIG_DIR="${configDir}"
       CONFIG_FILE="${configFile}"
       SUBSCRIPTION_URL="$(cat ${subscriptionUrlFile})"
-      SECRET="$(cat ${secretFile})"
-      BASE_CONFIG_TEMPLATE="${baseConfigTemplate}"
+      export MIHOMO_SECRET="$(cat ${secretFile})"
+      BASE_CONFIG_TEMPLATE=${lib.escapeShellArg baseConfig}
 
       mkdir -p "$CONFIG_DIR"
 
@@ -51,12 +57,19 @@ let
         exit 1
       fi
 
+      # Substitute the secret literally to avoid sed metachar corruption
+      # when the secret contains `|`, `&`, or `\`. Awk reads MIHOMO_SECRET
+      # from the environment and does not reinterpret it.
       echo "Preparing base configuration with secrets"
       BASE_CONFIG=$(
-        echo "$BASE_CONFIG_TEMPLATE" \
-          | sed "s|__PORT__|${toString cfg.port}|g" \
-          | sed "s|__CONTROLLER_PORT__|${toString cfg.controllerPort}|g" \
-          | sed "s|__SECRET__|$SECRET|g"
+        printf '%s' "$BASE_CONFIG_TEMPLATE" \
+          | awk '{
+              s = ENVIRON["MIHOMO_SECRET"]
+              while ((i = index($0, "__SECRET__")) > 0) {
+                $0 = substr($0, 1, i - 1) s substr($0, i + length("__SECRET__"))
+              }
+              print
+            }'
       )
 
       echo "Merging base configuration with subscription"
@@ -66,6 +79,13 @@ let
         cat "$CONFIG_FILE.tmp"
       } >"$CONFIG_FILE.merged"
       mv "$CONFIG_FILE.merged" "$CONFIG_FILE.tmp"
+
+      echo "Validating merged config"
+      if ! yq -e '.' "$CONFIG_FILE.tmp" >/dev/null 2>&1; then
+        echo "Error: merged config is not valid YAML; keeping previous config" >&2
+        rm -f "$CONFIG_FILE.tmp"
+        exit 1
+      fi
 
       if [ -f "$CONFIG_FILE" ]; then
         echo "Backing up existing config to $CONFIG_FILE.bak"
