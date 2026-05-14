@@ -157,7 +157,6 @@ in
       };
     in
     lib.mkMerge [
-      mcp.secrets
       {
         # ----------------------------------------------------------------------
         # Program configuration

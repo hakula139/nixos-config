@@ -12,6 +12,10 @@
 let
   cfg = config.hakula.mcp;
   userCfg = config.users.users.${cfg.user};
+  assistantSecrets = import ../../../../lib/llm-assistants/secrets.nix {
+    inherit secrets;
+    homeDir = userCfg.home;
+  };
 in
 {
   # ----------------------------------------------------------------------------
@@ -38,18 +42,9 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets = secrets.mkUserSecrets {
-      names = [
-        "llm-assistants/mcp/confluence-pat"
-        "llm-assistants/mcp/brave-api-key"
-        "llm-assistants/mcp/context7-api-key"
-        "github/pat-personal"
-      ];
+    age.secrets = secrets.mkUserSecretsFromSpecs {
+      specs = assistantSecrets.mcp;
       user = userCfg;
-      rename =
-        name:
-        if name == "github/pat-personal" then "github-pat" else lib.removePrefix "llm-assistants/mcp/" name;
-      overrides.github-pat.path = "${secrets.secretsPath userCfg.home}/github/pat";
     };
   };
 }

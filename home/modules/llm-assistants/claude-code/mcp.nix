@@ -38,6 +38,5 @@ let
   };
 in
 {
-  inherit (mcp) secrets;
   inherit configFile;
 }

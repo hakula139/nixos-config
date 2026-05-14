@@ -38,6 +38,5 @@ let
     );
 in
 {
-  inherit (mcp) secrets;
   serversConfig = builtins.listToAttrs (map mkEntry enabledServers);
 }

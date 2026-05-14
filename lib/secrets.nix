@@ -112,6 +112,33 @@ rec {
       ) names
     );
 
+  mkUserSecretsFromSpecs =
+    {
+      specs,
+      user,
+      group ? null,
+      homeDir ? null,
+      mode ? "0400",
+      overrides ? { },
+    }:
+    lib.mapAttrs (
+      attrName: spec:
+      let
+        secret = spec // (overrides.${attrName} or { });
+      in
+      mkUserSecret (
+        {
+          name = secret.name or attrName;
+          inherit user;
+          mode = secret.mode or mode;
+        }
+        // lib.optionalAttrs (secret ? file) { inherit (secret) file; }
+        // lib.optionalAttrs (secret ? path) { inherit (secret) path; }
+        // lib.optionalAttrs (group != null) { inherit group; }
+        // lib.optionalAttrs (homeDir != null) { inherit homeDir; }
+      )
+    ) specs;
+
   # ----------------------------------------------------------------------------
   # Directory Management
   # ----------------------------------------------------------------------------

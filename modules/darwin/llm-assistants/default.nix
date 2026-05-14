@@ -16,6 +16,9 @@ let
   userCfg = config.users.users.${cfg.user};
   homeDir = userCfg.home or "/Users/${cfg.user}";
   requiredSecrets = hmUser.hakula.claude-code.auth._provision.requiredSecrets or [ ];
+  assistantSecrets = import ../../../lib/llm-assistants/secrets.nix {
+    inherit secrets homeDir;
+  };
 
   user = {
     name = cfg.user;
@@ -28,12 +31,6 @@ let
     group = "staff";
   };
 
-  mkUserSecret =
-    name:
-    secrets.mkUserSecret {
-      inherit name user;
-      group = "staff";
-    };
 in
 {
   options.hakula.llm-assistants = llmAssistants.mkOptions {
@@ -46,14 +43,13 @@ in
       (llmAssistants.mkHomeManagerConfig cfg)
 
       {
-        age.secrets = requiredSecretAttrs // {
-          confluence-pat = mkUserSecret "llm-assistants/mcp/confluence-pat";
-          brave-api-key = mkUserSecret "llm-assistants/mcp/brave-api-key";
-          context7-api-key = mkUserSecret "llm-assistants/mcp/context7-api-key";
-          github-pat = (mkUserSecret "github/pat-personal") // {
-            path = "${homeDir}/.secrets/github/pat";
+        age.secrets =
+          requiredSecretAttrs
+          // secrets.mkUserSecretsFromSpecs {
+            specs = assistantSecrets.mcp;
+            inherit user;
+            group = "staff";
           };
-        };
       }
     ]
   );

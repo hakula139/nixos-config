@@ -12,7 +12,9 @@
 
 let
   homeDir = config.home.homeDirectory;
-  secretsDir = secrets.secretsPath homeDir;
+  assistantSecrets = import ../../../../../lib/llm-assistants/secrets.nix {
+    inherit secrets homeDir;
+  };
   corpDomain = import ../../../../../lib/corp-domain.nix;
 
   # Node.js's built-in fetch (undici) ignores HTTP_PROXY / HTTPS_PROXY by
@@ -27,7 +29,7 @@ let
   # ----------------------------------------------------------------------------
   # Atlassian (Confluence)
   # ----------------------------------------------------------------------------
-  confluencePatFile = "${secretsDir}/llm-assistants/mcp/confluence-pat";
+  confluencePatFile = assistantSecrets.mcp.confluence-pat.path;
   atlassianBin = pkgs.writeShellScriptBin "atlassian-mcp" ''
     export PATH="${pkgs.uv}/bin:$PATH"
     if [ -f "${confluencePatFile}" ]; then
@@ -43,7 +45,7 @@ let
   # ----------------------------------------------------------------------------
   # Brave Search
   # ----------------------------------------------------------------------------
-  braveApiKeyFile = "${secretsDir}/llm-assistants/mcp/brave-api-key";
+  braveApiKeyFile = assistantSecrets.mcp.brave-api-key.path;
   braveSearchBin = pkgs.writeShellScriptBin "brave-search-mcp" ''
     ${nodeSetup}
     if [ -f "${braveApiKeyFile}" ]; then
@@ -62,7 +64,7 @@ let
   # ----------------------------------------------------------------------------
   # Context7
   # ----------------------------------------------------------------------------
-  context7ApiKeyFile = "${secretsDir}/llm-assistants/mcp/context7-api-key";
+  context7ApiKeyFile = assistantSecrets.mcp.context7-api-key.path;
   context7Bin = pkgs.writeShellScriptBin "context7-mcp" ''
     ${nodeSetup}
     if [ -f "${context7ApiKeyFile}" ]; then
@@ -105,7 +107,7 @@ let
   # GitHub
   # ----------------------------------------------------------------------------
   ghBin = "${config.home.profileDirectory}/bin/gh";
-  githubPatFile = "${secretsDir}/github/pat";
+  githubPatFile = assistantSecrets.mcp.github-pat.path;
   githubBin = pkgs.writeShellScriptBin "github-mcp" ''
     if [ -x "${ghBin}" ] && token=$("${ghBin}" auth token 2>/dev/null); then
       export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
@@ -200,6 +202,4 @@ in
       type = "stdio";
     };
   };
-
-  secrets = { };
 }

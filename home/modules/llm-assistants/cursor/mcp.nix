@@ -37,6 +37,5 @@ let
   );
 in
 {
-  inherit (mcp) secrets;
   mcpJson = json.generate "cursor-mcp.json" mcpConfig;
 }

@@ -193,7 +193,6 @@ in
       pluginBundle = plugins.mkPluginBundle homeDir;
     in
     lib.mkMerge [
-      mcp.secrets
       profiles.config
 
       {

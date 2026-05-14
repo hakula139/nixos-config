@@ -122,7 +122,6 @@ in
       };
     in
     lib.mkMerge [
-      mcp.secrets
       {
         # ----------------------------------------------------------------------
         # User configuration files
