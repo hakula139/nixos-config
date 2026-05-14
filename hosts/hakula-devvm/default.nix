@@ -3,9 +3,7 @@
 # ==============================================================================
 
 {
-  config,
   lib,
-  secrets,
   corpDomain,
   ...
 }:
@@ -44,54 +42,50 @@ in
   # ----------------------------------------------------------------------------
   # Home Manager Overrides
   # ----------------------------------------------------------------------------
-  home-manager.users.root = {
-    # SSH config comes from bind-mounted host ~/.ssh/config.
-    programs.ssh.enable = lib.mkForce false;
+  home-manager.users.root =
+    { config, ... }:
+    {
+      # SSH config comes from bind-mounted host ~/.ssh/config.
+      programs.ssh.enable = lib.mkForce false;
 
-    services.ssh-agent.enable = lib.mkForce false;
-    services.syncthing.enable = lib.mkForce false;
+      services.ssh-agent.enable = lib.mkForce false;
+      services.syncthing.enable = lib.mkForce false;
 
-    hakula.claude-code = {
-      auth = {
-        defaultProfile = "corp-gateway";
-        enableCorpGateway = true;
+      hakula.claude-code = {
+        auth = {
+          defaultProfile = "corp-gateway";
+          enableCorpGateway = true;
+        };
+        mcp.enabledServers = claudeMcpServers;
+        plugins.bundle = true;
       };
-      mcp.enabledServers = claudeMcpServers;
-      plugins.bundle = true;
-    };
 
-    hakula.codex.mcp.enabledServers = commonMcpServers;
+      hakula.codex.mcp.enabledServers = commonMcpServers;
 
-    hakula.llm-assistants = {
-      enable = lib.mkDefault true;
-      proxy = {
-        enable = true;
-        secretUrlFile = config.age.secrets.devvm-proxy-url.path;
-        noProxy = [
-          "localhost"
-          "127.0.0.1"
-          "10.*"
-          ".${corpDomain}"
-        ];
+      hakula.llm-assistants = {
+        enable = lib.mkDefault true;
+        proxy = {
+          enable = true;
+          secretUrlFile = config.hakula.secrets.path "hakula-devvm/proxy-url";
+          noProxy = [
+            "localhost"
+            "127.0.0.1"
+            "10.*"
+            ".${corpDomain}"
+          ];
+        };
+      };
+
+      hakula.opencode = {
+        mcp.enabledServers = commonMcpServers;
+        plugins.bundle = true;
+      };
+
+      hakula.secrets.required = {
+        "hakula-devvm/proxy-url" = { };
+        github-pat.name = lib.mkForce "github/pat-work";
       };
     };
-
-    hakula.opencode = {
-      mcp.enabledServers = commonMcpServers;
-      plugins.bundle = true;
-    };
-  };
-
-  # ----------------------------------------------------------------------------
-  # Secret Overrides
-  # ----------------------------------------------------------------------------
-  age.secrets.github-pat.file = lib.mkForce (secrets.secretFile "github/pat-work");
-
-  age.secrets.devvm-proxy-url = secrets.mkSecret {
-    name = "hakula-devvm/proxy-url";
-    owner = "root";
-    group = "root";
-  };
 
   # ----------------------------------------------------------------------------
   # System State
