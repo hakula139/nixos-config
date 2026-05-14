@@ -145,11 +145,11 @@ Host configurations import `shared.nix` and extend with platform/host-specific s
 
 Secrets are encrypted with **age** using SSH keys declared in `secrets/keys.nix` (grouped as `users` / `hosts` / `workstations`). Recipient rules live in `secrets/secrets.nix`.
 
-Secrets live in `secrets/` nested by service (e.g., `secrets/llm-assistants/claude-oauth-token.age`, `secrets/peertube/env.age`). They are **decrypted at activation time** by agenix and placed under `/run/agenix` (NixOS) or `/run/agenix.d` (Darwin). Reference them in modules via `config.age.secrets.<attr-name>.path`.
+Secrets live in `secrets/` nested by service (e.g., `secrets/llm-assistants/claude-oauth-token.age`, `secrets/peertube/env.age`). They are **decrypted at activation time** by agenix. Reference them in platform modules via `config.age.secrets.<attr-name>.path`.
 
 #### Secrets Helper Library (`lib/secrets.nix`)
 
-All platform modules materialize secrets through `age.secrets`. NixOS, Darwin, and system-manager collect user secrets from `home-manager.users.<user>.hakula.secrets.required`, then convert them with `secrets.mkRequiredUserSecrets`.
+All platform modules materialize secrets through `age.secrets`. NixOS, Darwin, and system-manager collect user secret requirements from `home-manager.users.<user>.hakula.secrets.required`, then convert them with `secrets.mkRequiredUserSecrets`.
 
 **NixOS modules:**
 
@@ -164,12 +164,16 @@ age.secrets.my-secret = secrets.mkSecret {
 **Home Manager modules:**
 
 ```nix
-hakula.secrets.required.my-secret = {
-  name = "my-service/my-secret"; # Path under secrets/ (sans .age)
-};
+hakula.secrets.required."my-service/my-secret" = { };
 ```
 
-Both accept optional `mode` (defaults to `"0400"`) and `path` (custom destination). User secrets default to `${homeDir}/.secrets/<name>`.
+Use a string value only when a tool requires a fixed destination:
+
+```nix
+hakula.secrets.required."my-service/my-secret" = "${config.home.homeDirectory}/.my-secret";
+```
+
+The attrset form accepts optional `mode` (defaults to `"0400"`) and `path` (custom destination). Home Manager secret requirements default to runtime `age.secrets` paths under `/run/agenix`.
 
 ## CI/CD Pipeline
 
@@ -262,9 +266,9 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 1. Add `secrets` parameter to the module's function signature if the module needs helper paths
 2. Declare the secret using the helper library:
    - **NixOS**: `age.secrets.<attr> = secrets.mkSecret { name = "<service>/<secret>"; owner = "..."; group = "..."; };`
-   - **Home Manager**: `hakula.secrets.required.<attr> = { name = "<service>/<secret>"; };`
+   - **Home Manager**: `hakula.secrets.required."<service>/<secret>" = { };`
 3. Register the recipient list in `secrets/secrets.nix` and create the encrypted file: `cd secrets && agenix -e <service>/<secret>.age`
-4. Reference Home Manager secrets through the expected user secret path, or set `path` explicitly in `hakula.secrets.required.<attr>`
+4. Reference Home Manager secrets through `config.hakula.secrets.required."<service>/<secret>".path`, or set the option to a path string only when a tool requires a fixed destination
 5. Optional: override `mode` or `path` for custom permissions or location
 
 ## Proxy Configuration

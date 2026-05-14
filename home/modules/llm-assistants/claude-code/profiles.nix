@@ -14,7 +14,6 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   stateDir = "${homeDir}/.local/state/claude-code";
-  secretsDir = secrets.secretsPath homeDir;
   hasProfiles = cfg.auth.profiles != { };
 
   requiredSecrets = secrets.mkUserSecretSpecs (
@@ -25,12 +24,7 @@ let
     )
   );
 
-  secretPath =
-    secretName:
-    let
-      secretSpec = config.hakula.secrets.required.${secrets.secretAttrName secretName};
-    in
-    if secretSpec.path != null then secretSpec.path else "${secretsDir}/${secretSpec.name}";
+  secretPath = secretName: config.hakula.secrets.required.${secrets.secretAttrName secretName}.path;
 
   modelEnvVars = {
     opus = "ANTHROPIC_DEFAULT_OPUS_MODEL";

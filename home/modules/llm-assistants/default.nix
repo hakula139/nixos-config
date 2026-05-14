@@ -5,20 +5,22 @@
 {
   config,
   lib,
-  secrets,
   llmAssistantLib,
   ...
 }:
 
 let
   cfg = config.hakula.llm-assistants;
-  homeDir = config.home.homeDirectory;
-  assistantSecrets = llmAssistantLib.mkSecretSpecs {
-    inherit secrets homeDir;
-  };
 
   inherit (llmAssistantLib) mcpOptions;
   proxyLib = llmAssistantLib.proxy;
+
+  anyAssistantEnabled =
+    cfg.enable
+    || config.hakula.claude-code.enable
+    || config.hakula.codex.enable
+    || config.hakula.cursor.enable
+    || config.hakula.opencode.enable;
 
   assistantProxy = {
     enable = lib.mkDefault true;
@@ -47,36 +49,40 @@ in
     proxy = proxyLib.mkProxyOptions "LLM assistants";
   };
 
-  config = lib.mkIf cfg.enable (
-    lib.mkMerge [
-      {
-        hakula.claude-code = {
-          enable = lib.mkDefault true;
-          mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-        };
+  config = lib.mkMerge [
+    (lib.mkIf anyAssistantEnabled {
+      hakula.secrets.required = llmAssistantLib.secretSpecs.mcp;
+    })
 
-        hakula.codex = {
-          enable = lib.mkDefault true;
-          mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-        };
+    (lib.mkIf cfg.enable (
+      lib.mkMerge [
+        {
+          hakula.claude-code = {
+            enable = lib.mkDefault true;
+            mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
+          };
 
-        hakula.cursor = {
-          mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-        };
+          hakula.codex = {
+            enable = lib.mkDefault true;
+            mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
+          };
 
-        hakula.opencode = {
-          enable = lib.mkDefault true;
-          mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-        };
+          hakula.cursor = {
+            mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
+          };
 
-        hakula.secrets.required = assistantSecrets.mcp;
-      }
+          hakula.opencode = {
+            enable = lib.mkDefault true;
+            mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
+          };
+        }
 
-      (lib.mkIf cfg.proxy.enable {
-        hakula.claude-code.proxy = assistantProxy;
-        hakula.codex.proxy = assistantProxy;
-        hakula.opencode.proxy = assistantProxy;
-      })
-    ]
-  );
+        (lib.mkIf cfg.proxy.enable {
+          hakula.claude-code.proxy = assistantProxy;
+          hakula.codex.proxy = assistantProxy;
+          hakula.opencode.proxy = assistantProxy;
+        })
+      ]
+    ))
+  ];
 }

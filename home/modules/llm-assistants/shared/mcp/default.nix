@@ -6,17 +6,13 @@
   config,
   pkgs,
   lib,
-  secrets,
   corpDomain,
-  llmAssistantLib,
   ...
 }:
 
 let
   homeDir = config.home.homeDirectory;
-  assistantSecrets = llmAssistantLib.mkSecretSpecs {
-    inherit secrets homeDir;
-  };
+  mcpSecretPath = name: config.hakula.secrets.required.${name}.path;
 
   # Node.js's built-in fetch (undici) ignores HTTP_PROXY / HTTPS_PROXY by
   # default. --use-env-proxy makes it honour the env vars, which is required
@@ -30,7 +26,7 @@ let
   # ----------------------------------------------------------------------------
   # Atlassian (Confluence)
   # ----------------------------------------------------------------------------
-  confluencePatFile = assistantSecrets.mcp.confluence-pat.path;
+  confluencePatFile = mcpSecretPath "confluence-pat";
   atlassianBin = pkgs.writeShellScriptBin "atlassian-mcp" ''
     export PATH="${pkgs.uv}/bin:$PATH"
     if [ -f "${confluencePatFile}" ]; then
@@ -46,7 +42,7 @@ let
   # ----------------------------------------------------------------------------
   # Brave Search
   # ----------------------------------------------------------------------------
-  braveApiKeyFile = assistantSecrets.mcp.brave-api-key.path;
+  braveApiKeyFile = mcpSecretPath "brave-api-key";
   braveSearchBin = pkgs.writeShellScriptBin "brave-search-mcp" ''
     ${nodeSetup}
     if [ -f "${braveApiKeyFile}" ]; then
@@ -65,7 +61,7 @@ let
   # ----------------------------------------------------------------------------
   # Context7
   # ----------------------------------------------------------------------------
-  context7ApiKeyFile = assistantSecrets.mcp.context7-api-key.path;
+  context7ApiKeyFile = mcpSecretPath "context7-api-key";
   context7Bin = pkgs.writeShellScriptBin "context7-mcp" ''
     ${nodeSetup}
     if [ -f "${context7ApiKeyFile}" ]; then
@@ -108,7 +104,7 @@ let
   # GitHub
   # ----------------------------------------------------------------------------
   ghBin = "${config.home.profileDirectory}/bin/gh";
-  githubPatFile = assistantSecrets.mcp.github-pat.path;
+  githubPatFile = mcpSecretPath "github-pat";
   githubBin = pkgs.writeShellScriptBin "github-mcp" ''
     if [ -x "${ghBin}" ] && token=$("${ghBin}" auth token 2>/dev/null); then
       export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
@@ -147,8 +143,6 @@ let
   '';
 in
 {
-  inherit (assistantSecrets) mcp;
-
   # ----------------------------------------------------------------------------
   # MCP servers
   # ----------------------------------------------------------------------------

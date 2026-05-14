@@ -15,7 +15,6 @@ let
   cfg = config.hakula.mihomo;
 
   homeDir = config.home.homeDirectory;
-  secretsDir = secrets.secretsPath homeDir;
   configDir = "${homeDir}/.config/mihomo";
   configFile = "${configDir}/config.yaml";
   baseConfigTemplate = builtins.readFile ./config.yaml;
@@ -111,13 +110,13 @@ in
 
     subscriptionUrlFile = lib.mkOption {
       type = lib.types.str;
-      default = "${secretsDir}/mihomo/subscription-url";
+      default = secrets.secretPath "mihomo/subscription-url";
       description = "File containing the mihomo subscription URL";
     };
 
     secretFile = lib.mkOption {
       type = lib.types.str;
-      default = "${secretsDir}/mihomo/secret";
+      default = secrets.secretPath "mihomo/secret";
       description = "File containing the mihomo external controller secret";
     };
 
@@ -125,15 +124,8 @@ in
 
   config = lib.mkIf cfg.enable {
     hakula.secrets.required = {
-      mihomo-secret = {
-        name = "mihomo/secret";
-        path = cfg.secretFile;
-      };
-
-      mihomo-subscription-url = {
-        name = "mihomo/subscription-url";
-        path = cfg.subscriptionUrlFile;
-      };
+      "mihomo/secret" = cfg.secretFile;
+      "mihomo/subscription-url" = cfg.subscriptionUrlFile;
     };
 
     # --------------------------------------------------------------------------

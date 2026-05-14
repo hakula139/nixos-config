@@ -213,7 +213,5 @@ in
     age.secrets = secrets.mkRequiredUserSecrets {
       inherit homeConfig userConfig;
     };
-
-    systemd.tmpfiles.rules = secrets.mkSecretsDir userConfig userConfig.group;
   };
 }

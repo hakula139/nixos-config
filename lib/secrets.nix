@@ -4,17 +4,27 @@
 
 {
   lib,
-  secretsDir ? ".secrets",
+  secretsDir ? "/run/agenix",
 }:
 
 let
   secretsRoot = ../secrets;
   secretFile = name: "${secretsRoot}/${name}.age";
-  secretsPath = homeDir: "${homeDir}/${secretsDir}";
   secretAttrName = name: lib.replaceStrings [ "." "/" ] [ "-" "-" ] name;
+  secretPath = name: "${secretsDir}/${secretAttrName name}";
+
+  normalizeSecretSpec =
+    attrName: spec:
+    if builtins.isString spec then
+      {
+        name = attrName;
+        path = spec;
+      }
+    else
+      spec // lib.optionalAttrs (!(spec ? name)) { name = attrName; };
 in
 rec {
-  inherit secretAttrName secretFile secretsPath;
+  inherit secretAttrName secretFile secretPath;
 
   # ----------------------------------------------------------------------------
   # Secret Declarations
@@ -40,14 +50,13 @@ rec {
     }
     // lib.optionalAttrs (path != null) { inherit path; };
 
-  # User-owned secret decrypted into the shared per-user secret tree.
+  # User-owned secret materialized by the platform age.secrets backend.
   mkUserSecret =
     {
       name,
       user,
       file ? secretFile name,
       group ? null,
-      homeDir ? null,
       mode ? "0400",
       path ? null,
     }:
@@ -61,13 +70,6 @@ rec {
           user.group
         else
           owner;
-      userHome =
-        if homeDir != null then
-          homeDir
-        else if isUserAttrs && user ? home then
-          user.home
-        else
-          throw "mkUserSecret requires homeDir when user has no home";
     in
     mkSecret {
       inherit
@@ -77,7 +79,7 @@ rec {
         ;
       inherit owner;
       group = userGroup;
-      path = if path != null then path else "${secretsPath userHome}/${name}";
+      path = if path != null then path else secretPath name;
     };
 
   mkUserSecrets =
@@ -85,7 +87,6 @@ rec {
       specs,
       user,
       group ? null,
-      homeDir ? null,
       mode ? "0400",
       overrides ? { },
     }:
@@ -93,23 +94,22 @@ rec {
       lib.mapAttrsToList (
         attrName: spec:
         let
-          secret = spec // (overrides.${attrName} or overrides.${spec.name or attrName} or { });
+          baseSecret = normalizeSecretSpec attrName spec;
+          secret = baseSecret // (overrides.${attrName} or overrides.${baseSecret.name} or { });
 
           secretGroup = if (secret.group or null) != null then secret.group else group;
-          secretHomeDir = if (secret.homeDir or null) != null then secret.homeDir else homeDir;
         in
         {
-          name = attrName;
+          name = secretAttrName attrName;
           value = mkUserSecret (
             {
-              name = secret.name or attrName;
+              inherit (secret) name;
               inherit user;
               mode = secret.mode or mode;
+              path = secret.path or (secretPath attrName);
             }
             // lib.optionalAttrs ((secret.file or null) != null) { inherit (secret) file; }
-            // lib.optionalAttrs ((secret.path or null) != null) { inherit (secret) path; }
             // lib.optionalAttrs (secretGroup != null) { group = secretGroup; }
-            // lib.optionalAttrs (secretHomeDir != null) { homeDir = secretHomeDir; }
           );
         }
       ) specs
@@ -137,7 +137,6 @@ rec {
       homeConfig,
       userConfig,
       group ? null,
-      homeDir ? null,
       mode ? "0400",
       overrides ? { },
     }:
@@ -151,20 +150,5 @@ rec {
           ;
       }
       // lib.optionalAttrs (group != null) { inherit group; }
-      // lib.optionalAttrs (homeDir != null) { inherit homeDir; }
     );
-
-  # ----------------------------------------------------------------------------
-  # Directory Management
-  # ----------------------------------------------------------------------------
-
-  # Generate systemd.tmpfiles.rules entry for the user secrets directory.
-  mkSecretsDir =
-    user: group:
-    let
-      owner = user.name or (throw "mkSecretsDir requires user.name");
-    in
-    [
-      "d ${secretsPath user.home} 0700 ${owner} ${group} - -"
-    ];
 }

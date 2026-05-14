@@ -105,7 +105,6 @@ in
     };
 
     age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
-    systemd.tmpfiles.rules = secrets.mkSecretsDir userConfig userConfig.group;
 
     systemd.services."home-manager-${cfg.user.name}" = lib.mkIf (config.age.secrets != { }) {
       after = [ "agenix-install-secrets.service" ];

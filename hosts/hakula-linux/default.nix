@@ -33,11 +33,7 @@ in
     };
     hakula.secrets.required = {
       github-pat.name = lib.mkForce "github/pat-work";
-
-      wakatime-config = {
-        name = "wakatime/config";
-        path = "${userConfig.home}/.wakatime.cfg";
-      };
+      "wakatime/config" = "${userConfig.home}/.wakatime.cfg";
     };
 
     programs.ssh.matchBlocks."gitlab-public.${corpDomain}" = {
