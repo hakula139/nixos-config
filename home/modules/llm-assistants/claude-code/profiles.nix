@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  secrets,
   ...
 }:
 
@@ -17,13 +16,12 @@ let
   hasProfiles = cfg.auth.profiles != { };
 
   secretPath = config.hakula.secrets.path;
-  requiredSecrets = secrets.mkUserSecretSpecs (
-    lib.unique (
-      lib.concatMap (
-        p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
-      ) (builtins.attrValues cfg.auth.profiles)
-    )
+  requiredSecretNames = lib.unique (
+    lib.concatMap (
+      p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
+    ) (builtins.attrValues cfg.auth.profiles)
   );
+  requiredSecrets = lib.genAttrs requiredSecretNames (_: { });
 
   modelEnvVars = {
     opus = "ANTHROPIC_DEFAULT_OPUS_MODEL";

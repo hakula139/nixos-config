@@ -22,28 +22,10 @@ let
             description = "Secret path under the repository secrets directory";
           };
 
-          file = lib.mkOption {
-            type = nullOr path;
-            default = null;
-            description = "Encrypted age file backing the secret";
-          };
-
           path = lib.mkOption {
             type = nullOr str;
             default = secrets.secretPath name;
             description = "Absolute path where the decrypted secret is installed";
-          };
-
-          mode = lib.mkOption {
-            type = str;
-            default = "0400";
-            description = "Permissions mode for the decrypted secret";
-          };
-
-          group = lib.mkOption {
-            type = nullOr str;
-            default = null;
-            description = "Group override for the decrypted secret";
           };
         };
       }

@@ -29,7 +29,6 @@ let
       config
       pkgs
       lib
-      secrets
       isNixOS
       ;
   };
