@@ -175,7 +175,6 @@ in
       zln = "zmv -L";
       reload = "exec zsh";
     }
-    # NixOS-specific aliases
     // lib.optionalAttrs isNixOS {
       # Nix aliases
       nixsw = "nh os switch .";
@@ -184,7 +183,6 @@ in
       nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
       nixroll = "sudo nixos-rebuild switch --rollback --flake .";
     }
-    # Generic Linux (non-NixOS) aliases
     // lib.optionalAttrs (isLinux && !isNixOS) {
       nixsw = ''
         system-manager switch \
@@ -211,7 +209,6 @@ in
             home-manager-${username}.service
       '';
     }
-    # macOS-specific aliases
     // lib.optionalAttrs isDarwin {
       # Nix aliases
       nixsw = "nh darwin switch .";
