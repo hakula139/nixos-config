@@ -156,7 +156,7 @@ in
           trap 'rm -f "$tmpFile"' EXIT
 
           if [[ -s "$configFile" ]]; then
-            ${pkgs.tomlq}/bin/tomlq -s -t '.[0] * .[1]' "$configFile" "$baseline" >"$tmpFile"
+            ${pkgs.yq}/bin/tomlq -s -t '.[0] * .[1]' "$configFile" "$baseline" >"$tmpFile"
           else
             cp "$baseline" "$tmpFile"
           fi
