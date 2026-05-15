@@ -173,19 +173,13 @@ in
       mihomo = {
         Unit = {
           Description = "Mihomo proxy service";
-          After = [
-            "network-online.target"
-            "mihomo-update.service"
-          ];
-          Wants = [
-            "network-online.target"
-            "mihomo-update.service"
-          ];
+          After = [ "network-online.target" ];
+          Wants = [ "network-online.target" ];
         };
 
         Service = {
           Type = "simple";
-          ExecStart = "${pkgs.mihomo}/bin/mihomo -d ${configDir}";
+          ExecStart = "${startScript}";
           Restart = "on-failure";
           RestartSec = "5s";
         };
