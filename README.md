@@ -131,13 +131,13 @@ Attach with the VS Code / Cursor Dev Containers command.
 
 The Home Manager zsh module ships matching aliases on every platform:
 
-| Alias     | NixOS                  | macOS                        | Generic Linux (System Manager)                    |
-| --------- | ---------------------- | ---------------------------- | ------------------------------------------------- |
-| `nixsw`   | `nh os switch .`       | `nh darwin switch .`         | `system-manager switch ...` + post-switch healthcheck |
-| `nixlist` | NixOS generation list  | `darwin-rebuild` generations | System Manager generation list                    |
-| `nixroll` | `nixos-rebuild` rollback | `darwin-rebuild` rollback   | System Manager rollback + reactivate + healthcheck |
-| `nixup`   | `nix flake update`     | same                         | same                                              |
-| `nixgc`   | `nh clean all --keep-since 7d` | same                  | same                                              |
+| Alias     | NixOS                          | macOS                        | Generic Linux (System Manager)                        |
+| --------- | ------------------------------ | ---------------------------- | ----------------------------------------------------- |
+| `nixsw`   | `nh os switch .`               | `nh darwin switch .`         | `system-manager switch ...` + post-switch healthcheck |
+| `nixlist` | NixOS generation list          | `darwin-rebuild` generations | System Manager generation list                        |
+| `nixroll` | `nixos-rebuild` rollback       | `darwin-rebuild` rollback    | System Manager rollback + reactivate + healthcheck    |
+| `nixup`   | `nix flake update`             | same                         | same                                                  |
+| `nixgc`   | `nh clean all --keep-since 7d` | same                         | same                                                  |
 
 ## Secrets
 
