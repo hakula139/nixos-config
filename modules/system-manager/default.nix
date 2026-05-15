@@ -35,7 +35,7 @@ let
       fi
       if ! systemctl is-active --quiet "$service"; then
         echo "service '$service' is not active" >&2
-        # Diagnostic dump; status exits non-zero on failed units by design.
+        # `systemctl status` exits non-zero on failed units by design, so suppress that.
         systemctl status --no-pager "$service" >&2 || true
         rc=1
       fi
