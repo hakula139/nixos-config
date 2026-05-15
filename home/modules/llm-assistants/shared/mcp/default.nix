@@ -37,8 +37,8 @@ let
     }:
     pkgs.writeShellScriptBin "${name}-mcp" (
       let
-        argLine = lib.concatStringsSep " " ([ "npx -y ${package}" ] ++ extraArgs ++ [ ''"$@"'' ]);
         exports = lib.concatStrings (lib.mapAttrsToList exportFromFile env);
+        argLine = lib.concatStringsSep " " ([ "npx -y ${package}" ] ++ extraArgs ++ [ ''"$@"'' ]);
       in
       ''
         ${nodeSetup}
