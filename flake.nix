@@ -77,11 +77,6 @@
     {
       nixpkgs,
       nixpkgs-unstable,
-      nix-darwin,
-      home-manager,
-      system-manager,
-      disko,
-      agenix,
       git-hooks-nix,
       ...
     }@inputs:
@@ -157,178 +152,23 @@
         "repoModules"
       ];
 
-      # Home Manager integration block, instantiated by every host builder.
-      mkHomeManagerConfig =
-        {
-          enableDevToolchains ? false,
-          isDesktop,
-          isNixOS,
-          systemManagerConfigName ? null,
-          username ? "hakula",
-        }:
-        {
-          hostName ? null,
-          ...
-        }:
-        {
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            users.${username} = import ./home/hakula.nix;
-            backupFileExtension = "bak";
-            extraSpecialArgs = commonExtraSpecialArgs // {
-              inherit
-                enableDevToolchains
-                hostName
-                isDesktop
-                isNixOS
-                systemManagerConfigName
-                username
-                ;
-            };
-          };
-        };
-
-      # Shared modules for all NixOS servers.
-      serverSharedModules = [
-        agenix.nixosModules.default
-        disko.nixosModules.disko
-        home-manager.nixosModules.home-manager
-        (mkHomeManagerConfig {
-          isDesktop = false;
-          isNixOS = true;
-        })
-      ];
-
-      # ------------------------------------------------------------------------
-      # Server Configuration
-      # ------------------------------------------------------------------------
-      mkServer =
-        {
-          hostName,
-          configPath,
-        }:
-        nixpkgs.lib.nixosSystem {
-          specialArgs = commonSpecialArgs // {
-            inherit hostName;
-          };
-          modules = [
-            {
-              nixpkgs.hostPlatform = "x86_64-linux";
-              nixpkgs.overlays = overlays;
-            }
-          ]
-          ++ serverSharedModules
-          ++ [ configPath ];
-        };
-
-      # ------------------------------------------------------------------------
-      # Darwin Configuration
-      # ------------------------------------------------------------------------
-      mkDarwin =
-        {
-          hostName,
-          displayName,
-          configPath,
-        }:
-        nix-darwin.lib.darwinSystem {
-          specialArgs = commonSpecialArgs // {
-            inherit
-              hostName
-              displayName
-              ;
-          };
-          modules = [
-            {
-              nixpkgs.hostPlatform = "aarch64-darwin";
-              nixpkgs.overlays = overlays;
-            }
-            agenix.darwinModules.default
-            home-manager.darwinModules.home-manager
-            (mkHomeManagerConfig {
-              enableDevToolchains = true;
-              isDesktop = true;
-              isNixOS = false;
-            })
-            configPath
-          ];
-        };
-
-      # ------------------------------------------------------------------------
-      # System Manager Configuration (non-NixOS Linux)
-      # ------------------------------------------------------------------------
-      mkSystemManager =
-        {
-          hostName,
-          configPath,
-          isDesktop ? true,
-          enableDevToolchains ? true,
-        }:
-        system-manager.lib.makeSystemConfig {
-          modules = [
-            {
-              nixpkgs.hostPlatform = "x86_64-linux";
-              nixpkgs.config.allowUnfree = true;
-            }
-            home-manager.nixosModules.home-manager
-            (mkHomeManagerConfig {
-              inherit
-                enableDevToolchains
-                isDesktop
-                ;
-              isNixOS = false;
-              systemManagerConfigName = hostName;
-            })
-            ./modules/system-manager
-            configPath
-          ];
-          inherit overlays;
-          specialArgs = commonSpecialArgs // {
-            inherit hostName;
-          };
-        };
-
-      # ------------------------------------------------------------------------
-      # Docker Configuration
-      # ------------------------------------------------------------------------
-      mkDocker =
-        {
-          name,
-          tag ? "latest",
-          configPath,
-          username ? "hakula",
-          enableDevToolchains ? false,
-        }:
-        let
-          pkgs = pkgsFor "x86_64-linux";
-          nixosConfig = nixpkgs.lib.nixosSystem {
-            specialArgs = commonSpecialArgs // {
-              hostName = name;
-            };
-            modules = [
-              {
-                nixpkgs.hostPlatform = "x86_64-linux";
-                nixpkgs.overlays = overlays;
-              }
-              agenix.nixosModules.default
-              home-manager.nixosModules.home-manager
-              (mkHomeManagerConfig {
-                inherit enableDevToolchains username;
-                isDesktop = false;
-                isNixOS = true;
-              })
-              configPath
-            ];
-          };
-          inherit (nixosConfig.config.system.build) toplevel;
-        in
-        pkgs.dockerTools.buildLayeredImageWithNixDb {
-          inherit name tag;
-          contents = [ toplevel ];
-          config = {
-            Cmd = [ "${toplevel}/init" ];
-          };
-        };
+      builders = import ./lib/builders.nix {
+        inherit
+          inputs
+          nixpkgs
+          overlays
+          pkgsFor
+          commonSpecialArgs
+          commonExtraSpecialArgs
+          ;
+      };
+      inherit (builders)
+        serverSharedModules
+        mkServer
+        mkDarwin
+        mkSystemManager
+        mkDocker
+        ;
     in
     {
       # ------------------------------------------------------------------------
