@@ -96,9 +96,6 @@
       overlays = [
         inputs.rust-overlay.overlays.default
         (final: _: {
-          # ------------------------------------------------------------------
-          # Nixpkgs overrides
-          # ------------------------------------------------------------------
           unstable = import nixpkgs-unstable {
             localSystem = final.stdenv.hostPlatform.system;
             config.allowUnfree = true;
@@ -114,9 +111,6 @@
             };
           });
 
-          # ------------------------------------------------------------------
-          # Flake input CLIs
-          # ------------------------------------------------------------------
           agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
           system-manager = system-manager.packages.${final.stdenv.hostPlatform.system}.default;
 
@@ -131,9 +125,6 @@
           peertube-runner = final.callPackage ./packages/peertube/runner.nix { };
           zsh-hist = final.callPackage ./packages/zsh-hist { };
 
-          # ------------------------------------------------------------------
-          # Toolchains
-          # ------------------------------------------------------------------
           rustToolchain = final.rust-bin.stable.latest.default.override {
             extensions = [
               "llvm-tools-preview"
@@ -202,7 +193,7 @@
           ;
       };
 
-      # Shared Home Manager integration block used by mkServer, mkDarwin, and mkDocker
+      # Home Manager integration block, instantiated by every host builder.
       mkHomeManagerConfig =
         {
           enableDevToolchains ? false,
@@ -241,7 +232,7 @@
           };
         };
 
-      # Shared modules for all NixOS servers (used by mkServer and Colmena)
+      # Shared modules for all NixOS servers.
       serverSharedModules = [
         agenix.nixosModules.default
         disko.nixosModules.disko
@@ -387,41 +378,26 @@
       # NixOS Configurations (Linux servers)
       # ------------------------------------------------------------------------
       nixosConfigurations = {
-        # ----------------------------------------------------------------------
-        # US-1 (CloudCone SC2)
-        # ----------------------------------------------------------------------
         us-1 = mkServer {
           hostName = "us-1";
           configPath = ./hosts/us-1;
         };
 
-        # ----------------------------------------------------------------------
-        # US-2 (CloudCone VPS)
-        # ----------------------------------------------------------------------
         us-2 = mkServer {
           hostName = "us-2";
           configPath = ./hosts/us-2;
         };
 
-        # ----------------------------------------------------------------------
-        # US-3 (CloudCone SC2)
-        # ----------------------------------------------------------------------
         us-3 = mkServer {
           hostName = "us-3";
           configPath = ./hosts/us-3;
         };
 
-        # ----------------------------------------------------------------------
-        # US-4 (DMIT)
-        # ----------------------------------------------------------------------
         us-4 = mkServer {
           hostName = "us-4";
           configPath = ./hosts/us-4;
         };
 
-        # ----------------------------------------------------------------------
-        # SG-1 (Tencent Lighthouse)
-        # ----------------------------------------------------------------------
         sg-1 = mkServer {
           hostName = "sg-1";
           configPath = ./hosts/sg-1;
@@ -466,9 +442,6 @@
       # Darwin Configurations (macOS)
       # ------------------------------------------------------------------------
       darwinConfigurations = {
-        # ----------------------------------------------------------------------
-        # Hakula's MacBook Pro
-        # ----------------------------------------------------------------------
         hakula-macbook = mkDarwin {
           hostName = "hakula-macbook";
           displayName = "Hakula-MacBook";
@@ -480,9 +453,6 @@
       # System Manager Configurations (non-NixOS Linux)
       # ------------------------------------------------------------------------
       systemConfigs = {
-        # ----------------------------------------------------------------------
-        # Hakula's Generic Linux workstation
-        # ----------------------------------------------------------------------
         hakula-linux = mkSystemManager {
           hostName = "hakula-linux";
           configPath = ./hosts/hakula-linux;
@@ -493,14 +463,9 @@
       # Packages
       # ------------------------------------------------------------------------
       packages = {
-        # ----------------------------------------------------------------------
-        # CLI Tools
-        # ----------------------------------------------------------------------
         x86_64-linux.system-manager = (pkgsFor "x86_64-linux").system-manager;
 
-        # ----------------------------------------------------------------------
-        # Docker Images (for air-gapped deployment)
-        # ----------------------------------------------------------------------
+        # Docker images for air-gapped deployment.
         x86_64-linux.hakula-devvm-docker = mkDocker {
           name = "hakula-devvm";
           configPath = ./hosts/hakula-devvm;
