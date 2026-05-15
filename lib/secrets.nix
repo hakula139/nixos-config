@@ -48,6 +48,19 @@ in
       userConfig,
       group ? null,
     }:
+    let
+      inherit (homeConfig.hakula.secrets) required;
+      attrNames = builtins.attrNames required;
+      collisions = lib.filter (group: builtins.length group > 1) (
+        builtins.attrValues (lib.groupBy secretAttrName attrNames)
+      );
+    in
+    assert lib.assertMsg (collisions == [ ]) ''
+      hakula.secrets.required keys collide after normalization: ${
+        lib.concatMapStringsSep "; " (g: lib.concatStringsSep " == " g) collisions
+      }
+      (`.` and `/` both normalize to `-` for the age.secrets attribute name)
+    '';
     lib.mapAttrs' (
       attrName: spec:
       let
@@ -60,5 +73,5 @@ in
         group = secretGroup;
         mode = "0400";
       })
-    ) homeConfig.hakula.secrets.required;
+    ) required;
 }
