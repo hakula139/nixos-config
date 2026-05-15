@@ -60,5 +60,5 @@ in
         group = secretGroup;
         mode = "0400";
       })
-    ) (homeConfig.hakula.secrets.required or { });
+    ) homeConfig.hakula.secrets.required;
 }
