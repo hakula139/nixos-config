@@ -31,7 +31,7 @@ colmena apply --on @cloudcone  # by provider tag
 nh darwin switch .
 # or with alias: nixsw
 
-# Generic Linux / Ubuntu WSL (after bootstrap)
+# Generic Linux (after bootstrap)
 system-manager switch --flake '.#hakula-linux' --sudo
 # or with alias: nixsw
 
@@ -48,7 +48,7 @@ nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 # First-time macOS setup
 sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#hakula-macbook'
 
-# First-time generic Linux / Ubuntu WSL setup
+# First-time generic Linux setup
 nix run '.#system-manager' -- switch --flake '.#hakula-linux' --sudo
 system-manager-health-check agenix-install-secrets.service home-manager-hakula.service
 ```
