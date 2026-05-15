@@ -38,8 +38,7 @@ in
     description = "User-owned age secrets required by this Home Manager configuration";
   };
 
-  # Resolver exposed as a module argument so consumers can take it as a
-  # plain function parameter instead of routing through `config.hakula.*`.
+  # Module arg so consumers don't have to pull config.hakula.secrets.required.<name>.path.
   config._module.args.secretPath =
     name:
     config.hakula.secrets.required.${name}.path
