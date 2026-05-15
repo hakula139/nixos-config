@@ -27,23 +27,22 @@ let
     fi
   '';
 
-  # Wrapper for `npx -y <package>` style MCP servers. The four npm-based
-  # servers all share the same nodeSetup + optional-token + exec shape.
+  # Wrapper for `npx -y <package>` style MCP servers, sharing nodeSetup + env exports + exec.
   mkNpmServer =
     {
       name,
       package,
-      tokenEnv ? null,
-      tokenFile ? null,
+      env ? { },
       extraArgs ? [ ],
     }:
     pkgs.writeShellScriptBin "${name}-mcp" (
       let
         argLine = lib.concatStringsSep " " ([ "npx -y ${package}" ] ++ extraArgs ++ [ ''"$@"'' ]);
+        exports = lib.concatStrings (lib.mapAttrsToList exportFromFile env);
       in
       ''
         ${nodeSetup}
-        ${lib.optionalString (tokenEnv != null && tokenFile != null) (exportFromFile tokenEnv tokenFile)}
+        ${exports}
         exec ${argLine}
       ''
     );
@@ -67,8 +66,7 @@ let
   braveSearchBin = mkNpmServer {
     name = "brave-search";
     package = "@brave/brave-search-mcp-server";
-    tokenEnv = "BRAVE_API_KEY";
-    tokenFile = secretPath "brave-api-key";
+    env.BRAVE_API_KEY = secretPath "brave-api-key";
   };
 
   # ----------------------------------------------------------------------------
@@ -84,8 +82,7 @@ let
   context7Bin = mkNpmServer {
     name = "context7";
     package = "@upstash/context7-mcp";
-    tokenEnv = "CONTEXT7_API_KEY";
-    tokenFile = secretPath "context7-api-key";
+    env.CONTEXT7_API_KEY = secretPath "context7-api-key";
   };
 
   # ----------------------------------------------------------------------------
