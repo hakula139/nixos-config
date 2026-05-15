@@ -112,9 +112,10 @@ in
 
     programs.zsh.enable = true;
 
-    # zsh does not source /etc/profile, so add system-manager bin dirs here.
-    environment.etc."zsh/zshenv" = lib.mkIf config.programs.zsh.enable {
-      replaceExisting = true;
+    # Nix-built zsh's compile-time global rcs are /etc/zprofile (login),
+    # /etc/zshrc (interactive), and a store-bundled zshenv. Write /etc/zprofile
+    # so login zsh, including tmux panes and ssh sessions, sees system PATH.
+    environment.etc.zprofile = lib.mkIf config.programs.zsh.enable {
       text = ''
         typeset -U path PATH
         path=(
