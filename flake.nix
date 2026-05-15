@@ -27,6 +27,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # NixOS-style system management for non-NixOS Linux hosts
+    system-manager = {
+      url = "github:numtide/system-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Declarative disk partitioning (Linux only)
     disko = {
       url = "github:nix-community/disko";
@@ -71,14 +77,13 @@
     {
       nixpkgs,
       nixpkgs-unstable,
-      nix-darwin,
-      home-manager,
-      disko,
-      agenix,
       git-hooks-nix,
       ...
     }@inputs:
     let
+      # ------------------------------------------------------------------------
+      # Nixpkgs
+      # ------------------------------------------------------------------------
       systems = [
         "x86_64-linux"
         "aarch64-darwin"
@@ -86,41 +91,7 @@
 
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
-      overlays = [
-        inputs.rust-overlay.overlays.default
-        (final: _: {
-          unstable = import nixpkgs-unstable {
-            localSystem = final.stdenv.hostPlatform.system;
-            config.allowUnfree = true;
-          };
-
-          agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
-          cloudreve = final.callPackage ./packages/cloudreve { };
-          mcp-server-filesystem = final.callPackage ./packages/mcp/mcp-server-filesystem { };
-          mcp-server-git = final.callPackage ./packages/mcp/mcp-server-git { };
-          mcp-server-github = final.callPackage ./packages/mcp/mcp-server-github { };
-          mcp-server-gitlab = final.callPackage ./packages/mcp/mcp-server-gitlab { };
-          peertube = final.unstable.peertube.overrideAttrs (old: {
-            patches = (old.patches or [ ]) ++ [
-              ./packages/peertube/cdn-redirect-runner.patch
-              ./packages/peertube/hq-transcode.patch
-              ./packages/peertube/runner-download-timeout.patch
-            ];
-            meta = old.meta // {
-              platforms = old.meta.platforms ++ [ "aarch64-darwin" ];
-            };
-          });
-          peertube-runner = final.callPackage ./packages/peertube/runner.nix { };
-          rustToolchain = final.rust-bin.stable.latest.default.override {
-            extensions = [
-              "llvm-tools-preview"
-              "rust-analyzer"
-              "rust-src"
-            ];
-          };
-          zsh-hist = final.callPackage ./packages/zsh-hist { };
-        })
-      ];
+      overlays = import ./lib/overlays.nix { inherit inputs nixpkgs-unstable; };
 
       pkgsFor =
         system:
@@ -130,6 +101,9 @@
           config.allowUnfree = true;
         };
 
+      # ------------------------------------------------------------------------
+      # Pre-commit checks
+      # ------------------------------------------------------------------------
       preCommitCheckFor =
         system:
         git-hooks-nix.lib.${system}.run {
@@ -137,10 +111,39 @@
           hooks = {
             check-added-large-files.enable = true;
             check-yaml.enable = true;
+            cspell = {
+              enable = true;
+              args = [ "--no-progress" ];
+            };
+            deadnix.enable = true;
             end-of-file-fixer = {
               enable = true;
               excludes = [ "\\.age$" ];
             };
+            markdownlint = {
+              enable = true;
+              args = [ "--fix" ];
+              settings.configuration = {
+                default = true;
+                MD003.style = "atx";
+                MD004.style = "dash";
+                MD007.indent = 2;
+                MD010.code_blocks = false;
+                MD013 = false;
+                MD024.siblings_only = true;
+                MD026.punctuation = ".,;:";
+                MD029.style = "ordered";
+                MD033 = false;
+                MD034 = false;
+                MD041 = false;
+                MD046.style = "fenced";
+                MD048.style = "backtick";
+                MD049.style = "underscore";
+                MD050.style = "asterisk";
+              };
+            };
+            nixfmt.enable = true;
+            statix.enable = true;
             trim-trailing-whitespace = {
               enable = true;
               # Preserve Markdown's two-trailing-space hard-break syntax.
@@ -150,225 +153,86 @@
                 "\\.patch$"
               ];
             };
-            nixfmt.enable = true;
-            statix.enable = true;
-            deadnix.enable = true;
           };
         };
 
-      secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
+      # ------------------------------------------------------------------------
+      # Special args
+      # ------------------------------------------------------------------------
+      caches = import ./lib/caches.nix;
+      corpDomain = import ./lib/corp-domain.nix;
       keys = import ./secrets/keys.nix;
-
-      # Shared Home Manager integration block used by mkServer, mkDarwin, and mkDocker
-      mkHomeManagerConfig =
-        {
-          username ? "hakula",
-          isNixOS,
-          isDesktop,
-          enableDevToolchains ? false,
-        }:
-        {
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            users.${username} = import ./home/hakula.nix;
-            backupFileExtension = "bak";
-            extraSpecialArgs = {
-              inherit
-                inputs
-                secrets
-                username
-                isNixOS
-                isDesktop
-                enableDevToolchains
-                ;
-            };
-          };
-        };
-
-      # Shared modules for all NixOS servers (used by mkServer and Colmena)
-      serverSharedModules = [
-        agenix.nixosModules.default
-        disko.nixosModules.disko
-        home-manager.nixosModules.home-manager
-        (mkHomeManagerConfig {
-          isNixOS = true;
-          isDesktop = false;
-        })
+      llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
+      repoModules = {
+        nixos = ./modules/nixos;
+      };
+      secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
+      sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
+      toolingFor = pkgs: import ./lib/tooling.nix { inherit pkgs; };
+      commonSpecialArgs = {
+        inherit
+          inputs
+          caches
+          corpDomain
+          keys
+          llmAssistantLib
+          repoModules
+          secrets
+          sharedConfig
+          toolingFor
+          ;
+      };
+      commonExtraSpecialArgs = removeAttrs commonSpecialArgs [
+        "keys"
+        "repoModules"
       ];
 
       # ------------------------------------------------------------------------
-      # Server Configuration
+      # Host builders
       # ------------------------------------------------------------------------
-      mkServer =
-        {
-          hostName,
-          configPath,
-        }:
-        nixpkgs.lib.nixosSystem {
-          specialArgs = {
-            inherit
-              inputs
-              secrets
-              keys
-              hostName
-              ;
-          };
-          modules = [
-            {
-              nixpkgs.hostPlatform = "x86_64-linux";
-              nixpkgs.overlays = overlays;
-            }
-          ]
-          ++ serverSharedModules
-          ++ [ configPath ];
-        };
-
-      # ------------------------------------------------------------------------
-      # Darwin Configuration
-      # ------------------------------------------------------------------------
-      mkDarwin =
-        {
-          hostName,
-          displayName,
-          configPath,
-        }:
-        nix-darwin.lib.darwinSystem {
-          specialArgs = {
-            inherit
-              inputs
-              secrets
-              keys
-              hostName
-              displayName
-              ;
-          };
-          modules = [
-            {
-              nixpkgs.hostPlatform = "aarch64-darwin";
-              nixpkgs.overlays = overlays;
-            }
-            agenix.darwinModules.default
-            home-manager.darwinModules.home-manager
-            (mkHomeManagerConfig {
-              isNixOS = false;
-              isDesktop = true;
-              enableDevToolchains = true;
-            })
-            configPath
-          ];
-        };
-
-      # ------------------------------------------------------------------------
-      # Home Manager Configuration
-      # ------------------------------------------------------------------------
-      mkHome =
-        {
-          configPath,
-          username ? "hakula",
-          isDesktop ? true,
-          enableDevToolchains ? true,
-        }:
-        home-manager.lib.homeManagerConfiguration {
-          pkgs = pkgsFor "x86_64-linux";
-          modules = [
-            ./home/hakula.nix
-            configPath
-          ];
-          extraSpecialArgs = {
-            inherit
-              inputs
-              secrets
-              username
-              isDesktop
-              enableDevToolchains
-              ;
-            isNixOS = false;
-          };
-        };
-
-      # ------------------------------------------------------------------------
-      # Docker Configuration
-      # ------------------------------------------------------------------------
-      mkDocker =
-        {
-          name,
-          tag ? "latest",
-          configPath,
-          username ? "hakula",
-          enableDevToolchains ? false,
-        }:
-        let
-          pkgs = pkgsFor "x86_64-linux";
-          nixosConfig = nixpkgs.lib.nixosSystem {
-            specialArgs = {
-              inherit inputs secrets keys;
-            };
-            modules = [
-              {
-                nixpkgs.hostPlatform = "x86_64-linux";
-                nixpkgs.overlays = overlays;
-              }
-              agenix.nixosModules.default
-              home-manager.nixosModules.home-manager
-              (mkHomeManagerConfig {
-                inherit username enableDevToolchains;
-                isNixOS = true;
-                isDesktop = false;
-              })
-              configPath
-            ];
-          };
-          inherit (nixosConfig.config.system.build) toplevel;
-        in
-        pkgs.dockerTools.buildLayeredImageWithNixDb {
-          inherit name tag;
-          contents = [ toplevel ];
-          config = {
-            Cmd = [ "${toplevel}/init" ];
-          };
-        };
+      builders = import ./lib/builders.nix {
+        inherit
+          inputs
+          nixpkgs
+          overlays
+          pkgsFor
+          commonSpecialArgs
+          commonExtraSpecialArgs
+          ;
+      };
+      inherit (builders)
+        serverSharedModules
+        mkServer
+        mkDarwin
+        mkSystemManager
+        mkDocker
+        ;
     in
     {
       # ------------------------------------------------------------------------
       # NixOS Configurations (Linux servers)
       # ------------------------------------------------------------------------
       nixosConfigurations = {
-        # ----------------------------------------------------------------------
-        # US-1 (CloudCone SC2)
-        # ----------------------------------------------------------------------
         us-1 = mkServer {
           hostName = "us-1";
           configPath = ./hosts/us-1;
         };
 
-        # ----------------------------------------------------------------------
-        # US-2 (CloudCone VPS)
-        # ----------------------------------------------------------------------
         us-2 = mkServer {
           hostName = "us-2";
           configPath = ./hosts/us-2;
         };
 
-        # ----------------------------------------------------------------------
-        # US-3 (CloudCone SC2)
-        # ----------------------------------------------------------------------
         us-3 = mkServer {
           hostName = "us-3";
           configPath = ./hosts/us-3;
         };
 
-        # ----------------------------------------------------------------------
-        # US-4 (DMIT)
-        # ----------------------------------------------------------------------
         us-4 = mkServer {
           hostName = "us-4";
           configPath = ./hosts/us-4;
         };
 
-        # ----------------------------------------------------------------------
-        # SG-1 (Tencent Lighthouse)
-        # ----------------------------------------------------------------------
         sg-1 = mkServer {
           hostName = "sg-1";
           configPath = ./hosts/sg-1;
@@ -388,7 +252,7 @@
               system = "x86_64-linux";
               config.allowUnfree = true;
             };
-            specialArgs = { inherit inputs secrets keys; };
+            specialArgs = commonSpecialArgs;
             nodeSpecialArgs = builtins.mapAttrs (name: _: { hostName = name; }) servers;
           };
 
@@ -413,9 +277,6 @@
       # Darwin Configurations (macOS)
       # ------------------------------------------------------------------------
       darwinConfigurations = {
-        # ----------------------------------------------------------------------
-        # Hakula's MacBook Pro
-        # ----------------------------------------------------------------------
         hakula-macbook = mkDarwin {
           hostName = "hakula-macbook";
           displayName = "Hakula-MacBook";
@@ -424,15 +285,12 @@
       };
 
       # ------------------------------------------------------------------------
-      # Home Manager Configurations (standalone, for non-NixOS Linux)
+      # System Manager Configurations (non-NixOS Linux)
       # ------------------------------------------------------------------------
-      homeConfigurations = {
-        # ----------------------------------------------------------------------
-        # Hakula's Generic Linux (standalone Home Manager)
-        # ----------------------------------------------------------------------
-        hakula-linux = mkHome {
+      systemConfigs = {
+        hakula-linux = mkSystemManager {
+          hostName = "hakula-linux";
           configPath = ./hosts/hakula-linux;
-          isDesktop = false;
         };
       };
 
@@ -440,9 +298,9 @@
       # Packages
       # ------------------------------------------------------------------------
       packages = {
-        # ----------------------------------------------------------------------
-        # Docker Images (for air-gapped deployment)
-        # ----------------------------------------------------------------------
+        x86_64-linux.system-manager = (pkgsFor "x86_64-linux").system-manager;
+
+        # Docker images for air-gapped deployment.
         x86_64-linux.hakula-devvm-docker = mkDocker {
           name = "hakula-devvm";
           configPath = ./hosts/hakula-devvm;
@@ -458,6 +316,9 @@
         pre-commit = preCommitCheckFor system;
       });
 
+      # ------------------------------------------------------------------------
+      # Dev shell
+      # ------------------------------------------------------------------------
       devShells = forAllSystems (
         system:
         let

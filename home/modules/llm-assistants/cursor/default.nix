@@ -6,8 +6,10 @@
   config,
   pkgs,
   lib,
-  secrets,
-  osConfig ? null,
+  corpDomain,
+  llmAssistantLib,
+  secretPath,
+  hostName ? null,
   isNixOS ? false,
   isDesktop ? false,
   ...
@@ -17,7 +19,7 @@ let
   inherit (pkgs.stdenv) isDarwin;
   cfg = config.hakula.cursor;
 
-  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
+  inherit (llmAssistantLib) mcpOptions;
   cursorMcpServers = [
     "atlassian"
     "braveSearch"
@@ -32,9 +34,7 @@ let
   settings = import ./settings.nix {
     inherit pkgs isDarwin isNixOS;
     inherit (cfg.nixd) flakePath;
-    configName = lib.toLower (
-      if osConfig != null then osConfig.networking.hostName else "hakula-linux"
-    );
+    configName = lib.toLower (if hostName != null then hostName else "hakula-linux");
   };
 
   ext = import ./extensions.nix {
@@ -93,8 +93,9 @@ in
           config
           pkgs
           lib
-          secrets
-          isNixOS
+          llmAssistantLib
+          corpDomain
+          secretPath
           ;
         enabledServers = builtins.filter (s: !(lib.elem s cfg.mcp.disabledServers)) cfg.mcp.enabledServers;
       };
@@ -116,7 +117,6 @@ in
       };
     in
     lib.mkMerge [
-      mcp.secrets
       {
         # ----------------------------------------------------------------------
         # User configuration files

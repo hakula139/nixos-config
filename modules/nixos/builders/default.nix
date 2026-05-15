@@ -8,11 +8,12 @@
   lib,
   secrets,
   hostName,
+  sharedConfig,
   ...
 }:
 
 let
-  shared = import ../../shared.nix { inherit pkgs lib; };
+  shared = sharedConfig { inherit pkgs lib; };
   cfg = config.hakula.builders;
 
   allServers = lib.attrValues shared.servers;

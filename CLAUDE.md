@@ -1,279 +1,189 @@
-# CLAUDE.md
+# CLAUDE.md: nixos-config
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code (claude.ai/code) when working in this repository. Follow `~/.claude/CLAUDE.md` for global communication, scope, comment, and commit doctrine. Sections here add project-specific rules only — anything inferable from `flake.nix` or a representative module belongs in the code, not here.
 
 ## Repository Overview
 
-This is a **flake-based NixOS / nix-darwin configuration** managing multiple systems from a single declarative codebase:
+A flake-based NixOS / nix-darwin / system-manager configuration:
 
 - **5 NixOS servers** (us-1, us-2, us-3, us-4, sg-1) on x86_64-linux
 - **1 macOS workstation** (hakula-macbook) on aarch64-darwin
-- **1 generic Linux** (hakula-linux) using standalone Home Manager
+- **1 generic Linux** (hakula-linux) on system-manager + Home Manager
 - **1 Docker image** (hakula-devvm) for air-gapped deployment
 
-The architecture emphasizes modularity, with shared base configuration in `modules/shared.nix` and per-host customization in `hosts/`.
+`flake.nix` is the manifest; builders live in `lib/builders.nix`, overlays in `lib/overlays.nix`. Per-host config in `hosts/`. Cross-platform primitives in `modules/shared.nix`.
 
-## Essential Commands
+### Project Layout
 
-### Building and Deployment
-
-```bash
-# NixOS servers (run on the server itself)
-nh os switch .
-# or with alias: nixsw
-
-# NixOS servers (multi-server deployment from workstation via Colmena)
-colmena apply                  # all servers in parallel
-colmena apply --on us-4        # single server
-colmena apply --on @cloudcone  # by provider tag
-
-# macOS (after bootstrap)
-nh darwin switch .
-# or with alias: nixsw
-
-# Generic Linux (Home Manager standalone)
-nh home switch . -c hakula-linux
-# or with alias: nixsw
-
-# Update all dependencies
-nix flake update
+```text
+.
+├── flake.nix                        # Inputs, special args, host registration, outputs
+├── hosts/                           # Per-host configurations
+│   └── _profiles/                   # Reusable hardware / container profiles
+├── lib/
+│   ├── builders.nix                 # mkServer / mkDarwin / mkSystemManager / mkDocker, mkHomeManagerConfig, serverSharedModules
+│   ├── overlays.nix                 # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, toolchains, custom packages)
+│   ├── caches.nix                   # Binary cache substituters and trusted public keys
+│   ├── corp-domain.nix              # Corp-internal domain placeholder (gitignored real value)
+│   ├── llm-assistants/              # Shared LLM-assistant helpers (mcpOptions, proxy, claude profile sets)
+│   ├── secrets.nix                  # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
+│   ├── servers.nix                  # Server inventory (IP, port, provider, host keys, builder config)
+│   └── tooling.nix                  # Dev shell tooling
+├── modules/
+│   ├── shared.nix                   # Cross-platform Home Manager primitives
+│   ├── nixos/                       # NixOS service modules (most carry an `enable` option)
+│   ├── darwin/                      # macOS-specific modules
+│   └── system-manager/              # System Manager activation, agenix port
+├── home/
+│   ├── hakula.nix                   # Home Manager entry point
+│   └── modules/                     # Home Manager modules (one per concern)
+├── packages/                        # Custom package definitions (callPackage targets in lib/overlays.nix)
+├── secrets/                         # agenix-encrypted secrets and recipient rules
+└── .github/workflows/ci.yml         # CI pipeline
 ```
 
-### Bootstrap Commands
+## Bootstrap Commands
+
+First-time setup is the workflow that's hard to infer. Day-to-day applies use the `nixsw` zsh alias on every platform.
 
 ```bash
-# First-time NixOS installation with nixos-anywhere
+# NixOS server
 nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 
-# First-time macOS setup
+# macOS
 sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#hakula-macbook'
+
+# Generic Linux
+nix run '.#system-manager' -- switch --flake '.#hakula-linux' --sudo
+system-manager-health-check agenix-install-secrets.service home-manager-hakula.service
 ```
 
-### Code Quality
+Multi-server deploys go through Colmena: `colmena apply --on us-4`, `colmena apply --on @cloudcone` for provider tags.
 
-```bash
-# Format all Nix files
-git ls-files '*.nix' -z | xargs -0 nix fmt
+## Secrets
 
-# Lint with statix (anti-patterns) and deadnix (unused bindings)
-statix check .
-deadnix --fail .
+Two helpers in `lib/secrets.nix`, two contracts.
 
-# Enable pre-commit hooks locally
-nix develop -c zsh
+System-side (NixOS / Darwin / system-manager modules):
 
-# Run CI-style validation (non-modifying)
-nix flake check
+```nix
+age.secrets.<attr> = secrets.mkSecret {
+  name = "<service>/<secret>";
+  owner = "...";
+  group = "...";
+};
 ```
 
-### Development Environment
+User-side (Home Manager modules):
 
-```bash
-# Enter development shell (tooling declared in lib/tooling.nix)
-nix develop -c zsh
+```nix
+hakula.secrets.required."<service>/<secret>" = { };
 ```
 
-### Secrets Management
+Then resolve through the `secretPath` module argument: `secretPath "<service>/<secret>"`.
 
-```bash
-cd secrets
-agenix -e <service>/<name>.age -i ~/.ssh/<private-key>
-```
+Decrypted runtime paths mirror the `secrets/` tree (e.g. `secrets/mihomo/secret.age` → `/run/agenix/mihomo/secret`). Override `name` when the logical key differs from the encrypted file (e.g. `github-pat` → `github/pat-work`); override `path` only when a tool requires a fixed destination (e.g. WakaTime → `~/.wakatime.cfg`). Path collisions are caught at evaluation.
 
-#### Re-keying Secrets
+### `agenix -r` TTY gotcha
 
-When adding or changing host / user keys in `secrets/keys.nix`, all `.age` files must be re-encrypted with the updated recipient list. Run from an **interactive terminal** (not from scripts or Claude Code's Bash tool):
+Re-keying after recipient changes in `secrets/keys.nix` **must** run from an interactive terminal:
 
 ```bash
 cd secrets
 agenix -r -i ~/.ssh/<private-key>
 ```
 
-**Warning**: `agenix -r` must run in an interactive terminal. The agenix script checks `[ -t 0 ]` and overrides `EDITOR` to `cp -- /dev/stdin` when stdin is not a TTY, which silently empties all secrets before re-encrypting them.
+The agenix script checks `[ -t 0 ]` and overrides `EDITOR` to `cp -- /dev/stdin` when stdin is not a TTY, which silently empties every secret before re-encrypting them. Never invoke from a script or Claude Code's Bash tool.
 
-## Architecture
+## Coding Conventions
 
-### Flake Structure (`flake.nix`)
+### Module Shape
 
-The flake uses a **builder function pattern** to reduce duplication:
+- **NixOS modules** in `modules/nixos/` are typically optionally enabled services. Define `options.services.<name>.enable`, gate `config = lib.mkIf config.services.<name>.enable { ... }`. Wire into a host by importing and setting `enable = true;`.
+- **Home Manager modules** in `home/modules/` live under `hakula.<name>`. Branch on `pkgs.stdenv.{isDarwin, isLinux}` for platform variants. The flags `isNixOS` / `isDesktop` are threaded by the host builders; only consume them when the host actually sets them.
+- **Custom packages** in `packages/` are registered through the overlay (`lib/overlays.nix`) and consumed via `pkgs.<name>`.
+- **Hosts** in `hosts/` register through one of the four `mk*` builders in `lib/builders.nix`. Reuse profiles from `hosts/_profiles/` for shared hardware / container shapes.
 
-- `serverSharedModules`: Common NixOS modules (agenix, disko, Home Manager) shared by `mkServer` and Colmena
-- `mkServer`: Creates NixOS configurations with agenix, disko, and Home Manager integrated
-- `mkDarwin`: Creates Darwin configurations with agenix and Home Manager integrated
-- `mkHome`: Creates standalone Home Manager configurations for non-NixOS Linux
-- `mkDocker`: Creates layered NixOS Docker images using `dockerTools.buildLayeredImageWithNixDb` for air-gapped deployment
-- `overlays`: Provides `unstable` packages, `agenix` CLI, custom packages (`cloudreve`, `mcp-server-*`), and a patched `peertube`
-- `inputs.llm-agents`: Provides `claude-code` and `codex` packages from [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix)
-- `forAllSystems`: Handles both x86_64-linux and aarch64-darwin
+### Section Banners
 
-### Directory Layout
-
-- `flake.nix` — main entry point; outputs `nixosConfigurations`, `darwinConfigurations`, `homeConfigurations`, `packages`, `colmena`, `checks`, `devShells`, `formatter`
-- `hosts/` — per-host configurations; `hosts/_profiles/` holds reusable hardware / container profiles
-- `modules/shared.nix` — cross-platform base config
-- `modules/nixos/` — optional NixOS service modules (enabled per-host)
-- `modules/darwin/` — macOS-specific modules
-- `home/hakula.nix` + `home/modules/` — Home Manager user configuration
-- `packages/` — custom package definitions
-- `lib/` — shared helpers (`caches.nix`, `corp-domain.nix`, `secrets.nix`, `servers.nix`, `tooling.nix`; `llm-assistants/` for assistant-specific helpers and Claude profile sets)
-- `secrets/` — agenix-encrypted secrets (`keys.nix` for SSH public keys, `secrets.nix` for recipient mapping)
-- `.github/workflows/ci.yml` — CI pipeline
-
-### Module System
-
-NixOS modules in `modules/nixos/` are **optionally enabled** services, each exporting an `enable` option. Host configurations import and enable them selectively.
-
-The `llm-assistants` module acts as an integration layer for the primary interactive user, nesting `claude-code` and `mcp` sub-modules that mirror the `home/modules/llm-assistants/` structure.
-
-Home Manager modules in `home/modules/` configure user environments. The `isNixOS` and `isDesktop` flags drive conditional configuration (e.g., NixOS vs. standalone, desktop vs. server).
-
-### Shared Configuration Pattern
-
-`modules/shared.nix` exports **cross-platform primitives**:
-
-- `sshKeys`: User SSH public keys from `secrets/keys.nix`
-- `basePackages`: Minimal system packages (curl, wget, git, htop, vim)
-- `fonts`: Nerd Fonts, Sarasa Gothic, Source Han Sans/Serif
-- `binaryCaches`: Binary cache substituters and public keys from `lib/caches.nix`
-- `nixTooling`: Development tools from `lib/tooling.nix`
-- `nixSettings`: Experimental features, buffer sizes
-- `servers`: Server inventory imported from `lib/servers.nix` (IP, port, provider, host keys, builder config)
-
-Host configurations import `shared.nix` and extend with platform/host-specific settings.
-
-### Secrets with agenix
-
-Secrets are encrypted with **age** using SSH keys declared in `secrets/keys.nix` (grouped as `users` / `hosts` / `workstations`). Recipient rules live in `secrets/secrets.nix`.
-
-Secrets live in `secrets/` nested by service (e.g., `secrets/llm-assistants/claude-oauth-token.age`, `secrets/peertube/env.age`). They are **decrypted at activation time** by agenix and placed under `/run/agenix` (NixOS) or `/run/agenix.d` (Darwin). Reference them in modules via `config.age.secrets.<attr-name>.path`.
-
-#### Secrets Helper Library (`lib/secrets.nix`)
-
-All modules declare secrets through helpers for consistent configuration. See `lib/secrets.nix` for full signatures (`mkSecret`, `mkHomeSecret`, `mkSecretsDir`, `mkHomeSecretsDir`).
-
-**NixOS modules:**
+Banners end at column 80, counting the indent. Use equals signs at the file header (no indent), dashes for inner subsections (indented to match surrounding code):
 
 ```nix
-age.secrets.my-secret = secrets.mkSecret {
-  name = "my-service/my-secret"; # Path under secrets/ (sans .age)
-  owner = "service-user";
-  group = "service-group";
-};
+# ==============================================================================
+# Module Name
+# ==============================================================================
+
+      # ------------------------------------------------------------------------
+      # Subsection
+      # ------------------------------------------------------------------------
 ```
 
-**Home Manager modules:**
+Match nearby style instead of blanket-adding or blanket-removing. A file that bands every subsection should band the new one too; a flat module without banners stays flat.
 
-```nix
-age.secrets.my-secret = secrets.mkHomeSecret {
-  name = "my-service/my-secret";
-  homeDir = homeDir;
-};
-```
+### Comments
 
-Both accept optional `mode` (defaults to `"0400"`) and `path` (custom destination). Home Manager secrets default to `${homeDir}/.secrets/<name>`.
+Defer to global CLAUDE.md. The repo-specific addition: when _restyling_ an existing file, match nearby comment style instead of blanket-deleting or blanket-adding. A file already wearing section banners gets a banner on the new section; a flat module without banners stays flat.
 
-## CI/CD Pipeline
+### Nix Style
+
+- **Formatter**: `nixfmt` (enforced by pre-commit).
+- **Linting**: `statix`, `deadnix` (CI). `statix.toml` suppresses W20 `repeated_keys` because the flat-key style is intentional.
+- **Line width**: 100 chars (nixfmt default).
+- **`with pkgs;`**: use in package lists for brevity.
+- **`inherit` placement**: top of `let` blocks, like imports. Combine bindings from the same source: `inherit (pkgs.stdenv) isDarwin isLinux;`. Inside attribute sets, keep `inherit` in its logical position (e.g., `group` between `owner` and `path`).
+- **Alphabetical order** for flat single-line bindings whose names are self-describing (special-args list, host registration, attrset values without internal grouping).
+
+### Bash in Nix
+
+- Multi-line layout for non-trivial flow (`if/else`, multi-arg `printf`, process substitutions). One-line invocations stay on one line.
+- Quote variables. Use `set -euo pipefail` at the top of every script that runs more than one command.
+- Use `lib.escapeShellArg` / `lib.escapeShellArgs` when interpolating Nix values into shell.
+- Use `pkgs.writeShellScript` / `pkgs.writeShellScriptBin` for build-time content rather than activation-time heredocs.
+
+### Secrets Conventions
+
+- Logical key first: `hakula.secrets.required."<service>/<secret>"`. Override `name` only when the encrypted source differs from the logical key. Override `path` only when a tool requires a fixed location.
+- One canonical location per secret. Don't reference the same encrypted file under two logical keys.
+- Mihomo-style secret substitution: use `awk` against `ENVIRON[]` (not `sed`) so `|`, `&`, `\`, `'` survive into YAML. Validate the merged config before atomic swap.
+
+### Git Conventions
+
+- **Scope**: the module name (`mihomo`, `secrets`, `system-manager`), the file (`flake`, `claude`, `readme`), or `(host)` for host-scoped changes.
+- Don't commit `lib/corp-domain.nix` with the real value. The placeholder lives in git.
+
+## CI
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push / PR:
 
-1. `nix flake check --all-systems` — validates flake structure and runs pre-commit hooks (`nixfmt`, `statix`, `deadnix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
-2. Parallel builds of every host config (`us-1`..`us-4`, `sg-1`, `hakula-macbook`, `hakula-linux`, `hakula-devvm-docker`).
-
-Successful builds are uploaded to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
-
-> `statix.toml` suppresses W20 `repeated_keys`, since the flat-key style is intentional.
-
-## Code Style
-
-### Nix
-
-- **Formatter**: `nixfmt` (enforced by pre-commit)
-- **Linting**: `statix` and `deadnix` (enforced in CI)
-- **Line width**: Default (100 characters)
-- **Import style**: Use `with pkgs;` in package lists for brevity
-- **`inherit` placement**: In `let` blocks, place `inherit` statements at the top (like imports). Combine multiple bindings from the same source: `inherit (pkgs.stdenv) isDarwin isLinux;`. In attribute sets, keep `inherit` in its logical position (e.g., `group` between `owner` and `path`)
-- **Module structure**: Follow existing module patterns (enable option, config block, documentation strings)
-- **Comments**: Only add when needed; avoid verbose / obvious comments (prefer clarity in naming / structure)
-
-### Bash Scripts
-
-- Multi-line formatting for complex commands (`if` / `else`, multi-argument `printf`, process substitutions)
-- Descriptive variable names over terse ones
-
-## Testing Changes
-
-Before pushing, always run:
-
-```bash
-nix flake check  # Validates flake + runs pre-commit checks
-```
-
-For host-specific testing:
-
-```bash
-# Build without activating (faster feedback)
-nix build '.#nixosConfigurations.us-4.config.system.build.toplevel'
-nix build '.#darwinConfigurations.hakula-macbook.system'
-nix build '.#homeConfigurations.hakula-linux.activationPackage'
-nix build '.#packages.x86_64-linux.hakula-devvm-docker'
-```
-
-## Common Patterns
-
-### Adding a New NixOS Module
-
-1. Create `modules/nixos/my-service/default.nix` (directory-based preferred)
-2. Define `options.services.my-service.enable` and configuration options
-3. Use `lib.mkIf config.services.my-service.enable { ... }` for conditional activation
-4. Import in host configuration and set `services.my-service.enable = true;`
-5. **Maintain alphabetical ordering** of services within the host configuration's Services section
-
-### Adding a Home Manager Module
-
-1. Create `home/modules/my-module/default.nix` (directory-based preferred)
-2. Accept `{ config, pkgs, lib, isNixOS ? false, isDesktop ? false, ... }`
-3. Use `lib.mkIf` to conditionally enable based on `isNixOS` or `isDesktop`
-4. Import in `home/hakula.nix`
-
-### Adding a Custom Package
-
-1. Create `packages/my-package/default.nix`
-2. Follow standard Nix package structure (`stdenv.mkDerivation` or `buildGoModule`, etc.)
-3. Add to `overlays` in `flake.nix`: `my-package = final.callPackage ./packages/my-package { };`
-4. Reference as `pkgs.my-package` in modules
-
-### Adding a Host
-
-1. Create `hosts/my-host/default.nix` with host-specific configuration
-2. Add to `nixosConfigurations`, `darwinConfigurations`, or `homeConfigurations` in `flake.nix` using the appropriate builder (`mkServer`, `mkDarwin`, or `mkHome`)
-3. For NixOS: generate hardware config with `nixos-generate-config --show-hardware-config`
-4. Optionally reuse profiles from `hosts/_profiles/` for common hardware
-
-### Adding a Docker Image
-
-1. Create `hosts/my-container/default.nix` with container-specific configuration
-2. Import the docker profile: `imports = [ ../_profiles/docker ];`
-3. Set `networking.hostName` and any host-specific overrides
-4. Add Home Manager overrides under `home-manager.users.hakula = { ... };` if needed
-5. Add to `packages.x86_64-linux` in `flake.nix` using `mkDocker`
-6. Build with `nix build '.#packages.x86_64-linux.my-container-docker'`
-
-### Adding Secrets to a Module
-
-1. Add `secrets` parameter to the module's function signature (if not already present)
-2. Declare the secret using the helper library:
-   - **NixOS**: `age.secrets.<attr> = secrets.mkSecret { name = "<service>/<secret>"; owner = "..."; group = "..."; };`
-   - **Home Manager**: `age.secrets.<attr> = secrets.mkHomeSecret { name = "<service>/<secret>"; homeDir = homeDir; };`
-3. Register the recipient list in `secrets/secrets.nix` and create the encrypted file: `cd secrets && agenix -e <service>/<secret>.age`
-4. Reference the secret in your module via `config.age.secrets.<attr>.path`
-5. Optional: override `mode` or `path` for custom permissions or location
+1. `nix flake check --all-systems` — validates the flake structure and runs pre-commit hooks (`nixfmt`, `statix`, `deadnix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
+2. Parallel builds of every host (`us-1`..`us-4`, `sg-1`, `hakula-macbook`, `hakula-linux`, `hakula-devvm-docker`).
+3. Successful builds upload to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
 
 ## Proxy Configuration
 
-Some hosts route Claude Code, Codex, and other LLM assistants through an **HTTP proxy**. This is configured per-host via `hakula.llm-assistants.proxy.*` in the host's `default.nix`, which fans out to the individual assistants (`claude-code`, `codex`, `opencode`). The proxy URL defaults to `http://127.0.0.1:7897` (local mihomo) but can be overridden via `url` or loaded from an agenix secret via `secretUrlFile`. Currently enabled on:
+`hakula.llm-assistants.proxy.*` fans out to each assistant (`claude-code`, `codex`, `opencode`). Proxy URL defaults to `http://127.0.0.1:7897` (local mihomo); override via `url` or `secretUrlFile`. Currently enabled on `hakula-macbook`, `hakula-linux`, and `hakula-devvm` (the last via `secretUrlFile`).
 
-- `hakula-macbook`
-- `hakula-linux`
-- `hakula-devvm` (via `secretUrlFile`)
+When network operations matter on these hosts, requests route through the proxy.
 
-When working with network operations on these hosts, be aware that tools may route through this proxy.
+## Verification
+
+Run before review:
+
+```bash
+nix flake check                                          # Flake structure + pre-commit hooks
+git ls-files '*.nix' -z | xargs -0 nix fmt               # Format Nix files
+
+# Per-host builds (cheaper than the full flake check):
+nix build '.#nixosConfigurations.us-1.config.system.build.toplevel'
+nix build '.#darwinConfigurations.hakula-macbook.system'
+nix build '.#systemConfigs.hakula-linux'
+nix build '.#packages.x86_64-linux.hakula-devvm-docker'
+```
+
+When a refactor should be store-path-equivalent (rename, extract-to-lib, comment-only), assert that by capturing the output path of `nix build --no-link --print-out-paths '.#<target>'` before and after.
+
+## Documentation Maintenance
+
+- Keep `README.md` user-facing — value, supported features, usage. Not internal progress.
+- Match the project layout in this file to the filesystem. When directories move or land, update the tree.
+- After substantive changes, sweep docs for stale claims: `README.md` Layout block, this file's project layout and conventions, host inventory tables, alias matrix.

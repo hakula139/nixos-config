@@ -1,12 +1,11 @@
 # ==============================================================================
-# Wakatime Configuration
+# WakaTime Configuration
 # ==============================================================================
 
 {
   config,
   lib,
-  secrets,
-  isNixOS ? false,
+  isDesktop ? false,
   ...
 }:
 
@@ -17,11 +16,11 @@ in
   # ----------------------------------------------------------------------------
   # Secrets
   # ----------------------------------------------------------------------------
-  config = lib.mkIf (!isNixOS) {
-    age.secrets.wakatime-config = secrets.mkHomeSecret {
-      name = "wakatime/config";
-      inherit homeDir;
-      path = "${homeDir}/.wakatime.cfg";
+  config = lib.mkIf isDesktop {
+    hakula.secrets.required = {
+      "wakatime/config" = {
+        path = "${homeDir}/.wakatime.cfg";
+      };
     };
   };
 }

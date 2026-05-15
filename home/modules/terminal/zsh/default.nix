@@ -6,12 +6,37 @@
   config,
   pkgs,
   lib,
+  username ? "hakula",
   isNixOS ? false,
+  systemManagerConfigName ? null,
   ...
 }:
 
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
+
+  smProfile = "/nix/var/nix/profiles/system-manager-profiles";
+  smHealthCheck = "system-manager-health-check agenix-install-secrets.service home-manager-${username}.service";
+
+  # Re-sync side effects that depend on WSL interop. Empty on hosts without it.
+  postSwitchSync = lib.optionalString config.hakula.fonts.windowsSync.enable "install-windows-fonts";
+
+  # nixsw / nixroll run in the user's interactive shell so postSwitchSync
+  # commands have a live WSL_INTEROP socket.
+  nixswScript = pkgs.writeShellScript "nixsw" ''
+    set -euo pipefail
+    system-manager switch --flake '.#${systemManagerConfigName}' --sudo
+    ${smHealthCheck}
+    ${postSwitchSync}
+  '';
+
+  nixrollScript = pkgs.writeShellScript "nixroll" ''
+    set -euo pipefail
+    sudo nix-env --profile ${smProfile} --rollback
+    system-manager activate --sudo
+    ${smHealthCheck}
+    ${postSwitchSync}
+  '';
 in
 {
   programs.zsh = {
@@ -173,7 +198,6 @@ in
       zln = "zmv -L";
       reload = "exec zsh";
     }
-    # NixOS-specific aliases
     // lib.optionalAttrs isNixOS {
       # Nix aliases
       nixsw = "nh os switch .";
@@ -182,14 +206,11 @@ in
       nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
       nixroll = "sudo nixos-rebuild switch --rollback --flake .";
     }
-    # Generic Linux (non-NixOS) aliases
     // lib.optionalAttrs (isLinux && !isNixOS) {
-      # Home Manager aliases
-      nixsw = "nh home switch . -c hakula-linux";
-      nixlist = "home-manager generations | head -n 10";
-      nixroll = "home-manager switch --rollback";
+      nixsw = "${nixswScript}";
+      nixroll = "${nixrollScript}";
+      nixlist = "sudo nix-env --profile ${smProfile} --list-generations";
     }
-    # macOS-specific aliases
     // lib.optionalAttrs isDarwin {
       # Nix aliases
       nixsw = "nh darwin switch .";

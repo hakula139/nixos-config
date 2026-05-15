@@ -6,37 +6,56 @@
   config,
   pkgs,
   lib,
-  secrets,
-  isNixOS ? false,
+  corpDomain,
+  secretPath,
   ...
 }:
 
 let
   homeDir = config.home.homeDirectory;
-  secretsDir = secrets.secretsPath homeDir;
-  corpDomain = import ../../../../../lib/corp-domain.nix;
 
-  # Node.js's built-in fetch (undici) ignores HTTP_PROXY / HTTPS_PROXY by
-  # default. --use-env-proxy makes it honour the env vars, which is required
-  # on hosts that route traffic through a proxy.
+  # undici (Node's built-in fetch) needs --use-env-proxy to honour HTTP_PROXY.
   nodejs = pkgs.nodejs_24;
   nodeSetup = ''
     export PATH="${nodejs}/bin:$PATH"
     export NODE_OPTIONS="''${NODE_OPTIONS:+$NODE_OPTIONS }--use-env-proxy"
   '';
 
+  exportFromFile = var: file: ''
+    if [ -f "${file}" ]; then
+      export ${var}="$(cat ${file})"
+    fi
+  '';
+
+  # Wrapper for `npx -y <package>` style MCP servers, sharing nodeSetup + env exports + exec.
+  mkNpmServer =
+    {
+      name,
+      package,
+      env ? { },
+      extraArgs ? [ ],
+    }:
+    pkgs.writeShellScriptBin "${name}-mcp" (
+      let
+        exports = lib.concatStrings (lib.mapAttrsToList exportFromFile env);
+        argLine = lib.concatStringsSep " " ([ "npx -y ${package}" ] ++ extraArgs ++ [ ''"$@"'' ]);
+      in
+      ''
+        ${nodeSetup}
+        ${exports}
+        exec ${argLine}
+      ''
+    );
+
   # ----------------------------------------------------------------------------
   # Atlassian (Confluence)
   # ----------------------------------------------------------------------------
-  confluencePatFile = "${secretsDir}/llm-assistants/mcp/confluence-pat";
+  confluencePatFile = secretPath "confluence-pat";
   atlassianBin = pkgs.writeShellScriptBin "atlassian-mcp" ''
     export PATH="${pkgs.uv}/bin:$PATH"
-    if [ -f "${confluencePatFile}" ]; then
-      export CONFLUENCE_PERSONAL_TOKEN="$(cat ${confluencePatFile})"
-    fi
+    ${exportFromFile "CONFLUENCE_PERSONAL_TOKEN" confluencePatFile}
     export CONFLUENCE_URL="https://wiki.${corpDomain}"
-    # mcp-atlassian reads HTTP(S)_PROXY into session.proxies but ignores NO_PROXY
-    # due to trust_env=False (PAT auth). Unset proxy for internal Confluence.
+    # mcp-atlassian honours HTTP_PROXY but ignores NO_PROXY, so unset proxies for internal Confluence.
     unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
     exec uvx mcp-atlassian "$@"
   '';
@@ -44,14 +63,11 @@ let
   # ----------------------------------------------------------------------------
   # Brave Search
   # ----------------------------------------------------------------------------
-  braveApiKeyFile = "${secretsDir}/llm-assistants/mcp/brave-api-key";
-  braveSearchBin = pkgs.writeShellScriptBin "brave-search-mcp" ''
-    ${nodeSetup}
-    if [ -f "${braveApiKeyFile}" ]; then
-      export BRAVE_API_KEY="$(cat ${braveApiKeyFile})"
-    fi
-    exec npx -y @brave/brave-search-mcp-server "$@"
-  '';
+  braveSearchBin = mkNpmServer {
+    name = "brave-search";
+    package = "@brave/brave-search-mcp-server";
+    env.BRAVE_API_KEY = secretPath "brave-api-key";
+  };
 
   # ----------------------------------------------------------------------------
   # Codex
@@ -63,30 +79,32 @@ let
   # ----------------------------------------------------------------------------
   # Context7
   # ----------------------------------------------------------------------------
-  context7ApiKeyFile = "${secretsDir}/llm-assistants/mcp/context7-api-key";
-  context7Bin = pkgs.writeShellScriptBin "context7-mcp" ''
-    ${nodeSetup}
-    if [ -f "${context7ApiKeyFile}" ]; then
-      export CONTEXT7_API_KEY="$(cat ${context7ApiKeyFile})"
-    fi
-    exec npx -y @upstash/context7-mcp "$@"
-  '';
+  context7Bin = mkNpmServer {
+    name = "context7";
+    package = "@upstash/context7-mcp";
+    env.CONTEXT7_API_KEY = secretPath "context7-api-key";
+  };
 
   # ----------------------------------------------------------------------------
   # DeepWiki
   # ----------------------------------------------------------------------------
-  deepwikiBin = pkgs.writeShellScriptBin "deepwiki-mcp" ''
-    ${nodeSetup}
-    exec npx -y mcp-remote https://mcp.deepwiki.com/mcp --transport http-first "$@"
-  '';
+  deepwikiBin = mkNpmServer {
+    name = "deepwiki";
+    package = "mcp-remote";
+    extraArgs = [
+      "https://mcp.deepwiki.com/mcp"
+      "--transport"
+      "http-first"
+    ];
+  };
 
   # ----------------------------------------------------------------------------
-  # Fetcher (Playwright-based web fetcher, fallback for sites that block WebFetch)
+  # Fetcher
   # ----------------------------------------------------------------------------
-  fetcherBin = pkgs.writeShellScriptBin "fetcher-mcp" ''
-    ${nodeSetup}
-    exec npx -y fetcher-mcp "$@"
-  '';
+  fetcherBin = mkNpmServer {
+    name = "fetcher";
+    package = "fetcher-mcp";
+  };
 
   # ----------------------------------------------------------------------------
   # Filesystem
@@ -106,7 +124,7 @@ let
   # GitHub
   # ----------------------------------------------------------------------------
   ghBin = "${config.home.profileDirectory}/bin/gh";
-  githubPatFile = "${secretsDir}/github/pat";
+  githubPatFile = secretPath "github-pat";
   githubBin = pkgs.writeShellScriptBin "github-mcp" ''
     if [ -x "${ghBin}" ] && token=$("${ghBin}" auth token 2>/dev/null); then
       export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
@@ -199,34 +217,6 @@ in
     gitlab = {
       command = "${gitlabBin}/bin/gitlab-mcp";
       type = "stdio";
-    };
-  };
-
-  # ----------------------------------------------------------------------------
-  # Secrets
-  # ----------------------------------------------------------------------------
-  secrets = lib.mkIf (!isNixOS) {
-    age.secrets = {
-      confluence-pat = secrets.mkHomeSecret {
-        name = "llm-assistants/mcp/confluence-pat";
-        inherit homeDir;
-      };
-
-      brave-api-key = secrets.mkHomeSecret {
-        name = "llm-assistants/mcp/brave-api-key";
-        inherit homeDir;
-      };
-
-      context7-api-key = secrets.mkHomeSecret {
-        name = "llm-assistants/mcp/context7-api-key";
-        inherit homeDir;
-      };
-
-      github-pat = secrets.mkHomeSecret {
-        name = "github/pat-personal";
-        inherit homeDir;
-        path = "${secretsDir}/github/pat";
-      };
     };
   };
 }

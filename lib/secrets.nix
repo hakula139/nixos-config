@@ -4,66 +4,62 @@
 
 {
   lib,
-  secretsDir ? ".secrets",
+  secretsDir ? "/run/agenix",
 }:
 
 let
   secretsRoot = ../secrets;
   secretFile = name: "${secretsRoot}/${name}.age";
-  secretsPath = homeDir: "${homeDir}/${secretsDir}";
-in
-{
-  inherit secretFile secretsPath;
-
-  # ----------------------------------------------------------------------------
-  # Secret Declarations
-  # ----------------------------------------------------------------------------
-
-  # Standard secret configuration for NixOS modules
-  # Returns an age.secrets.<name> configuration for system-level agenix
+  secretPath = name: "${secretsDir}/${name}";
   mkSecret =
     {
       name,
-      owner,
-      group,
+      file ? secretFile name,
+      owner ? "root",
+      group ? owner,
       mode ? "0400",
       path ? null,
     }:
     {
-      file = secretFile name;
-      inherit owner group mode;
+      inherit
+        file
+        owner
+        group
+        mode
+        ;
     }
     // lib.optionalAttrs (path != null) { inherit path; };
+in
+{
+  inherit
+    secretFile
+    secretPath
+    mkSecret
+    ;
 
-  # Standard Home Manager secret configuration
-  # Returns an age.secrets.<name> configuration for home-manager agenix
-  mkHomeSecret =
+  mkRequiredUserSecrets =
     {
-      name,
-      homeDir,
-      mode ? "0400",
-      path ? null,
+      homeConfig,
+      userConfig,
+      group ? null,
     }:
     let
-      defaultPath = "${secretsPath homeDir}/${name}";
+      inherit (homeConfig.hakula.secrets) required;
+      pathCollisions = lib.filter (g: builtins.length g > 1) (
+        builtins.attrValues (lib.groupBy (n: required.${n}.path) (builtins.attrNames required))
+      );
+      formatGroups = lib.concatMapStringsSep "; " (g: lib.concatStringsSep " == " g);
     in
-    {
-      file = secretFile name;
-      path = if path != null then path else defaultPath;
-      inherit mode;
-    };
-
-  # ----------------------------------------------------------------------------
-  # Directory Management
-  # ----------------------------------------------------------------------------
-
-  # Generate systemd.tmpfiles.rules entry for secrets directory (NixOS)
-  mkSecretsDir = user: group: [
-    "d ${secretsPath user.home} 0700 ${user.name} ${group} - -"
-  ];
-
-  # Generate home.activation script for secrets directory (Home Manager)
-  mkHomeSecretsDir = homeDir: ''
-    install -d -m 0700 "${secretsPath homeDir}"
-  '';
+    assert lib.assertMsg (pathCollisions == [ ]) ''
+      hakula.secrets.required entries share a destination path: ${formatGroups pathCollisions}
+      (each `path` override must be unique; the second decrypt would overwrite the first)
+    '';
+    lib.mapAttrs (
+      _: spec:
+      mkSecret {
+        inherit (spec) name path;
+        owner = userConfig.name;
+        group = if group != null then group else userConfig.group or userConfig.name;
+      }
+    ) required;
 }

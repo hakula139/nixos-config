@@ -6,21 +6,22 @@
   config,
   pkgs,
   lib,
-  secrets,
-  isNixOS ? false,
+  corpDomain,
+  llmAssistantLib,
+  secretPath,
   enabledServers,
   ...
 }:
 
 let
-  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
+  inherit (llmAssistantLib) mcpOptions;
   mcp = import ../shared/mcp {
     inherit
       config
       pkgs
       lib
-      secrets
-      isNixOS
+      corpDomain
+      secretPath
       ;
   };
 
@@ -38,6 +39,5 @@ let
     );
 in
 {
-  inherit (mcp) secrets;
   serversConfig = builtins.listToAttrs (map mkEntry enabledServers);
 }

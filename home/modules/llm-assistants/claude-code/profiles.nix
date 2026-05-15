@@ -6,16 +6,22 @@
   config,
   pkgs,
   lib,
-  secrets,
-  isNixOS ? false,
+  secretPath,
+  ...
 }:
 
 let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
   stateDir = "${homeDir}/.local/state/claude-code";
-  secretsDir = secrets.secretsPath homeDir;
   hasProfiles = cfg.auth.profiles != { };
+
+  requiredSecretNames = lib.unique (
+    lib.concatMap (
+      p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
+    ) (builtins.attrValues cfg.auth.profiles)
+  );
+  requiredSecrets = lib.genAttrs requiredSecretNames (_: { });
 
   modelEnvVars = {
     opus = "ANTHROPIC_DEFAULT_OPUS_MODEL";
@@ -90,15 +96,6 @@ let
   };
 
   # ----------------------------------------------------------------------------
-  # Secrets
-  # ----------------------------------------------------------------------------
-  requiredSecrets = lib.unique (
-    lib.concatMap (
-      p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
-    ) (builtins.attrValues cfg.auth.profiles)
-  );
-
-  # ----------------------------------------------------------------------------
   # Profile scripts
   # ----------------------------------------------------------------------------
   readSecretFn = ''
@@ -121,7 +118,7 @@ let
           [ "# subscription mode: auth via interactive OAuth (.credentials.json)" ]
         else
           let
-            sf = lib.escapeShellArg "${secretsDir}/${profile.tokenSecret}";
+            sf = lib.escapeShellArg (secretPath profile.tokenSecret);
             envVar = authEnvByType.${profile.type};
           in
           [
@@ -140,7 +137,7 @@ let
         )
         ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv
         ++ lib.mapAttrsToList (
-          k: secretName: "export ${k}=${esc "${secretsDir}/${secretName}"}"
+          k: secretName: "export ${k}=${esc (secretPath secretName)}"
         ) profile.extraSecretEnv;
     in
     pkgs.writeShellScript "claude-profile-${name}" (lib.concatStringsSep "\n" (tokenLines ++ envLines));
@@ -330,45 +327,25 @@ in
       default = false;
       description = "Include the `corp-gateway` profile. Requires corp-scoped agenix access.";
     };
-
-    _provision.requiredSecrets = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      internal = true;
-      readOnly = true;
-    };
   };
 
   # ----------------------------------------------------------------------------
   # Module config
   # ----------------------------------------------------------------------------
-  config = lib.mkMerge [
-    {
-      assertions =
-        lib.optional (hasProfiles && cfg.auth.defaultProfile == null) {
-          assertion = false;
-          message = "hakula.claude-code: auth.defaultProfile must be set when profiles are defined";
-        }
-        ++ lib.optional (hasProfiles && cfg.auth.defaultProfile != null) {
-          assertion = lib.hasAttr cfg.auth.defaultProfile cfg.auth.profiles;
-          message = "hakula.claude-code: auth.defaultProfile '${cfg.auth.defaultProfile}' is not in auth.profiles";
-        }
-        ++ lib.concatLists (lib.mapAttrsToList mkProfileAssertions cfg.auth.profiles);
+  config = {
+    assertions =
+      lib.optional (hasProfiles && cfg.auth.defaultProfile == null) {
+        assertion = false;
+        message = "hakula.claude-code: auth.defaultProfile must be set when profiles are defined";
+      }
+      ++ lib.optional (hasProfiles && cfg.auth.defaultProfile != null) {
+        assertion = lib.hasAttr cfg.auth.defaultProfile cfg.auth.profiles;
+        message = "hakula.claude-code: auth.defaultProfile '${cfg.auth.defaultProfile}' is not in auth.profiles";
+      }
+      ++ lib.concatLists (lib.mapAttrsToList mkProfileAssertions cfg.auth.profiles);
 
-      hakula.claude-code.auth._provision.requiredSecrets = requiredSecrets;
-    }
-
-    (lib.mkIf (!isNixOS && hasProfiles) {
-      age.secrets = builtins.listToAttrs (
-        map (secretName: {
-          name = lib.replaceStrings [ "." "/" ] [ "-" "-" ] secretName;
-          value = secrets.mkHomeSecret {
-            name = secretName;
-            inherit homeDir;
-          };
-        }) requiredSecrets
-      );
-    })
-  ];
+    hakula.secrets.required = requiredSecrets;
+  };
 
   # ----------------------------------------------------------------------------
   # Exports
