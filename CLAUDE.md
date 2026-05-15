@@ -23,7 +23,8 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 ├── data/                            # Static configuration and inventory
 │   ├── caches.nix                   # Binary cache substituters and trusted public keys
 │   ├── corp-domain.nix              # Corp-internal domain placeholder (gitignored real value)
-│   └── servers.nix                  # Server inventory (IP, port, provider, host keys, builder config)
+│   ├── servers.nix                  # Server inventory (IP, port, provider, host keys, builder config)
+│   └── system-manager.nix           # Runtime PATH entries provisioned by system-manager activation
 ├── lib/                             # Pure helpers and framework code
 │   ├── builders.nix                 # mkServer / mkDarwin / mkSystemManager / mkDocker, mkHomeManagerConfig, serverSharedModules
 │   ├── overlays.nix                 # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, toolchains, custom packages)

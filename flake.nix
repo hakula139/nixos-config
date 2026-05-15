@@ -168,6 +168,7 @@
       };
       secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
       sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
+      systemManagerLib = import ./data/system-manager.nix;
       toolingFor = pkgs: import ./lib/tooling.nix { inherit pkgs; };
       commonSpecialArgs = {
         inherit
@@ -179,6 +180,7 @@
           repoModules
           secrets
           sharedConfig
+          systemManagerLib
           toolingFor
           ;
       };

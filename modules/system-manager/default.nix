@@ -9,6 +9,7 @@
   secrets,
   keys,
   sharedConfig,
+  systemManagerLib,
   ...
 }:
 
@@ -118,12 +119,7 @@ in
     environment.etc.zprofile = lib.mkIf config.programs.zsh.enable {
       text = ''
         typeset -U path PATH
-        path=(
-          "/run/wrappers/bin"
-          "/etc/profiles/per-user/$USER/bin"
-          "/run/system-manager/sw/bin"
-          $path
-        )
+        path=(${lib.concatMapStringsSep " " (p: ''"${p}"'') systemManagerLib.systemPaths} $path)
       '';
     };
 
