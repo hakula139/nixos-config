@@ -1,6 +1,6 @@
 # CLAUDE.md: nixos-config
 
-Guidance for Claude Code (claude.ai/code) when working in this repository. Anything inferable from `flake.nix` or a representative module belongs in the code, not here.
+Guidance for Claude Code (claude.ai/code) when working in this repository. Follow `~/.claude/CLAUDE.md` for global communication, scope, comment, and commit doctrine. Sections here add project-specific rules only — anything inferable from `flake.nix` or a representative module belongs in the code, not here.
 
 ## Repository Overview
 
@@ -62,17 +62,25 @@ Multi-server deploys go through Colmena: `colmena apply --on us-4`, `colmena app
 
 ## Secrets
 
-Two helpers in `lib/secrets.nix`, two contracts:
+Two helpers in `lib/secrets.nix`, two contracts.
 
-- **System-side** (NixOS / Darwin / system-manager modules):
-  ```nix
-  age.secrets.<attr> = secrets.mkSecret { name = "<service>/<secret>"; owner = "..."; group = "..."; };
-  ```
-- **User-side** (Home Manager modules):
-  ```nix
-  hakula.secrets.required."<service>/<secret>" = { };
-  ```
-  then resolve through the `secretPath` module argument: `secretPath "<service>/<secret>"`.
+System-side (NixOS / Darwin / system-manager modules):
+
+```nix
+age.secrets.<attr> = secrets.mkSecret {
+  name = "<service>/<secret>";
+  owner = "...";
+  group = "...";
+};
+```
+
+User-side (Home Manager modules):
+
+```nix
+hakula.secrets.required."<service>/<secret>" = { };
+```
+
+Then resolve through the `secretPath` module argument: `secretPath "<service>/<secret>"`.
 
 Decrypted runtime paths mirror the `secrets/` tree (e.g. `secrets/mihomo/secret.age` → `/run/agenix/mihomo/secret`). Override `name` when the logical key differs from the encrypted file (e.g. `github-pat` → `github/pat-work`); override `path` only when a tool requires a fixed destination (e.g. WakaTime → `~/.wakatime.cfg`). Path collisions are caught at evaluation.
 
@@ -98,25 +106,23 @@ The agenix script checks `[ -t 0 ]` and overrides `EDITOR` to `cp -- /dev/stdin`
 
 ### Section Banners
 
-Use box-drawing dashes for inner banners and equals signs for the file header:
+Banners end at column 80, counting the indent. Use equals signs at the file header (no indent), dashes for inner subsections (indented to match surrounding code):
 
 ```nix
 # ==============================================================================
 # Module Name
 # ==============================================================================
 
-# ----------------------------------------------------------------------------
-# Subsection
-# ----------------------------------------------------------------------------
+      # ------------------------------------------------------------------------
+      # Subsection
+      # ------------------------------------------------------------------------
 ```
 
 Match nearby style instead of blanket-adding or blanket-removing. A file that bands every subsection should band the new one too; a flat module without banners stays flat.
 
 ### Comments
 
-- Comment the **why**, not the **what**. Skip comments that restate the code (`# increment counter`) or narrate the change (`# updated for the X flow`, `# fix for #123`). Those belong in the commit message.
-- Keep comments to one line per thought. Multi-line only when a constraint genuinely needs the room.
-- Avoid commented-out code. Use git history.
+Defer to global CLAUDE.md. The repo-specific addition: when _restyling_ an existing file, match nearby comment style instead of blanket-deleting or blanket-adding. A file already wearing section banners gets a banner on the new section; a flat module without banners stays flat.
 
 ### Nix Style
 
@@ -142,10 +148,7 @@ Match nearby style instead of blanket-adding or blanket-removing. A file that ba
 
 ### Git Conventions
 
-Follows global CLAUDE.md commit / branch / PR conventions, plus:
-
 - **Scope**: the module name (`mihomo`, `secrets`, `system-manager`), the file (`flake`, `claude`, `readme`), or `(host)` for host-scoped changes.
-- **Atomic commits**: prefer one logical change per commit. When a refactor touches many files, split by *intent* (extract X, then rename Y, then style Z) rather than by file.
 - Don't commit `lib/corp-domain.nix` with the real value. The placeholder lives in git.
 
 ## CI
