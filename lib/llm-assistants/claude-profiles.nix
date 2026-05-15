@@ -8,7 +8,7 @@
 }:
 
 let
-  corpDomain = import ../corp-domain.nix;
+  corpDomain = import ../../data/corp-domain.nix;
 in
 {
   official = {

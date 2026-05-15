@@ -159,8 +159,8 @@
       # ------------------------------------------------------------------------
       # Special args
       # ------------------------------------------------------------------------
-      caches = import ./lib/caches.nix;
-      corpDomain = import ./lib/corp-domain.nix;
+      caches = import ./data/caches.nix;
+      corpDomain = import ./data/corp-domain.nix;
       keys = import ./secrets/keys.nix;
       llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
       repoModules = {
@@ -244,7 +244,7 @@
       # ------------------------------------------------------------------------
       colmena =
         let
-          servers = import ./lib/servers.nix;
+          servers = import ./data/servers.nix;
         in
         {
           meta = {
