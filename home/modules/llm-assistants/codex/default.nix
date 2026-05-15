@@ -7,17 +7,20 @@
   pkgs,
   lib,
   inputs,
-  secrets,
-  isNixOS ? false,
+  corpDomain,
+  llmAssistantLib,
+  secretPath,
   ...
 }:
 
 let
   cfg = config.hakula.codex;
+
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
-  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
-  proxyLib = import ../shared/proxy.nix { inherit lib; };
+  inherit (llmAssistantLib) mcpOptions;
+  proxyLib = llmAssistantLib.proxy;
   instructions = import ../shared/instructions;
+
   codexMcpServers = [
     "atlassian"
     "braveSearch"
@@ -71,8 +74,9 @@ in
           config
           pkgs
           lib
-          secrets
-          isNixOS
+          llmAssistantLib
+          corpDomain
+          secretPath
           ;
         enabledServers = lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers;
       };
@@ -89,23 +93,15 @@ in
       # ------------------------------------------------------------------------
       codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
 
-      proxyRunScript = proxyLib.mkProxyScript cfg.proxy;
-
-      codexBin =
-        if cfg.proxy.enable then
-          pkgs.symlinkJoin {
-            # Keep codex version in the derivation name so Home Manager
-            # detects this as a modern codex for config directory layout.
-            name = "codex-${codexPkg.version}";
-            paths = [ codexPkg ];
-            nativeBuildInputs = [ pkgs.makeWrapper ];
-            postBuild = ''
-              wrapProgram $out/bin/codex \
-                --run ${lib.escapeShellArg proxyRunScript}
-            '';
-          }
-        else
-          codexPkg;
+      # Keep codex version in the derivation name so Home Manager detects
+      # this as a modern codex for config directory layout.
+      codexBin = proxyLib.wrapWithProxy {
+        inherit pkgs;
+        pkg = codexPkg;
+        proxyCfg = cfg.proxy;
+        name = "codex-${codexPkg.version}";
+        bin = "codex";
+      };
 
       codexSettings = import ./settings.nix {
         inherit
@@ -125,7 +121,6 @@ in
           "${config.home.homeDirectory}/.codex";
     in
     lib.mkMerge [
-      mcp.secrets
       {
         # ----------------------------------------------------------------------
         # Program configuration

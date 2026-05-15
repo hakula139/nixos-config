@@ -5,18 +5,18 @@
 {
   config,
   lib,
+  llmAssistantLib,
   ...
 }:
 
 let
   cfg = config.hakula.llm-assistants;
-  llmAssistants = import ../../../lib/llm-assistants { inherit lib; };
 in
 {
-  options.hakula.llm-assistants = llmAssistants.mkOptions {
+  options.hakula.llm-assistants = llmAssistantLib.mkOptions {
     enableDescription = "LLM assistants for the primary Home Manager user";
     defaultUser = "hakula";
   };
 
-  config = lib.mkIf cfg.enable (llmAssistants.mkHomeManagerConfig cfg);
+  config = lib.mkIf cfg.enable (llmAssistantLib.mkHomeManagerConfig cfg);
 }

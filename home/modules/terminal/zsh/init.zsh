@@ -31,14 +31,12 @@ zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
 # Create directory and cd into it
 mkcd() { mkdir -p "$1" && cd "$1"; }
 
-# Refresh env vars from tmux session on each prompt, so existing
-# panes pick up fresh tokens and sockets after reattach
+# Refresh tmux env per prompt so reattaches see new tokens and sockets.
 if [[ -n "$TMUX" ]]; then
   _refresh_tmux_env() {
     eval "$(tmux show-environment -s 2>/dev/null | grep -E '(VSCODE_|GIT_ASKPASS|CLAUDE_CODE_SSE_PORT)')"
-    # Stale WSL_INTEROP sockets cause slow Windows interop and Crashpad
-    # errors; always pick the newest socket rather than trusting the
-    # value inherited from tmux-resurrect or an old attach
+    # WSL_INTEROP from tmux state can point at a dead socket, causing slow
+    # interop and Crashpad errors. Always use the newest socket on disk.
     if [[ -d /run/WSL ]]; then
       local newest
       newest=$(find /run/WSL -maxdepth 1 -name '*_interop' -type s -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)

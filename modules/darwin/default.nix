@@ -8,12 +8,18 @@
   lib,
   secrets,
   keys,
+  sharedConfig,
   ...
 }:
 
 let
-  shared = import ../shared.nix { inherit pkgs lib; };
-
+  shared = sharedConfig { inherit pkgs lib; };
+  userName = config.hakula.user.name;
+  homeConfig = config.home-manager.users.${userName} or { };
+  userConfig = {
+    name = userName;
+    home = config.users.users.${userName}.home or "/Users/${userName}";
+  };
   sshCfg = config.hakula.access.ssh;
   servers = lib.attrValues shared.servers;
   builders = lib.filter (s: s.isBuilder) servers;
@@ -40,13 +46,25 @@ in
     enable = lib.mkEnableOption "Cachix auth token secret";
   };
 
+  options.hakula.user.name = lib.mkOption {
+    type = lib.types.str;
+    default = "hakula";
+    description = "Primary user account name";
+  };
+
   config = {
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.builder-ssh-key = secrets.mkSecret {
-      name = "builders/ssh-key";
-      owner = "hakula";
+    age.secrets = {
+      builder-ssh-key = secrets.mkSecret {
+        name = "builders/ssh-key";
+        owner = userName;
+        group = "staff";
+      };
+    }
+    // secrets.mkRequiredUserSecrets {
+      inherit homeConfig userConfig;
       group = "staff";
     };
 
