@@ -40,5 +40,8 @@ in
 
   # Resolver exposed as a module argument so consumers can take it as a
   # plain function parameter instead of routing through `config.hakula.*`.
-  config._module.args.secretPath = name: config.hakula.secrets.required.${name}.path;
+  config._module.args.secretPath =
+    name:
+    config.hakula.secrets.required.${name}.path
+      or (throw "hakula.secrets.required.${name} is not declared (consumers must register the secret before requesting its path)");
 }
