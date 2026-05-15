@@ -15,9 +15,28 @@
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
 
-  # Optional follow-up for the system-manager nixsw chain. Empty when the
-  # host doesn't sync Windows fonts.
-  postSwitchSync = lib.optionalString config.hakula.fonts.windowsSync.enable " \\\n  && install-windows-fonts";
+  smProfile = "/nix/var/nix/profiles/system-manager-profiles";
+  smHealthCheck = "system-manager-health-check agenix-install-secrets.service home-manager-${username}.service";
+
+  # Re-sync side effects that depend on WSL interop. Empty on hosts without it.
+  postSwitchSync = lib.optionalString config.hakula.fonts.windowsSync.enable "install-windows-fonts";
+
+  # nixsw / nixroll run in the user's interactive shell so postSwitchSync
+  # commands have a live WSL_INTEROP socket.
+  nixswScript = pkgs.writeShellScript "nixsw" ''
+    set -euo pipefail
+    system-manager switch --flake '.#${systemManagerConfigName}' --sudo
+    ${smHealthCheck}
+    ${postSwitchSync}
+  '';
+
+  nixrollScript = pkgs.writeShellScript "nixroll" ''
+    set -euo pipefail
+    sudo nix-env --profile ${smProfile} --rollback
+    system-manager activate --sudo
+    ${smHealthCheck}
+    ${postSwitchSync}
+  '';
 in
 {
   programs.zsh = {
@@ -188,30 +207,9 @@ in
       nixroll = "sudo nixos-rebuild switch --rollback --flake .";
     }
     // lib.optionalAttrs (isLinux && !isNixOS) {
-      nixsw = ''
-        system-manager switch \
-          --flake '.#${systemManagerConfigName}' \
-          --sudo \
-          && system-manager-health-check \
-            agenix-install-secrets.service \
-            home-manager-${username}.service${postSwitchSync}
-      '';
-
-      nixlist = ''
-        sudo nix-env \
-          --profile /nix/var/nix/profiles/system-manager-profiles \
-          --list-generations
-      '';
-
-      nixroll = ''
-        sudo nix-env \
-          --profile /nix/var/nix/profiles/system-manager-profiles \
-          --rollback \
-          && system-manager activate --sudo \
-          && system-manager-health-check \
-            agenix-install-secrets.service \
-            home-manager-${username}.service
-      '';
+      nixsw = "${nixswScript}";
+      nixroll = "${nixrollScript}";
+      nixlist = "sudo nix-env --profile ${smProfile} --list-generations";
     }
     // lib.optionalAttrs isDarwin {
       # Nix aliases
