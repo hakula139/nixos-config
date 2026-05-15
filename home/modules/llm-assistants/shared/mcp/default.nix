@@ -14,9 +14,7 @@
 let
   homeDir = config.home.homeDirectory;
 
-  # Node.js's built-in fetch (undici) ignores HTTP_PROXY / HTTPS_PROXY by
-  # default. --use-env-proxy makes it honour the env vars, which is required
-  # on hosts that route traffic through a proxy.
+  # undici (Node's built-in fetch) ignores HTTP_PROXY by default; --use-env-proxy opts in.
   nodejs = pkgs.nodejs_24;
   nodeSetup = ''
     export PATH="${nodejs}/bin:$PATH"
@@ -33,8 +31,7 @@ let
       export CONFLUENCE_PERSONAL_TOKEN="$(cat ${confluencePatFile})"
     fi
     export CONFLUENCE_URL="https://wiki.${corpDomain}"
-    # mcp-atlassian reads HTTP(S)_PROXY into session.proxies but ignores NO_PROXY
-    # due to trust_env=False (PAT auth). Unset proxy for internal Confluence.
+    # mcp-atlassian honours HTTP_PROXY but ignores NO_PROXY; clear them for internal Confluence.
     unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
     exec uvx mcp-atlassian "$@"
   '';
