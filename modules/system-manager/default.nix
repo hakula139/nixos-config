@@ -109,6 +109,20 @@ in
 
     programs.zsh.enable = true;
 
+    # zsh does not source /etc/profile, so add system-manager bin dirs here.
+    environment.etc."zsh/zshenv" = lib.mkIf config.programs.zsh.enable {
+      replaceExisting = true;
+      text = ''
+        typeset -U path PATH
+        path=(
+          "/run/wrappers/bin"
+          "/etc/profiles/per-user/$USER/bin"
+          "/run/system-manager/sw/bin"
+          $path
+        )
+      '';
+    };
+
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
