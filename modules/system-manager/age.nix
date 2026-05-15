@@ -76,6 +76,9 @@ let
   '';
 
   secretTargets = map (secret: secret.path) (lib.attrValues cfg.secrets);
+  desiredManifest = pkgs.writeText "agenix-managed-secrets" (
+    lib.concatStringsSep "\n" secretTargets + "\n"
+  );
 in
 {
   options.age = {
@@ -134,12 +137,7 @@ in
         ${lib.concatStringsSep "\n" (map decryptSecret (lib.attrValues cfg.secrets))}
 
         manifest=${lib.escapeShellArg managedPathsFile}
-        desired="$(mktemp)"
-        trap 'rm -f "$desired"' EXIT
-
-        cat >"$desired" <<'EOF'
-        ${lib.concatStringsSep "\n" secretTargets}
-        EOF
+        desired=${desiredManifest}
 
         if [ -f "$manifest" ]; then
           while IFS= read -r managed_path; do
@@ -151,8 +149,6 @@ in
 
         install -d -m 0755 "$(dirname "$manifest")"
         install -m 0644 "$desired" "$manifest"
-        trap - EXIT
-        rm -f "$desired"
       '';
     };
   };
