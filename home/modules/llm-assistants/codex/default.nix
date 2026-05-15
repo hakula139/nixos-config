@@ -93,23 +93,15 @@ in
       # ------------------------------------------------------------------------
       codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
 
-      proxyRunScript = proxyLib.mkProxyScript cfg.proxy;
-
-      codexBin =
-        if cfg.proxy.enable then
-          pkgs.symlinkJoin {
-            # Keep codex version in the derivation name so Home Manager
-            # detects this as a modern codex for config directory layout.
-            name = "codex-${codexPkg.version}";
-            paths = [ codexPkg ];
-            nativeBuildInputs = [ pkgs.makeWrapper ];
-            postBuild = ''
-              wrapProgram $out/bin/codex \
-                --run ${lib.escapeShellArg proxyRunScript}
-            '';
-          }
-        else
-          codexPkg;
+      # Keep codex version in the derivation name so Home Manager detects
+      # this as a modern codex for config directory layout.
+      codexBin = proxyLib.wrapWithProxy {
+        inherit pkgs;
+        pkg = codexPkg;
+        proxyCfg = cfg.proxy;
+        name = "codex-${codexPkg.version}";
+        bin = "codex";
+      };
 
       codexSettings = import ./settings.nix {
         inherit

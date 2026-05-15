@@ -118,8 +118,6 @@ in
       # ------------------------------------------------------------------------
       opencodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
 
-      proxyRunScript = proxyLib.mkProxyScript cfg.proxy;
-
       ruffFormatScript = pkgs.writeShellScript "opencode-ruff-format" ''
         ${lib.getExe pkgs.ruff} format "$1"
         ${lib.getExe pkgs.ruff} check --fix "$1" >/dev/null 2>&1 || true
@@ -133,19 +131,13 @@ in
         exec ${lib.getExe' pkgs.go "gofmt"} -w "$1"
       '';
 
-      opencodeBin =
-        if cfg.proxy.enable then
-          pkgs.symlinkJoin {
-            name = "opencode-${opencodePkg.version}";
-            paths = [ opencodePkg ];
-            nativeBuildInputs = [ pkgs.makeWrapper ];
-            postBuild = ''
-              wrapProgram $out/bin/opencode \
-                --run ${lib.escapeShellArg proxyRunScript}
-            '';
-          }
-        else
-          opencodePkg;
+      opencodeBin = proxyLib.wrapWithProxy {
+        inherit pkgs;
+        pkg = opencodePkg;
+        proxyCfg = cfg.proxy;
+        name = "opencode-${opencodePkg.version}";
+        bin = "opencode";
+      };
 
       # ------------------------------------------------------------------------
       # oh-my-openagent

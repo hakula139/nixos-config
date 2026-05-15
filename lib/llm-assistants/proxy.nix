@@ -4,6 +4,50 @@
 
 { lib }:
 
+let
+  mkProxyScript =
+    proxyCfg:
+    let
+      proxyUrl =
+        if proxyCfg.secretUrlFile != null then
+          "$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})"
+        else
+          lib.escapeShellArg proxyCfg.url;
+      noProxy = lib.escapeShellArg (lib.concatStringsSep "," proxyCfg.noProxy);
+    in
+    ''
+      export HTTP_PROXY=${proxyUrl}
+      export HTTPS_PROXY=${proxyUrl}
+      export NO_PROXY=${noProxy}
+      export http_proxy=${proxyUrl}
+      export https_proxy=${proxyUrl}
+      export no_proxy=${noProxy}
+    '';
+
+  wrapWithProxy =
+    {
+      pkgs,
+      pkg,
+      proxyCfg,
+      name ? pkg.name,
+      bin ? pkg.pname or pkg.name,
+    }:
+    if !proxyCfg.enable then
+      pkg
+    else
+      let
+        proxyRunScript = pkgs.writeShellScript "${bin}-proxy-env" (mkProxyScript proxyCfg);
+      in
+      pkgs.symlinkJoin {
+        inherit name;
+        paths = [ pkg ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/${bin} \
+            --run ${lib.escapeShellArg proxyRunScript}
+        '';
+      };
+in
 {
   mkProxyOptions = name: {
     enable = lib.mkEnableOption "HTTP proxy for ${name}";
@@ -31,22 +75,5 @@
     };
   };
 
-  mkProxyScript =
-    proxyCfg:
-    let
-      proxyUrl =
-        if proxyCfg.secretUrlFile != null then
-          "$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})"
-        else
-          lib.escapeShellArg proxyCfg.url;
-      noProxy = lib.escapeShellArg (lib.concatStringsSep "," proxyCfg.noProxy);
-    in
-    ''
-      export HTTP_PROXY=${proxyUrl}
-      export HTTPS_PROXY=${proxyUrl}
-      export NO_PROXY=${noProxy}
-      export http_proxy=${proxyUrl}
-      export https_proxy=${proxyUrl}
-      export no_proxy=${noProxy}
-    '';
+  inherit mkProxyScript wrapWithProxy;
 }
