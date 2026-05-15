@@ -203,5 +203,4 @@ in
     "$HOME/go/bin"
     "$HOME/.cargo/bin"
   ];
-
 }
