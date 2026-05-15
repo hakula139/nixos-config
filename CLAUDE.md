@@ -1,6 +1,6 @@
-# CLAUDE.md
+# CLAUDE.md: nixos-config
 
-Guidance for Claude Code (claude.ai/code) when working in this repository. Anything inferable from `flake.nix`, the directory tree, or a representative module belongs in the code, not here.
+Guidance for Claude Code (claude.ai/code) when working in this repository. Anything inferable from `flake.nix` or a representative module belongs in the code, not here.
 
 ## Repository Overview
 
@@ -11,11 +11,40 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 - **1 generic Linux** (hakula-linux) on system-manager + Home Manager
 - **1 Docker image** (hakula-devvm) for air-gapped deployment
 
-`flake.nix` is the manifest. Builders live in `lib/builders.nix`, overlays in `lib/overlays.nix`. Per-host config in `hosts/`. Cross-platform primitives in `modules/shared.nix`.
+`flake.nix` is the manifest; builders live in `lib/builders.nix`, overlays in `lib/overlays.nix`. Per-host config in `hosts/`. Cross-platform primitives in `modules/shared.nix`.
+
+### Project Layout
+
+```text
+.
+├── flake.nix                        # Inputs, special args, host registration, outputs
+├── hosts/                           # Per-host configurations
+│   └── _profiles/                   # Reusable hardware / container profiles
+├── lib/
+│   ├── builders.nix                 # mkServer / mkDarwin / mkSystemManager / mkDocker, mkHomeManagerConfig, serverSharedModules
+│   ├── overlays.nix                 # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, toolchains, custom packages)
+│   ├── caches.nix                   # Binary cache substituters and trusted public keys
+│   ├── corp-domain.nix              # Corp-internal domain placeholder (gitignored real value)
+│   ├── llm-assistants/              # Shared LLM-assistant helpers (mcpOptions, proxy, claude profile sets)
+│   ├── secrets.nix                  # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
+│   ├── servers.nix                  # Server inventory (IP, port, provider, host keys, builder config)
+│   └── tooling.nix                  # Dev shell tooling
+├── modules/
+│   ├── shared.nix                   # Cross-platform Home Manager primitives
+│   ├── nixos/                       # NixOS service modules (most carry an `enable` option)
+│   ├── darwin/                      # macOS-specific modules
+│   └── system-manager/              # System Manager activation, agenix port
+├── home/
+│   ├── hakula.nix                   # Home Manager entry point
+│   └── modules/                     # Home Manager modules (one per concern)
+├── packages/                        # Custom package definitions (callPackage targets in lib/overlays.nix)
+├── secrets/                         # agenix-encrypted secrets and recipient rules
+└── .github/workflows/ci.yml         # CI pipeline
+```
 
 ## Bootstrap Commands
 
-First-time setup is the workflow that's hard to infer from the codebase. Day-to-day applies use the `nixsw` zsh alias on every platform.
+First-time setup is the workflow that's hard to infer. Day-to-day applies use the `nixsw` zsh alias on every platform.
 
 ```bash
 # NixOS server
@@ -29,7 +58,7 @@ nix run '.#system-manager' -- switch --flake '.#hakula-linux' --sudo
 system-manager-health-check agenix-install-secrets.service home-manager-hakula.service
 ```
 
-Multi-server deploys go through Colmena: `colmena apply --on us-4`, or `--on @cloudcone` for provider tags.
+Multi-server deploys go through Colmena: `colmena apply --on us-4`, `colmena apply --on @cloudcone` for provider tags.
 
 ## Secrets
 
@@ -43,31 +72,115 @@ Two helpers in `lib/secrets.nix`, two contracts:
   ```nix
   hakula.secrets.required."<service>/<secret>" = { };
   ```
-  then resolve via the `secretPath` module argument: `secretPath "<service>/<secret>"`.
+  then resolve through the `secretPath` module argument: `secretPath "<service>/<secret>"`.
 
-Decrypted runtime paths mirror the `secrets/` tree (e.g. `secrets/mihomo/secret.age` → `/run/agenix/mihomo/secret`). Override `name` when the logical key differs from the encrypted file (e.g. `github-pat` → `github/pat-work`). Override `path` only when a tool requires a fixed destination (e.g. `wakatime/config` → `~/.wakatime.cfg`).
+Decrypted runtime paths mirror the `secrets/` tree (e.g. `secrets/mihomo/secret.age` → `/run/agenix/mihomo/secret`). Override `name` when the logical key differs from the encrypted file (e.g. `github-pat` → `github/pat-work`); override `path` only when a tool requires a fixed destination (e.g. WakaTime → `~/.wakatime.cfg`). Path collisions are caught at evaluation.
 
 ### `agenix -r` TTY gotcha
 
-Re-keying after changing recipients in `secrets/keys.nix` **must** run from an interactive terminal:
+Re-keying after recipient changes in `secrets/keys.nix` **must** run from an interactive terminal:
 
 ```bash
 cd secrets
 agenix -r -i ~/.ssh/<private-key>
 ```
 
-The agenix script checks `[ -t 0 ]` and overrides `EDITOR` to `cp -- /dev/stdin` when stdin is not a TTY, which silently empties every secret before re-encrypting. Never run from a script or Claude Code's Bash tool.
+The agenix script checks `[ -t 0 ]` and overrides `EDITOR` to `cp -- /dev/stdin` when stdin is not a TTY, which silently empties every secret before re-encrypting them. Never invoke from a script or Claude Code's Bash tool.
 
-## Code Style
+## Coding Conventions
+
+### Module Shape
+
+- **NixOS modules** in `modules/nixos/` are typically optionally enabled services. Define `options.services.<name>.enable`, gate `config = lib.mkIf config.services.<name>.enable { ... }`. Wire into a host by importing and setting `enable = true;`.
+- **Home Manager modules** in `home/modules/` live under `hakula.<name>`. Branch on `pkgs.stdenv.{isDarwin, isLinux}` for platform variants. The flags `isNixOS` / `isDesktop` are threaded by the host builders; only consume them when the host actually sets them.
+- **Custom packages** in `packages/` are registered through the overlay (`lib/overlays.nix`) and consumed via `pkgs.<name>`.
+- **Hosts** in `hosts/` register through one of the four `mk*` builders in `lib/builders.nix`. Reuse profiles from `hosts/_profiles/` for shared hardware / container shapes.
+
+### Section Banners
+
+Use box-drawing dashes for inner banners and equals signs for the file header:
+
+```nix
+# ==============================================================================
+# Module Name
+# ==============================================================================
+
+# ----------------------------------------------------------------------------
+# Subsection
+# ----------------------------------------------------------------------------
+```
+
+Match nearby style instead of blanket-adding or blanket-removing. A file that bands every subsection should band the new one too; a flat module without banners stays flat.
+
+### Comments
+
+- Comment the **why**, not the **what**. Skip comments that restate the code (`# increment counter`) or narrate the change (`# updated for the X flow`, `# fix for #123`). Those belong in the commit message.
+- Keep comments to one line per thought. Multi-line only when a constraint genuinely needs the room.
+- Avoid commented-out code. Use git history.
+
+### Nix Style
 
 - **Formatter**: `nixfmt` (enforced by pre-commit).
-- **Linting**: `statix`, `deadnix` (enforced in CI). `statix.toml` suppresses W20 `repeated_keys`; the flat-key style is intentional.
-- **Line width**: 100 chars.
-- **Comments**: WHY only, never WHAT. Defer to `~/.claude/CLAUDE.md` for the comment doctrine.
-- **`inherit` placement**: top of `let` blocks, like imports. Combine bindings from the same source: `inherit (pkgs.stdenv) isDarwin isLinux;`.
+- **Linting**: `statix`, `deadnix` (CI). `statix.toml` suppresses W20 `repeated_keys` because the flat-key style is intentional.
+- **Line width**: 100 chars (nixfmt default).
+- **`with pkgs;`**: use in package lists for brevity.
+- **`inherit` placement**: top of `let` blocks, like imports. Combine bindings from the same source: `inherit (pkgs.stdenv) isDarwin isLinux;`. Inside attribute sets, keep `inherit` in its logical position (e.g., `group` between `owner` and `path`).
+- **Alphabetical order** for flat single-line bindings whose names are self-describing (special-args list, host registration, attrset values without internal grouping).
+
+### Bash in Nix
+
+- Multi-line layout for non-trivial flow (`if/else`, multi-arg `printf`, process substitutions). One-line invocations stay on one line.
+- Quote variables. Use `set -euo pipefail` at the top of every script that runs more than one command.
+- Use `lib.escapeShellArg` / `lib.escapeShellArgs` when interpolating Nix values into shell.
+- Use `pkgs.writeShellScript` / `pkgs.writeShellScriptBin` for build-time content rather than activation-time heredocs.
+
+### Secrets Conventions
+
+- Logical key first: `hakula.secrets.required."<service>/<secret>"`. Override `name` only when the encrypted source differs from the logical key. Override `path` only when a tool requires a fixed location.
+- One canonical location per secret. Don't reference the same encrypted file under two logical keys.
+- Mihomo-style secret substitution: use `awk` against `ENVIRON[]` (not `sed`) so `|`, `&`, `\`, `'` survive into YAML. Validate the merged config before atomic swap.
+
+### Git Conventions
+
+Follows global CLAUDE.md commit / branch / PR conventions, plus:
+
+- **Scope**: the module name (`mihomo`, `secrets`, `system-manager`), the file (`flake`, `claude`, `readme`), or `(host)` for host-scoped changes.
+- **Atomic commits**: prefer one logical change per commit. When a refactor touches many files, split by *intent* (extract X, then rename Y, then style Z) rather than by file.
+- Don't commit `lib/corp-domain.nix` with the real value. The placeholder lives in git.
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push / PR:
+
+1. `nix flake check --all-systems` — validates the flake structure and runs pre-commit hooks (`nixfmt`, `statix`, `deadnix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
+2. Parallel builds of every host (`us-1`..`us-4`, `sg-1`, `hakula-macbook`, `hakula-linux`, `hakula-devvm-docker`).
+3. Successful builds upload to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
 
 ## Proxy Configuration
 
-`hakula.llm-assistants.proxy.*` fans out to each assistant (`claude-code`, `codex`, `opencode`). The proxy URL defaults to `http://127.0.0.1:7897` (local mihomo); override via `url` or `secretUrlFile`. Currently enabled on `hakula-macbook`, `hakula-linux`, and `hakula-devvm` (the last via `secretUrlFile`).
+`hakula.llm-assistants.proxy.*` fans out to each assistant (`claude-code`, `codex`, `opencode`). Proxy URL defaults to `http://127.0.0.1:7897` (local mihomo); override via `url` or `secretUrlFile`. Currently enabled on `hakula-macbook`, `hakula-linux`, and `hakula-devvm` (the last via `secretUrlFile`).
 
-When network operations matter on these hosts, remember requests route through the proxy.
+When network operations matter on these hosts, requests route through the proxy.
+
+## Verification
+
+Run before review:
+
+```bash
+nix flake check                                          # Flake structure + pre-commit hooks
+git ls-files '*.nix' -z | xargs -0 nix fmt               # Format Nix files
+
+# Per-host builds (cheaper than the full flake check):
+nix build '.#nixosConfigurations.us-1.config.system.build.toplevel'
+nix build '.#darwinConfigurations.hakula-macbook.system'
+nix build '.#systemConfigs.hakula-linux'
+nix build '.#packages.x86_64-linux.hakula-devvm-docker'
+```
+
+When a refactor should be store-path-equivalent (rename, extract-to-lib, comment-only), assert that by capturing the output path of `nix build --no-link --print-out-paths '.#<target>'` before and after.
+
+## Documentation Maintenance
+
+- Keep `README.md` user-facing — value, supported features, usage. Not internal progress.
+- Match the project layout in this file to the filesystem. When directories move or land, update the tree.
+- After substantive changes, sweep docs for stale claims: `README.md` Layout block, this file's project layout and conventions, host inventory tables, alias matrix.
