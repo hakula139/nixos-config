@@ -20,7 +20,6 @@ let
       config
       pkgs
       lib
-      llmAssistantLib
       corpDomain
       secretPath
       ;
