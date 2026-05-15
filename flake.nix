@@ -93,47 +93,7 @@
 
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
-      overlays = [
-        inputs.rust-overlay.overlays.default
-        (final: _: {
-          unstable = import nixpkgs-unstable {
-            localSystem = final.stdenv.hostPlatform.system;
-            config.allowUnfree = true;
-          };
-          peertube = final.unstable.peertube.overrideAttrs (old: {
-            patches = (old.patches or [ ]) ++ [
-              ./packages/peertube/cdn-redirect-runner.patch
-              ./packages/peertube/hq-transcode.patch
-              ./packages/peertube/runner-download-timeout.patch
-            ];
-            meta = old.meta // {
-              platforms = old.meta.platforms ++ [ "aarch64-darwin" ];
-            };
-          });
-
-          agenix = agenix.packages.${final.stdenv.hostPlatform.system}.default;
-          system-manager = system-manager.packages.${final.stdenv.hostPlatform.system}.default;
-
-          # ------------------------------------------------------------------
-          # Custom packages
-          # ------------------------------------------------------------------
-          cloudreve = final.callPackage ./packages/cloudreve { };
-          mcp-server-filesystem = final.callPackage ./packages/mcp/mcp-server-filesystem { };
-          mcp-server-git = final.callPackage ./packages/mcp/mcp-server-git { };
-          mcp-server-github = final.callPackage ./packages/mcp/mcp-server-github { };
-          mcp-server-gitlab = final.callPackage ./packages/mcp/mcp-server-gitlab { };
-          peertube-runner = final.callPackage ./packages/peertube/runner.nix { };
-          zsh-hist = final.callPackage ./packages/zsh-hist { };
-
-          rustToolchain = final.rust-bin.stable.latest.default.override {
-            extensions = [
-              "llvm-tools-preview"
-              "rust-analyzer"
-              "rust-src"
-            ];
-          };
-        })
-      ];
+      overlays = import ./lib/overlays.nix { inherit inputs nixpkgs-unstable; };
 
       pkgsFor =
         system:
