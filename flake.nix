@@ -192,6 +192,10 @@
           toolingFor
           ;
       };
+      commonExtraSpecialArgs = removeAttrs commonSpecialArgs [
+        "keys"
+        "repoModules"
+      ];
 
       # Home Manager integration block, instantiated by every host builder.
       mkHomeManagerConfig =
@@ -212,15 +216,8 @@
             useUserPackages = true;
             users.${username} = import ./home/hakula.nix;
             backupFileExtension = "bak";
-            extraSpecialArgs = {
+            extraSpecialArgs = commonExtraSpecialArgs // {
               inherit
-                inputs
-                secrets
-                caches
-                corpDomain
-                llmAssistantLib
-                sharedConfig
-                toolingFor
                 enableDevToolchains
                 hostName
                 isDesktop
