@@ -14,6 +14,10 @@
 
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
+
+  # Optional follow-up for the system-manager nixsw chain. Empty when the
+  # host doesn't sync Windows fonts.
+  postSwitchSync = lib.optionalString config.hakula.fonts.windowsSync.enable " \\\n  && install-windows-fonts";
 in
 {
   programs.zsh = {
@@ -190,7 +194,7 @@ in
           --sudo \
           && system-manager-health-check \
             agenix-install-secrets.service \
-            home-manager-${username}.service${lib.optionalString config.hakula.fonts.windowsSync.enable " \\\n  && install-windows-fonts"}
+            home-manager-${username}.service${postSwitchSync}
       '';
 
       nixlist = ''
