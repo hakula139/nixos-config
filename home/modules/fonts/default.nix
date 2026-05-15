@@ -37,10 +37,10 @@ in
   };
 
   config = lib.mkIf cfg.windowsSync.enable {
+    # Home Manager runs as a systemd service under system-manager, where WSL
+    # interop is unavailable, so cmd.exe / wslpath / reg.exe fail. Expose
+    # install-windows-fonts on PATH and let the nixsw alias trigger it from
+    # the user's interactive shell instead.
     home.packages = [ installWindowsFonts ];
-
-    home.activation.installWindowsFonts = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      ${installWindowsFonts}/bin/install-windows-fonts
-    '';
   };
 }

@@ -190,7 +190,7 @@ in
           --sudo \
           && system-manager-health-check \
             agenix-install-secrets.service \
-            home-manager-${username}.service
+            home-manager-${username}.service${lib.optionalString config.hakula.fonts.windowsSync.enable " \\\n  && install-windows-fonts"}
       '';
 
       nixlist = ''
