@@ -13,8 +13,39 @@ let
   cfg = config.hakula.llm-assistants;
   mcpSecrets = import ./shared/mcp/secrets.nix;
 
+  # Map each MCP server to the secret it needs at runtime. Servers absent
+  # from this attrset (codex, deepwiki, fetcher, filesystem, git, gitlab)
+  # don't require any decrypted file.
+  mcpServerSecrets = {
+    atlassian = [ "confluence-pat" ];
+    braveSearch = [ "brave-api-key" ];
+    context7 = [ "context7-api-key" ];
+    github = [ "github-pat" ];
+  };
+
   inherit (llmAssistantLib) mcpOptions;
   proxyLib = llmAssistantLib.proxy;
+
+  assistants = with config.hakula; [
+    claude-code
+    codex
+    cursor
+    opencode
+  ];
+
+  activeServers = lib.unique (
+    lib.concatMap (
+      a:
+      if (a.enable or false) then
+        lib.subtractLists (a.mcp.disabledServers or [ ]) (a.mcp.enabledServers or [ ])
+      else
+        [ ]
+    ) assistants
+  );
+
+  requiredMcpSecretKeys = lib.unique (lib.concatMap (s: mcpServerSecrets.${s} or [ ]) activeServers);
+
+  requiredMcpSecrets = lib.getAttrs requiredMcpSecretKeys mcpSecrets;
 
   anyAssistantEnabled =
     cfg.enable
@@ -52,7 +83,7 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf anyAssistantEnabled {
-      hakula.secrets.required = mcpSecrets;
+      hakula.secrets.required = requiredMcpSecrets;
     })
 
     (lib.mkIf cfg.enable (
