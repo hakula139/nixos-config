@@ -51,15 +51,21 @@ in
     let
       inherit (homeConfig.hakula.secrets) required;
       attrNames = builtins.attrNames required;
-      collisions = lib.filter (group: builtins.length group > 1) (
+      nameCollisions = lib.filter (group: builtins.length group > 1) (
         builtins.attrValues (lib.groupBy secretAttrName attrNames)
       );
+      pathCollisions = lib.filter (group: builtins.length group > 1) (
+        builtins.attrValues (lib.groupBy (n: required.${n}.path) attrNames)
+      );
+      formatGroups = lib.concatMapStringsSep "; " (g: lib.concatStringsSep " == " g);
     in
-    assert lib.assertMsg (collisions == [ ]) ''
-      hakula.secrets.required keys collide after normalization: ${
-        lib.concatMapStringsSep "; " (g: lib.concatStringsSep " == " g) collisions
-      }
+    assert lib.assertMsg (nameCollisions == [ ]) ''
+      hakula.secrets.required keys collide after normalization: ${formatGroups nameCollisions}
       (`.` and `/` both normalize to `-` for the age.secrets attribute name)
+    '';
+    assert lib.assertMsg (pathCollisions == [ ]) ''
+      hakula.secrets.required entries share a destination path: ${formatGroups pathCollisions}
+      (each `path` override must be unique; the second decrypt would overwrite the first)
     '';
     lib.mapAttrs' (
       attrName: spec:
