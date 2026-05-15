@@ -13,6 +13,8 @@ let
   cfg = config.age;
   serviceName = "agenix-install-secrets";
   secretsDir = "/run/agenix";
+  ageBin = "${pkgs.age}/bin/age";
+  managedPathsFile = "/var/lib/system-manager/agenix-managed-secrets";
 
   secretType = lib.types.submodule (
     { config, name, ... }:
@@ -67,7 +69,7 @@ let
     fi
     rm -f "$tmp"
 
-    ${cfg.ageBin} --decrypt "''${identityArgs[@]}" -o "$tmp" ${lib.escapeShellArg secret.file}
+    ${ageBin} --decrypt "''${identityArgs[@]}" -o "$tmp" ${lib.escapeShellArg secret.file}
     chmod ${secret.mode} "$tmp"
     chown ${secret.owner}:${secret.group} "$tmp"
     mv -f "$tmp" "$target"
@@ -77,12 +79,6 @@ let
 in
 {
   options.age = {
-    ageBin = lib.mkOption {
-      type = lib.types.str;
-      default = "${pkgs.age}/bin/age";
-      description = "age executable used to decrypt secrets";
-    };
-
     identityPaths = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
@@ -93,12 +89,6 @@ in
       type = lib.types.attrsOf secretType;
       default = { };
       description = "age-encrypted secrets to decrypt during activation";
-    };
-
-    managedPathsFile = lib.mkOption {
-      type = lib.types.str;
-      default = "/var/lib/system-manager/agenix-managed-secrets";
-      description = "Manifest of secret paths managed by the age installer";
     };
   };
 
@@ -143,7 +133,7 @@ in
 
         ${lib.concatStringsSep "\n" (map decryptSecret (lib.attrValues cfg.secrets))}
 
-        manifest=${lib.escapeShellArg cfg.managedPathsFile}
+        manifest=${lib.escapeShellArg managedPathsFile}
         desired="$(mktemp)"
         trap 'rm -f "$desired"' EXIT
 
