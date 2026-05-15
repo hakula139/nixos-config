@@ -164,8 +164,10 @@
       keys = import ./secrets/keys.nix;
       llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
       repoModules = {
+        darwin = ./modules/darwin;
         nixos = ./modules/nixos;
       };
+      repoRoot = ./.;
       secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
       sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
       systemManagerLib = import ./data/system-manager.nix;
@@ -178,6 +180,7 @@
           keys
           llmAssistantLib
           repoModules
+          repoRoot
           secrets
           sharedConfig
           systemManagerLib
