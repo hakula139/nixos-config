@@ -133,25 +133,25 @@
       # ------------------------------------------------------------------------
       # Special args
       # ------------------------------------------------------------------------
-      secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
-      keys = import ./secrets/keys.nix;
       caches = import ./lib/caches.nix;
       corpDomain = import ./lib/corp-domain.nix;
+      keys = import ./secrets/keys.nix;
       llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
       repoModules = {
         nixos = ./modules/nixos;
       };
+      secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
       sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
       toolingFor = pkgs: import ./lib/tooling.nix { inherit pkgs; };
       commonSpecialArgs = {
         inherit
           inputs
-          secrets
-          keys
           caches
           corpDomain
+          keys
           llmAssistantLib
           repoModules
+          secrets
           sharedConfig
           toolingFor
           ;
