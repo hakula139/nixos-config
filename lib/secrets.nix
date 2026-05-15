@@ -65,15 +65,10 @@ in
     '';
     lib.mapAttrs' (
       attrName: spec:
-      let
-        owner = userConfig.name;
-        secretGroup = if group != null then group else userConfig.group or owner;
-      in
       lib.nameValuePair (secretAttrName attrName) (mkSecret {
-        inherit owner;
         inherit (spec) name path;
-        group = secretGroup;
-        mode = "0400";
+        owner = userConfig.name;
+        group = if group != null then group else userConfig.group or userConfig.name;
       })
     ) required;
 }
