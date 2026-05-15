@@ -149,13 +149,13 @@ Host configurations import `shared.nix` and extend with platform/host-specific s
 
 Secrets are encrypted with **age** using SSH keys declared in `secrets/keys.nix` (grouped as `users` / `hosts` / `workstations`). Recipient rules live in `secrets/secrets.nix`.
 
-Secrets live in `secrets/` nested by service (e.g., `secrets/llm-assistants/claude-oauth-token.age`, `secrets/peertube/env.age`). They are **decrypted at activation time** by agenix. Reference them in platform modules via `config.age.secrets.<attr-name>.path`.
+Secrets live in `secrets/` nested by service (e.g., `secrets/llm-assistants/claude-oauth-token.age`, `secrets/peertube/env.age`). They are **decrypted at activation time** by agenix. System-owned secrets (services, daemons) are referenced through `config.age.secrets.<attr-name>.path`; user-owned secrets declared via `hakula.secrets.required` are resolved through the `secretPath` module argument (see below).
 
 #### Secrets Helper Library (`lib/secrets.nix`)
 
 All platform modules materialize secrets through `age.secrets`. The two live helpers are:
 
-- `mkSecret { name, owner, group ? owner, mode ? "0400", path ? null, file ? secretFile name }` — direct platform secret declaration. Used by NixOS / Darwin / system-manager modules that own a secret directly.
+- `mkSecret { name, owner ? "root", group ? owner, mode ? "0400", path ? null, file ? secretFile name }` — direct platform secret declaration. Used by NixOS / Darwin / system-manager modules that own a secret directly.
 - `mkRequiredUserSecrets { homeConfig, userConfig, group ? null }` — collects entries from `homeConfig.hakula.secrets.required` and lifts them into `age.secrets`. Owner defaults to `userConfig.name`; group falls back to the explicit `group` arg, then `userConfig.group`, then the owner.
 
 **NixOS modules:**
@@ -293,7 +293,7 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 Some hosts route Claude Code, Codex, and other LLM assistants through an **HTTP proxy**. Configured per-host via `hakula.llm-assistants.proxy.*`, which fans out to the individual assistants (`claude-code`, `codex`, `opencode`). The proxy URL defaults to `http://127.0.0.1:7897` (local mihomo) but can be overridden via `url` or loaded from an agenix secret via `secretUrlFile`. Currently enabled on:
 
 - `hakula-macbook` — set at the Darwin module level
-- `hakula-linux` — set under `home-manager.users.hakula.hakula.llm-assistants`
+- `hakula-linux` — set in the host's Home Manager block (under `home-manager.users.<primary-user>.hakula.llm-assistants`)
 - `hakula-devvm` — set under `home-manager.users.root.hakula.llm-assistants`, sourced from `secretUrlFile`
 
 When working with network operations on these hosts, be aware that tools may route through this proxy.
