@@ -112,14 +112,14 @@ The flake uses a **builder function pattern** to reduce duplication:
 
 ### Directory Layout
 
-- `flake.nix` — main entry point; outputs `nixosConfigurations`, `darwinConfigurations`, `systemConfigs`, `packages`, `colmena`, `checks`, `devShells`, `formatter`
-- `hosts/` — per-host configurations; `hosts/_profiles/` holds reusable hardware / container profiles
+- `flake.nix` — main entry point. Outputs `nixosConfigurations`, `darwinConfigurations`, `systemConfigs`, `packages`, `colmena`, `checks`, `devShells`, `formatter`
+- `hosts/` — per-host configurations. `hosts/_profiles/` holds reusable hardware / container profiles
 - `modules/shared.nix` — cross-platform base config
 - `modules/nixos/` — optional NixOS service modules (enabled per-host)
 - `modules/darwin/` — macOS-specific modules
 - `home/hakula.nix` + `home/modules/` — Home Manager user configuration
 - `packages/` — custom package definitions
-- `lib/` — shared helpers (`caches.nix`, `corp-domain.nix`, `secrets.nix`, `servers.nix`, `tooling.nix`; `llm-assistants/` for assistant-specific helpers and Claude profile sets)
+- `lib/` — shared helpers (`caches.nix`, `corp-domain.nix`, `secrets.nix`, `servers.nix`, `tooling.nix`, plus `llm-assistants/` for assistant-specific helpers and Claude profile sets)
 - `secrets/` — agenix-encrypted secrets (`keys.nix` for SSH public keys, `secrets.nix` for recipient mapping)
 - `.github/workflows/ci.yml` — CI pipeline
 
@@ -149,14 +149,14 @@ Host configurations import `shared.nix` and extend with platform/host-specific s
 
 Secrets are encrypted with **age** using SSH keys declared in `secrets/keys.nix` (grouped as `users` / `hosts` / `workstations`). Recipient rules live in `secrets/secrets.nix`.
 
-Secrets live in `secrets/` nested by service (e.g., `secrets/llm-assistants/claude-oauth-token.age`, `secrets/peertube/env.age`). They are **decrypted at activation time** by agenix. System-owned secrets (services, daemons) are referenced through `config.age.secrets.<attr-name>.path`; user-owned secrets declared via `hakula.secrets.required` are resolved through the `secretPath` module argument (see below).
+Secrets live in `secrets/` nested by service (e.g., `secrets/llm-assistants/claude-oauth-token.age`, `secrets/peertube/env.age`). They are **decrypted at activation time** by agenix. System-owned secrets (services, daemons) are referenced through `config.age.secrets.<attr-name>.path`. User-owned secrets declared via `hakula.secrets.required` are resolved through the `secretPath` module argument (see below).
 
 #### Secrets Helper Library (`lib/secrets.nix`)
 
 All platform modules materialize secrets through `age.secrets`. The two live helpers are:
 
 - `mkSecret { name, owner ? "root", group ? owner, mode ? "0400", path ? null, file ? secretFile name }` — direct platform secret declaration. Used by NixOS / Darwin / system-manager modules that own a secret directly.
-- `mkRequiredUserSecrets { homeConfig, userConfig, group ? null }` — collects entries from `homeConfig.hakula.secrets.required` and lifts them into `age.secrets`. Owner defaults to `userConfig.name`; group falls back to the explicit `group` arg, then `userConfig.group`, then the owner.
+- `mkRequiredUserSecrets { homeConfig, userConfig, group ? null }` — collects entries from `homeConfig.hakula.secrets.required` and lifts them into `age.secrets`. Owner defaults to `userConfig.name`. Group falls back to the explicit `group` arg, then `userConfig.group`, then the owner.
 
 **NixOS modules:**
 
@@ -215,7 +215,7 @@ Successful builds are uploaded to the `hakula` Cachix cache on `main` or when th
 - **Import style**: Use `with pkgs;` in package lists for brevity
 - **`inherit` placement**: In `let` blocks, place `inherit` statements at the top (like imports). Combine multiple bindings from the same source: `inherit (pkgs.stdenv) isDarwin isLinux;`. In attribute sets, keep `inherit` in its logical position (e.g., `group` between `owner` and `path`)
 - **Module structure**: Follow existing module patterns (enable option, config block, documentation strings)
-- **Comments**: Only add when needed; avoid verbose / obvious comments (prefer clarity in naming / structure)
+- **Comments**: Only add when needed. Avoid verbose / obvious comments and prefer clarity in naming / structure
 
 ### Bash Scripts
 
@@ -253,7 +253,7 @@ nix build '.#packages.x86_64-linux.hakula-devvm-docker'
 ### Adding a Home Manager Module
 
 1. Create `home/modules/my-module/default.nix` (directory-based preferred)
-2. Accept `{ config, pkgs, lib, ... }`. Branch on `pkgs.stdenv.{isDarwin, isLinux}` for platform-specific config; thread `isNixOS` / `isDesktop` only when the host builders set them.
+2. Accept `{ config, pkgs, lib, ... }`. Branch on `pkgs.stdenv.{isDarwin, isLinux}` for platform-specific config. Thread `isNixOS` / `isDesktop` only when the host builders set them.
 3. Use `lib.mkIf` for conditional activation
 4. Import in `home/hakula.nix`
 

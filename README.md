@@ -141,7 +141,7 @@ The Home Manager zsh module ships matching aliases on every platform:
 
 ## Secrets
 
-Secrets are encrypted with [agenix](https://github.com/ryantm/agenix). Home Manager modules declare requirements through `hakula.secrets.required`; each platform's system module materializes them as `age.secrets`. See `lib/secrets.nix` for the helper API and `CLAUDE.md` for the recipe.
+Secrets are encrypted with [agenix](https://github.com/ryantm/agenix). Home Manager modules declare requirements through `hakula.secrets.required`, and each platform's system module materializes them as `age.secrets`. See `lib/secrets.nix` for the helper API and `CLAUDE.md` for the recipe.
 
 ```bash
 cd secrets
