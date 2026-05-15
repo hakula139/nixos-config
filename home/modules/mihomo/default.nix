@@ -137,6 +137,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # --------------------------------------------------------------------------
+    # Secrets
+    # --------------------------------------------------------------------------
     hakula.secrets.required = {
       "mihomo/secret" = { };
       "mihomo/subscription-url" = { };
