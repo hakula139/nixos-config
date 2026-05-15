@@ -5,10 +5,14 @@
 { lib }:
 
 let
-  mcpOptions = import ../../home/modules/llm-assistants/shared/mcp/options.nix { inherit lib; };
-  proxyOptions = import ../../home/modules/llm-assistants/shared/proxy.nix { inherit lib; };
+  mcpOptions = import ./mcp-options.nix { inherit lib; };
+  proxy = import ./proxy.nix { inherit lib; };
 in
 {
+  inherit mcpOptions proxy;
+
+  mkClaudeProfiles = import ./claude-profiles.nix;
+
   mkOptions =
     {
       enableDescription,
@@ -29,7 +33,7 @@ in
         };
       };
 
-      proxy = proxyOptions.mkProxyOptions "LLM assistants";
+      proxy = proxy.mkProxyOptions "LLM assistants";
     };
 
   mkHomeManagerConfig = cfg: {

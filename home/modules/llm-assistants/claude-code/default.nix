@@ -7,8 +7,9 @@
   pkgs,
   lib,
   inputs,
-  secrets,
-  isNixOS ? false,
+  corpDomain,
+  llmAssistantLib,
+  secretPath,
   enableDevToolchains ? false,
   ...
 }:
@@ -17,21 +18,21 @@ let
   cfg = config.hakula.claude-code;
   homeDir = config.home.homeDirectory;
 
+  instructions = import ../shared/instructions;
+  agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
+  inherit (llmAssistantLib) mcpOptions;
+  proxyLib = llmAssistantLib.proxy;
+
   profiles = import ./profiles.nix {
     inherit
       config
       pkgs
       lib
-      secrets
-      isNixOS
+      secretPath
       ;
   };
 
-  instructions = import ../shared/instructions;
-  agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
-
-  mcpOptions = import ../shared/mcp/options.nix { inherit lib; };
   claudeMcpServers = [
     "atlassian"
     "braveSearch"
@@ -43,8 +44,6 @@ let
     "github"
     "gitlab"
   ];
-
-  proxyLib = import ../shared/proxy.nix { inherit lib; };
 in
 {
   # ----------------------------------------------------------------------------
@@ -107,8 +106,9 @@ in
           config
           pkgs
           lib
-          secrets
-          isNixOS
+          llmAssistantLib
+          corpDomain
+          secretPath
           ;
         enabledServers = builtins.filter (
           s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)
@@ -193,13 +193,9 @@ in
       pluginBundle = plugins.mkPluginBundle homeDir;
     in
     lib.mkMerge [
-      mcp.secrets
       profiles.config
 
       {
-        # ----------------------------------------------------------------------
-        # User configuration files
-        # ----------------------------------------------------------------------
         home.file = {
           ".claude/CLAUDE.md".text = instructions.claudeCode;
           ".claude/statusline-command.sh" = {
@@ -209,15 +205,9 @@ in
         }
         // profiles.homeFiles;
 
-        # ----------------------------------------------------------------------
-        # Auth profile switching
-        # ----------------------------------------------------------------------
         home.packages = profiles.packages;
         home.activation.claudeCodeProfile = profiles.activation;
 
-        # ----------------------------------------------------------------------
-        # Program configuration
-        # ----------------------------------------------------------------------
         programs.claude-code = {
           enable = true;
           package = claudeCodeBin;

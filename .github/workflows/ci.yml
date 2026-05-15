@@ -61,9 +61,9 @@ jobs:
             runner: macos-latest
             target: .#darwinConfigurations.hakula-macbook.system
           - id: generic-linux
-            name: hakula-linux (x86_64-linux, Generic Linux)
+            name: hakula-linux (x86_64-linux, System Manager)
             runner: ubuntu-latest
-            target: .#homeConfigurations.hakula-linux.activationPackage
+            target: .#systemConfigs.hakula-linux
           - id: docker
             name: hakula-devvm (x86_64-linux, Docker)
             runner: ubuntu-latest

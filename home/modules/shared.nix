@@ -6,17 +6,14 @@
   config,
   pkgs,
   lib,
-  secrets,
-  isNixOS ? false,
+  toolingFor,
   enableDevToolchains ? false,
   ...
 }:
 
 let
   inherit (pkgs.stdenv) isLinux;
-  tooling = import ../../lib/tooling.nix { inherit pkgs; };
-  homeDir = config.home.homeDirectory;
-  secretsDir = secrets.secretsPath homeDir;
+  tooling = toolingFor pkgs;
 in
 {
   # ----------------------------------------------------------------------------
@@ -101,7 +98,7 @@ in
       # ------------------------------------------------------------------------
       jq
       taplo
-      yq # includes xq and tomlq
+      yq-go
 
       # ------------------------------------------------------------------------
       # Network Tools
@@ -206,19 +203,4 @@ in
     "$HOME/go/bin"
     "$HOME/.cargo/bin"
   ];
-
-  # ----------------------------------------------------------------------------
-  # Secrets Configuration (agenix)
-  # On NixOS: system-level agenix handles decryption, skip this config
-  # On Darwin / standalone: home-manager agenix handles decryption
-  # ----------------------------------------------------------------------------
-  age.identityPaths = lib.mkIf (!isNixOS) [
-    "${homeDir}/.ssh/id_ed25519"
-  ];
-
-  home.activation.ensureSecretsDir = lib.mkIf (!isNixOS) (
-    lib.hm.dag.entryBefore [ "writeBoundary" ] ''
-      install -d -m 0700 "${secretsDir}"
-    ''
-  );
 }

@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  inputs,
+  llmAssistantLib,
   username ? "hakula",
   isNixOS ? false,
   isDesktop ? false,
@@ -26,7 +26,6 @@ let
 in
 {
   imports = [
-    inputs.agenix.homeManagerModules.default
     ./modules/shared.nix
     ./modules/darwin.nix
     ./modules/fonts
@@ -34,6 +33,7 @@ in
     ./modules/llm-assistants
     ./modules/mihomo
     ./modules/nix
+    ./modules/secrets
     ./modules/ssh
     ./modules/syncthing
     ./modules/terminal
@@ -73,7 +73,7 @@ in
   hakula.claude-code.auth.profiles =
     lib.mkIf (config.hakula.claude-code.auth.defaultProfile != null)
       (
-        import ../lib/llm-assistants/claude-profiles.nix {
+        llmAssistantLib.mkClaudeProfiles {
           inherit lib;
           inherit (config.hakula.claude-code.auth) enableCorpGateway;
         }

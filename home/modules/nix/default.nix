@@ -5,13 +5,13 @@
 {
   pkgs,
   lib,
+  caches,
   isNixOS ? false,
   ...
 }:
 
 let
   inherit (pkgs.stdenv) isLinux;
-  caches = import ../../../lib/caches.nix;
 
   nixConf = ''
     experimental-features = nix-command flakes

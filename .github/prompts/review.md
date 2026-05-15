@@ -31,7 +31,7 @@ Review this PR. This is a flake-based NixOS / nix-darwin configuration repo.
 
 ### Signal quality — every finding must pass ALL of these
 
-1. **Concrete failure**: You can describe a specific, reproducible scenario where the code breaks, produces wrong output, or creates a vulnerability. "This could fail" is not sufficient. Explain exactly *when* and *how*.
+1. **Concrete failure**: You can describe a specific, reproducible scenario where the code breaks, produces wrong output, or creates a vulnerability. "This could fail" is not sufficient. Explain exactly _when_ and _how_.
 2. **Not already addressed**: You have checked inline comments, commit messages, and surrounding context. The author has not already documented the rationale for the pattern you are questioning.
 3. **Verified behavior**: If your finding depends on how a platform feature works (GitHub Actions expressions, Nix evaluator, systemd, etc.), you have confirmed the actual behavior, not assumed it from another language or platform.
 4. **Actionable fix**: You can propose a specific code change. "Verify that X works" or "consider whether Y" are not actionable. Either show the fix or do not report it.
