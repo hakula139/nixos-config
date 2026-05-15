@@ -196,9 +196,6 @@ in
       profiles.config
 
       {
-        # ----------------------------------------------------------------------
-        # User configuration files
-        # ----------------------------------------------------------------------
         home.file = {
           ".claude/CLAUDE.md".text = instructions.claudeCode;
           ".claude/statusline-command.sh" = {
@@ -208,15 +205,9 @@ in
         }
         // profiles.homeFiles;
 
-        # ----------------------------------------------------------------------
-        # Auth profile switching
-        # ----------------------------------------------------------------------
         home.packages = profiles.packages;
         home.activation.claudeCodeProfile = profiles.activation;
 
-        # ----------------------------------------------------------------------
-        # Program configuration
-        # ----------------------------------------------------------------------
         programs.claude-code = {
           enable = true;
           package = claudeCodeBin;
