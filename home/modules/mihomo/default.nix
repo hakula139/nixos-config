@@ -57,19 +57,23 @@ let
         exit 1
       fi
 
-      # Substitute the secret literally to avoid sed metachar corruption
-      # when the secret contains `|`, `&`, or `\`. Awk reads MIHOMO_SECRET
-      # from the environment and does not reinterpret it.
+      # Substitute the secret via awk so `|`, `&`, `\` survive intact.
+      # Double any `'` so the result is safe in a YAML single-quoted scalar.
       echo "Preparing base configuration with secrets"
       BASE_CONFIG=$(
         printf '%s' "$BASE_CONFIG_TEMPLATE" \
-          | awk '{
-              s = ENVIRON["MIHOMO_SECRET"]
-              while ((i = index($0, "__SECRET__")) > 0) {
-                $0 = substr($0, 1, i - 1) s substr($0, i + length("__SECRET__"))
+          | awk -v q="'" '
+              BEGIN {
+                s = ENVIRON["MIHOMO_SECRET"]
+                gsub(q, q q, s)
               }
-              print
-            }'
+              {
+                while ((i = index($0, "__SECRET__")) > 0) {
+                  $0 = substr($0, 1, i - 1) s substr($0, i + length("__SECRET__"))
+                }
+                print
+              }
+            '
       )
 
       echo "Merging base configuration with subscription"
