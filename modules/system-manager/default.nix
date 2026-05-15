@@ -14,9 +14,9 @@
 
 let
   cfg = config.hakula;
-  userConfig = config.users.users.${cfg.user.name};
   homeConfig = config.home-manager.users.${cfg.user.name};
   sshCfg = cfg.access.ssh;
+  userConfig = config.users.users.${cfg.user.name};
 
   shared = sharedConfig { inherit pkgs lib; };
   systemManagerHealthCheck = pkgs.writeShellScriptBin "system-manager-health-check" ''
@@ -84,7 +84,7 @@ in
     };
 
     # --------------------------------------------------------------------------
-    # Environment
+    # Nix
     # --------------------------------------------------------------------------
     nix = {
       enable = true;
@@ -96,6 +96,9 @@ in
       };
     };
 
+    # --------------------------------------------------------------------------
+    # Environment
+    # --------------------------------------------------------------------------
     environment.variables = {
       LANG = "en_US.UTF-8";
       LC_ALL = "en_US.UTF-8";
@@ -126,11 +129,11 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
+    age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
+
     age.secrets = secrets.mkRequiredUserSecrets {
       inherit homeConfig userConfig;
     };
-
-    age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
 
     systemd.services."home-manager-${cfg.user.name}" = lib.mkIf (config.age.secrets != { }) {
       after = [ "agenix-install-secrets.service" ];
