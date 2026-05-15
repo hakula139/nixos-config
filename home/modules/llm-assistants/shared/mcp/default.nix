@@ -21,15 +21,41 @@ let
     export NODE_OPTIONS="''${NODE_OPTIONS:+$NODE_OPTIONS }--use-env-proxy"
   '';
 
+  # Optional `if [ -f file ]; then export VAR="$(cat file)"; fi` block.
+  exportFromFile = var: file: ''
+    if [ -f "${file}" ]; then
+      export ${var}="$(cat ${file})"
+    fi
+  '';
+
+  # Wrapper for `npx -y <package>` style MCP servers. The four npm-based
+  # servers all share the same nodeSetup + optional-token + exec shape.
+  mkNpmServer =
+    {
+      name,
+      package,
+      tokenEnv ? null,
+      tokenFile ? null,
+      extraArgs ? [ ],
+    }:
+    pkgs.writeShellScriptBin "${name}-mcp" (
+      let
+        argLine = lib.concatStringsSep " " ([ "npx -y ${package}" ] ++ extraArgs ++ [ ''"$@"'' ]);
+      in
+      ''
+        ${nodeSetup}
+        ${lib.optionalString (tokenEnv != null && tokenFile != null) (exportFromFile tokenEnv tokenFile)}
+        exec ${argLine}
+      ''
+    );
+
   # ----------------------------------------------------------------------------
   # Atlassian (Confluence)
   # ----------------------------------------------------------------------------
   confluencePatFile = secretPath "confluence-pat";
   atlassianBin = pkgs.writeShellScriptBin "atlassian-mcp" ''
     export PATH="${pkgs.uv}/bin:$PATH"
-    if [ -f "${confluencePatFile}" ]; then
-      export CONFLUENCE_PERSONAL_TOKEN="$(cat ${confluencePatFile})"
-    fi
+    ${exportFromFile "CONFLUENCE_PERSONAL_TOKEN" confluencePatFile}
     export CONFLUENCE_URL="https://wiki.${corpDomain}"
     # mcp-atlassian honours HTTP_PROXY but ignores NO_PROXY; clear them for internal Confluence.
     unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
@@ -39,14 +65,12 @@ let
   # ----------------------------------------------------------------------------
   # Brave Search
   # ----------------------------------------------------------------------------
-  braveApiKeyFile = secretPath "brave-api-key";
-  braveSearchBin = pkgs.writeShellScriptBin "brave-search-mcp" ''
-    ${nodeSetup}
-    if [ -f "${braveApiKeyFile}" ]; then
-      export BRAVE_API_KEY="$(cat ${braveApiKeyFile})"
-    fi
-    exec npx -y @brave/brave-search-mcp-server "$@"
-  '';
+  braveSearchBin = mkNpmServer {
+    name = "brave-search";
+    package = "@brave/brave-search-mcp-server";
+    tokenEnv = "BRAVE_API_KEY";
+    tokenFile = secretPath "brave-api-key";
+  };
 
   # ----------------------------------------------------------------------------
   # Codex
@@ -58,30 +82,33 @@ let
   # ----------------------------------------------------------------------------
   # Context7
   # ----------------------------------------------------------------------------
-  context7ApiKeyFile = secretPath "context7-api-key";
-  context7Bin = pkgs.writeShellScriptBin "context7-mcp" ''
-    ${nodeSetup}
-    if [ -f "${context7ApiKeyFile}" ]; then
-      export CONTEXT7_API_KEY="$(cat ${context7ApiKeyFile})"
-    fi
-    exec npx -y @upstash/context7-mcp "$@"
-  '';
+  context7Bin = mkNpmServer {
+    name = "context7";
+    package = "@upstash/context7-mcp";
+    tokenEnv = "CONTEXT7_API_KEY";
+    tokenFile = secretPath "context7-api-key";
+  };
 
   # ----------------------------------------------------------------------------
   # DeepWiki
   # ----------------------------------------------------------------------------
-  deepwikiBin = pkgs.writeShellScriptBin "deepwiki-mcp" ''
-    ${nodeSetup}
-    exec npx -y mcp-remote https://mcp.deepwiki.com/mcp --transport http-first "$@"
-  '';
+  deepwikiBin = mkNpmServer {
+    name = "deepwiki";
+    package = "mcp-remote";
+    extraArgs = [
+      "https://mcp.deepwiki.com/mcp"
+      "--transport"
+      "http-first"
+    ];
+  };
 
   # ----------------------------------------------------------------------------
   # Fetcher
   # ----------------------------------------------------------------------------
-  fetcherBin = pkgs.writeShellScriptBin "fetcher-mcp" ''
-    ${nodeSetup}
-    exec npx -y fetcher-mcp "$@"
-  '';
+  fetcherBin = mkNpmServer {
+    name = "fetcher";
+    package = "fetcher-mcp";
+  };
 
   # ----------------------------------------------------------------------------
   # Filesystem
