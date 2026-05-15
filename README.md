@@ -24,7 +24,7 @@ This repository manages NixOS, nix-darwin, System Manager, Home Manager, custom 
 
 ```text
 .
-├── flake.nix                        # Inputs, overlays, builders, and outputs
+├── flake.nix                        # Inputs, special args, host registration, outputs
 ├── hosts/                           # Per-host configurations
 │   └── _profiles/                   # Reusable hardware / container profiles
 ├── modules/
@@ -35,7 +35,7 @@ This repository manages NixOS, nix-darwin, System Manager, Home Manager, custom 
 ├── home/
 │   ├── hakula.nix                   # Home Manager entry point
 │   └── modules/                     # Home Manager modules
-├── lib/                             # Helpers (caches, secrets, servers, tooling)
+├── lib/                             # Helpers (overlays, builders, caches, secrets, servers, tooling)
 ├── packages/                        # Custom package definitions
 ├── secrets/                         # agenix-encrypted secrets and recipient rules
 └── .github/workflows/ci.yml         # CI pipeline
