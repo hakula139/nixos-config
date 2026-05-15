@@ -12,6 +12,7 @@
 let
   cfg = config.age;
   serviceName = "agenix-install-secrets";
+  secretsDir = "/run/agenix";
 
   secretType = lib.types.submodule (
     { config, name, ... }:
@@ -30,7 +31,7 @@ let
 
         path = lib.mkOption {
           type = lib.types.str;
-          default = "${cfg.secretsDir}/${config.name}";
+          default = "${secretsDir}/${config.name}";
           description = "Path where the decrypted secret is installed";
         };
 
@@ -92,12 +93,6 @@ in
       type = lib.types.attrsOf secretType;
       default = { };
       description = "age-encrypted secrets to decrypt during activation";
-    };
-
-    secretsDir = lib.mkOption {
-      type = lib.types.str;
-      default = "/run/agenix";
-      description = "Default directory for decrypted secrets";
     };
 
     managedPathsFile = lib.mkOption {
