@@ -327,6 +327,7 @@ in
       casks = [
         "keyclu"
         "mos"
+        "onedrive"
         "rectangle"
         "warp"
       ];
