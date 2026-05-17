@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  repoRoot,
   toolingFor,
   enableDevToolchains ? false,
   ...
@@ -28,11 +29,11 @@ in
     ".duckdbrc".text = ''
       .autopilot on
     '';
-    ".editorconfig".source = ../../.editorconfig;
+    ".editorconfig".source = lib.path.append repoRoot ".editorconfig";
     ".npmrc".text = ''
       manage-package-manager-versions=true
     '';
-    "ruff.toml".source = ../../ruff.toml;
+    "ruff.toml".source = lib.path.append repoRoot "ruff.toml";
   };
 
   # ----------------------------------------------------------------------------

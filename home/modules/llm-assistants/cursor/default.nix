@@ -9,6 +9,7 @@
   corpDomain,
   llmAssistantLib,
   secretPath,
+  systemManagerLib,
   hostName ? null,
   isNixOS ? false,
   isDesktop ? false,
@@ -16,7 +17,7 @@
 }:
 
 let
-  inherit (pkgs.stdenv) isDarwin;
+  inherit (pkgs.stdenv) isDarwin isLinux;
   cfg = config.hakula.cursor;
 
   inherit (llmAssistantLib) mcpOptions;
@@ -112,8 +113,26 @@ in
         "Cursor/User/snippets".source = ./snippets;
       };
 
+      # Cursor's remote server starts with a clean environment and skips
+      # zsh startup scripts, so prepend system-manager and Home Manager
+      # paths here. Sourced before the server launches the extension host.
+      serverEnvSetup = pkgs.writeText "cursor-server-env-setup" ''
+        for p in ${
+          lib.concatMapStringsSep " " (p: ''"${p}"'') (
+            systemManagerLib.systemPaths ++ [ "$HOME/.nix-profile/bin" ]
+          )
+        }; do
+          case ":$PATH:" in
+            *":$p:"*) ;;
+            *) [ -d "$p" ] && PATH="$p:$PATH" ;;
+          esac
+        done
+        export PATH
+      '';
+
       remoteFiles = {
         ".cursor-server/data/Machine/settings.json".source = settings.machineSettingsJson;
+        ".cursor-server/server-env-setup".source = serverEnvSetup;
       };
     in
     lib.mkMerge [
@@ -125,7 +144,7 @@ in
           ".cursor/mcp.json".source = mcp.mcpJson;
         }
         // (lib.optionalAttrs (isDesktop && isDarwin) darwinFiles)
-        // (lib.optionalAttrs (!isDesktop) remoteFiles);
+        // (lib.optionalAttrs isLinux remoteFiles);
 
         xdg.configFile = lib.optionalAttrs (isDesktop && !isDarwin) linuxFiles;
 
