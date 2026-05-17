@@ -46,7 +46,7 @@ in
     let
       inherit (homeConfig.hakula.secrets) required;
       pathCollisions = lib.filter (g: builtins.length g > 1) (
-        builtins.attrValues (lib.groupBy (n: required.${n}.path) (builtins.attrNames required))
+        builtins.attrValues (builtins.groupBy (n: required.${n}.path) (builtins.attrNames required))
       );
       formatGroups = lib.concatMapStringsSep "; " (g: lib.concatStringsSep " == " g);
     in
