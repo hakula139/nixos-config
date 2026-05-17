@@ -4,12 +4,10 @@
 
 {
   lib,
+  corpDomain,
   enableCorpGateway ? false,
 }:
 
-let
-  corpDomain = import ../corp-domain.nix;
-in
 {
   official = {
     type = "subscription";

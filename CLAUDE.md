@@ -20,15 +20,17 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 ├── flake.nix                        # Inputs, special args, host registration, outputs
 ├── hosts/                           # Per-host configurations
 │   └── _profiles/                   # Reusable hardware / container profiles
-├── lib/
-│   ├── builders.nix                 # mkServer / mkDarwin / mkSystemManager / mkDocker, mkHomeManagerConfig, serverSharedModules
-│   ├── overlays.nix                 # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, toolchains, custom packages)
+├── data/                            # Static configuration and inventory
 │   ├── caches.nix                   # Binary cache substituters and trusted public keys
 │   ├── corp-domain.nix              # Corp-internal domain placeholder (gitignored real value)
-│   ├── llm-assistants/              # Shared LLM-assistant helpers (mcpOptions, proxy, claude profile sets)
-│   ├── secrets.nix                  # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
 │   ├── servers.nix                  # Server inventory (IP, port, provider, host keys, builder config)
-│   └── tooling.nix                  # Dev shell tooling
+│   └── system-manager.nix           # Runtime PATH entries provisioned by system-manager activation
+├── lib/                             # Pure helpers and framework code
+│   ├── builders.nix                 # mkServer / mkDarwin / mkSystemManager / mkDocker, mkHomeManagerConfig, serverSharedModules
+│   ├── overlays.nix                 # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, toolchains, custom packages)
+│   ├── secrets.nix                  # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
+│   ├── tooling.nix                  # Dev shell tooling
+│   └── llm-assistants/              # Shared LLM-assistant helpers (mcpOptions, proxy, claude profile sets)
 ├── modules/
 │   ├── shared.nix                   # Cross-platform Home Manager primitives
 │   ├── nixos/                       # NixOS service modules (most carry an `enable` option)
@@ -149,7 +151,7 @@ Defer to global CLAUDE.md. The repo-specific addition: when _restyling_ an exist
 ### Git Conventions
 
 - **Scope**: the module name (`mihomo`, `secrets`, `system-manager`), the file (`flake`, `claude`, `readme`), or `(host)` for host-scoped changes.
-- Don't commit `lib/corp-domain.nix` with the real value. The placeholder lives in git.
+- Don't commit `data/corp-domain.nix` with the real value. The placeholder lives in git.
 
 ## CI
 

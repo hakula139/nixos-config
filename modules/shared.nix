@@ -10,7 +10,7 @@
 
 let
   keys = import ../secrets/keys.nix;
-  binaryCaches = import ../lib/caches.nix;
+  binaryCaches = import ../data/caches.nix;
   tooling = import ../lib/tooling.nix { inherit pkgs; };
 in
 {
@@ -65,7 +65,7 @@ in
   # ----------------------------------------------------------------------------
   # Server inventory
   # ----------------------------------------------------------------------------
-  servers = import ../lib/servers.nix;
+  servers = import ../data/servers.nix;
 
   mkBuildMachines =
     servers: sshKey:
