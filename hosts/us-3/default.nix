@@ -3,7 +3,9 @@
 # ==============================================================================
 
 {
+  lib,
   keys,
+  repoRoot,
   hostName,
   ...
 }:
@@ -63,7 +65,7 @@
   # ----------------------------------------------------------------------------
   hakula.services.cloudconeAgent = {
     enable = true;
-    serverKeyAgeFile = ../../secrets/cloudcone/server-key-${hostName}.age;
+    serverKeyAgeFile = lib.path.append repoRoot "secrets/cloudcone/server-key-${hostName}.age";
   };
 
   # ----------------------------------------------------------------------------

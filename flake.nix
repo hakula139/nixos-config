@@ -159,15 +159,18 @@
       # ------------------------------------------------------------------------
       # Special args
       # ------------------------------------------------------------------------
-      caches = import ./lib/caches.nix;
-      corpDomain = import ./lib/corp-domain.nix;
+      caches = import ./data/caches.nix;
+      corpDomain = import ./data/corp-domain.nix;
       keys = import ./secrets/keys.nix;
       llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
       repoModules = {
+        darwin = ./modules/darwin;
         nixos = ./modules/nixos;
       };
+      repoRoot = ./.;
       secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
       sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
+      systemManagerLib = import ./data/system-manager.nix;
       toolingFor = pkgs: import ./lib/tooling.nix { inherit pkgs; };
       commonSpecialArgs = {
         inherit
@@ -177,8 +180,10 @@
           keys
           llmAssistantLib
           repoModules
+          repoRoot
           secrets
           sharedConfig
+          systemManagerLib
           toolingFor
           ;
       };
@@ -244,7 +249,7 @@
       # ------------------------------------------------------------------------
       colmena =
         let
-          servers = import ./lib/servers.nix;
+          servers = import ./data/servers.nix;
         in
         {
           meta = {
