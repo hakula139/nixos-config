@@ -4,14 +4,15 @@
 
 {
   keys,
+  repoModules,
   hostName,
   ...
 }:
 
 {
   imports = [
-    ../_profiles/tencent-lighthouse
-    ../_profiles/server-baseline
+    repoModules.profiles.platform.tencent-lighthouse
+    repoModules.profiles.role.server
   ];
 
   # ----------------------------------------------------------------------------

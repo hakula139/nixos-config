@@ -1,10 +1,11 @@
 # ==============================================================================
-# us-1 Host Configuration
+# us-3 Host Configuration
 # ==============================================================================
 
 {
   lib,
   keys,
+  repoModules,
   repoRoot,
   hostName,
   ...
@@ -12,14 +13,9 @@
 
 {
   imports = [
-    ../_profiles/cloudcone-sc2
-    ../_profiles/server-baseline
+    repoModules.profiles.platform.cloudcone-sc2
+    repoModules.profiles.role.server
   ];
-
-  # ----------------------------------------------------------------------------
-  # Generation Management
-  # ----------------------------------------------------------------------------
-  boot.loader.grub.configurationLimit = lib.mkForce 10;
 
   # ----------------------------------------------------------------------------
   # Networking
@@ -30,28 +26,34 @@
     interfaces.ens3 = {
       ipv4.addresses = [
         {
-          address = "74.48.108.20";
-          prefixLength = 24;
+          address = "148.135.122.201";
+          prefixLength = 26;
         }
       ];
+    };
+
+    interfaces.ens4 = {
       ipv6.addresses = [
         {
-          address = "2607:f130:0:10d::7f";
+          address = "2607:f130:0:f0::76";
           prefixLength = 64;
         }
         {
-          address = "2607:f130:0:10d::80";
+          address = "2607:f130:0:f0::77";
           prefixLength = 64;
         }
         {
-          address = "2607:f130:0:10d::81";
+          address = "2607:f130:0:f0::78";
           prefixLength = 64;
         }
       ];
     };
 
-    defaultGateway = "74.48.108.1";
-    defaultGateway6 = "2607:f130:0:10d::1";
+    defaultGateway = "148.135.122.193";
+    defaultGateway6 = {
+      address = "2607:f130:0:f0::1";
+      interface = "ens4";
+    };
   };
 
   # ----------------------------------------------------------------------------
@@ -62,25 +64,13 @@
   # ----------------------------------------------------------------------------
   # Services
   # ----------------------------------------------------------------------------
-  hakula.services.backup = {
-    enable = true;
-    b2Bucket = "hakula-backup";
-    peertube = {
-      enable = true;
-      schedule = "*-*-* 03:00:00";
-    };
-  };
   hakula.services.cloudconeAgent = {
     enable = true;
     serverKeyAgeFile = lib.path.append repoRoot "secrets/cloudcone/server-key-${hostName}.age";
-  };
-  hakula.services.peertube = {
-    enable = true;
-    b2Bucket = "hakula-videos";
   };
 
   # ----------------------------------------------------------------------------
   # System State
   # ----------------------------------------------------------------------------
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 }

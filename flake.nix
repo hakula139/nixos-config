@@ -170,6 +170,18 @@
       repoModules = {
         darwin = ./modules/darwin;
         nixos = ./modules/nixos;
+        profiles = {
+          platform = {
+            cloudcone-sc2 = ./hosts/_profiles/platform/cloudcone-sc2;
+            cloudcone-vps = ./hosts/_profiles/platform/cloudcone-vps;
+            container = ./hosts/_profiles/platform/container;
+            dmit = ./hosts/_profiles/platform/dmit;
+            tencent-lighthouse = ./hosts/_profiles/platform/tencent-lighthouse;
+          };
+          role = {
+            server = ./hosts/_profiles/role/server;
+          };
+        };
       };
       repoRoot = ./.;
       secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
@@ -225,27 +237,27 @@
       nixosConfigurations = {
         us-1 = mkServer {
           hostName = "us-1";
-          configPath = ./hosts/us-1;
+          configPath = ./hosts/servers/us-1;
         };
 
         us-2 = mkServer {
           hostName = "us-2";
-          configPath = ./hosts/us-2;
+          configPath = ./hosts/servers/us-2;
         };
 
         us-3 = mkServer {
           hostName = "us-3";
-          configPath = ./hosts/us-3;
+          configPath = ./hosts/servers/us-3;
         };
 
         us-4 = mkServer {
           hostName = "us-4";
-          configPath = ./hosts/us-4;
+          configPath = ./hosts/servers/us-4;
         };
 
         sg-1 = mkServer {
           hostName = "sg-1";
-          configPath = ./hosts/sg-1;
+          configPath = ./hosts/servers/sg-1;
         };
       };
 
@@ -280,7 +292,7 @@
             buildOnTarget = true;
             tags = [ (nixpkgs.lib.toLower server.provider) ];
           };
-          imports = [ (./hosts + "/${name}") ];
+          imports = [ (./hosts/servers + "/${name}") ];
         }) servers;
 
       # ------------------------------------------------------------------------
@@ -290,7 +302,7 @@
         hakula-macbook = mkDarwin {
           hostName = "hakula-macbook";
           displayName = "Hakula-MacBook";
-          configPath = ./hosts/hakula-macbook;
+          configPath = ./hosts/workstations/hakula-macbook;
         };
       };
 
@@ -300,7 +312,7 @@
       systemConfigs = {
         hakula-linux = mkSystemManager {
           hostName = "hakula-linux";
-          configPath = ./hosts/hakula-linux;
+          configPath = ./hosts/workstations/hakula-linux;
         };
       };
 
@@ -313,7 +325,7 @@
         # Docker images for air-gapped deployment.
         x86_64-linux.hakula-devvm-docker = mkDocker {
           name = "hakula-devvm";
-          configPath = ./hosts/hakula-devvm;
+          configPath = ./hosts/images/hakula-devvm;
           username = "root";
           enableDevToolchains = true;
         };

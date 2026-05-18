@@ -4,14 +4,15 @@
 
 {
   keys,
+  repoModules,
   hostName,
   ...
 }:
 
 {
   imports = [
-    ../_profiles/cloudcone-vps
-    ../_profiles/server-baseline
+    repoModules.profiles.platform.cloudcone-vps
+    repoModules.profiles.role.server
   ];
 
   # ----------------------------------------------------------------------------

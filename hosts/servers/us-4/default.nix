@@ -1,72 +1,57 @@
 # ==============================================================================
-# us-3 Host Configuration
+# us-4 Host Configuration
 # ==============================================================================
 
 {
-  lib,
   keys,
-  repoRoot,
+  repoModules,
   hostName,
   ...
 }:
 
 {
   imports = [
-    ../_profiles/cloudcone-sc2
-    ../_profiles/server-baseline
+    repoModules.profiles.platform.dmit
+    repoModules.profiles.role.server
   ];
 
   # ----------------------------------------------------------------------------
   # Networking
   # ----------------------------------------------------------------------------
-  networking = {
-    inherit hostName;
-
-    interfaces.ens3 = {
-      ipv4.addresses = [
-        {
-          address = "148.135.122.201";
-          prefixLength = 26;
-        }
-      ];
-    };
-
-    interfaces.ens4 = {
-      ipv6.addresses = [
-        {
-          address = "2607:f130:0:f0::76";
-          prefixLength = 64;
-        }
-        {
-          address = "2607:f130:0:f0::77";
-          prefixLength = 64;
-        }
-        {
-          address = "2607:f130:0:f0::78";
-          prefixLength = 64;
-        }
-      ];
-    };
-
-    defaultGateway = "148.135.122.193";
-    defaultGateway6 = {
-      address = "2607:f130:0:f0::1";
-      interface = "ens4";
-    };
-  };
+  networking.hostName = hostName;
 
   # ----------------------------------------------------------------------------
   # Access (SSH)
   # ----------------------------------------------------------------------------
-  hakula.access.ssh.authorizedKeys = [ keys.users.hakula-cloudcone ];
+  hakula.access.ssh.authorizedKeys = [ keys.users.hakula-dmit ];
+
+  # ----------------------------------------------------------------------------
+  # Credentials
+  # ----------------------------------------------------------------------------
+  hakula.dockerHub.username = "hakula139";
 
   # ----------------------------------------------------------------------------
   # Services
   # ----------------------------------------------------------------------------
-  hakula.services.cloudconeAgent = {
+  hakula.services.aria2.enable = true;
+  hakula.services.backup = {
     enable = true;
-    serverKeyAgeFile = lib.path.append repoRoot "secrets/cloudcone/server-key-${hostName}.age";
+    b2Bucket = "hakula-backup";
+    cloudreve.enable = true;
+    twikoo.enable = true;
+    umami.enable = true;
   };
+  hakula.services.clashGenerator.enable = true;
+  hakula.services.cloudreve = {
+    enable = true;
+    umami = {
+      enable = true;
+      workerHost = "b2.hakula.xyz";
+    };
+  };
+  hakula.services.piclist.enable = true;
+  hakula.services.postgresql.enable = true;
+  hakula.services.umami.enable = true;
 
   # ----------------------------------------------------------------------------
   # System State
