@@ -299,10 +299,10 @@
       # Darwin Configurations (macOS)
       # ------------------------------------------------------------------------
       darwinConfigurations = {
-        hakula-macbook = mkDarwin {
+        macbook = mkDarwin {
           hostName = "hakula-macbook";
           displayName = "Hakula-MacBook";
-          configPath = ./hosts/workstations/hakula-macbook;
+          configPath = ./hosts/workstations/macbook;
         };
       };
 
@@ -310,9 +310,9 @@
       # System Manager Configurations (non-NixOS Linux)
       # ------------------------------------------------------------------------
       systemConfigs = {
-        hakula-linux = mkSystemManager {
-          hostName = "hakula-linux";
-          configPath = ./hosts/workstations/hakula-linux;
+        wsl-non-nixos = mkSystemManager {
+          hostName = "wsl-non-nixos";
+          configPath = ./hosts/workstations/wsl-non-nixos;
         };
       };
 
@@ -323,9 +323,9 @@
         x86_64-linux.system-manager = (pkgsFor "x86_64-linux").system-manager;
 
         # Docker images for air-gapped deployment.
-        x86_64-linux.hakula-devvm-docker = mkDocker {
-          name = "hakula-devvm";
-          configPath = ./hosts/images/hakula-devvm;
+        x86_64-linux.devvm-docker = mkDocker {
+          name = "devvm";
+          configPath = ./hosts/images/devvm;
           username = "root";
           enableDevToolchains = true;
         };

@@ -1,12 +1,12 @@
 services:
-  hakula-devvm:
-    image: hakula-devvm:latest
-    container_name: hakula-devvm
+  devvm:
+    image: devvm:latest
+    container_name: devvm
 
     # -------------------------------------------------------------------------
     # Container
     # -------------------------------------------------------------------------
-    hostname: hakula-devvm
+    hostname: devvm
     command: /init
     restart: unless-stopped
     privileged: true

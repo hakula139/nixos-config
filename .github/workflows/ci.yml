@@ -57,17 +57,17 @@ jobs:
             runner: ubuntu-latest
             target: .#nixosConfigurations.sg-1.config.system.build.toplevel
           - id: macos
-            name: hakula-macbook (aarch64-darwin, macOS)
+            name: macbook (aarch64-darwin, macOS)
             runner: macos-latest
-            target: .#darwinConfigurations.hakula-macbook.system
-          - id: generic-linux
-            name: hakula-linux (x86_64-linux, System Manager)
+            target: .#darwinConfigurations.macbook.system
+          - id: wsl-non-nixos
+            name: wsl-non-nixos (x86_64-linux, System Manager)
             runner: ubuntu-latest
-            target: .#systemConfigs.hakula-linux
+            target: .#systemConfigs.wsl-non-nixos
           - id: docker
-            name: hakula-devvm (x86_64-linux, Docker)
+            name: devvm (x86_64-linux, Docker)
             runner: ubuntu-latest
-            target: .#packages.x86_64-linux.hakula-devvm-docker
+            target: .#packages.x86_64-linux.devvm-docker
 
     steps:
       - name: Checkout repository
@@ -92,7 +92,7 @@ jobs:
           matrix.config.id == 'macos' &&
           (github.ref == 'refs/heads/main' || github.actor == 'hakula139')
         run: |
-          store_path=$(nix eval --raw '.#darwinConfigurations.hakula-macbook.pkgs.peertube-runner.outPath')
+          store_path=$(nix eval --raw '.#darwinConfigurations.macbook.pkgs.peertube-runner.outPath')
           cachix push hakula "$store_path"
           cachix pin hakula peertube-runner "$store_path" --keep-revisions 2
 

@@ -36,7 +36,7 @@ let
   settings = import ./settings.nix {
     inherit pkgs isDarwin isNixOS;
     inherit (cfg.nixd) flakePath;
-    configName = lib.toLower (if hostName != null then hostName else "hakula-linux");
+    configName = lib.toLower (if hostName != null then hostName else "wsl-non-nixos");
   };
 
   ext = import ./extensions.nix {

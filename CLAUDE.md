@@ -7,9 +7,9 @@ Guidance for Claude Code (claude.ai/code) when working in this repository. Follo
 A flake-based NixOS / nix-darwin / system-manager configuration:
 
 - **5 NixOS servers** (us-1, us-2, us-3, us-4, sg-1) on x86_64-linux
-- **1 macOS workstation** (hakula-macbook) on aarch64-darwin
-- **1 generic Linux** (hakula-linux) on system-manager + Home Manager
-- **1 Docker image** (hakula-devvm) for air-gapped deployment
+- **1 macOS workstation** (macbook) on aarch64-darwin
+- **1 system-manager workstation** (wsl-non-nixos) on x86_64-linux WSL atop a non-NixOS distro
+- **1 Docker image** (devvm) for air-gapped deployment
 
 `flake.nix` is the manifest; builders live in `lib/builders.nix`, overlays in `lib/overlays.nix`. Per-host config in `hosts/`. Cross-platform primitives in `modules/shared.nix`.
 
@@ -53,10 +53,10 @@ First-time setup is the workflow that's hard to infer. Day-to-day applies use th
 nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 
 # macOS
-sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#hakula-macbook'
+sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#macbook'
 
-# Generic Linux
-nix run '.#system-manager' -- switch --flake '.#hakula-linux' --sudo
+# Non-NixOS Linux (WSL workstation)
+nix run '.#system-manager' -- switch --flake '.#wsl-non-nixos' --sudo
 system-manager-health-check agenix-install-secrets.service home-manager-hakula.service
 ```
 
@@ -158,12 +158,12 @@ Defer to global CLAUDE.md. The repo-specific addition: when _restyling_ an exist
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push / PR:
 
 1. `nix flake check --all-systems` — validates the flake structure and runs pre-commit hooks (`nixfmt`, `statix`, `deadnix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
-2. Parallel builds of every host (`us-1`..`us-4`, `sg-1`, `hakula-macbook`, `hakula-linux`, `hakula-devvm-docker`).
+2. Parallel builds of every host (`us-1`..`us-4`, `sg-1`, `macbook`, `wsl-non-nixos`, `devvm-docker`).
 3. Successful builds upload to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
 
 ## Proxy Configuration
 
-`hakula.llm-assistants.proxy.*` fans out to each assistant (`claude-code`, `codex`, `opencode`). Proxy URL defaults to `http://127.0.0.1:7897` (local mihomo); override via `url` or `secretUrlFile`. Currently enabled on `hakula-macbook`, `hakula-linux`, and `hakula-devvm` (the last via `secretUrlFile`).
+`hakula.llm-assistants.proxy.*` fans out to each assistant (`claude-code`, `codex`, `opencode`). Proxy URL defaults to `http://127.0.0.1:7897` (local mihomo); override via `url` or `secretUrlFile`. Currently enabled on `macbook`, `wsl-non-nixos`, and `devvm` (the last via `secretUrlFile`).
 
 When network operations matter on these hosts, requests route through the proxy.
 
@@ -177,9 +177,9 @@ git ls-files '*.nix' -z | xargs -0 nix fmt               # Format Nix files
 
 # Per-host builds (cheaper than the full flake check):
 nix build '.#nixosConfigurations.us-1.config.system.build.toplevel'
-nix build '.#darwinConfigurations.hakula-macbook.system'
-nix build '.#systemConfigs.hakula-linux'
-nix build '.#packages.x86_64-linux.hakula-devvm-docker'
+nix build '.#darwinConfigurations.macbook.system'
+nix build '.#systemConfigs.wsl-non-nixos'
+nix build '.#packages.x86_64-linux.devvm-docker'
 ```
 
 When a refactor should be store-path-equivalent (rename, extract-to-lib, comment-only), assert that by capturing the output path of `nix build --no-link --print-out-paths '.#<target>'` before and after.

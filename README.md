@@ -9,16 +9,16 @@ Flake-based Nix configuration for Hakula's servers, workstations, and developmen
 
 This repository manages NixOS, nix-darwin, System Manager, Home Manager, custom packages, encrypted secrets, and deployable development images from one flake.
 
-| Output                                      | Platform         | Role                                  |
-| ------------------------------------------- | ---------------- | ------------------------------------- |
-| `nixosConfigurations.us-1`                  | `x86_64-linux`   | NixOS server, CloudCone SC2           |
-| `nixosConfigurations.us-2`                  | `x86_64-linux`   | NixOS server, CloudCone VPS           |
-| `nixosConfigurations.us-3`                  | `x86_64-linux`   | NixOS server, CloudCone SC2           |
-| `nixosConfigurations.us-4`                  | `x86_64-linux`   | NixOS server, DMIT                    |
-| `nixosConfigurations.sg-1`                  | `x86_64-linux`   | NixOS server, Tencent Lighthouse      |
-| `darwinConfigurations.hakula-macbook`       | `aarch64-darwin` | macOS workstation with nix-darwin     |
-| `systemConfigs.hakula-linux`                | `x86_64-linux`   | Generic Linux with System Manager     |
-| `packages.x86_64-linux.hakula-devvm-docker` | `x86_64-linux`   | NixOS Docker image for dev containers |
+| Output                               | Platform         | Role                                                |
+| ------------------------------------ | ---------------- | --------------------------------------------------- |
+| `nixosConfigurations.us-1`           | `x86_64-linux`   | NixOS server, CloudCone SC2                         |
+| `nixosConfigurations.us-2`           | `x86_64-linux`   | NixOS server, CloudCone VPS                         |
+| `nixosConfigurations.us-3`           | `x86_64-linux`   | NixOS server, CloudCone SC2                         |
+| `nixosConfigurations.us-4`           | `x86_64-linux`   | NixOS server, DMIT                                  |
+| `nixosConfigurations.sg-1`           | `x86_64-linux`   | NixOS server, Tencent Lighthouse                    |
+| `darwinConfigurations.macbook`       | `aarch64-darwin` | macOS workstation with nix-darwin                   |
+| `systemConfigs.wsl-non-nixos`        | `x86_64-linux`   | system-manager workstation on non-NixOS Linux (WSL) |
+| `packages.x86_64-linux.devvm-docker` | `x86_64-linux`   | NixOS Docker image for dev containers               |
 
 ## Layout
 
@@ -78,7 +78,7 @@ curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 Bootstrap nix-darwin:
 
 ```bash
-sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#hakula-macbook'
+sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#macbook'
 ```
 
 Apply after bootstrap:
@@ -89,7 +89,7 @@ nh darwin switch .
 
 ### Generic Linux
 
-`hakula-linux` uses [system-manager](https://github.com/numtide/system-manager) to own the system profile, user shell integration, agenix secret activation, and Home Manager activation service.
+`wsl-non-nixos` uses [system-manager](https://github.com/numtide/system-manager) to own the system profile, user shell integration, agenix secret activation, and Home Manager activation service. It is the WSL workstation host running on stock (non-NixOS) Linux.
 
 Install Nix with Determinate Nix Installer:
 
@@ -100,14 +100,14 @@ curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 Bootstrap System Manager before the managed profile installs `system-manager` itself:
 
 ```bash
-nix run '.#system-manager' -- switch --flake '.#hakula-linux' --sudo
+nix run '.#system-manager' -- switch --flake '.#wsl-non-nixos' --sudo
 system-manager-health-check agenix-install-secrets.service home-manager-hakula.service
 ```
 
 Apply after bootstrap:
 
 ```bash
-system-manager switch --flake '.#hakula-linux' --sudo
+system-manager switch --flake '.#wsl-non-nixos' --sudo
 ```
 
 ### Docker Image
@@ -115,14 +115,14 @@ system-manager switch --flake '.#hakula-linux' --sudo
 Build the air-gapped development image:
 
 ```bash
-nix build '.#packages.x86_64-linux.hakula-devvm-docker'
+nix build '.#packages.x86_64-linux.devvm-docker'
 ```
 
 Load and start it:
 
 ```bash
 docker load < result
-docker compose -f hosts/hakula-devvm/docker-compose.yml up -d
+docker compose -f hosts/images/devvm/docker-compose.yml up -d
 ```
 
 Attach with the VS Code / Cursor Dev Containers command.
@@ -164,9 +164,9 @@ Build representative targets:
 
 ```bash
 nix build '.#nixosConfigurations.us-4.config.system.build.toplevel'
-nix build '.#darwinConfigurations.hakula-macbook.system'
-nix build '.#systemConfigs.hakula-linux'
-nix build '.#packages.x86_64-linux.hakula-devvm-docker'
+nix build '.#darwinConfigurations.macbook.system'
+nix build '.#systemConfigs.wsl-non-nixos'
+nix build '.#packages.x86_64-linux.devvm-docker'
 ```
 
 ## CI
@@ -175,7 +175,7 @@ GitHub Actions runs on every push and pull request:
 
 - **Flake Check**: `nix flake check --all-systems` — flake structure and pre-commit hooks (`nixfmt`, `statix`, `deadnix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
 - **Build NixOS**: builds the five server configurations (`us-1`, `us-2`, `us-3`, `us-4`, `sg-1`) on `ubuntu-latest`.
-- **Build macOS**: builds `hakula-macbook` on `macos-latest`, then pins `peertube-runner` to the Cachix cache.
-- **Build Generic Linux**: builds `systemConfigs.hakula-linux` on `ubuntu-latest`.
-- **Build Docker**: builds `hakula-devvm-docker` on `ubuntu-latest`.
+- **Build macOS**: builds `macbook` on `macos-latest`, then pins `peertube-runner` to the Cachix cache.
+- **Build WSL (non-NixOS)**: builds `systemConfigs.wsl-non-nixos` on `ubuntu-latest`.
+- **Build Docker**: builds `devvm-docker` on `ubuntu-latest`.
 - **Closure size check**: prints `nix path-info -Sh` for each built target.

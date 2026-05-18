@@ -1,5 +1,5 @@
 # ==============================================================================
-# hakula-devvm Host Configuration
+# devvm Host Configuration
 # ==============================================================================
 
 {
@@ -30,7 +30,7 @@ in
   # ----------------------------------------------------------------------------
   # Networking
   # ----------------------------------------------------------------------------
-  networking.hostName = "hakula-devvm";
+  networking.hostName = "devvm";
 
   # DNS config (nameservers, search domain) comes from bind-mounted host
   # /etc/resolv.conf — see docker-compose.yml volumes.
