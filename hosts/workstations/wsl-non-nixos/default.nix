@@ -2,12 +2,7 @@
 # wsl-non-nixos System Manager Configuration
 # ==============================================================================
 
-{
-  config,
-  lib,
-  corpDomain,
-  ...
-}:
+{ config, ... }:
 
 let
   userName = config.hakula.user.name;
@@ -19,45 +14,12 @@ in
   home-manager.users.${userName} = {
     home.stateVersion = "25.05";
 
-    hakula.claude-code.auth = {
-      defaultProfile = "corp-gateway";
-      enableCorpGateway = true;
-    };
+    hakula.wsl.enable = true;
 
-    hakula.cursor.extensions.prune = lib.mkForce false;
-
-    hakula.fonts.windowsSync.enable = true;
-
-    hakula.llm-assistants = {
-      enable = true;
-      proxy = {
-        enable = true;
-        noProxy = [
-          "localhost"
-          "127.0.0.1"
-          "10.*"
-          ".${corpDomain}"
-        ];
-      };
-    };
-
-    hakula.mihomo = {
-      enable = true;
-      port = 7897;
-      controllerPort = 59386;
-    };
-
-    hakula.secrets.required = {
-      github-pat = {
-        name = lib.mkForce "github/pat-work";
-      };
-    };
-
-    programs.ssh.matchBlocks."gitlab-public.${corpDomain}" = {
-      host = "gitlab-public.${corpDomain}";
-      hostname = "gitlab-public.${corpDomain}";
-      user = "git";
-      port = 8022;
-    };
+    # Light up the local proxy for this host. The shared `hakula.wsl` module
+    # leaves both off so the new NixOS-WSL host can start clean; this leaf
+    # preserves the previous behaviour for the system-manager-on-Ubuntu host.
+    hakula.mihomo.enable = true;
+    hakula.llm-assistants.proxy.enable = true;
   };
 }
