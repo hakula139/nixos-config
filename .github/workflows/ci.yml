@@ -56,6 +56,10 @@ jobs:
             name: sg-1 (x86_64-linux, Tencent Lighthouse)
             runner: ubuntu-latest
             target: .#nixosConfigurations.sg-1.config.system.build.toplevel
+          - id: wsl
+            name: wsl (x86_64-linux, NixOS-WSL)
+            runner: ubuntu-latest
+            target: .#nixosConfigurations.wsl.config.system.build.toplevel
           - id: macos
             name: macbook (aarch64-darwin, macOS)
             runner: macos-latest
