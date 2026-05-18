@@ -6,6 +6,7 @@
   config,
   lib,
   llmAssistantLib,
+  proxyLib,
   ...
 }:
 
@@ -18,6 +19,7 @@ in
   ];
 
   options.hakula.llm-assistants = llmAssistantLib.mkOptions {
+    inherit proxyLib;
     enableDescription = "LLM assistants for the primary interactive user";
     defaultUser = config.hakula.user.name;
   };

@@ -6,6 +6,7 @@
   config,
   lib,
   llmAssistantLib,
+  proxyLib,
   ...
 }:
 
@@ -24,7 +25,6 @@ let
   };
 
   inherit (llmAssistantLib) mcpOptions;
-  proxyLib = llmAssistantLib.proxy;
 
   assistants = with config.hakula; [
     claude-code
