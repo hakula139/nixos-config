@@ -113,7 +113,10 @@
             check-yaml.enable = true;
             cspell = {
               enable = true;
-              args = [ "--no-progress" ];
+              args = [
+                "--no-progress"
+                "--no-must-find-files"
+              ];
             };
             deadnix.enable = true;
             end-of-file-fixer = {
