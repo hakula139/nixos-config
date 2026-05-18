@@ -51,6 +51,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # NixOS-WSL distribution module
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL/release-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Pre-commit hooks
     git-hooks-nix.url = "github:cachix/git-hooks.nix";
 
