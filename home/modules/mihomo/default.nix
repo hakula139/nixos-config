@@ -40,6 +40,10 @@ let
       set -euo pipefail
       export PATH="${runtimePath}"
 
+      # Subscription fetch must not loop through mihomo itself, which is
+      # either down (initial start) or about to be replaced.
+      unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
+
       CONFIG_DIR="${configDir}"
       CONFIG_FILE="${configFile}"
       SUBSCRIPTION_URL="$(cat ${subscriptionUrlFile})"
@@ -164,12 +168,6 @@ in
           Type = "oneshot";
           ExecStart = "${updateScript}";
           RemainAfterExit = false;
-          Environment = [
-            "HTTP_PROXY="
-            "HTTPS_PROXY="
-            "http_proxy="
-            "https_proxy="
-          ];
         };
       };
 
@@ -231,12 +229,6 @@ in
           ];
           StandardOutPath = "${homeDir}/Library/Logs/mihomo-update.log";
           StandardErrorPath = "${homeDir}/Library/Logs/mihomo-update.log";
-          EnvironmentVariables = {
-            HTTP_PROXY = "";
-            HTTPS_PROXY = "";
-            http_proxy = "";
-            https_proxy = "";
-          };
         };
       };
 
