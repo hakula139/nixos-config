@@ -186,6 +186,7 @@
             container = ./hosts/_profiles/platform/container;
             dmit = ./hosts/_profiles/platform/dmit;
             tencent-lighthouse = ./hosts/_profiles/platform/tencent-lighthouse;
+            wsl = ./hosts/_profiles/platform/wsl;
           };
           role = {
             server = ./hosts/_profiles/role/server;
@@ -232,6 +233,7 @@
       inherit (builders)
         serverSharedModules
         mkServer
+        mkWSL
         mkDarwin
         mkSystemManager
         mkDocker
@@ -239,7 +241,7 @@
     in
     {
       # ------------------------------------------------------------------------
-      # NixOS Configurations (Linux servers)
+      # NixOS Configurations (Linux servers + WSL workstation)
       # ------------------------------------------------------------------------
       nixosConfigurations = {
         us-1 = mkServer {
@@ -265,6 +267,11 @@
         sg-1 = mkServer {
           hostName = "sg-1";
           configPath = ./hosts/servers/sg-1;
+        };
+
+        wsl = mkWSL {
+          hostName = "wsl";
+          configPath = ./hosts/workstations/wsl;
         };
       };
 

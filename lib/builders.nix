@@ -90,6 +90,35 @@ let
     };
 
   # ----------------------------------------------------------------------------
+  # WSL workstation (NixOS-WSL)
+  # ----------------------------------------------------------------------------
+  # Same shape as mkServer but flagged as a desktop host — Home Manager
+  # wants `isDesktop = true` so cursor extensions install at activation.
+  mkWSL =
+    {
+      hostName,
+      configPath,
+    }:
+    nixpkgs.lib.nixosSystem {
+      specialArgs = commonSpecialArgs // {
+        inherit hostName;
+      };
+      modules = [
+        {
+          nixpkgs.hostPlatform = "x86_64-linux";
+          nixpkgs.overlays = overlays;
+        }
+        agenix.nixosModules.default
+        home-manager.nixosModules.home-manager
+        (mkHomeManagerConfig {
+          isDesktop = true;
+          isNixOS = true;
+        })
+        configPath
+      ];
+    };
+
+  # ----------------------------------------------------------------------------
   # Darwin (macOS)
   # ----------------------------------------------------------------------------
   mkDarwin =
@@ -202,6 +231,7 @@ in
     mkHomeManagerConfig
     serverSharedModules
     mkServer
+    mkWSL
     mkDarwin
     mkSystemManager
     mkDocker
