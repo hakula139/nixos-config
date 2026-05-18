@@ -183,6 +183,7 @@
           };
           role = {
             server = ./hosts/_profiles/role/server;
+            workstation = ./hosts/_profiles/role/workstation;
           };
         };
       };
