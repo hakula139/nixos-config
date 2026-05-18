@@ -16,6 +16,7 @@ This repository manages NixOS, nix-darwin, System Manager, Home Manager, custom 
 | `nixosConfigurations.us-3`           | `x86_64-linux`   | NixOS server, CloudCone SC2                         |
 | `nixosConfigurations.us-4`           | `x86_64-linux`   | NixOS server, DMIT                                  |
 | `nixosConfigurations.sg-1`           | `x86_64-linux`   | NixOS server, Tencent Lighthouse                    |
+| `nixosConfigurations.wsl`            | `x86_64-linux`   | NixOS-WSL workstation                               |
 | `darwinConfigurations.macbook`       | `aarch64-darwin` | macOS workstation with nix-darwin                   |
 | `systemConfigs.wsl-non-nixos`        | `x86_64-linux`   | system-manager workstation on non-NixOS Linux (WSL) |
 | `packages.x86_64-linux.devvm-docker` | `x86_64-linux`   | NixOS Docker image for dev containers               |
@@ -25,8 +26,13 @@ This repository manages NixOS, nix-darwin, System Manager, Home Manager, custom 
 ```text
 .
 ├── flake.nix                        # Inputs, special args, host registration, outputs
-├── hosts/                           # Per-host configurations
-│   └── _profiles/                   # Reusable hardware / container profiles
+├── hosts/
+│   ├── _profiles/
+│   │   ├── platform/                # Hardware / runtime shape (cloudcone-sc2, container, wsl, ...)
+│   │   └── role/                    # System role (server, workstation)
+│   ├── servers/                     # NixOS servers (us-1..us-4, sg-1)
+│   ├── workstations/                # macbook (Darwin), wsl (NixOS-WSL), wsl-non-nixos (System Manager)
+│   └── images/                      # Buildable images (devvm)
 ├── modules/
 │   ├── shared.nix                   # Cross-platform primitives
 │   ├── nixos/                       # NixOS service modules
@@ -34,8 +40,8 @@ This repository manages NixOS, nix-darwin, System Manager, Home Manager, custom 
 │   └── system-manager/              # System Manager activation, agenix port
 ├── home/
 │   ├── hakula.nix                   # Home Manager entry point
-│   └── modules/                     # Home Manager modules
-├── lib/                             # Helpers (overlays, builders, caches, secrets, servers, tooling)
+│   └── modules/                     # Home Manager modules (incl. wsl bundle)
+├── lib/                             # Helpers (overlays, builders, secrets, proxy, tooling, ...)
 ├── packages/                        # Custom package definitions
 ├── secrets/                         # agenix-encrypted secrets and recipient rules
 └── .github/workflows/ci.yml         # CI pipeline
@@ -87,7 +93,42 @@ Apply after bootstrap:
 nh darwin switch .
 ```
 
-### Generic Linux
+### NixOS-WSL Workstation
+
+`wsl` is a real-NixOS workstation running under Microsoft WSL2 via
+[NixOS-WSL](https://github.com/nix-community/NixOS-WSL).
+
+Build the import tarball from any host with the flake checked out:
+
+```bash
+nix build '.#nixosConfigurations.wsl.config.system.build.tarballBuilder'
+sudo ./result/bin/nixos-wsl-tarball-builder       # produces ./nixos.wsl
+```
+
+Move `nixos.wsl` to the Windows side and import (PowerShell):
+
+```powershell
+wsl --shutdown
+wsl --install --from-file .\nixos.wsl              # WSL ≥ 2.4.4
+# Older WSL fallback:
+# wsl --import NixOS C:\WSL\NixOS .\nixos.wsl
+wsl -d NixOS                                       # first launch
+```
+
+Inside the new distro, drop the agenix identity and apply the managed
+configuration:
+
+```bash
+git clone https://github.com/hakula139/nixos-config ~/nixos-config
+cp /mnt/c/Users/<name>/.ssh/id_ed25519     ~/.ssh/id_ed25519
+cp /mnt/c/Users/<name>/.ssh/id_ed25519.pub ~/.ssh/id_ed25519.pub
+chmod 600 ~/.ssh/id_ed25519
+
+sudo nixos-rebuild switch --flake ~/nixos-config#wsl
+# Day-to-day after this: `nixsw` (zsh alias = nh os switch .)
+```
+
+### Non-NixOS Linux (WSL or generic)
 
 `wsl-non-nixos` uses [system-manager](https://github.com/numtide/system-manager) to own the system profile, user shell integration, agenix secret activation, and Home Manager activation service. It is the WSL workstation host running on stock (non-NixOS) Linux.
 
@@ -175,6 +216,7 @@ GitHub Actions runs on every push and pull request:
 
 - **Flake Check**: `nix flake check --all-systems` — flake structure and pre-commit hooks (`nixfmt`, `statix`, `deadnix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
 - **Build NixOS**: builds the five server configurations (`us-1`, `us-2`, `us-3`, `us-4`, `sg-1`) on `ubuntu-latest`.
+- **Build NixOS-WSL**: builds `wsl` on `ubuntu-latest`.
 - **Build macOS**: builds `macbook` on `macos-latest`, then pins `peertube-runner` to the Cachix cache.
 - **Build WSL (non-NixOS)**: builds `systemConfigs.wsl-non-nixos` on `ubuntu-latest`.
 - **Build Docker**: builds `devvm-docker` on `ubuntu-latest`.

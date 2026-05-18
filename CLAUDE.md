@@ -7,6 +7,7 @@ Guidance for Claude Code (claude.ai/code) when working in this repository. Follo
 A flake-based NixOS / nix-darwin / system-manager configuration:
 
 - **5 NixOS servers** (us-1, us-2, us-3, us-4, sg-1) on x86_64-linux
+- **1 NixOS-WSL workstation** (wsl) on x86_64-linux
 - **1 macOS workstation** (macbook) on aarch64-darwin
 - **1 system-manager workstation** (wsl-non-nixos) on x86_64-linux WSL atop a non-NixOS distro
 - **1 Docker image** (devvm) for air-gapped deployment
@@ -18,15 +19,20 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 ```text
 .
 ├── flake.nix                        # Inputs, special args, host registration, outputs
-├── hosts/                           # Per-host configurations
-│   └── _profiles/                   # Reusable hardware / container profiles
+├── hosts/
+│   ├── _profiles/
+│   │   ├── platform/                # Hardware / runtime shape (cloudcone-sc2, container, wsl, ...)
+│   │   └── role/                    # System role (server, workstation)
+│   ├── servers/                     # NixOS servers (us-1..us-4, sg-1)
+│   ├── workstations/                # macbook (Darwin), wsl (NixOS-WSL), wsl-non-nixos (System Manager)
+│   └── images/                      # Buildable images (devvm)
 ├── data/                            # Static configuration and inventory
 │   ├── caches.nix                   # Binary cache substituters and trusted public keys
 │   ├── corp-domain.nix              # Corp-internal domain placeholder (gitignored real value)
 │   ├── servers.nix                  # Server inventory (IP, port, provider, host keys, builder config)
 │   └── system-manager.nix           # Runtime PATH entries provisioned by system-manager activation
 ├── lib/                             # Pure helpers and framework code
-│   ├── builders.nix                 # mkServer / mkDarwin / mkSystemManager / mkDocker, mkHomeManagerConfig, serverSharedModules
+│   ├── builders.nix                 # mkServer / mkWSL / mkDarwin / mkSystemManager / mkDocker, mkHomeManagerConfig, serverSharedModules
 │   ├── overlays.nix                 # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, toolchains, custom packages)
 │   ├── secrets.nix                  # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
 │   ├── tooling.nix                  # Dev shell tooling
@@ -38,7 +44,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 │   └── system-manager/              # System Manager activation, agenix port
 ├── home/
 │   ├── hakula.nix                   # Home Manager entry point
-│   └── modules/                     # Home Manager modules (one per concern)
+│   └── modules/                     # Home Manager modules (incl. `wsl` workstation bundle)
 ├── packages/                        # Custom package definitions (callPackage targets in lib/overlays.nix)
 ├── secrets/                         # agenix-encrypted secrets and recipient rules
 └── .github/workflows/ci.yml         # CI pipeline
@@ -51,6 +57,10 @@ First-time setup is the workflow that's hard to infer. Day-to-day applies use th
 ```bash
 # NixOS server
 nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
+
+# NixOS-WSL workstation: build the import tarball, then `wsl --install --from-file` on Windows
+nix build '.#nixosConfigurations.wsl.config.system.build.tarballBuilder'
+sudo ./result/bin/nixos-wsl-tarball-builder           # produces ./nixos.wsl
 
 # macOS
 sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#macbook'
@@ -158,7 +168,7 @@ Defer to global CLAUDE.md. The repo-specific addition: when _restyling_ an exist
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push / PR:
 
 1. `nix flake check --all-systems` — validates the flake structure and runs pre-commit hooks (`nixfmt`, `statix`, `deadnix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
-2. Parallel builds of every host (`us-1`..`us-4`, `sg-1`, `macbook`, `wsl-non-nixos`, `devvm-docker`).
+2. Parallel builds of every host (`us-1`..`us-4`, `sg-1`, `wsl`, `macbook`, `wsl-non-nixos`, `devvm-docker`).
 3. Successful builds upload to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
 
 ## Proxy Configuration
@@ -177,6 +187,7 @@ git ls-files '*.nix' -z | xargs -0 nix fmt               # Format Nix files
 
 # Per-host builds (cheaper than the full flake check):
 nix build '.#nixosConfigurations.us-1.config.system.build.toplevel'
+nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
 nix build '.#darwinConfigurations.macbook.system'
 nix build '.#systemConfigs.wsl-non-nixos'
 nix build '.#packages.x86_64-linux.devvm-docker'
