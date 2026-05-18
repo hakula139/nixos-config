@@ -8,6 +8,7 @@
   lib,
   corpDomain,
   llmAssistantLib,
+  proxyLib,
   secretPath,
   systemManagerLib,
   hostName ? null,
@@ -96,6 +97,7 @@ in
           lib
           llmAssistantLib
           corpDomain
+          proxyLib
           secretPath
           ;
         enabledServers = builtins.filter (s: !(lib.elem s cfg.mcp.disabledServers)) cfg.mcp.enabledServers;

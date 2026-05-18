@@ -166,6 +166,7 @@
       corpDomain = import ./data/corp-domain.nix;
       keys = import ./secrets/keys.nix;
       llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
+      proxyLib = import ./lib/proxy.nix { inherit (nixpkgs) lib; };
       repoModules = {
         darwin = ./modules/darwin;
         nixos = ./modules/nixos;
@@ -182,6 +183,7 @@
           corpDomain
           keys
           llmAssistantLib
+          proxyLib
           repoModules
           repoRoot
           secrets
