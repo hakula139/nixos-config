@@ -7,6 +7,7 @@
   pkgs,
   lib,
   corpDomain,
+  proxyLib,
   secretPath,
   ...
 }:
@@ -56,7 +57,7 @@ let
     ${exportFromFile "CONFLUENCE_PERSONAL_TOKEN" confluencePatFile}
     export CONFLUENCE_URL="https://wiki.${corpDomain}"
     # mcp-atlassian honours HTTP_PROXY but ignores NO_PROXY, so unset proxies for internal Confluence.
-    unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
+    ${proxyLib.clearProxyEnv}
     exec uvx mcp-atlassian "$@"
   '';
 

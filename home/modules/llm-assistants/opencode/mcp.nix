@@ -8,6 +8,7 @@
   lib,
   corpDomain,
   llmAssistantLib,
+  proxyLib,
   secretPath,
   enabledServers,
   ...
@@ -21,6 +22,7 @@ let
       pkgs
       lib
       corpDomain
+      proxyLib
       secretPath
       ;
   };

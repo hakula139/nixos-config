@@ -6,15 +6,15 @@
 
 let
   mcpOptions = import ./mcp-options.nix { inherit lib; };
-  proxy = import ./proxy.nix { inherit lib; };
 in
 {
-  inherit mcpOptions proxy;
+  inherit mcpOptions;
 
   mkClaudeProfiles = import ./claude-profiles.nix;
 
   mkOptions =
     {
+      proxyLib,
       enableDescription,
       defaultUser,
     }:
@@ -33,7 +33,7 @@ in
         };
       };
 
-      proxy = proxy.mkProxyOptions "LLM assistants";
+      proxy = proxyLib.mkProxyOptions "LLM assistants";
     };
 
   mkHomeManagerConfig = cfg: {

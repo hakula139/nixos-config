@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  proxyLib,
   secretPath,
   ...
 }:
@@ -39,6 +40,10 @@ let
     pkgs.writeShellScript "mihomo-update" ''
       set -euo pipefail
       export PATH="${runtimePath}"
+
+      # Subscription fetch must not loop through mihomo itself, which is
+      # either down (initial start) or about to be replaced.
+      ${proxyLib.clearProxyEnv}
 
       CONFIG_DIR="${configDir}"
       CONFIG_FILE="${configFile}"
@@ -164,12 +169,6 @@ in
           Type = "oneshot";
           ExecStart = "${updateScript}";
           RemainAfterExit = false;
-          Environment = [
-            "HTTP_PROXY="
-            "HTTPS_PROXY="
-            "http_proxy="
-            "https_proxy="
-          ];
         };
       };
 
@@ -231,12 +230,6 @@ in
           ];
           StandardOutPath = "${homeDir}/Library/Logs/mihomo-update.log";
           StandardErrorPath = "${homeDir}/Library/Logs/mihomo-update.log";
-          EnvironmentVariables = {
-            HTTP_PROXY = "";
-            HTTPS_PROXY = "";
-            http_proxy = "";
-            https_proxy = "";
-          };
         };
       };
 
