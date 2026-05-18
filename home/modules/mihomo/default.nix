@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  proxyLib,
   secretPath,
   ...
 }:
@@ -42,7 +43,7 @@ let
 
       # Subscription fetch must not loop through mihomo itself, which is
       # either down (initial start) or about to be replaced.
-      unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
+      ${proxyLib.clearProxyEnv}
 
       CONFIG_DIR="${configDir}"
       CONFIG_FILE="${configFile}"

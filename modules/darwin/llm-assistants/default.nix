@@ -6,6 +6,7 @@
   config,
   lib,
   llmAssistantLib,
+  proxyLib,
   ...
 }:
 
@@ -14,6 +15,7 @@ let
 in
 {
   options.hakula.llm-assistants = llmAssistantLib.mkOptions {
+    inherit proxyLib;
     enableDescription = "LLM assistants for the primary Home Manager user";
     defaultUser = "hakula";
   };

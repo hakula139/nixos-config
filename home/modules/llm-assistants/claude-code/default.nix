@@ -9,6 +9,7 @@
   inputs,
   corpDomain,
   llmAssistantLib,
+  proxyLib,
   secretPath,
   enableDevToolchains ? false,
   ...
@@ -21,7 +22,6 @@ let
   instructions = import ../shared/instructions;
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   inherit (llmAssistantLib) mcpOptions;
-  proxyLib = llmAssistantLib.proxy;
 
   profiles = import ./profiles.nix {
     inherit
@@ -108,6 +108,7 @@ in
           lib
           llmAssistantLib
           corpDomain
+          proxyLib
           secretPath
           ;
         enabledServers = builtins.filter (

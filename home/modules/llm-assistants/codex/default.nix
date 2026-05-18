@@ -9,6 +9,7 @@
   inputs,
   corpDomain,
   llmAssistantLib,
+  proxyLib,
   secretPath,
   ...
 }:
@@ -18,7 +19,6 @@ let
 
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   inherit (llmAssistantLib) mcpOptions;
-  proxyLib = llmAssistantLib.proxy;
   instructions = import ../shared/instructions;
 
   codexMcpServers = [
@@ -76,6 +76,7 @@ in
           lib
           llmAssistantLib
           corpDomain
+          proxyLib
           secretPath
           ;
         enabledServers = lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers;

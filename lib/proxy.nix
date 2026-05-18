@@ -1,10 +1,17 @@
 # ==============================================================================
-# Proxy Options
+# Proxy Helper Library
 # ==============================================================================
 
 { lib }:
 
 let
+  proxyVars = [
+    "HTTP_PROXY"
+    "HTTPS_PROXY"
+    "http_proxy"
+    "https_proxy"
+  ];
+
   mkProxyScript =
     proxyCfg:
     let
@@ -49,6 +56,14 @@ let
       };
 in
 {
+  # Shell snippet that clears proxy env vars. Use in scripts that must reach
+  # the network bypassing any inherited HTTP(S) proxy (e.g., mihomo's own
+  # subscription fetch, or MCP servers talking to internal endpoints that
+  # do not honour NO_PROXY).
+  clearProxyEnv = "unset ${lib.concatStringsSep " " proxyVars}";
+
+  inherit mkProxyScript wrapWithProxy;
+
   mkProxyOptions = name: {
     enable = lib.mkEnableOption "HTTP proxy for ${name}";
 
@@ -74,6 +89,4 @@ in
       description = "Domains to bypass the proxy";
     };
   };
-
-  inherit mkProxyScript wrapWithProxy;
 }
