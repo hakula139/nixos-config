@@ -4,15 +4,15 @@
 
 {
   keys,
-  repoModules,
+  repo,
   hostName,
   ...
 }:
 
 {
   imports = [
-    repoModules.profiles.platform.dmit
-    repoModules.profiles.role.server
+    repo.profiles.platform.dmit
+    repo.profiles.role.server
   ];
 
   # ----------------------------------------------------------------------------

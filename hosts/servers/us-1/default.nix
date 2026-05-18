@@ -5,16 +5,15 @@
 {
   lib,
   keys,
-  repoModules,
-  repoRoot,
+  repo,
   hostName,
   ...
 }:
 
 {
   imports = [
-    repoModules.profiles.platform.cloudcone-sc2
-    repoModules.profiles.role.server
+    repo.profiles.platform.cloudcone-sc2
+    repo.profiles.role.server
   ];
 
   # ----------------------------------------------------------------------------
@@ -73,7 +72,7 @@
   };
   hakula.services.cloudconeAgent = {
     enable = true;
-    serverKeyAgeFile = lib.path.append repoRoot "secrets/cloudcone/server-key-${hostName}.age";
+    serverKeyAgeFile = lib.path.append repo.root "secrets/cloudcone/server-key-${hostName}.age";
   };
   hakula.services.peertube = {
     enable = true;

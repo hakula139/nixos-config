@@ -9,14 +9,14 @@
 {
   modulesPath,
   lib,
-  repoModules,
+  repo,
   ...
 }:
 
 {
   imports = [
     (modulesPath + "/profiles/qemu-guest.nix")
-    repoModules.nixos
+    repo.modules.nixos
     ../disk-config.nix
   ];
 

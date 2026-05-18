@@ -5,7 +5,7 @@
 {
   lib,
   corpDomain,
-  repoModules,
+  repo,
   ...
 }:
 
@@ -24,7 +24,7 @@ let
 in
 {
   imports = [
-    repoModules.profiles.platform.container
+    repo.profiles.platform.container
   ];
 
   # ----------------------------------------------------------------------------

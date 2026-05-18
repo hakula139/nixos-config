@@ -167,9 +167,12 @@
       keys = import ./secrets/keys.nix;
       llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
       proxyLib = import ./lib/proxy.nix { inherit (nixpkgs) lib; };
-      repoModules = {
-        darwin = ./modules/darwin;
-        nixos = ./modules/nixos;
+      repo = {
+        root = ./.;
+        modules = {
+          darwin = ./modules/darwin;
+          nixos = ./modules/nixos;
+        };
         profiles = {
           platform = {
             cloudcone-sc2 = ./hosts/_profiles/platform/cloudcone-sc2;
@@ -183,7 +186,6 @@
           };
         };
       };
-      repoRoot = ./.;
       secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
       sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
       systemManagerLib = import ./data/system-manager.nix;
@@ -196,8 +198,7 @@
           keys
           llmAssistantLib
           proxyLib
-          repoModules
-          repoRoot
+          repo
           secrets
           sharedConfig
           systemManagerLib
@@ -206,7 +207,6 @@
       };
       commonExtraSpecialArgs = removeAttrs commonSpecialArgs [
         "keys"
-        "repoModules"
       ];
 
       # ------------------------------------------------------------------------

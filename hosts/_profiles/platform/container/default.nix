@@ -9,7 +9,7 @@
 {
   config,
   lib,
-  repoModules,
+  repo,
   ...
 }:
 
@@ -19,7 +19,7 @@ in
 
 {
   imports = [
-    repoModules.nixos
+    repo.modules.nixos
   ];
 
   # ----------------------------------------------------------------------------

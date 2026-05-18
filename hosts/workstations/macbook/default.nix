@@ -5,7 +5,7 @@
 {
   pkgs,
   keys,
-  repoModules,
+  repo,
   hostName,
   displayName,
   ...
@@ -13,7 +13,7 @@
 
 {
   imports = [
-    repoModules.darwin
+    repo.modules.darwin
   ];
 
   # ----------------------------------------------------------------------------

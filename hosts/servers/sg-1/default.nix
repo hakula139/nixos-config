@@ -4,15 +4,15 @@
 
 {
   keys,
-  repoModules,
+  repo,
   hostName,
   ...
 }:
 
 {
   imports = [
-    repoModules.profiles.platform.tencent-lighthouse
-    repoModules.profiles.role.server
+    repo.profiles.platform.tencent-lighthouse
+    repo.profiles.role.server
   ];
 
   # ----------------------------------------------------------------------------

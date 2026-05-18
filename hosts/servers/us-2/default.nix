@@ -4,15 +4,15 @@
 
 {
   keys,
-  repoModules,
+  repo,
   hostName,
   ...
 }:
 
 {
   imports = [
-    repoModules.profiles.platform.cloudcone-vps
-    repoModules.profiles.role.server
+    repo.profiles.platform.cloudcone-vps
+    repo.profiles.role.server
   ];
 
   # ----------------------------------------------------------------------------
