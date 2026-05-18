@@ -40,6 +40,7 @@ in
     ./podman
     ./postgresql
     ./ssh
+    ./tailscale
     ./umami
     ./xray
   ];
