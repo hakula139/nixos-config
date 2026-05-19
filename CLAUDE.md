@@ -32,7 +32,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 │   ├── servers.nix                  # Server inventory (IP, port, provider, host keys, builder config)
 │   └── system-manager.nix           # Runtime PATH entries provisioned by system-manager activation
 ├── lib/                             # Pure helpers and framework code
-│   ├── builders.nix                 # mkServer / mkWSL / mkDarwin / mkSystemManager / mkDocker, mkHomeManagerConfig, serverSharedModules
+│   ├── builders.nix                 # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL, serverSharedModules
 │   ├── overlays.nix                 # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, toolchains, custom packages)
 │   ├── secrets.nix                  # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
 │   ├── tooling.nix                  # Dev shell tooling
