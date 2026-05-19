@@ -47,21 +47,30 @@ in
   # ----------------------------------------------------------------------------
   # Disarm baseline knobs that don't apply under WSL
   # ----------------------------------------------------------------------------
-  # NixOS-WSL sets boot.kernel.enable = false (Microsoft supplies the kernel)
-  # and boot.modprobeConfig.enable = false. The baseline (modules/nixos/default.nix)
-  # writes options against those disabled subsystems; clear them.
-  boot.kernel.sysctl = lib.mkForce { };
+  # NixOS-WSL turns off boot.kernel, boot.modprobeConfig, and console
+  # (wsl-distro.nix:68-78). The baseline (modules/nixos/default.nix) writes
+  # values that would still land on disk via /etc/sysctl.d / /etc/modprobe.d
+  # even though the Microsoft-supplied kernel ignores them. Force them to
+  # the inert default per-key so future additions to the baseline flow
+  # through unchanged.
+  boot.kernel.sysctl = {
+    "net.core.default_qdisc" = lib.mkForce null;
+    "net.ipv4.tcp_congestion_control" = lib.mkForce null;
+    "vm.swappiness" = lib.mkForce null;
+    "vm.vfs_cache_pressure" = lib.mkForce null;
+  };
   boot.extraModprobeConfig = lib.mkForce "";
 
   # ----------------------------------------------------------------------------
   # Networking
   # ----------------------------------------------------------------------------
   # WSL controls /etc/resolv.conf via `wsl.wslConf.network.generateResolvConf`
-  # (default true). NixOS's `networking.nameservers` would overwrite it.
+  # (default true). NixOS-WSL warns at eval time if `networking.nameservers`
+  # is non-empty alongside that flag (wsl-distro.nix:226), so leave that
+  # path alone here — silently forcing the list to [] would swallow the
+  # upstream warning if a future module set a nameserver.
   networking = {
     domain = lib.mkForce null;
-    nameservers = lib.mkForce [ ];
-    firewall.allowedTCPPorts = lib.mkForce [ ];
   };
 
   # ----------------------------------------------------------------------------
