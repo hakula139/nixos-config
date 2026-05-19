@@ -43,9 +43,10 @@ in
     # --------------------------------------------------------------------------
     # Cursor
     # --------------------------------------------------------------------------
-    # Disable extension pruning so VSCode-marketplace extensions installed
-    # outside Nix (e.g. corp-internal extensions) survive `nixsw`.
-    hakula.cursor.extensions.prune = lib.mkForce false;
+    # Marketplace extensions installed outside Nix (e.g. corp-internal ones)
+    # need to survive `nixsw`. `mkDefault` so a leaf can flip pruning back on
+    # if it ever wants to.
+    hakula.cursor.extensions.prune = lib.mkDefault false;
 
     # --------------------------------------------------------------------------
     # Fonts (Windows host sync)
