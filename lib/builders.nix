@@ -36,6 +36,9 @@ let
       hostName ? null,
       ...
     }:
+    let
+      resolvedFlakeConfigName = if flakeConfigName != null then flakeConfigName else hostName;
+    in
     {
       home-manager = {
         useGlobalPkgs = true;
@@ -45,13 +48,13 @@ let
         extraSpecialArgs = commonExtraSpecialArgs // {
           inherit
             enableDevToolchains
-            flakeConfigName
             hostName
             isDesktop
             isNixOS
             systemManagerConfigName
             username
             ;
+          flakeConfigName = resolvedFlakeConfigName;
         };
       };
     };
