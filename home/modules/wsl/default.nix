@@ -30,6 +30,11 @@ in
     # --------------------------------------------------------------------------
     # Claude Code (corp-gateway profile)
     # --------------------------------------------------------------------------
+    # Plain assignment (no `mkDefault`) here: the system-side
+    # `hakula.claude-code` module already propagates `defaultProfile` to HM
+    # with `mkDefault`, so wrapping ours collides at the same priority.
+    # The corp-gateway choice is also the bundle's contract — leaves that
+    # need something else can `mkForce`.
     hakula.claude-code.auth = {
       defaultProfile = "corp-gateway";
       enableCorpGateway = true;
@@ -45,7 +50,7 @@ in
     # --------------------------------------------------------------------------
     # Fonts (Windows host sync)
     # --------------------------------------------------------------------------
-    hakula.fonts.windowsSync.enable = true;
+    hakula.fonts.windowsSync.enable = lib.mkDefault true;
 
     # --------------------------------------------------------------------------
     # LLM assistants
@@ -57,7 +62,7 @@ in
     # point assistants at a dead port.
     hakula.llm-assistants = {
       enable = lib.mkDefault true;
-      proxy.noProxy = [
+      proxy.noProxy = lib.mkDefault [
         "localhost"
         "127.0.0.1"
         "10.*"
@@ -87,10 +92,10 @@ in
     # SSH (corp gitlab-public)
     # --------------------------------------------------------------------------
     programs.ssh.matchBlocks."gitlab-public.${corpDomain}" = {
-      host = "gitlab-public.${corpDomain}";
-      hostname = "gitlab-public.${corpDomain}";
-      user = "git";
-      port = 8022;
+      host = lib.mkDefault "gitlab-public.${corpDomain}";
+      hostname = lib.mkDefault "gitlab-public.${corpDomain}";
+      user = lib.mkDefault "git";
+      port = lib.mkDefault 8022;
     };
   };
 }
