@@ -55,17 +55,24 @@ let
     };
 
   # ----------------------------------------------------------------------------
-  # Shared NixOS server modules
+  # Shared NixOS modules
   # ----------------------------------------------------------------------------
-  serverSharedModules = [
+  # Modules every NixOS system in this flake imports: agenix, home-manager,
+  # and the home-manager glue. `disko` is added on top for hosts that
+  # actually partition disks (servers); WSL ships its own VHDX and
+  # mkDocker layers on `dockerTools` instead.
+  mkNixosBaseModules = homeManagerArgs: [
     agenix.nixosModules.default
-    disko.nixosModules.disko
     home-manager.nixosModules.home-manager
-    (mkHomeManagerConfig {
+    (mkHomeManagerConfig homeManagerArgs)
+  ];
+
+  serverSharedModules =
+    mkNixosBaseModules {
       isDesktop = false;
       isNixOS = true;
-    })
-  ];
+    }
+    ++ [ disko.nixosModules.disko ];
 
   # ----------------------------------------------------------------------------
   # Server (NixOS)
@@ -92,8 +99,8 @@ let
   # ----------------------------------------------------------------------------
   # WSL workstation (NixOS-WSL)
   # ----------------------------------------------------------------------------
-  # Same shape as mkServer but flagged as a desktop host — Home Manager
-  # wants `isDesktop = true` so cursor extensions install at activation.
+  # Like mkServer but `isDesktop = true` (cursor extensions install at
+  # activation) and no disko (NixOS-WSL ships its own VHDX).
   mkWSL =
     {
       hostName,
@@ -108,14 +115,12 @@ let
           nixpkgs.hostPlatform = "x86_64-linux";
           nixpkgs.overlays = overlays;
         }
-        agenix.nixosModules.default
-        home-manager.nixosModules.home-manager
-        (mkHomeManagerConfig {
-          isDesktop = true;
-          isNixOS = true;
-        })
-        configPath
-      ];
+      ]
+      ++ mkNixosBaseModules {
+        isDesktop = true;
+        isNixOS = true;
+      }
+      ++ [ configPath ];
     };
 
   # ----------------------------------------------------------------------------
@@ -206,15 +211,13 @@ let
             nixpkgs.hostPlatform = "x86_64-linux";
             nixpkgs.overlays = overlays;
           }
-          agenix.nixosModules.default
-          home-manager.nixosModules.home-manager
-          (mkHomeManagerConfig {
-            inherit enableDevToolchains username;
-            isDesktop = false;
-            isNixOS = true;
-          })
-          configPath
-        ];
+        ]
+        ++ mkNixosBaseModules {
+          inherit enableDevToolchains username;
+          isDesktop = false;
+          isNixOS = true;
+        }
+        ++ [ configPath ];
       };
       inherit (nixosConfig.config.system.build) toplevel;
     in

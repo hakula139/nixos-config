@@ -228,6 +228,7 @@ usernamehw
 utun
 vadimcn
 vercel
+vhdx
 vhost
 vimcmd
 virtio
