@@ -47,13 +47,11 @@ in
   # ----------------------------------------------------------------------------
   # Disarm baseline knobs that don't apply under WSL
   # ----------------------------------------------------------------------------
-  # NixOS-WSL sets boot.kernel.enable = false (Microsoft supplies the kernel),
-  # boot.modprobeConfig.enable = false, and console.enable = false. The
-  # baseline (modules/nixos/default.nix) writes options against those disabled
-  # subsystems; clear them so the assertions don't fire.
+  # NixOS-WSL sets boot.kernel.enable = false (Microsoft supplies the kernel)
+  # and boot.modprobeConfig.enable = false. The baseline (modules/nixos/default.nix)
+  # writes options against those disabled subsystems; clear them.
   boot.kernel.sysctl = lib.mkForce { };
   boot.extraModprobeConfig = lib.mkForce "";
-  console.keyMap = lib.mkForce null;
 
   # ----------------------------------------------------------------------------
   # Networking
