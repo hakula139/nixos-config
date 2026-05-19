@@ -60,14 +60,14 @@ jobs:
             name: wsl (x86_64-linux, NixOS-WSL)
             runner: ubuntu-latest
             target: .#nixosConfigurations.wsl.config.system.build.toplevel
-          - id: macos
-            name: macbook (aarch64-darwin, macOS)
-            runner: macos-latest
-            target: .#darwinConfigurations.macbook.system
           - id: wsl-non-nixos
             name: wsl-non-nixos (x86_64-linux, System Manager)
             runner: ubuntu-latest
             target: .#systemConfigs.wsl-non-nixos
+          - id: macos
+            name: macbook (aarch64-darwin, macOS)
+            runner: macos-latest
+            target: .#darwinConfigurations.macbook.system
           - id: docker
             name: devvm (x86_64-linux, Docker)
             runner: ubuntu-latest

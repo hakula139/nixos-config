@@ -8,8 +8,8 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 
 - **5 NixOS servers** (us-1, us-2, us-3, us-4, sg-1) on x86_64-linux
 - **1 NixOS-WSL workstation** (wsl) on x86_64-linux
-- **1 macOS workstation** (macbook) on aarch64-darwin
 - **1 system-manager workstation** (wsl-non-nixos) on x86_64-linux WSL atop a non-NixOS distro
+- **1 macOS workstation** (macbook) on aarch64-darwin
 - **1 Docker image** (devvm) for air-gapped deployment
 
 `flake.nix` is the manifest; builders live in `lib/builders.nix`, overlays in `lib/overlays.nix`. Per-host config in `hosts/`. Cross-platform primitives in `modules/shared.nix`.
@@ -24,7 +24,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 │   │   ├── platform/                # Hardware / runtime shape (cloudcone-sc2, container, wsl, ...)
 │   │   └── role/                    # System role (server, workstation)
 │   ├── servers/                     # NixOS servers (us-1..us-4, sg-1)
-│   ├── workstations/                # macbook (Darwin), wsl (NixOS-WSL), wsl-non-nixos (System Manager)
+│   ├── workstations/                # wsl (NixOS-WSL), wsl-non-nixos (System Manager), macbook (Darwin)
 │   └── images/                      # Buildable images (devvm)
 ├── data/                            # Static configuration and inventory
 │   ├── caches.nix                   # Binary cache substituters and trusted public keys
@@ -62,12 +62,12 @@ nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 nix build '.#nixosConfigurations.wsl.config.system.build.tarballBuilder'
 sudo ./result/bin/nixos-wsl-tarball-builder           # produces ./nixos.wsl
 
-# macOS
-sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#macbook'
-
 # Non-NixOS Linux (WSL workstation)
 nix run '.#system-manager' -- switch --flake '.#wsl-non-nixos' --sudo
 system-manager-health-check agenix-install-secrets.service home-manager-hakula.service
+
+# macOS
+sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#macbook'
 ```
 
 Multi-server deploys go through Colmena: `colmena apply --on us-4`, `colmena apply --on @cloudcone` for provider tags.
@@ -168,7 +168,7 @@ Defer to global CLAUDE.md. The repo-specific addition: when _restyling_ an exist
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push / PR:
 
 1. `nix flake check --all-systems` — validates the flake structure and runs pre-commit hooks (`cspell`, `deadnix`, `markdownlint`, `nixfmt`, `statix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
-2. Parallel builds of every host (`us-1`..`us-4`, `sg-1`, `wsl`, `macbook`, `wsl-non-nixos`, `devvm-docker`).
+2. Parallel builds of every host (`us-1`..`us-4`, `sg-1`, `wsl`, `wsl-non-nixos`, `macbook`, `devvm-docker`).
 3. Successful builds upload to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
 
 ## Proxy Configuration
@@ -188,8 +188,8 @@ git ls-files '*.nix' -z | xargs -0 nix fmt               # Format Nix files
 # Per-host builds (cheaper than the full flake check):
 nix build '.#nixosConfigurations.us-1.config.system.build.toplevel'
 nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
-nix build '.#darwinConfigurations.macbook.system'
 nix build '.#systemConfigs.wsl-non-nixos'
+nix build '.#darwinConfigurations.macbook.system'
 nix build '.#packages.x86_64-linux.devvm-docker'
 ```
 
