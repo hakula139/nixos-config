@@ -26,6 +26,7 @@ let
   mkHomeManagerConfig =
     {
       enableDevToolchains ? false,
+      flakeConfigName ? null,
       isDesktop,
       isNixOS,
       systemManagerConfigName ? null,
@@ -44,6 +45,7 @@ let
         extraSpecialArgs = commonExtraSpecialArgs // {
           inherit
             enableDevToolchains
+            flakeConfigName
             hostName
             isDesktop
             isNixOS
@@ -148,6 +150,7 @@ let
         home-manager.darwinModules.home-manager
         (mkHomeManagerConfig {
           enableDevToolchains = true;
+          flakeConfigName = "macbook";
           isDesktop = true;
           isNixOS = false;
         })

@@ -1,10 +1,8 @@
 # ==============================================================================
 # WSL Workstation Bundle
 # ==============================================================================
-# Shared Home Manager bundle for WSL workstation hosts. Mihomo and the
-# local proxy stay defined but disabled, since their URLs default to
-# 127.0.0.1:7897 and a host without subscription secrets would dial a
-# dead port. Each host enables them as a pair when ready.
+# Shared Home Manager bundle for WSL workstation hosts. Mihomo and the local
+# proxy stay disabled by default because the proxy URL points at mihomo.
 # ==============================================================================
 
 {
@@ -40,17 +38,15 @@ in
     # --------------------------------------------------------------------------
     # Cursor
     # --------------------------------------------------------------------------
-    # Keep marketplace extensions installed outside Nix (e.g. corp-internal
-    # ones) across `nixsw` runs.
-    hakula.cursor.extensions.prune = lib.mkDefault false;
+    # Keep marketplace extensions installed outside Nix across `nixsw` runs.
+    hakula.cursor.extensions.prune = lib.mkForce false;
 
     hakula.fonts.windowsSync.enable = lib.mkDefault true;
 
     # --------------------------------------------------------------------------
     # LLM assistants
     # --------------------------------------------------------------------------
-    # Whether to wire the local proxy is left to the host leaf, since the
-    # URL defaults to mihomo at 127.0.0.1:7897 and pairing matters.
+    # Whether to wire the local proxy is left to the host leaf.
     hakula.llm-assistants = {
       enable = lib.mkDefault true;
       proxy.noProxy = lib.mkDefault [

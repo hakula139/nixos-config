@@ -45,7 +45,7 @@ services:
       - ~/.kube:/root/.kube:ro
       - ~/.npmrc:/root/.npmrc:ro
       - ~/.ssh:/root/.ssh
-      - ~/workspace:${HOME}/workspace
+      - ~/workspace:/root/workspace
       - ${XDG_RUNTIME_DIR}/docker.sock:/var/run/docker.sock
 
     tmpfs:

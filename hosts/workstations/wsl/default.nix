@@ -38,8 +38,7 @@
   # for personal hosts.
   hakula.llm-assistants.mcp.disabledServers = lib.mkForce [ ];
 
-  # Mihomo isn't running here yet; flip both on as a pair when subscription
-  # secrets land (the proxy URL defaults to mihomo at 127.0.0.1:7897).
+  # Mihomo is not configured on this host yet.
   hakula.llm-assistants.proxy.enable = lib.mkForce false;
 
   # ----------------------------------------------------------------------------

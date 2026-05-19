@@ -11,6 +11,7 @@
   proxyLib,
   secretPath,
   systemManagerLib,
+  flakeConfigName ? null,
   hostName ? null,
   isNixOS ? false,
   isDesktop ? false,
@@ -36,7 +37,11 @@ let
   settings = import ./settings.nix {
     inherit pkgs isDarwin isNixOS;
     inherit (cfg.nixd) flakePath;
-    configName = lib.toLower (if hostName != null then hostName else "wsl-non-nixos");
+    configName =
+      if flakeConfigName != null then
+        flakeConfigName
+      else
+        lib.toLower (if hostName != null then hostName else "wsl-non-nixos");
   };
 
   ext = import ./extensions.nix {

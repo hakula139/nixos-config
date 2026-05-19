@@ -44,12 +44,9 @@ in
   # ----------------------------------------------------------------------------
   # Disarm baseline knobs that don't apply under WSL
   # ----------------------------------------------------------------------------
-  # NixOS-WSL turns off boot.kernel, boot.modprobeConfig, and console
-  # (wsl-distro.nix:68-78). The baseline at modules/nixos/default.nix
-  # still writes values that would land on disk via /etc/sysctl.d and
-  # /etc/modprobe.d even though the Microsoft-supplied kernel ignores
-  # them. Force the four BBR/swappiness keys to null per-key so future
-  # additions to the baseline flow through unchanged.
+  # NixOS-WSL turns off boot.kernel, boot.modprobeConfig, and console. The
+  # baseline still writes kernel tuning for bare-metal / VPS hosts, so force
+  # only the WSL-inert keys to null.
   boot.kernel.sysctl = {
     "net.core.default_qdisc" = lib.mkForce null;
     "net.ipv4.tcp_congestion_control" = lib.mkForce null;
@@ -61,11 +58,8 @@ in
   # ----------------------------------------------------------------------------
   # Networking
   # ----------------------------------------------------------------------------
-  # WSL controls /etc/resolv.conf via `wsl.wslConf.network.generateResolvConf`
-  # (default true). NixOS-WSL warns at eval time if `networking.nameservers`
-  # is non-empty alongside that flag (wsl-distro.nix:226), so leave the
-  # nameservers list alone. Silently forcing it to [] would swallow that
-  # warning if a future module set a nameserver.
+  # WSL controls /etc/resolv.conf by default. Leave `networking.nameservers`
+  # alone so NixOS-WSL can warn if another module sets it.
   networking = {
     domain = lib.mkForce null;
   };
@@ -78,18 +72,27 @@ in
   # matching _profiles/platform/container.
   age.identityPaths = [ "/home/${userName}/.ssh/id_ed25519" ];
 
-  # Without this check, a missing identity falls through to agenix's
-  # "no readable identities found!" warning on stderr and per-secret
-  # decryption errors, leaving runtime services (claude-code, mihomo,
-  # ...) silently broken. Fail activation up-front instead, before
-  # agenixNewGeneration runs.
+  # Fail before agenix runs so a missing identity is the activation error.
+  # This host does not use encrypted user passwords; create the login user before
+  # agenix so a fresh WSL import can recover by copying the identity.
+  system.activationScripts.users.deps = lib.mkForce [ ];
+  system.activationScripts.agenixChown.deps = lib.mkAfter [ "agenixInstall" ];
+
   system.activationScripts.checkAgeIdentity = {
-    deps = [ "specialfs" ];
+    deps = [
+      "createSbin"
+      "groups"
+      "populateBin"
+      "shimSystemd"
+      "specialfs"
+      "users"
+    ];
     text = ''
       identity=/home/${userName}/.ssh/id_ed25519
       if [ ! -r "$identity" ]; then
         echo "ERROR: agenix identity $identity is missing or unreadable." >&2
         echo "Copy your private key from the Windows side before nixos-rebuild:" >&2
+        echo "  mkdir -p ~/.ssh && chmod 700 ~/.ssh" >&2
         echo "  cp /mnt/c/Users/<name>/.ssh/id_ed25519     $identity" >&2
         echo "  cp /mnt/c/Users/<name>/.ssh/id_ed25519.pub $identity.pub" >&2
         echo "  chmod 600 $identity" >&2

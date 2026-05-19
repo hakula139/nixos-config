@@ -34,7 +34,7 @@ let
             "systemConfigs";
 
         flake = ''builtins.getFlake "${flakePath}"'';
-        flakeConfig = "(${flake}).${configAttr}.${configName}";
+        flakeConfig = "(${flake}).${configAttr}.${builtins.toJSON configName}";
 
         hmOptionsExpr = "${flakeConfig}.options.home-manager.users.type.getSubOptions []";
       in

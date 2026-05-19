@@ -71,7 +71,7 @@ colmena apply --on us-4        # one server
 colmena apply --on @cloudcone  # provider tag
 ```
 
-Server inventory and deployment metadata live in `lib/servers.nix`.
+Server inventory and deployment metadata live in `data/servers.nix`.
 
 ### macOS
 
@@ -110,16 +110,18 @@ Move `nixos.wsl` to the Windows side and import (PowerShell):
 ```powershell
 wsl --shutdown
 wsl --install --from-file .\nixos.wsl              # WSL ≥ 2.4.4
-# Older WSL fallback:
-# wsl --import NixOS C:\WSL\NixOS .\nixos.wsl
 wsl -d NixOS                                       # first launch
 ```
+
+On older WSL versions, import with `wsl --import NixOS C:\WSL\NixOS .\nixos.wsl`.
 
 Inside the new distro, copy the agenix identity from the Windows side
 and apply the managed configuration:
 
 ```bash
 git clone https://github.com/hakula139/nixos-config ~/nixos-config
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
 cp /mnt/c/Users/<name>/.ssh/id_ed25519     ~/.ssh/id_ed25519
 cp /mnt/c/Users/<name>/.ssh/id_ed25519.pub ~/.ssh/id_ed25519.pub
 chmod 600 ~/.ssh/id_ed25519
@@ -214,7 +216,7 @@ nix build '.#packages.x86_64-linux.devvm-docker'
 
 GitHub Actions runs on every push and pull request:
 
-- **Flake Check**: `nix flake check --all-systems` — flake structure and pre-commit hooks (`nixfmt`, `statix`, `deadnix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
+- **Flake Check**: `nix flake check --all-systems` — flake structure and pre-commit hooks (`cspell`, `deadnix`, `markdownlint`, `nixfmt`, `statix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
 - **Build NixOS**: builds the five server configurations (`us-1`, `us-2`, `us-3`, `us-4`, `sg-1`) on `ubuntu-latest`.
 - **Build NixOS-WSL**: builds `wsl` on `ubuntu-latest`.
 - **Build macOS**: builds `macbook` on `macos-latest`, then pins `peertube-runner` to the Cachix cache.

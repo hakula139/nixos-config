@@ -167,7 +167,7 @@ Defer to global CLAUDE.md. The repo-specific addition: when _restyling_ an exist
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push / PR:
 
-1. `nix flake check --all-systems` — validates the flake structure and runs pre-commit hooks (`nixfmt`, `statix`, `deadnix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
+1. `nix flake check --all-systems` — validates the flake structure and runs pre-commit hooks (`cspell`, `deadnix`, `markdownlint`, `nixfmt`, `statix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
 2. Parallel builds of every host (`us-1`..`us-4`, `sg-1`, `wsl`, `macbook`, `wsl-non-nixos`, `devvm-docker`).
 3. Successful builds upload to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
 
