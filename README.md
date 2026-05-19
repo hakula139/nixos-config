@@ -128,9 +128,9 @@ sudo nixos-rebuild switch --flake ~/nixos-config#wsl
 # Day-to-day after this: `nixsw` (zsh alias = nh os switch .)
 ```
 
-### Non-NixOS Linux (WSL or generic)
+### Non-NixOS Linux (System Manager)
 
-`wsl-non-nixos` uses [system-manager](https://github.com/numtide/system-manager) to own the system profile, user shell integration, agenix secret activation, and Home Manager activation service. It is the WSL workstation host running on stock (non-NixOS) Linux.
+`wsl-non-nixos` uses [system-manager](https://github.com/numtide/system-manager) to own the system profile, user shell integration, agenix secret activation, and Home Manager activation service. It is the WSL workstation variant for stock (non-NixOS) Linux distros.
 
 Install Nix with Determinate Nix Installer:
 

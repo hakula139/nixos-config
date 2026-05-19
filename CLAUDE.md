@@ -114,7 +114,7 @@ The agenix script checks `[ -t 0 ]` and overrides `EDITOR` to `cp -- /dev/stdin`
 - **NixOS modules** in `modules/nixos/` are typically optionally enabled services. Define `options.services.<name>.enable`, gate `config = lib.mkIf config.services.<name>.enable { ... }`. Wire into a host by importing and setting `enable = true;`.
 - **Home Manager modules** in `home/modules/` live under `hakula.<name>`. Branch on `pkgs.stdenv.{isDarwin, isLinux}` for platform variants. The flags `isNixOS` / `isDesktop` are threaded by the host builders; only consume them when the host actually sets them.
 - **Custom packages** in `packages/` are registered through the overlay (`lib/overlays.nix`) and consumed via `pkgs.<name>`.
-- **Hosts** in `hosts/` register through one of the four `mk*` builders in `lib/builders.nix`. Reuse profiles from `hosts/_profiles/` for shared hardware / container shapes.
+- **Hosts** in `hosts/` register through one of the five `mk*` builders in `lib/builders.nix`. Reuse profiles from `hosts/_profiles/` for shared hardware / container shapes.
 
 ### Section Banners
 
