@@ -34,12 +34,28 @@ let
         echo "service '$service' is not installed; skipping" >&2
         continue
       fi
-      if ! systemctl is-active --quiet "$service"; then
-        echo "service '$service' is not active" >&2
-        # `systemctl status` exits non-zero on failed units by design, so suppress that.
-        systemctl status --no-pager "$service" >&2 || true
-        rc=1
+
+      state="$(systemctl show --property=ActiveState --value "$service")"
+      type="$(systemctl show --property=Type --value "$service")"
+      result="$(systemctl show --property=Result --value "$service")"
+      status="$(systemctl show --property=ExecMainStatus --value "$service")"
+      started="$(systemctl show --property=ExecMainStartTimestampMonotonic --value "$service")"
+
+      if [ "$state" = active ] ||
+        {
+          [ "$type" = oneshot ] &&
+            [ "$result" = success ] &&
+            [ "$status" = 0 ] &&
+            [ -n "$started" ] &&
+            [ "$started" != 0 ];
+        }; then
+        continue
       fi
+
+      echo "service '$service' is not active" >&2
+      # `systemctl status` exits non-zero on failed units by design, so suppress that.
+      systemctl status --no-pager "$service" >&2 || true
+      rc=1
     done
     exit "$rc"
   '';
