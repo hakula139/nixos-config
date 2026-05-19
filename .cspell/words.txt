@@ -198,6 +198,7 @@ sigsys
 slaac
 socat
 spack
+specialfs
 statix
 stdenv
 subcmd
