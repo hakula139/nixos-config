@@ -115,8 +115,8 @@ wsl --install --from-file .\nixos.wsl              # WSL ≥ 2.4.4
 wsl -d NixOS                                       # first launch
 ```
 
-Inside the new distro, drop the agenix identity and apply the managed
-configuration:
+Inside the new distro, copy the agenix identity from the Windows side
+and apply the managed configuration:
 
 ```bash
 git clone https://github.com/hakula139/nixos-config ~/nixos-config
