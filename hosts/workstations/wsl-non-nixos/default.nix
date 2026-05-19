@@ -16,9 +16,9 @@ in
 
     hakula.wsl.enable = true;
 
-    # Light up the local proxy for this host. The shared `hakula.wsl` module
-    # leaves both off so the new NixOS-WSL host can start clean; this leaf
-    # preserves the previous behaviour for the system-manager-on-Ubuntu host.
+    # Mihomo + the local proxy are paired here: the proxy URL defaults to
+    # mihomo at 127.0.0.1:7897, so flipping `proxy.enable` without
+    # `mihomo.enable` would dial a dead port.
     hakula.mihomo.enable = true;
     hakula.llm-assistants.proxy.enable = true;
   };
