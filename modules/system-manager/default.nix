@@ -32,10 +32,12 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.hakula.access.ssh.authorizedKeys = lib.mkOption {
-    type = lib.types.listOf lib.types.str;
-    default = lib.attrValues keys.workstations;
-    description = "SSH public keys authorized for user login";
+  options.hakula.access.ssh = {
+    authorizedKeys = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = lib.attrValues keys.workstations;
+      description = "SSH public keys authorized for user login";
+    };
   };
 
   options.hakula.user.name = lib.mkOption {
@@ -44,7 +46,9 @@ in
     description = "Primary user account name";
   };
 
-  options.programs.zsh.enable = lib.mkEnableOption "zsh shell integration";
+  options.programs.zsh = {
+    enable = lib.mkEnableOption "zsh shell integration";
+  };
 
   config = {
     # --------------------------------------------------------------------------
@@ -65,7 +69,7 @@ in
     };
 
     # --------------------------------------------------------------------------
-    # Nix
+    # Nix Configuration
     # --------------------------------------------------------------------------
     nix = {
       enable = true;
@@ -93,9 +97,8 @@ in
 
     programs.zsh.enable = true;
 
-    # Nix-built zsh's compile-time global rcs are /etc/zprofile (login),
-    # /etc/zshrc (interactive), and a store-bundled zshenv. Write /etc/zprofile
-    # so login zsh, including tmux panes and ssh sessions, sees system PATH.
+    # Nix-built zsh reads /etc/zprofile for login shells; system-manager uses it
+    # to expose the configured system PATH.
     environment.etc.zprofile = lib.mkIf config.programs.zsh.enable {
       text = ''
         typeset -U path PATH

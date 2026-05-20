@@ -47,19 +47,23 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.hakula.access.ssh.authorizedKeys = lib.mkOption {
-    type = lib.types.listOf lib.types.str;
-    default = lib.attrValues keys.users;
-    description = "SSH public keys authorized for user login";
+  options.hakula.access.ssh = {
+    authorizedKeys = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = lib.attrValues keys.users;
+      description = "SSH public keys authorized for user login";
+    };
   };
 
-  options.hakula.network.realitySniHost = lib.mkOption {
-    type = lib.types.str;
-    default = "www.microsoft.com";
-    description = ''
-      REALITY SNI host used for TLS camouflage in Xray and SNI-based routing in nginx.
-      If you change this, also update secrets/xray/config.json.age.
-    '';
+  options.hakula.network = {
+    realitySniHost = lib.mkOption {
+      type = lib.types.str;
+      default = "www.microsoft.com";
+      description = ''
+        REALITY SNI host used for TLS camouflage in Xray and SNI-based routing in nginx.
+        If you change this, also update secrets/xray/config.json.age.
+      '';
+    };
   };
 
   options.hakula.user.name = lib.mkOption {
