@@ -7,13 +7,13 @@
   pkgs,
   lib,
   corpDomain,
+  flakeConfigName,
+  isDesktop ? false,
+  isNixOS ? false,
   llmAssistantLib,
   proxyLib,
   secretPath,
   systemManagerLib,
-  flakeConfigName,
-  isNixOS ? false,
-  isDesktop ? false,
   ...
 }:
 
@@ -36,9 +36,9 @@ let
   settings = import ./settings.nix {
     inherit
       pkgs
+      flakeConfigName
       isDarwin
       isNixOS
-      flakeConfigName
       ;
     inherit (cfg.nixd) flakePath;
   };

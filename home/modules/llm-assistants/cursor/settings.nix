@@ -4,10 +4,10 @@
 
 {
   pkgs,
+  flakeConfigName,
+  flakePath,
   isDarwin,
   isNixOS,
-  flakePath,
-  flakeConfigName,
   ...
 }:
 
