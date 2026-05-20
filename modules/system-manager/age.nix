@@ -31,18 +31,6 @@ let
           description = "Encrypted age file to decrypt";
         };
 
-        path = lib.mkOption {
-          type = lib.types.str;
-          default = "${secretsDir}/${config.name}";
-          description = "Path where the decrypted secret is installed";
-        };
-
-        mode = lib.mkOption {
-          type = lib.types.str;
-          default = "0400";
-          description = "Permissions mode for the decrypted secret";
-        };
-
         owner = lib.mkOption {
           type = lib.types.str;
           default = "root";
@@ -54,6 +42,18 @@ let
           default = "root";
           description = "Group of the decrypted secret";
         };
+
+        mode = lib.mkOption {
+          type = lib.types.str;
+          default = "0400";
+          description = "Permissions mode for the decrypted secret";
+        };
+
+        path = lib.mkOption {
+          type = lib.types.str;
+          default = "${secretsDir}/${config.name}";
+          description = "Path where the decrypted secret is installed";
+        };
       };
     }
   );
@@ -64,14 +64,14 @@ let
 
     echo "decrypting ${lib.escapeShellArg secret.name} to $target"
     target_dir="$(dirname "$target")"
-    if [ ! -d "$target_dir" ]; then
+    if [[ ! -d "$target_dir" ]]; then
       install -d -m 0700 -o ${lib.escapeShellArg secret.owner} -g ${lib.escapeShellArg secret.group} "$target_dir"
     fi
     rm -f "$tmp"
 
     ${ageBin} --decrypt "''${identityArgs[@]}" -o "$tmp" ${lib.escapeShellArg secret.file}
-    chmod ${secret.mode} "$tmp"
-    chown ${secret.owner}:${secret.group} "$tmp"
+    chmod ${lib.escapeShellArg secret.mode} "$tmp"
+    chown ${lib.escapeShellArg "${secret.owner}:${secret.group}"} "$tmp"
     mv -f "$tmp" "$target"
   '';
 
@@ -81,6 +81,9 @@ let
   );
 in
 {
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
   options.age = {
     identityPaths = lib.mkOption {
       type = lib.types.listOf lib.types.str;
@@ -95,6 +98,9 @@ in
     };
   };
 
+  # ----------------------------------------------------------------------------
+  # Module config
+  # ----------------------------------------------------------------------------
   config = lib.mkIf (cfg.secrets != { }) {
     assertions = [
       {
@@ -110,6 +116,7 @@ in
 
       path = [
         pkgs.coreutils
+        pkgs.gnugrep
       ];
 
       serviceConfig = {
@@ -122,14 +129,14 @@ in
 
         identityArgs=()
         for identity in ${lib.escapeShellArgs cfg.identityPaths}; do
-          if [ -r "$identity" ] && [ -s "$identity" ]; then
+          if [[ -r "$identity" && -s "$identity" ]]; then
             identityArgs+=(-i "$identity")
           else
             echo "warning: age identity not readable: $identity" >&2
           fi
         done
 
-        if [ "''${#identityArgs[@]}" -eq 0 ]; then
+        if [[ "''${#identityArgs[@]}" -eq 0 ]]; then
           echo "error: no readable age identities found in: ${lib.concatStringsSep " " cfg.identityPaths}" >&2
           exit 1
         fi
@@ -139,9 +146,9 @@ in
         manifest=${lib.escapeShellArg managedPathsFile}
         desired=${desiredManifest}
 
-        if [ -f "$manifest" ]; then
+        if [[ -f "$manifest" ]]; then
           while IFS= read -r managed_path; do
-            if [ -n "$managed_path" ] && ! grep -Fx -- "$managed_path" "$desired" >/dev/null; then
+            if [[ -n "$managed_path" ]] && ! grep -Fx -- "$managed_path" "$desired" >/dev/null; then
               rm -f -- "$managed_path"
             fi
           done <"$manifest"

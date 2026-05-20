@@ -17,12 +17,12 @@ let
     us-1
     us-3
     us-4
-    hakula-devvm
+    devvm
     ;
-  inherit (keys.workstations) hakula-macbook;
+  inherit (keys.workstations) macbook;
 
   # Common groupings
-  allServersAndMacbook = allServers ++ [ hakula-macbook ];
+  allServersAndMacbook = allServers ++ [ macbook ];
   us1Only = allUsers ++ [ us-1 ];
   us3Only = allUsers ++ [ us-3 ];
   us4Only = allUsers ++ [ us-4 ];
@@ -34,13 +34,13 @@ in
   "github/pat-personal.age".publicKeys = allKeys;
   "github/pat-work.age".publicKeys = allKeys;
 
-  "hakula-devvm/proxy-url.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
+  "hakula-devvm/proxy-url.age".publicKeys = allWorkstations ++ [ devvm ];
 
   "llm-assistants/claude-oauth-token.age".publicKeys = allKeys;
   "llm-assistants/ikuncode-api-key.age".publicKeys = allKeys;
   "llm-assistants/yescode-api-key.age".publicKeys = allKeys;
-  "llm-assistants/bifrost-api-key.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
-  "llm-assistants/corp-cachain.crt.age".publicKeys = allWorkstations ++ [ hakula-devvm ];
+  "llm-assistants/bifrost-api-key.age".publicKeys = allWorkstations ++ [ devvm ];
+  "llm-assistants/corp-cachain.crt.age".publicKeys = allWorkstations ++ [ devvm ];
 
   "llm-assistants/mcp/brave-api-key.age".publicKeys = allKeys;
   "llm-assistants/mcp/confluence-pat.age".publicKeys = allKeys;

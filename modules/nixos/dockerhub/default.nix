@@ -37,6 +37,9 @@ in
     };
   };
 
+  # ----------------------------------------------------------------------------
+  # Module config
+  # ----------------------------------------------------------------------------
   config = lib.mkMerge [
     {
       hakula.dockerHub.ociLogin = lib.optionalAttrs (cfg.username != null) {

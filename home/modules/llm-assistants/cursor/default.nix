@@ -7,13 +7,13 @@
   pkgs,
   lib,
   corpDomain,
+  flakeConfigName,
+  isDesktop ? false,
+  isNixOS ? false,
   llmAssistantLib,
   proxyLib,
   secretPath,
   systemManagerLib,
-  hostName ? null,
-  isNixOS ? false,
-  isDesktop ? false,
   ...
 }:
 
@@ -34,9 +34,13 @@ let
   ];
 
   settings = import ./settings.nix {
-    inherit pkgs isDarwin isNixOS;
+    inherit
+      flakeConfigName
+      isDarwin
+      isNixOS
+      pkgs
+      ;
     inherit (cfg.nixd) flakePath;
-    configName = lib.toLower (if hostName != null then hostName else "hakula-linux");
   };
 
   ext = import ./extensions.nix {
@@ -88,6 +92,9 @@ in
     };
   };
 
+  # ----------------------------------------------------------------------------
+  # Module config
+  # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     let
       mcp = import ./mcp.nix {

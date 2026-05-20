@@ -59,6 +59,9 @@ in
     proxy = proxyLib.mkProxyOptions "Codex";
   };
 
+  # ----------------------------------------------------------------------------
+  # Module config
+  # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     let
       toml = pkgs.formats.toml { };
