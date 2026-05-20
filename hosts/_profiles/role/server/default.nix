@@ -18,13 +18,7 @@
   # ----------------------------------------------------------------------------
   # Assistant Tooling
   # ----------------------------------------------------------------------------
-  hakula.llm-assistants = {
-    enable = lib.mkDefault true;
-    mcp.disabledServers = lib.mkDefault [
-      "atlassian"
-      "gitlab"
-    ];
-  };
+  hakula.llm-assistants.enable = lib.mkDefault true;
   hakula.claude-code.defaultProfile = lib.mkDefault "official-token";
 
   # ----------------------------------------------------------------------------
