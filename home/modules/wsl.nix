@@ -20,6 +20,9 @@ in
     enable = lib.mkEnableOption "Hakula's WSL workstation Home Manager bundle";
   };
 
+  # ----------------------------------------------------------------------------
+  # Module config
+  # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable {
     # --------------------------------------------------------------------------
     # Home Manager Overrides
