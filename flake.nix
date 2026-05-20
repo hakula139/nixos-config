@@ -9,67 +9,56 @@
   # Inputs
   # ----------------------------------------------------------------------------
   inputs = {
-    # Nixpkgs - NixOS 25.11 stable release
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-
-    # Nixpkgs unstable - for bleeding edge packages
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    # macOS system configuration
-    nix-darwin = {
-      url = "github:LnL7/nix-darwin/nix-darwin-25.11";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # User environment management
-    home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # NixOS-style system management for non-NixOS Linux hosts
-    system-manager = {
-      url = "github:numtide/system-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # Declarative disk partitioning (Linux only)
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # Secrets management
-    agenix = {
-      url = "github:ryantm/agenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # Rust toolchains
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # NixOS-WSL distribution module
     nixos-wsl = {
       url = "github:nix-community/NixOS-WSL/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Pre-commit hooks
-    git-hooks-nix.url = "github:cachix/git-hooks.nix";
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin/nix-darwin-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    # AI coding agents
+    home-manager = {
+      url = "github:nix-community/home-manager/release-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    system-manager = {
+      url = "github:numtide/system-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    git-hooks-nix = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     llm-agents.url = "github:numtide/llm-agents.nix";
 
-    # Anthropic skills
     anthropics-skills = {
       url = "github:anthropics/skills";
       flake = false;
     };
 
-    # OpenAI Codex skills
     openai-skills = {
       url = "github:openai/skills";
       flake = false;
@@ -171,8 +160,14 @@
       caches = import ./data/caches.nix;
       corpDomain = import ./data/corp-domain.nix;
       keys = import ./secrets/keys.nix;
+      secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
+      systemManagerLib = import ./data/system-manager.nix;
+
       llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
       proxyLib = import ./lib/proxy.nix { inherit (nixpkgs) lib; };
+      sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
+      toolingFor = pkgs: import ./lib/tooling.nix { inherit pkgs; };
+
       repo = {
         root = ./.;
         modules = {
@@ -194,10 +189,7 @@
           };
         };
       };
-      secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
-      sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
-      systemManagerLib = import ./data/system-manager.nix;
-      toolingFor = pkgs: import ./lib/tooling.nix { inherit pkgs; };
+
       commonSpecialArgs = {
         inherit
           inputs
@@ -213,9 +205,6 @@
           toolingFor
           ;
       };
-      commonExtraSpecialArgs = removeAttrs commonSpecialArgs [
-        "keys"
-      ];
 
       # ------------------------------------------------------------------------
       # Host builders
@@ -227,9 +216,9 @@
           overlays
           pkgsFor
           commonSpecialArgs
-          commonExtraSpecialArgs
           ;
       };
+
       inherit (builders)
         serverSharedModules
         mkServer
@@ -295,7 +284,7 @@
               config.allowUnfree = true;
             };
             specialArgs = commonSpecialArgs;
-            nodeSpecialArgs = builtins.mapAttrs (name: _: { hostName = name; }) servers;
+            nodeSpecialArgs = builtins.mapAttrs (_: server: { hostName = server.name; }) servers;
           };
 
           defaults = {
@@ -314,7 +303,7 @@
           imports =
             serverSharedModules {
               flakeConfigName = name;
-              hostName = name;
+              hostName = server.name;
             }
             ++ [ (./hosts/servers + "/${name}") ];
         }) servers;
@@ -348,7 +337,6 @@
       packages = {
         x86_64-linux.system-manager = (pkgsFor "x86_64-linux").system-manager;
 
-        # Docker images for air-gapped deployment.
         x86_64-linux.devvm-docker = mkDocker {
           flakeConfigName = null;
           name = "devvm";

@@ -8,7 +8,6 @@
   overlays,
   pkgsFor,
   commonSpecialArgs,
-  commonExtraSpecialArgs,
 }:
 
 let
@@ -39,7 +38,7 @@ let
         useUserPackages = true;
         users.${username} = import ../home/hakula.nix;
         backupFileExtension = "bak";
-        extraSpecialArgs = commonExtraSpecialArgs // {
+        extraSpecialArgs = commonSpecialArgs // {
           inherit
             flakeConfigName
             hostName

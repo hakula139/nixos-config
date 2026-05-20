@@ -22,6 +22,7 @@ chgrp
 chocobozzz
 cidr
 claudeai
+clangd
 clippy
 cloudreve
 cncidr
@@ -89,6 +90,7 @@ inodes
 inotify
 ints
 ipcidr
+iputils
 isort
 jnoortheen
 journalctl
@@ -108,6 +110,7 @@ linkify
 litellm
 lldb
 localectl
+lualine
 marp
 mcp
 mcpjson
