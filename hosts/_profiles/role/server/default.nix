@@ -25,7 +25,7 @@
       "gitlab"
     ];
   };
-  hakula.claude-code.defaultProfile = lib.mkDefault "ikuncode";
+  hakula.claude-code.defaultProfile = lib.mkDefault "official-token";
 
   # ----------------------------------------------------------------------------
   # Services
