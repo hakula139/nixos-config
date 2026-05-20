@@ -75,7 +75,7 @@ Server inventory and deployment metadata live in `data/servers.nix`.
 
 ### NixOS-WSL Workstation
 
-`wsl` is a real-NixOS workstation running under Microsoft WSL2 via
+`wsl` is a full NixOS workstation running under Microsoft WSL2 via
 [NixOS-WSL](https://github.com/nix-community/NixOS-WSL).
 
 Build the import tarball from any host with the flake checked out:
@@ -112,7 +112,7 @@ sudo nixos-rebuild switch --flake ~/nixos-config#wsl
 
 ### Non-NixOS Linux (System Manager)
 
-`wsl-non-nixos` uses [system-manager](https://github.com/numtide/system-manager) to own the system profile, user shell integration, agenix secret activation, and Home Manager activation service. It is the WSL workstation variant for stock (non-NixOS) Linux distros.
+`wsl-non-nixos` uses [system-manager](https://github.com/numtide/system-manager) to own the system profile, user shell integration, agenix secret activation, and Home Manager activation service. It is the WSL workstation for non-NixOS Linux distros.
 
 Install Nix with Determinate Nix Installer:
 
@@ -130,7 +130,7 @@ system-manager-health-check agenix-install-secrets.service home-manager-hakula.s
 Apply after bootstrap:
 
 ```bash
-system-manager switch --flake '.#wsl-non-nixos' --sudo
+nixsw
 ```
 
 ### macOS
@@ -192,7 +192,7 @@ agenix -e <service>/<name>.age -i ~/.ssh/<private-key>  # Edit
 agenix -r -i ~/.ssh/<private-key>                       # Re-key after changing recipients
 ```
 
-Run `agenix -r` from an interactive terminal — see `CLAUDE.md` for the gotcha.
+Run `agenix -r` from an interactive terminal. See `CLAUDE.md` for the TTY caveat.
 
 ## Development
 
@@ -217,7 +217,7 @@ nix build '.#packages.x86_64-linux.devvm-docker'
 
 GitHub Actions runs on every push and pull request:
 
-- **Flake Check**: `nix flake check --all-systems` — flake structure and pre-commit hooks (`cspell`, `deadnix`, `markdownlint`, `nixfmt`, `statix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
+- **Flake Check**: `nix flake check --all-systems` for flake structure and pre-commit hooks (`cspell`, `deadnix`, `markdownlint`, `nixfmt`, `statix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
 - **Build NixOS**: builds the five server configurations (`us-1`, `us-2`, `us-3`, `us-4`, `sg-1`) on `ubuntu-latest`.
 - **Build NixOS-WSL**: builds `wsl` on `ubuntu-latest`.
 - **Build WSL (non-NixOS)**: builds `systemConfigs.wsl-non-nixos` on `ubuntu-latest`.
