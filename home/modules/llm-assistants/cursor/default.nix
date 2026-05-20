@@ -35,10 +35,10 @@ let
 
   settings = import ./settings.nix {
     inherit
-      pkgs
       flakeConfigName
       isDarwin
       isNixOS
+      pkgs
       ;
     inherit (cfg.nixd) flakePath;
   };
