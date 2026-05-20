@@ -1,5 +1,5 @@
 # ==============================================================================
-# wsl-non-nixos System Manager Configuration
+# WSL Non-NixOS System Manager Configuration
 # ==============================================================================
 
 { config, ... }:
