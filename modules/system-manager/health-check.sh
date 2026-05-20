@@ -6,27 +6,55 @@ if [[ "$#" -eq 0 ]]; then
   exit 2
 fi
 
+declare -A unit=()
+
+load_unit() {
+  local key service value
+  service="$1"
+  unit=()
+
+  while IFS='=' read -r key value; do
+    unit["$key"]="$value"
+  done < <(
+    systemctl show \
+      --property=ActiveState \
+      --property=ExecMainStartTimestampMonotonic \
+      --property=ExecMainStatus \
+      --property=LoadState \
+      --property=Result \
+      --property=Type \
+      "$service"
+  )
+}
+
+unit_is_installed() {
+  local load_state="${unit[LoadState]:-}"
+  [[ -n "$load_state" && "$load_state" != not-found ]]
+}
+
+unit_is_successful_oneshot() {
+  local started="${unit[ExecMainStartTimestampMonotonic]:-}"
+  [[ "${unit[Type]:-}" == oneshot &&
+    "${unit[Result]:-}" == success &&
+    "${unit[ExecMainStatus]:-}" == 0 &&
+    -n "$started" &&
+    "$started" != 0 ]]
+}
+
+unit_is_healthy() {
+  [[ "${unit[ActiveState]:-}" == active ]] || unit_is_successful_oneshot
+}
+
 rc=0
 for service in "$@"; do
-  if ! systemctl list-unit-files "$service" >/dev/null 2>&1; then
+  load_unit "$service"
+
+  if ! unit_is_installed; then
     echo "service '$service' is not installed; skipping" >&2
     continue
   fi
 
-  state="$(systemctl show --property=ActiveState --value "$service")"
-  type="$(systemctl show --property=Type --value "$service")"
-  result="$(systemctl show --property=Result --value "$service")"
-  status="$(systemctl show --property=ExecMainStatus --value "$service")"
-  started="$(systemctl show --property=ExecMainStartTimestampMonotonic --value "$service")"
-
-  if [[ "$state" == active ]] \
-    || {
-      [[ "$type" == oneshot ]] \
-        && [[ "$result" == success ]] \
-        && [[ "$status" == 0 ]] \
-        && [[ -n "$started" ]] \
-        && [[ "$started" != 0 ]]
-    }; then
+  if unit_is_healthy; then
     continue
   fi
 
