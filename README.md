@@ -17,7 +17,7 @@ This repository manages NixOS, nix-darwin, System Manager, Home Manager, custom 
 | `nixosConfigurations.us-4`           | `x86_64-linux`   | NixOS server, DMIT                                  |
 | `nixosConfigurations.sg-1`           | `x86_64-linux`   | NixOS server, Tencent Lighthouse                    |
 | `nixosConfigurations.wsl`            | `x86_64-linux`   | NixOS-WSL workstation                               |
-| `systemConfigs.wsl-non-nixos`        | `x86_64-linux`   | system-manager workstation on non-NixOS Linux (WSL) |
+| `systemConfigs.wsl-non-nixos`        | `x86_64-linux`   | Non-NixOS WSL workstation managed by System Manager |
 | `darwinConfigurations.macbook`       | `aarch64-darwin` | macOS workstation with nix-darwin                   |
 | `packages.x86_64-linux.devvm-docker` | `x86_64-linux`   | NixOS Docker image for dev containers               |
 
@@ -49,6 +49,12 @@ This repository manages NixOS, nix-darwin, System Manager, Home Manager, custom 
 
 ## Usage
 
+After bootstrap, apply the current host configuration with the platform-aware zsh alias:
+
+```bash
+nixsw
+```
+
 ### NixOS Servers
 
 Bootstrap a new server with `nixos-anywhere`:
@@ -57,46 +63,38 @@ Bootstrap a new server with `nixos-anywhere`:
 nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 ```
 
-Apply on a server:
-
-```bash
-nh os switch .
-```
-
 Deploy from a workstation with Colmena:
 
 ```bash
-colmena apply                  # all servers
-colmena apply --on us-4        # one server
-colmena apply --on @cloudcone  # provider tag
+colmena apply                                           # all servers
+colmena apply --on us-4                                 # one server
+colmena apply --on @cloudcone                           # provider tag
 ```
 
 Server inventory and deployment metadata live in `data/servers.nix`.
 
 ### NixOS-WSL Workstation
 
-`wsl` is a full NixOS workstation running under Microsoft WSL2 via
-[NixOS-WSL](https://github.com/nix-community/NixOS-WSL).
+`wsl` is a full NixOS workstation running under Microsoft WSL2 via [NixOS-WSL](https://github.com/nix-community/NixOS-WSL).
 
 Build the import tarball from any host with the flake checked out:
 
 ```bash
 nix build '.#nixosConfigurations.wsl.config.system.build.tarballBuilder'
-sudo ./result/bin/nixos-wsl-tarball-builder       # produces ./nixos.wsl
+sudo ./result/bin/nixos-wsl-tarball-builder             # produces ./nixos.wsl
 ```
 
 Move `nixos.wsl` to the Windows side and import (PowerShell):
 
 ```powershell
 wsl --shutdown
-wsl --install --from-file .\nixos.wsl              # WSL ≥ 2.4.4
-wsl -d NixOS                                       # first launch
+wsl --install --from-file .\nixos.wsl                   # WSL ≥ 2.4.4
+wsl -d NixOS                                            # first launch
 ```
 
 On older WSL versions, import with `wsl --import NixOS C:\WSL\NixOS .\nixos.wsl`.
 
-Inside the new distro, copy the agenix identity from the Windows side
-and apply the managed configuration:
+Inside the new distro, copy the agenix identity from the Windows side and apply the managed configuration:
 
 ```bash
 git clone https://github.com/hakula139/nixos-config ~/nixos-config
@@ -107,7 +105,6 @@ cp /mnt/c/Users/<name>/.ssh/id_ed25519.pub ~/.ssh/id_ed25519.pub
 chmod 600 ~/.ssh/id_ed25519
 
 sudo nixos-rebuild switch --flake ~/nixos-config#wsl
-# Day-to-day after this: `nixsw` (zsh alias = nh os switch .)
 ```
 
 ### Non-NixOS Linux (System Manager)
@@ -127,12 +124,6 @@ nix run '.#system-manager' -- switch --flake '.#wsl-non-nixos' --sudo
 system-manager-health-check agenix-install-secrets.service home-manager-hakula.service
 ```
 
-Apply after bootstrap:
-
-```bash
-nixsw
-```
-
 ### macOS
 
 Install Nix with Determinate Nix Installer:
@@ -145,12 +136,6 @@ Bootstrap nix-darwin:
 
 ```bash
 sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#macbook'
-```
-
-Apply after bootstrap:
-
-```bash
-nh darwin switch .
 ```
 
 ### Docker Image
