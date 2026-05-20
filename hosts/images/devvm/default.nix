@@ -32,8 +32,7 @@ in
   # ----------------------------------------------------------------------------
   networking.hostName = "devvm";
 
-  # DNS config (nameservers, search domain) comes from bind-mounted host
-  # /etc/resolv.conf — see docker-compose.yml volumes.
+  # DNS comes from bind-mounted /etc/resolv.conf.
 
   # ----------------------------------------------------------------------------
   # User Configuration
@@ -46,12 +45,9 @@ in
   home-manager.users.root =
     { secretPath, ... }:
     {
-      # SSH config comes from bind-mounted host ~/.ssh/config.
-      programs.ssh.enable = lib.mkForce false;
-
-      services.ssh-agent.enable = lib.mkForce false;
-      services.syncthing.enable = lib.mkForce false;
-
+      # ------------------------------------------------------------------------
+      # Assistant Tooling
+      # ------------------------------------------------------------------------
       hakula.claude-code = {
         auth = {
           defaultProfile = "corp-gateway";
@@ -82,10 +78,22 @@ in
         plugins.bundle = true;
       };
 
+      # ------------------------------------------------------------------------
+      # Secrets
+      # ------------------------------------------------------------------------
       hakula.secrets.required = {
         "hakula-devvm/proxy-url" = { };
         github-pat.name = lib.mkForce "github/pat-work";
       };
+
+      # ------------------------------------------------------------------------
+      # Services
+      # ------------------------------------------------------------------------
+      # SSH config comes from bind-mounted host ~/.ssh/config.
+      programs.ssh.enable = lib.mkForce false;
+
+      services.ssh-agent.enable = lib.mkForce false;
+      services.syncthing.enable = lib.mkForce false;
     };
 
   # ----------------------------------------------------------------------------
