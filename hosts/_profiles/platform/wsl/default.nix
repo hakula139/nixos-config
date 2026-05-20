@@ -41,7 +41,6 @@ in
     "vm.swappiness" = lib.mkForce null;
     "vm.vfs_cache_pressure" = lib.mkForce null;
   };
-  boot.extraModprobeConfig = lib.mkForce "";
 
   # ----------------------------------------------------------------------------
   # Networking
