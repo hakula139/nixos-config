@@ -5,10 +5,14 @@
 { lib, ... }:
 
 {
+  # ----------------------------------------------------------------------------
+  # Credentials
+  # ----------------------------------------------------------------------------
   hakula.cachix.enable = lib.mkDefault true;
 
-  # Personal-flavor MCP set by default. Work-flavor leaves can override
-  # with `lib.mkForce [ ]`.
+  # ----------------------------------------------------------------------------
+  # Assistant Tooling
+  # ----------------------------------------------------------------------------
   hakula.llm-assistants = {
     enable = lib.mkDefault true;
     mcp.disabledServers = lib.mkDefault [
