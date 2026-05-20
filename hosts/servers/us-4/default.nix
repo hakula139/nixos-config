@@ -1,0 +1,60 @@
+# ==============================================================================
+# US-4 Host Configuration
+# ==============================================================================
+
+{
+  keys,
+  repo,
+  hostName,
+  ...
+}:
+
+{
+  imports = [
+    repo.profiles.platform.dmit
+    repo.profiles.role.server
+  ];
+
+  # ----------------------------------------------------------------------------
+  # Networking
+  # ----------------------------------------------------------------------------
+  networking.hostName = hostName;
+
+  # ----------------------------------------------------------------------------
+  # Access (SSH)
+  # ----------------------------------------------------------------------------
+  hakula.access.ssh.authorizedKeys = [ keys.users.dmit ];
+
+  # ----------------------------------------------------------------------------
+  # Credentials
+  # ----------------------------------------------------------------------------
+  hakula.dockerHub.username = "hakula139";
+
+  # ----------------------------------------------------------------------------
+  # Services
+  # ----------------------------------------------------------------------------
+  hakula.services.aria2.enable = true;
+  hakula.services.backup = {
+    enable = true;
+    b2Bucket = "hakula-backup";
+    cloudreve.enable = true;
+    twikoo.enable = true;
+    umami.enable = true;
+  };
+  hakula.services.clashGenerator.enable = true;
+  hakula.services.cloudreve = {
+    enable = true;
+    umami = {
+      enable = true;
+      workerHost = "b2.hakula.xyz";
+    };
+  };
+  hakula.services.piclist.enable = true;
+  hakula.services.postgresql.enable = true;
+  hakula.services.umami.enable = true;
+
+  # ----------------------------------------------------------------------------
+  # System State
+  # ----------------------------------------------------------------------------
+  system.stateVersion = "25.11";
+}

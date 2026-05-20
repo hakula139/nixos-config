@@ -36,6 +36,9 @@ in
     windowsSync.enable = lib.mkEnableOption "syncing Nix-managed fonts to Windows (WSL only)";
   };
 
+  # ----------------------------------------------------------------------------
+  # Module config
+  # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.windowsSync.enable {
     # Home Manager runs as a systemd service under system-manager, where WSL
     # interop is unavailable, so cmd.exe / wslpath / reg.exe fail. Expose

@@ -59,7 +59,7 @@
     # --------------------------------------------------------------------------
     extraConfig = ''
       # True color support for modern terminals
-      set -sa terminal-features ",xterm*:RGB"
+      set -sa terminal-features ",xterm*:RGB,hyperlinks"
 
       # Use OSC 52 escape sequences for system clipboard (works in WSL2, SSH,
       # macOS terminals, etc. without encoding issues unlike clip.exe / xclip)

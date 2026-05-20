@@ -4,10 +4,10 @@
 
 {
   pkgs,
+  flakeConfigName,
+  flakePath,
   isDarwin,
   isNixOS,
-  flakePath,
-  configName,
   ...
 }:
 
@@ -23,7 +23,7 @@ let
   # nixd - machine-specific option completions
   # ----------------------------------------------------------------------------
   nixdCompletions =
-    if flakePath != null then
+    if flakePath != null && flakeConfigName != null then
       let
         configAttr =
           if isDarwin then
@@ -34,7 +34,7 @@ let
             "systemConfigs";
 
         flake = ''builtins.getFlake "${flakePath}"'';
-        flakeConfig = "(${flake}).${configAttr}.${configName}";
+        flakeConfig = "(${flake}).${configAttr}.${builtins.toJSON flakeConfigName}";
 
         hmOptionsExpr = "${flakeConfig}.options.home-manager.users.type.getSubOptions []";
       in

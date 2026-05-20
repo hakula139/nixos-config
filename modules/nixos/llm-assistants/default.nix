@@ -18,12 +18,18 @@ in
     ./claude-code
   ];
 
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
   options.hakula.llm-assistants = llmAssistantLib.mkOptions {
     inherit proxyLib;
     enableDescription = "LLM assistants for the primary interactive user";
     defaultUser = config.hakula.user.name;
   };
 
+  # ----------------------------------------------------------------------------
+  # Module config
+  # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
       {

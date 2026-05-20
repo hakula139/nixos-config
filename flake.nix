@@ -9,61 +9,56 @@
   # Inputs
   # ----------------------------------------------------------------------------
   inputs = {
-    # Nixpkgs - NixOS 25.11 stable release
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-
-    # Nixpkgs unstable - for bleeding edge packages
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    # macOS system configuration
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL/release-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix-darwin = {
       url = "github:LnL7/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # User environment management
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # NixOS-style system management for non-NixOS Linux hosts
     system-manager = {
       url = "github:numtide/system-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Declarative disk partitioning (Linux only)
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Secrets management
     agenix = {
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Rust toolchains
+    git-hooks-nix = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Pre-commit hooks
-    git-hooks-nix.url = "github:cachix/git-hooks.nix";
-
-    # AI coding agents
     llm-agents.url = "github:numtide/llm-agents.nix";
 
-    # Anthropic skills
     anthropics-skills = {
       url = "github:anthropics/skills";
       flake = false;
     };
 
-    # OpenAI Codex skills
     openai-skills = {
       url = "github:openai/skills";
       flake = false;
@@ -165,17 +160,36 @@
       caches = import ./data/caches.nix;
       corpDomain = import ./data/corp-domain.nix;
       keys = import ./secrets/keys.nix;
+      secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
+      systemManagerLib = import ./data/system-manager.nix;
+
       llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
       proxyLib = import ./lib/proxy.nix { inherit (nixpkgs) lib; };
-      repoModules = {
-        darwin = ./modules/darwin;
-        nixos = ./modules/nixos;
-      };
-      repoRoot = ./.;
-      secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
       sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
-      systemManagerLib = import ./data/system-manager.nix;
       toolingFor = pkgs: import ./lib/tooling.nix { inherit pkgs; };
+
+      repo = {
+        root = ./.;
+        modules = {
+          darwin = ./modules/darwin;
+          nixos = ./modules/nixos;
+        };
+        profiles = {
+          platform = {
+            cloudcone-sc2 = ./hosts/_profiles/platform/cloudcone-sc2;
+            cloudcone-vps = ./hosts/_profiles/platform/cloudcone-vps;
+            container = ./hosts/_profiles/platform/container;
+            dmit = ./hosts/_profiles/platform/dmit;
+            tencent-lighthouse = ./hosts/_profiles/platform/tencent-lighthouse;
+            wsl = ./hosts/_profiles/platform/wsl;
+          };
+          role = {
+            server = ./hosts/_profiles/role/server;
+            workstation = ./hosts/_profiles/role/workstation;
+          };
+        };
+      };
+
       commonSpecialArgs = {
         inherit
           inputs
@@ -184,18 +198,13 @@
           keys
           llmAssistantLib
           proxyLib
-          repoModules
-          repoRoot
+          repo
           secrets
           sharedConfig
           systemManagerLib
           toolingFor
           ;
       };
-      commonExtraSpecialArgs = removeAttrs commonSpecialArgs [
-        "keys"
-        "repoModules"
-      ];
 
       # ------------------------------------------------------------------------
       # Host builders
@@ -207,12 +216,13 @@
           overlays
           pkgsFor
           commonSpecialArgs
-          commonExtraSpecialArgs
           ;
       };
+
       inherit (builders)
         serverSharedModules
         mkServer
+        mkWSL
         mkDarwin
         mkSystemManager
         mkDocker
@@ -220,32 +230,43 @@
     in
     {
       # ------------------------------------------------------------------------
-      # NixOS Configurations (Linux servers)
+      # NixOS Configurations (Linux servers + WSL workstation)
       # ------------------------------------------------------------------------
       nixosConfigurations = {
         us-1 = mkServer {
+          flakeConfigName = "us-1";
           hostName = "us-1";
-          configPath = ./hosts/us-1;
+          hostModule = ./hosts/servers/us-1;
         };
 
         us-2 = mkServer {
+          flakeConfigName = "us-2";
           hostName = "us-2";
-          configPath = ./hosts/us-2;
+          hostModule = ./hosts/servers/us-2;
         };
 
         us-3 = mkServer {
+          flakeConfigName = "us-3";
           hostName = "us-3";
-          configPath = ./hosts/us-3;
+          hostModule = ./hosts/servers/us-3;
         };
 
         us-4 = mkServer {
+          flakeConfigName = "us-4";
           hostName = "us-4";
-          configPath = ./hosts/us-4;
+          hostModule = ./hosts/servers/us-4;
         };
 
         sg-1 = mkServer {
+          flakeConfigName = "sg-1";
           hostName = "sg-1";
-          configPath = ./hosts/sg-1;
+          hostModule = ./hosts/servers/sg-1;
+        };
+
+        wsl = mkWSL {
+          flakeConfigName = "wsl";
+          hostName = "wsl";
+          hostModule = ./hosts/workstations/wsl;
         };
       };
 
@@ -263,14 +284,13 @@
               config.allowUnfree = true;
             };
             specialArgs = commonSpecialArgs;
-            nodeSpecialArgs = builtins.mapAttrs (name: _: { hostName = name; }) servers;
+            nodeSpecialArgs = builtins.mapAttrs (_: server: { hostName = server.name; }) servers;
           };
 
           defaults = {
             imports = [
               { nixpkgs.overlays = overlays; }
-            ]
-            ++ serverSharedModules;
+            ];
           };
         }
         // builtins.mapAttrs (name: server: {
@@ -280,17 +300,23 @@
             buildOnTarget = true;
             tags = [ (nixpkgs.lib.toLower server.provider) ];
           };
-          imports = [ (./hosts + "/${name}") ];
+          imports =
+            serverSharedModules {
+              flakeConfigName = name;
+              hostName = server.name;
+            }
+            ++ [ (./hosts/servers + "/${name}") ];
         }) servers;
 
       # ------------------------------------------------------------------------
       # Darwin Configurations (macOS)
       # ------------------------------------------------------------------------
       darwinConfigurations = {
-        hakula-macbook = mkDarwin {
-          hostName = "hakula-macbook";
+        macbook = mkDarwin {
           displayName = "Hakula-MacBook";
-          configPath = ./hosts/hakula-macbook;
+          flakeConfigName = "macbook";
+          hostName = "hakula-macbook";
+          hostModule = ./hosts/workstations/macbook;
         };
       };
 
@@ -298,9 +324,10 @@
       # System Manager Configurations (non-NixOS Linux)
       # ------------------------------------------------------------------------
       systemConfigs = {
-        hakula-linux = mkSystemManager {
-          hostName = "hakula-linux";
-          configPath = ./hosts/hakula-linux;
+        wsl-non-nixos = mkSystemManager {
+          flakeConfigName = "wsl-non-nixos";
+          hostName = "wsl-non-nixos";
+          hostModule = ./hosts/workstations/wsl-non-nixos;
         };
       };
 
@@ -310,12 +337,12 @@
       packages = {
         x86_64-linux.system-manager = (pkgsFor "x86_64-linux").system-manager;
 
-        # Docker images for air-gapped deployment.
-        x86_64-linux.hakula-devvm-docker = mkDocker {
-          name = "hakula-devvm";
-          configPath = ./hosts/hakula-devvm;
-          username = "root";
+        x86_64-linux.devvm-docker = mkDocker {
+          flakeConfigName = null;
+          name = "devvm";
+          hostModule = ./hosts/images/devvm;
           enableDevToolchains = true;
+          username = "root";
         };
       };
 
