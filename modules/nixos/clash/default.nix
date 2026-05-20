@@ -21,6 +21,9 @@ in
     enable = lib.mkEnableOption "Clash subscription generator service";
   };
 
+  # ----------------------------------------------------------------------------
+  # Module config
+  # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     let
       clashGenerator = import ./generator {

@@ -8,9 +8,9 @@
 
   # User SSH keys (~/.ssh/<provider>/id_ed25519.pub)
   users = {
-    hakula-cloudcone = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPqd9HS6uF0h0mXMbIwCv9yrkvvdl3o1wUgQWVkjKuiJ cloudcone";
-    hakula-dmit = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDniOpCdWc/0ne5my9fUKmxkWH7IrAGALzbdc6T83rQi dmit";
-    hakula-tencent = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICc3XQ37RuIqVgQYED0HDU3RVSACPHmr/JoE7w/cvJzu tencent";
+    cloudcone = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPqd9HS6uF0h0mXMbIwCv9yrkvvdl3o1wUgQWVkjKuiJ cloudcone";
+    dmit = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDniOpCdWc/0ne5my9fUKmxkWH7IrAGALzbdc6T83rQi dmit";
+    tencent = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICc3XQ37RuIqVgQYED0HDU3RVSACPHmr/JoE7w/cvJzu tencent";
   };
 
   # Server SSH host keys (/etc/ssh/ssh_host_ed25519_key.pub)
@@ -20,12 +20,12 @@
     us-3 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEnjZoYN+khNCCzTJhTxFd0ncGwlLoh+45HWe1slXGOV";
     us-4 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDJCY6UGyWXNDi+JXSXzsiVLOqMOQRnyfF3ZGRR9lGq4";
     sg-1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7u+0CKIQHDMQNF9L90xoMe9lhruFqYDG48Da7zlM8G";
-    hakula-devvm = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMgylLKYgQj+SAzLNQSsJYWv4dabX33FmvvG/C2GcUxZ";
+    devvm = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMgylLKYgQj+SAzLNQSsJYWv4dabX33FmvvG/C2GcUxZ";
   };
 
   # Workstation SSH keys (~/.ssh/id_ed25519.pub)
   workstations = {
-    hakula-macbook = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK+FcR3wQnWYQm7Jhk5J+D9xBUj81Yv7HLRumCHg5ffn";
-    hakula-work = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIWfYOT8WdYxjgxLzxqVnCAlOweMjHKKQw3vgjsAvSCg";
+    macbook = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK+FcR3wQnWYQm7Jhk5J+D9xBUj81Yv7HLRumCHg5ffn";
+    wsl = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIWfYOT8WdYxjgxLzxqVnCAlOweMjHKKQw3vgjsAvSCg";
   };
 }

@@ -69,6 +69,9 @@ in
     ./opencode
   ];
 
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
   options.hakula.llm-assistants = {
     enable = lib.mkEnableOption "LLM assistants defaults";
 
@@ -81,6 +84,9 @@ in
     proxy = proxyLib.mkProxyOptions "LLM assistants";
   };
 
+  # ----------------------------------------------------------------------------
+  # Module config
+  # ----------------------------------------------------------------------------
   config = lib.mkMerge [
     (lib.mkIf anyAssistantEnabled {
       hakula.secrets.required = requiredMcpSecrets;

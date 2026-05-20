@@ -29,6 +29,7 @@ in
   imports = [
     ./modules/shared.nix
     ./modules/darwin.nix
+    ./modules/wsl.nix
     ./modules/fonts
     ./modules/git
     ./modules/llm-assistants
