@@ -25,20 +25,14 @@ let
   # ----------------------------------------------------------------------------
   mkHomeManagerConfig =
     {
-      enableDevToolchains ? false,
-      flakeConfigName ? null,
+      flakeConfigName,
+      hostName,
       isDesktop,
       isNixOS,
+      enableDevToolchains ? false,
       systemManagerConfigName ? null,
       username ? "hakula",
     }:
-    {
-      hostName ? null,
-      ...
-    }:
-    let
-      resolvedFlakeConfigName = if flakeConfigName != null then flakeConfigName else hostName;
-    in
     {
       home-manager = {
         useGlobalPkgs = true;
@@ -47,14 +41,14 @@ let
         backupFileExtension = "bak";
         extraSpecialArgs = commonExtraSpecialArgs // {
           inherit
-            enableDevToolchains
+            flakeConfigName
             hostName
             isDesktop
             isNixOS
+            enableDevToolchains
             systemManagerConfigName
             username
             ;
-          flakeConfigName = resolvedFlakeConfigName;
         };
       };
     };
@@ -62,10 +56,6 @@ let
   # ----------------------------------------------------------------------------
   # Shared NixOS modules
   # ----------------------------------------------------------------------------
-  # Modules every NixOS system in this flake imports: agenix, home-manager,
-  # and the home-manager glue. `disko` is added on top for hosts that
-  # actually partition disks (servers); WSL ships its own VHDX and
-  # mkDocker layers on `dockerTools` instead.
   mkNixosBaseModules = homeManagerArgs: [
     agenix.nixosModules.default
     home-manager.nixosModules.home-manager
@@ -73,7 +63,15 @@ let
   ];
 
   serverSharedModules =
+    {
+      flakeConfigName,
+      hostName,
+    }:
     mkNixosBaseModules {
+      inherit
+        flakeConfigName
+        hostName
+        ;
       isDesktop = false;
       isNixOS = true;
     }
@@ -84,8 +82,9 @@ let
   # ----------------------------------------------------------------------------
   mkServer =
     {
+      flakeConfigName,
       hostName,
-      configPath,
+      hostModule,
     }:
     nixpkgs.lib.nixosSystem {
       specialArgs = commonSpecialArgs // {
@@ -97,19 +96,23 @@ let
           nixpkgs.overlays = overlays;
         }
       ]
-      ++ serverSharedModules
-      ++ [ configPath ];
+      ++ serverSharedModules {
+        inherit
+          flakeConfigName
+          hostName
+          ;
+      }
+      ++ [ hostModule ];
     };
 
   # ----------------------------------------------------------------------------
   # WSL workstation (NixOS-WSL)
   # ----------------------------------------------------------------------------
-  # Like mkServer but `isDesktop = true` (cursor extensions install at
-  # activation) and no disko (NixOS-WSL ships its own VHDX).
   mkWSL =
     {
+      flakeConfigName,
       hostName,
-      configPath,
+      hostModule,
     }:
     nixpkgs.lib.nixosSystem {
       specialArgs = commonSpecialArgs // {
@@ -122,10 +125,14 @@ let
         }
       ]
       ++ mkNixosBaseModules {
+        inherit
+          flakeConfigName
+          hostName
+          ;
         isDesktop = true;
         isNixOS = true;
       }
-      ++ [ configPath ];
+      ++ [ hostModule ];
     };
 
   # ----------------------------------------------------------------------------
@@ -133,15 +140,16 @@ let
   # ----------------------------------------------------------------------------
   mkDarwin =
     {
-      hostName,
       displayName,
-      configPath,
+      flakeConfigName,
+      hostName,
+      hostModule,
     }:
     nix-darwin.lib.darwinSystem {
       specialArgs = commonSpecialArgs // {
         inherit
-          hostName
           displayName
+          hostName
           ;
       };
       modules = [
@@ -153,11 +161,14 @@ let
         home-manager.darwinModules.home-manager
         (mkHomeManagerConfig {
           enableDevToolchains = true;
-          flakeConfigName = "macbook";
+          inherit
+            flakeConfigName
+            hostName
+            ;
           isDesktop = true;
           isNixOS = false;
         })
-        configPath
+        hostModule
       ];
     };
 
@@ -166,10 +177,11 @@ let
   # ----------------------------------------------------------------------------
   mkSystemManager =
     {
+      flakeConfigName,
       hostName,
-      configPath,
-      isDesktop ? true,
+      hostModule,
       enableDevToolchains ? true,
+      isDesktop ? true,
     }:
     system-manager.lib.makeSystemConfig {
       modules = [
@@ -181,13 +193,15 @@ let
         (mkHomeManagerConfig {
           inherit
             enableDevToolchains
+            flakeConfigName
+            hostName
             isDesktop
             ;
           isNixOS = false;
-          systemManagerConfigName = hostName;
+          systemManagerConfigName = flakeConfigName;
         })
         ../modules/system-manager
-        configPath
+        hostModule
       ];
       inherit overlays;
       specialArgs = commonSpecialArgs // {
@@ -200,11 +214,12 @@ let
   # ----------------------------------------------------------------------------
   mkDocker =
     {
+      flakeConfigName,
       name,
-      tag ? "latest",
-      configPath,
-      username ? "hakula",
+      hostModule,
       enableDevToolchains ? false,
+      tag ? "latest",
+      username ? "hakula",
     }:
     let
       pkgs = pkgsFor "x86_64-linux";
@@ -219,11 +234,16 @@ let
           }
         ]
         ++ mkNixosBaseModules {
-          inherit enableDevToolchains username;
+          inherit
+            enableDevToolchains
+            flakeConfigName
+            username
+            ;
+          hostName = name;
           isDesktop = false;
           isNixOS = true;
         }
-        ++ [ configPath ];
+        ++ [ hostModule ];
       };
       inherit (nixosConfig.config.system.build) toplevel;
     in

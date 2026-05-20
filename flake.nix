@@ -245,33 +245,39 @@
       # ------------------------------------------------------------------------
       nixosConfigurations = {
         us-1 = mkServer {
+          flakeConfigName = "us-1";
           hostName = "us-1";
-          configPath = ./hosts/servers/us-1;
+          hostModule = ./hosts/servers/us-1;
         };
 
         us-2 = mkServer {
+          flakeConfigName = "us-2";
           hostName = "us-2";
-          configPath = ./hosts/servers/us-2;
+          hostModule = ./hosts/servers/us-2;
         };
 
         us-3 = mkServer {
+          flakeConfigName = "us-3";
           hostName = "us-3";
-          configPath = ./hosts/servers/us-3;
+          hostModule = ./hosts/servers/us-3;
         };
 
         us-4 = mkServer {
+          flakeConfigName = "us-4";
           hostName = "us-4";
-          configPath = ./hosts/servers/us-4;
+          hostModule = ./hosts/servers/us-4;
         };
 
         sg-1 = mkServer {
+          flakeConfigName = "sg-1";
           hostName = "sg-1";
-          configPath = ./hosts/servers/sg-1;
+          hostModule = ./hosts/servers/sg-1;
         };
 
         wsl = mkWSL {
+          flakeConfigName = "wsl";
           hostName = "wsl";
-          configPath = ./hosts/workstations/wsl;
+          hostModule = ./hosts/workstations/wsl;
         };
       };
 
@@ -295,8 +301,7 @@
           defaults = {
             imports = [
               { nixpkgs.overlays = overlays; }
-            ]
-            ++ serverSharedModules;
+            ];
           };
         }
         // builtins.mapAttrs (name: server: {
@@ -306,7 +311,12 @@
             buildOnTarget = true;
             tags = [ (nixpkgs.lib.toLower server.provider) ];
           };
-          imports = [ (./hosts/servers + "/${name}") ];
+          imports =
+            serverSharedModules {
+              flakeConfigName = name;
+              hostName = name;
+            }
+            ++ [ (./hosts/servers + "/${name}") ];
         }) servers;
 
       # ------------------------------------------------------------------------
@@ -314,9 +324,10 @@
       # ------------------------------------------------------------------------
       darwinConfigurations = {
         macbook = mkDarwin {
-          hostName = "hakula-macbook";
           displayName = "Hakula-MacBook";
-          configPath = ./hosts/workstations/macbook;
+          flakeConfigName = "macbook";
+          hostName = "hakula-macbook";
+          hostModule = ./hosts/workstations/macbook;
         };
       };
 
@@ -325,8 +336,9 @@
       # ------------------------------------------------------------------------
       systemConfigs = {
         wsl-non-nixos = mkSystemManager {
+          flakeConfigName = "wsl-non-nixos";
           hostName = "wsl-non-nixos";
-          configPath = ./hosts/workstations/wsl-non-nixos;
+          hostModule = ./hosts/workstations/wsl-non-nixos;
         };
       };
 
@@ -338,10 +350,11 @@
 
         # Docker images for air-gapped deployment.
         x86_64-linux.devvm-docker = mkDocker {
+          flakeConfigName = null;
           name = "devvm";
-          configPath = ./hosts/images/devvm;
-          username = "root";
+          hostModule = ./hosts/images/devvm;
           enableDevToolchains = true;
+          username = "root";
         };
       };
 

@@ -23,7 +23,7 @@ let
   # nixd - machine-specific option completions
   # ----------------------------------------------------------------------------
   nixdCompletions =
-    if flakePath != null then
+    if flakePath != null && flakeConfigName != null then
       let
         configAttr =
           if isDarwin then
