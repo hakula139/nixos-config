@@ -50,7 +50,7 @@ in
   options.hakula.access.ssh = {
     authorizedKeys = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = lib.attrValues keys.users;
+      default = [ ];
       description = "SSH public keys authorized for user login";
     };
   };
