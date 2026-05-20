@@ -34,11 +34,11 @@ unit_is_installed() {
 
 unit_is_successful_oneshot() {
   local started="${unit[ExecMainStartTimestampMonotonic]:-}"
-  [[ "${unit[Type]:-}" == oneshot &&
-    "${unit[Result]:-}" == success &&
-    "${unit[ExecMainStatus]:-}" == 0 &&
-    -n "$started" &&
-    "$started" != 0 ]]
+
+  [[ "${unit[Type]:-}" == oneshot ]] || return 1
+  [[ "${unit[Result]:-}" == success ]] || return 1
+  [[ "${unit[ExecMainStatus]:-}" == 0 ]] || return 1
+  [[ -n "$started" && "$started" != 0 ]]
 }
 
 unit_is_healthy() {
