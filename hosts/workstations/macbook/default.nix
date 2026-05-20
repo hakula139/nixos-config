@@ -4,7 +4,6 @@
 
 {
   pkgs,
-  keys,
   repo,
   hostName,
   displayName,
@@ -25,14 +24,6 @@
     computerName = displayName;
     localHostName = hostName;
   };
-
-  # ----------------------------------------------------------------------------
-  # Access (SSH)
-  # ----------------------------------------------------------------------------
-  hakula.access.ssh.authorizedKeys = with keys.workstations; [
-    macbook
-    wsl
-  ];
 
   # ----------------------------------------------------------------------------
   # Packages

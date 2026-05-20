@@ -5,7 +5,6 @@
 {
   config,
   lib,
-  keys,
   repo,
   hostName,
   ...
@@ -23,13 +22,6 @@
   networking = {
     inherit hostName;
   };
-
-  # ----------------------------------------------------------------------------
-  # Access (SSH)
-  # ----------------------------------------------------------------------------
-  hakula.access.ssh.authorizedKeys = with keys.workstations; [
-    wsl
-  ];
 
   # ----------------------------------------------------------------------------
   # Assistant Tooling

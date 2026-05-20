@@ -7,7 +7,6 @@
   pkgs,
   lib,
   secrets,
-  keys,
   sharedConfig,
   systemManagerLib,
   ...
@@ -35,7 +34,7 @@ in
   options.hakula.access.ssh = {
     authorizedKeys = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = lib.attrValues keys.workstations;
+      default = [ ];
       description = "SSH public keys authorized for user login";
     };
   };
