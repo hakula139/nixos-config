@@ -7,7 +7,7 @@
   isDarwin,
   isNixOS,
   flakePath,
-  configName,
+  flakeConfigName,
   ...
 }:
 
@@ -34,7 +34,7 @@ let
             "systemConfigs";
 
         flake = ''builtins.getFlake "${flakePath}"'';
-        flakeConfig = "(${flake}).${configAttr}.${builtins.toJSON configName}";
+        flakeConfig = "(${flake}).${configAttr}.${builtins.toJSON flakeConfigName}";
 
         hmOptionsExpr = "${flakeConfig}.options.home-manager.users.type.getSubOptions []";
       in

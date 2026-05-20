@@ -34,9 +34,13 @@ let
   ];
 
   settings = import ./settings.nix {
-    inherit pkgs isDarwin isNixOS;
+    inherit
+      pkgs
+      isDarwin
+      isNixOS
+      flakeConfigName
+      ;
     inherit (cfg.nixd) flakePath;
-    configName = flakeConfigName;
   };
 
   ext = import ./extensions.nix {
