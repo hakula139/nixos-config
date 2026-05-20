@@ -54,7 +54,7 @@
   # ----------------------------------------------------------------------------
   # Access (SSH)
   # ----------------------------------------------------------------------------
-  hakula.access.ssh.authorizedKeys = [ keys.users.hakula-cloudcone ];
+  hakula.access.ssh.authorizedKeys = [ keys.users.cloudcone ];
 
   # ----------------------------------------------------------------------------
   # System State

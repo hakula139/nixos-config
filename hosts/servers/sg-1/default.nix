@@ -23,7 +23,7 @@
   # ----------------------------------------------------------------------------
   # Access (SSH)
   # ----------------------------------------------------------------------------
-  hakula.access.ssh.authorizedKeys = [ keys.users.hakula-tencent ];
+  hakula.access.ssh.authorizedKeys = [ keys.users.tencent ];
 
   # ----------------------------------------------------------------------------
   # Assistant Tooling

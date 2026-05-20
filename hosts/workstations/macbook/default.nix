@@ -30,8 +30,8 @@
   # Access (SSH)
   # ----------------------------------------------------------------------------
   hakula.access.ssh.authorizedKeys = with keys.workstations; [
-    hakula-macbook
-    hakula-work
+    macbook
+    wsl
   ];
 
   # ----------------------------------------------------------------------------
