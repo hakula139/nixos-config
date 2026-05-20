@@ -1,10 +1,6 @@
 # ==============================================================================
 # Docker Container Profile
 # ==============================================================================
-# Shared configuration for NixOS Docker images built with
-# dockerTools.buildLayeredImage. The mkDocker builder in flake.nix handles
-# the image creation with multi-layer caching.
-# ==============================================================================
 
 {
   config,

@@ -9,15 +9,13 @@ let
 in
 {
   # ----------------------------------------------------------------------------
-  # Home Manager Settings
+  # Home Manager Overrides
   # ----------------------------------------------------------------------------
   home-manager.users.${userName} = {
-    home.stateVersion = "25.05";
-
+    hakula.llm-assistants.proxy.enable = true;
+    hakula.mihomo.enable = true;
     hakula.wsl.enable = true;
 
-    # The proxy URL points at mihomo.
-    hakula.mihomo.enable = true;
-    hakula.llm-assistants.proxy.enable = true;
+    home.stateVersion = "25.05";
   };
 }

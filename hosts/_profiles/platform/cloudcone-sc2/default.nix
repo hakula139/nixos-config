@@ -1,10 +1,6 @@
 # ==============================================================================
 # CloudCone SC2 Hardware Profile
 # ==============================================================================
-# This module contains shared boot loader, hardware, and disk configuration
-# for all CloudCone SC2 instances. Import this from your instance-specific
-# host configuration.
-# ==============================================================================
 
 {
   modulesPath,

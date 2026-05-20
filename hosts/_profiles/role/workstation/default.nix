@@ -1,10 +1,6 @@
 # ==============================================================================
 # Workstation Baseline Profile
 # ==============================================================================
-# System-side defaults shared by every "real-Nix" workstation host (macbook,
-# wsl). The wsl-non-nixos host runs under system-manager and configures its
-# equivalent settings inside the Home Manager tree (see home/modules/wsl).
-# ==============================================================================
 
 { lib, ... }:
 

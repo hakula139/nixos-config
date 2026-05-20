@@ -32,13 +32,9 @@
   ];
 
   # ----------------------------------------------------------------------------
-  # Assistant Tooling (work flavor)
+  # Assistant Tooling
   # ----------------------------------------------------------------------------
-  # Re-enable atlassian + gitlab MCPs that the workstation profile disables
-  # for personal hosts.
   hakula.llm-assistants.mcp.disabledServers = lib.mkForce [ ];
-
-  # Mihomo is not configured on this host yet.
   hakula.llm-assistants.proxy.enable = lib.mkForce false;
 
   # ----------------------------------------------------------------------------

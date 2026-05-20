@@ -44,7 +44,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 │   └── system-manager/              # System Manager activation, agenix port
 ├── home/
 │   ├── hakula.nix                   # Home Manager entry point
-│   └── modules/                     # Home Manager modules (incl. `wsl` workstation bundle)
+│   └── modules/                     # Home Manager modules (incl. `wsl.nix` workstation bundle)
 ├── packages/                        # Custom package definitions (callPackage targets in lib/overlays.nix)
 ├── secrets/                         # agenix-encrypted secrets and recipient rules
 └── .github/workflows/ci.yml         # CI pipeline

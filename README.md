@@ -40,7 +40,7 @@ This repository manages NixOS, nix-darwin, System Manager, Home Manager, custom 
 │   └── system-manager/              # System Manager activation, agenix port
 ├── home/
 │   ├── hakula.nix                   # Home Manager entry point
-│   └── modules/                     # Home Manager modules (incl. wsl bundle)
+│   └── modules/                     # Home Manager modules (incl. wsl.nix bundle)
 ├── lib/                             # Helpers (overlays, builders, secrets, proxy, tooling, ...)
 ├── packages/                        # Custom package definitions
 ├── secrets/                         # agenix-encrypted secrets and recipient rules

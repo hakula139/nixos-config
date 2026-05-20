@@ -1,11 +1,6 @@
 # ==============================================================================
 # WSL Platform Profile (NixOS-WSL)
 # ==============================================================================
-# Platform-shape overrides for hosts running under NixOS-WSL. Imports the
-# upstream `nixosModules.default` and disarms the parts of `modules/nixos`
-# that are tuned for bare-metal / VPS hosts and don't apply under WSL2's
-# Microsoft kernel.
-# ==============================================================================
 
 {
   config,

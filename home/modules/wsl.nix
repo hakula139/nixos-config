@@ -1,9 +1,6 @@
 # ==============================================================================
 # WSL Workstation Bundle
 # ==============================================================================
-# Shared Home Manager bundle for WSL workstation hosts. Mihomo and the local
-# proxy stay disabled by default because the proxy URL points at mihomo.
-# ==============================================================================
 
 {
   config,
@@ -25,28 +22,17 @@ in
 
   config = lib.mkIf cfg.enable {
     # --------------------------------------------------------------------------
-    # Claude Code (corp-gateway profile)
+    # Home Manager Overrides
     # --------------------------------------------------------------------------
-    # Plain assignment: the system-side claude-code module already
-    # propagates `defaultProfile` with `mkDefault`, so wrapping ours
-    # would tie at priority 1000 and trip a merge error.
     hakula.claude-code.auth = {
       defaultProfile = "corp-gateway";
       enableCorpGateway = true;
     };
 
-    # --------------------------------------------------------------------------
-    # Cursor
-    # --------------------------------------------------------------------------
-    # Keep marketplace extensions installed outside Nix across `nixsw` runs.
     hakula.cursor.extensions.prune = lib.mkForce false;
 
     hakula.fonts.windowsSync.enable = lib.mkDefault true;
 
-    # --------------------------------------------------------------------------
-    # LLM assistants
-    # --------------------------------------------------------------------------
-    # Whether to wire the local proxy is left to the host leaf.
     hakula.llm-assistants = {
       enable = lib.mkDefault true;
       proxy.noProxy = lib.mkDefault [
@@ -64,12 +50,13 @@ in
     };
 
     # --------------------------------------------------------------------------
-    # Secrets (work-flavor github PAT)
+    # Secrets
     # --------------------------------------------------------------------------
-    # `mkForce` because both this bundle and per-host leaves may set the
-    # logical `github-pat` key.
     hakula.secrets.required.github-pat.name = lib.mkForce "github/pat-work";
 
+    # --------------------------------------------------------------------------
+    # SSH Configuration
+    # --------------------------------------------------------------------------
     programs.ssh.matchBlocks."gitlab-public.${corpDomain}" = {
       host = lib.mkDefault "gitlab-public.${corpDomain}";
       hostname = lib.mkDefault "gitlab-public.${corpDomain}";

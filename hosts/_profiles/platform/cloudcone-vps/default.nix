@@ -1,10 +1,6 @@
 # ==============================================================================
 # CloudCone VPS Hardware Profile
 # ==============================================================================
-# This module contains shared boot loader, hardware, and disk configuration
-# for all CloudCone VPS instances. Import this from your instance-specific
-# host configuration.
-# ==============================================================================
 
 {
   modulesPath,

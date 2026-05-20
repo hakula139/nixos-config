@@ -39,7 +39,7 @@ in
     ./modules/syncthing
     ./modules/terminal
     ./modules/wakatime
-    ./modules/wsl
+    ./modules/wsl.nix
   ];
 
   # ----------------------------------------------------------------------------
