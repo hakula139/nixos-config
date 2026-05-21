@@ -14,4 +14,8 @@
   github-pat = {
     name = "github/pat-personal";
   };
+
+  gitlab-pat = {
+    name = "gitlab/pat-work";
+  };
 }

@@ -127,9 +127,9 @@ let
   ghBin = "${config.home.profileDirectory}/bin/gh";
   githubPatFile = secretPath "github-pat";
   githubBin = pkgs.writeShellScriptBin "github-mcp" ''
-    if [ -x "${ghBin}" ] && token=$("${ghBin}" auth token 2>/dev/null); then
+    if [[ -x "${ghBin}" ]] && token=$("${ghBin}" auth token 2>/dev/null); then
       export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
-    elif [ -f "${githubPatFile}" ]; then
+    elif [[ -f "${githubPatFile}" ]]; then
       export GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${githubPatFile})"
     fi
     exec ${pkgs.mcp-server-github}/bin/mcp-server-github stdio "$@"
@@ -139,6 +139,8 @@ let
   # GitLab
   # ----------------------------------------------------------------------------
   glabBin = "${config.home.profileDirectory}/bin/glab";
+  gitlabPatFile = secretPath "gitlab-pat";
+  gitlabWorkHost = "gitlab-public.${corpDomain}";
   gitlabToolsets = lib.concatStringsSep "," [
     "branches"
     "issues"
@@ -149,15 +151,14 @@ let
     "repositories"
   ];
   gitlabBin = pkgs.writeShellScriptBin "gitlab-mcp" ''
-    if [ -x "${glabBin}" ]; then
-      host=$("${glabBin}" config get host 2>/dev/null || true)
-      if [ -n "$host" ]; then
-        token=$("${glabBin}" config get token --host "$host" 2>/dev/null || true)
-        if [ -n "$token" ]; then
-          export GITLAB_PERSONAL_ACCESS_TOKEN="$token"
-          export GITLAB_API_URL="https://''${host}/api/v4"
-        fi
-      fi
+    if [[ -x "${glabBin}" ]] \
+      && host=$("${glabBin}" config get host 2>/dev/null) && [[ -n "$host" ]] \
+      && token=$("${glabBin}" config get token --host "$host" 2>/dev/null) && [[ -n "$token" ]]; then
+      export GITLAB_PERSONAL_ACCESS_TOKEN="$token"
+      export GITLAB_API_URL="https://''${host}/api/v4"
+    elif [[ -f "${gitlabPatFile}" ]]; then
+      export GITLAB_PERSONAL_ACCESS_TOKEN="$(cat ${gitlabPatFile})"
+      export GITLAB_API_URL="https://${gitlabWorkHost}/api/v4"
     fi
     export GITLAB_TOOLSETS="${gitlabToolsets}"
     exec ${pkgs.mcp-server-gitlab}/bin/mcp-server-gitlab "$@"
