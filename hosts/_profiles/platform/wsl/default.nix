@@ -50,6 +50,15 @@ in
   };
 
   # ----------------------------------------------------------------------------
+  # User session
+  # ----------------------------------------------------------------------------
+  # logind under NixOS-WSL sees `Linger=yes` but doesn't actually call
+  # StartUnit on user@<uid>.service, so the user manager stays dead and
+  # `wsl.exe` fails to attach to a session. Pull it into multi-user.target
+  # to start it unconditionally at boot.
+  systemd.targets.multi-user.wants = [ "user@1000.service" ];
+
+  # ----------------------------------------------------------------------------
   # Secrets
   # ----------------------------------------------------------------------------
   age.identityPaths = [ "/home/${userName}/.ssh/id_ed25519" ];
