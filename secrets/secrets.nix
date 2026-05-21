@@ -33,6 +33,7 @@ in
   # ----------------------------------------------------------------------------
   "github/pat-personal.age".publicKeys = allKeys;
   "github/pat-work.age".publicKeys = allKeys;
+  "gitlab/pat-work.age".publicKeys = allKeys;
 
   "hakula-devvm/proxy-url.age".publicKeys = allWorkstations ++ [ devvm ];
 
