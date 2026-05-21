@@ -55,6 +55,7 @@ duckdbrc
 dups
 e2fsprogs
 eamodio
+ebusy
 elif
 env
 envrc
