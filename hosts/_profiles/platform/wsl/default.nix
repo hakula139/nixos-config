@@ -4,6 +4,7 @@
 
 {
   config,
+  pkgs,
   lib,
   inputs,
   repo,
@@ -57,6 +58,19 @@ in
   # `wsl.exe` fails to attach to a session. Pull it into multi-user.target
   # to start it unconditionally at boot.
   systemd.targets.multi-user.wants = [ "user@1000.service" ];
+
+  # systemd 258 + WSL2 sd-executor returns spurious EBUSY on user@<uid>.service
+  # despite the user manager actually running. Clear the false-failed state.
+  # Upstream: microsoft/WSL#13826, nix-community/NixOS-WSL#888.
+  systemd.services.reset-user-manager-failed = {
+    description = "Clear false-failed state on user@1000.service";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.systemd}/bin/systemctl reset-failed user@1000.service";
+    };
+  };
 
   # ----------------------------------------------------------------------------
   # Secrets
