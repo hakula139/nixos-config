@@ -55,7 +55,7 @@ in
           id = "4K52NMQ-QSKVTWQ-CTJABEH-TSYH5MG-HS3FOKP-ETOLSWB-TC7PV6E-JR2KTAN"; # cspell:disable-line
         };
         "hakula-work" = {
-          id = "6MRKQMF-EG5RGDP-WEIJNSL-4U7DOC6-UH3WUUT-EPXFLUR-JGMIEWV-P6QIIAU"; # cspell:disable-line
+          id = "VQDWGYX-ENYFLN6-UU7757N-VWKRCV5-OB6RCMA-N6A4BTM-AWHIEJE-I2MFXAM"; # cspell:disable-line
         };
         "us-1" = {
           id = "WMZORNC-QJTIIQX-4Y2OGVF-3O5IESF-3M3UGMN-HC2C7SG-S42OC47-JMCPFAK"; # cspell:disable-line
