@@ -31,6 +31,7 @@ in
     ./cloudreve
     ./clove
     ./dockerhub
+    ./fhs-compat
     ./fuclaude
     ./llm-assistants
     ./netdata
