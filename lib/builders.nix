@@ -112,6 +112,7 @@ let
       flakeConfigName,
       hostName,
       hostModule,
+      enableDevToolchains ? true,
     }:
     nixpkgs.lib.nixosSystem {
       specialArgs = commonSpecialArgs // {
@@ -125,6 +126,7 @@ let
       ]
       ++ mkNixosBaseModules {
         inherit
+          enableDevToolchains
           flakeConfigName
           hostName
           ;
