@@ -15,13 +15,14 @@ let
   mcpSecrets = import ./shared/mcp/secrets.nix;
 
   # Map each MCP server to the secret it needs at runtime. Servers absent
-  # from this attrset (codex, deepwiki, fetcher, filesystem, git, gitlab)
-  # don't require any decrypted file.
+  # from this attrset (codex, deepwiki, fetcher, filesystem, git) don't
+  # require any decrypted file.
   mcpServerSecrets = {
     atlassian = [ "confluence-pat" ];
     braveSearch = [ "brave-api-key" ];
     context7 = [ "context7-api-key" ];
     github = [ "github-pat" ];
+    gitlab = [ "gitlab-pat" ];
   };
 
   inherit (llmAssistantLib) mcpOptions;
