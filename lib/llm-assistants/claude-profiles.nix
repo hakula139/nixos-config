@@ -35,6 +35,11 @@
     type = "api-key";
     tokenSecret = "llm-assistants/bifrost-api-key";
     baseUrl = "https://gw1.llm.${corpDomain}/anthropic";
+    modelOverrides = {
+      opus = "claude-opus-4-7";
+      sonnet = "claude-sonnet-4-6";
+      haiku = "claude-haiku-4-5-20251001";
+    };
     extraEnv = {
       CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
     };
