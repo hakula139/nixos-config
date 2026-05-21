@@ -126,6 +126,8 @@ in
       # zsh startup scripts, so prepend system-manager and Home Manager
       # paths here. Sourced before the server launches the extension host.
       serverEnvSetup = pkgs.writeText "cursor-server-env-setup" ''
+        [ -r /etc/set-environment ] && . /etc/set-environment
+
         for p in ${
           lib.concatMapStringsSep " " (p: ''"${p}"'') (
             systemManagerLib.systemPaths ++ [ "$HOME/.nix-profile/bin" ]
