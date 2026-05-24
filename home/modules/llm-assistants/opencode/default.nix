@@ -24,17 +24,7 @@ let
   inherit (llmAssistantLib) mcpOptions;
   instructions = import ../shared/instructions;
 
-  opencodeMcpServers = [
-    "atlassian"
-    "braveSearch"
-    "codex"
-    "deepwiki"
-    "fetcher"
-    "filesystem"
-    "git"
-    "github"
-    "gitlab"
-  ];
+  opencodeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -49,15 +39,7 @@ in
       };
     };
 
-    mcp = {
-      enabledServers = mcpOptions.mkEnabledServersOption {
-        names = opencodeMcpServers;
-        description = "MCP servers to enable";
-      };
-      disabledServers = mcpOptions.mkDisabledServersOption {
-        description = "MCP servers to disable";
-      };
-    };
+    mcp = mcpOptions.mkMcpOptions { names = opencodeMcpServers; };
 
     plugins = {
       bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
@@ -95,9 +77,7 @@ in
           proxyLib
           secretPath
           ;
-        enabledServers = builtins.filter (
-          s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)
-        ) cfg.mcp.enabledServers;
+        enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
       };
 
       # ------------------------------------------------------------------------
