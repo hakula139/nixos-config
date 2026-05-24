@@ -3,7 +3,7 @@
 # ==============================================================================
 
 {
-  defaultMode = "acceptEdits";
+  defaultMode = "auto";
 
   # ----------------------------------------------------------------------------
   # Allow - Auto-approved commands (read-only / safe operations)
