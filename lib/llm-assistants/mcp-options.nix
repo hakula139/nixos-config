@@ -19,9 +19,14 @@ let
   };
 
   allServerNames = builtins.attrNames serverDisplayNames;
+
+  corpServerNames = [
+    "atlassian"
+    "gitlab"
+  ];
 in
 {
-  inherit allServerNames serverDisplayNames;
+  inherit allServerNames corpServerNames serverDisplayNames;
 
   mkEnabledServersOption =
     {
