@@ -33,17 +33,7 @@ let
   };
 
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
-  claudeMcpServers = [
-    "atlassian"
-    "braveSearch"
-    "codex"
-    "deepwiki"
-    "fetcher"
-    "filesystem"
-    "git"
-    "github"
-    "gitlab"
-  ];
+  claudeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -62,15 +52,7 @@ in
       };
     };
 
-    mcp = {
-      enabledServers = mcpOptions.mkEnabledServersOption {
-        names = claudeMcpServers;
-        description = "MCP servers to enable";
-      };
-      disabledServers = mcpOptions.mkDisabledServersOption {
-        description = "MCP servers to disable";
-      };
-    };
+    mcp = mcpOptions.mkMcpOptions { names = claudeMcpServers; };
 
     plugins = {
       bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
@@ -114,9 +96,7 @@ in
           proxyLib
           secretPath
           ;
-        enabledServers = builtins.filter (
-          s: !(lib.elem s cfg.mcp.disabledServers) && (s != "codex" || config.hakula.codex.enable)
-        ) cfg.mcp.enabledServers;
+        enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
       };
 
       plugins = import ./plugins.nix {

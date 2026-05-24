@@ -21,17 +21,7 @@ let
   inherit (llmAssistantLib) mcpOptions;
   instructions = import ../shared/instructions;
 
-  codexMcpServers = [
-    "atlassian"
-    "braveSearch"
-    "context7"
-    "deepwiki"
-    "fetcher"
-    "filesystem"
-    "git"
-    "github"
-    "gitlab"
-  ];
+  codexMcpServers = mcpOptions.commonServerNames ++ [ "context7" ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -46,15 +36,7 @@ in
       };
     };
 
-    mcp = {
-      enabledServers = mcpOptions.mkEnabledServersOption {
-        names = codexMcpServers;
-        description = "MCP servers to enable";
-      };
-      disabledServers = mcpOptions.mkDisabledServersOption {
-        description = "MCP servers to disable";
-      };
-    };
+    mcp = mcpOptions.mkMcpOptions { names = codexMcpServers; };
 
     proxy = proxyLib.mkProxyOptions "Codex";
   };
@@ -82,7 +64,7 @@ in
           proxyLib
           secretPath
           ;
-        enabledServers = lib.subtractLists cfg.mcp.disabledServers cfg.mcp.enabledServers;
+        enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
       };
 
       skills = import ./skills { inherit pkgs lib inputs; };
