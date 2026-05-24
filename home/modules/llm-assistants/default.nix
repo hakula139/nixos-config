@@ -97,7 +97,8 @@ in
   config = lib.mkMerge [
     {
       hakula.llm-assistants.mcp.disabledServers = lib.mkDefault (
-        if hostType == "personal" then mcpOptions.corpServerNames else [ ]
+        lib.optionals (hostType == "personal") mcpOptions.corpServerNames
+        ++ lib.optionals (!config.hakula.codex.enable) [ "codex" ]
       );
     }
 

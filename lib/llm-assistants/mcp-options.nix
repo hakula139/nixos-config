@@ -20,13 +20,21 @@ let
 
   allServerNames = builtins.attrNames serverDisplayNames;
 
+  commonServerNames = [
+    "atlassian"
+    "braveSearch"
+    "deepwiki"
+    "fetcher"
+    "filesystem"
+    "git"
+    "github"
+    "gitlab"
+  ];
+
   corpServerNames = [
     "atlassian"
     "gitlab"
   ];
-in
-{
-  inherit allServerNames corpServerNames serverDisplayNames;
 
   mkEnabledServersOption =
     {
@@ -46,4 +54,33 @@ in
       default = [ ];
       inherit description;
     };
+
+  mkMcpOptions =
+    {
+      names,
+      description ? "MCP servers",
+    }:
+    {
+      enabledServers = mkEnabledServersOption {
+        inherit names;
+        description = "${description} to enable";
+      };
+      disabledServers = mkDisabledServersOption {
+        description = "${description} to disable";
+      };
+    };
+
+  computeEnabledServers = cfg: lib.subtractLists cfg.disabledServers cfg.enabledServers;
+in
+{
+  inherit
+    allServerNames
+    commonServerNames
+    corpServerNames
+    serverDisplayNames
+    mkEnabledServersOption
+    mkDisabledServersOption
+    mkMcpOptions
+    computeEnabledServers
+    ;
 }

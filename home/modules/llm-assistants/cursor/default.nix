@@ -22,16 +22,7 @@ let
   cfg = config.hakula.cursor;
 
   inherit (llmAssistantLib) mcpOptions;
-  cursorMcpServers = [
-    "atlassian"
-    "braveSearch"
-    "deepwiki"
-    "fetcher"
-    "filesystem"
-    "git"
-    "github"
-    "gitlab"
-  ];
+  cursorMcpServers = mcpOptions.commonServerNames;
 
   settings = import ./settings.nix {
     inherit
@@ -75,15 +66,7 @@ in
       prune = lib.mkEnableOption "Prune Cursor extensions not in the provisioned list";
     };
 
-    mcp = {
-      enabledServers = mcpOptions.mkEnabledServersOption {
-        names = cursorMcpServers;
-        description = "MCP servers to enable";
-      };
-      disabledServers = mcpOptions.mkDisabledServersOption {
-        description = "MCP servers to disable";
-      };
-    };
+    mcp = mcpOptions.mkMcpOptions { names = cursorMcpServers; };
 
     nixd.flakePath = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
@@ -107,7 +90,7 @@ in
           proxyLib
           secretPath
           ;
-        enabledServers = builtins.filter (s: !(lib.elem s cfg.mcp.disabledServers)) cfg.mcp.enabledServers;
+        enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
       };
 
       darwinFiles = {
