@@ -23,9 +23,11 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 │   ├── _profiles/
 │   │   ├── platform/                # Hardware / runtime shape (cloudcone-sc2, container, wsl, ...)
 │   │   └── role/                    # System role (server, workstation)
-│   ├── servers/                     # NixOS servers (us-1..us-4, sg-1)
-│   ├── workstations/                # wsl (NixOS-WSL), wsl-non-nixos (System Manager), macbook (Darwin)
-│   └── images/                      # Buildable images (devvm)
+│   ├── servers/                     # NixOS servers (us-1..us-4, sg-1) — all personal
+│   ├── workstations/
+│   │   ├── personal/                # macbook (Darwin)
+│   │   └── work/                    # wsl (NixOS-WSL), wsl-non-nixos (System Manager)
+│   └── images/                      # Buildable images (devvm — work)
 ├── data/                            # Static configuration and inventory
 │   ├── caches.nix                   # Binary cache substituters and trusted public keys
 │   ├── corp-domain.nix              # Corp-internal domain placeholder (gitignored real value)

@@ -26,6 +26,7 @@ let
     {
       flakeConfigName,
       hostName,
+      hostType,
       isDesktop,
       isNixOS,
       enableDevToolchains ? false,
@@ -41,6 +42,7 @@ let
           inherit
             flakeConfigName
             hostName
+            hostType
             isDesktop
             isNixOS
             enableDevToolchains
@@ -63,11 +65,13 @@ let
     {
       flakeConfigName,
       hostName,
+      hostType,
     }:
     mkNixosBaseModules {
       inherit
         flakeConfigName
         hostName
+        hostType
         ;
       isDesktop = false;
       isNixOS = true;
@@ -81,11 +85,12 @@ let
     {
       flakeConfigName,
       hostName,
+      hostType,
       hostModule,
     }:
     nixpkgs.lib.nixosSystem {
       specialArgs = commonSpecialArgs // {
-        inherit hostName;
+        inherit hostName hostType;
       };
       modules = [
         {
@@ -97,6 +102,7 @@ let
         inherit
           flakeConfigName
           hostName
+          hostType
           ;
       }
       ++ [ hostModule ];
@@ -109,12 +115,13 @@ let
     {
       flakeConfigName,
       hostName,
+      hostType,
       hostModule,
       enableDevToolchains ? true,
     }:
     nixpkgs.lib.nixosSystem {
       specialArgs = commonSpecialArgs // {
-        inherit hostName;
+        inherit hostName hostType;
       };
       modules = [
         {
@@ -127,6 +134,7 @@ let
           enableDevToolchains
           flakeConfigName
           hostName
+          hostType
           ;
         isDesktop = true;
         isNixOS = true;
@@ -142,6 +150,7 @@ let
       displayName,
       flakeConfigName,
       hostName,
+      hostType,
       hostModule,
     }:
     nix-darwin.lib.darwinSystem {
@@ -149,6 +158,7 @@ let
         inherit
           displayName
           hostName
+          hostType
           ;
       };
       modules = [
@@ -163,6 +173,7 @@ let
           inherit
             flakeConfigName
             hostName
+            hostType
             ;
           isDesktop = true;
           isNixOS = false;
@@ -178,6 +189,7 @@ let
     {
       flakeConfigName,
       hostName,
+      hostType,
       hostModule,
       enableDevToolchains ? true,
       isDesktop ? true,
@@ -194,6 +206,7 @@ let
             enableDevToolchains
             flakeConfigName
             hostName
+            hostType
             isDesktop
             ;
           isNixOS = false;
@@ -203,7 +216,7 @@ let
       ];
       inherit overlays;
       specialArgs = commonSpecialArgs // {
-        inherit hostName;
+        inherit hostName hostType;
       };
     };
 
@@ -213,7 +226,8 @@ let
   mkDocker =
     {
       flakeConfigName,
-      name,
+      hostName,
+      hostType,
       hostModule,
       enableDevToolchains ? false,
       tag ? "latest",
@@ -223,7 +237,7 @@ let
       pkgs = pkgsFor "x86_64-linux";
       nixosConfig = nixpkgs.lib.nixosSystem {
         specialArgs = commonSpecialArgs // {
-          hostName = name;
+          inherit hostName hostType;
         };
         modules = [
           {
@@ -235,9 +249,10 @@ let
           inherit
             enableDevToolchains
             flakeConfigName
+            hostName
+            hostType
             username
             ;
-          hostName = name;
           isDesktop = false;
           isNixOS = true;
         }
@@ -246,7 +261,8 @@ let
       inherit (nixosConfig.config.system.build) toplevel;
     in
     pkgs.dockerTools.buildLayeredImageWithNixDb {
-      inherit name tag;
+      name = hostName;
+      inherit tag;
       contents = [ toplevel ];
       config = {
         Cmd = [ "${toplevel}/init" ];

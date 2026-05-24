@@ -236,37 +236,43 @@
         us-1 = mkServer {
           flakeConfigName = "us-1";
           hostName = "us-1";
+          hostType = "personal";
           hostModule = ./hosts/servers/us-1;
         };
 
         us-2 = mkServer {
           flakeConfigName = "us-2";
           hostName = "us-2";
+          hostType = "personal";
           hostModule = ./hosts/servers/us-2;
         };
 
         us-3 = mkServer {
           flakeConfigName = "us-3";
           hostName = "us-3";
+          hostType = "personal";
           hostModule = ./hosts/servers/us-3;
         };
 
         us-4 = mkServer {
           flakeConfigName = "us-4";
           hostName = "us-4";
+          hostType = "personal";
           hostModule = ./hosts/servers/us-4;
         };
 
         sg-1 = mkServer {
           flakeConfigName = "sg-1";
           hostName = "sg-1";
+          hostType = "personal";
           hostModule = ./hosts/servers/sg-1;
         };
 
         wsl = mkWSL {
           flakeConfigName = "wsl";
           hostName = "wsl";
-          hostModule = ./hosts/workstations/wsl;
+          hostType = "work";
+          hostModule = ./hosts/workstations/work/wsl;
         };
       };
 
@@ -304,6 +310,7 @@
             serverSharedModules {
               flakeConfigName = name;
               hostName = server.name;
+              hostType = "personal";
             }
             ++ [ (./hosts/servers + "/${name}") ];
         }) servers;
@@ -316,7 +323,8 @@
           displayName = "Hakula-MacBook";
           flakeConfigName = "macbook";
           hostName = "hakula-macbook";
-          hostModule = ./hosts/workstations/macbook;
+          hostType = "personal";
+          hostModule = ./hosts/workstations/personal/macbook;
         };
       };
 
@@ -327,7 +335,8 @@
         wsl-non-nixos = mkSystemManager {
           flakeConfigName = "wsl-non-nixos";
           hostName = "wsl-non-nixos";
-          hostModule = ./hosts/workstations/wsl-non-nixos;
+          hostType = "work";
+          hostModule = ./hosts/workstations/work/wsl-non-nixos;
         };
       };
 
@@ -339,7 +348,8 @@
 
         x86_64-linux.devvm-docker = mkDocker {
           flakeConfigName = null;
-          name = "devvm";
+          hostName = "devvm";
+          hostType = "work";
           hostModule = ./hosts/images/devvm;
           enableDevToolchains = true;
           username = "root";

@@ -5,10 +5,16 @@
 {
   config,
   lib,
+  hostType,
   llmAssistantLib,
   proxyLib,
   ...
 }:
+
+assert lib.assertOneOf "hostType" hostType [
+  "personal"
+  "work"
+];
 
 let
   cfg = config.hakula.llm-assistants;
@@ -89,6 +95,12 @@ in
   # Module config
   # ----------------------------------------------------------------------------
   config = lib.mkMerge [
+    {
+      hakula.llm-assistants.mcp.disabledServers = lib.mkDefault (
+        if hostType == "personal" then mcpOptions.corpServerNames else [ ]
+      );
+    }
+
     (lib.mkIf anyAssistantEnabled {
       hakula.secrets.required = requiredMcpSecrets;
     })
