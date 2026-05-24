@@ -200,10 +200,14 @@ in
     }
     // lib.optionalAttrs isNixOS {
       # Nix aliases
+      nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
+    }
+    // lib.optionalAttrs (isNixOS && flakeConfigName != null) {
+      # Aliases that target a flake attribute. Skipped on images like devvm
+      # that have no nixosConfigurations entry to switch to.
       nixsw = "nh os switch '.#${flakeConfigName}'";
       nixtest = "nh os test '.#${flakeConfigName}'";
       nixboot = "nh os boot '.#${flakeConfigName}'";
-      nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
       nixroll = "sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'";
     }
     // lib.optionalAttrs (isLinux && !isNixOS) {
