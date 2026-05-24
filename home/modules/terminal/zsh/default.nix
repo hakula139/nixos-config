@@ -6,9 +6,9 @@
   config,
   pkgs,
   lib,
+  flakeConfigName,
   username ? "hakula",
   isNixOS ? false,
-  systemManagerConfigName ? null,
   ...
 }:
 
@@ -25,7 +25,7 @@ let
   # commands have a live WSL_INTEROP socket.
   nixswScript = pkgs.writeShellScript "nixsw" ''
     set -euo pipefail
-    system-manager switch --flake '.#${systemManagerConfigName}' --sudo
+    system-manager switch --flake '.#${flakeConfigName}' --sudo
     ${smHealthCheck}
     ${postSwitchSync}
   '';
@@ -200,20 +200,21 @@ in
     }
     // lib.optionalAttrs isNixOS {
       # Nix aliases
-      nixsw = "nh os switch .";
-      nixtest = "nh os test .";
-      nixboot = "nh os boot .";
+      nixsw = "nh os switch '.#${flakeConfigName}'";
+      nixtest = "nh os test '.#${flakeConfigName}'";
+      nixboot = "nh os boot '.#${flakeConfigName}'";
       nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
-      nixroll = "sudo nixos-rebuild switch --rollback --flake .";
+      nixroll = "sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'";
     }
     // lib.optionalAttrs (isLinux && !isNixOS) {
+      # Nix aliases
       nixsw = "${nixswScript}";
       nixroll = "${nixrollScript}";
       nixlist = "sudo nix-env --profile ${smProfile} --list-generations";
     }
     // lib.optionalAttrs isDarwin {
       # Nix aliases
-      nixsw = "nh darwin switch .";
+      nixsw = "nh darwin switch '.#${flakeConfigName}'";
       nixlist = "sudo darwin-rebuild --list-generations";
       nixroll = "sudo darwin-rebuild switch --rollback";
 
