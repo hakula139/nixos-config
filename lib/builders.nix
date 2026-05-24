@@ -29,7 +29,6 @@ let
       isDesktop,
       isNixOS,
       enableDevToolchains ? false,
-      systemManagerConfigName ? null,
       username ? "hakula",
     }:
     {
@@ -45,7 +44,6 @@ let
             isDesktop
             isNixOS
             enableDevToolchains
-            systemManagerConfigName
             username
             ;
         };
@@ -199,7 +197,6 @@ let
             isDesktop
             ;
           isNixOS = false;
-          systemManagerConfigName = flakeConfigName;
         })
         ../modules/system-manager
         hostModule
