@@ -8,6 +8,19 @@
   enableCorpGateway ? false,
 }:
 
+let
+  corpGatewayCommon = {
+    type = "api-key";
+    tokenSecret = "llm-assistants/bifrost-api-key";
+    baseUrl = "https://gw1.llm.${corpDomain}/anthropic";
+    extraEnv = {
+      CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
+    };
+    extraSecretEnv = {
+      NODE_EXTRA_CA_CERTS = "llm-assistants/corp-cachain.crt";
+    };
+  };
+in
 {
   official = {
     type = "subscription";
@@ -31,20 +44,19 @@
   };
 }
 // lib.optionalAttrs enableCorpGateway {
-  corp-gateway = {
-    type = "api-key";
-    tokenSecret = "llm-assistants/bifrost-api-key";
-    baseUrl = "https://gw1.llm.${corpDomain}/anthropic";
+  corp-gateway-bedrock = corpGatewayCommon // {
     modelOverrides = {
-      opus = "claude-opus-4-7";
-      sonnet = "claude-sonnet-4-6";
-      haiku = "claude-haiku-4-5-20251001";
+      opus = "bedrock/global.anthropic.claude-opus-4-7";
+      sonnet = "bedrock/global.anthropic.claude-sonnet-4-6";
+      haiku = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
     };
-    extraEnv = {
-      CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
-    };
-    extraSecretEnv = {
-      NODE_EXTRA_CA_CERTS = "llm-assistants/corp-cachain.crt";
+  };
+
+  corp-gateway-openrouter = corpGatewayCommon // {
+    modelOverrides = {
+      opus = "openrouter/anthropic/claude-opus-4-7";
+      sonnet = "openrouter/anthropic/claude-sonnet-4-6";
+      haiku = "openrouter/anthropic/claude-haiku-4-5";
     };
   };
 }

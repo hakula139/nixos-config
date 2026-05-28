@@ -168,7 +168,7 @@ in
             # Models
             # ------------------------------------------------------------------
             model = "openai/gpt-5.5";
-            small_model = "openai/gpt-5.5-mini";
+            small_model = "openai/gpt-5.4-mini";
             provider = {
               openai.models."gpt-5.5".options = {
                 reasoningEffort = "high";
