@@ -50,7 +50,7 @@ in
       # ------------------------------------------------------------------------
       hakula.claude-code = {
         auth = {
-          defaultProfile = "corp-gateway";
+          defaultProfile = "corp-gateway-bedrock";
           enableCorpGateway = true;
         };
         mcp.enabledServers = claudeMcpServers;
