@@ -325,7 +325,7 @@ in
     enableCorpGateway = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = "Include the `corp-gateway` profile. Requires corp-scoped agenix access.";
+      description = "Include the `corp-gateway-*` profiles. Requires corp-scoped agenix access.";
     };
   };
 
