@@ -24,8 +24,8 @@
     interfaces.eth0 = {
       ipv4.addresses = [
         {
-          address = "74.48.189.161";
-          prefixLength = 26;
+          address = "117.55.232.113";
+          prefixLength = 25;
         }
       ];
       ipv6.addresses = [
@@ -44,7 +44,7 @@
       ];
     };
 
-    defaultGateway = "74.48.189.129";
+    defaultGateway = "117.55.232.1";
     defaultGateway6 = {
       address = "2607:f130:0:17d::1";
       interface = "eth0";

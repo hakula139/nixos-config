@@ -17,7 +17,7 @@ in
   };
 
   us-2 = {
-    ip = "74.48.189.161";
+    ip = "117.55.232.113";
     port = 35060;
     name = "us-2";
     displayName = "CloudCone-US-2";
