@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  options,
   inputs,
   corpDomain,
   llmAssistantLib,
@@ -20,6 +21,7 @@ let
 
   cfg = config.hakula.opencode;
 
+  compat = import ../shared/compat.nix { inherit lib; };
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   inherit (llmAssistantLib) mcpOptions;
   instructions = import ../shared/instructions;
@@ -151,11 +153,6 @@ in
           package = opencodeBin;
 
           # --------------------------------------------------------------------
-          # AGENTS.md
-          # --------------------------------------------------------------------
-          rules = instructions.opencode;
-
-          # --------------------------------------------------------------------
           # Agents
           # --------------------------------------------------------------------
           inherit agents;
@@ -227,6 +224,12 @@ in
             autoupdate = false;
             autoshare = false;
           };
+        }
+        // compat.mkRenamedOption {
+          option = options.programs.opencode;
+          oldName = "rules";
+          newName = "context";
+          value = instructions.opencode;
         };
       }
 

@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  options,
   inputs,
   corpDomain,
   llmAssistantLib,
@@ -17,6 +18,7 @@
 let
   cfg = config.hakula.codex;
 
+  compat = import ../shared/compat.nix { inherit lib; };
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   inherit (llmAssistantLib) mcpOptions;
   instructions = import ../shared/instructions;
@@ -114,11 +116,12 @@ in
         programs.codex = {
           enable = true;
           package = codexBin;
-
-          # --------------------------------------------------------------------
-          # AGENTS.md
-          # --------------------------------------------------------------------
-          custom-instructions = instructions.codex;
+        }
+        // compat.mkRenamedOption {
+          option = options.programs.codex;
+          oldName = "custom-instructions";
+          newName = "context";
+          value = instructions.codex;
         };
 
         # ----------------------------------------------------------------------

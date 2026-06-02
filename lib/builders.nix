@@ -15,7 +15,9 @@ let
     agenix
     disko
     home-manager
+    home-manager-wsl
     nix-darwin
+    nixpkgs-wsl
     system-manager
     ;
 
@@ -55,9 +57,9 @@ let
   # ----------------------------------------------------------------------------
   # Shared NixOS modules
   # ----------------------------------------------------------------------------
-  mkNixosBaseModules = homeManagerArgs: [
+  mkNixosBaseModules = homeManagerInput: homeManagerArgs: [
     agenix.nixosModules.default
-    home-manager.nixosModules.home-manager
+    homeManagerInput.nixosModules.home-manager
     (mkHomeManagerConfig homeManagerArgs)
   ];
 
@@ -67,7 +69,7 @@ let
       hostName,
       hostType,
     }:
-    mkNixosBaseModules {
+    mkNixosBaseModules home-manager {
       inherit
         flakeConfigName
         hostName
@@ -119,7 +121,7 @@ let
       hostModule,
       enableDevToolchains ? true,
     }:
-    nixpkgs.lib.nixosSystem {
+    nixpkgs-wsl.lib.nixosSystem {
       specialArgs = commonSpecialArgs // {
         inherit hostName hostType;
       };
@@ -129,7 +131,7 @@ let
           nixpkgs.overlays = overlays;
         }
       ]
-      ++ mkNixosBaseModules {
+      ++ mkNixosBaseModules home-manager-wsl {
         inherit
           enableDevToolchains
           flakeConfigName
@@ -245,7 +247,7 @@ let
             nixpkgs.overlays = overlays;
           }
         ]
-        ++ mkNixosBaseModules {
+        ++ mkNixosBaseModules home-manager {
           inherit
             enableDevToolchains
             flakeConfigName

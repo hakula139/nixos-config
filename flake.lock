@@ -317,10 +317,10 @@
         "type": "github"
       }
     },
-    "home-manager_2": {
+    "home-manager-wsl": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-wsl"
         ]
       },
       "locked": {
@@ -334,6 +334,27 @@
       "original": {
         "owner": "nix-community",
         "ref": "release-25.11",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "home-manager_2": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1780361225,
+        "narHash": "sha256-wnV9ttf4fPWNonBIQmvlrSlNpQYgx5HgWWd007mwIFA=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "e28654b71096e08c019d4861ca26acb646f583d8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "ref": "release-26.05",
         "repo": "home-manager",
         "type": "github"
       }
@@ -368,16 +389,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1772129556,
-        "narHash": "sha256-Utk0zd8STPsUJPyjabhzPc5BpPodLTXrwkpXBHYnpeg=",
+        "lastModified": 1779036909,
+        "narHash": "sha256-zXcwYQGCT6pzinK+1dBB2ekTVtfxGZAapb3Evdcu4fY=",
         "owner": "LnL7",
         "repo": "nix-darwin",
-        "rev": "ebec37af18215214173c98cf6356d0aca24a2585",
+        "rev": "56c666e108467d87d13508936aade6d567f2a501",
         "type": "github"
       },
       "original": {
         "owner": "LnL7",
-        "ref": "nix-darwin-25.11",
+        "ref": "nix-darwin-26.05",
         "repo": "nix-darwin",
         "type": "github"
       }
@@ -386,7 +407,7 @@
       "inputs": {
         "flake-compat": "flake-compat_2",
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-wsl"
         ]
       },
       "locked": {
@@ -436,7 +457,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
+    "nixpkgs-wsl": {
       "locked": {
         "lastModified": 1779796641,
         "narHash": "sha256-ZsIrKmhp4vbBXoXXmR/tBXA/UCsAQiJL9vsgZEduhVY=",
@@ -448,6 +469,22 @@
       "original": {
         "owner": "NixOS",
         "ref": "nixos-25.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1780203844,
+        "narHash": "sha256-K5sT4jTpGs15ADhviMKNBH38REpPf5Q6mM1+N6cArVE=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b51242d7d43689db2f3be91bd05d5b24fbb469c4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-26.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -503,11 +540,13 @@
         "disko": "disko",
         "git-hooks-nix": "git-hooks-nix",
         "home-manager": "home-manager_2",
+        "home-manager-wsl": "home-manager-wsl",
         "llm-agents": "llm-agents",
         "nix-darwin": "nix-darwin",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "nixpkgs-wsl": "nixpkgs-wsl",
         "openai-skills": "openai-skills",
         "rust-overlay": "rust-overlay",
         "system-manager": "system-manager"

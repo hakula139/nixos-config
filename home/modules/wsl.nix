@@ -5,12 +5,19 @@
 {
   config,
   lib,
+  options,
   corpDomain,
   ...
 }:
 
 let
   cfg = config.hakula.wsl;
+  gitlabPublicSshBlock = {
+    host = lib.mkDefault "gitlab-public.${corpDomain}";
+    hostname = lib.mkDefault "gitlab-public.${corpDomain}";
+    user = lib.mkDefault "git";
+    port = lib.mkDefault 8022;
+  };
 in
 {
   # ----------------------------------------------------------------------------
@@ -60,11 +67,18 @@ in
     # --------------------------------------------------------------------------
     # SSH Configuration
     # --------------------------------------------------------------------------
-    programs.ssh.matchBlocks."gitlab-public.${corpDomain}" = {
-      host = lib.mkDefault "gitlab-public.${corpDomain}";
-      hostname = lib.mkDefault "gitlab-public.${corpDomain}";
-      user = lib.mkDefault "git";
-      port = lib.mkDefault 8022;
-    };
+    programs.ssh =
+      if builtins.hasAttr "settings" options.programs.ssh then
+        {
+          settings."gitlab-public.${corpDomain}" = {
+            HostName = gitlabPublicSshBlock.hostname;
+            User = gitlabPublicSshBlock.user;
+            Port = gitlabPublicSshBlock.port;
+          };
+        }
+      else
+        {
+          matchBlocks."gitlab-public.${corpDomain}" = gitlabPublicSshBlock;
+        };
   };
 }

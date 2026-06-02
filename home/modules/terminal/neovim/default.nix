@@ -10,6 +10,8 @@
     vimAlias = true;
     viAlias = true;
     defaultEditor = false;
+    withPython3 = true;
+    withRuby = true;
 
     # --------------------------------------------------------------------------
     # Plugins
