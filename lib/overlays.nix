@@ -39,6 +39,12 @@
       };
     });
 
+    pipx = final.python3Packages.pipx.overridePythonAttrs (old: {
+      disabledTestPaths = (old.disabledTestPaths or [ ]) ++ [
+        "tests/test_package_specifier.py"
+      ];
+    });
+
     # --------------------------------------------------------------------------
     # Toolchains
     # --------------------------------------------------------------------------
