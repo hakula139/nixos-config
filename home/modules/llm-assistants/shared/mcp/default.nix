@@ -140,7 +140,7 @@ let
   # ----------------------------------------------------------------------------
   glabBin = "${config.home.profileDirectory}/bin/glab";
   gitlabPatFile = secretPath "gitlab-pat";
-  gitlabWorkHost = "gitlab-public.${corpDomain}";
+  gitlabWorkHost = "gitlab-general.${corpDomain}";
   gitlabToolsets = lib.concatStringsSep "," [
     "branches"
     "issues"
@@ -152,10 +152,10 @@ let
   ];
   gitlabBin = pkgs.writeShellScriptBin "gitlab-mcp" ''
     if [[ -x "${glabBin}" ]] \
-      && host=$("${glabBin}" config get host 2>/dev/null) && [[ -n "$host" ]] \
-      && token=$("${glabBin}" config get token --host "$host" 2>/dev/null) && [[ -n "$token" ]]; then
+      && token=$("${glabBin}" config get token --host "${gitlabWorkHost}" 2>/dev/null) \
+      && [[ -n "$token" ]]; then
       export GITLAB_PERSONAL_ACCESS_TOKEN="$token"
-      export GITLAB_API_URL="https://''${host}/api/v4"
+      export GITLAB_API_URL="https://${gitlabWorkHost}/api/v4"
     elif [[ -f "${gitlabPatFile}" ]]; then
       export GITLAB_PERSONAL_ACCESS_TOKEN="$(cat ${gitlabPatFile})"
       export GITLAB_API_URL="https://${gitlabWorkHost}/api/v4"

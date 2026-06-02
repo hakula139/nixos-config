@@ -12,11 +12,16 @@
 
 let
   cfg = config.hakula.wsl;
-  gitlabPublicSshBlock = {
-    host = lib.mkDefault "gitlab-public.${corpDomain}";
-    hostname = lib.mkDefault "gitlab-public.${corpDomain}";
+  gitlabWorkHost = "gitlab-general.${corpDomain}";
+  gitlabLegacyHost = "gitlab-public.${corpDomain}";
+  gitlabSshBlock = {
+    host = lib.mkDefault gitlabWorkHost;
+    hostname = lib.mkDefault gitlabWorkHost;
     user = lib.mkDefault "git";
     port = lib.mkDefault 8022;
+  };
+  gitlabLegacySshBlock = gitlabSshBlock // {
+    host = lib.mkDefault gitlabLegacyHost;
   };
 in
 {
@@ -70,15 +75,25 @@ in
     programs.ssh =
       if builtins.hasAttr "settings" options.programs.ssh then
         {
-          settings."gitlab-public.${corpDomain}" = {
-            HostName = gitlabPublicSshBlock.hostname;
-            User = gitlabPublicSshBlock.user;
-            Port = gitlabPublicSshBlock.port;
+          settings = {
+            ${gitlabWorkHost} = {
+              HostName = gitlabSshBlock.hostname;
+              User = gitlabSshBlock.user;
+              Port = gitlabSshBlock.port;
+            };
+            ${gitlabLegacyHost} = {
+              HostName = gitlabSshBlock.hostname;
+              User = gitlabSshBlock.user;
+              Port = gitlabSshBlock.port;
+            };
           };
         }
       else
         {
-          matchBlocks."gitlab-public.${corpDomain}" = gitlabPublicSshBlock;
+          matchBlocks = {
+            ${gitlabWorkHost} = gitlabSshBlock;
+            ${gitlabLegacyHost} = gitlabLegacySshBlock;
+          };
         };
   };
 }
