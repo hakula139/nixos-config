@@ -3,6 +3,7 @@
 # ==============================================================================
 
 {
+  config,
   pkgs,
   lib,
   ...
@@ -11,14 +12,25 @@
 let
   inherit (pkgs.stdenv) isDarwin;
 
-  # Clipboard sink. macOS uses pbcopy directly because Cursor's xterm.js mangles
-  # multibyte UTF-8 in OSC 52 payloads. Other platforms use OSC 52, which the
-  # outer terminal forwards to its host clipboard.
-  clipboardConfig =
+  # Local clipboard sink, or null when only OSC 52 is reachable (headless servers
+  # over SSH have no local clipboard). Both local sinks dodge Cursor's xterm.js
+  # OSC 52 decoder, which double-encodes multibyte UTF-8. clip.exe needs
+  # UTF-16LE because it otherwise decodes stdin as the Windows ANSI codepage.
+  localClipboard =
     if isDarwin then
+      "pbcopy"
+    else if config.hakula.wsl.enable then
+      "iconv -f UTF-8 -t UTF-16LE | clip.exe"
+    else
+      null;
+
+  # A local sink means tmux's own OSC 52 emission must be off so it can't race
+  # the pipe; without one, OSC 52 is the only route to the clipboard.
+  clipboardConfig =
+    if localClipboard != null then
       ''
         set -s set-clipboard off
-        bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel pbcopy
+        bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel ${lib.escapeShellArg localClipboard}
       ''
     else
       ''
