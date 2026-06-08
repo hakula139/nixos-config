@@ -79,7 +79,6 @@ in
       # ------------------------------------------------------------------------
       python3
       python3Packages.pip
-      pipx
       poetry
       pyright
       ruff

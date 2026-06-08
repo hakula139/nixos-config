@@ -149,11 +149,7 @@ in
         programs.opencode = {
           enable = true;
           package = opencodeBin;
-
-          # --------------------------------------------------------------------
-          # AGENTS.md
-          # --------------------------------------------------------------------
-          rules = instructions.opencode;
+          context = instructions.opencode;
 
           # --------------------------------------------------------------------
           # Agents
