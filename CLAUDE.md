@@ -69,7 +69,7 @@ nix run '.#system-manager' -- switch --flake '.#wsl-non-nixos' --sudo
 system-manager-health-check agenix-install-secrets.service home-manager-hakula.service
 
 # macOS
-sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#macbook'
+sudo nix run nix-darwin/nix-darwin-26.05#darwin-rebuild -- switch --flake '.#macbook'
 ```
 
 Multi-server deploys go through Colmena: `colmena apply --on us-4`, `colmena apply --on @cloudcone` for provider tags.
