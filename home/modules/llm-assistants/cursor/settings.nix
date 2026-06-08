@@ -61,7 +61,7 @@ let
   settingsOverrides = {
     "bashIde.shellcheckPath" = "${pkgs.shellcheck}/bin/shellcheck";
     "bashIde.shfmt.path" = "${pkgs.shfmt}/bin/shfmt";
-    "nix.serverPath" = "${pkgs.unstable.nixd}/bin/nixd";
+    "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
     "nix.serverSettings" = {
       "nixd" = {
         formatting.command = [ "${pkgs.nixfmt}/bin/nixfmt" ];

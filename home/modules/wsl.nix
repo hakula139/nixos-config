@@ -56,15 +56,5 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     hakula.secrets.required.github-pat.name = lib.mkForce "github/pat-work";
-
-    # --------------------------------------------------------------------------
-    # SSH Configuration
-    # --------------------------------------------------------------------------
-    programs.ssh.matchBlocks."gitlab-public.${corpDomain}" = {
-      host = lib.mkDefault "gitlab-public.${corpDomain}";
-      hostname = lib.mkDefault "gitlab-public.${corpDomain}";
-      user = lib.mkDefault "git";
-      port = lib.mkDefault 8022;
-    };
   };
 }

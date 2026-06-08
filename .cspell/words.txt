@@ -42,6 +42,7 @@ dbengine
 debugpy
 devvm
 dhcpcd
+dhparams
 direnv
 disko
 dmit

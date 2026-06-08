@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  nixosModulesPath,
   secrets,
   sharedConfig,
   systemManagerLib,
@@ -26,6 +27,7 @@ in
 {
   imports = [
     ./age.nix
+    (nixosModulesPath + "/security/dhparams.nix")
   ];
 
   # ----------------------------------------------------------------------------
