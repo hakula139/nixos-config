@@ -14,15 +14,14 @@ let
   shared = sharedConfig { inherit pkgs lib; };
   homeDir = config.home.homeDirectory;
 
-  serverMatchBlocks = lib.mapAttrs' (
+  serverSettings = lib.mapAttrs' (
     _: server:
     lib.nameValuePair server.displayName {
-      host = server.displayName;
-      hostname = server.ip;
-      user = "hakula";
-      inherit (server) port;
-      identityFile = "${homeDir}/.ssh/${server.provider}/id_ed25519";
-      forwardAgent = true;
+      HostName = server.ip;
+      User = "hakula";
+      Port = server.port;
+      IdentityFile = "${homeDir}/.ssh/${server.provider}/id_ed25519";
+      ForwardAgent = true;
     }
   ) shared.servers;
 in
@@ -31,39 +30,35 @@ in
     enable = true;
     enableDefaultConfig = false;
 
-    matchBlocks = {
+    settings = {
       "*" = { };
       "github.com-hakula139" = {
-        host = "github.com-hakula139";
-        hostname = "github.com";
-        user = "git";
-        identityFile = "${homeDir}/.ssh/GitHub/hakula139";
+        HostName = "github.com";
+        User = "git";
+        IdentityFile = "${homeDir}/.ssh/GitHub/hakula139";
       };
       "github.com-hc492874" = {
-        host = "github.com-hc492874";
-        hostname = "github.com";
-        user = "git";
-        identityFile = "${homeDir}/.ssh/GitHub/hc492874";
+        HostName = "github.com";
+        User = "git";
+        IdentityFile = "${homeDir}/.ssh/GitHub/hc492874";
       };
       "Hakula-MacBook" = {
-        host = "Hakula-MacBook";
-        hostname = "hakula-macbook";
-        user = "hakula";
-        port = 22;
-        identityFile = "${homeDir}/.ssh/id_ed25519";
-        proxyCommand = "tailscale nc %h %p";
-        forwardAgent = true;
+        HostName = "hakula-macbook";
+        User = "hakula";
+        Port = 22;
+        IdentityFile = "${homeDir}/.ssh/id_ed25519";
+        ProxyCommand = "tailscale nc %h %p";
+        ForwardAgent = true;
       };
       "Hakula-Work" = {
-        host = "Hakula-Work";
-        hostname = "hakula-work";
-        user = "hakula";
-        port = 22;
-        identityFile = "${homeDir}/.ssh/id_ed25519";
-        proxyCommand = "tailscale nc %h %p";
-        forwardAgent = true;
+        HostName = "hakula-work";
+        User = "hakula";
+        Port = 22;
+        IdentityFile = "${homeDir}/.ssh/id_ed25519";
+        ProxyCommand = "tailscale nc %h %p";
+        ForwardAgent = true;
       };
     }
-    // serverMatchBlocks;
+    // serverSettings;
   };
 }

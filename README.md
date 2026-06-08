@@ -135,7 +135,7 @@ curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 Bootstrap nix-darwin:
 
 ```bash
-sudo nix run nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake '.#macbook'
+sudo nix run nix-darwin/nix-darwin-26.05#darwin-rebuild -- switch --flake '.#macbook'
 ```
 
 ### Docker Image

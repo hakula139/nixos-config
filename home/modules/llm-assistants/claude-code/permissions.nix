@@ -245,7 +245,6 @@
     "Bash(npx *)"
     "Bash(pip *)"
     "Bash(pip3 *)"
-    "Bash(pipx *)"
     "Bash(pnpm *)"
     "Bash(poetry *)"
     "Bash(pre-commit *)"
