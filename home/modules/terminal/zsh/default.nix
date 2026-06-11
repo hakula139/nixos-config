@@ -15,9 +15,9 @@
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
 
-  smProfile = "/nix/var/nix/profiles/system-manager-profiles";
-  smHealthCheck = "system-manager-health-check agenix-install-secrets.service home-manager-${username}.service";
-
+  # ----------------------------------------------------------------------------
+  # Post-switch sync
+  # ----------------------------------------------------------------------------
   # Re-sync side effects that depend on WSL interop. Empty on hosts without it.
   postSwitchCommands = lib.concatStringsSep "\n" (
     lib.optional config.hakula.fonts.windowsSync.enable "install-windows-fonts"
@@ -25,6 +25,9 @@ let
   );
   hasPostSwitchCommands = postSwitchCommands != "";
 
+  # ----------------------------------------------------------------------------
+  # NixOS switch commands
+  # ----------------------------------------------------------------------------
   nixosNixswCommand = "nh os switch '.#${flakeConfigName}'";
   nixosNixrollCommand = "sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'";
 
@@ -42,18 +45,24 @@ let
     ${postSwitchCommands}
   '';
 
-  nixswScript = pkgs.writeShellScript "nixsw" ''
+  # ----------------------------------------------------------------------------
+  # System Manager switch commands
+  # ----------------------------------------------------------------------------
+  systemManagerProfile = "/nix/var/nix/profiles/system-manager-profiles";
+  systemManagerHealthCheck = "system-manager-health-check agenix-install-secrets.service home-manager-${username}.service";
+
+  systemManagerNixswScript = pkgs.writeShellScript "nixsw" ''
     set -euo pipefail
     system-manager switch --flake '.#${flakeConfigName}' --sudo
-    ${smHealthCheck}
+    ${systemManagerHealthCheck}
     ${postSwitchCommands}
   '';
 
-  nixrollScript = pkgs.writeShellScript "nixroll" ''
+  systemManagerNixrollScript = pkgs.writeShellScript "nixroll" ''
     set -euo pipefail
-    sudo nix-env --profile ${smProfile} --rollback
+    sudo nix-env --profile ${systemManagerProfile} --rollback
     system-manager activate --sudo
-    ${smHealthCheck}
+    ${systemManagerHealthCheck}
     ${postSwitchCommands}
   '';
 in
@@ -232,9 +241,9 @@ in
     }
     // lib.optionalAttrs (isLinux && !isNixOS) {
       # Nix aliases
-      nixsw = "${nixswScript}";
-      nixroll = "${nixrollScript}";
-      nixlist = "sudo nix-env --profile ${smProfile} --list-generations";
+      nixsw = "${systemManagerNixswScript}";
+      nixroll = "${systemManagerNixrollScript}";
+      nixlist = "sudo nix-env --profile ${systemManagerProfile} --list-generations";
     }
     // lib.optionalAttrs isDarwin {
       # Nix aliases
