@@ -20,6 +20,32 @@ let
   settingsBase = builtins.fromJSON (builtins.readFile ./settings.json);
 
   # ----------------------------------------------------------------------------
+  # Terminal profiles
+  # ----------------------------------------------------------------------------
+  terminalProfiles = {
+    bash = {
+      args = [ "-l" ];
+      icon = "terminal-bash";
+      path = "${pkgs.bash}/bin/bash";
+    };
+    tmux = {
+      args = [
+        "-lc"
+        ''exec ${pkgs.tmux}/bin/tmux new-session -A -s "''${PWD##*/}"''
+      ];
+      icon = "terminal-tmux";
+      path = "${pkgs.bash}/bin/bash";
+    };
+    zsh = {
+      args = [
+        "-l"
+        "-i"
+      ];
+      path = "${pkgs.zsh}/bin/zsh";
+    };
+  };
+
+  # ----------------------------------------------------------------------------
   # nixd - machine-specific option completions
   # ----------------------------------------------------------------------------
   nixdCompletions =
@@ -68,6 +94,8 @@ let
       }
       // nixdCompletions;
     };
+    "terminal.integrated.profiles.linux" = terminalProfiles;
+    "terminal.integrated.profiles.osx" = terminalProfiles;
   };
 
   # ----------------------------------------------------------------------------
