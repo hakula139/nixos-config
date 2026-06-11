@@ -7,6 +7,7 @@ set -euo pipefail
 
 WINDOWS_INTEROP="${1:?windows interop helper required}"
 shift
+# shellcheck source=lib/wsl/windows-interop.sh
 source "$WINDOWS_INTEROP"
 
 FONT_DIR="$(windows_env_path LOCALAPPDATA)/Microsoft/Windows/Fonts"
