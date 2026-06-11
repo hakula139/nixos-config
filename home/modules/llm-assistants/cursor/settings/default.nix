@@ -87,9 +87,24 @@ let
       { };
 
   # ----------------------------------------------------------------------------
-  # Override settings
+  # Portable settings
   # ----------------------------------------------------------------------------
-  settingsOverrides = {
+  portableSettings = {
+    "bashIde.shellcheckPath" = "shellcheck";
+    "bashIde.shfmt.path" = "shfmt";
+    "nix.serverPath" = "nixd";
+    "nix.serverSettings" = {
+      "nixd" = {
+        formatting.command = [ "nixfmt" ];
+      };
+    };
+  }
+  // terminalSettings;
+
+  # ----------------------------------------------------------------------------
+  # Machine settings
+  # ----------------------------------------------------------------------------
+  machineSettings = portableSettings // {
     "bashIde.shellcheckPath" = "${pkgs.shellcheck}/bin/shellcheck";
     "bashIde.shfmt.path" = "${pkgs.shfmt}/bin/shfmt";
     "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
@@ -99,18 +114,15 @@ let
       }
       // nixdCompletions;
     };
-  }
-  // terminalSettings;
+  };
 
   # ----------------------------------------------------------------------------
   # Final settings
   # ----------------------------------------------------------------------------
-  settings = settingsBase // settingsOverrides;
-  windowsSettings = settingsBase // terminalSettings;
+  settings = settingsBase // portableSettings;
 in
 {
   inherit settings;
-  machineSettingsJson = json.generate "cursor-machine-settings.json" settingsOverrides;
+  machineSettingsJson = json.generate "cursor-machine-settings.json" machineSettings;
   settingsJson = json.generate "cursor-settings.json" settings;
-  windowsSettingsJson = json.generate "cursor-windows-settings.json" windowsSettings;
 }

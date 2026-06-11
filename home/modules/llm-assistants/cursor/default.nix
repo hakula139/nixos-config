@@ -49,7 +49,7 @@ let
       diffutils
     ];
     text = ''
-      exec ${pkgs.bash}/bin/bash ${syncScript} ${windowsInterop} ${settings.windowsSettingsJson}
+      exec ${pkgs.bash}/bin/bash ${syncScript} ${windowsInterop} ${settings.settingsJson}
     '';
   };
 
