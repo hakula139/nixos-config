@@ -26,22 +26,22 @@ let
     bash = {
       args = [ "-l" ];
       icon = "terminal-bash";
-      path = "${pkgs.bash}/bin/bash";
+      path = "bash";
     };
     tmux = {
       args = [
         "-lc"
-        ''exec ${pkgs.tmux}/bin/tmux new-session -A -s "''${PWD##*/}"''
+        ''exec tmux new-session -A -s "''${PWD##*/}"''
       ];
       icon = "terminal-tmux";
-      path = "${pkgs.bash}/bin/bash";
+      path = "bash";
     };
     zsh = {
       args = [
         "-l"
         "-i"
       ];
-      path = "${pkgs.zsh}/bin/zsh";
+      path = "zsh";
     };
   };
 
