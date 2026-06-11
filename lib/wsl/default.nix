@@ -1,0 +1,3 @@
+{
+  windowsInteropScript = ./windows-interop.sh;
+}
