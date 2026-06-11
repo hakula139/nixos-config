@@ -21,8 +21,8 @@ ccagent
 chgrp
 chocobozzz
 cidr
-claudeai
 clangd
+claudeai
 clippy
 cloudreve
 cncidr
@@ -128,6 +128,7 @@ msmtp
 msmtprc
 myip
 nbsp
+netrc
 networkctl
 networkd
 niks3
@@ -142,6 +143,7 @@ nlsv
 nofile
 nslookup
 numtide
+nvcr
 nvim
 osascript
 osc
