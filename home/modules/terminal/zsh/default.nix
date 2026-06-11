@@ -234,10 +234,10 @@ in
     // lib.optionalAttrs (isNixOS && flakeConfigName != null) {
       # Aliases that target a flake attribute. Skipped on images like devvm
       # that have no nixosConfigurations entry to switch to.
-      nixsw = if hasPostSwitchCommands then "${nixosNixswScript}" else nixosNixswCommand;
+      nixsw = if hasPostSwitchCommands then "${nixosNixswScript}" else "${nixosNixswCommand}";
       nixtest = "nh os test '.#${flakeConfigName}'";
       nixboot = "nh os boot '.#${flakeConfigName}'";
-      nixroll = if hasPostSwitchCommands then "${nixosNixrollScript}" else nixosNixrollCommand;
+      nixroll = if hasPostSwitchCommands then "${nixosNixrollScript}" else "${nixosNixrollCommand}";
     }
     // lib.optionalAttrs (isLinux && !isNixOS) {
       # Nix aliases
