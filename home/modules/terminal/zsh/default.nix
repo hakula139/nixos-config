@@ -25,17 +25,20 @@ let
   );
   hasPostSwitchCommands = postSwitchCommands != "";
 
+  nixosNixswCommand = "nh os switch '.#${flakeConfigName}'";
+  nixosNixrollCommand = "sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'";
+
   # nixsw / nixroll run in the user's interactive shell so post-switch
   # commands have a live WSL_INTEROP socket.
   nixosNixswScript = pkgs.writeShellScript "nixsw" ''
     set -euo pipefail
-    nh os switch '.#${flakeConfigName}'
+    ${nixosNixswCommand}
     ${postSwitchCommands}
   '';
 
   nixosNixrollScript = pkgs.writeShellScript "nixroll" ''
     set -euo pipefail
-    sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'
+    ${nixosNixrollCommand}
     ${postSwitchCommands}
   '';
 
@@ -222,15 +225,10 @@ in
     // lib.optionalAttrs (isNixOS && flakeConfigName != null) {
       # Aliases that target a flake attribute. Skipped on images like devvm
       # that have no nixosConfigurations entry to switch to.
-      nixsw =
-        if hasPostSwitchCommands then "${nixosNixswScript}" else "nh os switch '.#${flakeConfigName}'";
+      nixsw = if hasPostSwitchCommands then "${nixosNixswScript}" else nixosNixswCommand;
       nixtest = "nh os test '.#${flakeConfigName}'";
       nixboot = "nh os boot '.#${flakeConfigName}'";
-      nixroll =
-        if hasPostSwitchCommands then
-          "${nixosNixrollScript}"
-        else
-          "sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'";
+      nixroll = if hasPostSwitchCommands then "${nixosNixrollScript}" else nixosNixrollCommand;
     }
     // lib.optionalAttrs (isLinux && !isNixOS) {
       # Nix aliases
