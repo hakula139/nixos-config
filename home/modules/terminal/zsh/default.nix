@@ -19,15 +19,31 @@ let
   smHealthCheck = "system-manager-health-check agenix-install-secrets.service home-manager-${username}.service";
 
   # Re-sync side effects that depend on WSL interop. Empty on hosts without it.
-  postSwitchSync = lib.optionalString config.hakula.fonts.windowsSync.enable "install-windows-fonts";
+  postSwitchCommands = lib.concatStringsSep "\n" (
+    lib.optional config.hakula.fonts.windowsSync.enable "install-windows-fonts"
+    ++ lib.optional config.hakula.cursor.windowsSync.enable "sync-windows-cursor-settings"
+  );
+  hasPostSwitchCommands = postSwitchCommands != "";
 
-  # nixsw / nixroll run in the user's interactive shell so postSwitchSync
+  # nixsw / nixroll run in the user's interactive shell so post-switch
   # commands have a live WSL_INTEROP socket.
+  nixosNixswScript = pkgs.writeShellScript "nixsw" ''
+    set -euo pipefail
+    nh os switch '.#${flakeConfigName}'
+    ${postSwitchCommands}
+  '';
+
+  nixosNixrollScript = pkgs.writeShellScript "nixroll" ''
+    set -euo pipefail
+    sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'
+    ${postSwitchCommands}
+  '';
+
   nixswScript = pkgs.writeShellScript "nixsw" ''
     set -euo pipefail
     system-manager switch --flake '.#${flakeConfigName}' --sudo
     ${smHealthCheck}
-    ${postSwitchSync}
+    ${postSwitchCommands}
   '';
 
   nixrollScript = pkgs.writeShellScript "nixroll" ''
@@ -35,7 +51,7 @@ let
     sudo nix-env --profile ${smProfile} --rollback
     system-manager activate --sudo
     ${smHealthCheck}
-    ${postSwitchSync}
+    ${postSwitchCommands}
   '';
 in
 {
@@ -206,10 +222,15 @@ in
     // lib.optionalAttrs (isNixOS && flakeConfigName != null) {
       # Aliases that target a flake attribute. Skipped on images like devvm
       # that have no nixosConfigurations entry to switch to.
-      nixsw = "nh os switch '.#${flakeConfigName}'";
+      nixsw =
+        if hasPostSwitchCommands then "${nixosNixswScript}" else "nh os switch '.#${flakeConfigName}'";
       nixtest = "nh os test '.#${flakeConfigName}'";
       nixboot = "nh os boot '.#${flakeConfigName}'";
-      nixroll = "sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'";
+      nixroll =
+        if hasPostSwitchCommands then
+          "${nixosNixrollScript}"
+        else
+          "sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'";
     }
     // lib.optionalAttrs (isLinux && !isNixOS) {
       # Nix aliases

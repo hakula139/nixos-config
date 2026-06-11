@@ -14,6 +14,7 @@
   proxyLib,
   secretPath,
   systemManagerLib,
+  wslLib,
   ...
 }:
 
@@ -23,6 +24,8 @@ let
 
   inherit (llmAssistantLib) mcpOptions;
   cursorMcpServers = mcpOptions.commonServerNames;
+  syncScript = pkgs.copyPathToStore ./settings/sync-windows-settings.sh;
+  windowsInterop = pkgs.copyPathToStore wslLib.windowsInteropScript;
 
   settings = import ./settings {
     inherit
@@ -37,6 +40,17 @@ let
   ext = import ./extensions.nix {
     inherit lib;
     inherit (cfg.extensions) prune;
+  };
+
+  syncWindowsSettings = pkgs.writeShellApplication {
+    name = "sync-windows-cursor-settings";
+    runtimeInputs = with pkgs; [
+      coreutils
+      diffutils
+    ];
+    text = ''
+      exec ${pkgs.bash}/bin/bash ${syncScript} ${windowsInterop} ${settings.windowsSettingsJson}
+    '';
   };
 
   # ----------------------------------------------------------------------------
@@ -65,6 +79,8 @@ in
       enable = lib.mkEnableOption "Cursor extensions";
       prune = lib.mkEnableOption "Prune Cursor extensions not in the provisioned list";
     };
+
+    windowsSync.enable = lib.mkEnableOption "syncing Nix-managed Cursor settings to Windows (WSL only)";
 
     mcp = mcpOptions.mkMcpOptions { names = cursorMcpServers; };
 
@@ -134,6 +150,8 @@ in
         # ----------------------------------------------------------------------
         # User configuration files
         # ----------------------------------------------------------------------
+        home.packages = lib.optional cfg.windowsSync.enable syncWindowsSettings;
+
         home.file = {
           ".cursor/mcp.json".source = mcp.mcpJson;
         }

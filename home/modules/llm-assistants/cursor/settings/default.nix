@@ -45,6 +45,11 @@ let
     };
   };
 
+  terminalSettings = {
+    "terminal.integrated.profiles.linux" = terminalProfiles;
+    "terminal.integrated.profiles.osx" = terminalProfiles;
+  };
+
   # ----------------------------------------------------------------------------
   # nixd - machine-specific option completions
   # ----------------------------------------------------------------------------
@@ -94,17 +99,18 @@ let
       }
       // nixdCompletions;
     };
-    "terminal.integrated.profiles.linux" = terminalProfiles;
-    "terminal.integrated.profiles.osx" = terminalProfiles;
-  };
+  }
+  // terminalSettings;
 
   # ----------------------------------------------------------------------------
   # Final settings
   # ----------------------------------------------------------------------------
   settings = settingsBase // settingsOverrides;
+  windowsSettings = settingsBase // terminalSettings;
 in
 {
   inherit settings;
   machineSettingsJson = json.generate "cursor-machine-settings.json" settingsOverrides;
   settingsJson = json.generate "cursor-settings.json" settings;
+  windowsSettingsJson = json.generate "cursor-windows-settings.json" windowsSettings;
 }
