@@ -24,7 +24,7 @@ let
   inherit (llmAssistantLib) mcpOptions;
   cursorMcpServers = mcpOptions.commonServerNames;
 
-  settings = import ./settings.nix {
+  settings = import ./settings {
     inherit
       flakeConfigName
       isDarwin
