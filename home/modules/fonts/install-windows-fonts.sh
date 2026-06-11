@@ -15,6 +15,7 @@ mkdir -p "$FONT_DIR"
 
 installed=0
 skipped=0
+failed=0
 
 while IFS= read -r -d "" font; do
   name="$(basename "$font")"
@@ -23,15 +24,19 @@ while IFS= read -r -d "" font; do
     ((++skipped))
     continue
   fi
-  cp -f "$font" "$dest"
-  ((++installed))
+  if cp -f "$font" "$dest"; then
+    ((++installed))
+  else
+    echo "Warning: failed to install font: $name" >&2
+    ((++failed))
+  fi
 done < <(
   find "$@" \
     -type f \( -name '*.ttf' -o -name '*.otf' -o -name '*.ttc' -o -name '*.otc' \) \
     -print0
 )
 
-printf 'Fonts: %d installed, %d unchanged\n' "$installed" "$skipped"
+printf 'Fonts: %d installed, %d unchanged, %d failed\n' "$installed" "$skipped" "$failed"
 
 if ((installed > 0)); then
   WIN_FONT_DIR="$(wslpath -w "$FONT_DIR")"
