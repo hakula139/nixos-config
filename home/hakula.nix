@@ -40,6 +40,7 @@ in
     ./modules/syncthing
     ./modules/terminal
     ./modules/wakatime
+    ./modules/corp-mirrors
   ];
 
   # ----------------------------------------------------------------------------
