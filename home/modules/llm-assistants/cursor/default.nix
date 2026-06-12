@@ -22,11 +22,15 @@ let
   inherit (pkgs.stdenv) isDarwin isLinux;
   cfg = config.hakula.cursor;
 
+  # ----------------------------------------------------------------------------
+  # MCP
+  # ----------------------------------------------------------------------------
   inherit (llmAssistantLib) mcpOptions;
   cursorMcpServers = mcpOptions.commonServerNames;
-  syncScript = pkgs.copyPathToStore ./settings/sync-windows-settings.sh;
-  windowsInterop = pkgs.copyPathToStore wslLib.windowsInteropScript;
 
+  # ----------------------------------------------------------------------------
+  # Settings and extensions
+  # ----------------------------------------------------------------------------
   settings = import ./settings {
     inherit
       flakeConfigName
@@ -42,16 +46,24 @@ let
     inherit (cfg.extensions) prune;
   };
 
-  syncWindowsSettings = pkgs.writeShellApplication {
-    name = "sync-windows-cursor-settings";
-    runtimeInputs = with pkgs; [
-      coreutils
-      diffutils
-    ];
-    text = ''
-      exec ${pkgs.bash}/bin/bash ${syncScript} ${windowsInterop} ${settings.windowsSettingsJson}
-    '';
-  };
+  # ----------------------------------------------------------------------------
+  # Windows sync
+  # ----------------------------------------------------------------------------
+  syncWindowsSettings =
+    let
+      syncScript = pkgs.copyPathToStore ./settings/sync-windows-settings.sh;
+      windowsInterop = pkgs.copyPathToStore wslLib.windowsInteropScript;
+    in
+    pkgs.writeShellApplication {
+      name = "sync-windows-cursor-settings";
+      runtimeInputs = with pkgs; [
+        coreutils
+        diffutils
+      ];
+      text = ''
+        exec ${pkgs.bash}/bin/bash ${syncScript} ${windowsInterop} ${settings.windowsSettingsJson}
+      '';
+    };
 
   # ----------------------------------------------------------------------------
   # Cursor paths
