@@ -18,6 +18,7 @@ let
   # Base settings
   # ----------------------------------------------------------------------------
   settingsBase = builtins.fromJSON (builtins.readFile ./settings.json);
+  windowsSettings = builtins.fromJSON (builtins.readFile ./windows-settings.json);
 
   # ----------------------------------------------------------------------------
   # Terminal profiles
@@ -125,4 +126,5 @@ in
   inherit settings;
   machineSettingsJson = json.generate "cursor-machine-settings.json" machineSettings;
   settingsJson = json.generate "cursor-settings.json" settings;
+  windowsSettingsJson = json.generate "cursor-windows-settings.json" (settings // windowsSettings);
 }

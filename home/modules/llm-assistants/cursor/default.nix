@@ -21,7 +21,6 @@
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
   cfg = config.hakula.cursor;
-  json = pkgs.formats.json { };
 
   inherit (llmAssistantLib) mcpOptions;
   cursorMcpServers = mcpOptions.commonServerNames;
@@ -38,10 +37,6 @@ let
     inherit (cfg.nixd) flakePath;
   };
 
-  windowsSettingsJson = json.generate "cursor-windows-settings.json" (
-    settings.settings // cfg.windowsSettings
-  );
-
   ext = import ./extensions.nix {
     inherit lib;
     inherit (cfg.extensions) prune;
@@ -54,7 +49,7 @@ let
       diffutils
     ];
     text = ''
-      exec ${pkgs.bash}/bin/bash ${syncScript} ${windowsInterop} ${windowsSettingsJson}
+      exec ${pkgs.bash}/bin/bash ${syncScript} ${windowsInterop} ${settings.windowsSettingsJson}
     '';
   };
 
@@ -87,12 +82,6 @@ in
 
     windowsSync = {
       enable = lib.mkEnableOption "syncing Nix-managed Cursor settings to Windows (WSL only)";
-    };
-
-    windowsSettings = lib.mkOption {
-      type = lib.types.attrsOf json.type;
-      default = { };
-      description = "Additional Cursor user settings to apply only when syncing to Windows";
     };
 
     mcp = mcpOptions.mkMcpOptions { names = cursorMcpServers; };

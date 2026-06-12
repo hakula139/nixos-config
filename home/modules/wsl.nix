@@ -34,12 +34,6 @@ in
 
     hakula.cursor = {
       extensions.prune = lib.mkForce false;
-      windowsSettings = {
-        "debug.console.fontSize" = lib.mkDefault 13;
-        "editor.fontSize" = lib.mkDefault 15;
-        "terminal.integrated.fontSize" = lib.mkDefault 13;
-        "window.zoomLevel" = lib.mkDefault 1;
-      };
       windowsSync.enable = lib.mkDefault true;
     };
 
