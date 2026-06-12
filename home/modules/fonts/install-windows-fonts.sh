@@ -20,14 +20,13 @@ failed=0
 while IFS= read -r -d "" font; do
   name="$(basename "$font")"
   dest="$FONT_DIR/$name"
-  if [[ -f "$dest" && "$(stat -c%s "$font")" == "$(stat -c%s "$dest")" ]]; then
+  if [[ -f "$dest" ]]; then
     ((++skipped))
     continue
   fi
   if cp -f "$font" "$dest"; then
     ((++installed))
   else
-    echo "Warning: failed to install font: $name" >&2
     ((++failed))
   fi
 done < <(
@@ -36,7 +35,7 @@ done < <(
     -print0
 )
 
-printf 'Fonts: %d installed, %d unchanged, %d failed\n' "$installed" "$skipped" "$failed"
+printf 'Fonts: %d installed, %d already present, %d failed\n' "$installed" "$skipped" "$failed"
 
 if ((installed > 0)); then
   WIN_FONT_DIR="$(wslpath -w "$FONT_DIR")"
