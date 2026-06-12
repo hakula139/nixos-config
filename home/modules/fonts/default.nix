@@ -7,6 +7,7 @@
   pkgs,
   lib,
   sharedConfig,
+  wslLib,
   ...
 }:
 
@@ -16,6 +17,7 @@ let
 
   fontDirs = map (p: "${p}/share/fonts") shared.fonts;
   script = pkgs.copyPathToStore ./install-windows-fonts.sh;
+  windowsInterop = pkgs.copyPathToStore wslLib.windowsInteropScript;
 
   installWindowsFonts = pkgs.writeShellApplication {
     name = "install-windows-fonts";
@@ -24,7 +26,9 @@ let
       findutils
     ];
     text = ''
-      exec ${pkgs.bash}/bin/bash ${script} ${lib.concatMapStringsSep " " lib.escapeShellArg fontDirs}
+      exec ${pkgs.bash}/bin/bash ${script} ${windowsInterop} ${
+        lib.concatMapStringsSep " " lib.escapeShellArg fontDirs
+      }
     '';
   };
 in
@@ -40,10 +44,8 @@ in
   # Module config
   # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.windowsSync.enable {
-    # Home Manager runs as a systemd service under system-manager, where WSL
-    # interop is unavailable, so cmd.exe / wslpath / reg.exe fail. Expose
-    # install-windows-fonts on PATH and let the nixsw alias trigger it from
-    # the user's interactive shell instead.
+    # Home Manager activation can run outside the interactive WSL session where
+    # Windows interop works. Expose the command and let nixsw trigger it.
     home.packages = [ installWindowsFonts ];
   };
 }

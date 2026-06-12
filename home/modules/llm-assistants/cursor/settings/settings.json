@@ -229,51 +229,6 @@
   "terminal.integrated.defaultProfile.osx": "tmux",
   "terminal.integrated.fontFamily": "Maple Mono NF CN, JetBrainsMono Nerd Font, Sarasa Term SC, monospace",
   "terminal.integrated.fontSize": 14,
-  "terminal.integrated.profiles.linux": {
-    "bash": {
-      "args": [
-        "-l"
-      ],
-      "icon": "terminal-bash",
-      "path": "bash"
-    },
-    "tmux": {
-      "args": [
-        "new-session",
-        "-A",
-        "-s",
-        "${workspaceFolderBasename}"
-      ],
-      "icon": "terminal-tmux",
-      "path": "tmux"
-    },
-    "zsh": {
-      "args": [
-        "-l",
-        "-i"
-      ],
-      "path": "zsh"
-    }
-  },
-  "terminal.integrated.profiles.osx": {
-    "tmux": {
-      "args": [
-        "new-session",
-        "-A",
-        "-s",
-        "${workspaceFolderBasename}"
-      ],
-      "icon": "terminal-tmux",
-      "path": "tmux"
-    },
-    "zsh": {
-      "args": [
-        "-l",
-        "-i"
-      ],
-      "path": "zsh"
-    }
-  },
   "typescript.updateImportsOnFileMove.enabled": "always",
   "update.showReleaseNotes": false,
   "window.commandCenter": true,

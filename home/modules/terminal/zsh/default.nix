@@ -15,27 +15,55 @@
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
 
-  smProfile = "/nix/var/nix/profiles/system-manager-profiles";
-  smHealthCheck = "system-manager-health-check agenix-install-secrets.service home-manager-${username}.service";
-
+  # ----------------------------------------------------------------------------
+  # Post-switch sync
+  # ----------------------------------------------------------------------------
   # Re-sync side effects that depend on WSL interop. Empty on hosts without it.
-  postSwitchSync = lib.optionalString config.hakula.fonts.windowsSync.enable "install-windows-fonts";
+  postSwitchCommands = lib.concatStringsSep "\n" (
+    lib.optional config.hakula.fonts.windowsSync.enable "install-windows-fonts"
+    ++ lib.optional config.hakula.cursor.windowsSync.enable "sync-windows-cursor-settings"
+  );
+  hasPostSwitchCommands = postSwitchCommands != "";
 
-  # nixsw / nixroll run in the user's interactive shell so postSwitchSync
+  # ----------------------------------------------------------------------------
+  # NixOS switch commands
+  # ----------------------------------------------------------------------------
+  nixosNixswCommand = "nh os switch '.#${flakeConfigName}'";
+  nixosNixrollCommand = "sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'";
+
+  # nixsw / nixroll run in the user's interactive shell so post-switch
   # commands have a live WSL_INTEROP socket.
-  nixswScript = pkgs.writeShellScript "nixsw" ''
+  nixosNixswScript = pkgs.writeShellScript "nixsw" ''
     set -euo pipefail
-    system-manager switch --flake '.#${flakeConfigName}' --sudo
-    ${smHealthCheck}
-    ${postSwitchSync}
+    ${nixosNixswCommand}
+    ${postSwitchCommands}
   '';
 
-  nixrollScript = pkgs.writeShellScript "nixroll" ''
+  nixosNixrollScript = pkgs.writeShellScript "nixroll" ''
     set -euo pipefail
-    sudo nix-env --profile ${smProfile} --rollback
+    ${nixosNixrollCommand}
+    ${postSwitchCommands}
+  '';
+
+  # ----------------------------------------------------------------------------
+  # System Manager switch commands
+  # ----------------------------------------------------------------------------
+  systemManagerProfile = "/nix/var/nix/profiles/system-manager-profiles";
+  systemManagerHealthCheck = "system-manager-health-check agenix-install-secrets.service home-manager-${username}.service";
+
+  systemManagerNixswScript = pkgs.writeShellScript "nixsw" ''
+    set -euo pipefail
+    system-manager switch --flake '.#${flakeConfigName}' --sudo
+    ${systemManagerHealthCheck}
+    ${postSwitchCommands}
+  '';
+
+  systemManagerNixrollScript = pkgs.writeShellScript "nixroll" ''
+    set -euo pipefail
+    sudo nix-env --profile ${systemManagerProfile} --rollback
     system-manager activate --sudo
-    ${smHealthCheck}
-    ${postSwitchSync}
+    ${systemManagerHealthCheck}
+    ${postSwitchCommands}
   '';
 in
 {
@@ -206,16 +234,16 @@ in
     // lib.optionalAttrs (isNixOS && flakeConfigName != null) {
       # Aliases that target a flake attribute. Skipped on images like devvm
       # that have no nixosConfigurations entry to switch to.
-      nixsw = "nh os switch '.#${flakeConfigName}'";
+      nixsw = if hasPostSwitchCommands then "${nixosNixswScript}" else "${nixosNixswCommand}";
       nixtest = "nh os test '.#${flakeConfigName}'";
       nixboot = "nh os boot '.#${flakeConfigName}'";
-      nixroll = "sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'";
+      nixroll = if hasPostSwitchCommands then "${nixosNixrollScript}" else "${nixosNixrollCommand}";
     }
     // lib.optionalAttrs (isLinux && !isNixOS) {
       # Nix aliases
-      nixsw = "${nixswScript}";
-      nixroll = "${nixrollScript}";
-      nixlist = "sudo nix-env --profile ${smProfile} --list-generations";
+      nixsw = "${systemManagerNixswScript}";
+      nixroll = "${systemManagerNixrollScript}";
+      nixlist = "sudo nix-env --profile ${systemManagerProfile} --list-generations";
     }
     // lib.optionalAttrs isDarwin {
       # Nix aliases

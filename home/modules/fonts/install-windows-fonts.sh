@@ -2,47 +2,40 @@
 set -euo pipefail
 
 # Copies font files from Nix store to the Windows per-user font directory and
-# registers them in the HKCU registry. Font source directories are passed as
-# positional arguments.
+# registers them in the HKCU registry. The Windows interop helper is passed
+# first, followed by font source directories.
 
-WIN_SYS32="/mnt/c/Windows/System32"
-if [[ -d "$WIN_SYS32" && ":$PATH:" != *":$WIN_SYS32:"* ]]; then
-  export PATH="$PATH:$WIN_SYS32"
-fi
+WINDOWS_INTEROP="${1:?windows interop helper required}"
+shift
+# shellcheck source=lib/wsl/windows-interop.sh
+source "$WINDOWS_INTEROP"
 
-if ! command -v cmd.exe &>/dev/null; then
-  echo "Error: cmd.exe not found. This script requires WSL." >&2
-  exit 1
-fi
-
-LOCALAPPDATA="$(cmd.exe /C "echo %LOCALAPPDATA%" 2>/dev/null | tr -d '\r\n')"
-if [[ -z "$LOCALAPPDATA" ]]; then
-  echo "Error: Failed to resolve %LOCALAPPDATA%" >&2
-  exit 1
-fi
-
-FONT_DIR="$(wslpath "$LOCALAPPDATA")/Microsoft/Windows/Fonts"
+FONT_DIR="$(windows_env_path LOCALAPPDATA)/Microsoft/Windows/Fonts"
 mkdir -p "$FONT_DIR"
 
 installed=0
 skipped=0
+failed=0
 
 while IFS= read -r -d "" font; do
   name="$(basename "$font")"
   dest="$FONT_DIR/$name"
-  if [[ -f "$dest" && "$(stat -c%s "$font")" == "$(stat -c%s "$dest")" ]]; then
+  if [[ -f "$dest" ]]; then
     ((++skipped))
     continue
   fi
-  cp -f "$font" "$dest"
-  ((++installed))
+  if cp -f "$font" "$dest"; then
+    ((++installed))
+  else
+    ((++failed))
+  fi
 done < <(
   find "$@" \
     -type f \( -name '*.ttf' -o -name '*.otf' -o -name '*.ttc' -o -name '*.otc' \) \
     -print0
 )
 
-printf 'Fonts: %d installed, %d unchanged\n' "$installed" "$skipped"
+printf 'Fonts: %d installed, %d already present, %d failed\n' "$installed" "$skipped" "$failed"
 
 if ((installed > 0)); then
   WIN_FONT_DIR="$(wslpath -w "$FONT_DIR")"
