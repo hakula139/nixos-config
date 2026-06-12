@@ -167,6 +167,7 @@
       proxyLib = import ./lib/proxy.nix { inherit (nixpkgs) lib; };
       sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
       toolingFor = pkgs: import ./lib/tooling.nix { inherit pkgs; };
+      wslLib = import ./lib/wsl;
 
       repo = {
         root = ./.;
@@ -203,6 +204,7 @@
           sharedConfig
           systemManagerLib
           toolingFor
+          wslLib
           ;
       };
 
