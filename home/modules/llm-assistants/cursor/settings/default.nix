@@ -18,6 +18,38 @@ let
   # Base settings
   # ----------------------------------------------------------------------------
   settingsBase = builtins.fromJSON (builtins.readFile ./settings.json);
+  windowsSettings = builtins.fromJSON (builtins.readFile ./windows-settings.json);
+
+  # ----------------------------------------------------------------------------
+  # Terminal profiles
+  # ----------------------------------------------------------------------------
+  terminalProfiles = {
+    bash = {
+      args = [ "-l" ];
+      icon = "terminal-bash";
+      path = "bash";
+    };
+    tmux = {
+      args = [
+        "-lc"
+        ''exec tmux new-session -A -s "''${PWD##*/}"''
+      ];
+      icon = "terminal-tmux";
+      path = "bash";
+    };
+    zsh = {
+      args = [
+        "-l"
+        "-i"
+      ];
+      path = "zsh";
+    };
+  };
+
+  terminalSettings = {
+    "terminal.integrated.profiles.linux" = terminalProfiles;
+    "terminal.integrated.profiles.osx" = terminalProfiles;
+  };
 
   # ----------------------------------------------------------------------------
   # nixd - machine-specific option completions
@@ -56,9 +88,24 @@ let
       { };
 
   # ----------------------------------------------------------------------------
-  # Override settings
+  # Portable settings
   # ----------------------------------------------------------------------------
-  settingsOverrides = {
+  portableSettings = {
+    "bashIde.shellcheckPath" = "shellcheck";
+    "bashIde.shfmt.path" = "shfmt";
+    "nix.serverPath" = "nixd";
+    "nix.serverSettings" = {
+      "nixd" = {
+        formatting.command = [ "nixfmt" ];
+      };
+    };
+  }
+  // terminalSettings;
+
+  # ----------------------------------------------------------------------------
+  # Machine settings
+  # ----------------------------------------------------------------------------
+  machineSettings = portableSettings // {
     "bashIde.shellcheckPath" = "${pkgs.shellcheck}/bin/shellcheck";
     "bashIde.shfmt.path" = "${pkgs.shfmt}/bin/shfmt";
     "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
@@ -73,10 +120,11 @@ let
   # ----------------------------------------------------------------------------
   # Final settings
   # ----------------------------------------------------------------------------
-  settings = settingsBase // settingsOverrides;
+  settings = settingsBase // portableSettings;
 in
 {
   inherit settings;
-  machineSettingsJson = json.generate "cursor-machine-settings.json" settingsOverrides;
+  machineSettingsJson = json.generate "cursor-machine-settings.json" machineSettings;
   settingsJson = json.generate "cursor-settings.json" settings;
+  windowsSettingsJson = json.generate "cursor-windows-settings.json" (settings // windowsSettings);
 }

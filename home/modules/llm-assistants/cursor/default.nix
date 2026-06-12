@@ -14,6 +14,7 @@
   proxyLib,
   secretPath,
   systemManagerLib,
+  wslLib,
   ...
 }:
 
@@ -21,10 +22,16 @@ let
   inherit (pkgs.stdenv) isDarwin isLinux;
   cfg = config.hakula.cursor;
 
+  # ----------------------------------------------------------------------------
+  # MCP
+  # ----------------------------------------------------------------------------
   inherit (llmAssistantLib) mcpOptions;
   cursorMcpServers = mcpOptions.commonServerNames;
 
-  settings = import ./settings.nix {
+  # ----------------------------------------------------------------------------
+  # Settings and extensions
+  # ----------------------------------------------------------------------------
+  settings = import ./settings {
     inherit
       flakeConfigName
       isDarwin
@@ -38,6 +45,25 @@ let
     inherit lib;
     inherit (cfg.extensions) prune;
   };
+
+  # ----------------------------------------------------------------------------
+  # Windows sync
+  # ----------------------------------------------------------------------------
+  syncWindowsSettings =
+    let
+      syncScript = pkgs.copyPathToStore ./settings/sync-windows-settings.sh;
+      windowsInterop = pkgs.copyPathToStore wslLib.windowsInteropScript;
+    in
+    pkgs.writeShellApplication {
+      name = "sync-windows-cursor-settings";
+      runtimeInputs = with pkgs; [
+        coreutils
+        diffutils
+      ];
+      text = ''
+        exec ${pkgs.bash}/bin/bash ${syncScript} ${windowsInterop} ${settings.windowsSettingsJson}
+      '';
+    };
 
   # ----------------------------------------------------------------------------
   # Cursor paths
@@ -64,6 +90,10 @@ in
     extensions = {
       enable = lib.mkEnableOption "Cursor extensions";
       prune = lib.mkEnableOption "Prune Cursor extensions not in the provisioned list";
+    };
+
+    windowsSync = {
+      enable = lib.mkEnableOption "syncing Nix-managed Cursor settings to Windows (WSL only)";
     };
 
     mcp = mcpOptions.mkMcpOptions { names = cursorMcpServers; };
@@ -134,6 +164,8 @@ in
         # ----------------------------------------------------------------------
         # User configuration files
         # ----------------------------------------------------------------------
+        home.packages = lib.optional cfg.windowsSync.enable syncWindowsSettings;
+
         home.file = {
           ".cursor/mcp.json".source = mcp.mcpJson;
         }
