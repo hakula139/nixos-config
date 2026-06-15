@@ -1,0 +1,4 @@
+wrap = "keep"
+number = true
+end_of_line = "lf"
+extensions = ["tables"]
