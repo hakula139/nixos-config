@@ -6,6 +6,14 @@ result-*
 .direnv/
 .pre-commit-config.yaml
 
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
 # Secrets
 .env
 
