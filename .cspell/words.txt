@@ -69,6 +69,7 @@ findutils
 fmp4
 fuclaude
 geoip
+gfm
 ghcup
 glab
 gnused
@@ -116,6 +117,7 @@ lualine
 marp
 mcp
 mcpjson
+mdformat
 mechatroner
 meslo
 metacubex
@@ -127,6 +129,7 @@ msdos
 msmtp
 msmtprc
 myip
+mypy
 nbsp
 netrc
 networkctl
@@ -175,6 +178,7 @@ psql
 pulumi
 pushd
 pydantic
+pycache
 pypi
 pyproject
 pyright

@@ -67,6 +67,9 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
       fi
       ;;
     *.md)
+      if command -v mdformat &>/dev/null; then
+        mdformat "$FILE_PATH" 2>/dev/null || true
+      fi
       if command -v npx &>/dev/null; then
         npx --no markdownlint-cli2 --fix "$FILE_PATH" 2>/dev/null || true
         npx --no markdownlint-cli2 "$FILE_PATH" 2>&1 | head -20 || true
