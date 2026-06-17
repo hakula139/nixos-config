@@ -46,7 +46,7 @@ in
 
       ohMyOpenCode = lib.mkOption {
         type = lib.types.bool;
-        default = true;
+        default = false;
         description = "Whether to enable the oh-my-opencode plugin";
       };
     };
@@ -142,8 +142,10 @@ in
         # Program configuration
         # ----------------------------------------------------------------------
         xdg.configFile = {
-          "opencode/oh-my-openagent.json".source = pluginConfigFile;
           "opencode/tui.json".source = tuiConfigFile;
+        }
+        // lib.optionalAttrs cfg.plugins.ohMyOpenCode {
+          "opencode/oh-my-openagent.json".source = pluginConfigFile;
         };
 
         programs.opencode = {
