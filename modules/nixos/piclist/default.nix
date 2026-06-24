@@ -7,6 +7,7 @@
   pkgs,
   lib,
   secrets,
+  systemdLib,
   ...
 }:
 
@@ -78,23 +79,13 @@ in
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
 
-      serviceConfig = {
+      serviceConfig = systemdLib.hardening.strict // {
         Type = "simple";
         ExecStart = lib.getExe piclistServer;
         Restart = "on-failure";
         RestartSec = "5s";
         User = "piclist";
         Group = "piclist";
-        NoNewPrivileges = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        PrivateTmp = true;
-        ProtectControlGroups = true;
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        RestrictSUIDSGID = true;
-        LockPersonality = true;
-        UMask = "0077";
         StateDirectory = "%N";
         StateDirectoryMode = "0750";
         WorkingDirectory = "%S/%N";

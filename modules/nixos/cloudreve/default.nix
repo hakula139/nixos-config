@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  systemdLib,
   ...
 }:
 
@@ -154,23 +155,13 @@ in
         install -m 0600 ${configFile} "$STATE_DIRECTORY/data/conf.ini"
       '';
 
-      serviceConfig = {
+      serviceConfig = systemdLib.hardening.strict // {
         Type = "simple";
         ExecStart = "%S/%N/cloudreve";
         Restart = "on-failure";
         RestartSec = "5s";
         User = serviceName;
         Group = serviceName;
-        NoNewPrivileges = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        PrivateTmp = true;
-        ProtectControlGroups = true;
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        RestrictSUIDSGID = true;
-        LockPersonality = true;
-        UMask = "0077";
         StateDirectory = "%N";
         StateDirectoryMode = "0750";
         WorkingDirectory = "%S/%N";
