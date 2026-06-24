@@ -31,8 +31,6 @@ let
       export no_proxy=${noProxy}
     '';
 
-  # Render a systemd `EnvironmentFile` from a proxy config. With `secretUrlFile`
-  # set, the URL stays a `$(cat ...)` expansion so credentials never enter the store.
   mkProxyEnvFileScript =
     {
       proxyCfg,
