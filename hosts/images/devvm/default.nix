@@ -23,9 +23,6 @@ let
   ]
   ++ commonMcpServers;
 
-  # Proxy shared by the system Nix daemon and the user's LLM assistants. The
-  # decrypted URL carries credentials, so it stays a runtime secret read from
-  # this canonical path (owned by root, which the daemon also runs as).
   proxyUrlSecret = "devvm/proxy-url";
   proxyNoProxy = [
     "localhost"
@@ -49,8 +46,6 @@ in
   # ----------------------------------------------------------------------------
   # Nix Daemon Proxy
   # ----------------------------------------------------------------------------
-  # Air-gapped: nix-daemon reaches external substituters / flake inputs only
-  # through the corp HTTP proxy. Internal mirrors stay direct via noProxy.
   hakula.nix-daemon.proxy = {
     enable = true;
     secretUrlFile = secrets.secretPath proxyUrlSecret;

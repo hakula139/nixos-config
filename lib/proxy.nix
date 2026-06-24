@@ -31,9 +31,8 @@ let
       export no_proxy=${noProxy}
     '';
 
-  # Render a systemd `EnvironmentFile` from a proxy config at runtime. When
-  # `secretUrlFile` is set the URL stays a `$(cat ...)` expansion so credentials
-  # are read at boot and never enter the Nix store. `dest` is created mode 0600.
+  # Render a systemd `EnvironmentFile` from a proxy config. With `secretUrlFile`
+  # set, the URL stays a `$(cat ...)` expansion so credentials never enter the store.
   mkProxyEnvFileScript =
     {
       proxyCfg,

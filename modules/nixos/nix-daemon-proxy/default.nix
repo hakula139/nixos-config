@@ -36,9 +36,6 @@ in
   # Module config
   # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable {
-    # Render the EnvironmentFile from the decrypted secret at boot so credentials
-    # never enter the Nix store. Ordered before nix-daemon; the After= on the
-    # agenix unit is a no-op when secrets install via activation script instead.
     systemd.services.nix-daemon-proxy-env = {
       description = "Render nix-daemon HTTP proxy environment file";
       before = [ "nix-daemon.service" ];
