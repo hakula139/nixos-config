@@ -6,6 +6,7 @@
   lib,
   corpDomain,
   repo,
+  secrets,
   ...
 }:
 
@@ -21,6 +22,17 @@ let
     "codex"
   ]
   ++ commonMcpServers;
+
+  # Proxy shared by the system Nix daemon and the user's LLM assistants. The
+  # decrypted URL carries credentials, so it stays a runtime secret read from
+  # this canonical path (owned by root, which the daemon also runs as).
+  proxyUrlSecret = "devvm/proxy-url";
+  proxyNoProxy = [
+    "localhost"
+    "127.0.0.1"
+    "10.*"
+    ".${corpDomain}"
+  ];
 in
 {
   imports = [
@@ -33,6 +45,17 @@ in
   networking.hostName = "devvm";
 
   # DNS comes from bind-mounted /etc/resolv.conf.
+
+  # ----------------------------------------------------------------------------
+  # Nix Daemon Proxy
+  # ----------------------------------------------------------------------------
+  # Air-gapped: nix-daemon reaches external substituters / flake inputs only
+  # through the corp HTTP proxy. Internal mirrors stay direct via noProxy.
+  hakula.nix-daemon.proxy = {
+    enable = true;
+    secretUrlFile = secrets.secretPath proxyUrlSecret;
+    noProxy = proxyNoProxy;
+  };
 
   # ----------------------------------------------------------------------------
   # User Configuration
@@ -63,13 +86,8 @@ in
         enable = lib.mkDefault true;
         proxy = {
           enable = true;
-          secretUrlFile = secretPath "hakula-devvm/proxy-url";
-          noProxy = [
-            "localhost"
-            "127.0.0.1"
-            "10.*"
-            ".${corpDomain}"
-          ];
+          secretUrlFile = secretPath proxyUrlSecret;
+          noProxy = proxyNoProxy;
         };
       };
 
@@ -82,7 +100,7 @@ in
       # Secrets
       # ------------------------------------------------------------------------
       hakula.secrets.required = {
-        "hakula-devvm/proxy-url" = { };
+        ${proxyUrlSecret} = { };
         github-pat.name = lib.mkForce "github/pat-work";
       };
 
