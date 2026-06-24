@@ -35,7 +35,7 @@ in
   "github/pat-work.age".publicKeys = allKeys;
   "gitlab/pat-work.age".publicKeys = allKeys;
 
-  "hakula-devvm/proxy-url.age".publicKeys = allWorkstations ++ [ devvm ];
+  "devvm/proxy-url.age".publicKeys = allWorkstations ++ [ devvm ];
 
   "llm-assistants/claude-oauth-token.age".publicKeys = allKeys;
   "llm-assistants/ikuncode-api-key.age".publicKeys = allKeys;
