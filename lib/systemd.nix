@@ -2,8 +2,8 @@
 # Systemd Helper Library
 # ==============================================================================
 
-let
-  base = {
+{
+  hardening = {
     NoNewPrivileges = true;
     ProtectSystem = "strict";
     ProtectHome = true;
@@ -11,15 +11,7 @@ let
     ProtectControlGroups = true;
     ProtectKernelTunables = true;
     ProtectKernelModules = true;
-  };
-in
-{
-  hardening = {
-    inherit base;
-    strict = base // {
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
-      UMask = "0077";
-    };
+    RestrictSUIDSGID = true;
+    LockPersonality = true;
   };
 }

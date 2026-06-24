@@ -79,13 +79,14 @@ in
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
 
-      serviceConfig = systemdLib.hardening.strict // {
+      serviceConfig = systemdLib.hardening // {
         Type = "simple";
         ExecStart = lib.getExe piclistServer;
         Restart = "on-failure";
         RestartSec = "5s";
         User = "piclist";
         Group = "piclist";
+        UMask = "0077";
         StateDirectory = "%N";
         StateDirectoryMode = "0750";
         WorkingDirectory = "%S/%N";

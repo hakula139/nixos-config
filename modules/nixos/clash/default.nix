@@ -58,7 +58,7 @@ in
         description = "Generate Clash subscription configs from user data";
         after = [ "agenix.service" ];
         wantedBy = [ "multi-user.target" ];
-        serviceConfig = systemdLib.hardening.base // {
+        serviceConfig = systemdLib.hardening // {
           Type = "oneshot";
           ExecStart = clashGenerator;
           RemainAfterExit = true;

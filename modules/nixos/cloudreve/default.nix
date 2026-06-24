@@ -155,13 +155,14 @@ in
         install -m 0600 ${configFile} "$STATE_DIRECTORY/data/conf.ini"
       '';
 
-      serviceConfig = systemdLib.hardening.strict // {
+      serviceConfig = systemdLib.hardening // {
         Type = "simple";
         ExecStart = "%S/%N/cloudreve";
         Restart = "on-failure";
         RestartSec = "5s";
         User = serviceName;
         Group = serviceName;
+        UMask = "0077";
         StateDirectory = "%N";
         StateDirectoryMode = "0750";
         WorkingDirectory = "%S/%N";

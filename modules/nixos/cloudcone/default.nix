@@ -78,7 +78,7 @@ in
         description = "CloudCone monitoring agent";
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
-        serviceConfig = systemdLib.hardening.base // {
+        serviceConfig = systemdLib.hardening // {
           Type = "oneshot";
           ExecStart = "${cloudconeAgent}/bin/cloudcone-agent";
           User = "ccagent";
