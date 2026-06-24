@@ -6,6 +6,7 @@
   lib,
   corpDomain,
   repo,
+  secrets,
   ...
 }:
 
@@ -21,6 +22,14 @@ let
     "codex"
   ]
   ++ commonMcpServers;
+
+  proxyUrlSecret = "devvm/proxy-url";
+  proxyNoProxy = [
+    "localhost"
+    "127.0.0.1"
+    "10.*"
+    ".${corpDomain}"
+  ];
 in
 {
   imports = [
@@ -33,6 +42,15 @@ in
   networking.hostName = "devvm";
 
   # DNS comes from bind-mounted /etc/resolv.conf.
+
+  # ----------------------------------------------------------------------------
+  # Nix Daemon Proxy
+  # ----------------------------------------------------------------------------
+  hakula.nix-daemon.proxy = {
+    enable = true;
+    secretUrlFile = secrets.secretPath proxyUrlSecret;
+    noProxy = proxyNoProxy;
+  };
 
   # ----------------------------------------------------------------------------
   # User Configuration
@@ -63,13 +81,8 @@ in
         enable = lib.mkDefault true;
         proxy = {
           enable = true;
-          secretUrlFile = secretPath "hakula-devvm/proxy-url";
-          noProxy = [
-            "localhost"
-            "127.0.0.1"
-            "10.*"
-            ".${corpDomain}"
-          ];
+          secretUrlFile = secretPath proxyUrlSecret;
+          noProxy = proxyNoProxy;
         };
       };
 
@@ -82,7 +95,7 @@ in
       # Secrets
       # ------------------------------------------------------------------------
       hakula.secrets.required = {
-        "hakula-devvm/proxy-url" = { };
+        ${proxyUrlSecret} = { };
         github-pat.name = lib.mkForce "github/pat-work";
       };
 

@@ -12,14 +12,17 @@ let
     "https_proxy"
   ];
 
+  proxyUrlExpr =
+    proxyCfg: literalUrl:
+    if proxyCfg.secretUrlFile != null then
+      "$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})"
+    else
+      literalUrl;
+
   mkProxyScript =
     proxyCfg:
     let
-      proxyUrl =
-        if proxyCfg.secretUrlFile != null then
-          "$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})"
-        else
-          lib.escapeShellArg proxyCfg.url;
+      proxyUrl = proxyUrlExpr proxyCfg (lib.escapeShellArg proxyCfg.url);
       noProxy = lib.escapeShellArg (lib.concatStringsSep "," proxyCfg.noProxy);
     in
     ''
@@ -29,6 +32,27 @@ let
       export http_proxy=${proxyUrl}
       export https_proxy=${proxyUrl}
       export no_proxy=${noProxy}
+    '';
+
+  mkProxyEnvFileScript =
+    {
+      proxyCfg,
+      dest,
+    }:
+    let
+      proxyUrl = proxyUrlExpr proxyCfg proxyCfg.url;
+      noProxy = lib.concatStringsSep "," proxyCfg.noProxy;
+    in
+    ''
+      umask 077
+      printf '%s\n' \
+        "HTTP_PROXY=${proxyUrl}" \
+        "HTTPS_PROXY=${proxyUrl}" \
+        "NO_PROXY=${noProxy}" \
+        "http_proxy=${proxyUrl}" \
+        "https_proxy=${proxyUrl}" \
+        "no_proxy=${noProxy}" \
+        >${lib.escapeShellArg dest}
     '';
 
   wrapWithProxy =
@@ -56,7 +80,7 @@ let
       };
 in
 {
-  inherit mkProxyScript wrapWithProxy;
+  inherit mkProxyScript mkProxyEnvFileScript wrapWithProxy;
 
   # Shell snippet that clears proxy env vars. Use in scripts that must reach
   # the network bypassing any inherited HTTP(S) proxy (e.g., mihomo's own
