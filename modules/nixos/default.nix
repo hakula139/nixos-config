@@ -59,10 +59,13 @@ in
   options.hakula.network = {
     realitySniHost = lib.mkOption {
       type = lib.types.str;
-      default = "www.microsoft.com";
+      default = "hakula.xyz";
       description = ''
         REALITY SNI host used for TLS camouflage in Xray and SNI-based routing in nginx.
-        If you change this, also update secrets/xray/config.json.age.
+        Steal-oneself: this is our own domain, so Xray's REALITY `dest` borrows the
+        local nginx cert (127.0.0.1:8443) instead of a third-party site. Keep this in
+        sync with `serverNames` in secrets/xray/config.json.age, and keep `dest` there
+        pointed at the local nginx HTTPS port.
       '';
     };
   };
