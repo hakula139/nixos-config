@@ -36,6 +36,7 @@ in
     ./llm-assistants
     ./netdata
     ./nginx
+    ./nix-daemon-proxy
     ./peertube
     ./piclist
     ./podman

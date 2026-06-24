@@ -31,6 +31,34 @@ let
       export no_proxy=${noProxy}
     '';
 
+  # Render a systemd `EnvironmentFile` from a proxy config at runtime. When
+  # `secretUrlFile` is set the URL stays a `$(cat ...)` expansion so credentials
+  # are read at boot and never enter the Nix store. `dest` is created mode 0600.
+  mkProxyEnvFileScript =
+    {
+      proxyCfg,
+      dest,
+    }:
+    let
+      proxyUrl =
+        if proxyCfg.secretUrlFile != null then
+          "$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})"
+        else
+          proxyCfg.url;
+      noProxy = lib.concatStringsSep "," proxyCfg.noProxy;
+    in
+    ''
+      umask 077
+      printf '%s\n' \
+        "HTTP_PROXY=${proxyUrl}" \
+        "HTTPS_PROXY=${proxyUrl}" \
+        "NO_PROXY=${noProxy}" \
+        "http_proxy=${proxyUrl}" \
+        "https_proxy=${proxyUrl}" \
+        "no_proxy=${noProxy}" \
+        >${lib.escapeShellArg dest}
+    '';
+
   wrapWithProxy =
     {
       pkgs,
@@ -56,7 +84,7 @@ let
       };
 in
 {
-  inherit mkProxyScript wrapWithProxy;
+  inherit mkProxyScript mkProxyEnvFileScript wrapWithProxy;
 
   # Shell snippet that clears proxy env vars. Use in scripts that must reach
   # the network bypassing any inherited HTTP(S) proxy (e.g., mihomo's own
