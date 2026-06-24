@@ -12,14 +12,17 @@ let
     "https_proxy"
   ];
 
+  proxyUrlExpr =
+    proxyCfg: literalUrl:
+    if proxyCfg.secretUrlFile != null then
+      "$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})"
+    else
+      literalUrl;
+
   mkProxyScript =
     proxyCfg:
     let
-      proxyUrl =
-        if proxyCfg.secretUrlFile != null then
-          "$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})"
-        else
-          lib.escapeShellArg proxyCfg.url;
+      proxyUrl = proxyUrlExpr proxyCfg (lib.escapeShellArg proxyCfg.url);
       noProxy = lib.escapeShellArg (lib.concatStringsSep "," proxyCfg.noProxy);
     in
     ''
@@ -37,11 +40,7 @@ let
       dest,
     }:
     let
-      proxyUrl =
-        if proxyCfg.secretUrlFile != null then
-          "$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})"
-        else
-          proxyCfg.url;
+      proxyUrl = proxyUrlExpr proxyCfg proxyCfg.url;
       noProxy = lib.concatStringsSep "," proxyCfg.noProxy;
     in
     ''
