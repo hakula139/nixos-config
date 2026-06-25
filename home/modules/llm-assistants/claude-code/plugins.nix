@@ -33,8 +33,8 @@ let
         owner = "anthropics";
         repo = "claude-plugins-official";
       };
-      rev = "b392f51899343f35a203260a4b344803de236d13"; # 2026-05-01
-      hash = "sha256-zUogHhL7MWXqpRDzjKI3giqyWJMArQDoSKooxhwfj/8=";
+      rev = "5fada75bc8d1a419292dc417a99c0552dd1ea885"; # 2026-06-25
+      hash = "sha256-F7qYq5TYcjxJmewiBnIvYeJOnJ/g61qg3as4sGh1C7Q=";
       pluginsDir = "plugins";
     };
 
@@ -43,8 +43,8 @@ let
         owner = "vercel-labs";
         repo = "agent-browser";
       };
-      rev = "717d1b09e1c841a4c0206033886a1a861e3ca5d9"; # v0.26.0
-      hash = "sha256-q3UcFTB8OMOrfx5xcNPtBBAwOxoscwrjGg+y8tdETm0=";
+      rev = "7379f7dbea76ad8dbf47f177349c4c3ce9263dcb"; # v0.30.1
+      hash = "sha256-NWd9qENjHCoOMgd5QWxleBvCn+ShDIEW7oOU5DC2zcI=";
       pluginsDir = null;
     };
 
@@ -53,8 +53,8 @@ let
         owner = "upstash";
         repo = "context7";
       };
-      rev = "795d5da720e16c417ae30a548a475672ae35e92f"; # 2026-04-30
-      hash = "sha256-FS4JNh9QXCicV2mRuN7jMos4nEbr7eqO/g97HLQJAyU=";
+      rev = "a914a8693488f1a7b37581de176ad1f19def8e64"; # 2026-06-24
+      hash = "sha256-GCM3dGVHZN4QpB10J/tgPfCfv7fQ1xsryTxMrsVAj6g=";
       pluginsDir = null;
     };
 
@@ -63,8 +63,8 @@ let
         owner = "openai";
         repo = "codex-plugin-cc";
       };
-      rev = "807e03ac9d5aa23bc395fdec8c3767500a86b3cf"; # v1.0.4
-      hash = "sha256-zWddz18c3E15TPuEvjMkBkrwiFlK3ZqIG5YP5xX6ZII=";
+      rev = "80c31f99570876c3ef40327838b0a2ca1ae2cd9c"; # v1.0.5
+      hash = "sha256-KJNJyAYVBsA6On/mrx9GSSQmjrwCHfQZAr+c3BZYUc0=";
       pluginsDir = "plugins";
     };
   };
