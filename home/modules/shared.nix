@@ -17,6 +17,7 @@ let
   tooling = toolingFor pkgs;
   mdformatEnv = pkgs.python3.withPackages (ps: [
     ps.mdformat
+    ps.mdformat-frontmatter
     ps.mdformat-gfm
   ]);
   mdformat = pkgs.writeShellScriptBin "mdformat" ''
