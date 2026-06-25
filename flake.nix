@@ -165,6 +165,7 @@
 
       llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
       proxyLib = import ./lib/proxy.nix { inherit (nixpkgs) lib; };
+      systemdLib = import ./lib/systemd.nix;
       sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
       toolingFor = pkgs: import ./lib/tooling.nix { inherit pkgs; };
       wslLib = import ./lib/wsl;
@@ -202,6 +203,7 @@
           repo
           secrets
           sharedConfig
+          systemdLib
           systemManagerLib
           toolingFor
           wslLib
