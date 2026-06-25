@@ -10,16 +10,16 @@
 
 pkgs.buildNpmPackage rec {
   pname = "mcp-server-filesystem";
-  version = "2026.1.26";
+  version = "2026.6.16";
 
   src = pkgs.fetchFromGitHub {
     owner = "modelcontextprotocol";
     repo = "servers";
     rev = version;
-    hash = "sha256-uULXUEHFZpYm/fmF6PkOFCxS+B+0q3dMveLG+3JHrhk=";
+    hash = "sha256-n8l4E6S4d19GQnKWO1y2De1SuHa/R8UGlb/GMR4dbMw=";
   };
 
-  npmDepsHash = "sha256-jmz4JdpeHH07vJQFntBwrENbJaIcOuZMb7+qf497VOE=";
+  npmDepsHash = "sha256-KhlTXcS+VDSPGnEus9fA0xhIxfTGwX1Cr5hbxFvdc2k=";
 
   # Monorepo: build the filesystem workspace
   npmWorkspace = "src/filesystem";

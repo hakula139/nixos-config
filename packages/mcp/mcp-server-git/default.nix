@@ -10,13 +10,13 @@
 
 pkgs.python3Packages.buildPythonApplication rec {
   pname = "mcp-server-git";
-  version = "2026.1.14";
+  version = "2026.6.16";
   pyproject = true;
 
   src = pkgs.fetchPypi {
     pname = "mcp_server_git";
     inherit version;
-    hash = "sha256-LNdHBMeycase174mYSDCCuiufMAeUtxsVJeQQCutK0Q=";
+    hash = "sha256-SXJzynYSLxYxCMOjUJVWa+ORr2W0Z0qeCIckygGL0NQ=";
   };
 
   build-system = [ pkgs.python3Packages.hatchling ];
