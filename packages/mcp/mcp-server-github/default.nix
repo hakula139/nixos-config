@@ -10,17 +10,17 @@
 
 let
   inherit (pkgs.stdenv.hostPlatform) isLinux;
-  version = "0.33.1";
+  version = "1.4.0";
   baseUrl = "https://github.com/github/github-mcp-server/releases/download/v${version}";
 
   sources = {
     aarch64-darwin = {
       url = "${baseUrl}/github-mcp-server_Darwin_arm64.tar.gz";
-      hash = "sha256-Qq1vcb9ELE0sOvIottcWwqz+IwF6jojpxlG+FX1SOR0=";
+      hash = "sha256-SI84EBjDHXKoJflCDykRqq7HY/3VemDzCQlGtv0eSwU=";
     };
     x86_64-linux = {
       url = "${baseUrl}/github-mcp-server_Linux_x86_64.tar.gz";
-      hash = "sha256-cE5WDlaeMf0+hpP1HA4AFxDZLw6PYqbRTnuLDPfez6w=";
+      hash = "sha256-zU2hq6QI+WddsnYuCgjVij25bWBPqfkjU0kfo1P5vrk=";
     };
   };
 
