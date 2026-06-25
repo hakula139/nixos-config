@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  systemdLib,
   ...
 }:
 
@@ -77,18 +78,11 @@ in
         description = "CloudCone monitoring agent";
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
-        serviceConfig = {
+        serviceConfig = systemdLib.hardening // {
           Type = "oneshot";
           ExecStart = "${cloudconeAgent}/bin/cloudcone-agent";
           User = "ccagent";
           Group = "ccagent";
-          NoNewPrivileges = true;
-          ProtectSystem = "strict";
-          ProtectHome = true;
-          PrivateTmp = true;
-          ProtectControlGroups = true;
-          ProtectKernelTunables = true;
-          ProtectKernelModules = true;
           AmbientCapabilities = [ "CAP_NET_RAW" ];
           CapabilityBoundingSet = [ "CAP_NET_RAW" ];
           StateDirectory = "%N";

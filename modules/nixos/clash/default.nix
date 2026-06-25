@@ -7,6 +7,7 @@
   pkgs,
   lib,
   secrets,
+  systemdLib,
   ...
 }:
 
@@ -57,19 +58,12 @@ in
         description = "Generate Clash subscription configs from user data";
         after = [ "agenix.service" ];
         wantedBy = [ "multi-user.target" ];
-        serviceConfig = {
+        serviceConfig = systemdLib.hardening // {
           Type = "oneshot";
           ExecStart = clashGenerator;
           RemainAfterExit = true;
           User = "clashgen";
           Group = "clashgen";
-          NoNewPrivileges = true;
-          ProtectSystem = "strict";
-          ProtectHome = true;
-          PrivateTmp = true;
-          ProtectControlGroups = true;
-          ProtectKernelTunables = true;
-          ProtectKernelModules = true;
           StateDirectory = "%N";
           StateDirectoryMode = "0750";
           WorkingDirectory = "%S/%N";
