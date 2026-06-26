@@ -179,6 +179,7 @@ in
           ${lib.optionalString config.networking.enableIPv6 "listen [::]:443;"}
           error_log /var/log/nginx/stream-error.log crit;
           ssl_preread on;
+          preread_timeout 5s;
           proxy_pass $backend;
         }
       '';
