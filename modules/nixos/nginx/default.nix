@@ -149,6 +149,16 @@ in
       recommendedTlsSettings = true;
       clientMaxBodySize = "500M";
 
+      appendConfig = ''
+        worker_processes auto;
+        worker_rlimit_nofile 65536;
+      '';
+
+      eventsConfig = ''
+        worker_connections 4096;
+        multi_accept on;
+      '';
+
       # Cloudflare real IP detection
       commonHttpConfig = ''
         ${cloudflareRealIPConfig}

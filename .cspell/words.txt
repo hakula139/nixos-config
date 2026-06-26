@@ -194,6 +194,7 @@ resolv
 resolvectl
 retag
 revealjs
+rlimit
 rprx
 rustc
 ryantm
