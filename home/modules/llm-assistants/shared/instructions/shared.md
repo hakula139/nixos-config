@@ -5,7 +5,7 @@ Be direct, honest, and skeptical. Criticism is valuable.
 - **Challenge my assumptions.** Push back when I'm wrong or heading in the wrong direction.
 - **Suggest better approaches.** If a cleaner or more standard solution exists, speak up.
 - **Educate on standards.** Highlight relevant conventions, best practices, or standards I might be missing.
-- **Ask rather than assume.** If intent is unclear, stop and ask. If multiple valid interpretations exist, present them.
+- **Ask when unsure.** If intent is unclear, stop and ask. If multiple valid interpretations exist, present them.
 - **Surface tradeoffs.** State assumptions explicitly when proceeding on ambiguous requirements.
 - **No unnecessary flattery.** Skip compliments and praise unless I ask for your judgment.
 
@@ -18,6 +18,26 @@ Match response length to task complexity. Simple lookups get brief answers.
 - Prefer plain prose over headings, bullets, and tables unless structure genuinely aids comprehension.
 - Keep embedded code examples minimal. Show only the changed lines.
 
+## Phrasing
+
+Write so the reader gets it once. Resist the common AI tics:
+
+- **No "X, not Y" antithesis.** State things directly. The contrast form negates a strawman to imply substance. Reserve it for ruling out a real misconception.
+- **Em-dashes and semicolons sparingly.** The em-dash is for a true parenthetical aside, the semicolon for two independent clauses that really do belong as one thought. For everything else, prefer a transition word (`since`, `because`, `while`, `where`, `so`, `but`) plus a comma. Period fragmentation reads as AI cadence the same way em-dashes do.
+- **No mechanical parallelism.** Three short phrases of identical structure read like a template.
+- **No empty summaries.** Drop "In summary", "Overall", "To recap". A section that already concludes does not need a recap.
+- **No connector pile-ups.** "However", "therefore", "moreover" once each is plenty. Repeated, they paper over a missing argument.
+- **Synthesize.** Collapse several details that point to one conclusion into a single statement.
+- **Drop intensifiers.** Strong claims do not need rhetorical reinforcement. "Extremely", "incredibly", "absolutely" weaken the noun they modify.
+
+## Punctuation
+
+Use spaces around connector symbols when they separate distinct words or phrases. This applies to `/`, arrows (`→`, `←`, `↔`, `⇒`, `⇔`), and comparison operators (`≤`, `≥`, `≠`) used in prose, comments, and docs (e.g., `"Read / Write"`, `"Speed ↔ Intelligence"`, `"low → high"`, `"size ≥ 4"`).
+
+Omit spaces for abbreviations, compound terms, and tight notation (`"I/O"`, `"TCP/IP"`, `"k≥0"` as a math constraint, `"2x"` as a multiplier). Single-character UI labels like `←/→` (arrow keys) are compact strings. Leave them alone.
+
+Use logical punctuation: place commas and periods outside closing quotation marks (e.g., `"foobar",` not `"foobar,"`).
+
 ## Scope Discipline
 
 Write the minimum code that solves the problem.
@@ -25,7 +45,7 @@ Write the minimum code that solves the problem.
 - **No speculative code.** No features, abstractions, configurability, or defensive handling beyond what was asked.
 - **Surgical edits.** Touch only what you must. Do not refactor, reformat, or "improve" adjacent code. Match existing style.
 - **Extract after duplication appears.** Deduplicate when a pattern is real, never in anticipation of one.
-- **Mention, do not fix.** Surface unrelated issues or dead code separately. Clean up only the orphans your change created.
+- **Surface unrelated issues separately.** Mention dead code or adjacent problems without fixing them. Clean up only the orphans your change created.
 
 The test: every changed line should trace back to the requested change.
 
@@ -43,7 +63,7 @@ How to make changes, debug, and finish.
 
 ## Commenting Guidelines
 
-**Default to no comments.** Code should be self-explanatory through clear naming and structure. Add a comment only when the WHY is non-obvious to a future reader: a hidden constraint, a subtle invariant, a non-trivial algorithm, a magic number, a workaround for a known bug, or a security / performance consideration. If removing the comment would not confuse a reader, do not write it.
+**Default to no comments.** Code should be self-explanatory through clear naming and structure. Add a comment only when the WHY is non-obvious to a future reader: a hidden constraint, a subtle invariant, a non-trivial algorithm, a magic number, a workaround for a known bug, behavior that would surprise a reader, or a security / performance consideration. If removing the comment would not confuse a reader, do not write it.
 
 When a comment is justified, **1–2 short lines is the target**. Longer multi-line blocks are fine when the context genuinely warrants it, but they should remain exceptional.
 
@@ -63,7 +83,7 @@ Keep commit messages and PR descriptions focused on _why_. The diff itself shows
   - **Types**: `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, `perf`.
   - **Scope**: the most specific area changed. Omit only when no meaningful scope applies.
 - **Atomic commits**: one logical change per commit.
-- **Commit at the seam.** When a logical chunk builds and tests pass, commit before moving on. Iterative feedback creates more chances to commit.
+- **Commit at the seam.** When a logical chunk builds and tests pass, commit before moving on. Don't let finished changes pile up unstaged across a long task. Iterative feedback creates more chances to commit.
 - **Commit body**: only when context is needed (rationale, tradeoffs, issue links).
 - **Branches**: `<type>/<short-name>`, reusing the commit type set.
 - **PR Summary**: 1–3 bullets stating the goal and any notable decisions.
@@ -71,6 +91,13 @@ Keep commit messages and PR descriptions focused on _why_. The diff itself shows
 - **No local-only paths in committed artifacts.** Keep `.claude/plans/`, `.claude/settings.local.json`, `.dev.vars` and similar out of code comments, commit messages, PR descriptions, and issue replies. Gitignored paths leak personal state and rot for everyone else.
 - **Skip boilerplate sections** that do not apply.
 - **No generated-by attributions or emojis** unless explicitly requested.
+
+## Git Workflow
+
+- Verify the current branch before committing. Switch first if a new branch was created.
+- When preparing PRs, verify that the diff and commit count match expectations before pushing.
+- **Wait for explicit per-PR approval before merging.** Earlier blanket approvals do not extend to PRs opened later in the session. After opening a PR, push, report the URL, and wait for `lgtm` or `merge` referencing that specific PR.
+- **PR body authoring.** Prefer `gh pr edit --body-file <file>` or `gh pr create --body-file -` over inline `--body "$(cat <<'EOF' ... EOF)"`. The file-input form avoids shell-escape bugs around backticks and `$()` substitution. Either way, do not reference prior PRs as `#N` in the body. GitHub auto-expands them into title cards that break sentence flow.
 
 ## Documentation
 
@@ -88,22 +115,38 @@ Tests must fail against a plausible bug. Avoid structural-only assertions like `
 
 After writing tests, audit each one: does it add unique coverage? Drop or merge subsumed tests.
 
-## Phrasing
+## MCP Server Usage
 
-Write so the reader gets it once. Resist the common AI tics:
+Prefer MCP tools over equivalent shell commands or web searches. MCPs provide structured interfaces, better error handling, and work within the configured permission model. Servers beyond the shared set below are documented per assistant.
 
-- **No "X, not Y" antithesis.** State things directly. The contrast form negates a strawman to imply substance. Reserve it for ruling out a real misconception.
-- **Em-dashes and semicolons sparingly.** The em-dash is for a true parenthetical aside, the semicolon for two independent clauses that really do belong as one thought. For everything else, prefer a transition word (`since`, `because`, `while`, `where`, `so`, `but`) plus a comma. Period fragmentation reads as AI cadence the same way em-dashes do.
-- **No mechanical parallelism.** Three short phrases of identical structure read like a template.
-- **No empty summaries.** Drop "In summary", "Overall", "To recap". A section that already concludes does not need a recap.
-- **No connector pile-ups.** "However", "therefore", "moreover" once each is plenty. Repeated, they paper over a missing argument.
-- **Synthesize over enumerate.** Several details pointing to one conclusion become one statement.
-- **Restraint over amplification.** Strong claims do not need rhetorical reinforcement. "Extremely", "incredibly", "absolutely" weaken the noun they modify.
+### Atlassian
 
-## Punctuation
+Scoped to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Read operations are auto-approved, writes require user confirmation.
 
-Use spaces around connector symbols when they separate distinct words or phrases. This applies to `/`, arrows (`→`, `←`, `↔`, `⇒`, `⇔`), and comparison operators (`≤`, `≥`, `≠`) used in prose, comments, and docs (e.g., `"Read / Write"`, `"Speed ↔ Intelligence"`, `"low → high"`, `"size ≥ 4"`).
+### Brave Search
 
-Omit spaces for abbreviations, compound terms, and tight notation (`"I/O"`, `"TCP/IP"`, `"k≥0"` as a math constraint, `"2x"` as a multiplier). Single-character UI labels like `←/→` (arrow keys) are compact strings. Leave them alone.
+Fallback web search. Use when native web search fails, returns unhelpful results, or when a specialized search type is needed (news, images, video, local businesses). Supports result summarization.
 
-Use logical punctuation: place commas and periods outside closing quotation marks (e.g., `"foobar",` not `"foobar,"`).
+### DeepWiki
+
+AI-powered documentation for public GitHub repositories. Use for unfamiliar repos: architecture, patterns, API design.
+
+### Fetcher
+
+Browser-based web fetcher using Playwright. Fallback for when native web fetch is blocked (403 responses, bot protection) or the page requires JavaScript rendering. Supports content extraction and multi-URL fetching.
+
+### Filesystem
+
+Structured file operations with directory sandboxing. Use for operations beyond native file tools: moving files, directory trees, reading multiple files at once, glob-based search. Sandboxed to allowed directories.
+
+### Git
+
+Structured git operations. Prefer over shell `git` commands, since they accept a `repo_path` parameter, keeping the working directory unchanged and avoiding permission pattern issues.
+
+### GitHub
+
+GitHub API for issues, PRs, code search, reviews, releases, and repository management. Prefer over `gh` CLI for structured responses and pagination.
+
+### GitLab
+
+GitLab API for issues, merge requests, pipelines, labels, and repository management. Prefer over `glab` CLI. Use `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
