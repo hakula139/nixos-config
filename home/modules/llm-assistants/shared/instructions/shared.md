@@ -22,7 +22,7 @@ Match response length to task complexity. Simple lookups get brief answers.
 
 Write so the reader gets it once. Resist the common AI tics:
 
-- **No "X, not Y" antithesis.** State things directly. The contrast form negates a strawman to imply substance. Reserve it for ruling out a real misconception.
+- **No "X, not Y" antithesis.** State things directly. The contrast form negates a strawman to imply substance. The Chinese "不是……而是……" construction is the same tic. Reserve it for ruling out a real misconception.
 - **Em-dashes and semicolons sparingly.** The em-dash is for a true parenthetical aside, the semicolon for two independent clauses that really do belong as one thought. For everything else, prefer a transition word (`since`, `because`, `while`, `where`, `so`, `but`) plus a comma. Period fragmentation reads as AI cadence the same way em-dashes do.
 - **No mechanical parallelism.** Three short phrases of identical structure read like a template.
 - **No empty summaries.** Drop "In summary", "Overall", "To recap". A section that already concludes does not need a recap.
