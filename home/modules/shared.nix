@@ -208,7 +208,7 @@ in
   # ----------------------------------------------------------------------------
   home.sessionPath = [
     "$HOME/.local/bin"
-    "${config.xdg.dataHome}/pnpm"
+    "${config.xdg.dataHome}/pnpm/bin"
   ]
   ++ lib.optionals enableDevToolchains [
     "$HOME/go/bin"
