@@ -106,6 +106,7 @@ Create documentation only when explicitly requested. Do not proactively generate
 When writing documentation:
 
 - Focus on "why" and "how to use". Code should already show "what".
+- Soft-wrap Markdown prose: one sentence or paragraph per line, no hard wrapping at a column limit. Let the editor reflow. Code blocks and tables are exempt.
 - Only reference implemented functionality. Never describe WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them.
 
