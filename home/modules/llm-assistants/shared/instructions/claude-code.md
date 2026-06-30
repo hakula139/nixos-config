@@ -7,28 +7,13 @@ Treat Claude Code as a capable engineer you delegate to. Avoid line-by-line stee
 - **Trust adaptive thinking.** The model decides per step whether to think. Skip scaffolding like `"think hard"` or `"summarize every N tool calls"`. When specific steering helps, state it positively (e.g., `"This problem is harder than it looks; think step by step"`).
 - **Literal instruction following.** State scope explicitly (`"Apply to every section in the file"` rather than `"Apply this"`). Ambiguity gets scoped narrowly.
 
-## Git Workflow
-
-- Verify the current branch before committing. Switch first if a new branch was created.
-- When preparing PRs, verify that the diff and commit count match expectations before pushing.
-- **Wait for explicit per-PR approval before merging.** Earlier blanket approvals do not extend to PRs opened later in the session. After `gh pr create`, push, report the URL, and wait for `lgtm` or `merge` referencing that specific PR.
-- **PR body authoring.** Prefer `gh pr edit --body-file <file>` or `gh pr create --body-file -` over inline `--body "$(cat <<'EOF' ... EOF)"`. The file-input form avoids shell-escape bugs around backticks and `$()` substitution. Either way, do not reference prior PRs as `#N` in the body. GitHub auto-expands them into title cards that break sentence flow.
-
 ## Bash Tool Usage
 
 **Never prefix Bash commands with shell comments.** The `command` field must start with the actual command, since leading comments break permission pattern matching. Use the Bash tool's `description` parameter for explanations instead.
 
 ## MCP Server Usage
 
-Prefer MCP tools over equivalent Bash commands or web searches. MCPs provide structured interfaces, better error handling, and work within the configured permission model.
-
-### Atlassian (`mcp__Atlassian__*`)
-
-Scoped to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Read operations are auto-approved; writes require user confirmation.
-
-### Brave Search (`mcp__BraveSearch__*`)
-
-Fallback web search. Use when `WebSearch` fails, returns unhelpful results, or when a specialized search type is needed (news, images, video, local businesses). Supports result summarization.
+The shared MCP servers are documented in the shared instructions above. Claude Code adds these:
 
 ### Codex (`mcp__Codex__*`)
 
@@ -46,29 +31,9 @@ Do not use Codex when:
 - The task depends heavily on the current conversation context.
 - The work is just a quick one-shot command.
 
-### DeepWiki (`mcp__DeepWiki__*`)
+### Context7 (`mcp__plugin_context7-plugin_context7__*`)
 
-AI-powered documentation for public GitHub repositories. Use for unfamiliar repos: architecture, patterns, API design.
-
-### Fetcher (`mcp__Fetcher__*`)
-
-Browser-based web fetcher using Playwright. Fallback for when native web fetch is blocked (403 responses, bot protection) or the page requires JavaScript rendering. Supports content extraction and multi-URL fetching.
-
-### Filesystem (`mcp__Filesystem__*`)
-
-Structured file operations with directory sandboxing. Use for operations beyond native Read / Write / Edit tools: moving files, directory trees, reading multiple files at once, glob-based search. Sandboxed to allowed directories.
-
-### Git (`mcp__Git__*`)
-
-Structured git operations. Prefer over Bash `git` commands, since they accept a `repo_path` parameter, keeping the working directory unchanged and avoiding permission pattern issues with `git -C`.
-
-### GitHub (`mcp__GitHub__*`)
-
-GitHub API for issues, PRs, code search, reviews, releases, and repository management. Prefer over `gh` CLI for structured responses and pagination.
-
-### GitLab (`mcp__GitLab__*`)
-
-GitLab API for issues, merge requests, pipelines, labels, and repository management. Prefer over `glab` CLI. Use `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
+Library and framework documentation lookups, provided by the context7 plugin when online. Always resolve the library ID first, then query the docs with a specific question.
 
 ### IDE (`mcp__ide__*`)
 
@@ -83,16 +48,7 @@ Agents run in two modes:
 
 All agents inherit the parent tool set. Behavioral boundaries live in each agent's prompt. The exception is **codex-worker**, which keeps a narrower tool set so it actually delegates to Codex instead of doing the work itself.
 
-### Available Agents
-
-- **architect**: Architecture review, design critique, pattern analysis.
-- **codex-worker**: Delegates self-contained tasks to Codex MCP.
-- **debugger**: Hypothesis-driven debugging and root cause analysis.
-- **implementer**: Code writing, feature implementation, refactoring.
-- **researcher**: Codebase exploration and documentation lookup.
-- **reviewer**: Code quality, security, bug detection.
-- **tester**: Test writing, execution, failure analysis.
-- **usability-reviewer**: Clarity and ergonomics review for user-facing surfaces.
+The available agents and their descriptions are surfaced automatically by the harness. Pick the most specific role for the task.
 
 ### When to Use Agents
 
