@@ -189,20 +189,56 @@ in
     # Nix-LD: Run unpatched Linux binaries
     programs.nix-ld = {
       enable = true;
-      libraries = with pkgs; [
-        curl
-        glib
-        glibc
-        icu
-        libkrb5
-        libsecret
-        libunwind
-        libuuid
-        openssl
-        stdenv.cc.cc.lib
-        util-linux
-        zlib
-      ];
+      libraries =
+        with pkgs;
+        [
+          curl
+          glib
+          glibc
+          icu
+          libkrb5
+          libsecret
+          libunwind
+          libuuid
+          openssl
+          stdenv.cc.cc.lib
+          util-linux
+          zlib
+        ]
+        # Shared libraries for Playwright's downloaded Chromium (Fetcher MCP),
+        # which links against a full desktop stack absent from a headless NixOS.
+        ++ [
+          alsa-lib
+          at-spi2-atk
+          at-spi2-core
+          atk
+          cairo
+          cups
+          dbus
+          expat
+          fontconfig
+          freetype
+          gtk3
+          libdrm
+          libgbm
+          libx11
+          libxcb
+          libxcomposite
+          libxcursor
+          libxdamage
+          libxext
+          libxfixes
+          libxi
+          libxkbcommon
+          libxrandr
+          libxrender
+          libxscrnsaver
+          libxtst
+          mesa
+          nspr
+          nss
+          pango
+        ];
     };
 
     # --------------------------------------------------------------------------
