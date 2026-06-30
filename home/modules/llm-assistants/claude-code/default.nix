@@ -84,7 +84,7 @@ in
       permissions = import ./permissions.nix;
 
       notify = import ../shared/notify.nix { inherit pkgs lib; };
-      hooks = import ./hooks.nix { inherit pkgs lib; };
+      hooks = import ./hooks { inherit pkgs lib; };
 
       mcp = import ./mcp.nix {
         inherit

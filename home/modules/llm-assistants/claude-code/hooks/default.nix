@@ -9,9 +9,10 @@
 }:
 
 let
-  notify = import ../shared/notify.nix { inherit pkgs lib; };
-  hookScripts = import ../shared/hooks { inherit pkgs lib; };
+  notify = import ../../shared/notify.nix { inherit pkgs lib; };
+  hookScripts = import ../../shared/hooks { inherit pkgs lib; };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
+
   autoFormatScript = hookScripts.mkAutoFormatScript { name = "claude-code-auto-format"; };
   enforceMcpScript = hookScripts.mkEnforceMcpScript {
     name = "claude-code-enforce-mcp";
@@ -21,6 +22,9 @@ let
     name = "claude-code-wakatime-heartbeat";
     pluginName = "claude-code-hook/1.0";
   };
+
+  completenessPrompt = builtins.readFile ./prompts/completeness.md;
+  proseTicsPrompt = builtins.readFile ./prompts/prose-tics.md;
 in
 {
   PreToolUse = [
@@ -125,26 +129,26 @@ in
   ];
 
   Stop = [
-    # Quality gate - evaluate conversation completeness
-    # Disabled: prompt-type Stop hooks have a known JSON validation bug.
-    # https://github.com/anthropics/claude-code/issues/11947
-    # {
-    #   hooks = [
-    #     {
-    #       type = "prompt";
-    #       prompt = ''
-    #         Should the agent stop working? Evaluate whether all requested tasks are complete:
-    #         1. All user-requested tasks are actually done (not left partially done).
-    #         2. No WIP or unimplemented features are described as complete.
-    #         3. If code was modified, related docs and tests are updated where applicable.
-    #         4. No errors or failures remain unaddressed.
-    #       '';
-    #       model = "sonnet";
-    #       timeout = 15;
-    #     }
-    #   ];
-    # }
-
+    # Completeness gate - block stopping while requested work is unfinished
+    {
+      hooks = [
+        {
+          type = "prompt";
+          prompt = completenessPrompt;
+          timeout = 30;
+        }
+      ];
+    }
+    # Style gate - block stopping when this turn's prose carries banned tics
+    {
+      hooks = [
+        {
+          type = "prompt";
+          prompt = proseTicsPrompt;
+          timeout = 30;
+        }
+      ];
+    }
     # Response complete - notify when Claude Code finishes responding
     {
       hooks = [
