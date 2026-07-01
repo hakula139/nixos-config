@@ -12,7 +12,7 @@ let
   corpGatewayCommon = {
     type = "api-key";
     tokenSecret = "llm-assistants/bifrost-api-key";
-    baseUrl = "https://gw1.llm.${corpDomain}/anthropic";
+    baseUrl = "https://gw.llm.${corpDomain}/anthropic";
     extraEnv = {
       CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
     };
@@ -57,6 +57,17 @@ in
       opus = "openrouter/anthropic/claude-opus-4-8";
       sonnet = "openrouter/anthropic/claude-sonnet-4-6";
       haiku = "openrouter/anthropic/claude-haiku-4-5";
+    };
+  };
+
+  corp-gateway-openai = corpGatewayCommon // {
+    modelOverrides = {
+      opus = "openai/gpt-5.5";
+      sonnet = "openai/gpt-5.4";
+      haiku = "openai/gpt-5.4-mini";
+    };
+    extraEnv = corpGatewayCommon.extraEnv // {
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW = "250000";
     };
   };
 }
