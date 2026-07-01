@@ -62,6 +62,18 @@ in
         }
       ];
     }
+    # Style gate - flag banned prose tics in edited file content
+    {
+      matcher = "Edit|Write";
+      hooks = [
+        {
+          type = "prompt";
+          prompt = proseTicsPrompt;
+          timeout = 30;
+          statusMessage = "Checking prose style";
+        }
+      ];
+    }
   ];
 
   PermissionRequest = [
@@ -137,17 +149,6 @@ in
           prompt = completenessPrompt;
           timeout = 30;
           statusMessage = "Checking completeness";
-        }
-      ];
-    }
-    # Style gate - block stopping when this turn's prose carries banned tics
-    {
-      hooks = [
-        {
-          type = "prompt";
-          prompt = proseTicsPrompt;
-          timeout = 30;
-          statusMessage = "Checking prose style";
         }
       ];
     }
