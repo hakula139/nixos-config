@@ -41,6 +41,8 @@
   # Interface
   # ----------------------------------------------------------------------------
   theme = "dark";
+  tui = "fullscreen";
+  wheelScrollAccelerationEnabled = false;
   statusLine = {
     type = "command";
     command = "${homeDir}/.claude/statusline-command.sh";
@@ -62,8 +64,8 @@
   env = {
     CLAUDE_CODE_AUTO_COMPACT_WINDOW = "400000";
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
+    CLAUDE_CODE_ENABLE_AUTO_MODE = "1";
     CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
-    CLAUDE_CODE_NO_FLICKER = "1";
     CLAUDE_CODE_SCROLL_SPEED = "1";
     DISABLE_INSTALLATION_CHECKS = "1";
     ENABLE_CLAUDEAI_MCP_SERVERS = "0";

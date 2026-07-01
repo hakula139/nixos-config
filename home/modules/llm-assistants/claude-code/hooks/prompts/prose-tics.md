@@ -15,5 +15,7 @@ Scope and bias:
 - Judge only prose, Markdown, and code comments. Ignore code, file paths, identifiers, command output, quoted error text, and tables.
 - A single em-dash used as a true parenthetical aside is acceptable.
 - Bias strongly toward passing. Block only on a clear, unambiguous violation, not a borderline case. When uncertain, return ok: true.
+- Quote-and-verify before blocking. For the character-based tics (em-dash, semicolon), copy the offending substring verbatim from `$ARGUMENTS`, and confirm that substring literally contains the named character (`—` or `--` for an em-dash, `;` for a semicolon). If your quoted span does not contain that character, the violation is not real. Drop it. Never reconstruct punctuation from memory or paraphrase the text into a violation.
+- A `—`, `--`, or `;` that appears inside backticks or a code span is being named as a literal character, not used as prose punctuation. Ignore it.
 
-Return ok: true if the text is clean. Return ok: false with a reason that quotes the offending phrase and names which tic it is.
+Return ok: true if the text is clean. Return ok: false only with a verbatim quote that literally contains the offending character, plus the name of the tic.
