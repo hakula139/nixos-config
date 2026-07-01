@@ -35,9 +35,10 @@ RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout 60 claude -p "$CONTENT" \
   --output-format json \
   2>/dev/null)
 
-# The verdict JSON is under .result, sometimes fenced in ```json.
+# The verdict JSON is under .result, sometimes wrapped in a code fence or
+# backticks. Extract the outermost {...} to strip any such wrapper.
 VERDICT=$(printf '%s' "$RAW" | jq -r '.result // empty' 2>/dev/null \
-  | sed -e 's/^```[a-z]*//' -e 's/```$//' | tr -d '\n')
+  | tr -d '\n' | grep -oE '\{.*\}')
 [[ "$(printf '%s' "$VERDICT" | jq -r '.ok' 2>/dev/null)" == "false" ]] || exit 0
 
 REASON=$(printf '%s' "$VERDICT" | jq -r '.reason // "prose style violation"' 2>/dev/null)
