@@ -52,14 +52,6 @@ in
     };
   };
 
-  corp-gateway-openrouter = corpGatewayCommon // {
-    modelOverrides = {
-      opus = "openrouter/anthropic/claude-opus-4-8";
-      sonnet = "openrouter/anthropic/claude-sonnet-4-6";
-      haiku = "openrouter/anthropic/claude-haiku-4-5";
-    };
-  };
-
   corp-gateway-openai = corpGatewayCommon // {
     modelOverrides = {
       opus = "openai/gpt-5.5";

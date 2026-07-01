@@ -59,26 +59,29 @@ join_parts() {
 # ------------------------------------------------------------------------------
 
 # Simplifies display names: "Opus 4.6 (1M context)" → "Opus 4.6 (1M)";
-# also handles Bedrock raw IDs like "global.anthropic.claude-opus-4-6-v1[1m]".
+# also handles Bedrock raw IDs like "global.anthropic.claude-opus-4-6-v1[1m]"
+# and corp-gateway override strings like "openai/gpt-5.4-mini" → "GPT 5.4 mini".
 simplify_model_name() {
   local raw="$1" lc="${1,,}" name="" version=""
   case "${lc}" in
     *opus*) name=Opus ;;
     *sonnet*) name=Sonnet ;;
     *haiku*) name=Haiku ;;
+    *gpt*) name=GPT ;;
     *)
       echo "${raw}"
       return
       ;;
   esac
 
-  local version_re='(opus|sonnet|haiku)[- ]([0-9]+)[-.]([0-9]+)'
+  local version_re='(opus|sonnet|haiku|gpt)[- ]([0-9]+)[-.]([0-9]+)'
   if [[ "${lc}" =~ ${version_re} ]]; then
     version="${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
   fi
 
   local result="${name}"
   [[ -n "${version}" ]] && result+=" ${version}"
+  [[ "${lc}" == *mini* ]] && result+=" mini"
   [[ "${lc}" == *1m* ]] && result+=" (1M)"
   echo "${result}"
 }
