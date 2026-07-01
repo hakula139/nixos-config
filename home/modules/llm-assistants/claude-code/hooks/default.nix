@@ -136,6 +136,7 @@ in
           type = "prompt";
           prompt = completenessPrompt;
           timeout = 30;
+          statusMessage = "Checking completeness";
         }
       ];
     }
@@ -146,6 +147,7 @@ in
           type = "prompt";
           prompt = proseTicsPrompt;
           timeout = 30;
+          statusMessage = "Checking prose style";
         }
       ];
     }
