@@ -22,9 +22,12 @@ let
     name = "claude-code-wakatime-heartbeat";
     pluginName = "claude-code-hook/1.0";
   };
+  proseGateScript = hookScripts.mkProseGateScript {
+    name = "claude-code-prose-gate";
+    promptFile = ./prompts/prose-tics.md;
+  };
 
   completenessPrompt = builtins.readFile ./prompts/completeness.md;
-  proseTicsPrompt = builtins.readFile ./prompts/prose-tics.md;
 in
 {
   PreToolUse = [
@@ -67,9 +70,9 @@ in
       matcher = "Edit|Write";
       hooks = [
         {
-          type = "prompt";
-          prompt = proseTicsPrompt;
-          timeout = 30;
+          type = "command";
+          command = "${proseGateScript}";
+          timeout = 90;
           statusMessage = "Checking prose style";
         }
       ];
