@@ -72,7 +72,7 @@ in
         {
           type = "command";
           command = "${proseGateScript}";
-          timeout = 90;
+          timeout = 30;
           statusMessage = "Checking prose style";
         }
       ];
