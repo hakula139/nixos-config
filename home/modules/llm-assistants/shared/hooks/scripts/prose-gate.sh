@@ -26,12 +26,10 @@ esac
 PROMPT_FILE="@promptFile@"
 [[ -r "$PROMPT_FILE" ]] || exit 0
 
-# --bare skips hooks / LSP / plugins / MCP; the haiku alias resolves through the
-# active profile's default model.
-RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout 60 claude -p "$CONTENT" \
+RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout 30 claude -p "$CONTENT" \
   --bare \
   --system-prompt-file "$PROMPT_FILE" \
-  --model haiku \
+  --model sonnet \
   --output-format json \
   2>/dev/null)
 
