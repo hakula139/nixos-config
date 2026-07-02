@@ -67,12 +67,15 @@ How to make changes, debug, and finish.
 
 When a comment is justified, **1–2 short lines is the target**. Longer multi-line blocks are fine when the context genuinely warrants it, but they should remain exceptional.
 
-**Keep `///` docstrings on items.** The "default to no comments" rule applies to inline `//` comments and narrative blocks. Docstrings on functions, methods, and types are API documentation, including for crate-internal or non-public items. Trim only when the docstring purely restates the item name.
+**Docstrings follow the same discipline and the project's convention.** Check whether surrounding code uses them, and if the project has few or none, add none. When one is warranted, keep it to a line or two of non-obvious contract: a constraint, unit, ownership, error, or invariant. A docstring that restates the item name, documents a trivial getter, or rambles across several lines is verbose, so drop or trim it.
+
+**When in doubt, delete.** Removing a comment that could have stayed is cheaper than keeping one that should have gone. Prune freely unless the user asked to keep that specific comment.
 
 Avoid:
 
 - Comments that restate WHAT the code does (`// increment counter`).
-- Comments that narrate the change or reference the task (`// Updated to use X`, `// Added for the Y flow`, `// Fix for #123`). That belongs in the commit message and rots in the source tree.
+- Comments that narrate the change or reference the task (`// Updated to use X`, `// Added for the Y flow`, `// Fix for #123`). That belongs in the commit message and rots in the source tree. Resolving an issue or meeting a requirement is not on its own a reason to leave a comment.
+- Comments explaining a WHY a competent reader could already infer. Being a "why" earns nothing on its own. The reason has to be genuinely non-obvious.
 - Commented-out code. Use version control instead.
 
 ## Commits and Pull Requests
