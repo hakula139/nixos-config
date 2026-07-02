@@ -80,6 +80,7 @@ goimports
 gopath
 gopls
 gsub
+guillemets
 gvisor
 hakula
 hediet
