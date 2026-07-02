@@ -41,6 +41,17 @@ in
       substitutions."@hintMode@" = hintMode;
     };
 
+  mkProseGateScript =
+    {
+      name ? "prose-gate",
+      promptFile,
+    }:
+    mkHookScript {
+      inherit name;
+      script = ./scripts/prose-gate.sh;
+      substitutions."@promptFile@" = "${promptFile}";
+    };
+
   mkWakatimeScript =
     {
       name ? "wakatime-heartbeat",
