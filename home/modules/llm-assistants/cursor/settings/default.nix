@@ -108,6 +108,7 @@ let
   machineSettings = portableSettings // {
     "bashIde.shellcheckPath" = "${pkgs.shellcheck}/bin/shellcheck";
     "bashIde.shfmt.path" = "${pkgs.shfmt}/bin/shfmt";
+    "direnv.path.executable" = "${pkgs.direnv}/bin/direnv";
     "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
     "nix.serverSettings" = {
       "nixd" = {
