@@ -107,6 +107,23 @@ in
     nixpkgs.config.allowUnfree = true;
 
     # --------------------------------------------------------------------------
+    # Environment
+    # --------------------------------------------------------------------------
+    launchd.user.envVariables.PATH = [
+      "${userConfig.home}/.nix-profile/bin"
+      "/etc/profiles/per-user/${userName}/bin"
+      "/run/current-system/sw/bin"
+      "/nix/var/nix/profiles/default/bin"
+      "/opt/homebrew/bin"
+      "/opt/homebrew/sbin"
+      "/usr/local/bin"
+      "/usr/bin"
+      "/bin"
+      "/usr/sbin"
+      "/sbin"
+    ];
+
+    # --------------------------------------------------------------------------
     # System Settings (best effort)
     # --------------------------------------------------------------------------
     system = {
