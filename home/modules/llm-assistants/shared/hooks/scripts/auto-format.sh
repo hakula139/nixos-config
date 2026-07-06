@@ -67,13 +67,20 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
       fi
       ;;
     *.md)
-      if command -v mdformat &>/dev/null; then
-        mdformat "$FILE_PATH" 2>/dev/null || true
+      if command -v dprint &>/dev/null; then
+        TMP=$(mktemp)
+        if dprint fmt --config "@dprintConfig@" --stdin md <"$FILE_PATH" >"$TMP" 2>/dev/null && [[ -s "$TMP" ]]; then
+          mv "$TMP" "$FILE_PATH"
+        else
+          rm -f "$TMP"
+        fi
       fi
-      if command -v npx &>/dev/null; then
-        npx --no markdownlint-cli2 --fix "$FILE_PATH" 2>/dev/null || true
-        npx --no markdownlint-cli2 "$FILE_PATH" 2>&1 | head -20 || true
-        npx --no cspell --no-progress "$FILE_PATH" 2>&1 | head -20 || true
+      if command -v markdownlint-cli2 &>/dev/null; then
+        markdownlint-cli2 --fix "$FILE_PATH" 2>/dev/null || true
+        markdownlint-cli2 "$FILE_PATH" 2>&1 | head -20 || true
+      fi
+      if command -v cspell &>/dev/null; then
+        cspell --no-progress "$FILE_PATH" 2>&1 | head -20 || true
       fi
       ;;
   esac
