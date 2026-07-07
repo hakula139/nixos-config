@@ -129,6 +129,7 @@ litellm
 lldb
 localectl
 lualine
+malva
 marp
 mcp
 mcpjson
