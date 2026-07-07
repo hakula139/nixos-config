@@ -21,7 +21,7 @@ let
     );
 
   # Generated (not a static .dprint.json) so the Wasm plugin store paths pin
-  # into the closure. emphasis/strong kinds match markdownlint MD049/MD050.
+  # into the closure. emphasis / strong kinds match markdownlint MD049 / MD050.
   dprintPlugins = with pkgs.dprint-plugins; [
     dprint-plugin-markdown
     dprint-plugin-ruff

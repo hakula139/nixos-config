@@ -62,8 +62,8 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
       fi
       ;;
     *.css | *.js)
-      if command -v npx &>/dev/null; then
-        npx --no prettier --write "$FILE_PATH" 2>/dev/null || true
+      if command -v prettier &>/dev/null; then
+        prettier --write "$FILE_PATH" 2>/dev/null || true
       fi
       ;;
     *.md)

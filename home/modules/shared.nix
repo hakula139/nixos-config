@@ -100,6 +100,7 @@ in
       dprint
       jq
       markdownlint-cli2
+      prettier
       taplo
       yq-go
 
