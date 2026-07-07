@@ -24,7 +24,7 @@
  }
 +
 +function canRedirectRunnerToCdn (options: {
-+  video: MVideoFullLight
++  video: MVideoFull
 +  file: MVideoFileVideo | MVideoFileStreamingPlaylistVideo
 +}) {
 +  const { video, file } = options
@@ -40,7 +40,7 @@
 +
 +function redirectRunnerToCdn (options: {
 +  res: express.Response
-+  video: MVideoFullLight
++  video: MVideoFull
 +  file: MVideoFileVideo | MVideoFileStreamingPlaylistVideo
 +}) {
 +  const { res, video, file } = options
