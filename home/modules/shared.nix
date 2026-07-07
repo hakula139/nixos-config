@@ -15,14 +15,6 @@
 let
   inherit (pkgs.stdenv) isLinux;
   tooling = toolingFor pkgs;
-  mdformatEnv = pkgs.python3.withPackages (ps: [
-    ps.mdformat
-    ps.mdformat-frontmatter
-    ps.mdformat-gfm
-  ]);
-  mdformat = pkgs.writeShellScriptBin "mdformat" ''
-    exec ${mdformatEnv}/bin/mdformat "$@"
-  '';
 in
 {
   # ----------------------------------------------------------------------------
@@ -38,7 +30,6 @@ in
       .autopilot on
     '';
     ".editorconfig".source = lib.path.append repo.root ".editorconfig";
-    ".mdformat.toml".source = lib.path.append repo.root ".mdformat.toml";
     ".npmrc".text = ''
       manage-package-manager-versions=true
     '';
@@ -101,12 +92,15 @@ in
       bun
       typescript
       typescript-language-server
+      prettier
 
       # ------------------------------------------------------------------------
       # Data & Document Tools
       # ------------------------------------------------------------------------
+      cspell
+      dprint
       jq
-      mdformat
+      markdownlint-cli2
       taplo
       yq-go
 
