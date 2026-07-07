@@ -105,6 +105,13 @@ in
           "${config.xdg.configHome}/codex"
         else
           "${config.home.homeDirectory}/.codex";
+
+      # Separate from default.rules, which Codex rewrites on TUI allowlisting.
+      codexRulesTarget =
+        if config.home.preferXdgDirectories then
+          "${lib.removePrefix "${config.home.homeDirectory}/" config.xdg.configHome}/codex/rules/nixos-config.rules"
+        else
+          ".codex/rules/nixos-config.rules";
     in
     lib.mkMerge [
       {
@@ -148,7 +155,12 @@ in
           trap - EXIT
         '';
 
-        home.file = skills.homeFile;
+        home.file = skills.homeFile // {
+          codexRules = {
+            target = codexRulesTarget;
+            text = llmAssistantLib.permissions.codexRules + "\n";
+          };
+        };
       }
     ]
   );
