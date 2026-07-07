@@ -92,6 +92,7 @@ in
       bun
       typescript
       typescript-language-server
+      prettier
 
       # ------------------------------------------------------------------------
       # Data & Document Tools
@@ -100,7 +101,6 @@ in
       dprint
       jq
       markdownlint-cli2
-      prettier
       taplo
       yq-go
 
