@@ -347,12 +347,6 @@
 
   # ----------------------------------------------------------------------------
   # Ask - Requires confirmation
-  #
-  # Auto mode's classifier already prompts on the general destructive case (its
-  # soft_deny tier covers force push, git reset --hard, git clean, PR merges,
-  # mass deletion, ...). Keep only entries that still need a guaranteed prompt:
-  # irreversible local mutations and cases where auto mode's default diverges
-  # from our workflow.
   # ----------------------------------------------------------------------------
 
   ask = [
@@ -369,8 +363,43 @@
     # --------------------------------------------------------------------------
     # Git
     # --------------------------------------------------------------------------
-    # Auto mode auto-approves push to the starting branch; we review every push.
     "Bash(git push *)"
+
+    # --------------------------------------------------------------------------
+    # GitHub / GitLab
+    # --------------------------------------------------------------------------
+    # These MCP entries override the blanket mcp__GitHub / mcp__GitLab allow.
+    "Bash(gh issue create *)"
+    "Bash(gh pr create *)"
+    "Bash(gh pr merge *)"
+    "Bash(gh pr review *)"
+    "Bash(gh repo create *)"
+    "Bash(gh repo fork *)"
+    "Bash(glab issue create *)"
+    "Bash(glab mr create *)"
+    "Bash(glab mr merge *)"
+    "Bash(glab mr approve *)"
+    "Bash(glab repo create *)"
+    "Bash(glab repo fork *)"
+    "mcp__GitHub__create_or_update_file"
+    "mcp__GitHub__create_pull_request"
+    "mcp__GitHub__create_repository"
+    "mcp__GitHub__delete_file"
+    "mcp__GitHub__fork_repository"
+    "mcp__GitHub__issue_write"
+    "mcp__GitHub__merge_pull_request"
+    "mcp__GitHub__pull_request_review_write"
+    "mcp__GitHub__push_files"
+    "mcp__GitHub__sub_issue_write"
+    "mcp__GitLab__approve_merge_request"
+    "mcp__GitLab__create_issue"
+    "mcp__GitLab__create_merge_request"
+    "mcp__GitLab__create_or_update_file"
+    "mcp__GitLab__create_repository"
+    "mcp__GitLab__fork_repository"
+    "mcp__GitLab__merge_merge_request"
+    "mcp__GitLab__push_files"
+    "mcp__GitLab__unapprove_merge_request"
 
     # --------------------------------------------------------------------------
     # Nix
