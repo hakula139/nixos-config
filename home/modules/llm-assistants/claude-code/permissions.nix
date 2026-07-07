@@ -346,7 +346,13 @@
   ];
 
   # ----------------------------------------------------------------------------
-  # Ask - Requires confirmation (write / destructive operations)
+  # Ask - Requires confirmation
+  #
+  # Auto mode's classifier already prompts on the general destructive case (its
+  # soft_deny tier covers force push, git reset --hard, git clean, PR merges,
+  # mass deletion, ...). Keep only entries that still need a guaranteed prompt:
+  # irreversible local mutations and cases where auto mode's default diverges
+  # from our workflow.
   # ----------------------------------------------------------------------------
 
   ask = [
@@ -358,95 +364,20 @@
     # --------------------------------------------------------------------------
     # System
     # --------------------------------------------------------------------------
-    "Bash(kill *)"
-    "Bash(killall *)"
-    "Bash(pkill *)"
     "Bash(sudo *)"
-
-    # --------------------------------------------------------------------------
-    # Atlassian
-    # --------------------------------------------------------------------------
-    "mcp__Atlassian__confluence_add_comment"
-    "mcp__Atlassian__confluence_add_label"
-    "mcp__Atlassian__confluence_create_page"
-    "mcp__Atlassian__confluence_delete_attachment"
-    "mcp__Atlassian__confluence_delete_page"
-    "mcp__Atlassian__confluence_move_page"
-    "mcp__Atlassian__confluence_reply_to_comment"
-    "mcp__Atlassian__confluence_update_page"
-    "mcp__Atlassian__confluence_upload_attachment"
-    "mcp__Atlassian__confluence_upload_attachments"
 
     # --------------------------------------------------------------------------
     # Git
     # --------------------------------------------------------------------------
-    "Bash(git branch -D *)"
-    "Bash(git clean *)"
+    # Auto mode auto-approves push to the starting branch; we review every push.
     "Bash(git push *)"
-    "Bash(git reset *)"
-    "Bash(git restore *)"
-    "mcp__Git__git_reset"
-
-    # --------------------------------------------------------------------------
-    # GitHub / GitLab
-    # --------------------------------------------------------------------------
-    "mcp__GitHub__create_or_update_file"
-    "mcp__GitHub__create_pull_request"
-    "mcp__GitHub__create_repository"
-    "mcp__GitHub__delete_file"
-    "mcp__GitHub__fork_repository"
-    "mcp__GitHub__issue_write"
-    "mcp__GitHub__merge_pull_request"
-    "mcp__GitHub__push_files"
-    "mcp__GitHub__sub_issue_write"
-    "mcp__GitHub__update_pull_request"
-    "mcp__GitLab__approve_merge_request"
-    "mcp__GitLab__create_branch"
-    "mcp__GitLab__create_issue"
-    "mcp__GitLab__create_issue_link"
-    "mcp__GitLab__create_issue_note"
-    "mcp__GitLab__create_label"
-    "mcp__GitLab__create_merge_request"
-    "mcp__GitLab__create_merge_request_discussion_note"
-    "mcp__GitLab__create_merge_request_note"
-    "mcp__GitLab__create_merge_request_thread"
-    "mcp__GitLab__create_note"
-    "mcp__GitLab__create_or_update_file"
-    "mcp__GitLab__create_pipeline"
-    "mcp__GitLab__create_repository"
-    "mcp__GitLab__delete_issue"
-    "mcp__GitLab__delete_issue_link"
-    "mcp__GitLab__delete_label"
-    "mcp__GitLab__delete_merge_request_discussion_note"
-    "mcp__GitLab__delete_merge_request_note"
-    "mcp__GitLab__merge_merge_request"
-    "mcp__GitLab__push_files"
-    "mcp__GitLab__resolve_merge_request_thread"
-    "mcp__GitLab__unapprove_merge_request"
-    "mcp__GitLab__update_issue"
-    "mcp__GitLab__update_issue_note"
-    "mcp__GitLab__update_label"
-    "mcp__GitLab__update_merge_request"
-    "mcp__GitLab__update_merge_request_discussion_note"
-    "mcp__GitLab__update_merge_request_note"
 
     # --------------------------------------------------------------------------
     # Nix
     # --------------------------------------------------------------------------
     "Bash(agenix *)"
     "Bash(darwin-rebuild *)"
-    "Bash(nix store delete *)"
-    "Bash(nix store gc *)"
-    "Bash(nix upgrade-nix *)"
-    "Bash(nix-collect-garbage *)"
     "Bash(nixos-rebuild *)"
-
-    # --------------------------------------------------------------------------
-    # Containers
-    # --------------------------------------------------------------------------
-    "Bash(docker push *)"
-    "Bash(helm push *)"
-    "Bash(podman push *)"
   ];
 
   # ----------------------------------------------------------------------------
