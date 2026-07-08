@@ -65,9 +65,9 @@ in
         }
       ];
     }
-    # Style gate - flag banned prose tics in edited file content
+    # Style gate - flag banned prose tics in edited files and MCP-published prose
     {
-      matcher = "Edit|Write";
+      matcher = "Edit|Write|mcp__(GitLab|GitHub)__(create|update|add)_|mcp__.*_write";
       hooks = [
         {
           type = "command";
