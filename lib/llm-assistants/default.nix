@@ -6,9 +6,10 @@
 
 let
   mcpOptions = import ./mcp-options.nix { inherit lib; };
+  permissions = import ./permissions.nix { inherit lib; };
 in
 {
-  inherit mcpOptions;
+  inherit mcpOptions permissions;
 
   mkClaudeProfiles = import ./claude-profiles.nix;
 

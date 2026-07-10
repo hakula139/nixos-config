@@ -81,7 +81,9 @@ in
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
-      permissions = import ./permissions.nix;
+      permissions = import ./permissions.nix {
+        sharedPermissions = llmAssistantLib.permissions;
+      };
 
       notify = import ../shared/notify.nix { inherit pkgs lib; };
       hooks = import ./hooks { inherit pkgs lib; };
