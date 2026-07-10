@@ -54,9 +54,9 @@ in
 
   corp-gateway-openai = corpGatewayCommon // {
     modelOverrides = {
-      opus = "openai/gpt-5.5";
-      sonnet = "openai/gpt-5.4";
-      haiku = "openai/gpt-5.4-mini";
+      opus = "openai/gpt-5.6-sol";
+      sonnet = "openai/gpt-5.6-terra";
+      haiku = "openai/gpt-5.6-luna";
     };
     extraEnv = corpGatewayCommon.extraEnv // {
       CLAUDE_CODE_AUTO_COMPACT_WINDOW = "250000";

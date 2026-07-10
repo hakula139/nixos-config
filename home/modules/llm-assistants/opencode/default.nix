@@ -165,10 +165,10 @@ in
             # ------------------------------------------------------------------
             # Models
             # ------------------------------------------------------------------
-            model = "openai/gpt-5.5";
-            small_model = "openai/gpt-5.4-mini";
+            model = "openai/gpt-5.6-sol";
+            small_model = "openai/gpt-5.6-luna";
             provider = {
-              openai.models."gpt-5.5".options = {
+              openai.models."gpt-5.6-sol".options = {
                 reasoningEffort = "high";
                 textVerbosity = "low";
               };
