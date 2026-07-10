@@ -2,13 +2,14 @@
 # Claude Code Permissions
 # ==============================================================================
 
+{ sharedPermissions }:
+
 {
   defaultMode = "auto";
 
   # ----------------------------------------------------------------------------
   # Allow - Auto-approved commands (read-only / safe operations)
   # ----------------------------------------------------------------------------
-
   allow = [
     # --------------------------------------------------------------------------
     # General
@@ -348,39 +349,7 @@
   # ----------------------------------------------------------------------------
   # Ask - Requires confirmation
   # ----------------------------------------------------------------------------
-
-  ask = [
-    # --------------------------------------------------------------------------
-    # Filesystem
-    # --------------------------------------------------------------------------
-    "Bash(rm *)"
-
-    # --------------------------------------------------------------------------
-    # System
-    # --------------------------------------------------------------------------
-    "Bash(sudo *)"
-
-    # --------------------------------------------------------------------------
-    # Git
-    # --------------------------------------------------------------------------
-    "Bash(git push *)"
-
-    # --------------------------------------------------------------------------
-    # GitHub / GitLab
-    # --------------------------------------------------------------------------
-    # These MCP entries override the blanket mcp__GitHub / mcp__GitLab allow.
-    "Bash(gh issue create *)"
-    "Bash(gh pr create *)"
-    "Bash(gh pr merge *)"
-    "Bash(gh pr review *)"
-    "Bash(gh repo create *)"
-    "Bash(gh repo fork *)"
-    "Bash(glab issue create *)"
-    "Bash(glab mr create *)"
-    "Bash(glab mr merge *)"
-    "Bash(glab mr approve *)"
-    "Bash(glab repo create *)"
-    "Bash(glab repo fork *)"
+  ask = sharedPermissions.claudeAsk ++ [
     "mcp__GitHub__create_or_update_file"
     "mcp__GitHub__create_pull_request"
     "mcp__GitHub__create_repository"
@@ -400,22 +369,10 @@
     "mcp__GitLab__merge_merge_request"
     "mcp__GitLab__push_files"
     "mcp__GitLab__unapprove_merge_request"
-
-    # --------------------------------------------------------------------------
-    # Nix
-    # --------------------------------------------------------------------------
-    "Bash(agenix *)"
-    "Bash(darwin-rebuild *)"
-    "Bash(nixos-rebuild *)"
   ];
 
   # ----------------------------------------------------------------------------
   # Deny - Always blocked
   # ----------------------------------------------------------------------------
-
-  deny = [
-    # agenix -r silently empties all secrets when stdin is not a TTY
-    "Bash(agenix -r *)"
-    "Bash(agenix --rekey *)"
-  ];
+  deny = sharedPermissions.claudeDeny;
 }

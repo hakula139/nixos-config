@@ -3,6 +3,7 @@ algif
 alnum
 alsa
 anthropics
+attrsets
 autocd
 autocmd
 backblazeb2
