@@ -23,8 +23,9 @@
   # ----------------------------------------------------------------------------
   # Execution
   # ----------------------------------------------------------------------------
-  approval_policy = "never";
-  sandbox_mode = "danger-full-access";
+  approval_policy = "on-request";
+  sandbox_mode = "workspace-write";
+  approvals_reviewer = "auto_review";
   shell_environment_policy = {
     "inherit" = "all";
   };
