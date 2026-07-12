@@ -213,8 +213,8 @@
     "CloudCone-US-2": "linux",
     "CloudCone-US-3": "linux",
     "DMIT-US-4": "linux",
-    "Tencent-SG-1": "linux",
-    "Hakula-MacBook": "macOS"
+    "Hakula-MacBook": "macOS",
+    "Tencent-SG-1": "linux"
   },
   "ruff.configurationPreference": "filesystemFirst",
   "scm.defaultViewMode": "tree",
@@ -240,6 +240,7 @@
   "workbench.colorTheme": "Material Theme Ocean High Contrast",
   "workbench.editorLargeFileConfirmation": 100,
   "workbench.iconTheme": "material-icon-theme",
+  "workbench.preferredDarkColorTheme": "Material Theme Ocean High Contrast",
   "yaml.customTags": [
     "!reference sequence"
   ],
