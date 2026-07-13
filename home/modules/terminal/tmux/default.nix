@@ -90,8 +90,6 @@ in
     # --------------------------------------------------------------------------
     # Extra configuration
     # --------------------------------------------------------------------------
-    # Catppuccin loads via extraConfig (not the plugins list) so its loader runs
-    # backgrounded, and last so a stalled loader can't strand earlier config.
     extraConfig = lib.concatStringsSep "\n" [
       (lib.fileContents ./tmux.conf)
       clipboardConfig
