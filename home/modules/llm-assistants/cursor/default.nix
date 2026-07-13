@@ -59,6 +59,7 @@ let
       runtimeInputs = with pkgs; [
         coreutils
         diffutils
+        jq
       ];
       text = ''
         exec ${pkgs.bash}/bin/bash ${syncScript} ${windowsInterop} ${settings.windowsSettingsJson}
