@@ -25,7 +25,7 @@ let
       null;
 
   # A local sink means tmux's own OSC 52 emission must be off so it can't race
-  # the pipe; without one, OSC 52 is the only route to the clipboard.
+  # the pipe. Without one, OSC 52 is the only route to the clipboard.
   clipboardConfig =
     if localClipboard != null then
       ''
@@ -37,6 +37,17 @@ let
         set -s set-clipboard on
         bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
       '';
+
+  # Catppuccin's loader re-enters tmux with `tmux source`. A foreground run-shell
+  # (what HM's plugins list emits) deadlocks the config queue on cold startup:
+  # the nested client blocks on the not-yet-ready server, stranding every later
+  # option and keybinding. `-b` backgrounds it so the queue drains first.
+  catppuccinConfig = ''
+    set -g @catppuccin_flavor "mocha"
+    set -g @catppuccin_window_status_style "rounded"
+    set -g @catppuccin_date_time_text " %H:%M"
+    run-shell -b ${pkgs.tmuxPlugins.catppuccin.rtp}
+  '';
 in
 {
   programs.tmux = {
@@ -60,17 +71,6 @@ in
     # Plugins
     # --------------------------------------------------------------------------
     plugins = with pkgs.tmuxPlugins; [
-      # Color scheme
-      {
-        plugin = catppuccin;
-        extraConfig = ''
-          set -g @catppuccin_flavor "mocha"
-          set -g @catppuccin_window_status_style "rounded"
-          set -g @catppuccin_date_time_text " %H:%M"
-        '';
-      }
-
-      # Session persistence
       {
         plugin = resurrect;
         extraConfig = ''
@@ -78,7 +78,6 @@ in
         '';
       }
 
-      # Auto-save sessions
       {
         plugin = continuum;
         extraConfig = ''
@@ -91,6 +90,10 @@ in
     # --------------------------------------------------------------------------
     # Extra configuration
     # --------------------------------------------------------------------------
-    extraConfig = lib.fileContents ./tmux.conf + "\n\n" + clipboardConfig;
+    extraConfig = lib.concatStringsSep "\n" [
+      (lib.fileContents ./tmux.conf)
+      clipboardConfig
+      catppuccinConfig
+    ];
   };
 }
