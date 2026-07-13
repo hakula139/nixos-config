@@ -5,12 +5,13 @@
 {
   pkgs,
   lib,
+  repo,
   ...
 }:
 
 let
   notify = import ../../shared/notify.nix { inherit pkgs lib; };
-  hookScripts = import ../../shared/hooks { inherit pkgs lib; };
+  hookScripts = import ../../shared/hooks { inherit pkgs lib repo; };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
   autoFormatScript = hookScripts.mkAutoFormatScript { name = "claude-code-auto-format"; };

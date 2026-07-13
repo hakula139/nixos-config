@@ -89,9 +89,7 @@
   "cSpell.diagnosticLevel": "Hint",
   "cSpell.diagnosticLevelFlaggedWords": "Information",
   "cSpell.language": "en,en-GB",
-  "cSpell.userWords": [
-    "hakula"
-  ],
+  "cSpell.userWords": ["hakula"],
   "css.lint.unknownAtRules": "ignore",
   "cursor.composer.textSizeScale": 1.15,
   "cursor.cpp.disabledLanguages": [],
@@ -197,16 +195,10 @@
   },
   "nix.enableLanguageServer": true,
   "notebook.output.scrolling": true,
-  "prettier.printWidth": 100,
-  "prettier.quoteProps": "consistent",
-  "prettier.singleQuote": true,
-  "prettier.trailingComma": "all",
   "redhat.telemetry.enabled": true,
   "remote.autoForwardPortsSource": "hybrid",
   "remote.extensionKind": {
-    "WakaTime.vscode-wakatime": [
-      "ui"
-    ]
+    "WakaTime.vscode-wakatime": ["ui"]
   },
   "remote.SSH.remotePlatform": {
     "CloudCone-US-1": "linux",
@@ -240,8 +232,5 @@
   "workbench.editorLargeFileConfirmation": 100,
   "workbench.iconTheme": "material-icon-theme",
   "workbench.preferredDarkColorTheme": "Material Theme Ocean High Contrast",
-  "yaml.customTags": [
-    "!reference sequence"
-  ],
-  "yaml.format.singleQuote": true
+  "yaml.customTags": ["!reference sequence"]
 }
