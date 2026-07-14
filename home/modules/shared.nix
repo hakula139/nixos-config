@@ -33,6 +33,7 @@ in
     ".npmrc".text = ''
       manage-package-manager-versions=true
     '';
+    ".prettierrc.json".source = lib.path.append repo.root ".prettierrc.json";
     "ruff.toml".source = lib.path.append repo.root "ruff.toml";
   };
 

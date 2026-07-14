@@ -10,6 +10,7 @@
   corpDomain,
   llmAssistantLib,
   proxyLib,
+  repo,
   secretPath,
   enableDevToolchains ? false,
   ...
@@ -86,7 +87,7 @@ in
       };
 
       notify = import ../shared/notify.nix { inherit pkgs lib; };
-      hooks = import ./hooks { inherit pkgs lib; };
+      hooks = import ./hooks { inherit pkgs lib repo; };
 
       mcp = import ./mcp.nix {
         inherit
