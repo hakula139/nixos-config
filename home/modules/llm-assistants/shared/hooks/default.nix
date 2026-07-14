@@ -4,10 +4,15 @@
 
 {
   pkgs,
+  lib,
+  repo,
   ...
 }:
 
 let
+  # ----------------------------------------------------------------------------
+  # Script generation
+  # ----------------------------------------------------------------------------
   mkHookScript =
     {
       name,
@@ -20,8 +25,9 @@ let
       )
     );
 
-  # Generated (not a static .dprint.json) so the Wasm plugin store paths pin
-  # into the closure. emphasis / strong kinds match markdownlint MD049 / MD050.
+  # ----------------------------------------------------------------------------
+  # Formatter configuration
+  # ----------------------------------------------------------------------------
   dprintPlugins = with pkgs.dprint-plugins; [
     dprint-plugin-markdown
     dprint-plugin-ruff
@@ -32,10 +38,42 @@ let
     g-plane-malva
     g-plane-markup_fmt
   ];
+
+  prettierConfig = builtins.fromJSON (
+    builtins.readFile (lib.path.append repo.root ".prettierrc.json")
+  );
+  ruffConfig = builtins.fromTOML (builtins.readFile (lib.path.append repo.root "ruff.toml"));
+
+  preferredQuoteStyle = single: if single then "preferSingle" else "preferDouble";
+
   dprintConfig = (pkgs.formats.json { }).generate "dprint.json" {
+    json.lineWidth = prettierConfig.printWidth;
+    malva = {
+      inherit (prettierConfig) printWidth;
+      quotes = preferredQuoteStyle prettierConfig.singleQuote;
+    };
     markdown = {
       emphasisKind = "underscores";
       strongKind = "asterisks";
+    };
+    markup.printWidth = prettierConfig.printWidth;
+    ruff = {
+      indentStyle = ruffConfig.format.indent-style;
+      lineEnding = ruffConfig.format.line-ending;
+      lineLength = ruffConfig.line-length;
+      quoteStyle = ruffConfig.format.quote-style;
+      skipMagicTrailingComma = ruffConfig.format.skip-magic-trailing-comma;
+    };
+    toml.lineWidth = 80;
+    typescript = {
+      inherit (prettierConfig) quoteProps;
+      "jsx.quoteStyle" = preferredQuoteStyle prettierConfig.jsxSingleQuote;
+      lineWidth = prettierConfig.printWidth;
+      quoteStyle = preferredQuoteStyle prettierConfig.singleQuote;
+    };
+    yaml = {
+      inherit (prettierConfig) printWidth;
+      quotes = preferredQuoteStyle prettierConfig.singleQuote;
     };
     plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
   };

@@ -10,6 +10,7 @@
   corpDomain,
   llmAssistantLib,
   proxyLib,
+  repo,
   secretPath,
   ...
 }:
@@ -52,7 +53,7 @@ in
       # Module imports
       # ------------------------------------------------------------------------
       notify = import ../shared/notify.nix { inherit pkgs lib; };
-      hooks = import ./hooks.nix { inherit pkgs lib; };
+      hooks = import ./hooks.nix { inherit pkgs lib repo; };
 
       mcp = import ./mcp.nix {
         inherit
