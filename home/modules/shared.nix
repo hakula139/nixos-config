@@ -93,7 +93,7 @@ in
       bun
       typescript
       typescript-language-server
-      prettier
+      unstable.prettier
 
       # ------------------------------------------------------------------------
       # Data & Document Tools
