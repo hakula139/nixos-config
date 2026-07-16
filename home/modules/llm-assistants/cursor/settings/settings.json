@@ -116,6 +116,7 @@
     "strings": "on"
   },
   "editor.tabSize": 2,
+  "editor.wrappingStrategy": "advanced",
   "errorLens.gutterIconsEnabled": true,
   "errorLens.statusBarColorsEnabled": true,
   "evenBetterToml.formatter.allowedBlankLines": 1,
