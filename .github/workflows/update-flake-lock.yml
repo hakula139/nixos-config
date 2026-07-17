@@ -56,13 +56,14 @@ jobs:
           git push --force-with-lease origin "HEAD:refs/heads/$UPDATE_BRANCH"
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Validate and publish update
+      - name: Validate and merge update
         if: steps.update.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          UPDATE_BRANCH: automation/flake-update
           VALIDATION_REF: ${{ steps.commit.outputs.sha }}
         run: |
           gh workflow run ci.yml \
-            --ref main \
+            --ref "$UPDATE_BRANCH" \
             --field validation_ref="$VALIDATION_REF" \
             --field publish=true

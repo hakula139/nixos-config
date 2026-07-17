@@ -12,7 +12,7 @@ on:
         required: false
         type: string
       publish:
-        description: Publish a validated flake lock update to main
+        description: Merge a validated flake lock update through a pull request
         required: false
         default: false
         type: boolean
@@ -98,7 +98,8 @@ jobs:
           cache_prefix: ${{ matrix.config.id }}
           cachix_name: ${{ env.CACHIX_NAME }}
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          cachix_skip_push: ${{ !(github.ref == 'refs/heads/main' || github.actor == 'hakula139') }}
+          cachix_skip_push: >-
+            ${{ !(github.ref == 'refs/heads/main' || github.actor == 'hakula139' || inputs.publish) }}
 
       - name: Build configuration
         run: |
@@ -109,7 +110,7 @@ jobs:
       - name: Pin critical store paths
         if: >-
           matrix.config.id == 'macos' &&
-          (github.ref == 'refs/heads/main' || github.actor == 'hakula139')
+          (github.ref == 'refs/heads/main' || github.actor == 'hakula139' || inputs.publish)
         run: |
           store_path=$(nix eval --raw '.#darwinConfigurations.macbook.pkgs.peertube-runner.outPath')
           cachix push hakula "$store_path"
@@ -120,7 +121,7 @@ jobs:
           nix path-info -Sh ${{ matrix.config.target }}
 
   publish-flake-lock:
-    name: Publish Flake Lock
+    name: Merge Flake Lock
     if: ${{ inputs.publish }}
     runs-on: ubuntu-latest
     needs:
@@ -128,6 +129,8 @@ jobs:
       - build
     permissions:
       contents: write
+      issues: write
+      pull-requests: write
 
     steps:
       - name: Checkout validated revision
@@ -136,8 +139,10 @@ jobs:
           fetch-depth: 0
           ref: ${{ env.VALIDATION_REF }}
 
-      - name: Fast-forward main
+      - name: Open and merge update pull request
         env:
+          GH_TOKEN: ${{ github.token }}
+          PR_TITLE: 'chore(flake): update flake inputs'
           UPDATE_BRANCH: automation/flake-update
         run: |
           git fetch origin main
@@ -157,5 +162,56 @@ jobs:
             exit 1
           fi
 
-          git push origin HEAD:refs/heads/main
-          git push origin --delete "$UPDATE_BRANCH"
+          while IFS= read -r pr_number; do
+            if [[ -n "$pr_number" ]]; then
+              gh pr close "$pr_number" --repo "$GITHUB_REPOSITORY"
+            fi
+          done < <(
+            gh pr list \
+              --repo "$GITHUB_REPOSITORY" \
+              --base main \
+              --head "$UPDATE_BRANCH" \
+              --state open \
+              --json number \
+              --jq '.[].number'
+          )
+
+          pr_body="$RUNNER_TEMP/flake-update-pr.md"
+          printf '%s\n' \
+            '## Summary' \
+            '' \
+            '- Update all flake inputs to their latest revisions.' \
+            '' \
+            '## Changes' \
+            '' \
+            '- Refresh flake.lock with nix flake update.' \
+            '' \
+            '## Design decisions' \
+            '' \
+            '- Create this pull request only after the generated commit passes the full CI matrix.' \
+            '- Close an older unmerged flake update pull request before creating this replacement.' \
+            '' \
+            '## Test plan' \
+            '' \
+            '- [x] nix flake check --all-systems' \
+            '- [x] Build every NixOS, WSL, system-manager, Darwin, and Docker target' \
+            > "$pr_body"
+
+          pr_url=$(
+            gh pr create \
+              --repo "$GITHUB_REPOSITORY" \
+              --base main \
+              --head "$UPDATE_BRANCH" \
+              --title "$PR_TITLE" \
+              --body-file "$pr_body" \
+              --assignee hakula139 \
+              --label ci
+          )
+
+          gh pr merge "$pr_url" \
+            --repo "$GITHUB_REPOSITORY" \
+            --auto \
+            --squash \
+            --delete-branch \
+            --subject "$PR_TITLE" \
+            --body 'Update all flake inputs after the full configuration matrix passes.'
