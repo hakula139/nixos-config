@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["nix"],
+  "nix": {
+    "enabled": true
+  },
+  "timezone": "Asia/Shanghai",
+  "schedule": ["before 3am"],
+  "prConcurrentLimit": 1,
+  "dependencyDashboard": false,
+  "assignAutomerge": true,
+  "semanticCommits": "enabled",
+  "packageRules": [
+    {
+      "matchManagers": ["nix"],
+      "groupName": "flake inputs",
+      "labels": ["ci"],
+      "assignees": ["hakula139"],
+      "automerge": true,
+      "automergeStrategy": "squash",
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "flake"
+    }
+  ]
+}
