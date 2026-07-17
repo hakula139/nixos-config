@@ -6,20 +6,9 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      validation_ref:
-        description: Git ref to validate
-        required: false
-        type: string
-      publish:
-        description: Publish a validated flake lock update to main
-        required: false
-        default: false
-        type: boolean
 
 env:
   CACHIX_NAME: hakula
-  VALIDATION_REF: ${{ inputs.validation_ref || github.sha }}
 
 jobs:
   flake-check:
@@ -28,8 +17,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          ref: ${{ env.VALIDATION_REF }}
 
       - name: Setup Nix
         uses: ./.github/actions/setup-nix
@@ -89,8 +76,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          ref: ${{ env.VALIDATION_REF }}
 
       - name: Setup Nix
         uses: ./.github/actions/setup-nix
@@ -118,44 +103,3 @@ jobs:
       - name: Check system closure size
         run: |
           nix path-info -Sh ${{ matrix.config.target }}
-
-  publish-flake-lock:
-    name: Publish Flake Lock
-    if: ${{ inputs.publish }}
-    runs-on: ubuntu-latest
-    needs:
-      - flake-check
-      - build
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout validated revision
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          ref: ${{ env.VALIDATION_REF }}
-
-      - name: Fast-forward main
-        env:
-          UPDATE_BRANCH: automation/flake-update
-        run: |
-          git fetch origin main
-
-          if ! git merge-base --is-ancestor origin/main HEAD; then
-            echo "main changed while the update was being validated" >&2
-            exit 1
-          fi
-
-          if [[ $(git rev-list --count origin/main..HEAD) -ne 1 ]]; then
-            echo "the update must contain exactly one commit" >&2
-            exit 1
-          fi
-
-          if [[ $(git diff --name-only origin/main HEAD) != flake.lock ]]; then
-            echo "the update must change only flake.lock" >&2
-            exit 1
-          fi
-
-          git push origin HEAD:refs/heads/main
-          git push origin --delete "$UPDATE_BRANCH"
