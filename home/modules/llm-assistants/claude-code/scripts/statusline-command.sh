@@ -74,9 +74,9 @@ simplify_model_name() {
       ;;
   esac
 
-  local version_re='(opus|sonnet|haiku|gpt)[- ]([0-9]+)[-.]([0-9]+)'
+  local version_re='(opus|sonnet|haiku|gpt)[- ]([0-9]+([-.][0-9]+)?)'
   if [[ "${lc}" =~ ${version_re} ]]; then
-    version="${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
+    version="${BASH_REMATCH[2]//-/.}"
   fi
 
   local result="${name}"
