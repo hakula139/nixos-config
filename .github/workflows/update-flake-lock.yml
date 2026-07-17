@@ -1,0 +1,68 @@
+name: Update Flake Lock
+
+on:
+  schedule:
+    - cron: '17 2 * * *'
+      timezone: Asia/Shanghai
+  workflow_dispatch:
+
+concurrency:
+  group: update-flake-lock
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  update:
+    name: Update Flake Lock
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
+        with:
+          cache_prefix: flake-update
+
+      - name: Update flake inputs
+        id: update
+        run: |
+          nix flake update
+
+          if git diff --quiet -- flake.lock; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit update
+        if: steps.update.outputs.changed == 'true'
+        id: commit
+        env:
+          UPDATE_BRANCH: automation/flake-update
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add flake.lock
+          git commit -m 'chore(flake): update flake inputs'
+          git fetch origin \
+            "+refs/heads/$UPDATE_BRANCH:refs/remotes/origin/$UPDATE_BRANCH" || true
+          git push --force-with-lease origin "HEAD:refs/heads/$UPDATE_BRANCH"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Validate and publish update
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VALIDATION_REF: ${{ steps.commit.outputs.sha }}
+        run: |
+          gh workflow run ci.yml \
+            --ref main \
+            --field validation_ref="$VALIDATION_REF" \
+            --field publish=true
