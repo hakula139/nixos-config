@@ -116,9 +116,12 @@ in
         # ----------------------------------------------------------------------
         # Node.js Development
         # ----------------------------------------------------------------------
+        # Resolve @pnpm from npmjs. pnpm 11 rejects the mirror's rewritten
+        # tarball host when self-installing a pinned packageManager.
         ".npmrc".text = lib.mkForce ''
           manage-package-manager-versions=true
           registry=${npmMirror}
+          @pnpm:registry=https://registry.npmjs.org/
         '';
 
         # ----------------------------------------------------------------------
