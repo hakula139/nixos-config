@@ -161,6 +161,7 @@ nixsw
 nixup
 nlsv
 nofile
+npmjs
 nslookup
 nspr
 numtide
