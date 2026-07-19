@@ -81,27 +81,14 @@ in
   ];
 
   PermissionRequest = [
-    # Notify when Claude Code needs user attention (permission or question)
+    # Notify when Claude Code asks a question
     {
+      matcher = "AskUserQuestion";
       hooks = [
         {
           type = "command";
           command = ''
-            tool_name="$(${pkgs.jq}/bin/jq -r '.tool_name // empty')"
-            case "$tool_name" in
-              AskUserQuestion)
-                ${projectNotify} "Question asked"
-                ;;
-              mcp__*)
-                # Extract MCP server name
-                mcp_name="''${tool_name#mcp__}"
-                mcp_name="''${mcp_name%%__*}"
-                ${projectNotify} "$mcp_name permission requested"
-                ;;
-              *)
-                ${projectNotify} "$tool_name permission requested"
-                ;;
-            esac
+            ${projectNotify} "Question asked"
           '';
         }
       ];
@@ -123,21 +110,6 @@ in
               printf "Teammate %s: before going idle, check TaskList for unclaimed tasks and send any unsent findings via SendMessage." "$teammate_name" >&2
               exit 2
             fi
-          '';
-        }
-      ];
-    }
-  ];
-
-  # Notify when a teammate marks a task as completed
-  TaskCompleted = [
-    {
-      hooks = [
-        {
-          type = "command";
-          command = ''
-            task_subject="$(${pkgs.jq}/bin/jq -r '.task_subject // empty')"
-            ${projectNotify} "Task completed: $task_subject"
           '';
         }
       ];
