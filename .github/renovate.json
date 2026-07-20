@@ -5,8 +5,10 @@
   "nix": {
     "enabled": true
   },
-  "timezone": "Asia/Shanghai",
-  "schedule": ["before 3am"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["at any time"]
+  },
   "prConcurrentLimit": 1,
   "dependencyDashboard": false,
   "assignAutomerge": true,
