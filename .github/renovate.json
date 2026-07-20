@@ -5,6 +5,10 @@
   "nix": {
     "enabled": true
   },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["at any time"]
+  },
   "prConcurrentLimit": 1,
   "dependencyDashboard": false,
   "assignAutomerge": true,
