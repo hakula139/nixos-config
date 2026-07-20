@@ -140,7 +140,7 @@ let
   # ----------------------------------------------------------------------------
   glabBin = "${config.home.profileDirectory}/bin/glab";
   gitlabPatFile = secretPath "gitlab-pat";
-  gitlabWorkHost = "gitlab-general.${corpDomain}";
+  gitlabWorkHost = "gitlab-space2.${corpDomain}";
   gitlabToolsets = lib.concatStringsSep "," [
     "branches"
     "issues"
