@@ -121,8 +121,8 @@ let
     # --------------------------------------------------------------------------
     # Themes
     # --------------------------------------------------------------------------
-    "t3dotgg.vsc-material-theme-but-i-wont-sue-you"
-    "pkief.material-icon-theme"
+    "Catppuccin.catppuccin-vsc"
+    "Catppuccin.catppuccin-vsc-icons"
   ];
 
   remoteExtensions = [
