@@ -5,8 +5,6 @@
   "nix": {
     "enabled": true
   },
-  "timezone": "Asia/Shanghai",
-  "schedule": ["before 3am"],
   "prConcurrentLimit": 1,
   "dependencyDashboard": false,
   "assignAutomerge": true,
