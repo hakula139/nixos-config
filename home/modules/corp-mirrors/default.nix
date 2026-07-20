@@ -23,6 +23,7 @@ let
   ];
 
   npmMirror = "${artifactory}/api/npm/npm/";
+  npmRegistry = "https://registry.npmjs.org/";
   goProxy = "${artifactory}/api/go/mirrors-golang";
   cargoMirror = "sparse+${artifactory}/api/cargo/mirrors-cargo-crates/index/";
 
@@ -121,7 +122,7 @@ in
         ".npmrc".text = lib.mkForce ''
           manage-package-manager-versions=true
           registry=${npmMirror}
-          @pnpm:registry=https://registry.npmjs.org/
+          @pnpm:registry=${npmRegistry}
         '';
 
         # ----------------------------------------------------------------------
