@@ -16,6 +16,7 @@
   "packageRules": [
     {
       "matchManagers": ["nix"],
+      "dependencyDashboardApproval": false,
       "groupName": "flake inputs",
       "labels": ["ci"],
       "assignees": ["hakula139"],
