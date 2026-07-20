@@ -76,6 +76,44 @@
   "C_Cpp.default.cStandard": "c23",
   "C_Cpp.experimentalFeatures": "enabled",
   "C_Cpp.inlayHints.referenceOperator.enabled": true,
+  "catppuccin.accentColor": "teal",
+  "catppuccin.boldKeywords": false,
+  "catppuccin.bracketMode": "dimmed",
+  "catppuccin.colorOverrides": {
+    "mocha": {
+      "base": "#0F111A",
+      "crust": "#090B10",
+      "mantle": "#090B10",
+      "overlay0": "#3E445D",
+      "overlay1": "#464B5D",
+      "subtext0": "#80869E",
+      "subtext1": "#8F93A2",
+      "surface0": "#1A1C25",
+      "surface1": "#292D3E",
+      "surface2": "#3B3F51",
+      "text": "#BABED8"
+    }
+  },
+  "catppuccin.customUIColors": {
+    "mocha": {
+      "activityBar.foreground": "text",
+      "editorCursor.foreground": "#FFCC00",
+      "editorLineNumber.activeForeground": "overlay1",
+      "list.activeSelectionForeground": "accent",
+      "list.inactiveSelectionForeground": "accent",
+      "sideBar.foreground": "overlay2",
+      "sideBarTitle.foreground": "text",
+      "statusBar.foreground": "overlay2",
+      "tab.activeForeground": "text",
+      "terminalCursor.foreground": "#FFCC00",
+      "titleBar.activeForeground": "subtext0"
+    }
+  },
+  "catppuccin.extraBordersEnabled": true,
+  "catppuccin.italicComments": true,
+  "catppuccin.italicKeywords": true,
+  "catppuccin.syncWithIconPack": true,
+  "catppuccin.workbenchMode": "default",
   "clangd.checkUpdates": true,
   "claudeCode.preferredLocation": "panel",
   "claudeCode.useTerminal": true,
@@ -115,6 +153,7 @@
     "comments": "on",
     "strings": "on"
   },
+  "editor.semanticHighlighting.enabled": true,
   "editor.tabSize": 2,
   "editor.wrappingStrategy": "advanced",
   "errorLens.gutterIconsEnabled": true,
@@ -221,17 +260,31 @@
   "terminal.integrated.defaultProfile.osx": "tmux",
   "terminal.integrated.fontFamily": "Maple Mono NF CN, JetBrainsMono Nerd Font, Sarasa Term SC, monospace",
   "terminal.integrated.fontSize": 14,
+  "terminal.integrated.minimumContrastRatio": 1,
   "update.showReleaseNotes": false,
   "window.commandCenter": true,
   "window.newWindowProfile": "Default",
   "window.restoreFullscreen": true,
+  "window.titleBarStyle": "custom",
   "workbench.activityBar.orientation": "vertical",
   "workbench.colorCustomizations": {
     "terminal.findMatchBackground": "#ffee006e"
   },
-  "workbench.colorTheme": "Material Theme Ocean High Contrast",
+  "workbench.colorTheme": "Catppuccin Mocha",
   "workbench.editorLargeFileConfirmation": 100,
-  "workbench.iconTheme": "material-icon-theme",
-  "workbench.preferredDarkColorTheme": "Material Theme Ocean High Contrast",
-  "yaml.customTags": ["!reference sequence"]
+  "workbench.iconTheme": "catppuccin-mocha",
+  "workbench.preferredDarkColorTheme": "Catppuccin Mocha",
+  "yaml.customTags": ["!reference sequence"],
+  "yaml.disableSchemaDetection": [
+    "**/docker-compose.yml",
+    "**/docker-compose.yaml",
+    "**/docker-compose.*.yml",
+    "**/docker-compose.*.yaml",
+    "**/compose.yml",
+    "**/compose.yaml",
+    "**/compose.*.yml",
+    "**/compose.*.yaml",
+    "**/.github/workflows/*.yml",
+    "**/.github/workflows/*.yaml"
+  ]
 }
