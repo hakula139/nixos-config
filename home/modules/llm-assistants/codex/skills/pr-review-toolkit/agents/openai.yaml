@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Review Toolkit"
+  short_description: "Review a PR or branch for blocking issues"
+  default_prompt: "Use $pr-review-toolkit to review this PR or branch for correctness and regressions."

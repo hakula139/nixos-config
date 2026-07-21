@@ -179,6 +179,7 @@ pcup
 pcupb
 pcupd
 pcupdb
+pdftoppm
 peertube
 pengzhile
 pgrep
@@ -191,6 +192,7 @@ pkill
 pmem
 pmset
 pname
+poppler
 ppid
 precmd
 proxify

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Read PDFs"
+  short_description: "Extract and visually inspect local PDF files"
+  default_prompt: "Use $read-pdfs to extract and review this local PDF with page-aware visual checks."

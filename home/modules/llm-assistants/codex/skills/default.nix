@@ -29,6 +29,7 @@ let
     # Local skills
     pr-draft-summary = ./pr-draft-summary;
     pr-review-toolkit = ./pr-review-toolkit;
+    read-pdfs = ./read-pdfs;
   };
 
   bundle = pkgs.linkFarm "codex-skills" (
