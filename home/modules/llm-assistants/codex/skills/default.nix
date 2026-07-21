@@ -27,6 +27,7 @@ let
     webapp-testing = sources.anthropic + "/webapp-testing";
 
     # Local skills
+    clean-gone = ./clean-gone;
     pr-draft-summary = ./pr-draft-summary;
     pr-review-toolkit = ./pr-review-toolkit;
     read-pdfs = ./read-pdfs;
