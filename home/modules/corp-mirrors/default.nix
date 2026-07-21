@@ -22,7 +22,6 @@ let
     "${artifactory}/api/pypi/hpc-pypi/simple"
   ];
 
-  npmRegistry = "https://registry.npmjs.org/";
   goProxy = "${artifactory}/api/go/mirrors-golang";
   cargoMirror = "sparse+${artifactory}/api/cargo/mirrors-cargo-crates/index/";
 
@@ -118,7 +117,6 @@ in
         # ----------------------------------------------------------------------
         ".npmrc".text = lib.mkForce ''
           manage-package-manager-versions=true
-          registry=${npmRegistry}
         '';
 
         # ----------------------------------------------------------------------
