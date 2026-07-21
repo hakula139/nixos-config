@@ -102,6 +102,7 @@ in
       dprint
       jq
       markdownlint-cli2
+      poppler-utils
       taplo
       yq-go
 
