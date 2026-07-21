@@ -91,6 +91,7 @@
   ];
 
   tui = {
+    notifications = [ "plan-mode-prompt" ];
     status_line = [
       "current-dir"
       "git-branch"
