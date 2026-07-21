@@ -22,7 +22,6 @@ let
     "${artifactory}/api/pypi/hpc-pypi/simple"
   ];
 
-  npmMirror = "${artifactory}/api/npm/npm/";
   npmRegistry = "https://registry.npmjs.org/";
   goProxy = "${artifactory}/api/go/mirrors-golang";
   cargoMirror = "sparse+${artifactory}/api/cargo/mirrors-cargo-crates/index/";
@@ -117,12 +116,9 @@ in
         # ----------------------------------------------------------------------
         # Node.js Development
         # ----------------------------------------------------------------------
-        # Resolve @pnpm from npmjs. pnpm 11 rejects the mirror's rewritten
-        # tarball host when self-installing a pinned packageManager.
         ".npmrc".text = lib.mkForce ''
           manage-package-manager-versions=true
-          registry=${npmMirror}
-          @pnpm:registry=${npmRegistry}
+          registry=${npmRegistry}
         '';
 
         # ----------------------------------------------------------------------
