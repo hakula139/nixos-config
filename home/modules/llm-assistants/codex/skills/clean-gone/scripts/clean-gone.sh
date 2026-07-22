@@ -91,14 +91,46 @@ resolve_base() {
 branch_is_integrated() {
   local branch="$1"
   local base_ref="$2"
+  local -a changed_paths=()
+  local branch_ref="refs/heads/${branch}"
+  local candidate
   local cherry_output
+  local merge_base
+  local path
+  local paths_file
 
-  if git merge-base --is-ancestor "refs/heads/${branch}" "$base_ref"; then
+  if git merge-base --is-ancestor "$branch_ref" "$base_ref"; then
     return
   fi
 
-  cherry_output="$(git cherry "$base_ref" "refs/heads/${branch}")" || return 1
-  [[ -n "$cherry_output" ]] && ! grep -q '^+' <<<"$cherry_output"
+  cherry_output="$(git cherry "$base_ref" "$branch_ref")" || return 1
+  if [[ -n "$cherry_output" ]] && ! grep -q '^+' <<<"$cherry_output"; then
+    return
+  fi
+
+  merge_base="$(git merge-base "$base_ref" "$branch_ref")" || return 1
+  paths_file="$(mktemp)" || return 1
+  if ! git diff --name-only --no-renames -z "$merge_base" "$branch_ref" >"$paths_file"; then
+    rm -f -- "$paths_file"
+    return 1
+  fi
+
+  while IFS= read -r -d '' path; do
+    changed_paths+=(":(literal)$path")
+  done <"$paths_file"
+  rm -f -- "$paths_file"
+
+  if ((${#changed_paths[@]} == 0)); then
+    return
+  fi
+
+  while IFS= read -r candidate; do
+    if git diff --quiet "$branch_ref" "$candidate" -- "${changed_paths[@]}"; then
+      return
+    fi
+  done < <(git rev-list --first-parent "$base_ref" "^${merge_base}")
+
+  return 1
 }
 
 gone_count=0
