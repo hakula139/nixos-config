@@ -146,7 +146,14 @@ in
           trap 'rm -f "$tmpFile"' EXIT
 
           if [[ -s "$configFile" ]]; then
-            ${pkgs.yq}/bin/tomlq -s -t '.[0] * .[1]' "$configFile" "$baseline" >"$tmpFile"
+            ${pkgs.yq}/bin/tomlq -s -t '
+              . as [$current, $baseline]
+              | $current * $baseline
+              | .hooks = (
+                  $baseline.hooks
+                  + (if $current.hooks.state? then { state: $current.hooks.state } else { } end)
+                )
+            ' "$configFile" "$baseline" >"$tmpFile"
           else
             cp "$baseline" "$tmpFile"
           fi
