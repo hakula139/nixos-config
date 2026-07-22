@@ -10,11 +10,11 @@
 }:
 
 let
-  clipboardConfig = import ./clipboard.nix { inherit config lib pkgs; };
-  catppuccinPluginDir = "${pkgs.tmuxPlugins.catppuccin}/share/tmux-plugins/catppuccin";
+  clipboardConfig = import ./clipboard.nix { inherit config pkgs lib; };
 
   # The plugin wrapper starts nested tmux clients, which deadlock in the config
   # queue when synchronous and can be interrupted midway when backgrounded.
+  catppuccinPluginDir = "${pkgs.tmuxPlugins.catppuccin}/share/tmux-plugins/catppuccin";
   catppuccinConfig = ''
     set -g @catppuccin_flavor "mocha"
     set -g @catppuccin_window_status_style "rounded"
