@@ -88,20 +88,22 @@ resolve_base() {
   return 1
 }
 
+branch_is_integrated() {
+  local branch="$1"
+  local base_ref="$2"
+  local cherry_output
+
+  if git merge-base --is-ancestor "refs/heads/${branch}" "$base_ref"; then
+    return
+  fi
+
+  cherry_output="$(git cherry "$base_ref" "refs/heads/${branch}")" || return 1
+  [[ -n "$cherry_output" ]] && ! grep -q '^+' <<<"$cherry_output"
+}
+
 gone_count=0
 removed_count=0
 skipped_count=0
-verification_worktree=""
-
-cleanup_verification_worktree() {
-  [[ -n "$verification_worktree" ]] || return 0
-
-  git worktree remove "$verification_worktree" >/dev/null 2>&1 || true
-  rmdir "$verification_worktree" 2>/dev/null || true
-  verification_worktree=""
-}
-
-trap cleanup_verification_worktree EXIT
 
 while IFS=$'\t' read -r branch tracking remote; do
   [[ "$tracking" == *gone* ]] || continue
@@ -132,51 +134,38 @@ while IFS=$'\t' read -r branch tracking remote; do
     continue
   fi
 
-  if ! git merge-base --is-ancestor "refs/heads/${branch}" "$base_ref"; then
-    printf 'SKIP %s: branch is not merged into %s\n' "$branch" "$base_ref"
+  if ! branch_is_integrated "$branch" "$base_ref"; then
+    printf 'SKIP %s: branch is not integrated into %s\n' "$branch" "$base_ref"
     ((skipped_count += 1))
     continue
   fi
 
   if ! $apply; then
     if [[ -n "$branch_worktree" ]]; then
-      printf 'PLAN %s: remove worktree %s and delete branch (merged into %s)\n' \
+      printf 'PLAN %s: remove worktree %s and delete branch (integrated into %s)\n' \
         "$branch" "$branch_worktree" "$base_ref"
     else
-      printf 'PLAN %s: delete branch (merged into %s)\n' "$branch" "$base_ref"
+      printf 'PLAN %s: delete branch (integrated into %s)\n' "$branch" "$base_ref"
     fi
     continue
   fi
 
-  deletion_root="$repo_root"
-  if ! git merge-base --is-ancestor "refs/heads/${branch}" HEAD; then
-    verification_worktree="$(mktemp -d "${TMPDIR:-/tmp}/clean-gone.XXXXXX")"
-    if ! git worktree add --quiet --detach "$verification_worktree" "$base_ref"; then
-      cleanup_verification_worktree
-      printf 'SKIP %s: failed to prepare deletion check against %s\n' "$branch" "$base_ref" >&2
-      ((skipped_count += 1))
-      continue
-    fi
-    deletion_root="$verification_worktree"
-  fi
-
   if [[ -n "$branch_worktree" ]]; then
     if ! git worktree remove "$branch_worktree"; then
-      cleanup_verification_worktree
       printf 'SKIP %s: failed to remove worktree %s\n' "$branch" "$branch_worktree" >&2
       ((skipped_count += 1))
       continue
     fi
   fi
 
-  if git -C "$deletion_root" branch -d -- "$branch"; then
+  # -d cannot recognize squash merges; integration was verified above.
+  if git branch -D -- "$branch"; then
     ((removed_count += 1))
   else
     printf 'SKIP %s: Git refused to delete the branch\n' "$branch" >&2
     ((skipped_count += 1))
   fi
 
-  cleanup_verification_worktree
 done < <(
   git for-each-ref \
     --format='%(refname:short)%09%(upstream:track)%09%(upstream:remotename)' \
