@@ -8,6 +8,7 @@
   hostType,
   llmAssistantLib,
   proxyLib,
+  isDesktop ? false,
   ...
 }:
 
@@ -74,6 +75,7 @@ in
     ./codex
     ./cursor
     ./opencode
+    ./workmux
   ];
 
   # ----------------------------------------------------------------------------
@@ -104,6 +106,7 @@ in
 
     (lib.mkIf anyAssistantEnabled {
       hakula.secrets.required = requiredMcpSecrets;
+      hakula.workmux.enable = lib.mkDefault isDesktop;
     })
 
     (lib.mkIf cfg.enable (

@@ -87,7 +87,10 @@ in
       };
 
       notify = import ../shared/notify.nix { inherit pkgs lib; };
-      hooks = import ./hooks { inherit pkgs lib repo; };
+      hooks = import ./hooks {
+        inherit pkgs lib repo;
+        workmux = config.hakula.workmux;
+      };
 
       mcp = import ./mcp.nix {
         inherit

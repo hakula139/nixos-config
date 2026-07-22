@@ -6,6 +6,7 @@
   pkgs,
   lib,
   repo,
+  workmux,
   ...
 }:
 
@@ -29,8 +30,19 @@ let
   };
 
   completenessPrompt = builtins.readFile ./prompts/completeness.md;
+
+  mkWorkmuxHook = status: {
+    hooks = [
+      {
+        type = "command";
+        command = "${workmux.package}/bin/workmux set-window-status ${status}";
+      }
+    ];
+  };
 in
 {
+  UserPromptSubmit = lib.optionals workmux.enable [ (mkWorkmuxHook "working") ];
+
   PreToolUse = [
     # Enforce MCP tool usage over Bash equivalents
     {
@@ -77,6 +89,14 @@ in
           statusMessage = "Checking prose style";
         }
       ];
+    }
+  ]
+  ++ lib.optionals workmux.enable [ (mkWorkmuxHook "working") ];
+
+  Notification = lib.optionals workmux.enable [
+    {
+      matcher = "permission_prompt|elicitation_dialog";
+      inherit (mkWorkmuxHook "waiting") hooks;
     }
   ];
 
@@ -139,5 +159,6 @@ in
         }
       ];
     }
-  ];
+  ]
+  ++ lib.optionals workmux.enable [ (mkWorkmuxHook "done") ];
 }
