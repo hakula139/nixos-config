@@ -53,7 +53,10 @@ in
       # Module imports
       # ------------------------------------------------------------------------
       notify = import ../shared/notify.nix { inherit pkgs lib; };
-      hooks = import ./hooks.nix { inherit pkgs lib repo; };
+      hooks = import ./hooks.nix {
+        inherit pkgs lib repo;
+        workmux = config.hakula.workmux;
+      };
 
       mcp = import ./mcp.nix {
         inherit

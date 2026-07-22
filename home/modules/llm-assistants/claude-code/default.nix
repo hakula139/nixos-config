@@ -87,10 +87,7 @@ in
       };
 
       notify = import ../shared/notify.nix { inherit pkgs lib; };
-      hooks = import ./hooks {
-        inherit pkgs lib repo;
-        workmux = config.hakula.workmux;
-      };
+      hooks = import ./hooks { inherit pkgs lib repo; };
 
       mcp = import ./mcp.nix {
         inherit
@@ -109,6 +106,7 @@ in
         inherit pkgs lib inputs;
         inherit (cfg.plugins) devToolchains online;
         codexEnabled = config.hakula.codex.enable;
+        workmux = config.hakula.workmux;
       };
 
       agents = import ./agents {

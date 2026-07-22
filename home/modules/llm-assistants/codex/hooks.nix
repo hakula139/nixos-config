@@ -6,6 +6,7 @@
   pkgs,
   lib,
   repo,
+  workmux,
   ...
 }:
 
@@ -26,8 +27,19 @@ let
     printf '%s' "$input" | ${wakatimeScript} || true
     printf '%s' "$input" | ${autoFormatScript} || true
   '';
+
+  mkWorkmuxHook = status: {
+    hooks = [
+      {
+        type = "command";
+        command = "${workmux.package}/bin/workmux set-window-status ${status}";
+      }
+    ];
+  };
 in
 {
+  UserPromptSubmit = lib.optionals workmux.enable [ (mkWorkmuxHook "working") ];
+
   PreToolUse = [
     {
       matcher = "^Bash$";
@@ -54,5 +66,12 @@ in
         }
       ];
     }
-  ];
+  ]
+  ++ lib.optionals workmux.enable [ (mkWorkmuxHook "working") ];
+
+  SubagentStart = lib.optionals workmux.enable [ (mkWorkmuxHook "working") ];
+
+  SubagentStop = lib.optionals workmux.enable [ (mkWorkmuxHook "done") ];
+
+  Stop = lib.optionals workmux.enable [ (mkWorkmuxHook "done") ];
 }

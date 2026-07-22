@@ -19,11 +19,6 @@ let
     # Catppuccin owns the window format; tmux options below add Workmux's status.
     status_format = false;
   };
-
-  codexHooksFile = pkgs.runCommand "workmux-codex-hooks.json" { } ''
-    substitute ${cfg.package.src}/.codex/hooks/workmux-status.json $out \
-      --replace-fail 'workmux set-window-status' '${cfg.package}/bin/workmux set-window-status'
-  '';
 in
 {
   # ----------------------------------------------------------------------------
@@ -45,16 +40,12 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
-    home.file =
-      lib.optionalAttrs config.hakula.claude-code.enable {
-        ".claude/skills" = {
-          source = "${cfg.package}/share/workmux/skills";
-          recursive = true;
-        };
-      }
-      // lib.optionalAttrs config.hakula.codex.enable {
-        ".codex/hooks.json".source = codexHooksFile;
+    home.file = lib.optionalAttrs config.hakula.claude-code.enable {
+      ".claude/skills" = {
+        source = "${cfg.package}/share/workmux/skills";
+        recursive = true;
       };
+    };
 
     programs.tmux.extraConfig = lib.mkBefore ''
       set -g @catppuccin_window_text " #T#{?@workmux_status, #{@workmux_status},}"

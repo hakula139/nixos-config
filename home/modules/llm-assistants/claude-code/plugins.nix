@@ -9,6 +9,9 @@
   codexEnabled ? false,
   devToolchains ? false,
   online ? true,
+  workmux ? {
+    enable = false;
+  },
 }:
 
 let
@@ -67,6 +70,17 @@ let
       hash = "sha256-KJNJyAYVBsA6On/mrx9GSSQmjrwCHfQZAr+c3BZYUc0=";
       pluginsDir = "plugins";
     };
+  }
+  // lib.optionalAttrs workmux.enable {
+    workmux = {
+      github = {
+        owner = "raine";
+        repo = "workmux";
+      };
+      source = workmux.package.src;
+      version = workmux.package.version;
+      pluginsDir = null;
+    };
   };
 
   # ----------------------------------------------------------------------------
@@ -100,6 +114,9 @@ let
   # Codex plugin (requires the codex CLI from the codex module)
   // lib.optionalAttrs codexEnabled {
     "codex@openai-codex" = true;
+  }
+  // lib.optionalAttrs workmux.enable {
+    "workmux-status@workmux" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
   // lib.optionalAttrs devToolchains {
