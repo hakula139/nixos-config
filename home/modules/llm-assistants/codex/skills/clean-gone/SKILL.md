@@ -24,9 +24,9 @@ Clean branches whose upstream refs were deleted without risking uncommitted or u
    bash <skill-dir>/scripts/clean-gone.sh
    ```
 
-   The script only selects branches with a `[gone]` upstream. It skips the active worktree, dirty worktrees, and branches that are neither ancestors nor patch-equivalent to the remote default branch.
+   The script only selects branches with a `[gone]` upstream. It skips the active worktree and dirty worktrees, then verifies integration through ancestry, patch equivalence, or an exact changed-path tree match in the target branch's history.
 
-   For squash merges, the script requires `git cherry` to report every branch commit as patch-equivalent. Git `branch -d` does not recognize squash merges, so the script uses forced branch deletion only after this integration check passes. It never force-removes worktrees.
+   Git `branch -d` does not recognize squash merges, so the script uses forced branch deletion only after an integration check passes. It never force-removes worktrees.
 
 3. If the user explicitly requested cleanup, apply the reviewed plan.
 
