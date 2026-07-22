@@ -91,8 +91,8 @@ resolve_base() {
 branch_is_integrated() {
   local branch="$1"
   local base_ref="$2"
-  local -a changed_paths=()
   local branch_ref="refs/heads/${branch}"
+  local -a changed_paths=()
   local candidate
   local cherry_output
   local merge_base
