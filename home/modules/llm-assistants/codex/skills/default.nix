@@ -3,7 +3,6 @@
 # ==============================================================================
 
 {
-  pkgs,
   lib,
   inputs,
   ...
@@ -33,19 +32,17 @@ let
     read-pdfs = ./read-pdfs;
   };
 
-  bundle = pkgs.linkFarm "codex-skills" (
-    lib.mapAttrsToList (name: path: { inherit name path; }) skills
-  );
 in
 {
   settings = {
     bundled.enabled = true;
   };
 
-  homeFile = {
-    ".agents/skills" = {
-      source = bundle;
+  homeFile = lib.mapAttrs' (
+    name: source:
+    lib.nameValuePair ".agents/skills/${name}" {
+      inherit source;
       recursive = true;
-    };
-  };
+    }
+  ) skills;
 }

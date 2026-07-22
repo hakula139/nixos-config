@@ -19,6 +19,20 @@ let
     # Catppuccin owns the window format; tmux options below add Workmux's status.
     status_format = false;
   };
+
+  workmuxSkills = builtins.attrNames (
+    lib.filterAttrs (_: type: type == "directory") (builtins.readDir "${cfg.package.src}/skills")
+  );
+
+  workmuxSkillFiles = lib.listToAttrs (
+    map (name: {
+      name = ".agents/skills/${name}";
+      value = {
+        source = "${cfg.package}/share/workmux/skills/${name}";
+        recursive = true;
+      };
+    }) workmuxSkills
+  );
 in
 {
   # ----------------------------------------------------------------------------
@@ -40,12 +54,7 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
-    home.file = lib.optionalAttrs config.hakula.claude-code.enable {
-      ".claude/skills" = {
-        source = "${cfg.package}/share/workmux/skills";
-        recursive = true;
-      };
-    };
+    home.file = workmuxSkillFiles;
 
     programs.tmux.extraConfig = lib.mkBefore ''
       set -g @catppuccin_window_text " #T#{?@workmux_status, #{@workmux_status},}"
@@ -53,14 +62,6 @@ in
       bind g display-popup -E -w 90% -h 90% '${cfg.package}/bin/workmux dashboard'
     '';
 
-    xdg.configFile = {
-      "workmux/config.yaml".source = configFile;
-    }
-    // lib.optionalAttrs config.hakula.opencode.enable {
-      "opencode/skills" = {
-        source = "${cfg.package}/share/workmux/skills";
-        recursive = true;
-      };
-    };
+    xdg.configFile."workmux/config.yaml".source = configFile;
   };
 }
