@@ -6,7 +6,6 @@
   pkgs,
   lib,
   repo,
-  workmuxPackage,
   ...
 }:
 
@@ -32,7 +31,7 @@ let
     hooks = [
       {
         type = "command";
-        command = "${workmuxPackage}/bin/workmux set-window-status ${status}";
+        command = "${pkgs.workmux}/bin/workmux set-window-status ${status}";
       }
     ];
   };

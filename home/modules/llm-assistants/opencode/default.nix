@@ -16,6 +16,8 @@
 }:
 
 let
+  inherit (pkgs) workmux;
+
   json = pkgs.formats.json { };
 
   cfg = config.hakula.opencode;
@@ -26,7 +28,6 @@ let
 
   opencodeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
 
-  workmuxPackage = config.hakula.workmux.package;
 in
 {
   # ----------------------------------------------------------------------------
@@ -144,9 +145,9 @@ in
         # Program configuration
         # ----------------------------------------------------------------------
         xdg.configFile = {
-          "opencode/package.json".source = "${workmuxPackage.src}/resources/opencode/package.json";
+          "opencode/package.json".source = "${workmux.src}/resources/opencode/package.json";
           "opencode/plugins/workmux-status.ts".source =
-            "${workmuxPackage.src}/resources/opencode/plugins/workmux-status.ts";
+            "${workmux.src}/resources/opencode/plugins/workmux-status.ts";
           "opencode/tui.json".source = tuiConfigFile;
         }
         // lib.optionalAttrs cfg.plugins.ohMyOpenCode {

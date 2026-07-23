@@ -6,8 +6,6 @@
   pkgs,
   lib,
   inputs,
-  workmuxMarketplace,
-  codexEnabled ? false,
   devToolchains ? false,
   online ? true,
 }:
@@ -69,7 +67,15 @@ let
       pluginsDir = "plugins";
     };
 
-    workmux = workmuxMarketplace;
+    workmux = {
+      github = {
+        owner = "raine";
+        repo = "workmux";
+      };
+      inherit (pkgs.workmux) version;
+      source = pkgs.workmux.src;
+      pluginsDir = null;
+    };
   };
 
   # ----------------------------------------------------------------------------
@@ -100,12 +106,11 @@ let
     "pyright-lsp@claude-plugins-official" = true;
     "typescript-lsp@claude-plugins-official" = true;
 
+    # Codex plugin
+    "codex@openai-codex" = true;
+
     # Workmux plugin
     "workmux-status@workmux" = true;
-  }
-  # Codex plugin (requires the codex CLI from the codex module)
-  // lib.optionalAttrs codexEnabled {
-    "codex@openai-codex" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
   // lib.optionalAttrs devToolchains {
