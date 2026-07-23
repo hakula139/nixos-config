@@ -6,12 +6,10 @@
   pkgs,
   lib,
   inputs,
+  workmuxMarketplace,
   codexEnabled ? false,
   devToolchains ? false,
   online ? true,
-  workmux ? {
-    enable = false;
-  },
 }:
 
 let
@@ -21,6 +19,16 @@ let
   # Marketplace Definitions
   # ----------------------------------------------------------------------------
   marketplaces = {
+    agent-browser = {
+      github = {
+        owner = "vercel-labs";
+        repo = "agent-browser";
+      };
+      rev = "7379f7dbea76ad8dbf47f177349c4c3ce9263dcb"; # v0.30.1
+      hash = "sha256-NWd9qENjHCoOMgd5QWxleBvCn+ShDIEW7oOU5DC2zcI=";
+      pluginsDir = null;
+    };
+
     anthropic-agent-skills = {
       github = {
         owner = "anthropics";
@@ -39,16 +47,6 @@ let
       rev = "5fada75bc8d1a419292dc417a99c0552dd1ea885"; # 2026-06-25
       hash = "sha256-F7qYq5TYcjxJmewiBnIvYeJOnJ/g61qg3as4sGh1C7Q=";
       pluginsDir = "plugins";
-    };
-
-    agent-browser = {
-      github = {
-        owner = "vercel-labs";
-        repo = "agent-browser";
-      };
-      rev = "7379f7dbea76ad8dbf47f177349c4c3ce9263dcb"; # v0.30.1
-      hash = "sha256-NWd9qENjHCoOMgd5QWxleBvCn+ShDIEW7oOU5DC2zcI=";
-      pluginsDir = null;
     };
 
     context7-marketplace = {
@@ -70,17 +68,8 @@ let
       hash = "sha256-KJNJyAYVBsA6On/mrx9GSSQmjrwCHfQZAr+c3BZYUc0=";
       pluginsDir = "plugins";
     };
-  }
-  // lib.optionalAttrs workmux.enable {
-    workmux = {
-      github = {
-        owner = "raine";
-        repo = "workmux";
-      };
-      source = workmux.package.src;
-      version = workmux.package.version;
-      pluginsDir = null;
-    };
+
+    workmux = workmuxMarketplace;
   };
 
   # ----------------------------------------------------------------------------
@@ -110,13 +99,13 @@ let
     # Official LSP plugins
     "pyright-lsp@claude-plugins-official" = true;
     "typescript-lsp@claude-plugins-official" = true;
+
+    # Workmux plugin
+    "workmux-status@workmux" = true;
   }
   # Codex plugin (requires the codex CLI from the codex module)
   // lib.optionalAttrs codexEnabled {
     "codex@openai-codex" = true;
-  }
-  // lib.optionalAttrs workmux.enable {
-    "workmux-status@workmux" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
   // lib.optionalAttrs devToolchains {

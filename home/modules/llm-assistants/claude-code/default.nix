@@ -106,7 +106,15 @@ in
         inherit pkgs lib inputs;
         inherit (cfg.plugins) devToolchains online;
         codexEnabled = config.hakula.codex.enable;
-        workmux = config.hakula.workmux;
+        workmuxMarketplace = {
+          github = {
+            owner = "raine";
+            repo = "workmux";
+          };
+          inherit (config.hakula.workmux.package) version;
+          source = config.hakula.workmux.package.src;
+          pluginsDir = null;
+        };
       };
 
       agents = import ./agents {

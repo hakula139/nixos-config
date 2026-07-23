@@ -144,12 +144,10 @@ in
         # Program configuration
         # ----------------------------------------------------------------------
         xdg.configFile = {
-          "opencode/tui.json".source = tuiConfigFile;
-        }
-        // lib.optionalAttrs config.hakula.workmux.enable {
           "opencode/package.json".source = "${workmuxPackage.src}/resources/opencode/package.json";
           "opencode/plugins/workmux-status.ts".source =
             "${workmuxPackage.src}/resources/opencode/plugins/workmux-status.ts";
+          "opencode/tui.json".source = tuiConfigFile;
         }
         // lib.optionalAttrs cfg.plugins.ohMyOpenCode {
           "opencode/oh-my-openagent.json".source = pluginConfigFile;

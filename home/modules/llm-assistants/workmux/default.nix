@@ -20,9 +20,14 @@ let
     status_format = false;
   };
 
-  workmuxSkills = builtins.attrNames (
-    lib.filterAttrs (_: type: type == "directory") (builtins.readDir "${cfg.package.src}/skills")
-  );
+  workmuxSkills = [
+    "coordinator"
+    "merge"
+    "open-pr"
+    "rebase"
+    "workmux"
+    "worktree"
+  ];
 
   workmuxSkillFiles = lib.listToAttrs (
     map (name: {
@@ -38,20 +43,16 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.hakula.workmux = {
-    enable = lib.mkEnableOption "Workmux agent worktree orchestration";
-
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.workmux;
-      description = "Workmux package to use";
-    };
+  options.hakula.workmux.package = lib.mkOption {
+    type = lib.types.package;
+    default = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.workmux;
+    description = "Workmux package to use";
   };
 
   # ----------------------------------------------------------------------------
   # Module config
   # ----------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable {
+  config = {
     home.packages = [ cfg.package ];
 
     home.file = workmuxSkillFiles;

@@ -6,7 +6,7 @@
   pkgs,
   lib,
   repo,
-  workmux,
+  workmuxPackage,
   ...
 }:
 
@@ -32,13 +32,13 @@ let
     hooks = [
       {
         type = "command";
-        command = "${workmux.package}/bin/workmux set-window-status ${status}";
+        command = "${workmuxPackage}/bin/workmux set-window-status ${status}";
       }
     ];
   };
 in
 {
-  UserPromptSubmit = lib.optionals workmux.enable [ (mkWorkmuxHook "working") ];
+  UserPromptSubmit = [ (mkWorkmuxHook "working") ];
 
   PreToolUse = [
     {
@@ -66,12 +66,12 @@ in
         }
       ];
     }
-  ]
-  ++ lib.optionals workmux.enable [ (mkWorkmuxHook "working") ];
+    (mkWorkmuxHook "working")
+  ];
 
-  SubagentStart = lib.optionals workmux.enable [ (mkWorkmuxHook "working") ];
+  SubagentStart = [ (mkWorkmuxHook "working") ];
 
-  SubagentStop = lib.optionals workmux.enable [ (mkWorkmuxHook "done") ];
+  SubagentStop = [ (mkWorkmuxHook "done") ];
 
-  Stop = lib.optionals workmux.enable [ (mkWorkmuxHook "done") ];
+  Stop = [ (mkWorkmuxHook "done") ];
 }

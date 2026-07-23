@@ -55,7 +55,7 @@ in
       notify = import ../shared/notify.nix { inherit pkgs lib; };
       hooks = import ./hooks.nix {
         inherit pkgs lib repo;
-        workmux = config.hakula.workmux;
+        workmuxPackage = config.hakula.workmux.package;
       };
 
       mcp = import ./mcp.nix {
