@@ -33,12 +33,13 @@ let
   # ----------------------------------------------------------------------------
   settings = import ./settings {
     inherit
+      pkgs
       flakeConfigName
       isDarwin
       isNixOS
-      pkgs
       ;
     inherit (cfg.nixd) flakePath;
+    inherit (config.home) profileDirectory;
   };
 
   ext = import ./extensions.nix {
