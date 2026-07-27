@@ -8,6 +8,7 @@
   flakePath,
   isDarwin,
   isNixOS,
+  profileDirectory,
   ...
 }:
 
@@ -116,6 +117,7 @@ let
       }
       // nixdCompletions;
     };
+    "python.defaultInterpreterPath" = "${profileDirectory}/bin/python";
   };
 
   # ----------------------------------------------------------------------------
