@@ -106,10 +106,8 @@ let
     "pyright-lsp@claude-plugins-official" = true;
     "typescript-lsp@claude-plugins-official" = true;
 
-    # Codex plugin
+    # Third-party plugins
     "codex@openai-codex" = true;
-
-    # Workmux plugin
     "workmux-status@workmux" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
