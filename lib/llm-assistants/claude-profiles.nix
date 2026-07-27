@@ -46,7 +46,7 @@ in
 // lib.optionalAttrs enableCorpGateway {
   corp-gateway-bedrock = corpGatewayCommon // {
     modelOverrides = {
-      opus = "bedrock/global.anthropic.claude-opus-4-8";
+      opus = "bedrock/global.anthropic.claude-opus-5";
       sonnet = "bedrock/global.anthropic.claude-sonnet-5";
       haiku = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
     };
