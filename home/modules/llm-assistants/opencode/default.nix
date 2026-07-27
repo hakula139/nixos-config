@@ -27,7 +27,6 @@ let
   instructions = import ../shared/instructions;
 
   opencodeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
-
 in
 {
   # ----------------------------------------------------------------------------
