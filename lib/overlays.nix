@@ -25,6 +25,8 @@
 
     system-manager = inputs.system-manager.packages.${final.stdenv.hostPlatform.system}.default;
 
+    workmux = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.workmux;
+
     # --------------------------------------------------------------------------
     # Upstream overrides
     # --------------------------------------------------------------------------
