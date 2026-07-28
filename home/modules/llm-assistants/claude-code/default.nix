@@ -105,13 +105,11 @@ in
       plugins = import ./plugins.nix {
         inherit pkgs lib inputs;
         inherit (cfg.plugins) devToolchains online;
-        codexEnabled = config.hakula.codex.enable;
       };
 
       agents = import ./agents {
         inherit lib;
         inherit (cfg.agents) enabledAgents;
-        codexEnabled = config.hakula.codex.enable;
       };
 
       # ------------------------------------------------------------------------

@@ -6,7 +6,6 @@
   pkgs,
   lib,
   inputs,
-  codexEnabled ? false,
   devToolchains ? false,
   online ? true,
 }:
@@ -18,6 +17,16 @@ let
   # Marketplace Definitions
   # ----------------------------------------------------------------------------
   marketplaces = {
+    agent-browser = {
+      github = {
+        owner = "vercel-labs";
+        repo = "agent-browser";
+      };
+      rev = "7379f7dbea76ad8dbf47f177349c4c3ce9263dcb"; # v0.30.1
+      hash = "sha256-NWd9qENjHCoOMgd5QWxleBvCn+ShDIEW7oOU5DC2zcI=";
+      pluginsDir = null;
+    };
+
     anthropic-agent-skills = {
       github = {
         owner = "anthropics";
@@ -38,16 +47,6 @@ let
       pluginsDir = "plugins";
     };
 
-    agent-browser = {
-      github = {
-        owner = "vercel-labs";
-        repo = "agent-browser";
-      };
-      rev = "7379f7dbea76ad8dbf47f177349c4c3ce9263dcb"; # v0.30.1
-      hash = "sha256-NWd9qENjHCoOMgd5QWxleBvCn+ShDIEW7oOU5DC2zcI=";
-      pluginsDir = null;
-    };
-
     context7-marketplace = {
       github = {
         owner = "upstash";
@@ -66,6 +65,16 @@ let
       rev = "80c31f99570876c3ef40327838b0a2ca1ae2cd9c"; # v1.0.5
       hash = "sha256-KJNJyAYVBsA6On/mrx9GSSQmjrwCHfQZAr+c3BZYUc0=";
       pluginsDir = "plugins";
+    };
+
+    workmux = {
+      github = {
+        owner = "raine";
+        repo = "workmux";
+      };
+      inherit (pkgs.workmux) version;
+      source = pkgs.workmux.src;
+      pluginsDir = null;
     };
   };
 
@@ -96,10 +105,10 @@ let
     # Official LSP plugins
     "pyright-lsp@claude-plugins-official" = true;
     "typescript-lsp@claude-plugins-official" = true;
-  }
-  # Codex plugin (requires the codex CLI from the codex module)
-  // lib.optionalAttrs codexEnabled {
+
+    # Third-party plugins
     "codex@openai-codex" = true;
+    "workmux-status@workmux" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
   // lib.optionalAttrs devToolchains {

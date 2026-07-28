@@ -12,6 +12,7 @@
 }:
 
 let
+  inherit (pkgs) mihomo;
   inherit (pkgs.stdenv) isDarwin;
   cfg = config.hakula.mihomo;
 
@@ -112,7 +113,7 @@ let
     ${updateScript}
 
     echo "Starting mihomo..."
-    exec ${pkgs.mihomo}/bin/mihomo -d ${configDir}
+    exec ${mihomo}/bin/mihomo -d ${configDir}
   '';
 in
 {
@@ -156,7 +157,7 @@ in
     # --------------------------------------------------------------------------
     # Packages
     # --------------------------------------------------------------------------
-    home.packages = [ pkgs.mihomo ];
+    home.packages = [ mihomo ];
 
     # --------------------------------------------------------------------------
     # Systemd services (Linux)
