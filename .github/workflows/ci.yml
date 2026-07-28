@@ -2,11 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [main, 'renovate/**']
+    branches: [main]
   pull_request:
     branches: [main]
   schedule:
-    - cron: '0 20 * * *' # 04:00 Asia/Shanghai
+    - cron: '0 20 * * *' # Nominally 04:00 Asia/Shanghai; GitHub may delay it
   workflow_dispatch:
 
 env:
@@ -15,7 +15,6 @@ env:
 jobs:
   flake-check:
     name: Nix Flake Check
-    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'renovate/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
