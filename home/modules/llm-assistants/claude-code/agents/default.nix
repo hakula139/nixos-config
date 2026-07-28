@@ -5,7 +5,6 @@
 {
   lib,
   enabledAgents,
-  codexEnabled ? false,
 }:
 
 let
@@ -55,10 +54,8 @@ let
     ${agent.prompt}
   '';
 
-  allAgents =
-    lib.mapAttrs renderAgent sharedAgents
-    // lib.optionalAttrs codexEnabled {
-      codex-worker = builtins.readFile ./codex-worker.md;
-    };
+  allAgents = lib.mapAttrs renderAgent sharedAgents // {
+    codex-worker = builtins.readFile ./codex-worker.md;
+  };
 in
 lib.filterAttrs (name: _: lib.elem name enabledAgents) allAgents

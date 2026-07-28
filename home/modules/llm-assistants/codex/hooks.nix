@@ -26,8 +26,19 @@ let
     printf '%s' "$input" | ${wakatimeScript} || true
     printf '%s' "$input" | ${autoFormatScript} || true
   '';
+
+  mkWorkmuxHook = status: {
+    hooks = [
+      {
+        type = "command";
+        command = "${pkgs.workmux}/bin/workmux set-window-status ${status}";
+      }
+    ];
+  };
 in
 {
+  UserPromptSubmit = [ (mkWorkmuxHook "working") ];
+
   PreToolUse = [
     {
       matcher = "^Bash$";
@@ -54,5 +65,12 @@ in
         }
       ];
     }
+    (mkWorkmuxHook "working")
   ];
+
+  SubagentStart = [ (mkWorkmuxHook "working") ];
+
+  SubagentStop = [ (mkWorkmuxHook "done") ];
+
+  Stop = [ (mkWorkmuxHook "done") ];
 }
