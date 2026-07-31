@@ -206,6 +206,7 @@ in
               permissions
               plugins
               ;
+            inherit (profiles) processWrapper;
             bundlePlugins = cfg.plugins.bundle;
           };
         };

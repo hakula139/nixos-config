@@ -194,6 +194,18 @@ let
   );
 
   # ----------------------------------------------------------------------------
+  # Teammate launcher
+  # ----------------------------------------------------------------------------
+  # Agent-team teammates spawn through `tmux new-window` and exec the raw
+  # binary, bypassing this module's wrapper. Claude Code reads this launcher
+  # from CLAUDE_CODE_PROCESS_WRAPPER to re-source the active profile.
+  teammateLauncher = pkgs.writeShellScript "claude-teammate-launcher" (
+    builtins.replaceStrings [ "@profileLoader@" ] [ "${profileLoader}" ] (
+      builtins.readFile ./scripts/teammate-launcher.sh
+    )
+  );
+
+  # ----------------------------------------------------------------------------
   # Profile switcher
   # ----------------------------------------------------------------------------
   profileNames = builtins.attrNames cfg.auth.profiles;
@@ -356,6 +368,9 @@ in
   ];
 
   packages = lib.optionals hasProfiles [ claudeSwitch ];
+
+  # Absolute path to the launcher, or null when no profile needs restoring.
+  processWrapper = if hasProfiles then "${teammateLauncher}" else null;
 
   inherit homeFiles activation;
 }
