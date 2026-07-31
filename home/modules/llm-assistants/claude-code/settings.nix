@@ -9,7 +9,7 @@
   hooks,
   permissions,
   plugins,
-  processWrapper,
+  profileSettings,
   ...
 }:
 
@@ -17,11 +17,7 @@
   inherit hooks permissions;
   inherit (plugins) enabledPlugins;
 }
-// lib.optionalAttrs (processWrapper != null) {
-  # Restores the active auth profile for agent-team teammates, which spawn via
-  # tmux and would otherwise reach the API with no credentials.
-  inherit processWrapper;
-}
+// profileSettings
 // lib.optionalAttrs (!bundlePlugins) {
   # With bundling, known_marketplaces.json drives discovery; leaving
   # extraKnownMarketplaces set triggers failed GitHub installs offline.
