@@ -206,6 +206,7 @@ in
               permissions
               plugins
               ;
+            profileSettings = profiles.settings;
             bundlePlugins = cfg.plugins.bundle;
           };
         };
