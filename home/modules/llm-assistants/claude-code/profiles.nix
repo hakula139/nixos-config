@@ -212,6 +212,15 @@ let
   );
 
   # ----------------------------------------------------------------------------
+  # Teammate launcher
+  # ----------------------------------------------------------------------------
+  teammateLauncher = pkgs.writeShellScript "claude-teammate-launcher" (
+    builtins.replaceStrings [ "@profileLoader@" ] [ "${profileLoader}" ] (
+      builtins.readFile ./scripts/teammate-launcher.sh
+    )
+  );
+
+  # ----------------------------------------------------------------------------
   # Home files
   # ----------------------------------------------------------------------------
   homeFiles = lib.mapAttrs' (name: script: {
@@ -356,6 +365,10 @@ in
   ];
 
   packages = lib.optionals hasProfiles [ claudeSwitch ];
+
+  settings = lib.optionalAttrs hasProfiles {
+    processWrapper = "${teammateLauncher}";
+  };
 
   inherit homeFiles activation;
 }

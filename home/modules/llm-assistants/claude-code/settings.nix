@@ -9,6 +9,7 @@
   hooks,
   permissions,
   plugins,
+  profileSettings,
   ...
 }:
 
@@ -16,6 +17,7 @@
   inherit hooks permissions;
   inherit (plugins) enabledPlugins;
 }
+// profileSettings
 // lib.optionalAttrs (!bundlePlugins) {
   # With bundling, known_marketplaces.json drives discovery; leaving
   # extraKnownMarketplaces set triggers failed GitHub installs offline.
