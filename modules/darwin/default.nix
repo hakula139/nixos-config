@@ -26,6 +26,7 @@ let
 in
 {
   imports = [
+    ./corp-gateway
     ./llm-assistants
     ./ssh
     ./tailscale
