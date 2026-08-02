@@ -19,6 +19,8 @@ let
   gatewayHost = "gw.llm.${corpDomain}";
   localPort = 8443;
 
+  hostsMarker = "# nixos-config: corp-gateway";
+
   tunnelScript = pkgs.writeShellScript "corp-gateway-tunnel" ''
     set -euo pipefail
 
@@ -41,24 +43,24 @@ in
   # ----------------------------------------------------------------------------
   options.hakula.services.corpGateway = {
     enable = lib.mkEnableOption "corp gateway tunnel through Tailscale";
-
-    endpoint = lib.mkOption {
-      type = lib.types.attrsOf lib.types.str;
-      readOnly = true;
-      internal = true;
-      description = "Computed local corp gateway endpoint";
-    };
   };
 
   # ----------------------------------------------------------------------------
   # Module config
   # ----------------------------------------------------------------------------
   config = lib.mkMerge [
+    # Always drop the entry first, so disabling the module stops resolving the
+    # gateway to a loopback port that no longer forwards.
     {
-      hakula.services.corpGateway.endpoint = {
-        host = gatewayHost;
-        url = "https://${gatewayHost}";
-      };
+      system.activationScripts.postActivation.text = lib.mkAfter ''
+        (
+          set -euo pipefail
+          /usr/bin/sed -i "" ${lib.escapeShellArg "/${hostsMarker}$/d"} /etc/hosts
+          ${lib.optionalString cfg.enable ''
+            /usr/bin/printf '%s\n' ${lib.escapeShellArg "127.0.0.1 ${gatewayHost} ${hostsMarker}"} >>/etc/hosts
+          ''}
+        )
+      '';
     }
 
     (lib.mkIf cfg.enable {
@@ -76,27 +78,23 @@ in
         StandardErrorPath = "/var/log/corp-gateway.log";
       };
 
-      home-manager.users.${userName}.launchd.agents.corp-gateway = {
-        enable = true;
-        config = {
-          Label = "com.hakula.corp-gateway";
-          ProgramArguments = [ "${tunnelScript}" ];
-          RunAtLoad = true;
-          KeepAlive.SuccessfulExit = false;
-          ProcessType = "Background";
-          ThrottleInterval = 30;
-          StandardOutPath = "${homeDir}/Library/Logs/corp-gateway.log";
-          StandardErrorPath = "${homeDir}/Library/Logs/corp-gateway.log";
+      home-manager.users.${userName} = {
+        hakula.llm-assistants.proxy.noProxy = [ gatewayHost ];
+
+        launchd.agents.corp-gateway = {
+          enable = true;
+          config = {
+            Label = "com.hakula.corp-gateway";
+            ProgramArguments = [ "${tunnelScript}" ];
+            RunAtLoad = true;
+            KeepAlive.SuccessfulExit = false;
+            ProcessType = "Background";
+            ThrottleInterval = 30;
+            StandardOutPath = "${homeDir}/Library/Logs/corp-gateway.log";
+            StandardErrorPath = "${homeDir}/Library/Logs/corp-gateway.log";
+          };
         };
       };
-
-      system.activationScripts.postActivation.text = lib.mkAfter ''
-        (
-          set -euo pipefail
-          /usr/bin/sed -i "" '/# nixos-config: corp-gateway$/d' /etc/hosts
-          /usr/bin/printf '%s\n' ${lib.escapeShellArg "127.0.0.1 ${gatewayHost} # nixos-config: corp-gateway"} >>/etc/hosts
-        )
-      '';
     })
   ];
 }

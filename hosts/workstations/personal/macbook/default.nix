@@ -3,7 +3,6 @@
 # ==============================================================================
 
 {
-  config,
   pkgs,
   repo,
   hostName,
@@ -45,17 +44,9 @@
   # Home Manager Overrides
   # ----------------------------------------------------------------------------
   home-manager.users.hakula = {
-    hakula.claude-code = {
-      auth = {
-        defaultProfile = "official";
-        enableCorpGateway = true;
-      };
-      proxy.noProxy = [
-        "localhost"
-        "127.0.0.1"
-        "10.*"
-        config.hakula.services.corpGateway.endpoint.host
-      ];
+    hakula.claude-code.auth = {
+      defaultProfile = "official";
+      enableCorpGateway = true;
     };
 
     hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
