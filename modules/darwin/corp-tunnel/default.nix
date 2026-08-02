@@ -1,5 +1,5 @@
 # ==============================================================================
-# Corp Gateway Tunnel
+# Corporation Network Tunnel
 # ==============================================================================
 
 {
@@ -11,7 +11,7 @@
 }:
 
 let
-  cfg = config.hakula.services.corpGateway;
+  cfg = config.hakula.services.corpTunnel;
 
   userName = config.hakula.user.name;
   homeDir = config.users.users.${userName}.home;
@@ -19,20 +19,18 @@ let
   gatewayHost = corpHosts.llmGateway;
   localPort = 8443;
 
-  hostsMarker = "# nixos-config: corp-gateway";
+  hostsMarker = "# nixos-config: corp-tunnel";
 
-  tunnelScript = pkgs.writeShellScript "corp-gateway-tunnel" ''
+  tunnelScript = pkgs.writeShellScript "corp-tunnel" ''
     set -euo pipefail
 
     exec ${lib.getExe' pkgs.openssh "ssh"} \
-      -N -T \
+      -N \
       -o BatchMode=yes \
       -o ConnectTimeout=10 \
       -o ExitOnForwardFailure=yes \
       -o ForwardAgent=no \
-      -o ServerAliveCountMax=3 \
       -o ServerAliveInterval=30 \
-      -o StrictHostKeyChecking=yes \
       -L 127.0.0.1:${toString localPort}:${gatewayHost}:443 \
       Hakula-Work
   '';
@@ -41,8 +39,8 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.hakula.services.corpGateway = {
-    enable = lib.mkEnableOption "corp gateway tunnel through Tailscale";
+  options.hakula.services.corpTunnel = {
+    enable = lib.mkEnableOption "corp LLM gateway tunnel through Tailscale";
   };
 
   # ----------------------------------------------------------------------------
@@ -64,7 +62,7 @@ in
     }
 
     (lib.mkIf cfg.enable {
-      launchd.daemons.corp-gateway.serviceConfig = {
+      launchd.daemons.corp-tunnel.serviceConfig = {
         ProgramArguments = [
           (lib.getExe pkgs.socat)
           "TCP-LISTEN:443,bind=127.0.0.1,reuseaddr,fork"
@@ -74,24 +72,24 @@ in
         KeepAlive = true;
         ProcessType = "Background";
         ThrottleInterval = 30;
-        StandardOutPath = "/var/log/corp-gateway.log";
-        StandardErrorPath = "/var/log/corp-gateway.log";
+        StandardOutPath = "/var/log/corp-tunnel.log";
+        StandardErrorPath = "/var/log/corp-tunnel.log";
       };
 
       home-manager.users.${userName} = {
         hakula.llm-assistants.proxy.noProxy = [ gatewayHost ];
 
-        launchd.agents.corp-gateway = {
+        launchd.agents.corp-tunnel = {
           enable = true;
           config = {
-            Label = "com.hakula.corp-gateway";
+            Label = "com.hakula.corp-tunnel";
             ProgramArguments = [ "${tunnelScript}" ];
             RunAtLoad = true;
             KeepAlive.SuccessfulExit = false;
             ProcessType = "Background";
             ThrottleInterval = 30;
-            StandardOutPath = "${homeDir}/Library/Logs/corp-gateway.log";
-            StandardErrorPath = "${homeDir}/Library/Logs/corp-gateway.log";
+            StandardOutPath = "${homeDir}/Library/Logs/corp-tunnel.log";
+            StandardErrorPath = "${homeDir}/Library/Logs/corp-tunnel.log";
           };
         };
       };
