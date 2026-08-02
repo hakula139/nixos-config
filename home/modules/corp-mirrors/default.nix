@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  corpDomain,
+  corpHosts,
   hostType,
   ...
 }:
@@ -13,9 +13,10 @@
 let
   cfg = config.hakula.corp-mirrors;
 
-  artifactory = "https://artifactory.${corpDomain}/artifactory";
-  githubMirror = "https://github-mirror.${corpDomain}";
-  harbor = "harbor.${corpDomain}";
+  inherit (corpHosts) harbor;
+
+  artifactory = corpHosts.artifactoryUrl;
+  githubMirror = corpHosts.githubMirrorUrl;
 
   pypiMirror = "${artifactory}/api/pypi/mirrors-pypi/simple";
   pypiExtraIndexes = [

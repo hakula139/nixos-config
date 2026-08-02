@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  corpDomain,
+  corpHosts,
   ...
 }:
 
@@ -38,7 +38,7 @@ in
 
     hakula.llm-assistants = {
       enable = lib.mkDefault true;
-      proxy.noProxy = lib.mkDefault [ ".${corpDomain}" ];
+      proxy.noProxy = lib.mkDefault [ corpHosts.wildcard ];
     };
 
     hakula.mihomo = {

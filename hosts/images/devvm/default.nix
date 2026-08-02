@@ -4,7 +4,7 @@
 
 {
   lib,
-  corpDomain,
+  corpHosts,
   repo,
   secrets,
   ...
@@ -24,7 +24,7 @@ let
   ++ commonMcpServers;
 
   proxyUrlSecret = "devvm/proxy-url";
-  proxyNoProxy = [ ".${corpDomain}" ];
+  proxyNoProxy = [ corpHosts.wildcard ];
 in
 {
   imports = [

@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  corpDomain,
+  corpHosts,
   llmAssistantLib,
   proxyLib,
   secretPath,
@@ -21,7 +21,7 @@ let
       config
       pkgs
       lib
-      corpDomain
+      corpHosts
       proxyLib
       secretPath
       ;

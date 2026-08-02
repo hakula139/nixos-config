@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  corpDomain,
+  corpHosts,
   proxyLib,
   secretPath,
   ...
@@ -55,7 +55,7 @@ let
   atlassianBin = pkgs.writeShellScriptBin "atlassian-mcp" ''
     export PATH="${pkgs.uv}/bin:$PATH"
     ${exportFromFile "CONFLUENCE_PERSONAL_TOKEN" confluencePatFile}
-    export CONFLUENCE_URL="https://wiki.${corpDomain}"
+    export CONFLUENCE_URL="${corpHosts.wikiUrl}"
     # mcp-atlassian honours HTTP_PROXY but ignores NO_PROXY, so unset proxies for internal Confluence.
     ${proxyLib.clearProxyEnv}
     exec uvx mcp-atlassian "$@"
@@ -140,7 +140,7 @@ let
   # ----------------------------------------------------------------------------
   glabBin = "${config.home.profileDirectory}/bin/glab";
   gitlabPatFile = secretPath "gitlab-pat";
-  gitlabWorkHost = "gitlab-space2.${corpDomain}";
+  gitlabWorkHost = corpHosts.gitlab;
   gitlabToolsets = lib.concatStringsSep "," [
     "branches"
     "issues"

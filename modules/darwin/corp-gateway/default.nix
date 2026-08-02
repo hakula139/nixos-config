@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  corpDomain,
+  corpHosts,
   ...
 }:
 
@@ -16,7 +16,7 @@ let
   userName = config.hakula.user.name;
   homeDir = config.users.users.${userName}.home;
 
-  gatewayHost = "gw.llm.${corpDomain}";
+  gatewayHost = corpHosts.llmGateway;
   localPort = 8443;
 
   hostsMarker = "# nixos-config: corp-gateway";
