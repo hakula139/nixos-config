@@ -27,10 +27,7 @@ in
     # --------------------------------------------------------------------------
     # Home Manager Overrides
     # --------------------------------------------------------------------------
-    hakula.claude-code.auth = {
-      defaultProfile = "corp-gateway-bedrock";
-      enableCorpGateway = true;
-    };
+    hakula.claude-code.auth.defaultProfile = "corp-gateway-bedrock";
 
     hakula.cursor = {
       extensions.prune = lib.mkForce false;
@@ -41,12 +38,7 @@ in
 
     hakula.llm-assistants = {
       enable = lib.mkDefault true;
-      proxy.noProxy = lib.mkDefault [
-        "localhost"
-        "127.0.0.1"
-        "10.*"
-        ".${corpDomain}"
-      ];
+      proxy.noProxy = lib.mkDefault [ ".${corpDomain}" ];
     };
 
     hakula.mihomo = {
