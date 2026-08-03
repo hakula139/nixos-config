@@ -53,6 +53,16 @@ in
     };
 
     # --------------------------------------------------------------------------
+    # Crash-loop resilience
+    # --------------------------------------------------------------------------
+    # The stock 100ms RestartSec burns the 5-restart budget in under a second,
+    # latching start-limit-hit permanently even once the fault clears.
+    systemd.services.postgresql = {
+      serviceConfig.RestartSec = "5s";
+      unitConfig.StartLimitBurst = lib.mkForce 0;
+    };
+
+    # --------------------------------------------------------------------------
     # Firewall
     # --------------------------------------------------------------------------
     # Allow podman containers to reach PostgreSQL via the podman bridge.
