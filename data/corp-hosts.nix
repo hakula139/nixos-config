@@ -4,6 +4,9 @@
 
 let
   corpDomain = import ./corp-domain.nix;
+in
+rec {
+  wildcardDomain = ".${corpDomain}";
 
   artifactory = "artifactory.${corpDomain}";
   githubMirror = "github-mirror.${corpDomain}";
@@ -11,11 +14,6 @@ let
   harbor = "harbor.${corpDomain}";
   llmGateway = "gw.llm.${corpDomain}";
   wiki = "wiki.${corpDomain}";
-in
-{
-  inherit gitlab harbor llmGateway;
-
-  wildcardDomain = ".${corpDomain}";
 
   artifactoryUrl = "https://${artifactory}/artifactory";
   githubMirrorUrl = "https://${githubMirror}";
