@@ -11,6 +11,8 @@
 }:
 
 let
+  inherit (corpHosts) wildcardDomain;
+
   commonMcpServers = [
     "atlassian"
     "filesystem"
@@ -24,7 +26,7 @@ let
   ++ commonMcpServers;
 
   proxyUrlSecret = "devvm/proxy-url";
-  proxyNoProxy = [ corpHosts.wildcard ];
+  proxyNoProxy = [ wildcardDomain ];
 in
 {
   imports = [

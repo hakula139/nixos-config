@@ -3,11 +3,7 @@
 # ==============================================================================
 
 let
-  # Keep the placeholder in git. Override it locally, never commit the real value.
-  corpDomain = "corp.example.com";
-in
-rec {
-  wildcard = ".${corpDomain}";
+  corpDomain = import ./corp-domain.nix;
 
   artifactory = "artifactory.${corpDomain}";
   githubMirror = "github-mirror.${corpDomain}";
@@ -15,6 +11,11 @@ rec {
   harbor = "harbor.${corpDomain}";
   llmGateway = "gw.llm.${corpDomain}";
   wiki = "wiki.${corpDomain}";
+in
+{
+  inherit gitlab harbor llmGateway;
+
+  wildcardDomain = ".${corpDomain}";
 
   artifactoryUrl = "https://${artifactory}/artifactory";
   githubMirrorUrl = "https://${githubMirror}";

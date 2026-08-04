@@ -10,6 +10,8 @@
 }:
 
 let
+  inherit (corpHosts) wildcardDomain;
+
   cfg = config.hakula.wsl;
 in
 {
@@ -38,7 +40,7 @@ in
 
     hakula.llm-assistants = {
       enable = lib.mkDefault true;
-      proxy.noProxy = lib.mkDefault [ corpHosts.wildcard ];
+      proxy.noProxy = lib.mkDefault [ wildcardDomain ];
     };
 
     hakula.mihomo = {

@@ -30,7 +30,8 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 │   └── images/                      # Buildable images (devvm — work)
 ├── data/                            # Static configuration and inventory
 │   ├── caches.nix                   # Binary cache substituters and trusted public keys
-│   ├── corp-hosts.nix               # Corp domain placeholder and derived internal hostnames
+│   ├── corp-domain.nix              # Corp-internal domain placeholder (real value never committed)
+│   ├── corp-hosts.nix               # Corp endpoints, safe to commit
 │   ├── servers.nix                  # Server inventory (IP, port, provider, host keys, builder config)
 │   └── system-manager.nix           # Runtime PATH entries provisioned by system-manager activation
 ├── lib/                             # Pure helpers and framework code
@@ -163,7 +164,7 @@ Defer to global CLAUDE.md. The repo-specific addition: when _restyling_ an exist
 ### Git Conventions
 
 - **Scope**: the module name (`mihomo`, `secrets`, `system-manager`), the file (`flake`, `claude`, `readme`), or `(host)` for host-scoped changes.
-- Don't commit `data/corp-hosts.nix` with the real domain. The placeholder lives in git.
+- Don't commit `data/corp-domain.nix` with the real value. The placeholder lives in git. `data/corp-hosts.nix` derives every corp endpoint from it and is safe to commit.
 
 ## CI
 

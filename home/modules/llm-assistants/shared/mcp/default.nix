@@ -13,6 +13,8 @@
 }:
 
 let
+  inherit (corpHosts) gitlab wikiUrl;
+
   homeDir = config.home.homeDirectory;
 
   # undici (Node's built-in fetch) needs --use-env-proxy to honour HTTP_PROXY.
@@ -55,7 +57,7 @@ let
   atlassianBin = pkgs.writeShellScriptBin "atlassian-mcp" ''
     export PATH="${pkgs.uv}/bin:$PATH"
     ${exportFromFile "CONFLUENCE_PERSONAL_TOKEN" confluencePatFile}
-    export CONFLUENCE_URL="${corpHosts.wikiUrl}"
+    export CONFLUENCE_URL="${wikiUrl}"
     # mcp-atlassian honours HTTP_PROXY but ignores NO_PROXY, so unset proxies for internal Confluence.
     ${proxyLib.clearProxyEnv}
     exec uvx mcp-atlassian "$@"
@@ -140,7 +142,6 @@ let
   # ----------------------------------------------------------------------------
   glabBin = "${config.home.profileDirectory}/bin/glab";
   gitlabPatFile = secretPath "gitlab-pat";
-  gitlabWorkHost = corpHosts.gitlab;
   gitlabToolsets = lib.concatStringsSep "," [
     "branches"
     "issues"
@@ -158,7 +159,7 @@ let
       export GITLAB_API_URL="https://''${host}/api/v4"
     elif [[ -f "${gitlabPatFile}" ]]; then
       export GITLAB_PERSONAL_ACCESS_TOKEN="$(cat ${gitlabPatFile})"
-      export GITLAB_API_URL="https://${gitlabWorkHost}/api/v4"
+      export GITLAB_API_URL="https://${gitlab}/api/v4"
     fi
     export GITLAB_TOOLSETS="${gitlabToolsets}"
     exec ${pkgs.mcp-server-gitlab}/bin/mcp-server-gitlab "$@"
