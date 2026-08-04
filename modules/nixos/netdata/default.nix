@@ -135,12 +135,10 @@ in
       '';
     };
 
-    environment.etc."netdata/health_alarm_notify.conf" = {
-      mode = "0444";
-      text = ''
-        SEND_EMAIL="YES"
-        DEFAULT_RECIPIENT_EMAIL="hakula139@qq.com"
-      '';
-    };
+    services.netdata.configDir."health_alarm_notify.conf" = pkgs.writeText "health_alarm_notify.conf" ''
+      SEND_EMAIL="YES"
+      DEFAULT_RECIPIENT_EMAIL="hakula139@qq.com"
+      EMAIL_SENDER="hakula139@qq.com"
+    '';
   };
 }
