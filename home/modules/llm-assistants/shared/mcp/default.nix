@@ -13,7 +13,7 @@
 }:
 
 let
-  inherit (corpHosts) gitlab wikiUrl;
+  inherit (corpHosts) gitlabUrl wikiUrl;
 
   homeDir = config.home.homeDirectory;
 
@@ -159,7 +159,7 @@ let
       export GITLAB_API_URL="https://''${host}/api/v4"
     elif [[ -f "${gitlabPatFile}" ]]; then
       export GITLAB_PERSONAL_ACCESS_TOKEN="$(cat ${gitlabPatFile})"
-      export GITLAB_API_URL="https://${gitlab}/api/v4"
+      export GITLAB_API_URL="${gitlabUrl}/api/v4"
     fi
     export GITLAB_TOOLSETS="${gitlabToolsets}"
     exec ${pkgs.mcp-server-gitlab}/bin/mcp-server-gitlab "$@"

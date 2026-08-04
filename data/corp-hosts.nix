@@ -17,6 +17,7 @@ rec {
 
   artifactoryUrl = "https://${artifactory}/artifactory";
   githubMirrorUrl = "https://${githubMirror}";
+  gitlabUrl = "https://${gitlab}";
   llmGatewayUrl = "https://${llmGateway}";
   wikiUrl = "https://${wiki}";
 }
