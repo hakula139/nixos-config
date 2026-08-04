@@ -19,7 +19,10 @@ let
   gatewayHost = corpHosts.llmGateway;
   localPort = 8443;
 
-  hostsMarker = "# nixos-config: corp-tunnel";
+  # Match on the owner prefix, not the full marker: renaming this module must
+  # still clean up entries an earlier generation wrote.
+  hostsOwner = "# nixos-config:";
+  hostsEntry = "127.0.0.1 ${gatewayHost} ${hostsOwner} corp-tunnel";
 
   tunnelScript = pkgs.writeShellScript "corp-tunnel" ''
     set -euo pipefail
@@ -47,17 +50,17 @@ in
   # Module config
   # ----------------------------------------------------------------------------
   config = lib.mkMerge [
-    # Always drop the entry first, so disabling the module stops resolving the
+    # Rewrite unconditionally: disabling the module must stop resolving the
     # gateway to a loopback port that no longer forwards.
     {
       system.activationScripts.postActivation.text = lib.mkAfter ''
-        (
-          set -euo pipefail
-          /usr/bin/sed -i "" ${lib.escapeShellArg "/${hostsMarker}$/d"} /etc/hosts
-          ${lib.optionalString cfg.enable ''
-            /usr/bin/printf '%s\n' ${lib.escapeShellArg "127.0.0.1 ${gatewayHost} ${hostsMarker}"} >>/etc/hosts
-          ''}
-        )
+        hostsTmp=$(mktemp)
+        grep -vF ${lib.escapeShellArg "${gatewayHost} ${hostsOwner}"} /etc/hosts >"$hostsTmp" || true
+        ${lib.optionalString cfg.enable ''
+          printf '%s\n' ${lib.escapeShellArg hostsEntry} >>"$hostsTmp"
+        ''}
+        install -m 0644 -o root -g wheel "$hostsTmp" /etc/hosts
+        rm -f "$hostsTmp"
       '';
     }
 
