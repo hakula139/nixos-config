@@ -60,6 +60,8 @@ in
     keep-outputs = false;
     keep-derivations = false;
     download-buffer-size = 1073741824; # 1 GB
+    min-free = 3221225472; # 3 GB
+    max-free = 10737418240; # 10 GB
   };
 
   # ----------------------------------------------------------------------------
