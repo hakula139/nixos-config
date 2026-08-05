@@ -8,10 +8,13 @@
 # Claude Code sends Edit / Write payloads with tool_input.file_path; Codex sends
 # apply_patch payloads with file paths embedded in tool_input.command.
 #
-# Tools not in PATH are silently skipped. Formatters run first (silent, rewrite
-# files), then linters (output for AI). Linter output is capped to avoid flooding
-# the context window.
+# Formatters run first (silent, rewrite files), then linters (output for AI).
+# Linter output is capped to avoid flooding the context window. Rust and Go
+# toolchains stay PATH-probed, since pinning them would add GiBs to every host.
 # ==============================================================================
+
+# `-e` is omitted: every tool invocation intentionally tolerates failure.
+set -uo pipefail
 
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
@@ -32,16 +35,16 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
 
   case "$FILE_PATH" in
     *.sh)
-      shfmt -w "$FILE_PATH" 2>/dev/null || true
-      shellcheck "$FILE_PATH" 2>&1 | head -20 || true
+      "@shfmt@" -w "$FILE_PATH" 2>/dev/null || true
+      "@shellcheck@" "$FILE_PATH" 2>&1 | head -20 || true
       ;;
     *.nix)
-      nix fmt "$FILE_PATH" 2>/dev/null || true
+      "@nixfmt@" "$FILE_PATH" 2>/dev/null || true
       ;;
     *.py)
-      ruff format "$FILE_PATH" 2>/dev/null || true
-      ruff check --fix "$FILE_PATH" 2>/dev/null || true
-      ruff check "$FILE_PATH" 2>&1 | head -20 || true
+      "@ruff@" format "$FILE_PATH" 2>/dev/null || true
+      "@ruff@" check --fix "$FILE_PATH" 2>/dev/null || true
+      "@ruff@" check "$FILE_PATH" 2>&1 | head -20 || true
       ;;
     *.rs)
       if command -v cargo &>/dev/null; then
@@ -57,31 +60,21 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
       fi
       ;;
     *.toml)
-      if command -v taplo &>/dev/null; then
-        taplo fmt "$FILE_PATH" 2>/dev/null || true
-      fi
+      "@taplo@" fmt "$FILE_PATH" 2>/dev/null || true
       ;;
     *.css | *.js)
-      if command -v prettier &>/dev/null; then
-        prettier --write "$FILE_PATH" 2>/dev/null || true
-      fi
+      "@prettier@" --write "$FILE_PATH" 2>/dev/null || true
       ;;
     *.md)
-      if command -v dprint &>/dev/null; then
-        TMP=$(mktemp)
-        if dprint fmt --config "@dprintConfig@" --stdin md <"$FILE_PATH" >"$TMP" 2>/dev/null && [[ -s "$TMP" ]]; then
-          mv "$TMP" "$FILE_PATH"
-        else
-          rm -f "$TMP"
-        fi
+      TMP=$(mktemp)
+      if "@dprint@" fmt --config "@dprintConfig@" --stdin md <"$FILE_PATH" >"$TMP" 2>/dev/null && [[ -s "$TMP" ]]; then
+        mv "$TMP" "$FILE_PATH"
+      else
+        rm -f "$TMP"
       fi
-      if command -v markdownlint-cli2 &>/dev/null; then
-        markdownlint-cli2 --fix "$FILE_PATH" 2>/dev/null || true
-        markdownlint-cli2 "$FILE_PATH" 2>&1 | head -20 || true
-      fi
-      if command -v cspell &>/dev/null; then
-        cspell --no-progress "$FILE_PATH" 2>&1 | head -20 || true
-      fi
+      "@markdownlint@" --fix "$FILE_PATH" 2>/dev/null || true
+      "@markdownlint@" "$FILE_PATH" 2>&1 | head -20 || true
+      "@cspell@" --no-progress "$FILE_PATH" 2>&1 | head -20 || true
       ;;
   esac
 done
