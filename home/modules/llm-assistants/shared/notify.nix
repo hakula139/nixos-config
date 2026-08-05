@@ -20,8 +20,8 @@ let
   toasty = pkgs.runCommand "toasty" { } ''
     install -D -m 0755 ${
       pkgs.fetchurl {
-        url = "https://github.com/shanselman/toasty/releases/download/v0.5/toasty-x64.exe";
-        hash = "sha256-DTlIB4JCcjfGbDFss9+T8rYqvjC4yb/KHu0xZz3NFWQ=";
+        url = "https://github.com/shanselman/toasty/releases/download/v0.7/toasty-x64.exe";
+        hash = "sha256-7cslwnZOC/miKx4VHOQLq+OifGvjBcXpeEUq334RSw4=";
       }
     } $out/bin/toasty.exe
   '';
