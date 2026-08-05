@@ -26,9 +26,11 @@ readonly CF_IPS_V6_URL="https://www.cloudflare.com/ips-v6"
 # Helpers
 # ------------------------------------------------------------------------------
 
+# A missing prerequisite leaves the run incomplete, so it shares exit 2 with a
+# failed upstream query.
 die() {
   printf 'error: %s\n' "$1" >&2
-  exit 1
+  exit 2
 }
 
 stale_count=0
@@ -81,7 +83,7 @@ gh_default_head() {
 
 gh_latest_semver_tag() {
   gh api "repos/$1/tags?per_page=100" \
-    --jq '[.[].name | select(test("^v?[0-9]+(\\.[0-9]+)*$"))] | first' \
+    --jq '[.[].name | select(test("^v?[0-9]+(\\.[0-9]+)*$"))] | first // empty' \
     2>/dev/null || true
 }
 
@@ -229,33 +231,48 @@ check_actions() {
   section 'GitHub Actions (Renovate github-actions manager is disabled)'
 
   local pin repo current upstream
+  local -a pins=()
   while IFS= read -r pin; do
+    pins+=("$pin")
+  done < <(action_pins)
+
+  # Commit-SHA pins would match no rows, and silence here is indistinguishable
+  # from every action being current.
+  if ((${#pins[@]} == 0)); then
+    report 'github actions' '' '' UNKNOWN
+    return
+  fi
+
+  for pin in "${pins[@]}"; do
     repo="${pin%@*}"
     current="${pin#*@}"
     upstream="$(gh_latest_release "$repo")"
     # Actions are pinned to a major tag, so compare only the major component.
     report "$repo" "$current" "${upstream%%.*}"
-  done < <(action_pins)
+  done
 }
 
 check_cloudflare() {
   section 'Drifting upstream data'
 
-  local pinned upstream
-  pinned="$(grep -oP '"\K[0-9a-f.:]+/[0-9]+' "${REPO_ROOT}/${CF_IPS_NIX}" | sort)"
-  # ips-v4 ends without a newline, so concatenating would splice its last range
-  # onto the first v6 one.
-  upstream="$({
-    curl -fsS "$CF_IPS_V4_URL" && echo
-    curl -fsS "$CF_IPS_V6_URL"
-  } 2>/dev/null | grep -v '^$' | sort || true)"
+  local pinned v4 v6 upstream lastUpdated
+  lastUpdated="$(grep -oP 'Last updated: \K\S+' "${REPO_ROOT}/${CF_IPS_NIX}" || true)"
+  pinned="$(grep -oP '"\K[0-9a-f.:]+/[0-9]+' "${REPO_ROOT}/${CF_IPS_NIX}" | sort || true)"
+  v4="$(curl -fsS "$CF_IPS_V4_URL" 2>/dev/null || true)"
+  v6="$(curl -fsS "$CF_IPS_V6_URL" 2>/dev/null || true)"
 
-  if [[ -z "$upstream" ]]; then
-    report cloudflare-ips "$(grep -oP 'Last updated: \K\S+' "${REPO_ROOT}/${CF_IPS_NIX}")" '' UNKNOWN
-  elif [[ "$pinned" == "$upstream" ]]; then
-    report cloudflare-ips "$(grep -oP 'Last updated: \K\S+' "${REPO_ROOT}/${CF_IPS_NIX}")" 'same ranges' ok
+  # Either list empty means an incomplete comparison, which would otherwise
+  # surface as drift against the half we did fetch.
+  if [[ -z "$pinned" || -z "$v4" || -z "$v6" ]]; then
+    report cloudflare-ips "$lastUpdated" '' UNKNOWN
+    return
+  fi
+
+  upstream="$(printf '%s\n%s\n' "$v4" "$v6" | grep -v '^$' | sort)"
+  if [[ "$pinned" == "$upstream" ]]; then
+    report cloudflare-ips "$lastUpdated" 'same ranges' ok
   else
-    report cloudflare-ips "$(grep -oP 'Last updated: \K\S+' "${REPO_ROOT}/${CF_IPS_NIX}")" 'ranges differ' STALE
+    report cloudflare-ips "$lastUpdated" 'ranges differ' STALE
   fi
 }
 

@@ -20,13 +20,13 @@ Requires `gh` (authenticated) and `jq`, both present in `nix develop`.
 
 Exit codes are distinct so this works unattended:
 
-| Code | Meaning                                               |
-| ---- | ----------------------------------------------------- |
-| 0    | every pin current                                     |
-| 1    | at least one pin is stale                             |
-| 2    | an upstream query failed, so the result is incomplete |
+| Code | Meaning                                                              |
+| ---- | -------------------------------------------------------------------- |
+| 0    | every pin current                                                    |
+| 1    | at least one pin is stale                                            |
+| 2    | the run was incomplete: a query failed or a prerequisite was missing |
 
-Treating 2 as success would report "0 stale" during a network outage, which reads as a clean sweep.
+Treating 2 as success would report "0 stale" during a network outage, which reads as a clean sweep. A pin group that extracts nothing reports UNKNOWN for the same reason.
 
 ## What Renovate does and does not cover
 
@@ -56,7 +56,7 @@ The last two delegate their pin to `flake.lock`, so Renovate keeps them fresh an
 
 Repos that cut releases (`agent-browser`, `openai-codex`) carry the release tag in the trailing comment. The other two track their default branch, so the comment carries a date instead.
 
-These pins only take effect where `hakula.llm-assistants.claude-code.plugins.bundle` is set, which today is `devvm` alone (`hosts/images/devvm/default.nix`). That flag exists for air-gapped deployment: it prebuilds the plugin cache into the image and sets `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL`. Everywhere else Claude Code fetches plugins itself at runtime, so a stale `rev` here costs nothing until the image is rebuilt. The `enabledPlugins` list still matters on every host, since it drives which plugins get bundled.
+These pins only take effect where `hakula.claude-code.plugins.bundle` is set, which today is `devvm` alone (`hosts/images/devvm/default.nix`). That flag exists for air-gapped deployment: it prebuilds the plugin cache into the image and sets `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL`. Everywhere else Claude Code fetches plugins itself at runtime, so a stale `rev` here costs nothing until the image is rebuilt. The `enabledPlugins` list still matters on every host, since it drives which plugins get bundled.
 
 ### Custom packages
 
@@ -71,7 +71,7 @@ These pins only take effect where `hakula.llm-assistants.claude-code.plugins.bun
 
 `cloudreve` and `mcp-server-github` fetch per-platform release binaries, so each entry in their `sources` attrset carries its own hash and all of them change together.
 
-`mcp-server-filesystem` and `mcp-server-gitlab` are npm builds with a second hash (`npmDepsHash`) that also moves on every version bump.
+`mcp-server-filesystem` and `mcp-server-gitlab` are npm builds with a second hash (`npmDepsHash`) that tracks the lockfile.
 
 `peertube` is not pinned here. It tracks `unstable` via the overlay, with three patches applied in `lib/overlays.nix`. The patches are the maintenance burden, since they break when upstream moves.
 
@@ -111,8 +111,6 @@ Unpinned by design: the `npx -y <package>` MCP wrappers in `home/modules/llm-ass
 ### Drifting upstream data
 
 `modules/nixos/cloudflare/ips.nix` snapshots Cloudflare's published IP ranges. It carries no version, only a `Last updated` comment, so drift is detected by comparing the ranges themselves.
-
-`modules/nixos/cloudflare/origin-pull-ca.pem` is Cloudflare's origin-pull CA certificate. It expires, and a rotation would need a manual refresh from Cloudflare's docs.
 
 ### Versioned nixpkgs attributes
 
@@ -169,7 +167,7 @@ Renovate normally does this. Update by hand only when you need an input ahead of
 
 ### A custom package
 
-These are overlay attributes, not flake outputs, so `nix build '.#mcp-server-git'` fails. Build them through the overlay:
+These are overlay attributes rather than flake outputs, so `nix build '.#mcp-server-git'` fails. Build them through the overlay:
 
 ```bash
 nix build --no-link --print-out-paths --impure --expr \
@@ -218,12 +216,10 @@ colmena apply
 
 Use the build and format commands in the `Verification` section of `CLAUDE.md`. Which target matters depends on the pin class:
 
-| Bumped                            | Build                            |
-| --------------------------------- | -------------------------------- |
-| Container tag, service version    | the affected server, e.g. `us-4` |
-| Custom package, MCP server        | `macbook`, or any workstation    |
-| Plugin marketplace `rev` / `hash` | `devvm-docker` only              |
+| Bumped                            | Build                                  |
+| --------------------------------- | -------------------------------------- |
+| Container tag, service version    | the affected server, e.g. `us-4`       |
+| Custom package, MCP server        | the overlay invocation above, or `wsl` |
+| Plugin marketplace `rev` / `hash` | `devvm-docker` only                    |
 
 The devvm image is the only target that fetches the plugin marketplace sources, so a wrong `hash` in `plugins.nix` passes every other build. It is also a 4 GiB build, so expect it to be slow on a cold cache.
-
-`macbook` is `aarch64-darwin` and cannot be built from a Linux host: its Homebrew `Brewfile` derivation fails with `platform mismatch`. Verify Darwin-only changes on `macbook` itself, or leave them to CI. For a custom package that builds on both, `wsl` or the overlay invocation above covers the Linux side.
