@@ -26,6 +26,7 @@ let
 in
 {
   imports = [
+    ./corp-tunnel
     ./llm-assistants
     ./ssh
     ./tailscale

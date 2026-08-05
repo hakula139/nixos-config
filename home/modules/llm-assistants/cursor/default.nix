@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  corpDomain,
+  corpHosts,
   flakeConfigName,
   isDesktop ? false,
   isNixOS ? false,
@@ -118,7 +118,7 @@ in
           pkgs
           lib
           llmAssistantLib
-          corpDomain
+          corpHosts
           proxyLib
           secretPath
           ;

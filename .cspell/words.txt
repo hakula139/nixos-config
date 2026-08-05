@@ -215,6 +215,7 @@ rerere
 resolv
 resolvectl
 retag
+reuseaddr
 revealjs
 rlimit
 rprx

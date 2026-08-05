@@ -158,7 +158,7 @@
       # Special args
       # ------------------------------------------------------------------------
       caches = import ./data/caches.nix;
-      corpDomain = import ./data/corp-domain.nix;
+      corpHosts = import ./data/corp-hosts.nix;
       keys = import ./secrets/keys.nix;
       secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
       systemManagerLib = import ./data/system-manager.nix;
@@ -196,7 +196,7 @@
         inherit
           inputs
           caches
-          corpDomain
+          corpHosts
           keys
           llmAssistantLib
           proxyLib

@@ -33,6 +33,7 @@
   # ----------------------------------------------------------------------------
   # Services
   # ----------------------------------------------------------------------------
+  hakula.services.corpTunnel.enable = true;
   hakula.services.openssh.enable = true;
   hakula.services.tailscale = {
     enable = true;
@@ -43,7 +44,11 @@
   # Home Manager Overrides
   # ----------------------------------------------------------------------------
   home-manager.users.hakula = {
-    hakula.claude-code.auth.defaultProfile = "official";
+    hakula.claude-code.auth = {
+      defaultProfile = "official";
+      enableCorpGateway = true;
+    };
+
     hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
   };
 
