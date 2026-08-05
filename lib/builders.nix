@@ -59,6 +59,7 @@ let
     agenix.nixosModules.default
     home-manager.nixosModules.home-manager
     (mkHomeManagerConfig homeManagerArgs)
+    { _module.args = { inherit (homeManagerArgs) isDesktop; }; }
   ];
 
   serverSharedModules =
