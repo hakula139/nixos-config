@@ -5,25 +5,23 @@
 {
   config,
   lib,
-  corpDomain,
+  corpHosts,
   hostType,
   ...
 }:
 
 let
+  inherit (corpHosts) artifactoryUrl githubMirrorUrl harbor;
+
   cfg = config.hakula.corp-mirrors;
 
-  artifactory = "https://artifactory.${corpDomain}/artifactory";
-  githubMirror = "https://github-mirror.${corpDomain}";
-  harbor = "harbor.${corpDomain}";
-
-  pypiMirror = "${artifactory}/api/pypi/mirrors-pypi/simple";
+  pypiMirror = "${artifactoryUrl}/api/pypi/mirrors-pypi/simple";
   pypiExtraIndexes = [
-    "${artifactory}/api/pypi/hpc-pypi/simple"
+    "${artifactoryUrl}/api/pypi/hpc-pypi/simple"
   ];
 
-  goProxy = "${artifactory}/api/go/mirrors-golang";
-  cargoMirror = "sparse+${artifactory}/api/cargo/mirrors-cargo-crates/index/";
+  goProxy = "${artifactoryUrl}/api/go/mirrors-golang";
+  cargoMirror = "sparse+${artifactoryUrl}/api/cargo/mirrors-cargo-crates/index/";
 
   ociMirrors = [
     "docker.io"
@@ -66,17 +64,17 @@ in
         # ----------------------------------------------------------------------
         # Python Development
         # ----------------------------------------------------------------------
-        UV_PYTHON_INSTALL_MIRROR = "${githubMirror}/astral-sh/python-build-standalone/releases/download";
+        UV_PYTHON_INSTALL_MIRROR = "${githubMirrorUrl}/astral-sh/python-build-standalone/releases/download";
 
         # ----------------------------------------------------------------------
         # Node.js Development
         # ----------------------------------------------------------------------
-        FNM_NODE_DIST_MIRROR = "${artifactory}/mirrors-generic-nodejs-dist";
+        FNM_NODE_DIST_MIRROR = "${artifactoryUrl}/mirrors-generic-nodejs-dist";
 
         # ----------------------------------------------------------------------
         # Playwright
         # ----------------------------------------------------------------------
-        PLAYWRIGHT_DOWNLOAD_HOST = "${artifactory}/mirrors-generic-playwright";
+        PLAYWRIGHT_DOWNLOAD_HOST = "${artifactoryUrl}/mirrors-generic-playwright";
 
         # ----------------------------------------------------------------------
         # Go Development
@@ -86,8 +84,8 @@ in
         # ----------------------------------------------------------------------
         # Rust Development
         # ----------------------------------------------------------------------
-        RUSTUP_DIST_SERVER = "${artifactory}/mirrors-rust-lang-static/dist";
-        RUSTUP_UPDATE_ROOT = "${artifactory}/mirrors-rust-lang-static/rustup";
+        RUSTUP_DIST_SERVER = "${artifactoryUrl}/mirrors-rust-lang-static/dist";
+        RUSTUP_UPDATE_ROOT = "${artifactoryUrl}/mirrors-rust-lang-static/rustup";
       };
 
       home.file = {

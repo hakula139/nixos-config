@@ -4,15 +4,17 @@
 
 {
   lib,
-  corpDomain,
+  corpHosts,
   enableCorpGateway ? false,
 }:
 
 let
+  inherit (corpHosts) llmGatewayUrl;
+
   corpGatewayCommon = {
     type = "api-key";
     tokenSecret = "llm-assistants/bifrost-api-key";
-    baseUrl = "https://gw.llm.${corpDomain}/anthropic";
+    baseUrl = "${llmGatewayUrl}/anthropic";
     extraEnv = {
       CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
     };

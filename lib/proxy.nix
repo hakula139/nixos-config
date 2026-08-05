@@ -19,11 +19,19 @@ let
     else
       literalUrl;
 
+  baseNoProxy = [
+    "localhost"
+    "127.0.0.1"
+    "10.*"
+  ];
+
+  renderNoProxy = proxyCfg: lib.concatStringsSep "," (lib.unique (baseNoProxy ++ proxyCfg.noProxy));
+
   mkProxyScript =
     proxyCfg:
     let
       proxyUrl = proxyUrlExpr proxyCfg (lib.escapeShellArg proxyCfg.url);
-      noProxy = lib.escapeShellArg (lib.concatStringsSep "," proxyCfg.noProxy);
+      noProxy = lib.escapeShellArg (renderNoProxy proxyCfg);
     in
     ''
       export HTTP_PROXY=${proxyUrl}
@@ -41,7 +49,7 @@ let
     }:
     let
       proxyUrl = proxyUrlExpr proxyCfg proxyCfg.url;
-      noProxy = lib.concatStringsSep "," proxyCfg.noProxy;
+      noProxy = renderNoProxy proxyCfg;
     in
     ''
       umask 077
@@ -105,12 +113,8 @@ in
 
     noProxy = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [
-        "localhost"
-        "127.0.0.1"
-        "10.*"
-      ];
-      description = "Domains to bypass the proxy";
+      default = [ ];
+      description = "Extra domains to bypass the proxy, merged with localhost, 127.0.0.1 and 10.*";
     };
   };
 }

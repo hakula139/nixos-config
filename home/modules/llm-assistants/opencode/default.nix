@@ -7,7 +7,7 @@
   pkgs,
   lib,
   inputs,
-  corpDomain,
+  corpHosts,
   llmAssistantLib,
   proxyLib,
   secretPath,
@@ -75,7 +75,7 @@ in
           pkgs
           lib
           llmAssistantLib
-          corpDomain
+          corpHosts
           proxyLib
           secretPath
           ;

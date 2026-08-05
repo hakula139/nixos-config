@@ -4,13 +4,15 @@
 
 {
   lib,
-  corpDomain,
+  corpHosts,
   repo,
   secrets,
   ...
 }:
 
 let
+  inherit (corpHosts) wildcardDomain;
+
   commonMcpServers = [
     "atlassian"
     "filesystem"
@@ -24,12 +26,7 @@ let
   ++ commonMcpServers;
 
   proxyUrlSecret = "devvm/proxy-url";
-  proxyNoProxy = [
-    "localhost"
-    "127.0.0.1"
-    "10.*"
-    ".${corpDomain}"
-  ];
+  proxyNoProxy = [ wildcardDomain ];
 in
 {
   imports = [
@@ -67,10 +64,7 @@ in
       # Assistant Tooling
       # ------------------------------------------------------------------------
       hakula.claude-code = {
-        auth = {
-          defaultProfile = "corp-gateway-bedrock";
-          enableCorpGateway = true;
-        };
+        auth.defaultProfile = "corp-gateway-bedrock";
         mcp.enabledServers = claudeMcpServers;
         plugins.bundle = true;
       };
