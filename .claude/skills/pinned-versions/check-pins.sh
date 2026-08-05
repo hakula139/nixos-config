@@ -34,7 +34,6 @@ die() {
 stale_count=0
 unknown_count=0
 
-# Print one registry row. Status is derived unless passed explicitly.
 report() {
   local name="$1" current="$2" upstream="$3" status="${4:-}"
 
@@ -62,9 +61,15 @@ section() {
   printf '%-28s %-22s %-22s %s\n' PIN PINNED UPSTREAM STATUS
 }
 
-# Latest release tag, or empty when the repo publishes no releases.
 gh_latest_release() {
   gh api "repos/$1/releases/latest" --jq '.tag_name' 2>/dev/null || true
+}
+
+# Upstream's newest release may ship no binaries, which is not a bumpable target.
+gh_latest_release_with_asset() {
+  gh api "repos/$1/releases?per_page=100" \
+    --jq "[.[] | select(.assets | any(.name == \"$2\"))] | first | .tag_name // empty" \
+    2>/dev/null || true
 }
 
 gh_default_head() {
@@ -74,7 +79,6 @@ gh_default_head() {
   gh api "repos/${repo}/commits/${branch}" --jq '.sha' 2>/dev/null || true
 }
 
-# Highest semver-shaped tag, for repos that tag without publishing a release.
 gh_latest_semver_tag() {
   gh api "repos/$1/tags?per_page=100" \
     --jq '[.[].name | select(test("^v?[0-9]+(\\.[0-9]+)*$"))] | first' \
@@ -104,26 +108,22 @@ pypi_latest() {
 # Pin extraction
 # ------------------------------------------------------------------------------
 
-# Read `rev` from a named marketplace block in plugins.nix.
 plugin_rev() {
   sed -n "/^    $1 = {/,/^    };/p" "${REPO_ROOT}/${PLUGINS_NIX}" \
     | grep -oP 'rev = "\K[0-9a-f]+' || true
 }
 
-# Read the top-level `version = "..."` binding from a Nix file.
 nix_version() {
   grep -m1 -oP '^\s*version = "\K[^"]+' "${REPO_ROOT}/$1" || true
 }
 
-# Same, prefixed to match upstreams that tag with a leading v. Stays empty when
-# extraction fails, so a broken pattern reports UNKNOWN instead of STALE.
+# Stays empty on extraction failure, so a broken pattern reports UNKNOWN.
 nix_version_v() {
   local v
   v="$(nix_version "$1")"
   [[ -n "$v" ]] && printf 'v%s' "$v"
 }
 
-# Read the tag from the `image` option's default of the form `repo/name:tag`.
 image_tag() {
   sed -n '/image = lib.mkOption/,/};/p' "${REPO_ROOT}/$1" \
     | grep -m1 -oP 'default = "[^"]*:\K[^"]+' || true
@@ -222,7 +222,7 @@ check_runtime() {
 
   report toasty \
     "$(grep -m1 -oP 'download/\Kv?[0-9.]+' "${REPO_ROOT}/home/modules/llm-assistants/shared/notify.nix" || true)" \
-    "$(gh_latest_release shanselman/toasty)"
+    "$(gh_latest_release_with_asset shanselman/toasty toasty-x64.exe)"
 }
 
 check_actions() {
@@ -243,10 +243,12 @@ check_cloudflare() {
 
   local pinned upstream
   pinned="$(grep -oP '"\K[0-9a-f.:]+/[0-9]+' "${REPO_ROOT}/${CF_IPS_NIX}" | sort)"
+  # ips-v4 ends without a newline, so concatenating would splice its last range
+  # onto the first v6 one.
   upstream="$({
-    curl -fsS "$CF_IPS_V4_URL"
+    curl -fsS "$CF_IPS_V4_URL" && echo
     curl -fsS "$CF_IPS_V6_URL"
-  } 2>/dev/null | sort || true)"
+  } 2>/dev/null | grep -v '^$' | sort || true)"
 
   if [[ -z "$upstream" ]]; then
     report cloudflare-ips "$(grep -oP 'Last updated: \K\S+' "${REPO_ROOT}/${CF_IPS_NIX}")" '' UNKNOWN
