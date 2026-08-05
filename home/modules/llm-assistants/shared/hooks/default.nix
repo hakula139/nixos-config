@@ -87,9 +87,9 @@ in
       inherit name;
       script = ./scripts/auto-format.sh;
       substitutions = {
-        "@dprintConfig@" = "${dprintConfig}";
         "@cspell@" = lib.getExe pkgs.cspell;
         "@dprint@" = lib.getExe pkgs.dprint;
+        "@dprintConfig@" = "${dprintConfig}";
         "@markdownlint@" = lib.getExe pkgs.markdownlint-cli2;
         "@nixfmt@" = lib.getExe pkgs.nixfmt;
         "@prettier@" = lib.getExe pkgs.unstable.prettier;
