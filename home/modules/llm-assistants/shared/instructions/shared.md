@@ -102,6 +102,14 @@ Keep commit messages and PR descriptions focused on _why_. The diff itself shows
 - **Wait for explicit per-PR approval before merging.** Earlier blanket approvals do not extend to PRs opened later in the session. After opening a PR, push, report the URL, and wait for `lgtm` or `merge` referencing that specific PR.
 - **PR body authoring.** Prefer `gh pr edit --body-file <file>` or `gh pr create --body-file -` over inline `--body "$(cat <<'EOF' ... EOF)"`. The file-input form avoids shell-escape bugs around backticks and `$()` substitution. Either way, do not reference prior PRs as `#N` in the body. GitHub auto-expands them into title cards that break sentence flow.
 
+### Shared-Tree Safety
+
+When several agents share a working tree, `git stash`, `git checkout --`, `git reset --hard`, and `git clean -f` from any one of them can wipe the others' uncommitted work. Treat these as destructive whenever parallel writers exist.
+
+- Brief every write-capable agent that only `git status`, `git diff`, and `git log` are safe.
+- Isolate genuinely parallel writers in their own git worktrees.
+- Before aborting a mid-flight agent, give it a chance to flush edits to a patch file under `/tmp/`.
+
 ## Documentation
 
 Create documentation only when explicitly requested. Do not proactively generate READMEs or API docs after routine code changes.

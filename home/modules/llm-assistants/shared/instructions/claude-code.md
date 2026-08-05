@@ -54,15 +54,7 @@ The available agents and their descriptions are surfaced automatically by the ha
 
 Subagents spawn conservatively by default. When parallel work genuinely helps, ask explicitly and describe the fan-out (e.g., `"launch parallel researchers across these three directories"`).
 
-Use agents for parallelism across independent items, a specialist perspective, or to offload from a crowded context window. Skip them when the work fits in a single response, needs continuous user interaction, or the delegation overhead exceeds the benefit.
-
-### Shared-Tree Safety
-
-When multiple subagents share a working tree, `git stash`, `git checkout --`, `git reset --hard`, and `git clean -f` from any one of them can wipe the others' uncommitted work. Treat these as destructive whenever parallel writers exist.
-
-- Brief every write-capable subagent that only `git status`, `git diff`, and `git log` are safe.
-- Isolate genuinely parallel writers in their own worktrees (`Agent({ isolation: "worktree", ... })`).
-- Before aborting a mid-flight agent, give it a chance to flush edits to a patch file under `/tmp/`.
+Use agents for parallelism across independent items, a specialist perspective, or to offload from a crowded context window. Skip them when the work fits in a single response, needs continuous user interaction, or the delegation overhead exceeds the benefit. Isolate parallel writers with `Agent({ isolation: "worktree", ... })`.
 
 ### Coordination Patterns
 
