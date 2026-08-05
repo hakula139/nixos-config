@@ -20,9 +20,14 @@
 # - All non-git, non-gh, non-glab Bash commands
 #
 # Claude Code accepts a PreToolUse "allow" decision with a reason as a hint.
-# Codex currently parses but does not support "allow" / "ask" PreToolUse
-# decisions, so Codex gets the same hint through systemMessage instead.
+# `permissions.ask` still wins, so a gated command prompts regardless, and the
+# hint text is what actually reaches the model. Codex parses but does not
+# support "allow" / "ask" PreToolUse decisions, so it gets the hint via
+# systemMessage.
 # ==============================================================================
+
+# `-e` is omitted: the checks below intentionally fall through to `exit 0`.
+set -uo pipefail
 
 COMMAND=$(jq -r '.tool_input.command // empty')
 readonly HINT_MODE="@hintMode@"
