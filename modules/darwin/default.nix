@@ -328,6 +328,7 @@ in
     # --------------------------------------------------------------------------
     programs.zsh.enable = true;
     environment.shells = [ pkgs.zsh ];
+    environment.variables = shared.localeSettings;
 
     # --------------------------------------------------------------------------
     # Fonts & Packages

@@ -1,5 +1,5 @@
 # ==============================================================================
-# FHS Compatibility (Standard /usr/bin Layout)
+# FHS Compatibility (Standard /bin and /usr/bin Layout)
 # ==============================================================================
 
 {
@@ -77,7 +77,7 @@ in
     enable = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Populate /usr/bin with FHS-style shims for portable scripts.";
+      description = "Populate /bin and /usr/bin with FHS-style shims for portable scripts.";
     };
   };
 
@@ -86,7 +86,8 @@ in
   # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable {
     system.activationScripts.fhsCompatShims.text = ''
-      mkdir -p /usr/bin
+      mkdir -p /bin /usr/bin
+      ln -sfn ${pkgs.bash}/bin/bash /bin/bash
       ${lib.concatStringsSep "\n" (
         lib.mapAttrsToList (name: target: "ln -sfn ${target} /usr/bin/${name}") shims
       )}
