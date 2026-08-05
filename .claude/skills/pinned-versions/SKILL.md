@@ -225,3 +225,5 @@ Use the build and format commands in the `Verification` section of `CLAUDE.md`. 
 | Plugin marketplace `rev` / `hash` | `devvm-docker` only              |
 
 The devvm image is the only target that fetches the plugin marketplace sources, so a wrong `hash` in `plugins.nix` passes every other build. It is also a 4 GiB build, so expect it to be slow on a cold cache.
+
+`macbook` is `aarch64-darwin` and cannot be built from a Linux host: its Homebrew `Brewfile` derivation fails with `platform mismatch`. Verify Darwin-only changes on `macbook` itself, or leave them to CI. For a custom package that builds on both, `wsl` or the overlay invocation above covers the Linux side.
