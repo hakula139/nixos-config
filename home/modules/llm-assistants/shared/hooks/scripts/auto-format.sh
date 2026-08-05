@@ -13,6 +13,9 @@
 # the context window.
 # ==============================================================================
 
+# `-e` is omitted: every tool invocation intentionally tolerates failure.
+set -uo pipefail
+
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
 
@@ -36,7 +39,7 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
       shellcheck "$FILE_PATH" 2>&1 | head -20 || true
       ;;
     *.nix)
-      nix fmt "$FILE_PATH" 2>/dev/null || true
+      "@nixfmt@" "$FILE_PATH" 2>/dev/null || true
       ;;
     *.py)
       ruff format "$FILE_PATH" 2>/dev/null || true

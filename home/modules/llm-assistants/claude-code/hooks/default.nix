@@ -102,8 +102,9 @@ in
         {
           type = "command";
           command = ''
-            session_id="$(${pkgs.jq}/bin/jq -r '.session_id // empty')"
-            teammate_name="$(${pkgs.jq}/bin/jq -r '.teammate_name // empty')"
+            input="$(cat)"
+            session_id="$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.session_id // empty')"
+            teammate_name="$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.teammate_name // empty')"
             nudge_flag="/tmp/claude-team-nudged-''${session_id:-unknown}"
             if [ ! -f "$nudge_flag" ]; then
               touch "$nudge_flag"

@@ -7,6 +7,9 @@
 # additionalContext (non-halting) on a violation. Fails open on any error.
 # ==============================================================================
 
+# `-e` is omitted: the checks below intentionally fall through to `exit 0`.
+set -uo pipefail
+
 # The judge subprocess would otherwise re-trigger this hook.
 if [[ -n "${CLAUDE_PROSE_GATE_ACTIVE:-}" ]]; then
   exit 0
@@ -28,7 +31,7 @@ esac
 PROMPT_FILE="@promptFile@"
 [[ -r "$PROMPT_FILE" ]] || exit 0
 
-RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout 30 claude -p "$CONTENT" \
+RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout 25 claude -p "$CONTENT" \
   --bare \
   --system-prompt-file "$PROMPT_FILE" \
   --model sonnet \

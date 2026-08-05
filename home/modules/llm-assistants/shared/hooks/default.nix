@@ -86,7 +86,10 @@ in
     mkHookScript {
       inherit name;
       script = ./scripts/auto-format.sh;
-      substitutions."@dprintConfig@" = "${dprintConfig}";
+      substitutions = {
+        "@dprintConfig@" = "${dprintConfig}";
+        "@nixfmt@" = lib.getExe pkgs.nixfmt;
+      };
     };
 
   mkEnforceMcpScript =
