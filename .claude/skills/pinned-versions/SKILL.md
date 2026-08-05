@@ -104,7 +104,7 @@ Resolved when the service or script runs, so the store path does not change when
 
 `piclist` compares its `version` against what is installed in the state directory and reinstalls on mismatch, so bumping the literal is enough to trigger reinstall on next start.
 
-`toasty` is a `fetchurl` of a release asset, so it needs a hash refresh like any custom package.
+`toasty` is a `fetchurl` of a release asset, so it needs a hash refresh like any custom package. Its upstream also publishes releases with no binaries attached, so the newest tag is not always a bumpable target. `check-pins.sh` reports the newest release that actually ships `toasty-x64.exe`.
 
 Unpinned by design: the `npx -y <package>` MCP wrappers in `home/modules/llm-assistants/shared/mcp/default.nix` and `uvx mcp-atlassian` always resolve latest. `ccusage@latest` in `statusline-command.sh` is the same. These have no pin to bump, which also means they can break without any change on our side.
 
@@ -146,22 +146,46 @@ Renovate normally does this. Update by hand only when you need an input ahead of
 
 2. Edit `rev` in the marketplace block and update the trailing comment to the new tag or date.
 
-3. Get the new hash. Setting a wrong hash and reading the error is the reliable way, since it needs no extra tooling. The bundle is gated on `plugins.bundle`, which only `devvm` sets, so build that target:
+3. Get the new hash with `nix-prefetch-url`, which is much faster than a full build:
 
    ```bash
-   nix build '.#packages.x86_64-linux.devvm-docker' 2>&1 | grep -A2 'hash mismatch'
+   nix hash convert --hash-algo sha256 --to sri "$(
+     nix-prefetch-url --unpack https://github.com/<owner>/<repo>/archive/<rev>.tar.gz
+   )"
    ```
 
-   Copy the `got:` value into `hash`.
+   `--unpack` is required, since `fetchFromGitHub` hashes the extracted tree. Sanity-check the invocation by running it against the _current_ rev first and confirming it reproduces the hash already in the file.
 
-4. Rebuild and apply. On every host except `devvm`, Claude Code installs plugins itself at runtime and these pins are inert, so a bump changes nothing until the devvm image is rebuilt.
+4. Validate the hash through the same fetcher the module uses, without waiting on the 4 GiB image:
+
+   ```bash
+   nix build --no-link --impure --expr 'let p = (builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.x86_64-linux;
+     in p.fetchFromGitHub { owner = "<owner>"; repo = "<repo>"; rev = "<rev>"; hash = "<hash>"; }'
+   ```
+
+   Then build `devvm-docker` once at the end to confirm the whole bundle assembles.
+
+5. On every host except `devvm`, Claude Code installs plugins itself at runtime and these pins are inert, so a bump changes nothing until the devvm image is rebuilt.
 
 ### A custom package
 
+These are overlay attributes, not flake outputs, so `nix build '.#mcp-server-git'` fails. Build them through the overlay:
+
+```bash
+nix build --no-link --print-out-paths --impure --expr \
+  'let f = builtins.getFlake (toString ./.);
+       p = import f.inputs.nixpkgs {
+         system = "x86_64-linux";
+         overlays = import ./lib/overlays.nix { inherit (f) inputs; nixpkgs-unstable = f.inputs.nixpkgs-unstable; };
+         config.allowUnfree = true;
+       };
+   in p.<attr>'
+```
+
 1. Bump `version`.
-2. Zero out every hash the package declares, then rebuild to learn the real ones. For per-platform sources, note that a build on one platform reports only that platform's hash, so cross-check the others against the release assets or build on both.
-3. For npm packages, `npmDepsHash` changes too and surfaces as a second mismatch after the source hash is fixed.
-4. Verify the binary runs, since a major bump can change the entry point path baked into `makeWrapper`.
+2. Replace each hash with a dummy (`sha256-AAAA...` padded to the right length), then build to read the real one from the mismatch error. Per-platform sources report only the building platform's hash, so fetch the others with `nix-prefetch-url` against their release assets.
+3. `npmDepsHash` surfaces as a second mismatch only after the source hash is right. It does not always change: a version bump whose lockfile is untouched keeps the same value.
+4. Run the built binary. Not every tool has `--version`, so fall back to `--help`. This is what catches a moved entry point in `makeWrapper` or a broken `autoPatchelf`.
 
 ### A container image tag
 
