@@ -209,10 +209,11 @@ main() {
     return 0
   fi
 
-  # Send to CloudCone gateway
+  # Send to CloudCone gateway. The endpoint is third-party and best-effort, so a
+  # failure here must not leave a permanently failed unit that blocks a deploy.
   echo "data=${POST}" | curl -m 50 -k -s -d @- "${GATEWAY}" >/dev/null || {
     echo "Warning: Failed to send metrics to CloudCone gateway" >&2
-    return 1
+    return 0
   }
 }
 
