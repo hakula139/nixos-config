@@ -86,7 +86,18 @@ in
     mkHookScript {
       inherit name;
       script = ./scripts/auto-format.sh;
-      substitutions."@dprintConfig@" = "${dprintConfig}";
+      substitutions = {
+        "@cspell@" = lib.getExe pkgs.cspell;
+        "@dprint@" = lib.getExe pkgs.dprint;
+        "@dprintConfig@" = "${dprintConfig}";
+        "@markdownlint@" = lib.getExe pkgs.markdownlint-cli2;
+        "@nixfmt@" = lib.getExe pkgs.nixfmt;
+        "@prettier@" = lib.getExe pkgs.unstable.prettier;
+        "@ruff@" = lib.getExe pkgs.ruff;
+        "@shellcheck@" = lib.getExe pkgs.shellcheck;
+        "@shfmt@" = lib.getExe pkgs.shfmt;
+        "@taplo@" = lib.getExe pkgs.taplo;
+      };
     };
 
   mkEnforceMcpScript =
