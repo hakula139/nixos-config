@@ -68,7 +68,7 @@ in
     }
     # Style gate - flag banned prose tics in edited files and MCP-published prose
     {
-      matcher = "Edit|Write|mcp__(GitLab|GitHub)__(create|update|add)_|mcp__.*_write";
+      matcher = "Edit|Write|mcp__(GitLab|GitHub)__(create|update|add)_|mcp__.*_write|mcp__Atlassian__confluence_(create_page|update_page|add_comment|add_inline_comment|reply_to_comment)";
       hooks = [
         {
           type = "command";
