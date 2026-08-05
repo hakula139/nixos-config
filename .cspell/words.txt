@@ -225,6 +225,7 @@ sarasa
 sdist
 sess
 sgid
+shanselman
 shellenv
 shfmt
 showcmd
