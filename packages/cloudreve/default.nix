@@ -9,13 +9,13 @@
 }:
 
 let
-  version = "4.14.0";
+  version = "4.18.0";
   baseUrl = "https://github.com/cloudreve/cloudreve/releases/download/${version}";
 
   sources = {
     x86_64-linux = {
       url = "${baseUrl}/cloudreve_${version}_linux_amd64.tar.gz";
-      hash = "sha256-bvObqviPXh4TgfYQgWbsgvE0Gx2BEvhZr++1SvSXoEs=";
+      hash = "sha256-FZsV/Dwr0dyvtHCcjVBdPawGzV8uiR8uzc7fSfKH4mY=";
     };
   };
 
