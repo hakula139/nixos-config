@@ -9,6 +9,7 @@
   secrets,
   keys,
   sharedConfig,
+  isDesktop,
   ...
 }:
 
@@ -239,7 +240,7 @@ in
     # --------------------------------------------------------------------------
     # Fonts & Packages
     # --------------------------------------------------------------------------
-    fonts = {
+    fonts = lib.mkIf isDesktop {
       packages = shared.fonts;
       fontconfig.enable = true;
     };

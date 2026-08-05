@@ -30,6 +30,7 @@ in
     ./modules/shared.nix
     ./modules/darwin.nix
     ./modules/wsl.nix
+    ./modules/stale-links.nix
     ./modules/fonts
     ./modules/git
     ./modules/llm-assistants
