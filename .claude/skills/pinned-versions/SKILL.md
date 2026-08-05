@@ -16,9 +16,17 @@ Renovate handles `flake.lock` on its own. Everything documented here is invisibl
 .claude/skills/pinned-versions/check-pins.sh list     # print the registry without network calls
 ```
 
-Exits non-zero when anything is stale, so it works as a periodic check. Requires `gh` (authenticated) and `jq`, both present in `nix develop`.
+Requires `gh` (authenticated) and `jq`, both present in `nix develop`.
 
-A `UNKNOWN` row means the upstream query failed rather than that the pin is current. Re-check those by hand.
+Exit codes are distinct so this works unattended:
+
+| Code | Meaning                                               |
+| ---- | ----------------------------------------------------- |
+| 0    | every pin current                                     |
+| 1    | at least one pin is stale                             |
+| 2    | an upstream query failed, so the result is incomplete |
+
+Treating 2 as success would report "0 stale" during a network outage, which reads as a clean sweep.
 
 ## What Renovate does and does not cover
 
@@ -184,13 +192,12 @@ colmena apply
 
 ## Verification
 
-After any pin bump, build the affected targets before committing:
+Use the build and format commands in the `Verification` section of `CLAUDE.md`. Which target matters depends on the pin class:
 
-```bash
-nix build '.#nixosConfigurations.us-4.config.system.build.toplevel'   # services, container tags
-nix build '.#darwinConfigurations.macbook.system'                     # MCP servers, custom packages
-nix build '.#packages.x86_64-linux.devvm-docker'                      # plugin marketplace revs
-nix flake check
-```
+| Bumped                            | Build                            |
+| --------------------------------- | -------------------------------- |
+| Container tag, service version    | the affected server, e.g. `us-4` |
+| Custom package, MCP server        | `macbook`, or any workstation    |
+| Plugin marketplace `rev` / `hash` | `devvm-docker` only              |
 
 The devvm image is the only target that fetches the plugin marketplace sources, so a wrong `hash` in `plugins.nix` passes every other build. It is also a 4 GiB build, so expect it to be slow on a cold cache.

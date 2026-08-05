@@ -115,9 +115,18 @@ nix_version() {
   grep -m1 -oP '^\s*version = "\K[^"]+' "${REPO_ROOT}/$1" || true
 }
 
-# Read the tag from an `image` option default of the form `repo/name:tag`.
+# Same, prefixed to match upstreams that tag with a leading v. Stays empty when
+# extraction fails, so a broken pattern reports UNKNOWN instead of STALE.
+nix_version_v() {
+  local v
+  v="$(nix_version "$1")"
+  [[ -n "$v" ]] && printf 'v%s' "$v"
+}
+
+# Read the tag from the `image` option's default of the form `repo/name:tag`.
 image_tag() {
-  grep -m1 -oP 'default = "[^"]*:\K[^"]+' "${REPO_ROOT}/$1" || true
+  sed -n '/image = lib.mkOption/,/};/p' "${REPO_ROOT}/$1" \
+    | grep -m1 -oP 'default = "[^"]*:\K[^"]+' || true
 }
 
 action_pins() {
@@ -167,11 +176,11 @@ check_packages() {
     "$(gh_latest_release cloudreve/cloudreve)"
 
   report mcp-server-github \
-    "v$(nix_version packages/mcp/mcp-server-github/default.nix)" \
+    "$(nix_version_v packages/mcp/mcp-server-github/default.nix)" \
     "$(gh_latest_release github/github-mcp-server)"
 
   report mcp-server-gitlab \
-    "v$(nix_version packages/mcp/mcp-server-gitlab/default.nix)" \
+    "$(nix_version_v packages/mcp/mcp-server-gitlab/default.nix)" \
     "$(gh_latest_release zereight/gitlab-mcp)"
 
   report mcp-server-filesystem \
@@ -279,6 +288,7 @@ cmd_check() {
   printf '\n%d stale, %d unknown.\n' "$stale_count" "$unknown_count"
   if ((unknown_count > 0)); then
     printf 'UNKNOWN means the upstream query failed. Re-check those by hand.\n'
+    return 2
   fi
   ((stale_count == 0))
 }
