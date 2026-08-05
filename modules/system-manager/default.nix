@@ -86,17 +86,10 @@ in
     };
 
     # --------------------------------------------------------------------------
-    # Environment
+    # Shell & Environment
     # --------------------------------------------------------------------------
-    environment.variables = shared.localeSettings;
-
-    environment.systemPackages = shared.basePackages ++ [
-      systemManagerHealthCheck
-      pkgs.system-manager
-      pkgs.zsh
-    ];
-
     programs.zsh.enable = true;
+    environment.variables = shared.localeSettings;
 
     # Nix-built zsh reads /etc/zprofile for login shells; system-manager uses it
     # to expose the configured system PATH.
@@ -106,6 +99,15 @@ in
         path=(${lib.concatMapStringsSep " " (p: ''"${p}"'') systemManagerLib.systemPaths} $path)
       '';
     };
+
+    # --------------------------------------------------------------------------
+    # Packages
+    # --------------------------------------------------------------------------
+    environment.systemPackages = shared.basePackages ++ [
+      systemManagerHealthCheck
+      pkgs.system-manager
+      pkgs.zsh
+    ];
 
     # --------------------------------------------------------------------------
     # Secrets

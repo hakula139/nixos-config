@@ -174,13 +174,6 @@ in
     # --------------------------------------------------------------------------
     programs.zsh.enable = true;
     environment.shells = [ pkgs.zsh ];
-
-    # /bin/bash symlink for scripts with #!/bin/bash shebangs
-    system.activationScripts.binbash.text = ''
-      mkdir -p /bin
-      ln -sfn ${pkgs.bash}/bin/bash /bin/bash
-    '';
-
     environment.variables = shared.localeSettings;
 
     # Nix-LD: Run unpatched Linux binaries
