@@ -58,11 +58,7 @@ Use agents for parallelism across independent items, a specialist perspective, o
 
 ### Shared-Tree Safety
 
-When multiple subagents share a working tree, `git stash`, `git checkout --`, `git reset --hard`, and `git clean -f` from any one of them can wipe the others' uncommitted work. Treat these as destructive whenever parallel writers exist.
-
-- Brief every write-capable subagent that only `git status`, `git diff`, and `git log` are safe.
-- Isolate genuinely parallel writers in their own worktrees (`Agent({ isolation: "worktree", ... })`).
-- Before aborting a mid-flight agent, give it a chance to flush edits to a patch file under `/tmp/`.
+The shared instructions above cover the destructive-command rules. Isolate parallel writers with `Agent({ isolation: "worktree", ... })`.
 
 ### Coordination Patterns
 
