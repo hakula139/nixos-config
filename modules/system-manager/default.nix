@@ -88,10 +88,7 @@ in
     # --------------------------------------------------------------------------
     # Environment
     # --------------------------------------------------------------------------
-    environment.variables = {
-      LANG = "en_US.UTF-8";
-      LC_ALL = "en_US.UTF-8";
-    };
+    environment.variables = shared.localeSettings;
 
     environment.systemPackages = shared.basePackages ++ [
       systemManagerHealthCheck

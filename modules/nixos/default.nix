@@ -181,10 +181,7 @@ in
       ln -sfn ${pkgs.bash}/bin/bash /bin/bash
     '';
 
-    environment.variables = {
-      LANG = "en_US.UTF-8";
-      LC_ALL = "en_US.UTF-8";
-    };
+    environment.variables = shared.localeSettings;
 
     # Nix-LD: Run unpatched Linux binaries
     programs.nix-ld = {
