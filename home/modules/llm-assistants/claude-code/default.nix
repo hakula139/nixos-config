@@ -7,7 +7,8 @@
   pkgs,
   lib,
   inputs,
-  corpDomain,
+  corpHosts,
+  hostType,
   llmAssistantLib,
   proxyLib,
   repo,
@@ -29,6 +30,7 @@ let
       config
       pkgs
       lib
+      hostType
       secretPath
       ;
   };
@@ -95,7 +97,7 @@ in
           pkgs
           lib
           llmAssistantLib
-          corpDomain
+          corpHosts
           proxyLib
           secretPath
           ;

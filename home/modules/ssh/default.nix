@@ -51,9 +51,9 @@ in
         ForwardAgent = true;
       };
       "Hakula-Work" = {
-        HostName = "hakula-work";
+        HostName = "wsl";
         User = "hakula";
-        Port = 22;
+        Port = 35060;
         IdentityFile = "${homeDir}/.ssh/id_ed25519";
         ProxyCommand = "tailscale nc %h %p";
         ForwardAgent = true;

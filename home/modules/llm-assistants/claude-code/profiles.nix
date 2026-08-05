@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  hostType,
   secretPath,
   ...
 }:
@@ -333,7 +334,7 @@ in
 
     enableCorpGateway = lib.mkOption {
       type = lib.types.bool;
-      default = false;
+      default = hostType == "work";
       description = "Include the `corp-gateway-*` profiles. Requires corp-scoped agenix access.";
     };
   };
