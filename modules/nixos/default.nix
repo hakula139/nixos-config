@@ -170,7 +170,7 @@ in
     security.sudo.wheelNeedsPassword = false;
 
     # --------------------------------------------------------------------------
-    # Environment
+    # Shell & Environment
     # --------------------------------------------------------------------------
     programs.zsh.enable = true;
     environment.shells = [ pkgs.zsh ];
