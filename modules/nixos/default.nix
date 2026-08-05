@@ -135,6 +135,11 @@ in
       MaxRetentionSec=7day
     '';
 
+    # The daily tmpfiles aging of /tmp ages by atime, so any read-only traversal
+    # (du, ripgrep, a backup scan) defers deletion by another 10 days. Wiping at
+    # boot bounds /tmp regardless.
+    boot.tmp.cleanOnBoot = true;
+
     # --------------------------------------------------------------------------
     # Networking
     # --------------------------------------------------------------------------
