@@ -19,7 +19,7 @@ case "$TOOL_NAME" in
   Write) CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.content // empty') ;;
   Edit) CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.new_string // empty') ;;
   mcp__*) CONTENT=$(printf '%s' "$INPUT" \
-    | jq -r '.tool_input.description // .tool_input.body // .tool_input.note // .tool_input.content // empty') ;;
+    | jq -r '.tool_input.description // .tool_input.body // .tool_input.note // .tool_input.content // .tool_input.new_content // empty') ;;
   *) exit 0 ;;
 esac
 
