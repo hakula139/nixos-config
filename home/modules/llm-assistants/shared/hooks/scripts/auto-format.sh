@@ -45,6 +45,9 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
     *.nix)
       "@nixfmt@" "$FILE_PATH" 2>/dev/null || true
       ;;
+    *.nu)
+      "@nuCheck@" "$FILE_PATH" 2>&1 | head -20 || true
+      ;;
     *.py)
       have "@ruff@" || continue
       "@ruff@" format "$FILE_PATH" 2>/dev/null || true

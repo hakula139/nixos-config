@@ -59,6 +59,18 @@ let
   );
   ruffConfig = builtins.fromTOML (builtins.readFile (lib.path.append repo.root "ruff.toml"));
 
+  # `nu --ide-check` always exits 0, so the wrapper turns an Error-severity
+  # diagnostic into a non-zero exit.
+  nuCheck = pkgs.writeShellScript "nu-check" (
+    builtins.replaceStrings
+      [ "@nu@" "@jq@" ]
+      [
+        (lib.getExe pkgs.nushell)
+        (lib.getExe pkgs.jq)
+      ]
+      (builtins.readFile (lib.path.append repo.root "lib/nu-check.sh"))
+  );
+
   preferredQuoteStyle = single: if single then "preferSingle" else "preferDouble";
 
   dprintConfig = (pkgs.formats.json { }).generate "dprint.json" {
@@ -101,6 +113,7 @@ in
     script = ./scripts/auto-format.sh;
     substitutions = {
       "@nixfmt@" = lib.getExe pkgs.nixfmt;
+      "@nuCheck@" = "${nuCheck}";
       "@shellcheck@" = lib.getExe pkgs.shellcheck;
       "@shfmt@" = lib.getExe pkgs.shfmt;
 

@@ -101,6 +101,18 @@
       # ------------------------------------------------------------------------
       preCommitCheckFor =
         system:
+        let
+          pkgs = pkgsFor system;
+          nuCheck = pkgs.writeShellScript "nu-check" (
+            builtins.replaceStrings
+              [ "@nu@" "@jq@" ]
+              [
+                (nixpkgs.lib.getExe pkgs.nushell)
+                (nixpkgs.lib.getExe pkgs.jq)
+              ]
+              (builtins.readFile ./lib/nu-check.sh)
+          );
+        in
         git-hooks-nix.lib.${system}.run {
           src = ./.;
           hooks = {
@@ -141,6 +153,14 @@
               };
             };
             nixfmt.enable = true;
+            nu-check = {
+              enable = true;
+              name = "nu-check";
+              description = "Run nushell's diagnostic check on .nu files.";
+              entry = "${nuCheck}";
+              files = "\\.nu$";
+              types = [ "file" ];
+            };
             statix.enable = true;
             trim-trailing-whitespace = {
               enable = true;
