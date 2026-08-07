@@ -89,7 +89,10 @@ in
       };
 
       notify = import ../shared/notify.nix { inherit pkgs lib; };
-      hooks = import ./hooks { inherit pkgs lib repo; };
+      hooks = import ./hooks {
+        inherit pkgs lib repo;
+        devTools = enableDevToolchains;
+      };
 
       mcp = import ./mcp.nix {
         inherit

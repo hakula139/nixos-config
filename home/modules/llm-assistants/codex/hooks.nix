@@ -6,6 +6,7 @@
   pkgs,
   lib,
   repo,
+  devTools ? true,
   ...
 }:
 
@@ -16,7 +17,18 @@ let
     name = "codex-enforce-mcp";
     hintMode = "system-message";
   };
-  autoFormatScript = hookScripts.mkAutoFormatScript { name = "codex-auto-format"; };
+  autoFormatScript = hookScripts.mkAutoFormatScript {
+    name = "codex-auto-format";
+    inherit devTools;
+  };
+  guardLocalFilesScript = hookScripts.mkGuardLocalFilesScript {
+    name = "codex-guard-local-files";
+  };
+  proseGateScript = hookScripts.mkProseGateScript {
+    name = "codex-prose-gate";
+    promptFile = ../claude-code/hooks/prompts/prose-tics.md;
+    inherit devTools;
+  };
   wakatimeScript = hookScripts.mkWakatimeScript {
     name = "codex-wakatime-heartbeat";
     pluginName = "codex-hook/1.0";
@@ -25,6 +37,7 @@ let
     input="$(cat)"
     printf '%s' "$input" | ${wakatimeScript} || true
     printf '%s' "$input" | ${autoFormatScript} || true
+    printf '%s' "$input" | ${proseGateScript} || true
   '';
 
   mkWorkmuxHook = status: {
@@ -51,6 +64,19 @@ in
         }
       ];
     }
+    # A matcher of only alphanumerics, `_`, and `|` is treated as an exact
+    # match, so the anchors keep this a regex.
+    {
+      matcher = "^(Bash|Edit|Write|apply_patch)$";
+      hooks = [
+        {
+          type = "command";
+          command = "${guardLocalFilesScript}";
+          timeout = 10;
+          statusMessage = "Checking guarded paths";
+        }
+      ];
+    }
   ];
 
   PostToolUse = [
@@ -72,5 +98,9 @@ in
 
   SubagentStop = [ (mkWorkmuxHook "done") ];
 
+  # No completeness gate here. Codex parses `prompt` and `agent` handler types
+  # but executes only `command` ones, so Claude Code's Stop prompt gate would
+  # install and silently never run. An equivalent needs a command hook that
+  # invokes its own judge and emits {"decision":"block","reason":"..."}.
   Stop = [ (mkWorkmuxHook "done") ];
 }

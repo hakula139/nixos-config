@@ -6,6 +6,7 @@
   pkgs,
   lib,
   repo,
+  devTools ? true,
   ...
 }:
 
@@ -14,10 +15,16 @@ let
   hookScripts = import ../../shared/hooks { inherit pkgs lib repo; };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
-  autoFormatScript = hookScripts.mkAutoFormatScript { name = "claude-code-auto-format"; };
+  autoFormatScript = hookScripts.mkAutoFormatScript {
+    name = "claude-code-auto-format";
+    inherit devTools;
+  };
   enforceMcpScript = hookScripts.mkEnforceMcpScript {
     name = "claude-code-enforce-mcp";
     hintMode = "permission-allow";
+  };
+  guardLocalFilesScript = hookScripts.mkGuardLocalFilesScript {
+    name = "claude-code-guard-local-files";
   };
   wakatimeScript = hookScripts.mkWakatimeScript {
     name = "claude-code-wakatime-heartbeat";
@@ -26,6 +33,7 @@ let
   proseGateScript = hookScripts.mkProseGateScript {
     name = "claude-code-prose-gate";
     promptFile = ./prompts/prose-tics.md;
+    inherit devTools;
   };
 
   completenessPrompt = builtins.readFile ./prompts/completeness.md;
@@ -39,6 +47,16 @@ in
         {
           type = "command";
           command = "${enforceMcpScript}";
+        }
+      ];
+    }
+    # Keep working-tree-only values out of git
+    {
+      matcher = "Bash|Edit|Write|NotebookEdit|mcp__Git__git_add";
+      hooks = [
+        {
+          type = "command";
+          command = "${guardLocalFilesScript}";
         }
       ];
     }
@@ -68,7 +86,7 @@ in
     }
     # Style gate - flag banned prose tics in edited files and MCP-published prose
     {
-      matcher = "Edit|Write|mcp__Atlassian__confluence_(create_page|update_page|add_comment|add_inline_comment|reply_to_comment)|mcp__(GitHub|GitLab)__(create|update|add)_|mcp__.*_write";
+      matcher = "Edit|Write|mcp__Git__git_commit|mcp__Atlassian__confluence_(create_page|update_page|add_comment|add_inline_comment|reply_to_comment)|mcp__(GitHub|GitLab)__(create|update|add)_|mcp__.*_write";
       hooks = [
         {
           type = "command";

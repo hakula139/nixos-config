@@ -12,6 +12,7 @@
   proxyLib,
   repo,
   secretPath,
+  enableDevToolchains ? false,
   ...
 }:
 
@@ -53,7 +54,10 @@ in
       # Module imports
       # ------------------------------------------------------------------------
       notify = import ../shared/notify.nix { inherit pkgs lib; };
-      hooks = import ./hooks.nix { inherit pkgs lib repo; };
+      hooks = import ./hooks.nix {
+        inherit pkgs lib repo;
+        devTools = enableDevToolchains;
+      };
 
       mcp = import ./mcp.nix {
         inherit

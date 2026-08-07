@@ -16,6 +16,8 @@
 # `-e` is omitted: every tool invocation intentionally tolerates failure.
 set -uo pipefail
 
+readonly DEV_TOOLS="@devTools@"
+
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
 
@@ -42,6 +44,7 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
       "@nixfmt@" "$FILE_PATH" 2>/dev/null || true
       ;;
     *.py)
+      [[ "$DEV_TOOLS" == true ]] || continue
       "@ruff@" format "$FILE_PATH" 2>/dev/null || true
       "@ruff@" check --fix "$FILE_PATH" 2>/dev/null || true
       "@ruff@" check "$FILE_PATH" 2>&1 | head -20 || true
@@ -60,12 +63,15 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
       fi
       ;;
     *.toml)
+      [[ "$DEV_TOOLS" == true ]] || continue
       "@taplo@" fmt "$FILE_PATH" 2>/dev/null || true
       ;;
     *.css | *.js)
+      [[ "$DEV_TOOLS" == true ]] || continue
       "@prettier@" --write "$FILE_PATH" 2>/dev/null || true
       ;;
     *.md)
+      [[ "$DEV_TOOLS" == true ]] || continue
       TMP=$(mktemp)
       if "@dprint@" fmt --config "@dprintConfig@" --stdin md <"$FILE_PATH" >"$TMP" 2>/dev/null && [[ -s "$TMP" ]]; then
         mv "$TMP" "$FILE_PATH"
@@ -75,6 +81,11 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
       "@markdownlint@" --fix "$FILE_PATH" 2>/dev/null || true
       "@markdownlint@" "$FILE_PATH" 2>&1 | head -20 || true
       "@cspell@" --no-progress "$FILE_PATH" 2>&1 | head -20 || true
+      # harper's SpellCheck lacks the repo dictionary, so it flags every project
+      # noun. cspell above already covers spelling.
+      "@harper@" lint --no-color \
+        --only InflectedVerbAfterTo,ThatWhich,ItsContraction,ThenThan,LetsConfusion,RepeatedWords \
+        "$FILE_PATH" 2>&1 | grep -v '^Note:\|^Warning:\|No lints found' | head -20 || true
       ;;
   esac
 done

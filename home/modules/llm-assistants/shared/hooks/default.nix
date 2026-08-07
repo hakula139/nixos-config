@@ -77,26 +77,62 @@ let
     };
     plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
   };
+
+  # ----------------------------------------------------------------------------
+  # Prose detection
+  # ----------------------------------------------------------------------------
+  # The prose gate's LLM judge costs ~12.5s per call, and most edits are pure
+  # code. vale's per-language parsers strip code and string literals, so a
+  # payload yielding no alerts carries no prose or comment worth judging. This
+  # rule matches any word, so it is a presence probe rather than a style check.
+  valeStyles = pkgs.runCommand "vale-prose-styles" { } ''
+    mkdir -p $out/Prose
+    cat > $out/Prose/HasProse.yml <<'EOF'
+    extends: existence
+    message: "prose present"
+    level: warning
+    scope: text
+    tokens:
+      - '\w+'
+    EOF
+  '';
+
+  valeConfig = pkgs.writeText "vale.ini" ''
+    StylesPath = ${valeStyles}
+    MinAlertLevel = warning
+
+    [*]
+    BasedOnStyles = Prose
+  '';
 in
 {
+  # `devTools = false` drops ~655 MiB of closure per host: the empty branches
+  # never force their packages.
   mkAutoFormatScript =
     {
       name ? "auto-format",
+      devTools ? true,
     }:
+    let
+      devTool = pkg: if devTools then lib.getExe pkg else "";
+    in
     mkHookScript {
       inherit name;
       script = ./scripts/auto-format.sh;
       substitutions = {
-        "@cspell@" = lib.getExe pkgs.cspell;
-        "@dprint@" = lib.getExe pkgs.dprint;
-        "@dprintConfig@" = "${dprintConfig}";
-        "@markdownlint@" = lib.getExe pkgs.markdownlint-cli2;
+        "@devTools@" = lib.boolToString devTools;
         "@nixfmt@" = lib.getExe pkgs.nixfmt;
-        "@prettier@" = lib.getExe pkgs.unstable.prettier;
-        "@ruff@" = lib.getExe pkgs.ruff;
         "@shellcheck@" = lib.getExe pkgs.shellcheck;
         "@shfmt@" = lib.getExe pkgs.shfmt;
-        "@taplo@" = lib.getExe pkgs.taplo;
+
+        "@cspell@" = devTool pkgs.cspell;
+        "@dprint@" = devTool pkgs.dprint;
+        "@dprintConfig@" = if devTools then "${dprintConfig}" else "";
+        "@harper@" = if devTools then "${lib.getBin pkgs.harper}/bin/harper-cli" else "";
+        "@markdownlint@" = devTool pkgs.markdownlint-cli2;
+        "@prettier@" = devTool pkgs.unstable.prettier;
+        "@ruff@" = devTool pkgs.ruff;
+        "@taplo@" = devTool pkgs.taplo;
       };
     };
 
@@ -111,15 +147,29 @@ in
       substitutions."@hintMode@" = hintMode;
     };
 
+  mkGuardLocalFilesScript =
+    {
+      name ? "guard-local-files",
+    }:
+    mkHookScript {
+      inherit name;
+      script = ./scripts/guard-local-files.sh;
+    };
+
   mkProseGateScript =
     {
       name ? "prose-gate",
       promptFile,
+      devTools ? true,
     }:
     mkHookScript {
       inherit name;
       script = ./scripts/prose-gate.sh;
-      substitutions."@promptFile@" = "${promptFile}";
+      substitutions = {
+        "@promptFile@" = "${promptFile}";
+        "@vale@" = if devTools then lib.getExe pkgs.vale else "";
+        "@valeConfig@" = if devTools then "${valeConfig}" else "";
+      };
     };
 
   mkWakatimeScript =

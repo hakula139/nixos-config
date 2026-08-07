@@ -99,7 +99,6 @@ let
     "mcp-server-dev@claude-plugins-official" = true;
     "pr-review-toolkit@claude-plugins-official" = true;
     "ralph-loop@claude-plugins-official" = true;
-    "security-guidance@claude-plugins-official" = true;
     "skill-creator@claude-plugins-official" = true;
 
     # Official LSP plugins
