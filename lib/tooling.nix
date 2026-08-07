@@ -28,4 +28,11 @@
     age # File encryption tool used by agenix
     agenix # Manage age-encrypted secrets (*.age)
   ];
+
+  # ----------------------------------------------------------------------------
+  # Shell Scripting
+  # ----------------------------------------------------------------------------
+  shell = with pkgs; [
+    nushell # Structured-data shell; scripting language for this repo
+  ];
 }

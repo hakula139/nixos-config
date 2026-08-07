@@ -379,7 +379,7 @@
         in
         {
           default = pkgs.mkShell {
-            buildInputs = preCommitCheck.enabledPackages ++ tooling.nix ++ tooling.secrets;
+            buildInputs = preCommitCheck.enabledPackages ++ tooling.nix ++ tooling.secrets ++ tooling.shell;
             inherit (preCommitCheck) shellHook;
           };
         }
