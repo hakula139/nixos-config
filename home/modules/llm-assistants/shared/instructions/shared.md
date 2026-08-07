@@ -40,6 +40,8 @@ Omit spaces for abbreviations, compound terms, and tight notation (`"I/O"`, `"TC
 
 Use logical punctuation: place commas and periods outside closing quotation marks (e.g., `"foobar",` not `"foobar,"`).
 
+Write an ellipsis as three periods (`...`), never the single `…` character. Likewise prefer `"` and `'` over curly quotes. Arrows and comparison operators are exempt, since the rule above calls for them.
+
 ## Scope Discipline
 
 Write the minimum code that solves the problem.
@@ -65,11 +67,10 @@ How to make changes, debug, and finish.
 
 ## Secret Handling
 
-Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment variables. Reading one is often necessary; putting its value anywhere durable never is.
+Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment variables. Reading one is often necessary, but putting its value anywhere durable never is.
 
-- **Never print a secret value.** Not to terminal output, logs, commit messages, PR bodies, or issue replies. This covers `cat` on a decrypted path, `env` and `printenv` with no filter, `echo "$TOKEN"`, and any command whose output embeds one. Redact to a length or a prefix (`<40 chars>`, `sk-…4f2a`) when you need to show that a value exists.
+- **Never print a secret value.** Not to terminal output, logs, commit messages, PR bodies, or issue replies. This covers `cat` on a decrypted path, `env` and `printenv` with no filter, `echo "$TOKEN"`, and any command whose output embeds one. Redact to a length or a prefix (`<40 chars>`, `sk-...4f2a`) when you need to show that a value exists.
 - **Test a secret without revealing it.** Check presence with `[[ -s <path> ]]`, compare with a hash, or pipe straight into the consuming command. Never round-trip a value through your own output to inspect it.
-- **Rotate an exposed credential in the same session.** If a secret reaches any output, the terminal scrollback, or a remote, treat it as compromised and say so immediately. Revoke and reissue it before continuing other work, then report the rotation status. A leak you mention but leave live is still a live leak.
 
 ## Commenting Guidelines
 
@@ -101,7 +102,7 @@ Keep commit messages and PR descriptions focused on _why_. The diff itself shows
 - **Branches**: `<type>/<short-name>`, reusing the commit type set.
 - **PR Summary**: 1–3 bullets stating the goal and any notable decisions.
 - **PR descriptions describe the merged unit.** Fold review-driven fixes into existing sections (Summary, Design decisions, Changes). Avoid "Post-review follow-ups" or "Cleanup commits" segments. The Commits tab already records the sequence.
-- **One purpose per PR.** Unrelated changes ride in their own PR. `flake.lock` churn in particular does not tag along with a feature or fix: a lock bump is its own `chore(flake)` commit, since burying it hides the real diff and makes the revert lossy.
+- **One purpose per PR.** Unrelated changes ride in their own PR. Dependency or lockfile churn in particular does not tag along with a feature or fix, since burying it hides the real diff and makes the revert lossy.
 - **No local-only paths in committed artifacts.** Keep `.claude/plans/`, `.claude/settings.local.json`, `.dev.vars` and similar out of code comments, commit messages, PR descriptions, and issue replies. Gitignored paths leak personal state and rot for everyone else.
 - **Skip boilerplate sections** that do not apply.
 - **No generated-by attributions or emojis** unless explicitly requested.

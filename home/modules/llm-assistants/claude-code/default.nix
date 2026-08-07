@@ -60,7 +60,7 @@ in
     plugins = {
       bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
 
-      devToolchains = lib.mkOption {
+      enableDevToolchains = lib.mkOption {
         type = lib.types.bool;
         default = enableDevToolchains;
         description = "Whether to enable dev toolchain LSP plugins (clangd, gopls, rust-analyzer)";
@@ -91,7 +91,7 @@ in
       notify = import ../shared/notify.nix { inherit pkgs lib; };
       hooks = import ./hooks {
         inherit pkgs lib repo;
-        devTools = enableDevToolchains;
+        inherit enableDevToolchains;
       };
 
       mcp = import ./mcp.nix {
@@ -109,7 +109,7 @@ in
 
       plugins = import ./plugins.nix {
         inherit pkgs lib inputs;
-        inherit (cfg.plugins) devToolchains online;
+        inherit (cfg.plugins) enableDevToolchains online;
       };
 
       agents = import ./agents {

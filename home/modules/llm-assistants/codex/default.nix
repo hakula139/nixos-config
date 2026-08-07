@@ -56,7 +56,7 @@ in
       notify = import ../shared/notify.nix { inherit pkgs lib; };
       hooks = import ./hooks.nix {
         inherit pkgs lib repo;
-        devTools = enableDevToolchains;
+        inherit enableDevToolchains;
       };
 
       mcp = import ./mcp.nix {

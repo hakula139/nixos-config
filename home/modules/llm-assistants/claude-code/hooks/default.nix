@@ -6,7 +6,7 @@
   pkgs,
   lib,
   repo,
-  devTools ? true,
+  enableDevToolchains ? true,
   ...
 }:
 
@@ -17,14 +17,7 @@ let
 
   autoFormatScript = hookScripts.mkAutoFormatScript {
     name = "claude-code-auto-format";
-    inherit devTools;
-  };
-  enforceMcpScript = hookScripts.mkEnforceMcpScript {
-    name = "claude-code-enforce-mcp";
-    hintMode = "permission-allow";
-  };
-  guardLocalFilesScript = hookScripts.mkGuardLocalFilesScript {
-    name = "claude-code-guard-local-files";
+    inherit enableDevToolchains;
   };
   wakatimeScript = hookScripts.mkWakatimeScript {
     name = "claude-code-wakatime-heartbeat";
@@ -33,35 +26,12 @@ let
   proseGateScript = hookScripts.mkProseGateScript {
     name = "claude-code-prose-gate";
     promptFile = ./prompts/prose-tics.md;
-    inherit devTools;
+    inherit enableDevToolchains;
   };
 
   completenessPrompt = builtins.readFile ./prompts/completeness.md;
 in
 {
-  PreToolUse = [
-    # Enforce MCP tool usage over Bash equivalents
-    {
-      matcher = "Bash";
-      hooks = [
-        {
-          type = "command";
-          command = "${enforceMcpScript}";
-        }
-      ];
-    }
-    # Keep working-tree-only values out of git
-    {
-      matcher = "Bash|Edit|Write|NotebookEdit|mcp__Git__git_add";
-      hooks = [
-        {
-          type = "command";
-          command = "${guardLocalFilesScript}";
-        }
-      ];
-    }
-  ];
-
   PostToolUse = [
     # WakaTime heartbeat for AI-generated file edits
     {

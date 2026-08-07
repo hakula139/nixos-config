@@ -34,10 +34,8 @@ esac
 PROMPT_FILE="@promptFile@"
 [[ -r "$PROMPT_FILE" ]] || exit 0
 
-# Pre-filter: skip the ~12.5s judge when vale's parser for this file type finds
-# no prose or comment in the payload. Empty output means pure code. An absent
-# vale, an unreadable config, or a vale error all fall through to the judge, so
-# the gate never silently stops checking.
+# Skip the judge when vale finds no prose. Anything unexpected falls through to
+# it, so the gate never silently stops checking.
 VALE="@vale@"
 VALE_CONFIG="@valeConfig@"
 if [[ -x "$VALE" && -r "$VALE_CONFIG" ]]; then
@@ -46,9 +44,7 @@ if [[ -x "$VALE" && -r "$VALE_CONFIG" ]]; then
       | sed -n -E 's/^\*\*\* (Add|Update) File: //p' | head -1) ;;
     *) FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty') ;;
   esac
-  # vale selects its comment parser from the extension. Prose fields from MCP
-  # tools and unknown extensions fall back to .md, which treats all of it as
-  # prose and so never skips.
+  # `.md` treats everything as prose, so an unknown extension never skips.
   case "$FILE_PATH" in
     *.*) VALE_EXT=".${FILE_PATH##*.}" ;;
     *) VALE_EXT=".md" ;;

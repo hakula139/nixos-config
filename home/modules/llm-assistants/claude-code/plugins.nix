@@ -6,7 +6,7 @@
   pkgs,
   lib,
   inputs,
-  devToolchains ? false,
+  enableDevToolchains ? false,
   online ? true,
 }:
 
@@ -110,7 +110,7 @@ let
     "workmux-status@workmux" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
-  // lib.optionalAttrs devToolchains {
+  // lib.optionalAttrs enableDevToolchains {
     # Official LSP plugins
     "clangd-lsp@claude-plugins-official" = true;
     "gopls-lsp@claude-plugins-official" = true;
