@@ -25,11 +25,11 @@ let
   };
   proseGateScript = hookScripts.mkProseGateScript {
     name = "claude-code-prose-gate";
-    promptFile = ./prompts/prose-tics.md;
+    promptFile = ../../shared/hooks/prompts/prose-tics.md;
     inherit enableDevToolchains;
   };
 
-  completenessPrompt = builtins.readFile ./prompts/completeness.md;
+  completenessPrompt = builtins.readFile ../../shared/hooks/prompts/completeness.md;
 in
 {
   PostToolUse = [

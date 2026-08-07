@@ -17,9 +17,13 @@ let
     name = "codex-auto-format";
     inherit enableDevToolchains;
   };
+  completenessGateScript = hookScripts.mkCompletenessGateScript {
+    name = "codex-completeness-gate";
+    promptFile = ../shared/hooks/prompts/completeness.md;
+  };
   proseGateScript = hookScripts.mkProseGateScript {
     name = "codex-prose-gate";
-    promptFile = ../claude-code/hooks/prompts/prose-tics.md;
+    promptFile = ../shared/hooks/prompts/prose-tics.md;
     inherit enableDevToolchains;
   };
   wakatimeScript = hookScripts.mkWakatimeScript {
@@ -64,6 +68,17 @@ in
 
   SubagentStop = [ (mkWorkmuxHook "done") ];
 
-  # Codex executes only `command` handlers, never `prompt` ones.
-  Stop = [ (mkWorkmuxHook "done") ];
+  Stop = [
+    {
+      hooks = [
+        {
+          type = "command";
+          command = "${completenessGateScript}";
+          timeout = 40;
+          statusMessage = "Checking completeness";
+        }
+      ];
+    }
+    (mkWorkmuxHook "done")
+  ];
 }

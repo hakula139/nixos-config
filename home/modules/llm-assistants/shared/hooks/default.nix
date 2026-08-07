@@ -131,6 +131,21 @@ in
       };
     };
 
+  mkCompletenessGateScript =
+    {
+      name ? "completeness-gate",
+      promptFile,
+      turns ? 30,
+    }:
+    mkHookScript {
+      inherit name;
+      script = ./scripts/completeness-gate.sh;
+      substitutions = {
+        "@promptFile@" = "${promptFile}";
+        "@turns@" = toString turns;
+      };
+    };
+
   mkProseGateScript =
     {
       name ? "prose-gate",
