@@ -75,6 +75,7 @@ let
     "redhat.vscode-yaml"
     "samuelcolvin.jinjahtml"
     "tamasfe.even-better-toml"
+    "TheNuProjectContributors.vscode-nushell-lang"
 
     # --------------------------------------------------------------------------
     # Containers & Kubernetes
