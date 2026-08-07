@@ -38,7 +38,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 │   ├── builders.nix                 # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL, serverSharedModules
 │   ├── overlays.nix                 # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, toolchains, custom packages)
 │   ├── secrets.nix                  # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
-│   ├── tooling.nix                  # Dev shell tooling
+│   ├── tooling.nix                  # Shared tool groups (nix, secrets, shell)
 │   └── llm-assistants/              # Shared LLM-assistant helpers (mcpOptions, proxy, claude profile sets)
 ├── modules/
 │   ├── shared.nix                   # Cross-platform Home Manager primitives
@@ -154,6 +154,29 @@ Defer to global CLAUDE.md. The repo-specific addition: when _restyling_ an exist
 - Quote variables. Use `set -euo pipefail` at the top of every script that runs more than one command.
 - Use `lib.escapeShellArg` / `lib.escapeShellArgs` when interpolating Nix values into shell.
 - Keep substantial scripts in adjacent `.sh` files and load them with `builtins.readFile`. Inline only short wrappers or generated snippets.
+
+### Nushell
+
+Nushell is the default for new helper scripts, since most of them parse JSON from an external tool and reshape it. Bash remains correct for the cases listed under "What stays bash" below.
+
+- **No `set -euo pipefail` equivalent, and none needed.** A failing external command aborts the script on its own, and an undefined variable is a parse-time error. The habit that does not carry over is `|| true`: where bash tolerated a failure, wrap the call in `try { ... }` or capture it with `| complete` and read `.exit_code`. Omitting that turns a tolerated failure into an abort.
+- **`def main` is the entry point.** Declare parameters with types and defaults (`def main [cmd: string = "check"]`) instead of `"${1:-check}"` plus a `case` fallthrough. Nushell generates the usage message and rejects a missing argument for you.
+- **Reading stdin needs `open --raw /dev/stdin`.** `$in` at the top level of a script fails with `Can't evaluate block in IR mode`, because `writeNu` invokes `nu --no-config-file` without `--stdin`. `$in` only binds to stdin inside `def main` when `--stdin` is passed, which the writer does not do.
+- **Prefer structured data end to end.** `from json`, `get field?` (the `?` yields null instead of erroring), `where`, and `select` replace a chain of `jq -r` subprocesses. Return a list of records and let the built-in `table` renderer format it rather than hand-building widths with `printf '%-28s'`.
+- **Call externals with a `^` prefix** when the name could collide with a builtin, and quote nothing extra: nushell passes arguments as a list, so word splitting cannot happen.
+- Same file conventions as bash: substantial scripts live in adjacent `.nu` files loaded with `builtins.readFile`, and section banners follow the rules above.
+
+#### Nushell in Nix
+
+`pkgs.writers.writeNu` and `writeNuBin` are upstream, so this repo defines no writer of its own. `writeNu` produces a plain script (for a `home.file` source or a hook target) and `writeNuBin` produces `$out/bin/<name>` (for `home.packages`). Both accept an optional attrset first, so `makeWrapperArgs` supplies runtime `PATH` entries the way `writeShellApplication`'s `runtimeInputs` does.
+
+The `@placeholder@` plus `builtins.replaceStrings` substitution pattern works unchanged, since it operates on the file text before the writer sees it.
+
+#### What stays bash
+
+- `modules/nixos/cloudcone/agent/agent.sh` runs as a systemd service on a minimal VPS. It predates the runtime being available fleet-wide and there is no reason to grow that closure further for one script.
+- `claude-code/scripts/profile-loader.sh` is injected into a `makeWrapper --run` context, so its text is evaluated by the wrapper's own bash. `teammate-launcher.sh` sources it. Nushell cannot mutate a parent bash environment, so both are structurally bash.
+- The four hook scripts under `shared/hooks/scripts/` stay bash for now. They are invoked by an external tool that expects specific exit codes and stdout shapes, and two of them fail open, so a porting bug would silently disable a gate rather than failing loudly.
 
 ### Secrets Conventions
 
