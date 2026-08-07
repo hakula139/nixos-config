@@ -7,6 +7,7 @@
 #
 # Denies:
 # - git -C (use MCP Git repo_path parameter)
+# - Commands that would print a decrypted secret to stdout
 #
 # Hints:
 # - git subcommands with MCP Git equivalents (status, diff, add, etc.)
@@ -62,6 +63,29 @@ hint() {
   esac
   exit 0
 }
+
+# Deny: printing a decrypted secret. `echo` and `env` are auto-approved for
+# ordinary use, so nothing else stops a command that pipes /run/agenix to
+# stdout. Presence tests and hashes stay allowed since they leak no value.
+SECRET_PATH_RE='(/run/agenix/|\.wakatime\.cfg|\.credentials\.json)'
+PRINTS_RE='^[[:space:]]*(cat|bat|head|tail|less|more|echo|printf|xxd|od|strings|base64|nl|tac|rev)([[:space:]]|$)'
+
+# Judge each pipeline segment on its own: the leak is a printing command that
+# receives the secret. Command substitutions stay intact so feeding a secret to
+# a consuming command (`curl -H "Bearer $(cat <path>)"`) is not mistaken for
+# printing it.
+while IFS= read -r SEGMENT; do
+  [[ "$SEGMENT" =~ $SECRET_PATH_RE ]] || continue
+  if [[ "$SEGMENT" =~ $PRINTS_RE ]]; then
+    deny "That would print a decrypted secret into the transcript. Test presence with [[ -s <path> ]], compare a hash, or pipe the file straight into the consuming command instead."
+  fi
+done < <(printf '%s\n' "$COMMAND" | sed -E 's/([|;]|&&)/\n/g')
+
+# Deny: dumping the whole environment, which carries the auth tokens the
+# profile scripts export. `env VAR=x cmd` sets variables instead of dumping.
+if [[ "$COMMAND" =~ ^[[:space:]]*(env|printenv|export|set)[[:space:]]*$ ]]; then
+  deny "That dumps every environment variable, including the auth tokens the profile scripts export. Name the specific variable and redact its value."
+fi
 
 # Hint: shell comment prefix; describe the command outside the shell command.
 if [[ "$COMMAND" =~ ^[[:space:]]*\# ]]; then
