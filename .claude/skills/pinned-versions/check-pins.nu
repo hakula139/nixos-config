@@ -97,7 +97,6 @@ def pypi-latest [pkg: string]: nothing -> string {
 # Pin extraction
 # ------------------------------------------------------------------------------
 
-# Returns the lines of a `<name> = { ... };` block from plugins.nix.
 def plugin-block [root: string, name: string]: nothing -> list<string> {
   open --raw ([$root $PLUGINS_NIX] | path join)
   | lines
@@ -161,159 +160,162 @@ def action-pins [root: string]: nothing -> list<string> {
 }
 
 # ------------------------------------------------------------------------------
-# Pin groups
+# Pin registry
 # ------------------------------------------------------------------------------
 
-# Each check returns rows of {pin, pinned, upstream} or an explicit status.
-# `status` is derived in `classify` so every group shares one rule.
-
-def check-plugins [root: string]: nothing -> list<record> {
-  let released = [
-    [name repo];
-    [agent-browser vercel-labs/agent-browser]
-    [openai-codex openai/codex-plugin-cc]
-  ]
-  | each {|e|
-    {pin: $e.name, pinned: (plugin-tag $root $e.name), upstream: (gh-latest-release $e.repo)}
-  }
-
-  # These two track a branch, so any newer HEAD counts as drift.
-  let branched = [
-    [name repo];
-    [claude-plugins-official anthropics/claude-plugins-official]
-    [context7-marketplace upstash/context7]
-  ]
-  | each {|e|
-    {
-      pin: $e.name
-      pinned: (abbrev (plugin-rev $root $e.name))
-      upstream: (abbrev (gh-default-head $e.repo))
-    }
-  }
-
-  $released
-  | append $branched
-  | append [
-    {pin: "anthropic-agent-skills", pinned: "flake.lock", upstream: "flake.lock", status: "renovate"}
-    {pin: "workmux", pinned: "flake.lock", upstream: "flake.lock", status: "renovate"}
-  ]
-}
-
-def check-packages [root: string]: nothing -> list<record> {
+# Each row pairs a pin name with closures that read the local value and the
+# upstream value. Both stay lazy so `list` can print the registry without
+# touching the network.
+def registry [root: string]: nothing -> list<record> {
   [
     {
-      pin: "cloudreve"
-      pinned: (nix-version $root "packages/cloudreve/default.nix")
-      upstream: (gh-latest-release "cloudreve/cloudreve")
+      title: "Claude Code plugin marketplaces (rev + hash)"
+      pins: [
+        {
+          pin: "agent-browser"
+          local: {|| plugin-tag $root "agent-browser" }
+          upstream: {|| gh-latest-release "vercel-labs/agent-browser" }
+        }
+        {
+          pin: "openai-codex"
+          local: {|| plugin-tag $root "openai-codex" }
+          upstream: {|| gh-latest-release "openai/codex-plugin-cc" }
+        }
+        # These two track a branch, so any newer HEAD counts as drift.
+        {
+          pin: "claude-plugins-official"
+          local: {|| abbrev (plugin-rev $root "claude-plugins-official") }
+          upstream: {|| abbrev (gh-default-head "anthropics/claude-plugins-official") }
+        }
+        {
+          pin: "context7-marketplace"
+          local: {|| abbrev (plugin-rev $root "context7-marketplace") }
+          upstream: {|| abbrev (gh-default-head "upstash/context7") }
+        }
+        {pin: "anthropic-agent-skills", delegated: "renovate"}
+        {pin: "workmux", delegated: "renovate"}
+      ]
     }
     {
-      pin: "mcp-server-github"
-      pinned: (nix-version-v $root "packages/mcp/mcp-server-github/default.nix")
-      upstream: (gh-latest-release "github/github-mcp-server")
+      title: "Custom packages (packages/)"
+      pins: [
+        {
+          pin: "cloudreve"
+          local: {|| nix-version $root "packages/cloudreve/default.nix" }
+          upstream: {|| gh-latest-release "cloudreve/cloudreve" }
+        }
+        {
+          pin: "mcp-server-github"
+          local: {|| nix-version-v $root "packages/mcp/mcp-server-github/default.nix" }
+          upstream: {|| gh-latest-release "github/github-mcp-server" }
+        }
+        {
+          pin: "mcp-server-gitlab"
+          local: {|| nix-version-v $root "packages/mcp/mcp-server-gitlab/default.nix" }
+          upstream: {|| gh-latest-release "zereight/gitlab-mcp" }
+        }
+        {
+          pin: "mcp-server-filesystem"
+          local: {|| nix-version $root "packages/mcp/mcp-server-filesystem/default.nix" }
+          upstream: {|| gh-latest-semver-tag "modelcontextprotocol/servers" }
+        }
+        {
+          pin: "mcp-server-git"
+          local: {|| nix-version $root "packages/mcp/mcp-server-git/default.nix" }
+          upstream: {|| pypi-latest "mcp-server-git" }
+        }
+        {
+          pin: "zsh-hist"
+          local: {|| abbrev (nix-attr $root "packages/zsh-hist/default.nix" 'rev = "(?<v>[0-9a-f]+)"') }
+          upstream: {|| abbrev (gh-default-head "marlonrichert/zsh-hist") }
+        }
+      ]
     }
     {
-      pin: "mcp-server-gitlab"
-      pinned: (nix-version-v $root "packages/mcp/mcp-server-gitlab/default.nix")
-      upstream: (gh-latest-release "zereight/gitlab-mcp")
+      title: "Container images (oci-containers image options)"
+      pins: [
+        {
+          pin: "umami"
+          local: {|| image-tag $root "modules/nixos/umami/default.nix" }
+          upstream: {|| gh-latest-release "umami-software/umami" | str replace -r '^v' '' }
+        }
+        {
+          pin: "fuclaude"
+          local: {|| image-tag $root "modules/nixos/fuclaude/default.nix" }
+          upstream: {|| dockerhub-latest-semver "pengzhile/fuclaude" }
+        }
+        {
+          pin: "clove"
+          local: {|| image-tag $root "modules/nixos/clove/default.nix" }
+          upstream: {|| dockerhub-latest-semver "mirrorange/clove" }
+        }
+      ]
     }
     {
-      pin: "mcp-server-filesystem"
-      pinned: (nix-version $root "packages/mcp/mcp-server-filesystem/default.nix")
-      upstream: (gh-latest-semver-tag "modelcontextprotocol/servers")
+      title: "Runtime-installed packages"
+      pins: [
+        {
+          pin: "piclist"
+          local: {|| nix-version $root "modules/nixos/piclist/server/default.nix" }
+          upstream: {|| npm-latest "piclist" }
+        }
+        {
+          pin: "toasty"
+          local: {||
+            nix-attr $root "home/modules/llm-assistants/shared/notify.nix" 'download/(?<v>v?[0-9.]+)'
+          }
+          upstream: {|| gh-latest-release-with-asset "shanselman/toasty" "toasty-x64.exe" }
+        }
+      ]
     }
     {
-      pin: "mcp-server-git"
-      pinned: (nix-version $root "packages/mcp/mcp-server-git/default.nix")
-      upstream: (pypi-latest "mcp-server-git")
+      title: "GitHub Actions (Renovate github-actions manager is disabled)"
+      pins: (action-pins $root | each {|pin|
+        let repo = ($pin | split row "@" | first)
+        {
+          pin: $repo
+          local: {|| $pin | split row "@" | last }
+          # Actions are pinned to a major tag, so compare only the major component.
+          upstream: {|| gh-latest-release $repo | split row "." | first }
+        }
+      })
     }
     {
-      pin: "zsh-hist"
-      pinned: (abbrev (nix-attr $root "packages/zsh-hist/default.nix" 'rev = "(?<v>[0-9a-f]+)"'))
-      upstream: (abbrev (gh-default-head "marlonrichert/zsh-hist"))
+      title: "Drifting upstream data"
+      pins: [
+        {
+          pin: "cloudflare-ips"
+          local: {|| nix-attr $root $CF_IPS_NIX 'Last updated: (?<v>\S+)' }
+          upstream: {|| cloudflare-drift $root }
+          # The pinned column is a date and the upstream column a verdict, so
+          # the two are not comparable.
+          status: {|upstream| match $upstream { "same ranges" => "ok", _ => "STALE" } }
+        }
+      ]
     }
   ]
 }
 
-def check-containers [root: string]: nothing -> list<record> {
-  [
-    {
-      pin: "umami"
-      pinned: (image-tag $root "modules/nixos/umami/default.nix")
-      upstream: (gh-latest-release "umami-software/umami" | str replace -r '^v' '')
-    }
-    {
-      pin: "fuclaude"
-      pinned: (image-tag $root "modules/nixos/fuclaude/default.nix")
-      upstream: (dockerhub-latest-semver "pengzhile/fuclaude")
-    }
-    {
-      pin: "clove"
-      pinned: (image-tag $root "modules/nixos/clove/default.nix")
-      upstream: (dockerhub-latest-semver "mirrorange/clove")
-    }
-  ]
-}
-
-def check-runtime [root: string]: nothing -> list<record> {
-  [
-    {
-      pin: "piclist"
-      pinned: (nix-version $root "modules/nixos/piclist/server/default.nix")
-      upstream: (npm-latest "piclist")
-    }
-    {
-      pin: "toasty"
-      pinned: (
-        nix-attr $root "home/modules/llm-assistants/shared/notify.nix" 'download/(?<v>v?[0-9.]+)'
-      )
-      upstream: (gh-latest-release-with-asset "shanselman/toasty" "toasty-x64.exe")
-    }
-  ]
-}
-
-def check-actions [root: string]: nothing -> list<record> {
-  let pins = (action-pins $root)
-
-  # Commit-SHA pins would match no rows, and silence here is indistinguishable
-  # from every action being current.
-  if ($pins | is-empty) {
-    return [{pin: "github actions", pinned: "", upstream: "", status: "UNKNOWN"}]
-  }
-
-  $pins | each {|pin|
-    let repo = ($pin | split row "@" | first)
-    let current = ($pin | split row "@" | last)
-    # Actions are pinned to a major tag, so compare only the major component.
-    let upstream = (gh-latest-release $repo | split row "." | first)
-    {pin: $repo, pinned: $current, upstream: $upstream}
-  }
-}
-
-def check-cloudflare [root: string]: nothing -> list<record> {
-  let file = ([$root $CF_IPS_NIX] | path join)
-  let last_updated = (
-    open --raw $file | parse --regex 'Last updated: (?<v>\S+)' | get v.0? | default ""
-  )
+# The IP list carries no version, so drift means the ranges themselves differ.
+def cloudflare-drift [root: string]: nothing -> string {
   let pinned = (
-    open --raw $file
+    open --raw ([$root $CF_IPS_NIX] | path join)
     | parse --regex '"(?<v>[0-9a-f.:]+/[0-9]+)'
     | get v
     | sort
   )
-  let v4 = (query { http get --raw $CF_IPS_V4_URL })
-  let v6 = (query { http get --raw $CF_IPS_V6_URL })
+  let fetched = (
+    [$CF_IPS_V4_URL $CF_IPS_V6_URL]
+    | each {|url| query { http get --raw $url } }
+  )
 
-  # Either list empty means an incomplete comparison, which would otherwise
-  # surface as drift against the half we did fetch.
-  if ($pinned | is-empty) or ($v4 | is-empty) or ($v6 | is-empty) {
-    return [{pin: "cloudflare-ips", pinned: $last_updated, upstream: "", status: "UNKNOWN"}]
-  }
+  # An empty half would otherwise surface as drift against the half we did fetch.
+  if ($pinned | is-empty) or ($fetched | any {|r| $r | is-empty }) { return "" }
 
-  let upstream = ([$v4 $v6] | str join "\n" | lines | where {|l| $l != "" } | sort)
-  if $pinned == $upstream {
-    [{pin: "cloudflare-ips", pinned: $last_updated, upstream: "same ranges", status: "ok"}]
+  if $pinned == ($fetched | str join "\n" | lines | where $it != "" | sort) {
+    "same ranges"
   } else {
-    [{pin: "cloudflare-ips", pinned: $last_updated, upstream: "ranges differ", status: "STALE"}]
+    "ranges differ"
   }
 }
 
@@ -321,16 +323,20 @@ def check-cloudflare [root: string]: nothing -> list<record> {
 # Reporting
 # ------------------------------------------------------------------------------
 
-# A declared status wins, since `renovate` rows compare equal and would
-# otherwise be reported as current pins rather than as delegated ones.
-def classify []: list<record> -> list<record> {
+# A pin delegated to Renovate reports its own status, since comparing the two
+# `flake.lock` placeholders would otherwise mark it a current manual pin.
+def resolve []: list<record> -> list<record> {
   each {|row|
-    let pinned = ($row.pinned | default "")
-    let upstream = ($row.upstream | default "")
-    let status = if ($row.status? | is-not-empty) {
-      $row.status
-    } else if ($pinned | is-empty) or ($upstream | is-empty) {
+    if ($row.delegated? | is-not-empty) {
+      return {pin: $row.pin, pinned: "flake.lock", upstream: "flake.lock", status: $row.delegated}
+    }
+
+    let pinned = (do $row.local)
+    let upstream = (do $row.upstream)
+    let status = if ($pinned | is-empty) or ($upstream | is-empty) {
       "UNKNOWN"
+    } else if ($row.status? | is-not-empty) {
+      do $row.status $upstream
     } else if $pinned == $upstream {
       "ok"
     } else {
@@ -356,41 +362,33 @@ def section [title: string, rows: list<record>] {
 # ------------------------------------------------------------------------------
 
 def cmd-list [] {
-  print "Manual pins tracked by this script:\n"
-  [
-    $"plugin marketplaces   ($PLUGINS_NIX)"
-    "custom packages       packages/**/default.nix"
-    "container images      modules/nixos/{umami,fuclaude,clove}/default.nix"
-    "runtime installs      modules/nixos/piclist/server, shared/notify.nix"
-    "github actions        .github/workflows, .github/actions"
-    $"upstream data         ($CF_IPS_NIX)"
-  ]
-  | each {|line| print $"  ($line)" }
-  | ignore
+  print "Manual pins tracked by this script:"
+  for group in (registry (repo-root)) {
+    print $"\n($group.title)"
+    for pin in $group.pins { print $"  ($pin.pin)" }
+  }
   print "\nRenovate covers the 13 flake.lock inputs separately."
 }
 
 def cmd-check [] {
-  if (which gh | is-empty) { die 'gh not found. Run inside "nix develop" or install it.' }
-  if (which jq | is-empty) { die 'jq not found. Run inside "nix develop" or install it.' }
+  for tool in [gh jq] {
+    if (which $tool | is-empty) {
+      die $'($tool) not found. Run inside "nix develop" or install it.'
+    }
+  }
   if ((^gh auth status | complete).exit_code != 0) {
     die 'gh is not authenticated. Run "gh auth login".'
   }
 
-  let root = (repo-root)
-
-  let groups = [
-    ["Claude Code plugin marketplaces (rev + hash)" {|| check-plugins $root }]
-    ["Custom packages (packages/)" {|| check-packages $root }]
-    ["Container images (oci-containers image options)" {|| check-containers $root }]
-    ["Runtime-installed packages" {|| check-runtime $root }]
-    ["GitHub Actions (Renovate github-actions manager is disabled)" {|| check-actions $root }]
-    ["Drifting upstream data" {|| check-cloudflare $root }]
-  ]
-
-  let all = $groups | each {|group|
-    let rows = (do $group.1 | classify)
-    section $group.0 $rows
+  let all = registry (repo-root) | each {|group|
+    let rows = if ($group.pins | is-empty) {
+      # An empty group would print as a clean sweep, which is indistinguishable
+      # from every pin being current.
+      [{pin: $group.title, pinned: "?", upstream: "?", status: "UNKNOWN"}]
+    } else {
+      $group.pins | resolve
+    }
+    section $group.title $rows
     $rows
   } | flatten
 
