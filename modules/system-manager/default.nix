@@ -20,8 +20,8 @@ let
   userConfig = config.users.users.${cfg.user.name};
 
   shared = sharedConfig { inherit pkgs lib; };
-  systemManagerHealthCheck = pkgs.writeShellScriptBin "system-manager-health-check" (
-    builtins.readFile ./health-check.sh
+  systemManagerHealthCheck = pkgs.writers.writeNuBin "system-manager-health-check" (
+    builtins.readFile ./health-check.nu
   );
 in
 {
