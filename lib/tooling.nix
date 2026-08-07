@@ -32,6 +32,8 @@
   # ----------------------------------------------------------------------------
   # Shell Scripting
   # ----------------------------------------------------------------------------
+  # Home Manager installs nushell through `programs.nushell`, so this group
+  # exists for the dev shell, which has no Home Manager.
   shell = with pkgs; [
     nushell # Structured-data shell; scripting language for this repo
   ];

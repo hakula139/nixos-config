@@ -7,6 +7,7 @@
     ./direnv
     ./fzf
     ./neovim
+    ./nushell
     ./starship
     ./tmux
     ./tools
