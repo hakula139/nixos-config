@@ -10,17 +10,41 @@ set -euo pipefail
 # ==============================================================================
 
 readonly NU="@nu@"
+readonly JQ="@jq@"
 readonly MAX_ERRORS=100
+
+tmp="$(mktemp -d)"
+trap 'rm -rf -- "${tmp}"' EXIT
+
+# Scripts loaded through `builtins.replaceStrings` carry `@name@` placeholders
+# that only parse once Nix has substituted them. `[]` stands in because it
+# satisfies a `list` parameter and degrades to a string inside quotes, where a
+# bare word would trip the type checker.
+readonly STUB="${tmp}/stub.nu"
+: >"${STUB}"
 
 rc=0
 for file in "$@"; do
-  output="$("${NU}" --ide-check "${MAX_ERRORS}" "${file}" 2>&1)" || true
+  if [[ ! -f "${file}" ]]; then
+    printf '%s: no such file\n' "${file}" >&2
+    rc=1
+    continue
+  fi
 
-  errors="$(printf '%s\n' "${output}" | grep '"severity":"Error"' || true)"
+  target="${tmp}/$(basename "${file}")"
+  sed -E \
+    -e "s|^(use[[:space:]]+)@[a-zA-Z][a-zA-Z0-9]*@|\\1${STUB}|" \
+    -e 's|@[a-zA-Z][a-zA-Z0-9]*@|[]|g' \
+    "${file}" >"${target}"
+
+  errors="$(
+    "${NU}" --ide-check "${MAX_ERRORS}" "${target}" 2>&1 \
+      | grep '"severity":"Error"' || true
+  )"
   if [[ -n "${errors}" ]]; then
     printf '%s:\n' "${file}" >&2
     printf '%s\n' "${errors}" \
-      | "@jq@" -r '"  \(.message) (offset \(.span.start))"' >&2
+      | "${JQ}" -r '"  \(.message) (offset \(.span.start))"' >&2
     rc=1
   fi
 done
