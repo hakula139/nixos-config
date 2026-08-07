@@ -3,5 +3,5 @@
 # ==============================================================================
 
 {
-  windowsInteropScript = ./windows-interop.sh;
+  windowsInteropScript = ./windows-interop.nu;
 }

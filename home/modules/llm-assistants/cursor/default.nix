@@ -50,22 +50,18 @@ let
   # ----------------------------------------------------------------------------
   # Windows sync
   # ----------------------------------------------------------------------------
-  syncWindowsSettings =
-    let
-      syncScript = pkgs.copyPathToStore ./settings/sync-windows-settings.sh;
-      windowsInterop = pkgs.copyPathToStore wslLib.windowsInteropScript;
-    in
-    pkgs.writeShellApplication {
-      name = "sync-windows-cursor-settings";
-      runtimeInputs = with pkgs; [
-        coreutils
-        diffutils
-        jq
-      ];
-      text = ''
-        exec ${pkgs.bash}/bin/bash ${syncScript} ${windowsInterop} ${settings.windowsSettingsJson}
-      '';
-    };
+  syncWindowsSettings = pkgs.writers.writeNuBin "sync-windows-cursor-settings" (
+    builtins.replaceStrings
+      [
+        "@windowsInterop@"
+        "@settings@"
+      ]
+      [
+        "${pkgs.copyPathToStore wslLib.windowsInteropScript}"
+        "${settings.windowsSettingsJson}"
+      ]
+      (builtins.readFile ./settings/sync-windows-settings.nu)
+  );
 
   # ----------------------------------------------------------------------------
   # Cursor paths
