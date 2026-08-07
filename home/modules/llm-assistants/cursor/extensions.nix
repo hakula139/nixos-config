@@ -101,8 +101,9 @@ let
     "james-yu.latex-workshop"
 
     # --------------------------------------------------------------------------
-    # Spell Checker
+    # Spell & Grammar Checker
     # --------------------------------------------------------------------------
+    "elijah-potter.harper"
     "streetsidesoftware.code-spell-checker"
     "streetsidesoftware.code-spell-checker-ancient-greek"
     "streetsidesoftware.code-spell-checker-french"
