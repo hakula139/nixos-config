@@ -12,7 +12,16 @@ const GET_TTY_NUM = "@getTtyNum@"
 
 const CCUSAGE_CACHE = "/tmp/ccusage-statusline.json"
 const CCUSAGE_TTL = 30sec
-const CCUSAGE_FIELDS = [block_cost, remaining_minutes, burn_rate, daily_cost]
+const CCUSAGE_FIELDS = [has_data, block_cost, remaining_minutes, burn_rate, daily_cost]
+
+# Cached like any result, so a failed lookup does not respawn npx every render.
+const NO_BLOCK = {
+  has_data: false
+  block_cost: 0.0
+  remaining_minutes: 0
+  burn_rate: 0.0
+  daily_cost: 0.0
+}
 
 const MODEL_FAMILIES = [
   [pattern, name];
@@ -46,9 +55,9 @@ def usd [amount: float]: nothing -> string {
 # Model name
 # ------------------------------------------------------------------------------
 
-# Simplifies display names: "Opus 4.6 (1M context)" -> "Opus 4.6 (1M)". Also
-# handles Bedrock raw IDs like "global.anthropic.claude-opus-4-6-v1[1m]" and
-# corp-gateway overrides like "openai/gpt-5.4-mini" -> "GPT 5.4 mini".
+# Input may be a display name ("Opus 4.6 (1M context)"), a Bedrock raw ID
+# ("global.anthropic.claude-opus-4-6-v1[1m]"), or a corp-gateway override
+# ("openai/gpt-5.4-mini").
 def simplify-model-name [raw: string]: nothing -> string {
   let lc = ($raw | str downcase)
   let family = (
@@ -159,24 +168,32 @@ def cache-is-fresh []: nothing -> bool {
   try { (date now) - (ls $CCUSAGE_CACHE | get 0.modified) < $CCUSAGE_TTL } catch { false }
 }
 
-# A cache written by an older schema outlives its TTL, so check the shape too.
-# `open` on an empty file yields null rather than raising, hence the `default`.
+# The TTL alone would accept a payload written by an older schema. `open` on an
+# empty file yields null rather than raising, and `in` raises on a non-record.
 def read-cache []: nothing -> record {
   if not (cache-is-fresh) { return {} }
   let cached = (try { open $CCUSAGE_CACHE | default {} } catch { {} })
-  if ($CCUSAGE_FIELDS | all {|field| $field in $cached }) { $cached } else { {} }
+  if ($cached | describe | str starts-with "record") and (
+    $CCUSAGE_FIELDS | all {|field| $field in $cached }
+  ) {
+    $cached
+  } else {
+    {}
+  }
 }
 
 def active-block []: nothing -> record {
   let result = (^$NPX -y ccusage@latest blocks --json | complete)
-  if $result.exit_code != 0 { return {} }
+  if $result.exit_code != 0 { return $NO_BLOCK }
 
   let blocks = (try { $result.stdout | from json | get -o blocks | default [] } catch { [] })
   let active = ($blocks | where ($it.isActive? | default false) | get -o 0)
-  if $active == null { return {} }
+  if $active == null { return $NO_BLOCK }
 
-  let today = (date now | format date "%Y-%m-%d")
+  # ccusage stamps `startTime` in UTC.
+  let today = (date now | date to-timezone UTC | format date "%Y-%m-%d")
   {
+    has_data: true
     block_cost: ($active.costUSD? | default 0 | into float)
     remaining_minutes: ($active.projection?.remainingMinutes? | default 0 | math floor)
     burn_rate: ($active.burnRate?.costPerHour? | default 0 | into float)
@@ -206,7 +223,7 @@ def format-remaining [minutes: int]: nothing -> string {
 }
 
 def format-ccusage-info [data: record]: nothing -> record<block: string, daily: string> {
-  if ($data | is-empty) { return { block: "", daily: "" } }
+  if not ($data.has_data? | default false) { return { block: "", daily: "" } }
 
   let details = (
     [
