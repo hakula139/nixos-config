@@ -41,11 +41,15 @@ def main [] {
     }
   )
 
-  let counts = ($results | uniq --count | transpose -i -r -d)
-  let installed = ($counts | get -o installed | default 0)
-  print $"Fonts: ($installed) installed, ($counts | get -o skipped | default 0) already present, ($counts | get -o failed | default 0) failed"
+  let counts = (
+    ["installed" "skipped" "failed"]
+    | reduce --fold {} {|status, acc|
+      $acc | insert $status ($results | where $it == $status | length)
+    }
+  )
+  print $"Fonts: ($counts.installed) installed, ($counts.skipped) already present, ($counts.failed) failed"
 
-  if $installed == 0 { return }
+  if $counts.installed == 0 { return }
 
   let win_font_dir = (^wslpath -w $font_dir | str trim)
   for font in (font-files [$font_dir]) {

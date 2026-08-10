@@ -16,12 +16,16 @@ const PROPERTIES = [
   Type
 ]
 
+# `transpose` on no input yields a list, which the record return type won't coerce.
 def unit-state [service: string]: nothing -> record {
-  ^systemctl show ...($PROPERTIES | each {|p| $"--property=($p)" }) $service
-  | lines
-  | where $it != ""
-  | split column "=" key value
-  | transpose -r -d
+  let props = (
+    ^systemctl show ...($PROPERTIES | each {|p| $"--property=($p)" }) $service
+    | lines
+    | where $it != ""
+  )
+  if ($props | is-empty) { return {} }
+
+  $props | split column "=" key value | transpose -r -d
 }
 
 def is-installed [unit: record]: nothing -> bool {
