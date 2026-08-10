@@ -166,6 +166,7 @@ Nushell is the default for new helper scripts, since most of them parse JSON fro
 - **No `set -euo pipefail` equivalent, and none needed.** A failing external command aborts the script on its own, and an undefined variable is a parse-time error. The habit that does not carry over is `|| true`: where bash tolerated a failure, wrap the call in `try { ... }` or capture it with `| complete` and read `.exit_code`. Omitting that turns a tolerated failure into an abort.
 - **`| complete` works on externals only.** On a builtin like `cp` it errors outright, so a fallible builtin needs `try { ... } catch { ... }`.
 - **`try` guards errors, `default` guards null.** They are separate failure modes. `open` on an empty `.json` returns null rather than raising, so `try { open $f } catch { {} }` passes the null straight through to whatever unwraps it next. Write `try { open $f | default {} } catch { {} }`.
+- **A declared return type is documentation, not a coercion.** `transpose -r -d` and `uniq --count | transpose` yield `list<any>` on empty input, and a `-> record` signature accepts it silently. The next `in` or field access then raises. Guard the empty case before transposing. Worse, `get -o` on a list returns `[]` rather than null, so `| default 0` never fires and an `== 0` guard reads false: count with `where ... | length` instead.
 - **`def main` is the entry point.** Declare parameters with types and defaults (`def main [cmd: string = "check"]`) instead of `"${1:-check}"` plus a `case` fallthrough. Nushell generates the usage message and rejects a missing argument for you.
 - **Reading stdin needs `open --raw /dev/stdin`.** `$in` at the top level of a script fails with `Can't evaluate block in IR mode`, because `writeNu` invokes `nu --no-config-file` without `--stdin`. `$in` only binds to stdin inside `def main` when `--stdin` is passed, which the writer does not do.
 - **Prefer structured data end to end.** `from json`, `get field?` (the `?` yields null instead of erroring), `where`, and `select` replace a chain of `jq -r` subprocesses. Return a list of records and let the built-in `table` renderer format it rather than hand-building widths with `printf '%-28s'`. Return a record instead of packing several values into a delimited string for the caller to re-split.
@@ -215,7 +216,7 @@ Startup cost is not a reason to stay on bash. Nushell's interpreter starts slowe
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push / PR:
 
-1. `nix flake check --all-systems` validates the flake structure and runs pre-commit hooks (`cspell`, `deadnix`, `markdownlint`, `nixfmt`, `statix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
+1. `nix flake check --all-systems` validates the flake structure and runs pre-commit hooks (`cspell`, `deadnix`, `markdownlint`, `nixfmt`, `nu-check`, `statix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
 2. Parallel builds of every host (`us-1..us-4`, `sg-1`, `wsl`, `wsl-non-nixos`, `macbook`, `devvm-docker`).
 3. Successful builds upload to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
 

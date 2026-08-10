@@ -371,10 +371,8 @@ def cmd-list [] {
 }
 
 def cmd-check [] {
-  for tool in [gh jq] {
-    if (which $tool | is-empty) {
-      die $'($tool) not found. Run inside "nix develop" or install it.'
-    }
+  if (which gh | is-empty) {
+    die 'gh not found. Run inside "nix develop" or install it.'
   }
   if ((^gh auth status | complete).exit_code != 0) {
     die 'gh is not authenticated. Run "gh auth login".'
@@ -407,7 +405,6 @@ def main [subcommand: string = "check"] {
   match $subcommand {
     "check" => { cmd-check }
     "list" => { cmd-list }
-    "-h" | "--help" => { print "Usage: check-pins.nu [check|list]" }
     _ => { die $"unknown subcommand: ($subcommand)" }
   }
 }

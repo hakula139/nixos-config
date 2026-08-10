@@ -16,7 +16,7 @@ Renovate handles `flake.lock` on its own. Everything documented here is invisibl
 .claude/skills/pinned-versions/check-pins.nu list     # print the registry without network calls
 ```
 
-Requires `gh` (authenticated) and `jq`, both present in `nix develop`.
+Requires an authenticated `gh`, present in `nix develop`.
 
 Exit codes are distinct so this works unattended:
 
