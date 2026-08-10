@@ -11,8 +11,8 @@
 }:
 
 let
-  notify = import ../../shared/notify.nix { inherit pkgs lib; };
-  hookScripts = import ../../shared/hooks { inherit pkgs lib repo; };
+  notify = import ../shared/notify.nix { inherit pkgs lib; };
+  hookScripts = import ../shared/hooks { inherit pkgs lib repo; };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
   autoFormatScript = hookScripts.mkAutoFormatScript {
@@ -25,11 +25,22 @@ let
   };
   proseGateScript = hookScripts.mkProseGateScript {
     name = "claude-code-prose-gate";
-    promptFile = ../../shared/hooks/prompts/prose-tics.md;
+    promptFile = ../shared/hooks/prompts/prose-tics.md;
     inherit enableDevToolchains;
   };
 
-  completenessPrompt = builtins.readFile ../../shared/hooks/prompts/completeness.md;
+  completenessPrompt = builtins.readFile ../shared/hooks/prompts/completeness.md;
+
+  # File edits first, then the MCP writes that publish prose, alphabetical by
+  # server. The trailing catch-all covers write tools on servers not listed.
+  proseGateMatcher = lib.concatStringsSep "|" [
+    "Edit"
+    "Write"
+    "mcp__Atlassian__confluence_(create_page|update_page|add_comment|add_inline_comment|reply_to_comment)"
+    "mcp__Git__git_commit"
+    "mcp__(GitHub|GitLab)__(create|update|add)_"
+    "mcp__.*_write"
+  ];
 in
 {
   PostToolUse = [
@@ -56,7 +67,7 @@ in
     }
     # Style gate - flag banned prose tics in edited files and MCP-published prose
     {
-      matcher = "Edit|Write|mcp__Git__git_commit|mcp__Atlassian__confluence_(create_page|update_page|add_comment|add_inline_comment|reply_to_comment)|mcp__(GitHub|GitLab)__(create|update|add)_|mcp__.*_write";
+      matcher = proseGateMatcher;
       hooks = [
         {
           type = "command";

@@ -89,7 +89,7 @@ in
       };
 
       notify = import ../shared/notify.nix { inherit pkgs lib; };
-      hooks = import ./hooks {
+      hooks = import ./hooks.nix {
         inherit pkgs lib repo;
         inherit enableDevToolchains;
       };
