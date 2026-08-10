@@ -80,6 +80,17 @@ def file-size [path: string]: nothing -> int {
   ls -l $path | get size.0 | into int
 }
 
+# `nix-shell --run` and `ssh` both hand their command to a shell, so every
+# interpolated value needs POSIX quoting. A literal `'` closes the quote, emits
+# an escaped one, and reopens.
+def sh-quote [value: string]: nothing -> string {
+  "'" + ($value | str replace --all "'" "'\\''") + "'"
+}
+
+def sh-join [args: list<string>]: nothing -> string {
+  $args | each {|a| sh-quote $a } | str join " "
+}
+
 def b2-upload [src: string, dst: string] {
   let name = ($src | path basename)
   let content_type = match ($name | path parse | get extension) {
@@ -92,16 +103,16 @@ def b2-upload [src: string, dst: string] {
   print $"Uploading ($name) \(($content_type)\)..."
   (
     ^nix-shell -p awscli2 --run
-      ([aws s3 cp $src $dst --endpoint-url $B2_ENDPOINT --content-type $content_type]
-        | each {|a| $a | into string | $"'($in)'" }
-        | str join " ")
+      (sh-join [aws s3 cp $src $dst --endpoint-url $B2_ENDPOINT --content-type $content_type])
   )
 }
 
-# Params bind through psql's `-v`, so no value is escaped into the statement.
+# Values bind through psql's `-v`, so nothing is escaped into the statement
+# itself. The quoting here is for the remote shell, which would otherwise split
+# and expand a JSON payload.
 def pt-psql [sql: string, params: record = {}] {
   let bindings = (
-    $params | items {|k, v| ["-v" $"($k)=($v)"] } | flatten | str join " "
+    $params | items {|k, v| ["-v" (sh-quote $"($k)=($v)")] } | flatten | str join " "
   )
   $sql | ^ssh $PEERTUBE_HOST $"sudo -u peertube psql -d peertube ($bindings)"
 }
