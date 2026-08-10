@@ -47,7 +47,7 @@
   wheelScrollAccelerationEnabled = false;
   statusLine = {
     type = "command";
-    command = "${homeDir}/.claude/statusline-command.sh";
+    command = "${homeDir}/.claude/statusline-command.nu";
   };
 
   # ----------------------------------------------------------------------------

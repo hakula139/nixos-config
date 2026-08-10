@@ -106,7 +106,7 @@ Resolved when the service or script runs, so the store path does not change when
 
 `toasty` is a `fetchurl` of a release asset, so it needs a hash refresh like any custom package. Its upstream also publishes releases with no binaries attached, so the newest tag is not always a bumpable target. `check-pins.nu` reports the newest release that actually ships `toasty-x64.exe`.
 
-Unpinned by design: the `npx -y <package>` MCP wrappers in `home/modules/llm-assistants/shared/mcp/default.nix` and `uvx mcp-atlassian` always resolve latest. `ccusage@latest` in `statusline-command.sh` is the same. These have no pin to bump, which also means they can break without any change on our side.
+Unpinned by design: the `npx -y <package>` MCP wrappers in `home/modules/llm-assistants/shared/mcp/default.nix` and `uvx mcp-atlassian` always resolve latest. `ccusage@latest` in `statusline-command.nu` is the same. These have no pin to bump, which also means they can break without any change on our side.
 
 ### Drifting upstream data
 
