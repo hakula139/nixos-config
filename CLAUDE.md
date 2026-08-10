@@ -36,10 +36,14 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 │   └── system-manager.nix           # Runtime PATH entries provisioned by system-manager activation
 ├── lib/                             # Pure helpers and framework code
 │   ├── builders.nix                 # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL, serverSharedModules
+│   ├── nu-check.sh                  # Pre-commit wrapper turning `nu --ide-check` diagnostics into an exit code
 │   ├── overlays.nix                 # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, toolchains, custom packages)
+│   ├── proxy.nix                    # mkProxyOptions, mkProxyScript, wrapWithProxy, no_proxy rendering
 │   ├── secrets.nix                  # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
+│   ├── systemd.nix                  # Shared systemd unit hardening defaults
 │   ├── tooling.nix                  # Shared tool groups (nix, secrets, shell)
-│   └── llm-assistants/              # Shared LLM-assistant helpers (mcpOptions, proxy, claude profile sets)
+│   ├── llm-assistants/              # Shared LLM-assistant helpers (mcpOptions, proxy, claude profile sets)
+│   └── wsl/                         # Windows interop helpers (windows-interop.nu)
 ├── modules/
 │   ├── shared.nix                   # Cross-platform Home Manager primitives
 │   ├── nixos/                       # NixOS service modules (most carry an `enable` option)
@@ -160,23 +164,41 @@ Defer to global CLAUDE.md. The repo-specific addition: when _restyling_ an exist
 Nushell is the default for new helper scripts, since most of them parse JSON from an external tool and reshape it. Bash remains correct for the cases listed under "What stays bash" below.
 
 - **No `set -euo pipefail` equivalent, and none needed.** A failing external command aborts the script on its own, and an undefined variable is a parse-time error. The habit that does not carry over is `|| true`: where bash tolerated a failure, wrap the call in `try { ... }` or capture it with `| complete` and read `.exit_code`. Omitting that turns a tolerated failure into an abort.
+- **`| complete` works on externals only.** On a builtin like `cp` it errors outright, so a fallible builtin needs `try { ... } catch { ... }`.
+- **`try` guards errors, `default` guards null.** They are separate failure modes. `open` on an empty `.json` returns null rather than raising, so `try { open $f } catch { {} }` passes the null straight through to whatever unwraps it next. Write `try { open $f | default {} } catch { {} }`.
 - **`def main` is the entry point.** Declare parameters with types and defaults (`def main [cmd: string = "check"]`) instead of `"${1:-check}"` plus a `case` fallthrough. Nushell generates the usage message and rejects a missing argument for you.
 - **Reading stdin needs `open --raw /dev/stdin`.** `$in` at the top level of a script fails with `Can't evaluate block in IR mode`, because `writeNu` invokes `nu --no-config-file` without `--stdin`. `$in` only binds to stdin inside `def main` when `--stdin` is passed, which the writer does not do.
-- **Prefer structured data end to end.** `from json`, `get field?` (the `?` yields null instead of erroring), `where`, and `select` replace a chain of `jq -r` subprocesses. Return a list of records and let the built-in `table` renderer format it rather than hand-building widths with `printf '%-28s'`.
+- **Prefer structured data end to end.** `from json`, `get field?` (the `?` yields null instead of erroring), `where`, and `select` replace a chain of `jq -r` subprocesses. Return a list of records and let the built-in `table` renderer format it rather than hand-building widths with `printf '%-28s'`. Return a record instead of packing several values into a delimited string for the caller to re-split.
 - **Call externals with a `^` prefix** when the name could collide with a builtin, and quote nothing extra: nushell passes arguments as a list, so word splitting cannot happen.
+- **Pass external flags as a `list<string>`, never a rest param.** A `...args` parameter claims `--flag` as a flag on your own command, so `git-porcelain $cwd status --porcelain` fails with "doesn't have flag `porcelain`".
+- **Use `ansi <name>` over literal escapes.** `ansi white_dimmed` and `ansi blue_bold` emit exactly what `\033[2;37m` and `\033[1;34m` did. Note `ansi green` is `ESC[32m` where a hand-written constant was often `ESC[0;32m`; the two render identically.
+- **A bare word is a string in argument position and a command call in block position.** `labeled Ctx "0%" green` passes strings, but `if $x { green }` tries to run `green`. Quote colour names and anything else that could parse as a duration or command (`"1m"` is a 1-minute duration unquoted).
+- **`$"(...)"` cannot nest another `$"..."`.** The lexer ends the string at the inner quote. Build the value with concatenation and single quotes instead: `$"(dim ($label + ':'))"`.
+- **Ranges are inclusive.** `0..2` is three elements; use `0..<2` for the bash `${s:0:2}` equivalent.
+- **`math sum` errors on an empty list.** Append the identity first: `| append 0 | math sum`.
+- **Operators cannot lead or trail a continuation line.** Wrap a multi-line boolean in parens, otherwise a leading `and` parses as a command.
+- **`parse --regex` collapses the empty-input case.** Piping no-match or empty text through `parse | get -o 0 | default {...}` replaces a length guard plus a branch.
 - Same file conventions as bash: substantial scripts live in adjacent `.nu` files loaded with `builtins.readFile`, and section banners follow the rules above.
 
 #### Nushell in Nix
 
 `pkgs.writers.writeNu` and `writeNuBin` are upstream, so this repo defines no writer of its own. `writeNu` produces a plain script (for a `home.file` source or a hook target) and `writeNuBin` produces `$out/bin/<name>` (for `home.packages`). Both accept an optional attrset first, so `makeWrapperArgs` supplies runtime `PATH` entries the way `writeShellApplication`'s `runtimeInputs` does.
 
-The `@placeholder@` plus `builtins.replaceStrings` substitution pattern works unchanged, since it operates on the file text before the writer sees it.
+The `@placeholder@` plus `builtins.replaceStrings` substitution pattern works unchanged, since it operates on the file text before the writer sees it. Substitute a list with `builtins.toJSON`, which a nushell list literal accepts verbatim, in place of `lib.escapeShellArgs`.
+
+#### Linting
+
+The `nu-check` pre-commit hook wraps `nu --ide-check` (`lib/nu-check.sh`). It catches unbalanced delimiters, undefined variables, wrong arity and flags on your own `def`s, and type mismatches against declared signatures. It does not catch an unknown external command, nor a bad field on a built-in record such as `$nu.home-path` (the real name is `$nu.home-dir`), so a script still needs one real run.
+
+`--ide-check` always exits 0, including for a path that does not exist, which is why the wrapper both greps for `"severity":"Error"` and rejects a missing file. `nufmt` is deliberately absent: it strips every blank line and forces 4-space indent against this repo's 2-space `.editorconfig`.
 
 #### What stays bash
 
 - `modules/nixos/cloudcone/agent/agent.sh` runs as a systemd service on a minimal VPS. It predates the runtime being available fleet-wide and there is no reason to grow that closure further for one script.
 - `claude-code/scripts/profile-loader.sh` is injected into a `makeWrapper --run` context, so its text is evaluated by the wrapper's own bash. `teammate-launcher.sh` sources it. Nushell cannot mutate a parent bash environment, so both are structurally bash.
 - The four hook scripts under `shared/hooks/scripts/` stay bash for now. They are invoked by an external tool that expects specific exit codes and stdout shapes, and two of them fail open, so a porting bug would silently disable a gate rather than failing loudly.
+
+Startup cost is not a reason to stay on bash. Nushell's interpreter starts slower than bash, but a script that forks `jq` a few times loses more to subprocesses than it gains: the statusline renders faster in nushell (112ms vs 133ms) because it parses its JSON once in-process instead of shelling out five times.
 
 ### Secrets Conventions
 
