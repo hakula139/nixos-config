@@ -12,24 +12,16 @@
 
 let
   notify = import ../shared/notify.nix { inherit pkgs lib; };
-  hookScripts = import ../shared/hooks { inherit pkgs lib repo; };
+  hookScripts = import ../shared/hooks {
+    inherit
+      pkgs
+      lib
+      repo
+      enableDevToolchains
+      ;
+    assistant = "claude-code";
+  };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
-
-  autoFormatScript = hookScripts.mkAutoFormatScript {
-    name = "claude-code-auto-format";
-    inherit enableDevToolchains;
-  };
-  wakatimeScript = hookScripts.mkWakatimeScript {
-    name = "claude-code-wakatime-heartbeat";
-    pluginName = "claude-code-hook/1.0";
-  };
-  proseGateScript = hookScripts.mkProseGateScript {
-    name = "claude-code-prose-gate";
-    promptFile = ../shared/hooks/prompts/prose-tics.md;
-    inherit enableDevToolchains;
-  };
-
-  completenessPrompt = builtins.readFile ../shared/hooks/prompts/completeness.md;
 
   # File edits first, then the MCP writes that publish prose, alphabetical by
   # server. The trailing catch-all covers write tools on servers not listed.
@@ -50,7 +42,7 @@ in
       hooks = [
         {
           type = "command";
-          command = "${wakatimeScript}";
+          command = "${hookScripts.wakatime}";
           async = true;
         }
       ];
@@ -61,7 +53,7 @@ in
       hooks = [
         {
           type = "command";
-          command = "${autoFormatScript}";
+          command = "${hookScripts.autoFormat}";
         }
       ];
     }
@@ -71,7 +63,7 @@ in
       hooks = [
         {
           type = "command";
-          command = "${proseGateScript}";
+          command = "${hookScripts.proseGate}";
           timeout = 30;
           statusMessage = "Checking prose style";
         }
@@ -122,7 +114,7 @@ in
       hooks = [
         {
           type = "prompt";
-          prompt = completenessPrompt;
+          prompt = hookScripts.completenessPrompt;
           timeout = 30;
           statusMessage = "Checking completeness";
         }

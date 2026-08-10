@@ -11,30 +11,21 @@
 }:
 
 let
-  hookScripts = import ../shared/hooks { inherit pkgs lib repo; };
+  hookScripts = import ../shared/hooks {
+    inherit
+      pkgs
+      lib
+      repo
+      enableDevToolchains
+      ;
+    assistant = "codex";
+  };
 
-  autoFormatScript = hookScripts.mkAutoFormatScript {
-    name = "codex-auto-format";
-    inherit enableDevToolchains;
-  };
-  completenessGateScript = hookScripts.mkCompletenessGateScript {
-    name = "codex-completeness-gate";
-    promptFile = ../shared/hooks/prompts/completeness.md;
-  };
-  proseGateScript = hookScripts.mkProseGateScript {
-    name = "codex-prose-gate";
-    promptFile = ../shared/hooks/prompts/prose-tics.md;
-    inherit enableDevToolchains;
-  };
-  wakatimeScript = hookScripts.mkWakatimeScript {
-    name = "codex-wakatime-heartbeat";
-    pluginName = "codex-hook/1.0";
-  };
   postEditScript = pkgs.writeShellScript "codex-post-edit" ''
     input="$(cat)"
-    printf '%s' "$input" | ${wakatimeScript} || true
-    printf '%s' "$input" | ${autoFormatScript} || true
-    printf '%s' "$input" | ${proseGateScript} || true
+    printf '%s' "$input" | ${hookScripts.wakatime} || true
+    printf '%s' "$input" | ${hookScripts.autoFormat} || true
+    printf '%s' "$input" | ${hookScripts.proseGate} || true
   '';
 
   mkWorkmuxHook = status: {
@@ -73,7 +64,7 @@ in
       hooks = [
         {
           type = "command";
-          command = "${completenessGateScript}";
+          command = "${hookScripts.completenessGate}";
           timeout = 40;
           statusMessage = "Checking completeness";
         }

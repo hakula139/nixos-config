@@ -1,29 +1,35 @@
 # ==============================================================================
 # Shared Hook Scripts
 # ==============================================================================
+# Instantiated once per assistant. `assistant` prefixes every generated script
+# name and the WakaTime plugin id, which is the only thing that varies.
+# ==============================================================================
 
 {
   pkgs,
   lib,
   repo,
+  assistant,
+  enableDevToolchains ? true,
   ...
 }:
 
 let
-  # ----------------------------------------------------------------------------
-  # Script generation
-  # ----------------------------------------------------------------------------
   mkHookScript =
     {
-      name,
+      slug,
       script,
       substitutions ? { },
     }:
-    pkgs.writeShellScript name (
+    pkgs.writeShellScript "${assistant}-${slug}" (
       builtins.replaceStrings (builtins.attrNames substitutions) (builtins.attrValues substitutions) (
         builtins.readFile script
       )
     );
+
+  # An empty tool path keeps that package out of a non-dev host's closure.
+  whenDev = pkg: if enableDevToolchains then lib.getExe pkg else "";
+  whenDevPath = path: if enableDevToolchains then "${path}" else "";
 
   # ----------------------------------------------------------------------------
   # Formatter configuration
@@ -104,72 +110,48 @@ let
   '';
 in
 {
-  # An empty tool path keeps that package out of a non-dev host's closure.
-  mkAutoFormatScript =
-    {
-      name ? "auto-format",
-      enableDevToolchains ? true,
-    }:
-    let
-      whenDev = pkg: if enableDevToolchains then lib.getExe pkg else "";
-    in
-    mkHookScript {
-      inherit name;
-      script = ./scripts/auto-format.sh;
-      substitutions = {
-        "@nixfmt@" = lib.getExe pkgs.nixfmt;
-        "@shellcheck@" = lib.getExe pkgs.shellcheck;
-        "@shfmt@" = lib.getExe pkgs.shfmt;
+  autoFormat = mkHookScript {
+    slug = "auto-format";
+    script = ./scripts/auto-format.sh;
+    substitutions = {
+      "@nixfmt@" = lib.getExe pkgs.nixfmt;
+      "@shellcheck@" = lib.getExe pkgs.shellcheck;
+      "@shfmt@" = lib.getExe pkgs.shfmt;
 
-        "@cspell@" = whenDev pkgs.cspell;
-        "@dprint@" = whenDev pkgs.dprint;
-        "@dprintConfig@" = if enableDevToolchains then "${dprintConfig}" else "";
-        "@markdownlint@" = whenDev pkgs.markdownlint-cli2;
-        "@prettier@" = whenDev pkgs.unstable.prettier;
-        "@ruff@" = whenDev pkgs.ruff;
-        "@taplo@" = whenDev pkgs.taplo;
-      };
+      "@cspell@" = whenDev pkgs.cspell;
+      "@dprint@" = whenDev pkgs.dprint;
+      "@dprintConfig@" = whenDevPath dprintConfig;
+      "@markdownlint@" = whenDev pkgs.markdownlint-cli2;
+      "@prettier@" = whenDev pkgs.unstable.prettier;
+      "@ruff@" = whenDev pkgs.ruff;
+      "@taplo@" = whenDev pkgs.taplo;
     };
+  };
 
-  mkCompletenessGateScript =
-    {
-      name ? "completeness-gate",
-      promptFile,
-      turns ? 30,
-    }:
-    mkHookScript {
-      inherit name;
-      script = ./scripts/completeness-gate.sh;
-      substitutions = {
-        "@promptFile@" = "${promptFile}";
-        "@turns@" = toString turns;
-      };
+  completenessGate = mkHookScript {
+    slug = "completeness-gate";
+    script = ./scripts/completeness-gate.sh;
+    substitutions = {
+      "@promptFile@" = "${./prompts/completeness.md}";
+      "@turns@" = "30";
     };
+  };
 
-  mkProseGateScript =
-    {
-      name ? "prose-gate",
-      promptFile,
-      enableDevToolchains ? true,
-    }:
-    mkHookScript {
-      inherit name;
-      script = ./scripts/prose-gate.sh;
-      substitutions = {
-        "@promptFile@" = "${promptFile}";
-        "@vale@" = if enableDevToolchains then lib.getExe pkgs.vale else "";
-        "@valeConfig@" = if enableDevToolchains then "${valeConfig}" else "";
-      };
-    };
+  completenessPrompt = builtins.readFile ./prompts/completeness.md;
 
-  mkWakatimeScript =
-    {
-      name ? "wakatime-heartbeat",
-      pluginName,
-    }:
-    mkHookScript {
-      inherit name;
-      script = ./scripts/wakatime.sh;
-      substitutions."@pluginName@" = pluginName;
+  proseGate = mkHookScript {
+    slug = "prose-gate";
+    script = ./scripts/prose-gate.sh;
+    substitutions = {
+      "@promptFile@" = "${./prompts/prose-tics.md}";
+      "@vale@" = whenDev pkgs.vale;
+      "@valeConfig@" = whenDevPath valeConfig;
     };
+  };
+
+  wakatime = mkHookScript {
+    slug = "wakatime-heartbeat";
+    script = ./scripts/wakatime.sh;
+    substitutions."@pluginName@" = "${assistant}-hook/1.0";
+  };
 }
