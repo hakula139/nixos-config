@@ -74,10 +74,9 @@ def resolve-base [remote: string, base_override: string]: nothing -> string {
 # Integration check
 # ------------------------------------------------------------------------------
 
-# A branch counts as integrated when it is an ancestor of the base, when every
-# commit has an equivalent upstream (squash / rebase merges), or when some
-# first-parent commit on the base has identical content for the paths the branch
-# touched. The last case is what recognizes a squash merge.
+# Three ways to count as integrated: ancestry, patch equivalence, or a
+# first-parent commit on the base matching content for the touched paths. Only
+# the last recognizes a squash merge.
 def branch-is-integrated [branch: string, base_ref: string]: nothing -> bool {
   let branch_ref = $"refs/heads/($branch)"
 
@@ -93,8 +92,9 @@ def branch-is-integrated [branch: string, base_ref: string]: nothing -> bool {
   let merge_base = (git-out "merge-base" $base_ref $branch_ref)
   if ($merge_base | is-empty) { return false }
 
+  # An empty net diff (an add later reverted) is integrated by definition.
   let changed = (nul-list "diff" "--name-only" "--no-renames" "-z" $merge_base $branch_ref)
-  if ($changed | is-empty) { return false }
+  if ($changed | is-empty) { return true }
 
   # `:(literal)` keeps a path containing `*` or `[` from being read as a glob.
   let pathspecs = ($changed | each {|p| ":\(literal)" + $p })

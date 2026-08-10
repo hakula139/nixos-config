@@ -15,19 +15,20 @@ def active-profile []: nothing -> string {
   try { readlink $ACTIVE_LINK | path parse | get stem } catch { "" }
 }
 
-def list-profiles [] {
+def list-profiles [--stderr]: nothing -> nothing {
   let current = (active-profile)
   # `ansi` emits escapes even when redirected, so colour is gated by hand.
-  let highlight = (is-terminal --stdout)
+  let highlight = (if $stderr { is-terminal --stderr } else { is-terminal --stdout })
 
   for name in $PROFILE_NAMES {
-    if $name != $current {
-      print $"    ($name)"
+    let line = if $name != $current {
+      $"    ($name)"
     } else if $highlight {
-      print $"  (ansi green_bold)* ($name)(ansi reset) \(active\)"
+      $"  (ansi green_bold)* ($name)(ansi reset) \(active\)"
     } else {
-      print $"  * ($name) \(active\)"
+      $"  * ($name) \(active\)"
     }
+    if $stderr { print -e $line } else { print $line }
   }
 }
 
@@ -46,7 +47,7 @@ def main [
     print -e $"Unknown profile: ($profile)"
     print -e ""
     print -e "Available profiles:"
-    list-profiles
+    list-profiles --stderr
     exit 1
   }
 

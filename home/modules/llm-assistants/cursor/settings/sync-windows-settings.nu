@@ -22,7 +22,7 @@ def main [] {
 
   let nix_settings = (open --raw $SOURCE | from json)
   let existing = (
-    try { open --raw $target | from json } catch { {} }
+    try { open --raw $target | from json | default {} } catch { {} }
   )
 
   let merged = (
