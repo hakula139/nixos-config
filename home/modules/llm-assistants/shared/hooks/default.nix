@@ -18,7 +18,9 @@ let
   timeouts = rec {
     judge = 30;
     tool = 10;
-    postEdit = judge + 3 * tool;
+    # This judge reads a metric report on top of the text: sampled 17-56s.
+    zhJudge = 75;
+    postEdit = judge + zhJudge + 3 * tool;
   };
 
   # ----------------------------------------------------------------------------
@@ -92,6 +94,34 @@ let
     };
     plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
   };
+  # ----------------------------------------------------------------------------
+  # Chinese fingerprint classifier
+  # ----------------------------------------------------------------------------
+  # Nearest-centroid over five jieba-derived ratios, one classifier per
+  # assistant. Fitted on the training half of a labelled corpus (hakula.xyz-kiln
+  # prose for human, session transcripts for each assistant's own Chinese) and
+  # scored on the disjoint other half, over the paragraphs long enough to
+  # measure: claude-code 82% recall at 10% false positives, codex 92% at 3%.
+  #
+  # The ratios that separate are not the ones English detection literature
+  # predicts. Clause length and burstiness land at chance here, while type-token
+  # ratio and structural-particle density carry the signal, because this compares
+  # a draft against its own human rewrite: topic and register are held fixed, so
+  # only the hand differs.
+  #
+  # The named symptoms of 欧化中文 all run backwards on this corpus: chained 的,
+  # 被 passives, and long attributives are commoner in the human half. What does
+  # transfer from English is the punctuation hierarchy, which the `link` ratio
+  # measures, so that is the axis worth having rather than the calque catalogue.
+  zhFingerprintEnv = pkgs.python3.withPackages (ps: [ ps.jieba ]);
+  zhFingerprint = pkgs.writeShellScript "zh-fingerprint" ''
+    exec ${zhFingerprintEnv}/bin/python3 ${pkgs.copyPathToStore ./scripts/zh-fingerprint.py} "$@"
+  '';
+
+  zhFingerprintModels = [
+    "claude-code"
+    "codex"
+  ];
 in
 {
   inherit timeouts;
@@ -133,6 +163,21 @@ in
       "@pluginName@" = "${assistant}-hook/1.0";
       "@timeout@" = "${pkgs.coreutils}/bin/timeout";
       "@toolTimeout@" = toString timeouts.tool;
+    };
+  };
+
+  # An empty classifier path disables the gate on assistants it was never fitted
+  # against, the same way an empty tool path disables a formatter above.
+  zhProseGate = mkHookScript {
+    slug = "zh-prose-gate";
+    script = ./scripts/zh-prose-gate.sh;
+    substitutions = {
+      "@fingerprint@" = lib.optionalString (builtins.elem assistant zhFingerprintModels) "${
+        zhFingerprint
+      }";
+      "@judgeTimeout@" = toString timeouts.zhJudge;
+      "@modelId@" = assistant;
+      "@promptFile@" = "${./prompts/zh-prose-tics.md}";
     };
   };
 }

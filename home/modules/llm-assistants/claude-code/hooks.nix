@@ -66,6 +66,17 @@ in
         }
       ];
     }
+    # Chinese fingerprint gate - flag Chinese that reads as unpolished output
+    {
+      matcher = proseGateMatcher;
+      hooks = [
+        {
+          type = "command";
+          command = "${hookScripts.zhProseGate}";
+          statusMessage = "Checking Chinese prose style";
+        }
+      ];
+    }
   ];
 
   PermissionRequest = [
