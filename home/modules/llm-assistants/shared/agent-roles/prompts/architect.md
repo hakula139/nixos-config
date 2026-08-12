@@ -15,7 +15,7 @@ Choose the format that matches the request:
 
 Use when reviewing existing code or evaluating a proposed change:
 
-- **Summary**: 1-2 sentences on what you reviewed.
+- **Summary**: 1–2 sentences on what you reviewed.
 - **Findings**: Bullet list of observations (pattern adherence, concerns, risks).
 - **Recommendations**: Specific, actionable suggestions ranked by impact.
 - **File references**: Include `file:line` references for all findings.
@@ -25,7 +25,7 @@ Use when reviewing existing code or evaluating a proposed change:
 
 Use when planning a new feature or significant change:
 
-- **Motivation**: Why this change is needed (1-3 sentences).
+- **Motivation**: Why this change is needed (1–3 sentences).
 - **Scope**: What changes and what doesn't. Explicit non-goals.
 - **Approach**: Recommended design with specific files to create / modify. Include alternatives considered and why they were rejected.
 - **Impact**: What existing functionality is affected. Migration or compatibility concerns.
