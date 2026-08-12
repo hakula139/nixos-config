@@ -45,7 +45,7 @@ PROMPT=$(CONTEXT="$CONTEXT" awk '
   { print }
 ' "$PROMPT_FILE")
 
-VERDICT=$(cd /tmp && timeout 30 claude -p "$PROMPT" \
+VERDICT=$(cd /tmp && timeout "@judgeTimeout@" claude -p "$PROMPT" \
   --bare \
   --system-prompt 'Respond with EXACTLY ONE LINE of compact JSON and nothing else, no markdown and no code fence: {"ok":true} or {"ok":false,"reason":"<the specific unfinished or misreported item>"}. Never place a literal double-quote inside the reason.' \
   --model sonnet \

@@ -12,6 +12,8 @@
 }:
 
 let
+  judgeTimeout = 30;
+
   mkHookScript =
     {
       slug,
@@ -130,11 +132,16 @@ in
     script = ./scripts/completeness-gate.sh;
     substitutions = {
       "@promptFile@" = "${./prompts/completeness.md}";
+      "@judgeTimeout@" = toString judgeTimeout;
       "@turns@" = "30";
     };
   };
 
   completenessPrompt = builtins.readFile ./prompts/completeness.md;
+
+  # Transcript reconstruction and verdict parsing sit outside the judge's own
+  # budget, so a command hook wrapping this script needs headroom past it.
+  completenessTimeout = judgeTimeout + 10;
 
   proseGate = mkHookScript {
     slug = "prose-gate";

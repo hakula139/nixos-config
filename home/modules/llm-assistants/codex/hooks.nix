@@ -65,7 +65,7 @@ in
         {
           type = "command";
           command = "${hookScripts.completenessGate}";
-          timeout = 40;
+          timeout = hookScripts.completenessTimeout;
           statusMessage = "Checking completeness";
         }
       ];
