@@ -1,9 +1,6 @@
 # ==============================================================================
 # Shared Hook Scripts
 # ==============================================================================
-# Instantiated once per assistant. `assistant` prefixes every generated script
-# name and the WakaTime plugin id, which is the only thing that varies.
-# ==============================================================================
 
 {
   pkgs,

@@ -34,8 +34,6 @@ esac
 PROMPT_FILE="@promptFile@"
 [[ -r "$PROMPT_FILE" ]] || exit 0
 
-# Skip the judge when vale finds no prose. Anything unexpected falls through to
-# it, so the gate never silently stops checking.
 VALE="@vale@"
 VALE_CONFIG="@valeConfig@"
 if [[ -x "$VALE" && -r "$VALE_CONFIG" ]]; then

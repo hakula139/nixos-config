@@ -23,8 +23,6 @@ let
   };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
-  # File edits first, then the MCP writes that publish prose, alphabetical by
-  # server. The trailing catch-all covers write tools on servers not listed.
   proseGateMatcher = lib.concatStringsSep "|" [
     "Edit"
     "Write"
