@@ -6,44 +6,33 @@
   pkgs,
   lib,
   repo,
+  enableDevToolchains ? true,
   ...
 }:
 
 let
-  notify = import ../../shared/notify.nix { inherit pkgs lib; };
-  hookScripts = import ../../shared/hooks { inherit pkgs lib repo; };
+  notify = import ../shared/notify.nix { inherit pkgs lib; };
+  hookScripts = import ../shared/hooks {
+    inherit
+      pkgs
+      lib
+      repo
+      enableDevToolchains
+      ;
+    assistant = "claude-code";
+  };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
-  autoFormatScript = hookScripts.mkAutoFormatScript { name = "claude-code-auto-format"; };
-  enforceMcpScript = hookScripts.mkEnforceMcpScript {
-    name = "claude-code-enforce-mcp";
-    hintMode = "permission-allow";
-  };
-  wakatimeScript = hookScripts.mkWakatimeScript {
-    name = "claude-code-wakatime-heartbeat";
-    pluginName = "claude-code-hook/1.0";
-  };
-  proseGateScript = hookScripts.mkProseGateScript {
-    name = "claude-code-prose-gate";
-    promptFile = ./prompts/prose-tics.md;
-  };
-
-  completenessPrompt = builtins.readFile ./prompts/completeness.md;
+  proseGateMatcher = lib.concatStringsSep "|" [
+    "Edit"
+    "Write"
+    "mcp__Atlassian__confluence_(create_page|update_page|add_comment|add_inline_comment|reply_to_comment)"
+    "mcp__Git__git_commit"
+    "mcp__(GitHub|GitLab)__(create|update|add)_"
+    "mcp__.*_write"
+  ];
 in
 {
-  PreToolUse = [
-    # Enforce MCP tool usage over Bash equivalents
-    {
-      matcher = "Bash";
-      hooks = [
-        {
-          type = "command";
-          command = "${enforceMcpScript}";
-        }
-      ];
-    }
-  ];
-
   PostToolUse = [
     # WakaTime heartbeat for AI-generated file edits
     {
@@ -51,7 +40,7 @@ in
       hooks = [
         {
           type = "command";
-          command = "${wakatimeScript}";
+          command = "${hookScripts.wakatime}";
           async = true;
         }
       ];
@@ -62,18 +51,17 @@ in
       hooks = [
         {
           type = "command";
-          command = "${autoFormatScript}";
+          command = "${hookScripts.autoFormat}";
         }
       ];
     }
     # Style gate - flag banned prose tics in edited files and MCP-published prose
     {
-      matcher = "Edit|Write|mcp__Atlassian__confluence_(create_page|update_page|add_comment|add_inline_comment|reply_to_comment)|mcp__(GitHub|GitLab)__(create|update|add)_|mcp__.*_write";
+      matcher = proseGateMatcher;
       hooks = [
         {
           type = "command";
-          command = "${proseGateScript}";
-          timeout = 30;
+          command = "${hookScripts.proseGate}";
           statusMessage = "Checking prose style";
         }
       ];
@@ -123,8 +111,7 @@ in
       hooks = [
         {
           type = "prompt";
-          prompt = completenessPrompt;
-          timeout = 30;
+          prompt = hookScripts.completenessPrompt;
           statusMessage = "Checking completeness";
         }
       ];

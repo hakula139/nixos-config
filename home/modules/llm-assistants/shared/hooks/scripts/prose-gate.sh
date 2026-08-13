@@ -21,8 +21,9 @@ TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
 case "$TOOL_NAME" in
   Write) CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.content // empty') ;;
   Edit) CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.new_string // empty') ;;
+  apply_patch) CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty') ;;
   mcp__*) CONTENT=$(printf '%s' "$INPUT" \
-    | jq -r '.tool_input.description // .tool_input.body // .tool_input.note // .tool_input.content // .tool_input.new_content // empty') ;;
+    | jq -r '.tool_input.message // .tool_input.description // .tool_input.body // .tool_input.note // .tool_input.content // .tool_input.new_content // empty') ;;
   *) exit 0 ;;
 esac
 
@@ -31,7 +32,7 @@ esac
 PROMPT_FILE="@promptFile@"
 [[ -r "$PROMPT_FILE" ]] || exit 0
 
-RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout 25 claude -p "$CONTENT" \
+RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout "@judgeTimeout@" claude -p "$CONTENT" \
   --bare \
   --system-prompt-file "$PROMPT_FILE" \
   --model sonnet \

@@ -19,6 +19,10 @@ set -uo pipefail
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
 
+have() {
+  [[ -n "$1" && -x "$1" ]]
+}
+
 collect_files() {
   case "$TOOL_NAME" in
     apply_patch)
@@ -42,6 +46,7 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
       "@nixfmt@" "$FILE_PATH" 2>/dev/null || true
       ;;
     *.py)
+      have "@ruff@" || continue
       "@ruff@" format "$FILE_PATH" 2>/dev/null || true
       "@ruff@" check --fix "$FILE_PATH" 2>/dev/null || true
       "@ruff@" check "$FILE_PATH" 2>&1 | head -20 || true
@@ -60,12 +65,15 @@ collect_files | sort -u | while IFS= read -r FILE_PATH; do
       fi
       ;;
     *.toml)
+      have "@taplo@" || continue
       "@taplo@" fmt "$FILE_PATH" 2>/dev/null || true
       ;;
     *.css | *.js)
+      have "@prettier@" || continue
       "@prettier@" --write "$FILE_PATH" 2>/dev/null || true
       ;;
     *.md)
+      have "@dprint@" || continue
       TMP=$(mktemp)
       if "@dprint@" fmt --config "@dprintConfig@" --stdin md <"$FILE_PATH" >"$TMP" 2>/dev/null && [[ -s "$TMP" ]]; then
         mv "$TMP" "$FILE_PATH"
