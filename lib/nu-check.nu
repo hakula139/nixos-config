@@ -71,7 +71,15 @@ def main [...files: string] {
       continue
     }
 
-    let text = (open --raw $file)
+    # `open --raw` yields a byte stream, and the `-> string` signatures below
+    # reject invalid UTF-8 with a trace naming this script instead of the file.
+    let text = (try { open --raw $file | into string } catch { null })
+    if $text == null {
+      print -e $"($file): not valid UTF-8"
+      $failed = true
+      continue
+    }
+
     let target = (mktemp --tmpdir --suffix .nu)
     substitute $text $stub | save --force $target
 

@@ -168,6 +168,7 @@ Nushell is the default for new helper scripts, since most of them parse JSON fro
 - **No `set -euo pipefail` equivalent, and none needed.** A failing external command aborts the script on its own, and an undefined variable is a parse-time error. The habit that does not carry over is `|| true`: where bash tolerated a failure, wrap the call in `try { ... }` or capture it with `| complete` and read `.exit_code`. Omitting that turns a tolerated failure into an abort.
 - **`| complete` works on externals only.** On a builtin like `cp` it errors outright, so a fallible builtin needs `try { ... } catch { ... }`.
 - **`try` guards errors, `default` guards null.** They are separate failure modes. `open` on an empty `.json` returns null rather than raising, so `try { open $f } catch { {} }` passes the null straight through to whatever unwraps it next. Write `try { open $f | default {} } catch { {} }`.
+- **`from json` returns the input unchanged on most non-JSON text.** `'not json at all' | from json` yields that string, and a bare `42` or `[1,2]` yields an int or a list, so only a truncated `{bad` actually raises. Neither `try` nor a `?` cell path helps: the field access on a string fails with `incompatible_path_access`. Check the shape before reading a field, e.g. `if ($j | describe | str starts-with "record")`.
 - **A declared return type is documentation, not a coercion.** `transpose -r -d` and `uniq --count | transpose` yield `list<any>` on empty input, and a `-> record` signature accepts it silently. The next `in` or field access then raises. Guard the empty case before transposing. Worse, `get -o` on a list returns `[]` rather than null, so `| default 0` never fires and an `== 0` guard reads false: count with `where ... | length` instead.
 - **`def main` is the entry point.** Declare parameters with types and defaults (`def main [cmd: string = "check"]`) instead of `"${1:-check}"` plus a `case` fallthrough. Nushell generates the usage message and rejects a missing argument for you.
 - **Reading stdin needs `open --raw /dev/stdin`.** `$in` at the top level of a script fails with `Can't evaluate block in IR mode`, because `writeNu` invokes `nu --no-config-file` without `--stdin`. `$in` only binds to stdin inside `def main` when `--stdin` is passed, which the writer does not do.
@@ -202,11 +203,11 @@ The `nu-check` pre-commit hook wraps `nu --ide-check` (`lib/nu-check.nu`). It ca
 
 #### What stays bash
 
-- `modules/nixos/cloudcone/agent/agent.sh` runs as a systemd service on a minimal VPS. It predates the runtime being available fleet-wide and there is no reason to grow that closure further for one script.
+- `modules/nixos/cloudcone/agent/agent.sh` runs as a systemd service on a minimal VPS. Its work is `awk` over `/proc` files into a `{key}value{/key}` wire format, which is neither JSON nor tabular, so nushell's structured pipeline buys nothing.
 - `claude-code/scripts/profile-loader.sh` is injected into a `makeWrapper --run` context, so its text is evaluated by the wrapper's own bash. `teammate-launcher.sh` sources it. Nushell cannot mutate a parent bash environment, so both are structurally bash.
-- The four hook scripts under `shared/hooks/scripts/` stay bash for now. They are invoked by an external tool that expects specific exit codes and stdout shapes, and two of them fail open, so a porting bug would silently disable a gate rather than failing loudly.
+- The three hook scripts under `shared/hooks/scripts/` read two or three fields off one payload and then shell out. Measured on a `{tool_name, cwd, tool_input}` payload, bash plus three `jq` forks runs in 8.6ms against nushell's 24.7ms, because the interpreter's own 33ms startup dominates. They also fail open, so a porting bug would disable a gate silently.
 
-Startup cost is not a reason to stay on bash. Nushell's interpreter starts slower than bash, but a script that forks `jq` a few times loses more to subprocesses than it gains: the statusline renders faster in nushell (112ms vs 133ms) because it parses its JSON once in-process instead of shelling out five times.
+Startup cost cuts both ways, so measure the specific script. Nushell's interpreter starts around 33ms against bash's 2ms, and a `jq` fork costs roughly 2ms, so parsing in-process only wins past a handful of forks. The statusline crossed that line (112ms against 133ms) by forking five times and doing real work per field. A hook that reads three fields does not.
 
 ### Secrets Conventions
 
