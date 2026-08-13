@@ -21,9 +21,7 @@ TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
 case "$TOOL_NAME" in
   Write) CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.content // empty') ;;
   Edit) CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.new_string // empty') ;;
-  # Added lines only: context lines are text the assistant did not write.
-  apply_patch) CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' \
-    | sed -n -E 's/^\+(.*)$/\1/p') ;;
+  apply_patch) CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty') ;;
   mcp__*) CONTENT=$(printf '%s' "$INPUT" \
     | jq -r '.tool_input.message // .tool_input.description // .tool_input.body // .tool_input.note // .tool_input.content // .tool_input.new_content // empty') ;;
   *) exit 0 ;;
@@ -51,12 +49,12 @@ if [[ -x "$VALE" && -r "$VALE_CONFIG" ]]; then
   [[ "$VALE_EXT" == ".nix" ]] && VALE_EXT=".py"
 
   if VALE_OUT=$(printf '%s' "$CONTENT" \
-    | timeout 10 "$VALE" --config="$VALE_CONFIG" --ext="$VALE_EXT" --output=line 2>/dev/null); then
+    | timeout "@valeTimeout@" "$VALE" --config="$VALE_CONFIG" --ext="$VALE_EXT" --output=line 2>/dev/null); then
     [[ -n "$VALE_OUT" ]] || exit 0
   fi
 fi
 
-RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout 25 claude -p "$CONTENT" \
+RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout "@judgeTimeout@" claude -p "$CONTENT" \
   --bare \
   --system-prompt-file "$PROMPT_FILE" \
   --model sonnet \

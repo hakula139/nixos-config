@@ -47,7 +47,7 @@ in
         {
           type = "command";
           command = "${postEditScript}";
-          timeout = 120;
+          timeout = hookScripts.timeouts.postEdit;
           statusMessage = "Processing edited files";
         }
       ];
@@ -59,17 +59,5 @@ in
 
   SubagentStop = [ (mkWorkmuxHook "done") ];
 
-  Stop = [
-    {
-      hooks = [
-        {
-          type = "command";
-          command = "${hookScripts.completenessGate}";
-          timeout = hookScripts.completenessTimeout;
-          statusMessage = "Checking completeness";
-        }
-      ];
-    }
-    (mkWorkmuxHook "done")
-  ];
+  Stop = [ (mkWorkmuxHook "done") ];
 }

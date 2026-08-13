@@ -62,7 +62,7 @@ in
         {
           type = "command";
           command = "${hookScripts.proseGate}";
-          timeout = 30;
+          timeout = hookScripts.timeouts.proseGate;
           statusMessage = "Checking prose style";
         }
       ];
@@ -113,7 +113,7 @@ in
         {
           type = "prompt";
           prompt = hookScripts.completenessPrompt;
-          timeout = 30;
+          timeout = hookScripts.timeouts.judge;
           statusMessage = "Checking completeness";
         }
       ];

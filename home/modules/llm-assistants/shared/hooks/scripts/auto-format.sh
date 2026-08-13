@@ -16,12 +16,12 @@
 # `-e` is omitted: every tool invocation intentionally tolerates failure.
 set -uo pipefail
 
+INPUT=$(cat)
+TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
+
 have() {
   [[ -n "$1" && -x "$1" ]]
 }
-
-INPUT=$(cat)
-TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
 
 collect_files() {
   case "$TOOL_NAME" in
