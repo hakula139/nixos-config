@@ -32,28 +32,6 @@ esac
 PROMPT_FILE="@promptFile@"
 [[ -r "$PROMPT_FILE" ]] || exit 0
 
-VALE="@vale@"
-VALE_CONFIG="@valeConfig@"
-if [[ -x "$VALE" && -r "$VALE_CONFIG" ]]; then
-  case "$TOOL_NAME" in
-    apply_patch) FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // ""' \
-      | sed -n -E 's/^\*\*\* (Add|Update) File: //p' | head -1) ;;
-    *) FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty') ;;
-  esac
-  # `.md` treats everything as prose, so an unknown extension never skips.
-  case "$FILE_PATH" in
-    *.*) VALE_EXT=".${FILE_PATH##*.}" ;;
-    *) VALE_EXT=".md" ;;
-  esac
-  # vale has no Nix parser, and Python's comment and string syntax matches.
-  [[ "$VALE_EXT" == ".nix" ]] && VALE_EXT=".py"
-
-  if VALE_OUT=$(printf '%s' "$CONTENT" \
-    | timeout "@toolTimeout@" "$VALE" --config="$VALE_CONFIG" --ext="$VALE_EXT" --output=line 2>/dev/null); then
-    [[ -n "$VALE_OUT" ]] || exit 0
-  fi
-fi
-
 RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout "@judgeTimeout@" claude -p "$CONTENT" \
   --bare \
   --system-prompt-file "$PROMPT_FILE" \

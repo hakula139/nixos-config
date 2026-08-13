@@ -18,8 +18,6 @@ let
   timeouts = rec {
     judge = 30;
     tool = 10;
-    # Codex serializes three legs behind one hook, including an unbounded
-    # `cargo clippy`.
     postEdit = judge + 3 * tool;
   };
 
@@ -94,30 +92,6 @@ let
     };
     plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
   };
-
-  # ----------------------------------------------------------------------------
-  # Prose detection
-  # ----------------------------------------------------------------------------
-  # A `\w+` rule under vale's `text` scope matches only what its per-language
-  # parser treats as prose, so no alerts means the payload is pure code.
-  valeConfig = pkgs.runCommand "vale-prose-config" { } ''
-    mkdir -p $out/Prose
-    cat > $out/Prose/HasProse.yml <<'EOF'
-    extends: existence
-    message: "prose present"
-    level: warning
-    scope: text
-    tokens:
-      - '\w+'
-    EOF
-    cat > $out/vale.ini <<EOF
-    StylesPath = $out
-    MinAlertLevel = warning
-
-    [*]
-    BasedOnStyles = Prose
-    EOF
-  '';
 in
 {
   inherit timeouts;
@@ -148,9 +122,6 @@ in
     substitutions = {
       "@promptFile@" = "${./prompts/prose-tics.md}";
       "@judgeTimeout@" = toString timeouts.judge;
-      "@toolTimeout@" = toString timeouts.tool;
-      "@vale@" = whenDev pkgs.vale;
-      "@valeConfig@" = whenDevPath "${valeConfig}/vale.ini";
     };
   };
 

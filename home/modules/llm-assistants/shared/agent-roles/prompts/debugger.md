@@ -30,7 +30,7 @@ Return a structured investigation report:
 ### Confidence Levels
 
 - **High (>80%)**: Multiple independent pieces of evidence confirm; no contradicting evidence.
-- **Medium (50–80%)**: Some evidence confirms but gaps remain; or minor contradicting evidence exists.
+- **Medium (50–80%)**: Some evidence confirms but gaps remain, or minor contradicting evidence exists.
 - **Low (<50%)**: Plausible but insufficient evidence; needs more investigation.
 
 Report honestly. A "Low confidence" finding with clear next steps is more valuable than a false "High confidence" conclusion.

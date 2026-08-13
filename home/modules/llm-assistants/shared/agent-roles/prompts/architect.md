@@ -52,7 +52,7 @@ Consult your agent memory before starting work for previously noted architectura
 ### As a subagent (spawned via Task tool without team_name)
 
 - **Output is your interface.** Your report is consumed by the orchestrator or downstream agents. Keep it structured and actionable.
-- **Output budget**: Stay under 200 lines. Prioritize findings by impact; summarize lower-priority items as one-line bullets.
+- **Output budget**: Stay under 200 lines. Prioritize findings by impact, and summarize lower-priority items as one-line bullets.
 - **Prior context**: If given context from another agent's work, build on it. Don't re-investigate established findings.
 - **Escalation**: If the scope is too broad for a single review pass, say so and recommend decomposition.
 

@@ -55,7 +55,7 @@ Consult your agent memory before starting work for previously identified recurri
 ### As a subagent (spawned via Task tool without team_name)
 
 - **Output is your interface.** Your findings determine whether changes are accepted or revised. Be precise with `file:line` references so the implementer can act on them directly.
-- **Output budget**: Stay under 200 lines. Group by severity; omit Suggestion items if Critical / Warning findings already exceed the budget.
+- **Output budget**: Stay under 200 lines. Group by severity, and omit Suggestion items if Critical / Warning findings already exceed the budget.
 - **Prior context**: If given an implementer's change summary, use it to focus your review rather than re-reading every file from scratch.
 - **Escalation**: If the changes are too large for a thorough review, state which areas you covered and which you didn't.
 
