@@ -49,7 +49,7 @@ if [[ -x "$VALE" && -r "$VALE_CONFIG" ]]; then
   [[ "$VALE_EXT" == ".nix" ]] && VALE_EXT=".py"
 
   if VALE_OUT=$(printf '%s' "$CONTENT" \
-    | timeout "@valeTimeout@" "$VALE" --config="$VALE_CONFIG" --ext="$VALE_EXT" --output=line 2>/dev/null); then
+    | timeout "@toolTimeout@" "$VALE" --config="$VALE_CONFIG" --ext="$VALE_EXT" --output=line 2>/dev/null); then
     [[ -n "$VALE_OUT" ]] || exit 0
   fi
 fi

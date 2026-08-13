@@ -15,15 +15,14 @@ let
   # ----------------------------------------------------------------------------
   # Hook timeouts
   # ----------------------------------------------------------------------------
+  # Each fallible leg bounds itself, since a harness that cancels the whole hook
+  # discards its output and renders no decision, which is indistinguishable from
+  # a clean pass. Both harnesses already default a command hook to 600s, so only
+  # the Codex wrapper sets one: it also serializes an unbounded `cargo clippy`.
   judgeTimeout = 30;
-  valeTimeout = 10;
-  wrapperOverhead = 5;
+  toolTimeout = 10;
 
-  timeouts = {
-    judge = judgeTimeout;
-    proseGate = valeTimeout + judgeTimeout + wrapperOverhead;
-    postEdit = 120;
-  };
+  postEditTimeout = judgeTimeout + 3 * toolTimeout;
 
   mkHookScript =
     {
@@ -120,7 +119,7 @@ let
   '';
 in
 {
-  inherit timeouts;
+  inherit postEditTimeout;
 
   autoFormat = mkHookScript {
     slug = "auto-format";
@@ -148,7 +147,7 @@ in
     substitutions = {
       "@promptFile@" = "${./prompts/prose-tics.md}";
       "@judgeTimeout@" = toString judgeTimeout;
-      "@valeTimeout@" = toString valeTimeout;
+      "@toolTimeout@" = toString toolTimeout;
       "@vale@" = whenDev pkgs.vale;
       "@valeConfig@" = whenDevPath valeConfig;
     };
@@ -157,6 +156,9 @@ in
   wakatime = mkHookScript {
     slug = "wakatime-heartbeat";
     script = ./scripts/wakatime.sh;
-    substitutions."@pluginName@" = "${assistant}-hook/1.0";
+    substitutions = {
+      "@pluginName@" = "${assistant}-hook/1.0";
+      "@toolTimeout@" = toString toolTimeout;
+    };
   };
 }

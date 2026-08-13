@@ -47,7 +47,7 @@ in
         {
           type = "command";
           command = "${postEditScript}";
-          timeout = hookScripts.timeouts.postEdit;
+          timeout = hookScripts.postEditTimeout;
           statusMessage = "Processing edited files";
         }
       ];
