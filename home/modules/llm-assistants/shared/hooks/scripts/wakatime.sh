@@ -20,9 +20,9 @@ fi
 
 PROJECT_FOLDER=$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null || true)
 STATE_ID=$(
-  printf '%s' "$INPUT" |
-    jq -r '.transcript_path // .session_id // ."thread-id" // .thread_id // .cwd // "unknown"' 2>/dev/null ||
-    true
+  printf '%s' "$INPUT" \
+    | jq -r '.transcript_path // .session_id // ."thread-id" // .thread_id // .cwd // "unknown"' 2>/dev/null \
+    || true
 )
 
 WAKATIME_HOME_DIR="${WAKATIME_HOME:-${HOME:-}}"
@@ -48,5 +48,5 @@ ARGS=(
 [[ -n "$PROJECT_FOLDER" ]] && ARGS+=(--project-folder "$PROJECT_FOLDER")
 
 mkdir -p "$STATE_DIR"
-wakatime-cli "${ARGS[@]}" >/dev/null 2>&1 || true
+timeout "@toolTimeout@" wakatime-cli "${ARGS[@]}" >/dev/null 2>&1 || true
 printf '%s\n' "$NOW" >"$STATE_FILE"

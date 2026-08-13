@@ -6,24 +6,39 @@
   pkgs,
   lib,
   repo,
+  assistant,
+  enableDevToolchains ? true,
   ...
 }:
 
 let
   # ----------------------------------------------------------------------------
+  # Hook timeouts
+  # ----------------------------------------------------------------------------
+  timeouts = rec {
+    judge = 30;
+    tool = 10;
+    postEdit = judge + 3 * tool;
+  };
+
+  # ----------------------------------------------------------------------------
   # Script generation
   # ----------------------------------------------------------------------------
   mkHookScript =
     {
-      name,
+      slug,
       script,
       substitutions ? { },
     }:
-    pkgs.writeShellScript name (
+    pkgs.writeShellScript "${assistant}-${slug}" (
       builtins.replaceStrings (builtins.attrNames substitutions) (builtins.attrValues substitutions) (
         builtins.readFile script
       )
     );
+
+  # An empty tool path keeps that package out of a non-dev host's closure.
+  whenDev = pkg: if enableDevToolchains then lib.getExe pkg else "";
+  whenDevPath = path: if enableDevToolchains then "${path}" else "";
 
   # ----------------------------------------------------------------------------
   # Formatter configuration
@@ -79,57 +94,43 @@ let
   };
 in
 {
-  mkAutoFormatScript =
-    {
-      name ? "auto-format",
-    }:
-    mkHookScript {
-      inherit name;
-      script = ./scripts/auto-format.sh;
-      substitutions = {
-        "@cspell@" = lib.getExe pkgs.cspell;
-        "@dprint@" = lib.getExe pkgs.dprint;
-        "@dprintConfig@" = "${dprintConfig}";
-        "@markdownlint@" = lib.getExe pkgs.markdownlint-cli2;
-        "@nixfmt@" = lib.getExe pkgs.nixfmt;
-        "@prettier@" = lib.getExe pkgs.unstable.prettier;
-        "@ruff@" = lib.getExe pkgs.ruff;
-        "@shellcheck@" = lib.getExe pkgs.shellcheck;
-        "@shfmt@" = lib.getExe pkgs.shfmt;
-        "@taplo@" = lib.getExe pkgs.taplo;
-      };
-    };
+  inherit timeouts;
 
-  mkEnforceMcpScript =
-    {
-      name ? "enforce-mcp",
-      hintMode,
-    }:
-    mkHookScript {
-      inherit name;
-      script = ./scripts/enforce-mcp.sh;
-      substitutions."@hintMode@" = hintMode;
-    };
+  autoFormat = mkHookScript {
+    slug = "auto-format";
+    script = ./scripts/auto-format.sh;
+    substitutions = {
+      "@nixfmt@" = lib.getExe pkgs.nixfmt;
+      "@shellcheck@" = lib.getExe pkgs.shellcheck;
+      "@shfmt@" = lib.getExe pkgs.shfmt;
 
-  mkProseGateScript =
-    {
-      name ? "prose-gate",
-      promptFile,
-    }:
-    mkHookScript {
-      inherit name;
-      script = ./scripts/prose-gate.sh;
-      substitutions."@promptFile@" = "${promptFile}";
+      "@cspell@" = whenDev pkgs.cspell;
+      "@dprint@" = whenDev pkgs.dprint;
+      "@dprintConfig@" = whenDevPath dprintConfig;
+      "@markdownlint@" = whenDev pkgs.markdownlint-cli2;
+      "@prettier@" = whenDev pkgs.unstable.prettier;
+      "@ruff@" = whenDev pkgs.ruff;
+      "@taplo@" = whenDev pkgs.taplo;
     };
+  };
 
-  mkWakatimeScript =
-    {
-      name ? "wakatime-heartbeat",
-      pluginName,
-    }:
-    mkHookScript {
-      inherit name;
-      script = ./scripts/wakatime.sh;
-      substitutions."@pluginName@" = pluginName;
+  completenessPrompt = builtins.readFile ./prompts/completeness.md;
+
+  proseGate = mkHookScript {
+    slug = "prose-gate";
+    script = ./scripts/prose-gate.sh;
+    substitutions = {
+      "@promptFile@" = "${./prompts/prose-tics.md}";
+      "@judgeTimeout@" = toString timeouts.judge;
     };
+  };
+
+  wakatime = mkHookScript {
+    slug = "wakatime-heartbeat";
+    script = ./scripts/wakatime.sh;
+    substitutions = {
+      "@pluginName@" = "${assistant}-hook/1.0";
+      "@toolTimeout@" = toString timeouts.tool;
+    };
+  };
 }

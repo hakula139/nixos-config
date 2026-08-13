@@ -37,7 +37,7 @@ Consult your agent memory before starting work for previously noted coding patte
 ### As a subagent (spawned via Task tool without team_name)
 
 - **Output is your interface.** Your summary is consumed by the orchestrator or downstream agents (for example reviewer and tester). Include enough context for them to do their job without re-reading all changed files.
-- **Output budget**: Stay under 150 lines. Focus on what changed and why; omit obvious details.
+- **Output budget**: Stay under 150 lines. Focus on what changed and why, omitting obvious details.
 - **Prior context**: If given an architect's recommendations or a researcher's findings, follow them rather than re-investigating.
 - **Escalation**: If the task is ambiguous, requires design decisions not covered by prior context, or exceeds scope, state what you need before proceeding.
 

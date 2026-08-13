@@ -64,7 +64,7 @@ If there are findings, use (omit empty severity sections):
 
 ## Summary
 
-<1-3 sentences: what the PR changes, scope, affected modules / hosts>
+<1–3 sentences: what the PR changes, scope, affected modules / hosts>
 
 ## Assessment
 
@@ -92,7 +92,7 @@ If there are no findings:
 
 ## Summary
 
-<1-3 sentences: what the PR changes, scope, affected modules / hosts>
+<1–3 sentences: what the PR changes, scope, affected modules / hosts>
 
 ## Assessment
 
