@@ -61,7 +61,9 @@ def gh-latest-release-with-asset [repo: string, asset: string]: nothing -> strin
 
 def gh-default-head [repo: string]: nothing -> string {
   let branch = (gh-api $"repos/($repo)" ".default_branch")
-  if ($branch | is-empty) { return "" }
+  if ($branch | is-empty) {
+    return ""
+  }
   gh-api $"repos/($repo)/commits/($branch)" ".sha"
 }
 
@@ -181,7 +183,6 @@ def registry [root: string]: nothing -> list<record> {
           local: {|| plugin-tag $root "openai-codex" }
           upstream: {|| gh-latest-release "openai/codex-plugin-cc" }
         }
-        # These two track a branch, so any newer HEAD counts as drift.
         {
           pin: "claude-plugins-official"
           local: {|| abbrev (plugin-rev $root "claude-plugins-official") }
@@ -310,7 +311,9 @@ def cloudflare-drift [root: string]: nothing -> string {
   )
 
   # An empty half would otherwise surface as drift against the half we did fetch.
-  if ($pinned | is-empty) or ($fetched | any {|r| $r | is-empty }) { return "" }
+  if ($pinned | is-empty) or ($fetched | any {|r| $r | is-empty }) {
+    return ""
+  }
 
   if $pinned == ($fetched | str join "\n" | lines | where $it != "" | sort) {
     "same ranges"
@@ -325,8 +328,9 @@ def cloudflare-drift [root: string]: nothing -> string {
 
 # A pin delegated to Renovate reports its own status, since comparing the two
 # `flake.lock` placeholders would otherwise mark it a current manual pin.
+# Every pin is an independent network round trip, so they resolve concurrently.
 def resolve []: list<record> -> list<record> {
-  each {|row|
+  par-each --keep-order {|row|
     if ($row.delegated? | is-not-empty) {
       return {pin: $row.pin, pinned: "flake.lock", upstream: "flake.lock", status: $row.delegated}
     }
@@ -378,17 +382,26 @@ def cmd-check [] {
     die 'gh is not authenticated. Run "gh auth login".'
   }
 
-  let all = registry (repo-root) | each {|group|
-    let rows = if ($group.pins | is-empty) {
-      # An empty group would print as a clean sweep, which is indistinguishable
-      # from every pin being current.
-      [{pin: $group.title, pinned: "?", upstream: "?", status: "UNKNOWN"}]
-    } else {
-      $group.pins | resolve
+  # Resolution finishes before anything prints, since `par-each` threads would
+  # otherwise interleave their sections.
+  let groups = (
+    registry (repo-root)
+    | par-each --keep-order {|group|
+      let rows = if ($group.pins | is-empty) {
+        # An empty group would print as a clean sweep, which is indistinguishable
+        # from every pin being current.
+        [{pin: $group.title, pinned: "?", upstream: "?", status: "UNKNOWN"}]
+      } else {
+        $group.pins | resolve
+      }
+      {title: $group.title, rows: $rows}
     }
-    section $group.title $rows
-    $rows
-  } | flatten
+  )
+
+  for group in $groups {
+    section $group.title $group.rows
+  }
+  let all = ($groups | get rows | flatten)
 
   let stale = ($all | where status == "STALE" | length)
   let unknown = ($all | where status == "UNKNOWN" | length)
@@ -398,7 +411,9 @@ def cmd-check [] {
     print "UNKNOWN means the upstream query failed. Re-check those by hand."
     exit 2
   }
-  if $stale > 0 { exit 1 }
+  if $stale > 0 {
+    exit 1
+  }
 }
 
 def main [subcommand: string = "check"] {
