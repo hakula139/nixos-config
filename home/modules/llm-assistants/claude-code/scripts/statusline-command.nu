@@ -63,7 +63,9 @@ def simplify-model-name [raw: string]: nothing -> string {
   let family = (
     $MODEL_FAMILIES | where ($lc | str contains $it.pattern) | get -o 0.name
   )
-  if $family == null { return $raw }
+  if $family == null {
+    return $raw
+  }
 
   let version = (
     $lc
@@ -87,26 +89,48 @@ def simplify-model-name [raw: string]: nothing -> string {
 # Git info
 # ------------------------------------------------------------------------------
 
-# A rest param would claim `--flag` as our own, hence the list. Trimming stays
-# right-side only because a porcelain status code leads with a significant space.
-def git-porcelain [cwd: string, args: list<string>]: nothing -> string {
-  let result = (^git -C $cwd --no-optional-locks ...$args | complete)
-  if $result.exit_code == 0 { $result.stdout | str trim --right } else { "" }
+const NO_BRANCH = {branch: "", ahead: 0, behind: 0}
+
+def git-status [cwd: string]: nothing -> list<string> {
+  let result = (^git -C $cwd --no-optional-locks status --porcelain --branch | complete)
+  if $result.exit_code != 0 {
+    return []
+  }
+
+  $result.stdout | lines
 }
 
-def divergence [cwd: string]: nothing -> record<behind: int, ahead: int> {
-  git-porcelain $cwd [rev-list --left-right --count "@{upstream}...HEAD"]
-  | parse --regex `(?<behind>\d+)\s+(?<ahead>\d+)`
-  | get -o 0
-  | default { behind: "0", ahead: "0" }
-  | into int behind ahead
+def track-count [track: string, label: string]: nothing -> int {
+  $track | parse --regex ($label + ' (?<n>\d+)') | get -o 0.n | default "0" | into int
+}
+
+# `## <branch>...<upstream> [ahead N, behind M]`, where everything after the
+# branch is optional. A detached HEAD reads `## HEAD (no branch)` and an unborn
+# one `## No commits yet on <branch>`.
+def parse-branch [header: string]: nothing -> record<branch: string, ahead: int, behind: int> {
+  if $header == "## HEAD (no branch)" {
+    return $NO_BRANCH
+  }
+
+  let parsed = (
+    $header
+    | parse --regex '^## (?:No commits yet on )?(?<branch>\S+?)(?:\.\.\.\S*)?(?: \[(?<track>[^\]]*)\])?$'
+    | get -o 0
+  )
+  if $parsed == null {
+    return $NO_BRANCH
+  }
+
+  {
+    branch: $parsed.branch
+    ahead: (track-count ($parsed.track | default "") "ahead")
+    behind: (track-count ($parsed.track | default "") "behind")
+  }
 }
 
 # Porcelain v1 XY codes: X is the index status, Y the worktree status.
-def work-counts [cwd: string]: nothing -> record<staged: int, modified: int, untracked: int> {
-  let codes = (
-    git-porcelain $cwd [status --porcelain] | lines | each { str substring 0..<2 }
-  )
+def work-counts [entries: list<string>]: nothing -> record<staged: int, modified: int, untracked: int> {
+  let codes = ($entries | each { str substring 0..<2 })
   {
     staged: ($codes | where ($it | str substring 0..<1) in ["M", "A"] | length)
     modified: ($codes | where $it == " M" | length)
@@ -115,24 +139,27 @@ def work-counts [cwd: string]: nothing -> record<staged: int, modified: int, unt
 }
 
 def format-git-info [cwd: string]: nothing -> string {
-  let branch = (git-porcelain $cwd [branch --show-current])
-  if ($branch | is-empty) { return "" }
+  let output = (git-status $cwd)
+  let branch = (parse-branch ($output | first | default ""))
+  if ($branch.branch | is-empty) {
+    return ""
+  }
 
-  let counts = ((divergence $cwd) | merge (work-counts $cwd))
+  let work = (work-counts ($output | skip 1))
   let marks = (
     [
-      ["»", $counts.ahead]
-      ["«", $counts.behind]
-      ["+", $counts.staged]
-      ["!", $counts.modified]
-      ["?", $counts.untracked]
+      {symbol: "»", n: $branch.ahead}
+      {symbol: "«", n: $branch.behind}
+      {symbol: "+", n: $work.staged}
+      {symbol: "!", n: $work.modified}
+      {symbol: "?", n: $work.untracked}
     ]
-    | where $it.1 > 0
-    | each {|mark| $" ($mark.0)($mark.1)" }
+    | where n > 0
+    | each {|mark| $" ($mark.symbol)($mark.n)" }
     | str join
   )
 
-  $" (paint $branch "green")(paint $marks "yellow") "
+  $" (paint $branch.branch "green")(paint $marks "yellow") "
 }
 
 # ------------------------------------------------------------------------------
@@ -168,10 +195,11 @@ def cache-is-fresh []: nothing -> bool {
   try { (date now) - (ls $CCUSAGE_CACHE | get 0.modified) < $CCUSAGE_TTL } catch { false }
 }
 
-# The TTL alone would accept a payload written by an older schema. `open` on an
-# empty file yields null rather than raising, and `in` raises on a non-record.
+# A fresh TTL alone would still accept a payload written by an older schema.
 def read-cache []: nothing -> record {
-  if not (cache-is-fresh) { return {} }
+  if not (cache-is-fresh) {
+    return {}
+  }
   let cached = (try { open $CCUSAGE_CACHE | default {} } catch { {} })
   if ($cached | describe | str starts-with "record") and (
     $CCUSAGE_FIELDS | all {|field| $field in $cached }
@@ -184,11 +212,15 @@ def read-cache []: nothing -> record {
 
 def active-block []: nothing -> record {
   let result = (^$NPX -y ccusage@latest blocks --json | complete)
-  if $result.exit_code != 0 { return $NO_BLOCK }
+  if $result.exit_code != 0 {
+    return $NO_BLOCK
+  }
 
   let blocks = (try { $result.stdout | from json | get -o blocks | default [] } catch { [] })
   let active = ($blocks | where ($it.isActive? | default false) | get -o 0)
-  if $active == null { return $NO_BLOCK }
+  if $active == null {
+    return $NO_BLOCK
+  }
 
   # ccusage stamps `startTime` in UTC.
   let today = (date now | date to-timezone UTC | format date "%Y-%m-%d")
@@ -209,7 +241,9 @@ def active-block []: nothing -> record {
 
 def read-ccusage []: nothing -> record {
   let cached = (read-cache)
-  if ($cached | is-not-empty) { return $cached }
+  if ($cached | is-not-empty) {
+    return $cached
+  }
 
   let data = (active-block)
   try { $data | save --force $CCUSAGE_CACHE }
@@ -217,13 +251,17 @@ def read-ccusage []: nothing -> record {
 }
 
 def format-remaining [minutes: int]: nothing -> string {
-  if $minutes <= 0 { return "" }
+  if $minutes <= 0 {
+    return ""
+  }
   let hours = ($minutes // 60)
   if $hours > 0 { $"($hours)h($minutes mod 60)m left" } else { $"($minutes)m left" }
 }
 
 def format-ccusage-info [data: record]: nothing -> record<block: string, daily: string> {
-  if not ($data.has_data? | default false) { return { block: "", daily: "" } }
+  if not ($data.has_data? | default false) {
+    return { block: "", daily: "" }
+  }
 
   let details = (
     [
