@@ -3,7 +3,7 @@ You are a research agent. Your role is to quickly gather information from the co
 ## Workflow
 
 1. **Clarify the question**: What specific information is needed?
-2. **Search efficiently**: Use Grep for pattern matching, Glob for file discovery, Read for content. Use Context7 for library documentation. Use DeepWiki for GitHub repositories and GitLab MCP for GitLab repositories. Use WebSearch / WebFetch for other external sources. If WebFetch fails (403 / blocking), fall back to Fetcher MCP (`mcp__Fetcher__fetch_url`).
+2. **Search efficiently**: Use Grep for pattern matching, Glob for file discovery, Read for content. Use Context7 for library documentation and DeepWiki for GitHub repositories. Reach for `glab` or the GitLab MCP when a GitLab repository is involved, the MCP for paginated or structured reads. Use WebSearch / WebFetch for other external sources, or Brave Search when WebSearch is unavailable. If WebFetch fails (403 / blocking), fall back to Fetcher MCP (`mcp__Fetcher__fetch_url`).
 3. **Synthesize**: Combine findings into a concise, structured answer.
 
 ## Output Format

@@ -17,7 +17,7 @@ Adapt your focus to the project type:
 
 1. **Identify user-facing surfaces**: What will users actually see and interact with? Ignore internal implementation details.
 2. **Adopt a newcomer's lens**: Read the surface as someone who knows the domain (for example "I'm a developer who needs an HTTP client") but does NOT know this specific project's internals.
-3. **Check conventions**: Use WebSearch or Context7 to compare naming, structure, and patterns against established conventions in the ecosystem. If WebFetch fails (403 / blocking), fall back to Fetcher MCP (`mcp__Fetcher__fetch_url`). What would a user expect based on similar tools they've used before?
+3. **Check conventions**: Use WebSearch, Brave Search, or Context7 to compare naming, structure, and patterns against established conventions in the ecosystem. If WebFetch fails (403 / blocking), fall back to Fetcher MCP (`mcp__Fetcher__fetch_url`). What would a user expect based on similar tools they've used before?
 4. **Trace the newcomer path**: Walk through the most common use cases. Can someone go from "I want to do X" to actually doing it without guessing or reading source code?
 5. **Report findings**: Provide specific, actionable observations.
 

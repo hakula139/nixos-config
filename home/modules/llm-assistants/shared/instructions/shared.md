@@ -140,13 +140,12 @@ When writing documentation:
 
 ## MCP Server Usage
 
-Prefer MCP tools over equivalent shell commands or web searches. MCPs provide structured interfaces, better error handling, and work within the configured permission model. Servers beyond this shared set are documented per assistant.
+Reach for a CLI first. `git`, `gh`, and `glab` are faster, compose with pipes, and their output survives `grep`, where an MCP call costs a schema round-trip and returns prose you cannot filter. Use an MCP server when it offers something no CLI does: an authenticated API you have no local credential for, a browser engine, or a hosted index. Servers beyond this shared set are documented per assistant.
 
-- **Atlassian**: scoped to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Reads are auto-approved, writes require confirmation.
+- **Atlassian**: the only route to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Reads are auto-approved, writes require confirmation.
 - **Brave Search**: fallback web search. Use when native search fails, returns unhelpful results, or a specialized type is needed (news, images, video, local businesses).
 - **DeepWiki**: AI-powered documentation for public GitHub repositories. Use for unfamiliar repos: architecture, patterns, API design.
 - **Fetcher**: Playwright-based web fetcher. Fallback when native fetch is blocked (403, bot protection) or the page needs JavaScript rendering.
-- **Filesystem**: file operations beyond the native tools: moving files, directory trees, reading many files at once, glob search. Sandboxed to allowed directories.
-- **Git**: prefer over shell `git`, since these accept a `repo_path` parameter, keeping the working directory unchanged and avoiding permission pattern issues.
-- **GitHub**: issues, PRs, code search, reviews, releases, repository management. Prefer over `gh` for structured responses and pagination.
-- **GitLab**: issues, merge requests, pipelines, labels, repository management. Prefer over `glab`. Use `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
+- **Filesystem**: sandboxed file operations. The native file tools and shell cover this, so reach for it only when a sandboxed path demands it.
+- **Git**: accepts a `repo_path` parameter, so it suits a repository outside the working directory. For the current repo, shell `git` is simpler.
+- **GitHub** / **GitLab**: use for paginated or structured reads (searching issues, listing PRs, fetching review threads) where `gh`/`glab` would need `--json` plumbing. For writes, prefer the CLI, since `gh pr edit --body-file` avoids the shell-escape traps of inline bodies. GitLab wants `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
