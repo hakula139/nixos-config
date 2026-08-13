@@ -9,7 +9,7 @@
 
 const NU = "@nu@"
 const MAX_ERRORS = 100
-const INDENT = 2
+const INDENT = @indent@
 
 # ------------------------------------------------------------------------------
 # Diagnostics
@@ -38,9 +38,6 @@ def diagnostics [target: string]: nothing -> list<string> {
 # Layout
 # ------------------------------------------------------------------------------
 
-# `nufmt` would fix indentation, but it also strips every blank line inside a
-# block and joins multi-line pipelines past any width, so only the part that can
-# be checked without rewriting is enforced.
 def layout-errors [text: string]: nothing -> list<string> {
   $text
   | lines

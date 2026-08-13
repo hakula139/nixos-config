@@ -99,14 +99,26 @@
       # ------------------------------------------------------------------------
       # Pre-commit checks
       # ------------------------------------------------------------------------
+      editorconfig = import ./lib/editorconfig.nix { inherit (nixpkgs) lib; };
+
+      nuIndentSize =
+        let
+          size = editorconfig.indentSizeOf (builtins.readFile ./.editorconfig) "*.nu";
+        in
+        if size == null then throw "no indent_size for [*.nu] in .editorconfig" else size;
+
       preCommitCheckFor =
         system:
         let
           pkgs = pkgsFor system;
           nuCheck = pkgs.writers.writeNu "nu-check" (
-            builtins.replaceStrings [ "@nu@" ] [ (nixpkgs.lib.getExe pkgs.nushell) ] (
-              builtins.readFile ./lib/nu-check.nu
-            )
+            builtins.replaceStrings
+              [ "@nu@" "@indent@" ]
+              [
+                (nixpkgs.lib.getExe pkgs.nushell)
+                (builtins.toString nuIndentSize)
+              ]
+              (builtins.readFile ./lib/nu-check.nu)
           );
         in
         git-hooks-nix.lib.${system}.run {
