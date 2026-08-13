@@ -47,11 +47,15 @@ def require-uuid [value: string] {
 }
 
 def require-int [value: string] {
-  if not ($value =~ '^[0-9]+$') { die $"invalid integer: ($value)" }
+  if not ($value =~ '^[0-9]+$') {
+    die $"invalid integer: ($value)"
+  }
 }
 
 def require-file [path: string, label: string] {
-  if not ($path | path exists) { die $"($label): ($path)" }
+  if not ($path | path exists) {
+    die $"($label): ($path)"
+  }
 }
 
 def require-b2-credentials [] {
@@ -194,7 +198,9 @@ def "main transcode" [
 ] {
   require-uuid $file_uuid
   require-int $resolution
-  if ($fps | is-not-empty) { require-int $fps }
+  if ($fps | is-not-empty) {
+    require-int $fps
+  }
   require-file $source "source file not found (use absolute paths)"
 
   mkdir $WORK_DIR
@@ -214,7 +220,9 @@ def "main transcode" [
   match $mode {
     "remux" => { ^ffmpeg -i $source -an -c:v copy ...$hls_args $m3u8 }
     "re-encode" => {
-      if ($fps | is-empty) { die "fps is required for re-encode mode" }
+      if ($fps | is-empty) {
+        die "fps is required for re-encode mode"
+      }
       (
         ^ffmpeg -i $source -an -c:v libx264
         -preset $X264_PRESET
@@ -342,7 +350,9 @@ def "main verify" [target: string] {
 # Print the Cloudflare CDN URLs that need a cache purge.
 def "main purge-urls" [video_uuid: string, ...filenames: string] {
   require-uuid $video_uuid
-  if ($filenames | is-empty) { die "usage: purge-urls <VIDEO_UUID> <FILENAME>..." }
+  if ($filenames | is-empty) {
+    die "usage: purge-urls <VIDEO_UUID> <FILENAME>..."
+  }
 
   let prefix = (cdn-prefix $video_uuid)
   print "Cloudflare CDN URLs to purge:"

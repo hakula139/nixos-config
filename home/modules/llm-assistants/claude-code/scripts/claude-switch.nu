@@ -17,7 +17,6 @@ def active-profile []: nothing -> string {
 
 def list-profiles [--stderr]: nothing -> nothing {
   let current = (active-profile)
-  # `ansi` emits escapes even when redirected, so colour is gated by hand.
   let highlight = (if $stderr { is-terminal --stderr } else { is-terminal --stdout })
 
   for name in $PROFILE_NAMES {
@@ -28,7 +27,9 @@ def list-profiles [--stderr]: nothing -> nothing {
     } else {
       $"  * ($name) \(active\)"
     }
-    if $stderr { print -e $line } else { print $line }
+    if $stderr {
+      print -e $line } else { print $line
+    }
   }
 }
 

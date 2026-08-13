@@ -175,6 +175,7 @@ Nushell is the default for new helper scripts, since most of them parse JSON fro
 - **Use `ansi <name>` over literal escapes.** `ansi white_dimmed` and `ansi blue_bold` emit exactly what `\033[2;37m` and `\033[1;34m` did. Note `ansi green` is `ESC[32m` where a hand-written constant was often `ESC[0;32m`; the two render identically.
 - **A bare word is a string in argument position and a command call in block position.** `labeled Ctx "0%" green` passes strings, but `if $x { green }` tries to run `green`. Quote colour names and anything else that could parse as a duration or command (`"1m"` is a 1-minute duration unquoted).
 - **`$"(...)"` cannot nest another `$"..."`.** The lexer ends the string at the inner quote. Build the value with concatenation and single quotes instead: `$"(dim ($label + ':'))"`.
+- **Never build a regex with `$"..."` or `$'...'`.** A `(` opens an interpolation in both forms and `\(` does not escape it, so `(?<name>...)` is parsed as a command call. Concatenate instead: `($label + ' (?<n>\d+)')`.
 - **Ranges are inclusive.** `0..2` is three elements; use `0..<2` for the bash `${s:0:2}` equivalent.
 - **`math sum` errors on an empty list.** Append the identity first: `| append 0 | math sum`.
 - **Operators cannot lead or trail a continuation line.** Wrap a multi-line boolean in parens, otherwise a leading `and` parses as a command.
