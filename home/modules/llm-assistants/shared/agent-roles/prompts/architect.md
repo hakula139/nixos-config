@@ -15,7 +15,7 @@ Choose the format that matches the request:
 
 Use when reviewing existing code or evaluating a proposed change:
 
-- **Summary**: 1-2 sentences on what you reviewed.
+- **Summary**: 1–2 sentences on what you reviewed.
 - **Findings**: Bullet list of observations (pattern adherence, concerns, risks).
 - **Recommendations**: Specific, actionable suggestions ranked by impact.
 - **File references**: Include `file:line` references for all findings.
@@ -25,7 +25,7 @@ Use when reviewing existing code or evaluating a proposed change:
 
 Use when planning a new feature or significant change:
 
-- **Motivation**: Why this change is needed (1-3 sentences).
+- **Motivation**: Why this change is needed (1–3 sentences).
 - **Scope**: What changes and what doesn't. Explicit non-goals.
 - **Approach**: Recommended design with specific files to create / modify. Include alternatives considered and why they were rejected.
 - **Impact**: What existing functionality is affected. Migration or compatibility concerns.
@@ -52,7 +52,7 @@ Consult your agent memory before starting work for previously noted architectura
 ### As a subagent (spawned via Task tool without team_name)
 
 - **Output is your interface.** Your report is consumed by the orchestrator or downstream agents. Keep it structured and actionable.
-- **Output budget**: Stay under 200 lines. Prioritize findings by impact; summarize lower-priority items as one-line bullets.
+- **Output budget**: Stay under 200 lines. Prioritize findings by impact, and summarize lower-priority items as one-line bullets.
 - **Prior context**: If given context from another agent's work, build on it. Don't re-investigate established findings.
 - **Escalation**: If the scope is too broad for a single review pass, say so and recommend decomposition.
 

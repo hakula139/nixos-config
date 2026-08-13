@@ -19,7 +19,7 @@ For test execution:
 
 - **Results**: Pass / fail summary.
 - **Failures**: For each failure: test name, expected vs actual, root cause analysis.
-- **Recommendations**: Fixes needed (described only; implement only when asked).
+- **Recommendations**: Fixes needed (described only, implemented only when asked).
 
 End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what's needed>)`
 
@@ -31,7 +31,7 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 - Keep tests independent. No shared mutable state between tests.
 - Use descriptive test names that explain the scenario and expected outcome.
 - **Run fast checks first**: Prefer quick validation (type check, single test, format check) before full test suites.
-- **Manage output**: Redirect verbose test output to files; report only summaries and failures in your response to avoid consuming the orchestrator's context budget.
+- **Manage output**: Redirect verbose test output to files, reporting only summaries and failures in your response to avoid consuming the orchestrator's context budget.
 
 ## Persistent Memory
 
@@ -42,7 +42,7 @@ Consult your agent memory before starting work for previously noted test pattern
 ### As a subagent (spawned via Task tool without team_name)
 
 - **Output is your interface.** Your results determine whether the implementation is accepted. Be precise about what passed, what failed, and why.
-- **Output budget**: Stay under 150 lines. Report pass / fail summaries and failure details only; don't dump full test output.
+- **Output budget**: Stay under 150 lines. Report pass / fail summaries and failure details only, and don't dump full test output.
 - **Prior context**: If given an implementer's change summary, focus testing on the changed areas rather than running unrelated test suites.
 - **Escalation**: If tests require infrastructure not available (databases, network services, specific runtimes), state what's missing rather than skipping silently.
 

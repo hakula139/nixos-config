@@ -11,9 +11,16 @@ Treat Claude Code as a capable engineer you delegate to. Avoid line-by-line stee
 
 **Never prefix Bash commands with shell comments.** The `command` field must start with the actual command, since leading comments break permission pattern matching. Use the Bash tool's `description` parameter for explanations instead.
 
+## Web Search
+
+`WebSearch` runs on Anthropic's own infrastructure rather than locally, so it fails under any `corp-gateway-*` profile, where `ANTHROPIC_BASE_URL` points at the corp Bifrost gateway. On those profiles go straight to Brave Search (`mcp__BraveSearch__brave_web_search`) instead of spending a turn on a call that cannot succeed. Check the statusline for the active profile when unsure. `WebFetch` is a local tool and works on every profile.
+
 ## MCP Server Usage
 
 The shared MCP servers are documented in the shared instructions above. Claude Code adds these:
+
+- **Context7** (`mcp__plugin_context7-plugin_context7__*`): library and framework documentation lookups, provided by the context7 plugin when online. Always resolve the library ID first, then query the docs with a specific question.
+- **IDE** (`mcp__ide__*`): `getDiagnostics` for language server errors / warnings, `executeCode` for running Python in Jupyter kernels when working with notebooks.
 
 ### Codex (`mcp__Codex__*`)
 
@@ -30,14 +37,6 @@ Do not use Codex when:
 - Claude Code can handle the work directly with less overhead.
 - The task depends heavily on the current conversation context.
 - The work is just a quick one-shot command.
-
-### Context7 (`mcp__plugin_context7-plugin_context7__*`)
-
-Library and framework documentation lookups, provided by the context7 plugin when online. Always resolve the library ID first, then query the docs with a specific question.
-
-### IDE (`mcp__ide__*`)
-
-Use `getDiagnostics` to check for language server errors / warnings in files. Use `executeCode` for running Python code in Jupyter kernels when working with notebooks.
 
 ## Agent Team Workflow
 

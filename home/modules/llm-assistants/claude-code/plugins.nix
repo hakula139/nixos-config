@@ -6,7 +6,7 @@
   pkgs,
   lib,
   inputs,
-  devToolchains ? false,
+  enableDevToolchains ? false,
   online ? true,
 }:
 
@@ -99,7 +99,6 @@ let
     "mcp-server-dev@claude-plugins-official" = true;
     "pr-review-toolkit@claude-plugins-official" = true;
     "ralph-loop@claude-plugins-official" = true;
-    "security-guidance@claude-plugins-official" = true;
     "skill-creator@claude-plugins-official" = true;
 
     # Official LSP plugins
@@ -111,7 +110,7 @@ let
     "workmux-status@workmux" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
-  // lib.optionalAttrs devToolchains {
+  // lib.optionalAttrs enableDevToolchains {
     # Official LSP plugins
     "clangd-lsp@claude-plugins-official" = true;
     "gopls-lsp@claude-plugins-official" = true;
