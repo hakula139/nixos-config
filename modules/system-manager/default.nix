@@ -91,8 +91,8 @@ in
     programs.zsh.enable = true;
     environment.variables = shared.localeSettings;
 
-    # Nix-built zsh reads /etc/zprofile for login shells; system-manager uses it
-    # to expose the configured system PATH.
+    # Nix-built zsh reads /etc/zprofile for login shells, the only hook
+    # system-manager has for injecting the system PATH.
     environment.etc.zprofile = lib.mkIf config.programs.zsh.enable {
       text = ''
         typeset -U path PATH

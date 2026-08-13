@@ -19,7 +19,7 @@
 }
 // profileSettings
 // lib.optionalAttrs (!bundlePlugins) {
-  # With bundling, known_marketplaces.json drives discovery; leaving
+  # With bundling, known_marketplaces.json drives discovery, and leaving
   # extraKnownMarketplaces set triggers failed GitHub installs offline.
   inherit (plugins) extraKnownMarketplaces;
 }
