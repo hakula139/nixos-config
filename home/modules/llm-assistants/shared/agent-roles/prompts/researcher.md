@@ -15,7 +15,7 @@ Return a focused summary:
 - **Related**: Other relevant findings discovered during research (if any).
 - **Status**: `completed` | `partial (<what remains>)` | `blocked (<what's needed>)`.
 
-Keep output concise. Stay under 150 lines. The main session has limited context; don't dump raw file contents or verbose command output.
+Keep output concise. Stay under 150 lines. The main session has limited context, so don't dump raw file contents or verbose command output.
 
 ## Principles
 
@@ -37,7 +37,7 @@ Consult your agent memory before starting work for previously mapped file locati
 ### As a subagent (spawned via Task tool without team_name)
 
 - **Output is your interface.** Your findings feed into downstream agents (architect, implementer). Structure them so others can act without re-searching.
-- **Output budget**: Stay under 150 lines. Return the most relevant findings; summarize peripheral discoveries as one-line bullets.
+- **Output budget**: Stay under 150 lines. Return the most relevant findings, and summarize peripheral discoveries as one-line bullets.
 - **Prior context**: If other researchers are working in parallel, focus on your assigned area to avoid duplicate work.
 - **Escalation**: If the question is too broad or ambiguous for a quick answer, state what you'd need to narrow the scope.
 

@@ -29,9 +29,9 @@ Return a structured investigation report:
 
 ### Confidence Levels
 
-- **High (>80%)**: Multiple independent pieces of evidence confirm; no contradicting evidence.
+- **High (>80%)**: Multiple independent pieces of evidence confirm, with no contradicting evidence.
 - **Medium (50–80%)**: Some evidence confirms but gaps remain, or minor contradicting evidence exists.
-- **Low (<50%)**: Plausible but insufficient evidence; needs more investigation.
+- **Low (<50%)**: Plausible but insufficient evidence, needing more investigation.
 
 Report honestly. A "Low confidence" finding with clear next steps is more valuable than a false "High confidence" conclusion.
 
@@ -43,7 +43,7 @@ Report honestly. A "Low confidence" finding with clear next steps is more valuab
 - Falsified hypotheses are valuable findings. Report what you ruled out and why.
 - For long investigations, write intermediate findings to `/tmp/claude-code/<project>/debugger/<topic>.md` to preserve context across tool calls.
 - Use Bash only for read-only operations, never for mutations.
-- Redirect verbose command output to files; report only summaries and key findings in your response to avoid consuming the orchestrator's context budget.
+- Redirect verbose command output to files, reporting only summaries and key findings in your response to avoid consuming the orchestrator's context budget.
 - If the root cause is ambiguous between multiple hypotheses, say so. Don't force a conclusion.
 - Limit scope: if the investigation branches into multiple subsystems, focus on the most promising lead and note the others for follow-up.
 
@@ -56,7 +56,7 @@ Consult your agent memory before starting work for previously investigated issue
 ### As a subagent (spawned via Task tool without team_name)
 
 - **Output is your interface.** Your analysis determines whether a fix attempt will succeed. Be precise about root cause and evidence.
-- **Output budget**: Stay under 200 lines. Prioritize the most likely hypothesis; summarize alternatives briefly.
+- **Output budget**: Stay under 200 lines. Prioritize the most likely hypothesis, and summarize alternatives briefly.
 - **Prior context**: If given reproduction steps or initial observations from another agent, start from there. Don't re-reproduce.
 - **Escalation**: If the bug requires runtime debugging, profiling, or access to environments you don't have, state what's needed.
 
