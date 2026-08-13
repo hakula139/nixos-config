@@ -15,7 +15,7 @@ Match response length to task complexity. Simple lookups get brief answers.
 
 - Skip preamble (`"I'll help with..."`) and postamble (`"Let me know if..."`).
 - Do not recap completed work unless asked. The one exception is the closing status line below.
-- **Close with verification status, not a summary.** End a task that touched code with one short block splitting what you verified (naming the command or output that proves it), what you did not verify, and what remains outstanding. Omit any category that is empty, and omit the block entirely for conversational turns. This reports evidence rather than restating the work.
+- **Close with verification status.** End a task that touched code with one short block splitting what you verified (naming the command or output that proves it), what you did not verify, and what remains outstanding. Omit any category that is empty, and omit the block entirely for conversational turns. Report evidence rather than restating the work.
 - Prefer plain prose over headings, bullets, and tables unless structure genuinely aids comprehension.
 - Keep embedded code examples minimal. Show only the changed lines.
 
@@ -42,6 +42,13 @@ Use logical punctuation: place commas and periods outside closing quotation mark
 
 Write an ellipsis as three periods (`...`), never the single `…` character. Likewise prefer `"` and `'` over curly quotes. Arrows and comparison operators are exempt, since the rule above calls for them.
 
+## Secret Handling
+
+Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment variables. Reading one is often necessary, but putting its value anywhere durable never is.
+
+- **Never print a secret value.** Not to terminal output, logs, commit messages, PR bodies, or issue replies. This covers `cat` on a decrypted path, `env` and `printenv` with no filter, `echo "$TOKEN"`, and any command whose output embeds one. Redact to a length or a prefix (`<40 chars>`, `sk-...4f2a`) when you need to show that a value exists.
+- **Test a secret without revealing it.** Check presence with `[[ -s <path> ]]`, compare with a hash, or pipe straight into the consuming command. Never round-trip a value through your own output to inspect it.
+
 ## Scope Discipline
 
 Write the minimum code that solves the problem.
@@ -65,18 +72,9 @@ How to make changes, debug, and finish.
 - **When told to clean up, delete.** "Trim", "remove stale", and "clean up" mean removing sections. Paraphrasing them shorter just preserves the noise.
 - **Verify before declaring done.** Confirm async or external work actually landed: API responses, advanced git refs, multi-repo build pass. For UI changes you cannot test in a browser, say so explicitly.
 
-## Secret Handling
-
-Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment variables. Reading one is often necessary, but putting its value anywhere durable never is.
-
-- **Never print a secret value.** Not to terminal output, logs, commit messages, PR bodies, or issue replies. This covers `cat` on a decrypted path, `env` and `printenv` with no filter, `echo "$TOKEN"`, and any command whose output embeds one. Redact to a length or a prefix (`<40 chars>`, `sk-...4f2a`) when you need to show that a value exists.
-- **Test a secret without revealing it.** Check presence with `[[ -s <path> ]]`, compare with a hash, or pipe straight into the consuming command. Never round-trip a value through your own output to inspect it.
-
 ## Commenting Guidelines
 
-**Default to no comments.** Code should be self-explanatory through clear naming and structure. Add a comment only when the WHY is non-obvious to a future reader: a hidden constraint, a subtle invariant, a non-trivial algorithm, a magic number, a workaround for a known bug, behavior that would surprise a reader, or a security / performance consideration. If removing the comment would not confuse a reader, do not write it.
-
-When a comment is justified, **1–2 short lines is the target**. Longer multi-line blocks are fine when the context genuinely warrants it, but they should remain exceptional.
+**Default to no comments.** Code should be self-explanatory through clear naming and structure. Add a comment only when the WHY is non-obvious to a future reader: a hidden constraint, a subtle invariant, a non-trivial algorithm, a magic number, a workaround for a known bug, behavior that would surprise a reader, or a security / performance consideration. If removing the comment would not confuse a reader, do not write it. When one is justified, **1–2 short lines is the target**.
 
 **Docstrings follow the same discipline and the project's convention.** Check whether surrounding code uses them, and if the project has few or none, add none. When one is warranted, keep it to a line or two of non-obvious contract: a constraint, unit, ownership, error, or invariant. A docstring that restates the item name, documents a trivial getter, or rambles across several lines is verbose, so drop or trim it.
 
@@ -84,10 +82,16 @@ When a comment is justified, **1–2 short lines is the target**. Longer multi-l
 
 Avoid:
 
-- Comments that restate WHAT the code does (`// increment counter`).
-- Comments that narrate the change or reference the task (`// Updated to use X`, `// Added for the Y flow`, `// Fix for #123`). That belongs in the commit message and rots in the source tree. Resolving an issue or meeting a requirement is not on its own a reason to leave a comment.
+- Comments that restate WHAT the code does (`// increment counter`), or describe the shape, order, or layout of the code below them (`# Required fields first`).
+- Comments that narrate the change or reference the task (`// Updated to use X`, `// Fix for #123`). That belongs in the commit message and rots in the source tree. Resolving an issue or meeting a requirement is not on its own a reason to leave a comment.
 - Comments explaining a WHY a competent reader could already infer. Being a "why" earns nothing on its own. The reason has to be genuinely non-obvious.
 - Commented-out code. Use version control instead.
+
+## Test Quality
+
+Tests must fail against a plausible bug. Avoid structural-only assertions like `assert_eq!(items.len(), 3)` that would pass against a wrong implementation.
+
+After writing tests, audit each one: does it add unique coverage? Drop or merge subsumed tests.
 
 ## Commits and Pull Requests
 
@@ -134,44 +138,15 @@ When writing documentation:
 - Only reference implemented functionality. Never describe WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them.
 
-## Test Quality
-
-Tests must fail against a plausible bug. Avoid structural-only assertions like `assert_eq!(items.len(), 3)` that would pass against a wrong implementation.
-
-After writing tests, audit each one: does it add unique coverage? Drop or merge subsumed tests.
-
 ## MCP Server Usage
 
-Prefer MCP tools over equivalent shell commands or web searches. MCPs provide structured interfaces, better error handling, and work within the configured permission model. Servers beyond the shared set below are documented per assistant.
+Prefer MCP tools over equivalent shell commands or web searches. MCPs provide structured interfaces, better error handling, and work within the configured permission model. Servers beyond this shared set are documented per assistant.
 
-### Atlassian
-
-Scoped to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Read operations are auto-approved, writes require user confirmation.
-
-### Brave Search
-
-Fallback web search. Use when native web search fails, returns unhelpful results, or when a specialized search type is needed (news, images, video, local businesses). Supports result summarization.
-
-### DeepWiki
-
-AI-powered documentation for public GitHub repositories. Use for unfamiliar repos: architecture, patterns, API design.
-
-### Fetcher
-
-Browser-based web fetcher using Playwright. Fallback for when native web fetch is blocked (403 responses, bot protection) or the page requires JavaScript rendering. Supports content extraction and multi-URL fetching.
-
-### Filesystem
-
-Structured file operations with directory sandboxing. Use for operations beyond native file tools: moving files, directory trees, reading multiple files at once, glob-based search. Sandboxed to allowed directories.
-
-### Git
-
-Structured git operations. Prefer over shell `git` commands, since they accept a `repo_path` parameter, keeping the working directory unchanged and avoiding permission pattern issues.
-
-### GitHub
-
-GitHub API for issues, PRs, code search, reviews, releases, and repository management. Prefer over `gh` CLI for structured responses and pagination.
-
-### GitLab
-
-GitLab API for issues, merge requests, pipelines, labels, and repository management. Prefer over `glab` CLI. Use `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
+- **Atlassian**: scoped to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Reads are auto-approved, writes require confirmation.
+- **Brave Search**: fallback web search. Use when native search fails, returns unhelpful results, or a specialized type is needed (news, images, video, local businesses).
+- **DeepWiki**: AI-powered documentation for public GitHub repositories. Use for unfamiliar repos: architecture, patterns, API design.
+- **Fetcher**: Playwright-based web fetcher. Fallback when native fetch is blocked (403, bot protection) or the page needs JavaScript rendering.
+- **Filesystem**: file operations beyond the native tools: moving files, directory trees, reading many files at once, glob search. Sandboxed to allowed directories.
+- **Git**: prefer over shell `git`, since these accept a `repo_path` parameter, keeping the working directory unchanged and avoiding permission pattern issues.
+- **GitHub**: issues, PRs, code search, reviews, releases, repository management. Prefer over `gh` for structured responses and pagination.
+- **GitLab**: issues, merge requests, pipelines, labels, repository management. Prefer over `glab`. Use `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
