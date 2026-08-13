@@ -99,13 +99,7 @@
       # ------------------------------------------------------------------------
       # Pre-commit checks
       # ------------------------------------------------------------------------
-      editorconfig = import ./lib/editorconfig.nix { inherit (nixpkgs) lib; };
-
-      nuIndentSize =
-        let
-          size = editorconfig.indentSizeOf (builtins.readFile ./.editorconfig) "*.nu";
-        in
-        if size == null then throw "no indent_size for [*.nu] in .editorconfig" else size;
+      editorconfig = (import ./lib/editorconfig.nix { inherit (nixpkgs) lib; }).readerFor ./.editorconfig;
 
       preCommitCheckFor =
         system:
@@ -116,7 +110,7 @@
               [ "@nu@" "@indent@" ]
               [
                 (nixpkgs.lib.getExe pkgs.nushell)
-                (builtins.toString nuIndentSize)
+                (builtins.toString (editorconfig.intOf "*.nu" "indent_size"))
               ]
               (builtins.readFile ./lib/nu-check.nu)
           );
@@ -170,6 +164,19 @@
               types = [ "file" ];
             };
             statix.enable = true;
+            # The hook always passes `-ln`, and any flag makes `shfmt` ignore
+            # `.editorconfig`, so the layout is restated from it here. `simplify`
+            # would strip the quotes inside `[[ ]]` that this repo requires.
+            shfmt = {
+              enable = true;
+              settings = {
+                language-dialect = null;
+                simplify = false;
+                indent = editorconfig.intOf "*.sh" "indent_size";
+                binary-next-line = editorconfig.boolOf "*.sh" "binary_next_line";
+                case-indent = editorconfig.boolOf "*.sh" "switch_case_indent";
+              };
+            };
             trim-trailing-whitespace = {
               enable = true;
               # Preserve Markdown's two-trailing-space hard-break syntax.

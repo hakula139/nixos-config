@@ -15,15 +15,28 @@ let
       afterHeader = lib.lists.drop 1 (lib.strings.splitString "[${glob}]" text);
     in
     if afterHeader == [ ] then "" else lib.head (lib.strings.splitString "\n[" (lib.head afterHeader));
+
+  # A tool that silently formatted against its own default would contradict
+  # whatever `.editorconfig` says, so an absent setting is a build failure.
+  require =
+    parse: text: glob: key:
+    let
+      matched = builtins.match ".*${key} *= *([^ \n]+).*" (sectionOf text glob);
+    in
+    if matched == null then
+      throw "no ${key} for [${glob}] in .editorconfig"
+    else
+      parse (lib.head matched);
 in
 
 {
-  # Null when the glob or the key is absent, so a caller cannot mistake a
-  # missing rule for a default.
-  indentSizeOf =
-    text: glob:
+  readerFor =
+    file:
     let
-      matched = builtins.match ".*indent_size *= *([0-9]+).*" (sectionOf text glob);
+      text = builtins.readFile file;
     in
-    if matched == null then null else lib.toInt (lib.head matched);
+    {
+      intOf = require lib.toInt text;
+      boolOf = require (v: v == "true") text;
+    };
 }
