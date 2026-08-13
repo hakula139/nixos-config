@@ -15,15 +15,17 @@ let
   # ----------------------------------------------------------------------------
   # Hook timeouts
   # ----------------------------------------------------------------------------
-  # Each fallible leg bounds itself, since a harness that cancels the whole hook
-  # discards its output and renders no decision, which is indistinguishable from
-  # a clean pass. Both harnesses already default a command hook to 600s, so only
-  # the Codex wrapper sets one: it also serializes an unbounded `cargo clippy`.
-  judgeTimeout = 30;
-  toolTimeout = 10;
+  timeouts = rec {
+    judge = 30;
+    tool = 10;
+    # Codex serializes three legs behind one hook, including an unbounded
+    # `cargo clippy`.
+    postEdit = judge + 3 * tool;
+  };
 
-  postEditTimeout = judgeTimeout + 3 * toolTimeout;
-
+  # ----------------------------------------------------------------------------
+  # Script generation
+  # ----------------------------------------------------------------------------
   mkHookScript =
     {
       slug,
@@ -98,7 +100,7 @@ let
   # ----------------------------------------------------------------------------
   # A `\w+` rule under vale's `text` scope matches only what its per-language
   # parser treats as prose, so no alerts means the payload is pure code.
-  valeStyles = pkgs.runCommand "vale-prose-styles" { } ''
+  valeConfig = pkgs.runCommand "vale-prose-config" { } ''
     mkdir -p $out/Prose
     cat > $out/Prose/HasProse.yml <<'EOF'
     extends: existence
@@ -108,18 +110,17 @@ let
     tokens:
       - '\w+'
     EOF
-  '';
-
-  valeConfig = pkgs.writeText "vale.ini" ''
-    StylesPath = ${valeStyles}
+    cat > $out/vale.ini <<EOF
+    StylesPath = $out
     MinAlertLevel = warning
 
     [*]
     BasedOnStyles = Prose
+    EOF
   '';
 in
 {
-  inherit postEditTimeout;
+  inherit timeouts;
 
   autoFormat = mkHookScript {
     slug = "auto-format";
@@ -146,10 +147,10 @@ in
     script = ./scripts/prose-gate.sh;
     substitutions = {
       "@promptFile@" = "${./prompts/prose-tics.md}";
-      "@judgeTimeout@" = toString judgeTimeout;
-      "@toolTimeout@" = toString toolTimeout;
+      "@judgeTimeout@" = toString timeouts.judge;
+      "@toolTimeout@" = toString timeouts.tool;
       "@vale@" = whenDev pkgs.vale;
-      "@valeConfig@" = whenDevPath valeConfig;
+      "@valeConfig@" = whenDevPath "${valeConfig}/vale.ini";
     };
   };
 
@@ -158,7 +159,7 @@ in
     script = ./scripts/wakatime.sh;
     substitutions = {
       "@pluginName@" = "${assistant}-hook/1.0";
-      "@toolTimeout@" = toString toolTimeout;
+      "@toolTimeout@" = toString timeouts.tool;
     };
   };
 }
