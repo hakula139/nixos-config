@@ -16,16 +16,13 @@ const PROPERTIES = [
   Type
 ]
 
-# `transpose` on no input yields a list, which the record return type won't coerce.
+# A unit name systemd cannot parse makes systemctl print nothing, and the
+# callers below all read fields off the result.
 def unit-state [service: string]: nothing -> record {
-  let props = (
-    ^systemctl show ...($PROPERTIES | each {|p| $"--property=($p)" }) $service
-    | lines
-    | where $it != ""
-  )
-  if ($props | is-empty) { return {} }
-
-  $props | split column "=" key value | transpose -r -d
+  ^systemctl show ...($PROPERTIES | each {|p| $"--property=($p)" }) $service
+  | lines
+  | parse "{key}={value}"
+  | reduce --fold {} {|row, acc| $acc | insert $row.key $row.value }
 }
 
 def is-installed [unit: record]: nothing -> bool {
@@ -59,7 +56,9 @@ def main [...services: string] {
       continue
     }
 
-    if ($unit.ActiveState? == "active") or (ran-successfully $unit) { continue }
+    if ($unit.ActiveState? == "active") or (ran-successfully $unit) {
+      continue
+    }
 
     print -e $"service '($service)' is not active"
     # `systemctl status` exits non-zero for an inactive unit, which would
@@ -68,5 +67,7 @@ def main [...services: string] {
     $failed = true
   }
 
-  if $failed { exit 1 }
+  if $failed {
+    exit 1
+  }
 }

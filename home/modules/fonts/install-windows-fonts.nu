@@ -12,15 +12,19 @@ use @windowsInterop@ *
 const FONT_EXTENSIONS = [ttf otf ttc otc]
 const FONT_DIRS = @fontDirs@
 
+def extension [file: string]: nothing -> string {
+  $file | path parse | get extension | str downcase
+}
+
 def font-files [dirs: list<string>]: nothing -> list<string> {
   $dirs
   | each {|dir| glob ($dir | path join "**" "*") }
   | flatten
-  | where {|f| ($f | path parse | get extension | str downcase) in $FONT_EXTENSIONS }
+  | where {|f| (extension $f) in $FONT_EXTENSIONS }
 }
 
 def font-type [file: string]: nothing -> string {
-  if ($file | path parse | get extension | str downcase) in [otf otc] { "OpenType" } else { "TrueType" }
+  if (extension $file) in [otf otc] { "OpenType" } else { "TrueType" }
 }
 
 def main [] {
@@ -41,15 +45,16 @@ def main [] {
     }
   )
 
-  let counts = (
-    ["installed" "skipped" "failed"]
-    | reduce --fold {} {|status, acc|
-      $acc | insert $status ($results | where $it == $status | length)
-    }
-  )
+  let counts = {
+    installed: ($results | where $it == "installed" | length)
+    skipped: ($results | where $it == "skipped" | length)
+    failed: ($results | where $it == "failed" | length)
+  }
   print $"Fonts: ($counts.installed) installed, ($counts.skipped) already present, ($counts.failed) failed"
 
-  if $counts.installed == 0 { return }
+  if $counts.installed == 0 {
+    return
+  }
 
   let win_font_dir = (^wslpath -w $font_dir | str trim)
   for font in (font-files [$font_dir]) {

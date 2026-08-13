@@ -38,19 +38,21 @@ def die [msg: string] {
 # Worktrees
 # ------------------------------------------------------------------------------
 
-# Maps branch name -> worktree path, so a branch checked out elsewhere can be
-# handled before its deletion is attempted.
+# A blank field terminates each worktree's block, so the split into blocks has
+# to happen before empty fields are dropped.
 def worktree-map []: nothing -> record {
-  mut map = {}
-  mut path = ""
-  for field in (nul-list "worktree" "list" "--porcelain" "-z") {
-    if ($field | str starts-with "worktree ") {
-      $path = ($field | str replace "worktree " "")
-    } else if ($field | str starts-with "branch refs/heads/") {
-      $map = ($map | insert ($field | str replace "branch refs/heads/" "") $path)
+  ^git worktree list --porcelain -z
+  | split row (char nul)
+  | split list ""
+  | each {|block|
+    $block | parse "{key} {value}" | reduce --fold {} {|field, acc|
+      $acc | insert $field.key $field.value
     }
   }
-  $map
+  | where {|wt| "branch" in $wt }
+  | reduce --fold {} {|wt, acc|
+    $acc | insert ($wt.branch | str replace "refs/heads/" "") $wt.worktree
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -58,13 +60,19 @@ def worktree-map []: nothing -> record {
 # ------------------------------------------------------------------------------
 
 def resolve-base [remote: string, base_override: string]: nothing -> string {
-  if ($base_override | is-not-empty) { return $base_override }
+  if ($base_override | is-not-empty) {
+    return $base_override
+  }
 
   let head = (git-out "symbolic-ref" "--quiet" "--short" $"refs/remotes/($remote)/HEAD")
-  if ($head | is-not-empty) and (commit-exists $head) { return $head }
+  if ($head | is-not-empty) and (commit-exists $head) {
+    return $head
+  }
 
   for candidate in [$"($remote)/main" $"($remote)/master"] {
-    if (commit-exists $candidate) { return $candidate }
+    if (commit-exists $candidate) {
+      return $candidate
+    }
   }
 
   ""
@@ -80,21 +88,29 @@ def resolve-base [remote: string, base_override: string]: nothing -> string {
 def branch-is-integrated [branch: string, base_ref: string]: nothing -> bool {
   let branch_ref = $"refs/heads/($branch)"
 
-  if (git-succeeds "merge-base" "--is-ancestor" $branch_ref $base_ref) { return true }
+  if (git-succeeds "merge-base" "--is-ancestor" $branch_ref $base_ref) {
+    return true
+  }
 
   let cherry = (^git cherry $base_ref $branch_ref | complete)
-  if $cherry.exit_code != 0 { return false }
+  if $cherry.exit_code != 0 {
+    return false
+  }
   let lines = ($cherry.stdout | lines | where $it != "")
   if ($lines | is-not-empty) and ($lines | where {|l| $l | str starts-with "+" } | is-empty) {
     return true
   }
 
   let merge_base = (git-out "merge-base" $base_ref $branch_ref)
-  if ($merge_base | is-empty) { return false }
+  if ($merge_base | is-empty) {
+    return false
+  }
 
   # An empty net diff (an add later reverted) is integrated by definition.
   let changed = (nul-list "diff" "--name-only" "--no-renames" "-z" $merge_base $branch_ref)
-  if ($changed | is-empty) { return true }
+  if ($changed | is-empty) {
+    return true
+  }
 
   # `:(literal)` keeps a path containing `*` or `[` from being read as a glob.
   let pathspecs = ($changed | each {|p| ":\(literal)" + $p })
@@ -103,7 +119,9 @@ def branch-is-integrated [branch: string, base_ref: string]: nothing -> bool {
   )
 
   for candidate in $candidates {
-    if (git-succeeds "diff" "--quiet" $branch_ref $candidate "--" ...$pathspecs) { return true }
+    if (git-succeeds "diff" "--quiet" $branch_ref $candidate "--" ...$pathspecs) {
+      return true
+    }
   }
 
   false
@@ -119,7 +137,9 @@ def main [
   --base: string = "" # Override the remote default branch used as the integration base
 ] {
   let repo_root = (git-out "rev-parse" "--show-toplevel")
-  if ($repo_root | is-empty) { die "run this script inside a Git worktree" }
+  if ($repo_root | is-empty) {
+    die "run this script inside a Git worktree"
+  }
 
   if ($base | is-not-empty) and (not (commit-exists $base)) {
     die $"base ref does not resolve to a commit: ($base)"
@@ -129,9 +149,8 @@ def main [
 
   let gone = (
     ^git for-each-ref --format='%(refname:short)%09%(upstream:track)%09%(upstream:remotename)' refs/heads/
-    | lines
-    | each {|l| $l | split column "\t" branch tracking remote | first }
-    | where {|r| $r.tracking =~ 'gone' }
+    | parse "{branch}\t{tracking}\t{remote}"
+    | where tracking =~ 'gone'
   )
 
   if ($gone | is-empty) {
@@ -213,5 +232,7 @@ def main [
   ^git worktree prune
   print $"Removed ($removed) branch\(es\); skipped ($skipped) branch\(es\)."
 
-  if $skipped > 0 { exit 1 }
+  if $skipped > 0 {
+    exit 1
+  }
 }
