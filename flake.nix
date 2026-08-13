@@ -103,14 +103,10 @@
         system:
         let
           pkgs = pkgsFor system;
-          nuCheck = pkgs.writeShellScript "nu-check" (
-            builtins.replaceStrings
-              [ "@nu@" "@jq@" ]
-              [
-                (nixpkgs.lib.getExe pkgs.nushell)
-                (nixpkgs.lib.getExe pkgs.jq)
-              ]
-              (builtins.readFile ./lib/nu-check.sh)
+          nuCheck = pkgs.writers.writeNu "nu-check" (
+            builtins.replaceStrings [ "@nu@" ] [ (nixpkgs.lib.getExe pkgs.nushell) ] (
+              builtins.readFile ./lib/nu-check.nu
+            )
           );
         in
         git-hooks-nix.lib.${system}.run {

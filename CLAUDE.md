@@ -36,7 +36,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 │   └── system-manager.nix           # Runtime PATH entries provisioned by system-manager activation
 ├── lib/                             # Pure helpers and framework code
 │   ├── builders.nix                 # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL, serverSharedModules
-│   ├── nu-check.sh                  # Pre-commit wrapper turning `nu --ide-check` diagnostics into an exit code
+│   ├── nu-check.nu                  # Pre-commit gate: `nu --ide-check` diagnostics plus indentation
 │   ├── overlays.nix                 # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, toolchains, custom packages)
 │   ├── proxy.nix                    # mkProxyOptions, mkProxyScript, wrapWithProxy, no_proxy rendering
 │   ├── secrets.nix                  # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
@@ -119,7 +119,7 @@ The agenix script checks `[ -t 0 ]` and overrides `EDITOR` to `cp -- /dev/stdin`
 ### Module Shape
 
 - **NixOS modules** in `modules/nixos/` are typically optionally enabled services. Define `options.hakula.services.<name>.enable`, gate with `config = lib.mkIf cfg.enable { ... }`, and enable from a host or profile.
-- **Home Manager modules** in `home/modules/` live under `hakula.<name>`. Branch on `pkgs.stdenv.{isDarwin, isLinux}` for platform variants. The flags `isNixOS` / `isDesktop` are threaded by the host builders; only consume them when the host actually sets them.
+- **Home Manager modules** in `home/modules/` live under `hakula.<name>`. Branch on `pkgs.stdenv.{isDarwin, isLinux}` for platform variants. The flags `isNixOS` / `isDesktop` are threaded by the host builders, so only consume them when the host actually sets them.
 - **Custom packages** in `packages/` are registered through the overlay (`lib/overlays.nix`) and consumed via `pkgs.<name>`.
 - **Hosts** in `hosts/` register through one of the five `mk*` builders in `lib/builders.nix`. Reuse profiles from `hosts/_profiles/` for shared hardware / container shapes.
 
@@ -188,11 +188,13 @@ Nushell is the default for new helper scripts, since most of them parse JSON fro
 
 The `@placeholder@` plus `builtins.replaceStrings` substitution pattern works unchanged, since it operates on the file text before the writer sees it. Substitute a list with `builtins.toJSON`, which a nushell list literal accepts verbatim, in place of `lib.escapeShellArgs`.
 
-#### Linting
+#### Linting and formatting
 
-The `nu-check` pre-commit hook wraps `nu --ide-check` (`lib/nu-check.sh`). It catches unbalanced delimiters, undefined variables, wrong arity and flags on your own `def`s, and type mismatches against declared signatures. It does not catch an unknown external command, nor a bad field on a built-in record such as `$nu.home-path` (the real name is `$nu.home-dir`), so a script still needs one real run.
+The `nu-check` pre-commit hook wraps `nu --ide-check` (`lib/nu-check.nu`). It catches unbalanced delimiters, undefined variables, wrong arity and flags on your own `def`s, and type mismatches against declared signatures. It does not catch an unknown external command, nor a bad field on a built-in record such as `$nu.home-path` (the real name is `$nu.home-dir`), so a script still needs one real run.
 
-`--ide-check` always exits 0, including for a path that does not exist, which is why the wrapper both greps for `"severity":"Error"` and rejects a missing file. `nufmt` is deliberately absent: it strips every blank line and forces 4-space indent against this repo's 2-space `.editorconfig`.
+`--ide-check` always exits 0, including for a path that does not exist, which is why the hook both filters for `"severity":"Error"` and rejects a missing file. The same hook rejects a tab indent or an indent that is not a multiple of 2, which is the part of formatting that can be checked without rewriting the file.
+
+`nufmt` stays out of the pipeline. Its `indent: 2` config option does fix the width, but `line_length` is advisory and ignored (a 40-column limit still emitted 122 characters), it has no line-breaking logic at all so it only ever joins lines, and `margin` governs blank lines between top-level items while every blank line inside a block is stripped. Running it over `modules/system-manager/health-check.nu` collapsed a four-stage pipeline into one 163-character line. Re-measure before reconsidering, since it is pre-1.0 and its README already documents options this build rejects.
 
 #### What stays bash
 

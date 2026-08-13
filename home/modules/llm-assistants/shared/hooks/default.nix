@@ -59,16 +59,10 @@ let
   );
   ruffConfig = builtins.fromTOML (builtins.readFile (lib.path.append repo.root "ruff.toml"));
 
-  # `nu --ide-check` always exits 0, so the wrapper turns an Error-severity
-  # diagnostic into a non-zero exit.
-  nuCheck = pkgs.writeShellScript "nu-check" (
-    builtins.replaceStrings
-      [ "@nu@" "@jq@" ]
-      [
-        (lib.getExe pkgs.nushell)
-        (lib.getExe pkgs.jq)
-      ]
-      (builtins.readFile (lib.path.append repo.root "lib/nu-check.sh"))
+  nuCheck = pkgs.writers.writeNu "nu-check" (
+    builtins.replaceStrings [ "@nu@" ] [ (lib.getExe pkgs.nushell) ] (
+      builtins.readFile (lib.path.append repo.root "lib/nu-check.nu")
+    )
   );
 
   preferredQuoteStyle = single: if single then "preferSingle" else "preferDouble";
