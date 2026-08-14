@@ -25,12 +25,6 @@
   hakula.cachix.enable = true;
 
   # ----------------------------------------------------------------------------
-  # Assistant Tooling
-  # ----------------------------------------------------------------------------
-  hakula.llm-assistants.enable = lib.mkDefault true;
-  hakula.claude-code.defaultProfile = lib.mkDefault "official-token";
-
-  # ----------------------------------------------------------------------------
   # Services
   # ----------------------------------------------------------------------------
   hakula.services.netdata.enable = true;
