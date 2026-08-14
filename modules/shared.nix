@@ -11,7 +11,6 @@
 let
   keys = import ../secrets/keys.nix;
   binaryCaches = import ../data/caches.nix;
-  tooling = import ../lib/tooling.nix { inherit pkgs; };
 in
 {
   inherit binaryCaches;
@@ -51,11 +50,6 @@ in
     LANG = "en_US.UTF-8";
     LC_ALL = "en_US.UTF-8";
   };
-
-  # ----------------------------------------------------------------------------
-  # Nix development tools
-  # ----------------------------------------------------------------------------
-  nixTooling = tooling.nix;
 
   # ----------------------------------------------------------------------------
   # Nix settings
