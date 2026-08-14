@@ -32,11 +32,14 @@ esac
 PROMPT_FILE="@promptFile@"
 [[ -r "$PROMPT_FILE" ]] || exit 0
 
-RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout "@judgeTimeout@" claude -p "$CONTENT" \
+# `--` is required: content starting with `-`, such as a Markdown bullet, is
+# otherwise parsed as an unknown option and the judge never sees it.
+RAW=$(cd /tmp && CLAUDE_PROSE_GATE_ACTIVE=1 timeout "@judgeTimeout@" claude -p \
   --bare \
   --system-prompt-file "$PROMPT_FILE" \
   --model sonnet \
   --output-format json \
+  -- "$CONTENT" \
   2>/dev/null)
 
 # The verdict JSON is under .result, sometimes wrapped in a code fence or

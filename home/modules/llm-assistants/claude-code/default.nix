@@ -123,14 +123,14 @@ in
       # ------------------------------------------------------------------------
       # Status line
       # ------------------------------------------------------------------------
-      statusLineScript = pkgs.writeShellScript "statusline-command" (
+      statusLineScript = pkgs.writers.writeNu "statusline-command" (
         builtins.replaceStrings
           [ "@npx@" "@getTtyNum@" ]
           [
             "${pkgs.nodejs_24}/bin/npx"
             "${notify.getTtyNum}"
           ]
-          (builtins.readFile ./scripts/statusline-command.sh)
+          (builtins.readFile ./scripts/statusline-command.nu)
       );
 
       # ------------------------------------------------------------------------
@@ -176,7 +176,7 @@ in
       {
         home.file = {
           ".claude/CLAUDE.md".text = instructions.claudeCode;
-          ".claude/statusline-command.sh" = {
+          ".claude/statusline-command.nu" = {
             source = statusLineScript;
             executable = true;
           };

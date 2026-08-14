@@ -1,18 +1,18 @@
 ---
 name: peertube-hls-upload
-description: Manually transcode a video to HLS fragmented MP4 and upload it to the self-hosted PeerTube B2 bucket (v.hakula.xyz / hakula-videos), bypassing the PeerTube runner. Use this skill whenever the user is fixing a broken or missing PeerTube video resolution, working around a failed or too-slow runner transcode, regenerating the segments-sha256 hashes that PeerTube uses for HLS integrity, editing an HLS master playlist to add or replace a quality variant, purging stale Cloudflare CDN cache for v.hakula.xyz / b2.hakula.xyz, or doing any manual HLS / B2 / ffmpeg / database work tied to PeerTube — even if they don't say "skill" or name the script directly. Trigger on phrases like "peertube transcode failed", "fix broken peertube video", "re-encode this resolution", "upload HLS to B2", "regen sha256 for peertube", "missing quality on v.hakula.xyz", or any PeerTube troubleshooting that involves touching B2 / Cloudflare / fMP4 files.
+description: Manually transcode a video to HLS fragmented MP4 and upload it to the self-hosted PeerTube B2 bucket (v.hakula.xyz / hakula-videos), bypassing the PeerTube runner. Use this skill whenever the user is fixing a broken or missing PeerTube video resolution, working around a failed or too-slow runner transcode, regenerating the segments-sha256 hashes that PeerTube uses for HLS integrity, editing an HLS master playlist to add or replace a quality variant, purging stale Cloudflare CDN cache for v.hakula.xyz / b2.hakula.xyz, or doing any manual HLS / B2 / ffmpeg / database work tied to PeerTube, even if they don't say "skill" or name the script directly. Trigger on phrases like "peertube transcode failed", "fix broken peertube video", "re-encode this resolution", "upload HLS to B2", "regen sha256 for peertube", "missing quality on v.hakula.xyz", or any PeerTube troubleshooting that involves touching B2 / Cloudflare / fMP4 files.
 ---
 
 # PeerTube HLS Manual Transcode & Upload
 
 Manually transcode a video to HLS fragmented MP4 and upload it to the PeerTube B2 object storage bucket, bypassing the PeerTube runner workflow. Use when re-transcoding fails, is too slow via the runner, or when fixing broken / missing HLS files.
 
-**Script**: `peertube-hls.sh` (sibling to this `SKILL.md`) — all operations are implemented as subcommands. Run with `help` for full usage. The Python helper `regen-sha256.py` lives next to it and is invoked by the `regen-sha256` subcommand.
+**Script**: `peertube-hls.nu` (sibling to this `SKILL.md`), where all operations are implemented as subcommands. Run with `--help` for the subcommand list, or `<subcommand> --help` for one command's parameters. The Python helper `regen-sha256.py` lives next to it and is invoked by the `regen-sha256` subcommand.
 
 ## Prerequisites
 
 - `ffmpeg` / `ffprobe` (available in the system)
-- `awscli2` (used via `nix-shell -p awscli2` — the script handles this automatically)
+- `awscli2` (used via `nix-shell -p awscli2`, which the script invokes automatically)
 - SSH access to `CloudCone-US-1` (PeerTube server)
 - Agenix decryption key at `~/.ssh/CloudCone/id_ed25519`
 
@@ -50,7 +50,7 @@ File paths in the working directory (`/tmp/peertube-hls/`) are derived from `FIL
 ### Step 1: Identify the Video
 
 ```bash
-./peertube-hls.sh identify <VIDEO_UUID>
+./peertube-hls.nu identify <VIDEO_UUID>
 ```
 
 This runs three queries (PeerTube API, HLS file details, streaming playlist metadata) and prints all the UUIDs, filenames, and DB IDs needed for subsequent steps.
@@ -66,20 +66,20 @@ The `export` is required, since without it credentials don't propagate into the 
 
 ### Step 3: Transcode
 
-#### Option A: Remux (same codec, no re-encode — seconds)
+#### Option A: Remux (same codec, no re-encode, seconds)
 
 Use when the source is already H.264 at the target resolution:
 
 ```bash
-./peertube-hls.sh transcode remux /absolute/path/to/source.mp4 <FILE_UUID> <RESOLUTION>
+./peertube-hls.nu transcode remux /absolute/path/to/source.mp4 <FILE_UUID> <RESOLUTION>
 ```
 
-#### Option B: Re-encode (codec / quality change — minutes to hours)
+#### Option B: Re-encode (codec / quality change, minutes to hours)
 
 Use when transcoding from VP9 / AV1 / other to H.264, or re-encoding with different quality settings:
 
 ```bash
-./peertube-hls.sh transcode re-encode /absolute/path/to/source.mp4 <FILE_UUID> <RESOLUTION> <FPS>
+./peertube-hls.nu transcode re-encode /absolute/path/to/source.mp4 <FILE_UUID> <RESOLUTION> <FPS>
 ```
 
 **Important**: Use absolute paths for source files. ffmpeg does not expand `~`.
@@ -93,7 +93,7 @@ Key parameters applied by the script (matching `hq-transcode.patch`):
 #### Verify encoding
 
 ```bash
-./peertube-hls.sh verify /tmp/peertube-hls/<FILE_UUID>-<RESOLUTION>-fragmented.mp4
+./peertube-hls.nu verify /tmp/peertube-hls/<FILE_UUID>-<RESOLUTION>-fragmented.mp4
 ```
 
 Expected: `rc=crf crf=20.0 ... ref=5 subme=8 trellis=2 rc_lookahead=50 ... bframes=16 b_adapt=1`
@@ -105,8 +105,8 @@ If you see `ref=1 subme=2 trellis=0 rc_lookahead=10`, the file uses the old `-pr
 Upload in order: **fragmented MP4 first, then segment playlist** (so the player never references a file that doesn't exist yet):
 
 ```bash
-./peertube-hls.sh upload <VIDEO_UUID> /tmp/peertube-hls/<FILE_UUID>-<RESOLUTION>-fragmented.mp4
-./peertube-hls.sh upload <VIDEO_UUID> /tmp/peertube-hls/<FILE_UUID>-<RESOLUTION>.m3u8
+./peertube-hls.nu upload <VIDEO_UUID> /tmp/peertube-hls/<FILE_UUID>-<RESOLUTION>-fragmented.mp4
+./peertube-hls.nu upload <VIDEO_UUID> /tmp/peertube-hls/<FILE_UUID>-<RESOLUTION>.m3u8
 ```
 
 ### Step 5: Update the Master Playlist
@@ -138,7 +138,7 @@ Where:
 Upload the updated master playlist **last**:
 
 ```bash
-./peertube-hls.sh upload <VIDEO_UUID> /tmp/peertube-hls/master.m3u8 <MASTER_FILENAME>
+./peertube-hls.nu upload <VIDEO_UUID> /tmp/peertube-hls/master.m3u8 <MASTER_FILENAME>
 ```
 
 The third argument (`DEST_NAME`) overrides the B2 object name. Without it, the upload uses the local filename, which would be wrong here.
@@ -148,13 +148,13 @@ The third argument (`DEST_NAME`) overrides the B2 object name. Without it, the u
 Only needed when the file size changed (re-encode produces different size than what's in the DB):
 
 ```bash
-./peertube-hls.sh db-update-size <FILE_ID> <FILE_UUID> <RESOLUTION>
+./peertube-hls.nu db-update-size <FILE_ID> <FILE_UUID> <RESOLUTION>
 ```
 
 To also update the stored ffprobe metadata (recommended for re-encodes):
 
 ```bash
-./peertube-hls.sh db-update-meta <FILE_ID> <FILE_UUID> <RESOLUTION>
+./peertube-hls.nu db-update-meta <FILE_ID> <FILE_UUID> <RESOLUTION>
 ```
 
 ### Step 7: Update Segments SHA256
@@ -174,8 +174,8 @@ To also update the stored ffprobe metadata (recommended for re-encodes):
 **Regenerate and upload:**
 
 ```bash
-./peertube-hls.sh regen-sha256 <VIDEO_UUID> <SHA256_FILENAME> <FILE_UUID> <RESOLUTION>
-./peertube-hls.sh upload <VIDEO_UUID> /tmp/peertube-hls/segments-sha256.json <SHA256_FILENAME>
+./peertube-hls.nu regen-sha256 <VIDEO_UUID> <SHA256_FILENAME> <FILE_UUID> <RESOLUTION>
+./peertube-hls.nu upload <VIDEO_UUID> /tmp/peertube-hls/segments-sha256.json <SHA256_FILENAME>
 ```
 
 **Note**: The `regen-sha256` command requires the fMP4 and m3u8 files locally in `/tmp/peertube-hls/`. If you're fixing a runner-transcoded file (not a manual transcode), download them from B2 first:
@@ -195,7 +195,7 @@ The `regen-sha256` command downloads the current SHA256 JSON from B2 CDN with a 
 B2 is served through Cloudflare CDN (`b2.hakula.xyz`). After uploading updated files, the CDN may serve stale cached versions.
 
 ```bash
-./peertube-hls.sh purge-urls <VIDEO_UUID> <MASTER_FILENAME> <SHA256_FILENAME> <FILE_UUID>-<RESOLUTION>.m3u8
+./peertube-hls.nu purge-urls <VIDEO_UUID> <MASTER_FILENAME> <SHA256_FILENAME> <FILE_UUID>-<RESOLUTION>.m3u8
 ```
 
 This prints the URLs to purge. Purge them in the Cloudflare dashboard.
@@ -215,7 +215,7 @@ rm -rf /tmp/peertube-hls/
 To check any existing remote HLS file:
 
 ```bash
-./peertube-hls.sh verify 'https://b2.hakula.xyz/hakula-videos/streaming-playlists/hls/<VIDEO_UUID>/<FILENAME>'
+./peertube-hls.nu verify 'https://b2.hakula.xyz/hakula-videos/streaming-playlists/hls/<VIDEO_UUID>/<FILENAME>'
 ```
 
 Key indicators:

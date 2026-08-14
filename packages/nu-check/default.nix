@@ -1,7 +1,7 @@
 # ==============================================================================
-# WSL Helper Library
+# Nushell Diagnostic Check
 # ==============================================================================
 
-{
-  windowsInteropScript = ./windows-interop.nu;
-}
+{ writers }:
+
+writers.writeNu "nu-check" (builtins.readFile ./nu-check.nu)

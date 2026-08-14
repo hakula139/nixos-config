@@ -100,6 +100,7 @@ let
         formatting.command = [ "nixfmt" ];
       };
     };
+    "nushellLanguageServer.nushellExecutablePath" = "nu";
   }
   // terminalSettings;
 
@@ -117,6 +118,7 @@ let
       }
       // nixdCompletions;
     };
+    "nushellLanguageServer.nushellExecutablePath" = "${pkgs.nushell}/bin/nu";
     "python.defaultInterpreterPath" = "${profileDirectory}/bin/python";
   };
 

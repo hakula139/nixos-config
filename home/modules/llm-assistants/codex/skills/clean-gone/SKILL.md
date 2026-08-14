@@ -21,7 +21,7 @@ Clean branches whose upstream refs were deleted without risking uncommitted or u
 2. Run the bundled script without `--apply` and review every planned or skipped branch.
 
    ```bash
-   bash <skill-dir>/scripts/clean-gone.sh
+   nu <skill-dir>/scripts/clean-gone.nu
    ```
 
    The script only selects branches with a `[gone]` upstream. It skips the active worktree and dirty worktrees, then verifies integration through ancestry, patch equivalence, or an exact changed-path tree match in the target branch's history.
@@ -31,7 +31,7 @@ Clean branches whose upstream refs were deleted without risking uncommitted or u
 3. If the user explicitly requested cleanup, apply the reviewed plan.
 
    ```bash
-   bash <skill-dir>/scripts/clean-gone.sh --apply
+   nu <skill-dir>/scripts/clean-gone.nu --apply
    ```
 
    Otherwise, present the dry-run output and wait for authorization before deleting anything.
@@ -43,6 +43,6 @@ Clean branches whose upstream refs were deleted without risking uncommitted or u
 The script discovers each branch's remote default branch. If the deleted branch was intentionally merged into another base, verify that base with the user and pass it explicitly to both runs:
 
 ```bash
-bash <skill-dir>/scripts/clean-gone.sh --base origin/release
-bash <skill-dir>/scripts/clean-gone.sh --base origin/release --apply
+nu <skill-dir>/scripts/clean-gone.nu --base origin/release
+nu <skill-dir>/scripts/clean-gone.nu --base origin/release --apply
 ```

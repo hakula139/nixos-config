@@ -101,11 +101,16 @@
       # ------------------------------------------------------------------------
       preCommitCheckFor =
         system:
+        let
+          pkgs = pkgsFor system;
+        in
         git-hooks-nix.lib.${system}.run {
           src = ./.;
           hooks = {
             check-added-large-files.enable = true;
+
             check-yaml.enable = true;
+
             cspell = {
               enable = true;
               args = [
@@ -113,11 +118,16 @@
                 "--no-must-find-files"
               ];
             };
+
             deadnix.enable = true;
+
+            editorconfig-checker.enable = true;
+
             end-of-file-fixer = {
               enable = true;
               excludes = [ "\\.age$" ];
             };
+
             markdownlint = {
               enable = true;
               args = [ "--fix" ];
@@ -140,8 +150,34 @@
                 MD050.style = "asterisk";
               };
             };
+
             nixfmt.enable = true;
+
+            nu-check = {
+              enable = true;
+              name = "nu-check";
+              description = "Run nushell's diagnostic check on .nu files.";
+              entry = "${pkgs.nu-check}";
+              files = "\\.nu$";
+              types = [ "file" ];
+            };
+
             statix.enable = true;
+
+            # `shfmt` reads `.editorconfig` only when the entry passes no
+            # formatting flag. Any flag reverts it to tabs and ignores the
+            # `binary_next_line` and `switch_case_indent` keys.
+            shfmt = {
+              enable = true;
+              settings = {
+                language-dialect = null;
+                simplify = false;
+                indent = null;
+                binary-next-line = false;
+                case-indent = false;
+              };
+            };
+
             trim-trailing-whitespace = {
               enable = true;
               # Preserve Markdown's two-trailing-space hard-break syntax.
@@ -379,7 +415,7 @@
         in
         {
           default = pkgs.mkShell {
-            buildInputs = preCommitCheck.enabledPackages ++ tooling.nix ++ tooling.secrets;
+            buildInputs = preCommitCheck.enabledPackages ++ tooling.all;
             inherit (preCommitCheck) shellHook;
           };
         }
