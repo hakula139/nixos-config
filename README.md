@@ -21,139 +21,25 @@ This repository manages NixOS, nix-darwin, System Manager, Home Manager, custom 
 | `darwinConfigurations.macbook`       | `aarch64-darwin` | macOS workstation with nix-darwin                   |
 | `packages.x86_64-linux.devvm-docker` | `x86_64-linux`   | NixOS Docker image for dev containers               |
 
-## Layout
-
-```text
-.
-├── flake.nix                        # Inputs, special args, host registration, outputs
-├── hosts/
-│   ├── _profiles/
-│   │   ├── platform/                # Hardware / runtime shape (cloudcone-sc2, container, wsl, ...)
-│   │   └── role/                    # System role (server, workstation)
-│   ├── servers/                     # NixOS servers (us-1..us-4, sg-1)
-│   ├── workstations/                # wsl (NixOS-WSL), wsl-non-nixos (System Manager), macbook (Darwin)
-│   └── images/                      # Buildable images (devvm)
-├── modules/
-│   ├── shared.nix                   # Cross-platform primitives
-│   ├── nixos/                       # NixOS service modules
-│   ├── darwin/                      # macOS-specific modules
-│   └── system-manager/              # System Manager activation, agenix port
-├── home/
-│   ├── hakula.nix                   # Home Manager entry point
-│   └── modules/                     # Home Manager modules (incl. wsl.nix bundle)
-├── lib/                             # Helpers (overlays, builders, secrets, proxy, tooling, ...)
-├── packages/                        # Custom package definitions
-├── secrets/                         # agenix-encrypted secrets and recipient rules
-└── .github/workflows/ci.yml         # CI pipeline
-```
+See [docs/reference/architecture.md](docs/reference/architecture.md) for the directory layout and how hosts are wired.
 
 ## Usage
 
-After bootstrap, apply the current host configuration with the platform-aware zsh alias:
+Apply the current host configuration with the platform-aware zsh alias:
 
 ```bash
 nixsw
 ```
 
-### NixOS Servers
+First-time setup differs per platform, from `nixos-anywhere` on a fresh server to a WSL import tarball. [docs/guides/bootstrap.md](docs/guides/bootstrap.md) covers each one.
 
-Bootstrap a new server with `nixos-anywhere`:
-
-```bash
-nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
-```
-
-Deploy from a workstation with Colmena:
+Multi-server deploys go through Colmena, where `--on` takes a host name or a provider tag:
 
 ```bash
-colmena apply                                           # all servers
-colmena apply --on us-4                                 # one server
-colmena apply --on @cloudcone                           # provider tag
+colmena apply
+colmena apply --on us-4
+colmena apply --on @cloudcone
 ```
-
-Server inventory and deployment metadata live in `data/servers.nix`.
-
-### NixOS-WSL Workstation
-
-`wsl` is a full NixOS workstation running under Microsoft WSL2 via [NixOS-WSL](https://github.com/nix-community/NixOS-WSL).
-
-Build the import tarball from any host with the flake checked out:
-
-```bash
-nix build '.#nixosConfigurations.wsl.config.system.build.tarballBuilder'
-sudo ./result/bin/nixos-wsl-tarball-builder             # produces ./nixos.wsl
-```
-
-Move `nixos.wsl` to the Windows side and import (PowerShell):
-
-```powershell
-wsl --shutdown
-wsl --install --from-file .\nixos.wsl                   # WSL ≥ 2.4.4
-wsl -d NixOS                                            # first launch
-```
-
-On older WSL versions, import with `wsl --import NixOS C:\WSL\NixOS .\nixos.wsl`.
-
-Inside the new distro, copy the agenix identity from the Windows side and apply the managed configuration:
-
-```bash
-git clone https://github.com/hakula139/nixos-config ~/nixos-config
-mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-cp /mnt/c/Users/<name>/.ssh/id_ed25519     ~/.ssh/id_ed25519
-cp /mnt/c/Users/<name>/.ssh/id_ed25519.pub ~/.ssh/id_ed25519.pub
-chmod 600 ~/.ssh/id_ed25519
-
-sudo nixos-rebuild switch --flake ~/nixos-config#wsl
-```
-
-### Non-NixOS Linux (System Manager)
-
-`wsl-non-nixos` uses [system-manager](https://github.com/numtide/system-manager) to own the system profile, user shell integration, agenix secret activation, and Home Manager activation service. It is the WSL workstation for non-NixOS Linux distros.
-
-Install Nix with Determinate Nix Installer:
-
-```bash
-curl -fsSL https://install.determinate.systems/nix | sh -s -- install
-```
-
-Bootstrap System Manager before the managed profile installs `system-manager` itself:
-
-```bash
-nix run '.#system-manager' -- switch --flake '.#wsl-non-nixos' --sudo
-system-manager-health-check agenix-install-secrets.service home-manager-hakula.service
-```
-
-### macOS
-
-Install Nix with Determinate Nix Installer:
-
-```bash
-curl -fsSL https://install.determinate.systems/nix | sh -s -- install
-```
-
-Bootstrap nix-darwin:
-
-```bash
-sudo nix run nix-darwin/nix-darwin-26.05#darwin-rebuild -- switch --flake '.#macbook'
-```
-
-### Docker Image
-
-Build the air-gapped development image:
-
-```bash
-nix build '.#packages.x86_64-linux.devvm-docker'
-```
-
-Load and start it:
-
-```bash
-docker load < result
-docker compose -f hosts/images/devvm/docker-compose.yml up -d
-```
-
-Attach with the VS Code / Cursor Dev Containers command.
 
 ### Shell Aliases
 
@@ -169,7 +55,7 @@ The Home Manager zsh module ships matching aliases on every platform:
 
 ## Secrets
 
-Secrets are encrypted with [agenix](https://github.com/ryantm/agenix). Home Manager modules declare requirements through `hakula.secrets.required`, and each platform's system module materializes them as `age.secrets`. See `lib/secrets.nix` for the helper API and `AGENTS.md` for the recipe.
+Secrets are encrypted with [agenix](https://github.com/ryantm/agenix). Home Manager modules declare requirements through `hakula.secrets.required`, and each platform's system module materializes them as `age.secrets`.
 
 ```bash
 cd secrets
@@ -177,7 +63,7 @@ agenix -e <service>/<name>.age -i ~/.ssh/<private-key>  # Edit
 agenix -r -i ~/.ssh/<private-key>                       # Re-key after changing recipients
 ```
 
-Run `agenix -r` from an interactive terminal. See `AGENTS.md` for the TTY caveat.
+Run `agenix -r` from an interactive terminal only. [docs/guides/secrets.md](docs/guides/secrets.md) explains why, along with the helper API and naming rules.
 
 ## Development
 
@@ -188,24 +74,14 @@ git ls-files '*.nix' -z | xargs -0 nix fmt              # Format Nix files
 nix flake check                                         # Run CI-style validation
 ```
 
-Build representative targets:
+Build a representative target:
 
 ```bash
-nix build '.#nixosConfigurations.us-4.config.system.build.toplevel'
 nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
-nix build '.#systemConfigs.wsl-non-nixos'
-nix build '.#darwinConfigurations.macbook.system'
-nix build '.#packages.x86_64-linux.devvm-docker'
 ```
+
+Contributor conventions live under [docs/conventions/](docs/conventions/), and [AGENTS.md](AGENTS.md) indexes them for coding assistants.
 
 ## CI
 
-GitHub Actions runs on every push and pull request:
-
-- **Flake Check**: `nix flake check --all-systems` for flake structure and pre-commit hooks (`cspell`, `deadnix`, `markdownlint`, `nixfmt`, `statix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
-- **Build NixOS**: builds the five server configurations (`us-1`, `us-2`, `us-3`, `us-4`, `sg-1`) on `ubuntu-latest`.
-- **Build NixOS-WSL**: builds `wsl` on `ubuntu-latest`.
-- **Build WSL (non-NixOS)**: builds `systemConfigs.wsl-non-nixos` on `ubuntu-latest`.
-- **Build macOS**: builds `macbook` on `macos-latest`, then pins `peertube-runner` to the Cachix cache.
-- **Build Docker**: builds `devvm-docker` on `ubuntu-latest`.
-- **Closure size check**: prints `nix path-info -Sh` for each built target.
+GitHub Actions runs a flake check plus a parallel build of every host on each push and pull request. See [docs/reference/ci.md](docs/reference/ci.md).
