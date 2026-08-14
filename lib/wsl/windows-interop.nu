@@ -21,8 +21,9 @@ def --env interop-init [] {
 export def --env windows-env-path [name: string]: nothing -> string {
   interop-init
 
+  # `cmd.exe` rejects a UNC cwd, which any WSL path is.
   let value = (
-    try { ^cmd.exe /C $"echo %($name)%" | str trim } catch { "" }
+    try { cd "/mnt/c"; ^cmd.exe /C $"echo %($name)%" | str trim } catch { "" }
   )
   if ($value | is-empty) or ($value == $"%($name)%") {
     print -e $"Error: Failed to resolve %($name)%"
