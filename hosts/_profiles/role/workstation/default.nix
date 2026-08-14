@@ -22,5 +22,8 @@
   # ----------------------------------------------------------------------------
   # Assistant Tooling
   # ----------------------------------------------------------------------------
-  hakula.llm-assistants.proxy.enable = lib.mkDefault true;
+  hakula.llm-assistants = {
+    enable = lib.mkDefault true;
+    proxy.enable = lib.mkDefault true;
+  };
 }
