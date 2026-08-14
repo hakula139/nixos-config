@@ -108,7 +108,9 @@
           src = ./.;
           hooks = {
             check-added-large-files.enable = true;
+
             check-yaml.enable = true;
+
             cspell = {
               enable = true;
               args = [
@@ -116,12 +118,16 @@
                 "--no-must-find-files"
               ];
             };
+
             deadnix.enable = true;
+
             editorconfig-checker.enable = true;
+
             end-of-file-fixer = {
               enable = true;
               excludes = [ "\\.age$" ];
             };
+
             markdownlint = {
               enable = true;
               args = [ "--fix" ];
@@ -144,7 +150,9 @@
                 MD050.style = "asterisk";
               };
             };
+
             nixfmt.enable = true;
+
             nu-check = {
               enable = true;
               name = "nu-check";
@@ -153,11 +161,12 @@
               files = "\\.nu$";
               types = [ "file" ];
             };
+
             statix.enable = true;
-            # Every setting is left unset so the entry emits no formatting flag,
-            # which is the only mode where `shfmt` reads `.editorconfig`. The
-            # defaults it would otherwise apply are tabs and, for `simplify`,
-            # stripping the quotes inside `[[ ]]` that this repo requires.
+
+            # `shfmt` reads `.editorconfig` only when the entry passes no
+            # formatting flag. Any flag reverts it to tabs and ignores the
+            # `binary_next_line` and `switch_case_indent` keys.
             shfmt = {
               enable = true;
               settings = {
@@ -168,6 +177,7 @@
                 case-indent = false;
               };
             };
+
             trim-trailing-whitespace = {
               enable = true;
               # Preserve Markdown's two-trailing-space hard-break syntax.
