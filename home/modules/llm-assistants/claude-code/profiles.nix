@@ -207,7 +207,6 @@ let
       ]
       [
         stateDir
-        # A nushell list literal accepts JSON, which handles the quoting.
         (builtins.toJSON profileNames)
       ]
       (builtins.readFile ./scripts/claude-switch.nu)

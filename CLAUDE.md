@@ -209,6 +209,18 @@ The `nu-check` pre-commit hook wraps `nu --ide-check` (`lib/nu-check.nu`). It ca
 
 Startup cost cuts both ways, so measure the specific script. Nushell's interpreter starts around 33ms against bash's 2ms, and a `jq` fork costs roughly 2ms, so parsing in-process only wins past a handful of forks. The statusline crossed that line (112ms against 133ms) by forking five times and doing real work per field. A hook that reads three fields does not.
 
+#### Inline shell in Nix stays bash
+
+The `writeShellScript` and `writeShellScriptBin` blocks across the modules are around 225 lines over 33 call sites, and all of them stay bash. Three structural limits decide most of it, so check these before proposing a port:
+
+- **A `--run` or sourced script must be bash.** `mkProxyScript`, `claude-mcp-config-guard`, and the profile scripts are evaluated by the wrapper's own shell, and `mcp-config-guard` uses a top-level `return` that is only valid when sourced.
+- **A nushell script cannot receive an undeclared `--flag`.** `nu script.nu --log-as-netdata` fails with `doesn't have flag`, and there is no argv escape hatch outside `def main` parameters, so an argv-forwarding wrapper like `systemd-cat-native` cannot be expressed at all.
+- **Most of the rest are `exec` wrappers.** Setting a variable and handing off to the real binary has no data to structure. Nushell's `exec` does replace the process and does propagate `$env`, so these would work; they just gain nothing and each rewrite risks the credential fallback.
+
+`mihomo-update` is the one substantial script (74 lines) and it is the interesting rejection. Nushell handles most of it better: `str replace --all` is literal, so it replaces the whole `awk -v q="'"` plus `ENVIRON[]` dance that exists to keep `|`, `&`, and `\` intact, and `from yaml` reports invalid YAML where `yq -e .` did. It fails on one point. The script merges the base config and the subscription by concatenating text, and a provider that ships its own `mode:` or `dns:` block then yields a duplicate key, which `yq` accepts (mihomo takes last-wins) and `from yaml` rejects with `Unsupported input`. There is no flag to relax that, so the port would break config updates on `wsl-non-nixos`. Verified against `yq-go` 4.53.2 on a merged fixture.
+
+Two smaller ones are worth naming. `get-tty-num` runs on every statusline render and forks `ps` in a loop either way, so nushell would only add its startup to a measured hot path. `project-notify` does fork `jq` three times, but only for Codex's payload argument, once per response.
+
 ### Secrets Conventions
 
 - Logical key first: `hakula.secrets.required."<service>/<secret>"`. Override `name` only when the encrypted source differs from the logical key. Override `path` only when a tool requires a fixed location.
