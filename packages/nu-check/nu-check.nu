@@ -7,7 +7,6 @@
 # exits 0. Indentation is the `editorconfig-checker` hook's job.
 # ==============================================================================
 
-const NU = "@nu@"
 const MAX_ERRORS = 100
 
 # A `@name@` placeholder only parses once Nix has substituted it. `[]` stands in
@@ -20,7 +19,7 @@ def substitute [text: string, stub: string]: nothing -> string {
 }
 
 def diagnostics [target: string]: nothing -> list<string> {
-  ^$NU --ide-check $MAX_ERRORS $target
+  ^$nu.current-exe --ide-check $MAX_ERRORS $target
   | complete
   | get stdout
   | lines

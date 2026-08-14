@@ -107,7 +107,7 @@ Prefer `def main` with typed parameters over positional `$1` parsing, records ov
 
 #### Linting and formatting
 
-`nu-check` (`lib/nu-check.nix`) wraps `nu --ide-check`, which upstream `git-hooks-nix` does not offer. It gates delimiters and the arity of your own `def`s, and little else: a mistyped command name passes as an external call, and none of the three bugs the nushell migration shipped were visible to it. A script still needs one real run. `--ide-check` always exits 0, even for a missing path, hence the explicit `"severity":"Error"` filter and the missing-file and non-UTF-8 guards.
+`nu-check` (`packages/nu-check/`) wraps `nu --ide-check`, which upstream `git-hooks-nix` does not offer. It gates delimiters and the arity of your own `def`s and little else, since a mistyped command name passes as an external call. None of the three bugs the nushell migration shipped were visible to it, so a script still needs one real run. `--ide-check` always exits 0 even for a missing path, hence the explicit `"severity":"Error"` filter and the missing-file and non-UTF-8 guards.
 
 Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for every tracked file. `nufmt` stays out: `line_length` is advisory, there is no line-breaking logic so it only joins, and it collapsed a four-stage pipeline in `health-check.nu` into one 163-character line.
 

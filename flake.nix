@@ -103,10 +103,6 @@
         system:
         let
           pkgs = pkgsFor system;
-          nuCheck = import ./lib/nu-check.nix {
-            inherit pkgs;
-            inherit (nixpkgs) lib;
-          };
         in
         git-hooks-nix.lib.${system}.run {
           src = ./.;
@@ -153,7 +149,7 @@
               enable = true;
               name = "nu-check";
               description = "Run nushell's diagnostic check on .nu files.";
-              entry = "${nuCheck}";
+              entry = "${pkgs.nu-check}";
               files = "\\.nu$";
               types = [ "file" ];
             };

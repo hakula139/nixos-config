@@ -59,8 +59,6 @@ let
   );
   ruffConfig = builtins.fromTOML (builtins.readFile (lib.path.append repo.root "ruff.toml"));
 
-  nuCheck = import (lib.path.append repo.root "lib/nu-check.nix") { inherit pkgs lib; };
-
   preferredQuoteStyle = single: if single then "preferSingle" else "preferDouble";
 
   dprintConfig = (pkgs.formats.json { }).generate "dprint.json" {
@@ -103,7 +101,7 @@ in
     script = ./scripts/auto-format.sh;
     substitutions = {
       "@nixfmt@" = lib.getExe pkgs.nixfmt;
-      "@nuCheck@" = "${nuCheck}";
+      "@nuCheck@" = "${pkgs.nu-check}";
       "@shellcheck@" = lib.getExe pkgs.shellcheck;
       "@shfmt@" = lib.getExe pkgs.shfmt;
 
