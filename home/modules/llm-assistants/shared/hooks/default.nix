@@ -18,10 +18,10 @@ let
   timeouts = rec {
     judge = 30;
     tool = 10;
-    # This judge reads a metric report on top of the text: sampled 17-74s. A
-    # timed-out leg drops its verdict and looks exactly like a clean pass, so
-    # the ceiling sits well clear of the observed tail.
-    zhJudge = 120;
+    # This judge reads a metric report on top of the text: sampled 17-103s, where
+    # the top of the range is a cold first call. A timed-out leg drops its verdict
+    # and reads as a clean pass, so the ceiling buys margin over that tail.
+    zhJudge = 180;
     postEdit = judge + zhJudge + 3 * tool;
   };
 
