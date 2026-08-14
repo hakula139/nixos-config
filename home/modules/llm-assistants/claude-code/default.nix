@@ -138,23 +138,6 @@ in
       # ------------------------------------------------------------------------
       claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
 
-      # home-manager's programs.claude-code.mcpServers injection trips
-      # Commander.js's variadic parsing, which eats subcommand names as
-      # config paths. Inject --mcp-config here, skipping for subcommands.
-      mcpConfigGuard = pkgs.writeShellScript "claude-mcp-config-guard" ''
-        for __cc_arg in "$@"; do
-          case "$__cc_arg" in
-            agents|auth|doctor|install|mcp|plugin|plugins|setup-token|update|upgrade)
-              return 0
-              ;;
-            --)
-              break
-              ;;
-          esac
-        done
-        set -- --mcp-config ${mcp.configFile} "$@"
-      '';
-
       wrapArgs =
         profiles.wrapArgs
         ++ lib.optionals cfg.plugins.bundle [
@@ -167,8 +150,10 @@ in
           (proxyLib.mkProxyScript cfg.proxy)
         ]
         ++ [
-          "--run"
-          "source ${mcpConfigGuard}"
+          # `--mcp-config` is variadic, so the `=` form is required: the
+          # space-separated form swallows the prompt and any subcommand.
+          "--add-flags"
+          "--mcp-config=${mcp.configFile}"
         ];
 
       claudeCodeBin = pkgs.symlinkJoin {

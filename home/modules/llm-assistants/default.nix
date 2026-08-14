@@ -8,6 +8,7 @@
   hostType,
   llmAssistantLib,
   proxyLib,
+  enableDevToolchains ? false,
   ...
 }:
 
@@ -81,7 +82,11 @@ in
   # Module options
   # ----------------------------------------------------------------------------
   options.hakula.llm-assistants = {
-    enable = lib.mkEnableOption "LLM assistants defaults";
+    enable = lib.mkOption {
+      type = lib.types.bool;
+      default = enableDevToolchains;
+      description = "Whether to install the LLM assistants and their defaults";
+    };
 
     mcp = {
       disabledServers = mcpOptions.mkDisabledServersOption {
