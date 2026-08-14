@@ -214,7 +214,7 @@ colmena apply
 
 ## Verification
 
-Use the build and format commands in the `Verification` section of `CLAUDE.md`. Which target matters depends on the pin class:
+Use the build and format commands in the `Verification` section of `AGENTS.md`. Which target matters depends on the pin class:
 
 | Bumped                            | Build                                  |
 | --------------------------------- | -------------------------------------- |
