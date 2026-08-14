@@ -43,6 +43,13 @@ let
   # ----------------------------------------------------------------------------
   # Formatter configuration
   # ----------------------------------------------------------------------------
+  prettierConfig = builtins.fromJSON (
+    builtins.readFile (lib.path.append repo.root ".prettierrc.json")
+  );
+  ruffConfig = builtins.fromTOML (builtins.readFile (lib.path.append repo.root "ruff.toml"));
+
+  preferredQuoteStyle = single: if single then "preferSingle" else "preferDouble";
+
   dprintPlugins = with pkgs.dprint-plugins; [
     dprint-plugin-json
     dprint-plugin-markdown
@@ -53,13 +60,6 @@ let
     g-plane-markup_fmt
     g-plane-pretty_yaml
   ];
-
-  prettierConfig = builtins.fromJSON (
-    builtins.readFile (lib.path.append repo.root ".prettierrc.json")
-  );
-  ruffConfig = builtins.fromTOML (builtins.readFile (lib.path.append repo.root "ruff.toml"));
-
-  preferredQuoteStyle = single: if single then "preferSingle" else "preferDouble";
 
   dprintConfig = (pkgs.formats.json { }).generate "dprint.json" {
     json.lineWidth = prettierConfig.printWidth;
@@ -101,6 +101,7 @@ in
     script = ./scripts/auto-format.sh;
     substitutions = {
       "@nixfmt@" = lib.getExe pkgs.nixfmt;
+      "@nuCheck@" = "${pkgs.nu-check}";
       "@shellcheck@" = lib.getExe pkgs.shellcheck;
       "@shfmt@" = lib.getExe pkgs.shfmt;
 

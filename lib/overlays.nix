@@ -60,6 +60,7 @@
     mcp-server-git = final.callPackage ../packages/mcp/mcp-server-git { };
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };
     mcp-server-gitlab = final.callPackage ../packages/mcp/mcp-server-gitlab { };
+    nu-check = final.callPackage ../packages/nu-check { };
     peertube-runner = final.callPackage ../packages/peertube/runner.nix { };
     zsh-hist = final.callPackage ../packages/zsh-hist { };
   })

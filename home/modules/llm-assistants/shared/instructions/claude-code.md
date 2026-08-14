@@ -79,4 +79,4 @@ Steps 1–3 prevent building the wrong thing. Steps 5–6 catch both code defect
 
 ## Context Compaction Guidance
 
-When summarizing for compaction, preserve current task state, modified files, architecture decisions, code style requirements, and unresolved issues. After compaction, re-read project CLAUDE.md files before continuing.
+When summarizing for compaction, preserve current task state, modified files, architecture decisions, code style requirements, and unresolved issues. After compaction, re-read the project's AGENTS.md before continuing.

@@ -1,6 +1,6 @@
 ---
 name: pinned-versions
-description: Registry of every manually pinned version in this repo and how to upgrade each one. Use this skill whenever the user wants to audit, check, or bump pinned versions — Claude Code plugin marketplace revs and hashes in plugins.nix, custom package versions under packages/, container image tags on oci-containers services, GitHub Actions `uses:` pins, runtime-installed npm/PyPI versions, or the Cloudflare IP range snapshot. Trigger on phrases like "check for outdated versions", "what's pinned here", "upgrade the claude plugins", "bump cloudreve", "are the actions out of date", "refresh cloudflare IPs", "update pinned hashes", or any request to sweep the repo for stale dependencies. Also use when a `nix build` fails on a hash mismatch after a version bump.
+description: Registry of every manually pinned version in this repo and how to upgrade each one. Use this skill whenever the user wants to audit, check, or bump pinned versions: Claude Code plugin marketplace revs and hashes in plugins.nix, custom package versions under packages/, container image tags on oci-containers services, GitHub Actions `uses:` pins, runtime-installed npm/PyPI versions, or the Cloudflare IP range snapshot. Trigger on phrases like "check for outdated versions", "what's pinned here", "upgrade the claude plugins", "bump cloudreve", "are the actions out of date", "refresh cloudflare IPs", "update pinned hashes", or any request to sweep the repo for stale dependencies. Also use when a `nix build` fails on a hash mismatch after a version bump.
 ---
 
 # Pinned Versions
@@ -12,11 +12,11 @@ Renovate handles `flake.lock` on its own. Everything documented here is invisibl
 ## Check for drift
 
 ```bash
-.claude/skills/pinned-versions/check-pins.sh          # query every upstream, print a drift table
-.claude/skills/pinned-versions/check-pins.sh list     # print the registry without network calls
+.claude/skills/pinned-versions/check-pins.nu          # query every upstream, print a drift table
+.claude/skills/pinned-versions/check-pins.nu list     # print the registry without network calls
 ```
 
-Requires `gh` (authenticated) and `jq`, both present in `nix develop`.
+Requires an authenticated `gh`, present in `nix develop`.
 
 Exit codes are distinct so this works unattended:
 
@@ -104,9 +104,9 @@ Resolved when the service or script runs, so the store path does not change when
 
 `piclist` compares its `version` against what is installed in the state directory and reinstalls on mismatch, so bumping the literal is enough to trigger reinstall on next start.
 
-`toasty` is a `fetchurl` of a release asset, so it needs a hash refresh like any custom package. Its upstream also publishes releases with no binaries attached, so the newest tag is not always a bumpable target. `check-pins.sh` reports the newest release that actually ships `toasty-x64.exe`.
+`toasty` is a `fetchurl` of a release asset, so it needs a hash refresh like any custom package. Its upstream also publishes releases with no binaries attached, so the newest tag is not always a bumpable target. `check-pins.nu` reports the newest release that actually ships `toasty-x64.exe`.
 
-Unpinned by design: the `npx -y <package>` MCP wrappers in `home/modules/llm-assistants/shared/mcp/default.nix` and `uvx mcp-atlassian` always resolve latest. `ccusage@latest` in `statusline-command.sh` is the same. These have no pin to bump, which also means they can break without any change on our side.
+Unpinned by design: the `npx -y <package>` MCP wrappers in `home/modules/llm-assistants/shared/mcp/default.nix` and `uvx mcp-atlassian` always resolve latest. `ccusage@latest` in `statusline-command.nu` is the same. These have no pin to bump, which also means they can break without any change on our side.
 
 ### Drifting upstream data
 
@@ -214,7 +214,7 @@ colmena apply
 
 ## Verification
 
-Use the build and format commands in the `Verification` section of `CLAUDE.md`. Which target matters depends on the pin class:
+Use the build and format commands in the `Verification` section of `AGENTS.md`. Which target matters depends on the pin class:
 
 | Bumped                            | Build                                  |
 | --------------------------------- | -------------------------------------- |

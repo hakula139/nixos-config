@@ -12,6 +12,11 @@
 let
   clipboardConfig = import ./clipboard.nix { inherit config pkgs lib; };
 
+  nushellConfig = ''
+    bind C-n split-window -h -c "#{pane_current_path}" "${lib.getExe pkgs.nushell}"
+    bind N new-window -c "#{pane_current_path}" "${lib.getExe pkgs.nushell}"
+  '';
+
   # The plugin wrapper starts nested tmux clients, which deadlock in the config
   # queue when synchronous and can be interrupted midway when backgrounded.
   catppuccinPluginDir = "${pkgs.tmuxPlugins.catppuccin}/share/tmux-plugins/catppuccin";
@@ -67,6 +72,7 @@ in
     extraConfig = lib.concatStringsSep "\n" [
       (lib.fileContents ./tmux.conf)
       clipboardConfig
+      nushellConfig
       catppuccinConfig
     ];
   };
