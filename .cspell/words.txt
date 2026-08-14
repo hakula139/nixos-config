@@ -164,6 +164,7 @@ nofile
 npmjs
 nslookup
 nspr
+nufmt
 numtide
 nvcr
 nvim

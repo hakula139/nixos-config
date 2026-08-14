@@ -31,6 +31,7 @@ Write so the reader gets it once. Resist the common AI tics:
 - **Synthesize.** Collapse several details that point to one conclusion into a single statement.
 - **Drop intensifiers.** Strong claims do not need rhetorical reinforcement. "Extremely", "incredibly", "absolutely" weaken the noun they modify.
 - **No absolutist claims about correctness.** Drop "bug-free", "production-ready", "fully verified", "guaranteed", "bulletproof". State what was checked and by what means, then let the reader judge. These words assert a completeness no test run establishes.
+- **No orphaned last word.** In hard-wrapped text such as a code comment, a final line holding one short word means the wording is too long by a hair. Tighten or rephrase it until the whole comment fits one fewer line. Moving the break earlier only relocates the problem.
 
 ## Punctuation
 

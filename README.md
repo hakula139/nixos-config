@@ -169,7 +169,7 @@ The Home Manager zsh module ships matching aliases on every platform:
 
 ## Secrets
 
-Secrets are encrypted with [agenix](https://github.com/ryantm/agenix). Home Manager modules declare requirements through `hakula.secrets.required`, and each platform's system module materializes them as `age.secrets`. See `lib/secrets.nix` for the helper API and `CLAUDE.md` for the recipe.
+Secrets are encrypted with [agenix](https://github.com/ryantm/agenix). Home Manager modules declare requirements through `hakula.secrets.required`, and each platform's system module materializes them as `age.secrets`. See `lib/secrets.nix` for the helper API and `AGENTS.md` for the recipe.
 
 ```bash
 cd secrets
@@ -177,7 +177,7 @@ agenix -e <service>/<name>.age -i ~/.ssh/<private-key>  # Edit
 agenix -r -i ~/.ssh/<private-key>                       # Re-key after changing recipients
 ```
 
-Run `agenix -r` from an interactive terminal. See `CLAUDE.md` for the TTY caveat.
+Run `agenix -r` from an interactive terminal. See `AGENTS.md` for the TTY caveat.
 
 ## Development
 
