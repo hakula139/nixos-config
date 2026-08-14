@@ -15,6 +15,7 @@ Every other metric ships with the human median and this model's median, so compa
 - `noun` is the noun share. Low `noun` under high `ttr` means actions were recast as noun phrases and the concepts then given fresh synonyms.
 - `link` is colons plus semicolons per clause. Above the human median means English punctuation hierarchy is doing work that Chinese does by stringing short clauses on commas.
 - `reuse` is content-word reuse. A zero means a keyword the passage just established was never picked up again.
+- `pent` is the entropy of the punctuation mix. Above the human median means more mark types are in play than Chinese usually needs.
 - An empty `hedge_hits` means no concessive word anywhere, and an empty `attitude_hits` means no attitude adverb. Human Chinese rarely runs 200 characters without either.
 - `antithesis` counts `不是 X 而是 Y`. Two or more is a symptom.
 
