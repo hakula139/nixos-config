@@ -99,21 +99,14 @@
       # ------------------------------------------------------------------------
       # Pre-commit checks
       # ------------------------------------------------------------------------
-      editorconfig = (import ./lib/editorconfig.nix { inherit (nixpkgs) lib; }).readerFor ./.editorconfig;
-
       preCommitCheckFor =
         system:
         let
           pkgs = pkgsFor system;
-          nuCheck = pkgs.writers.writeNu "nu-check" (
-            builtins.replaceStrings
-              [ "@nu@" "@indent@" ]
-              [
-                (nixpkgs.lib.getExe pkgs.nushell)
-                (builtins.toString (editorconfig.intOf "*.nu" "indent_size"))
-              ]
-              (builtins.readFile ./lib/nu-check.nu)
-          );
+          nuCheck = import ./lib/nu-check.nix {
+            inherit pkgs;
+            inherit (nixpkgs) lib;
+          };
         in
         git-hooks-nix.lib.${system}.run {
           src = ./.;
@@ -128,6 +121,7 @@
               ];
             };
             deadnix.enable = true;
+            editorconfig-checker.enable = true;
             end-of-file-fixer = {
               enable = true;
               excludes = [ "\\.age$" ];
@@ -164,17 +158,18 @@
               types = [ "file" ];
             };
             statix.enable = true;
-            # The hook always passes `-ln`, and any flag makes `shfmt` ignore
-            # `.editorconfig`, so the layout is restated from it here. `simplify`
-            # would strip the quotes inside `[[ ]]` that this repo requires.
+            # Every setting is left unset so the entry emits no formatting flag,
+            # which is the only mode where `shfmt` reads `.editorconfig`. The
+            # defaults it would otherwise apply are tabs and, for `simplify`,
+            # stripping the quotes inside `[[ ]]` that this repo requires.
             shfmt = {
               enable = true;
               settings = {
                 language-dialect = null;
                 simplify = false;
-                indent = editorconfig.intOf "*.sh" "indent_size";
-                binary-next-line = editorconfig.boolOf "*.sh" "binary_next_line";
-                case-indent = editorconfig.boolOf "*.sh" "switch_case_indent";
+                indent = null;
+                binary-next-line = false;
+                case-indent = false;
               };
             };
             trim-trailing-whitespace = {

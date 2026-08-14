@@ -59,21 +59,7 @@ let
   );
   ruffConfig = builtins.fromTOML (builtins.readFile (lib.path.append repo.root "ruff.toml"));
 
-  nuCheck =
-    let
-      editorconfig =
-        (import (lib.path.append repo.root "lib/editorconfig.nix") { inherit lib; }).readerFor
-          (lib.path.append repo.root ".editorconfig");
-    in
-    pkgs.writers.writeNu "nu-check" (
-      builtins.replaceStrings
-        [ "@nu@" "@indent@" ]
-        [
-          (lib.getExe pkgs.nushell)
-          (builtins.toString (editorconfig.intOf "*.nu" "indent_size"))
-        ]
-        (builtins.readFile (lib.path.append repo.root "lib/nu-check.nu"))
-    );
+  nuCheck = import (lib.path.append repo.root "lib/nu-check.nix") { inherit pkgs lib; };
 
   preferredQuoteStyle = single: if single then "preferSingle" else "preferDouble";
 

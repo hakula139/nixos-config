@@ -4,16 +4,11 @@
 # Nushell Diagnostic Check
 # ==============================================================================
 # Wraps `nu --ide-check`, which reports diagnostics as JSON on stdout but always
-# exits 0, and enforces the indentation `nufmt` cannot be trusted to apply.
+# exits 0. Indentation is the `editorconfig-checker` hook's job.
 # ==============================================================================
 
 const NU = "@nu@"
 const MAX_ERRORS = 100
-const INDENT = @indent@
-
-# ------------------------------------------------------------------------------
-# Diagnostics
-# ------------------------------------------------------------------------------
 
 # A `@name@` placeholder only parses once Nix has substituted it. `[]` stands in
 # because it satisfies a `list` parameter and degrades to a string inside quotes,
@@ -34,31 +29,6 @@ def diagnostics [target: string]: nothing -> list<string> {
   | each {|d| $"  ($d.message) \(offset ($d.span.start)\)" }
 }
 
-# ------------------------------------------------------------------------------
-# Layout
-# ------------------------------------------------------------------------------
-
-def layout-errors [text: string]: nothing -> list<string> {
-  $text
-  | lines
-  | enumerate
-  | each {|row|
-    let indent = ($row.item | parse --regex '^(?<ws>[ \t]*)' | get -o 0.ws | default "")
-    let n = ($row.index + 1)
-
-    if ($indent | str contains (char tab)) {
-      $"  line ($n): tab indent, expected spaces"
-    } else if ($row.item | str trim | is-not-empty) and (($indent | str length) mod $INDENT != 0) {
-      $"  line ($n): indent of ($indent | str length) is not a multiple of ($INDENT)"
-    }
-  }
-  | compact --empty
-}
-
-# ------------------------------------------------------------------------------
-# Entry point
-# ------------------------------------------------------------------------------
-
 def main [...files: string] {
   let stub = (mktemp --tmpdir --suffix .nu)
   "" | save --force $stub
@@ -71,8 +41,8 @@ def main [...files: string] {
       continue
     }
 
-    # `open --raw` yields a byte stream, and the `-> string` signatures below
-    # reject invalid UTF-8 with a trace naming this script instead of the file.
+    # `open --raw` yields a byte stream, and the `-> string` signature below
+    # rejects invalid UTF-8 with a trace naming this script instead of the file.
     let text = (try { open --raw $file | into string } catch { null })
     if $text == null {
       print -e $"($file): not valid UTF-8"
@@ -83,7 +53,7 @@ def main [...files: string] {
     let target = (mktemp --tmpdir --suffix .nu)
     substitute $text $stub | save --force $target
 
-    let errors = [...(diagnostics $target) ...(layout-errors $text)]
+    let errors = (diagnostics $target)
     rm --force $target
     if ($errors | is-not-empty) {
       print -e $"($file):"

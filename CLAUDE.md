@@ -36,8 +36,8 @@ A flake-based NixOS / nix-darwin / system-manager configuration:
 │   └── system-manager.nix           # Runtime PATH entries provisioned by system-manager activation
 ├── lib/                             # Pure helpers and framework code
 │   ├── builders.nix                 # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL, serverSharedModules
-│   ├── editorconfig.nix             # Reads `.editorconfig` settings for tools that cannot
-│   ├── nu-check.nu                  # Pre-commit gate: `nu --ide-check` diagnostics plus indentation
+│   ├── nu-check.nix                 # Builds the nu-check gate for the pre-commit and auto-format hooks
+│   ├── nu-check.nu                  # Pre-commit gate: `nu --ide-check` diagnostics
 │   ├── overlays.nix                 # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, toolchains, custom packages)
 │   ├── proxy.nix                    # mkProxyOptions, mkProxyScript, wrapWithProxy, no_proxy rendering
 │   ├── secrets.nix                  # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
@@ -155,7 +155,7 @@ Defer to global CLAUDE.md. The repo-specific addition: when _restyling_ an exist
 
 ### Bash in Nix
 
-- **Formatter**: `shfmt` (enforced by pre-commit). Layout comes from `.editorconfig`, though the flags are restated in `flake.nix`, since the `git-hooks-nix` hook always passes `-ln` and any flag makes `shfmt` ignore the file. `simplify` is off because it strips the quotes inside `[[ ]]` that the rule below requires.
+- **Formatter**: `shfmt` (enforced by pre-commit), reading its layout straight from `.editorconfig`. Every `settings` value in `flake.nix` is left unset on purpose, since the `git-hooks-nix` hook only omits a formatting flag when the setting is null or false, and any flag switches `shfmt` out of EditorConfig mode into its own defaults, which are tabs. It honors its own extension keys there too, `binary_next_line` and `switch_case_indent`. `simplify` stays off because it strips the quotes inside `[[ ]]` that the rule below requires.
 - Multi-line layout for non-trivial flow (`if/else`, multi-arg `printf`, process substitutions). One-line invocations stay on one line.
 - Quote variables. Use `set -euo pipefail` at the top of every script that runs more than one command.
 - Use `lib.escapeShellArg` / `lib.escapeShellArgs` when interpolating Nix values into shell.
@@ -193,11 +193,13 @@ The `@placeholder@` plus `builtins.replaceStrings` substitution pattern works un
 
 #### Linting and formatting
 
-The `nu-check` pre-commit hook wraps `nu --ide-check` (`lib/nu-check.nu`). It catches unbalanced delimiters, undefined variables, wrong arity and flags on your own `def`s, and type mismatches against declared signatures. It does not catch an unknown external command, nor a bad field on a built-in record such as `$nu.home-path` (the real name is `$nu.home-dir`), so a script still needs one real run.
+The `nu-check` pre-commit hook wraps `nu --ide-check` (`lib/nu-check.nu`, built by `lib/nu-check.nix` for both this hook and the auto-format one). Upstream `git-hooks-nix` ships no `nu-check`, which is why this exists. It catches unbalanced delimiters, undefined variables, and wrong arity or flags on your own `def`s.
 
-`--ide-check` always exits 0, including for a path that does not exist, which is why the hook both filters for `"severity":"Error"` and rejects a missing file. The same hook rejects a tab indent or an indent that is not a multiple of the `[*.nu]` `indent_size`, which is the part of formatting that can be checked without rewriting the file.
+Its reach is narrower than it looks, so a script still needs one real run. A mistyped command name passes, since a bare word is a legal external call, and none of the three bugs the nushell migration actually shipped were visible to it: a regex built by interpolation, a `try` without a `default`, and `$nu.home-path` for `$nu.home-dir`. Treat it as a delimiter and arity gate rather than a correctness one.
 
-`.editorconfig` is the one source for indentation. `lib/editorconfig.nix` reads it, since `builtins.fromTOML` rejects the format (`[*.nu]` is not a valid TOML key), and both `nu-check` and `shfmt` take their layout from there. An absent setting throws at evaluation rather than falling back to a tool default that would contradict the file.
+`--ide-check` always exits 0, including for a path that does not exist, which is why the hook both filters for `"severity":"Error"` and rejects a missing file. It also rejects a non-UTF-8 file, since `open --raw` hands a byte stream to a `-> string` signature and the resulting trace names the checker rather than the offending path.
+
+Indentation is not `nu-check`'s job. The `editorconfig-checker` hook enforces `indent_style` and `indent_size` from `.editorconfig` across all 253 tracked files, which covers `.nu` along with everything else, and `shfmt` reads the same file for `.sh`. Nothing needs to parse `.editorconfig` in Nix.
 
 `nufmt` stays out of the pipeline. Its `indent: 2` config option does fix the width, but `line_length` is advisory and ignored (a 40-column limit still emitted 122 characters), it has no line-breaking logic at all so it only ever joins lines, and `margin` governs blank lines between top-level items while every blank line inside a block is stripped. Running it over `modules/system-manager/health-check.nu` collapsed a four-stage pipeline into one 163-character line. Re-measure before reconsidering, since it is pre-1.0 and its README already documents options this build rejects.
 
@@ -236,7 +238,7 @@ Two smaller ones are worth naming. `get-tty-num` runs on every statusline render
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push / PR:
 
-1. `nix flake check --all-systems` validates the flake structure and runs pre-commit hooks (`cspell`, `deadnix`, `markdownlint`, `nixfmt`, `nu-check`, `shfmt`, `statix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
+1. `nix flake check --all-systems` validates the flake structure and runs pre-commit hooks (`cspell`, `deadnix`, `editorconfig-checker`, `markdownlint`, `nixfmt`, `nu-check`, `shfmt`, `statix`, `check-added-large-files`, `check-yaml`, `end-of-file-fixer`, `trim-trailing-whitespace`).
 2. Parallel builds of every host (`us-1..us-4`, `sg-1`, `wsl`, `wsl-non-nixos`, `macbook`, `devvm-docker`).
 3. Successful builds upload to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
 

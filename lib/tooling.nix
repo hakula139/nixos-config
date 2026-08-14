@@ -32,9 +32,9 @@
   # ----------------------------------------------------------------------------
   # Shell Scripting
   # ----------------------------------------------------------------------------
-  # Home Manager installs nushell through `programs.nushell`, so this group
-  # exists for the dev shell, which has no Home Manager.
+  # Only the dev shell consumes this. Every real host gets nushell from
+  # `programs.nushell`, which also writes the config files its LSP needs.
   shell = with pkgs; [
-    nushell # Structured-data shell; scripting language for this repo
+    nushell
   ];
 }

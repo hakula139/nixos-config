@@ -1,6 +1,8 @@
 root = true
 
-[*.sh]
+# `binary_next_line` and `switch_case_indent` are shfmt extensions rather than
+# EditorConfig keys. A shell file no glob here covers falls back to tabs.
+[{*.sh,*.zsh}]
 indent_style = space
 indent_size = 2
 binary_next_line = true
