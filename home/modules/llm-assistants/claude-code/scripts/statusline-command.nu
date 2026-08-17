@@ -284,7 +284,9 @@ def format-ccusage-info [data: record]: nothing -> record<block: string, daily: 
 # ------------------------------------------------------------------------------
 
 def main [] {
-  let input = (open --raw /dev/stdin | from json)
+  # `open /dev/stdin` re-opens fd 0 by path, which fails with ENXIO when the
+  # caller passes a socket instead of a pipe, as Claude Code's spawn does.
+  let input = (^cat | from json)
   let cwd = $input.workspace.current_dir
 
   let tty_num = (^$GET_TTY_NUM | str trim)
