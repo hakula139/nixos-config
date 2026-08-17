@@ -257,6 +257,7 @@
   },
   "nix.enableLanguageServer": true,
   "notebook.output.scrolling": true,
+  "python.terminal.useEnvFile": true,
   "redhat.telemetry.enabled": true,
   "remote.autoForwardPortsSource": "hybrid",
   "remote.extensionKind": {
