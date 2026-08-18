@@ -32,6 +32,7 @@ Every other metric ships with the human median and this model's median, so compa
 - **对仗反复**: `不是 X 而是 Y` or a variant twice or more in one paragraph. Make them direct statements. A single use is fair when it rules out a misreading the reader would actually have.
 - **空洞总结**: `综上所述` or `总而言之` followed by a restatement of what came before. Delete it.
 - **悬空**: a paragraph written as a self-sufficient maxim, hooked onto nothing already established around it. Restore the connection.
+- **段落均齐**: every paragraph running to roughly the same length, and that length short. Humans write at length where they have something to say and briefly where they do not, so an even column of mid-length paragraphs is a model habit. Judge this only when the passage carries several paragraphs, and prescribe cutting the thinnest paragraph rather than padding the rest, since evening them up again is the same tic.
 
 ## Not AI flavor
 
@@ -53,5 +54,7 @@ Name each tic with the Chinese label from the list above, copied verbatim.
 
 Write `fix` in Chinese, and name the edit: which word to cut, which word goes into which sentence, or what a quoted sentence becomes.
 `「原因很直接：」的冒号改成逗号，句末加一个「其实」` is the right shape.
-Vague advice such as `增加人味` is useless, and never suggest making the paragraph longer.
+Vague advice such as `增加人味` is useless.
+Padding the wording is often the fix itself, since restoring a `的`, adding a hedge, and repeating a content word instead of a pronoun all add characters, so length is never the thing to avoid.
+What must not grow is the count of information items, so never prescribe a fresh claim, example, or explanation.
 Keep `fix` itself free of colons and semicolons, since the prescription should read like the Chinese it is asking for.
