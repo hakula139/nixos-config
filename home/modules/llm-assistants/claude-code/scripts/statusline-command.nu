@@ -211,7 +211,7 @@ def read-cache []: nothing -> record {
 }
 
 def active-block []: nothing -> record {
-  let result = (^$NPX -y ccusage@latest blocks --json | complete)
+  let result = (^$NPX -y ccusage@latest blocks --json --offline | complete)
   if $result.exit_code != 0 {
     return $NO_BLOCK
   }
