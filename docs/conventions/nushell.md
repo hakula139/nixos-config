@@ -8,7 +8,7 @@ Read this before writing or editing a `.nu` file. Nushell is the default for new
 
 ## Traps
 
-These fail silently or read as something else. For anything not listed here, the error message tells you.
+These either fail silently or raise an error that points somewhere other than the cause. For anything not listed here, the error message tells you.
 
 - **`|| true` has no direct equivalent.** A failing external command aborts on its own, so a tolerated failure needs `try { ... }` or `| complete` plus an `.exit_code` read. `| complete` works on externals only, so a fallible builtin needs `try`.
 - **`try` catches errors, `default` catches null, and `from json` does neither.** `open` on an empty file returns null without raising, and `from json` hands back non-JSON text unchanged, so a later cell path dies on a string with `incompatible_path_access`. Truncated JSON does raise, so plain text is the case that slips through. Check the shape (`$j | describe | str starts-with "record"`) before reading a field.
@@ -34,7 +34,7 @@ Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for e
 
 ## What stays bash
 
-Startup cost cuts both ways, so measure the script. Nushell starts in ~33ms against bash's ~2ms and a `jq` fork costs ~2ms, so parsing in-process wins only past a handful of forks. The statusline crossed that line and is nushell now, where the three hook scripts under `shared/hooks/scripts/` read two fields each and stay bash. They also fail open, so a porting bug would disable a gate silently.
+Startup cost cuts both ways, so measure the script. Nushell starts in ~33ms of CPU time against bash's ~3ms and a `jq` fork costs ~3ms, so parsing in-process wins only past a handful of forks. The statusline crossed that line and is nushell now, where the three hook scripts under `shared/hooks/scripts/` read two fields each and stay bash. They also fail open, so a porting bug would disable a gate silently.
 
 Three limits are structural rather than a matter of cost, so check them before proposing a port:
 
