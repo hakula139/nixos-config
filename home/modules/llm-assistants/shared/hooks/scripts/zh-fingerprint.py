@@ -12,9 +12,15 @@ import jieba.posseg as pseg
 jieba.setLogLevel(60)
 
 # Nearest-centroid parameters, one classifier per assistant, fitted on the
-# training half of a labelled corpus. See the module comment in default.nix for
-# provenance and held-out scores. Gemini is absent on purpose: its Chinese sits
-# too close to human prose to separate.
+# training half of a labelled corpus (hakula.xyz-kiln prose for human, session
+# transcripts for each assistant's own Chinese) and scored on the disjoint other
+# half, over the paragraphs long enough to measure: claude-code 82% recall at
+# 10% false positives, codex 92% at 3%. Gemini is absent on purpose: its Chinese
+# sits too close to human prose to separate.
+#
+# `link` counts colons and semicolons per clause. The textbook markers of
+# 欧化中文 run backwards here, so the punctuation hierarchy is what actually
+# carries over from English.
 MODELS = {
     'claude-code': {
         'features': ['ttr', 'adv', 'part', 'noun', 'link'],

@@ -47,6 +47,9 @@ REPORT=$(printf '%s' "$CONTENT" | "$FINGERPRINT" "$MODEL_ID" 2>/dev/null) || exi
 SCORE=$(printf '%s' "$REPORT" | jq -r '.score // 0')
 awk -v score="$SCORE" 'BEGIN { exit !(score > -0.4) }' || exit 0
 
+# The prompt is English apart from the symptom names and examples: an all-Chinese
+# system prompt doubles as the judge's model of normal Chinese, and scored 0.37
+# colons-and-semicolons per clause in its own prescriptions against 0.13 here.
 RAW=$(cd /tmp && CLAUDE_ZH_PROSE_GATE_ACTIVE=1 timeout "@judgeTimeout@" claude -p "指标：$REPORT
 
 文本：

@@ -96,23 +96,10 @@ let
     };
     plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
   };
+
   # ----------------------------------------------------------------------------
   # Chinese fingerprint classifier
   # ----------------------------------------------------------------------------
-  # Nearest-centroid over five jieba-derived ratios, one classifier per
-  # assistant. Fitted on the training half of a labelled corpus (hakula.xyz-kiln
-  # prose for human, session transcripts for each assistant's own Chinese) and
-  # scored on the disjoint other half, over the paragraphs long enough to
-  # measure: claude-code 82% recall at 10% false positives, codex 92% at 3%.
-  #
-  # `link` counts colons and semicolons per clause. The textbook markers of
-  # 欧化中文 run backwards here, so the punctuation hierarchy is what actually
-  # carries over from English.
-  #
-  # The judge prompt is English apart from the symptom names and examples: an
-  # all-Chinese prompt doubles as the judge's model of normal Chinese, and it
-  # scored 0.37 colons-and-semicolons per clause in its own prescriptions
-  # against 0.13 for the English scaffolding.
   zhFingerprintEnv = pkgs.python3.withPackages (ps: [ ps.jieba ]);
   zhFingerprint = pkgs.writeShellScript "zh-fingerprint" ''
     exec ${zhFingerprintEnv}/bin/python3 ${pkgs.copyPathToStore ./scripts/zh-fingerprint.py} "$@"

@@ -55,7 +55,7 @@ in
         }
       ];
     }
-    # Style gate - flag banned prose tics in edited files and MCP-published prose
+    # English style gate - flag banned prose tics
     {
       matcher = proseGateMatcher;
       hooks = [
@@ -66,7 +66,7 @@ in
         }
       ];
     }
-    # Chinese fingerprint gate - flag Chinese that reads as unpolished output
+    # Chinese style gate - flag prose that reads as unpolished output
     {
       matcher = proseGateMatcher;
       hooks = [
