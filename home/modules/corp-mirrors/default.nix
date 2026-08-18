@@ -15,14 +15,12 @@ let
 
   cfg = config.hakula.corp-mirrors;
 
+  goProxy = "${artifactoryUrl}/api/go/mirrors-golang";
+  npmRegistry = "${artifactoryUrl}/api/npm/mirrors-npm";
   pypiMirror = "${artifactoryUrl}/api/pypi/mirrors-pypi/simple";
   pypiExtraIndexes = [
     "${artifactoryUrl}/api/pypi/hpc-pypi/simple"
   ];
-
-  npmRegistry = "${artifactoryUrl}/api/npm/mirrors-npm";
-
-  goProxy = "${artifactoryUrl}/api/go/mirrors-golang";
   cargoMirror = "sparse+${artifactoryUrl}/api/cargo/mirrors-cargo-crates/index/";
 
   ociMirrors = [
@@ -64,9 +62,9 @@ in
     (lib.mkIf cfg.enable {
       home.sessionVariables = {
         # ----------------------------------------------------------------------
-        # Python Development
+        # Go Development
         # ----------------------------------------------------------------------
-        UV_PYTHON_INSTALL_MIRROR = "${githubMirrorUrl}/astral-sh/python-build-standalone/releases/download";
+        GOPROXY = goProxy;
 
         # ----------------------------------------------------------------------
         # Node.js Development
@@ -74,23 +72,37 @@ in
         FNM_NODE_DIST_MIRROR = "${artifactoryUrl}/mirrors-generic-nodejs-dist";
 
         # ----------------------------------------------------------------------
-        # Playwright
+        # Python Development
         # ----------------------------------------------------------------------
-        PLAYWRIGHT_DOWNLOAD_HOST = "${artifactoryUrl}/mirrors-generic-playwright";
-
-        # ----------------------------------------------------------------------
-        # Go Development
-        # ----------------------------------------------------------------------
-        GOPROXY = goProxy;
+        UV_PYTHON_INSTALL_MIRROR = "${githubMirrorUrl}/astral-sh/python-build-standalone/releases/download";
 
         # ----------------------------------------------------------------------
         # Rust Development
         # ----------------------------------------------------------------------
         RUSTUP_DIST_SERVER = "${artifactoryUrl}/mirrors-rust-lang-static/dist";
         RUSTUP_UPDATE_ROOT = "${artifactoryUrl}/mirrors-rust-lang-static/rustup";
+
+        # ----------------------------------------------------------------------
+        # Playwright
+        # ----------------------------------------------------------------------
+        PLAYWRIGHT_DOWNLOAD_HOST = "${artifactoryUrl}/mirrors-generic-playwright";
       };
 
       home.file = {
+        # ----------------------------------------------------------------------
+        # Go Development
+        # ----------------------------------------------------------------------
+        ".config/go/env".text = ''
+          GOPROXY=${goProxy}
+        '';
+
+        # ----------------------------------------------------------------------
+        # Node.js Development
+        # ----------------------------------------------------------------------
+        ".npmrc".text = ''
+          registry=${npmRegistry}
+        '';
+
         # ----------------------------------------------------------------------
         # Python Development
         # ----------------------------------------------------------------------
@@ -110,20 +122,6 @@ in
             [[index]]
             url = "${url}"
           '') pypiExtraIndexes}
-        '';
-
-        # ----------------------------------------------------------------------
-        # Node.js Development
-        # ----------------------------------------------------------------------
-        ".npmrc".text = ''
-          registry=${npmRegistry}
-        '';
-
-        # ----------------------------------------------------------------------
-        # Go Development
-        # ----------------------------------------------------------------------
-        ".config/go/env".text = ''
-          GOPROXY=${goProxy}
         '';
 
         # ----------------------------------------------------------------------
