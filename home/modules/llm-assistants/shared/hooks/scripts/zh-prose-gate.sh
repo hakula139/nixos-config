@@ -66,15 +66,19 @@ VERDICT=$(printf '%s' "$RAW" | jq -r '.result // empty' 2>/dev/null \
   | tr -d '\n' | grep -oE '\{.*\}')
 [[ "$(printf '%s' "$VERDICT" | jq -r '.ai' 2>/dev/null)" == "true" ]] || exit 0
 
-TICS=$(printf '%s' "$VERDICT" | jq -r '.tics // [] | join("、")' 2>/dev/null)
+TICS=$(printf '%s' "$VERDICT" | jq -r '.tics // [] | join(", ")' 2>/dev/null)
 FIX=$(printf '%s' "$VERDICT" | jq -r '.fix // empty' 2>/dev/null)
 
-# The length constraint rides along because a judge asking for an expanded
-# derivation otherwise gets one padded with restatement of the same point.
+# English apart from the `fix`, for the reason the prompt is: this string is
+# Chinese the model reads just before rewriting Chinese. The cap is on
+# information items rather than characters, since restoring a 的 or a hedge is
+# the prescription and lengthens the text on purpose.
 jq -n --arg tics "$TICS" --arg fix "$FIX" '{
   hookSpecificOutput: {
     hookEventName: "PostToolUse",
-    additionalContext: ("中文 AI 味检测命中。病症：" + $tics + "。改法：" + $fix
-      + " 请就地改掉，然后继续。字数不要显著增加，也不要新增论点。")
+    additionalContext: ("Chinese AI-flavor gate flagged this. Tics: " + $tics
+      + ". Fix: " + $fix
+      + " Apply it in place and continue. Adding characters is fine, adding"
+      + " information items is not.")
   }
 }'

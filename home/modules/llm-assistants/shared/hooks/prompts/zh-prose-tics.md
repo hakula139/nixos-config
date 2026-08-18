@@ -21,18 +21,18 @@ Every other metric ships with the human median and this model's median, so compa
 
 ## Symptoms and prescriptions
 
-- **换词求丰富**: one concept wearing three synonyms in a single paragraph. Collapse them onto one word and tolerate the repetition.
-- **名词化**: an action written as a noun phrase (`进行了一次转变`). Put the verb back.
-- **助词被省**: a `的` or `了` dropped where the sentence wants one. Restore it.
-- **标点分层**: a colon or semicolon splitting two clauses that Chinese would run together on a comma (`原因很直接：让同一个 agent 既写实现又改测试`). That division of labour belongs to English punctuation. Swap the mark for a comma and add a connective such as `因为` or `于是` if the join needs one.
-- **造警句**: a short sentence built to be quoted rather than to explain (`永远是它成本最低的路径`). Rewrite it as a plain statement of cause.
-- **缩句体**: a run of assertions under ten characters each, function words squeezed out, every sentence passing a verdict with no derivation behind it.
-- **推导被压掉**: a causal step that wanted unpacking waved through with `原因很直接`, or several comma-linked clauses carrying an entire argument. Say the cause outright in one sentence without adding a second.
-- **态度被抹平**: no concession and no stance anywhere. Add one word such as `大概`, `未必`, `其实`, or `反而` at a conclusion or a turn.
-- **对仗反复**: `不是 X 而是 Y` or a variant twice or more in one paragraph. Make them direct statements. A single use is fair when it rules out a misreading the reader would actually have.
-- **空洞总结**: `综上所述` or `总而言之` followed by a restatement of what came before. Delete it.
-- **悬空**: a paragraph written as a self-sufficient maxim, hooked onto nothing already established around it. Restore the connection.
-- **段落均齐**: every paragraph running to roughly the same length, and that length short. Humans write at length where they have something to say and briefly where they do not, so an even column of mid-length paragraphs is a model habit. Judge this only when the passage carries several paragraphs, and prescribe cutting the thinnest paragraph rather than padding the rest, since evening them up again is the same tic.
+- **synonym-churn**: one concept wearing three synonyms in a single paragraph. Collapse them onto one word and tolerate the repetition.
+- **nominalized-action**: an action written as a noun phrase (`进行了一次转变`). Put the verb back.
+- **dropped-particle**: a `的` or `了` dropped where the sentence wants one. Restore it.
+- **punctuation-hierarchy**: a colon or semicolon splitting two clauses that Chinese would run together on a comma (`原因很直接：让同一个 agent 既写实现又改测试`). That division of labour belongs to English punctuation. Swap the mark for a comma and add a connective such as `因为` or `于是` if the join needs one.
+- **coined-maxim**: a short sentence built to be quoted rather than to explain (`永远是它成本最低的路径`). Rewrite it as a plain statement of cause.
+- **clipped-verdicts**: a run of assertions under ten characters each, function words squeezed out, every sentence passing a verdict with no derivation behind it.
+- **compressed-derivation**: a causal step that wanted unpacking waved through with `原因很直接`, or several comma-linked clauses carrying an entire argument. Say the cause outright in one sentence without adding a second.
+- **flattened-attitude**: no concession and no stance anywhere. Add one word such as `大概`, `未必`, `其实`, or `反而` at a conclusion or a turn.
+- **antithesis-repeat**: `不是 X 而是 Y` or a variant twice or more in one paragraph. Make them direct statements. A single use is fair when it rules out a misreading the reader would actually have.
+- **empty-summary**: `综上所述` or `总而言之` followed by a restatement of what came before. Delete it.
+- **unanchored-maxim**: a paragraph written as a self-sufficient maxim, hooked onto nothing already established around it. Restore the connection.
+- **even-paragraphs**: every paragraph running to roughly the same length, and that length short. Humans write at length where they have something to say and briefly where they do not, so an even column of mid-length paragraphs is a model habit. Judge this only when the passage carries several paragraphs, and prescribe cutting the thinnest paragraph rather than padding the rest, since evening them up again is the same tic.
 
 ## Not AI flavor
 
@@ -50,7 +50,7 @@ Emit one line of compact JSON and nothing else:
 
 Rule `false` when `score` is negative and every metric sits on the human side, leaving `tics` empty and `fix` an empty string.
 
-Name each tic with the Chinese label from the list above, copied verbatim.
+Name each tic with the English label from the list above, copied verbatim.
 
 Write `fix` in Chinese, and name the edit: which word to cut, which word goes into which sentence, or what a quoted sentence becomes.
 `「原因很直接：」的冒号改成逗号，句末加一个「其实」` is the right shape.
