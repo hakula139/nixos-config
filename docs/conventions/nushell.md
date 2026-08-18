@@ -32,15 +32,15 @@ Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for e
 
 ## What stays bash
 
-Startup cost cuts both ways, so measure the script rather than assuming. Nushell starts in ~33ms against bash's ~2ms and a `jq` fork costs ~2ms, so parsing in-process wins only past a handful of forks. The statusline crossed that line at five forks (112ms against 133ms), where the three hook scripts under `shared/hooks/scripts/` read three fields and do not (8.6ms against 24.7ms), and they fail open, so a porting bug would disable a gate silently.
+Startup cost cuts both ways, so measure the script. Nushell starts in ~33ms against bash's ~2ms and a `jq` fork costs ~2ms, so parsing in-process wins only past a handful of forks. The statusline crossed that line at five forks (112ms against 133ms), where the three hook scripts under `shared/hooks/scripts/` read three fields and do not (8.6ms against 24.7ms), and they fail open, so a porting bug would disable a gate silently.
 
 Three limits are structural rather than a matter of cost, so check them before proposing a port:
 
-- **A `--run` or sourced script must be bash.** It is evaluated by the wrapper's own shell, which covers `profile-loader.sh`, `teammate-launcher.sh`, `mkProxyScript`, and `claude-mcp-config-guard`. The last uses a top-level `return` that is only valid when sourced.
+- **A `--run` or sourced script must be bash.** `profile-loader.sh` and `mkProxyScript` are injected through `makeWrapper --run`, so the wrapper's own shell evaluates them. `teammate-launcher.sh` inherits the constraint, since it sources `profile-loader.sh`.
 - **An argv-forwarding wrapper cannot be expressed.** `nu script.nu --log-as-netdata` fails with `doesn't have flag`, and there is no argv escape hatch outside `def main` parameters, which rules out `systemd-cat-native`.
 - **Most of the rest are `exec` wrappers.** Setting a variable and handing off to the real binary has no data to structure. Nushell's `exec` does replace the process and does propagate `$env`, so these would work and gain nothing, while each rewrite risks the credential fallback. `agent.sh` is the other holdout: it emits a `{key}value{/key}` wire format that is neither JSON nor tabular.
 
-That accounts for the ~225 lines of inline shell across 33 `writeShellScript*` sites.
+That accounts for the ~150 non-blank lines of inline shell across the 24 `writeShellScript*` sites that carry an inline body, 60 of which sit in `mihomo`'s two scripts. The other six calls load a `.sh` file.
 
 `mihomo-update` is the one substantial rejection, and worth knowing before proposing it again. Nushell handles most of it better, since `str replace --all` is literal and retires the `awk`/`ENVIRON[]` quote-escaping. It fails on validation: the script merges base config and subscription as text, so a provider shipping its own `mode:` or `dns:` yields a duplicate key that `yq -e .` accepts and mihomo resolves last-wins, where `from yaml` rejects it outright with no flag to relax. Verified against `yq-go` 4.53.2 on a merged fixture.
 
