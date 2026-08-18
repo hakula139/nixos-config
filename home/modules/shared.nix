@@ -120,7 +120,6 @@ in
         # Node.js Development
         # ----------------------------------------------------------------------
         nodejs_24
-        # Supplies the `pnpm` shim, resolving each repo's `packageManager` pin.
         corepack_24
         bun
         typescript
