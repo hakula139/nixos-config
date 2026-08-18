@@ -20,6 +20,8 @@ let
     "${artifactoryUrl}/api/pypi/hpc-pypi/simple"
   ];
 
+  npmRegistry = "${artifactoryUrl}/api/npm/mirrors-npm";
+
   goProxy = "${artifactoryUrl}/api/go/mirrors-golang";
   cargoMirror = "sparse+${artifactoryUrl}/api/cargo/mirrors-cargo-crates/index/";
 
@@ -108,6 +110,13 @@ in
             [[index]]
             url = "${url}"
           '') pypiExtraIndexes}
+        '';
+
+        # ----------------------------------------------------------------------
+        # Node.js Development
+        # ----------------------------------------------------------------------
+        ".npmrc".text = ''
+          registry=${npmRegistry}
         '';
 
         # ----------------------------------------------------------------------
