@@ -1,15 +1,40 @@
+import argparse
 import json
 import math
 import re
 import sys
 from collections import Counter
 from collections.abc import Sequence
+from typing import TypedDict
 
 import jieba
 import jieba.posseg as pseg
 
 
 jieba.setLogLevel(60)
+
+
+class Report(TypedDict):
+    model: str
+    score: float
+    chars: int
+    # Keyed dynamically off MEDIANS and `features`, so these stay plain mappings.
+    metrics: dict[str, float]
+    medians: dict[str, dict[str, float]]
+    hedge_per_1k: float
+    hedge_hits: list[str]
+    attitude_per_1k: float
+    attitude_hits: list[str]
+    antithesis: int
+
+
+class ModelConfig(TypedDict):
+    features: list[str]
+    mu: dict[str, float]
+    sd: dict[str, float]
+    human: list[float]
+    assistant: list[float]
+
 
 # Nearest-centroid parameters, one classifier per assistant, fitted on the
 # training half of a labelled corpus (hakula.xyz-kiln prose for human, session
@@ -18,10 +43,11 @@ jieba.setLogLevel(60)
 # 10% false positives, codex 92% at 3%. Gemini is absent on purpose: its Chinese
 # sits too close to human prose to separate.
 #
-# `link` counts colons and semicolons per clause. The textbook markers of
-# 欧化中文 run backwards here, so the punctuation hierarchy is what actually
-# carries over from English.
-MODELS = {
+# `mu` and `sd` z-score a measured ratio against the training half. `human` and
+# `assistant` are the two class centroids in that z-scored space, positional and
+# aligned with `features`, so reordering one without the other silently corrupts
+# every score. Only a length mismatch raises.
+MODELS: dict[str, ModelConfig] = {
     'claude-code': {
         'features': ['ttr', 'adv', 'part', 'noun', 'link'],
         'mu': {
@@ -62,7 +88,7 @@ MODELS = {
     },
 }
 
-MEDIANS = {
+MEDIANS: dict[str, dict[str, float]] = {
     'ttr': {'human': 0.737, 'claude-code': 0.828, 'codex': 0.898},
     'adv': {'human': 0.083, 'claude-code': 0.046, 'codex': 0.062},
     'part': {'human': 0.103, 'claude-code': 0.062, 'codex': 0.035},
@@ -112,8 +138,10 @@ def strip_noise(text: str) -> str:
     text = re.sub(r'<!--.*?-->', '', text, flags=re.S)
     text = re.sub(r'\[\^[^\]]+\]:?', '', text)
     text = re.sub(r'[*_>|#]', '', text)
-    # Quoted source text carries the cited author's diction, not the writer's,
-    # and dense quotation otherwise drags every ratio toward the assistant side.
+    # The next three drop text whose diction belongs to someone else, since
+    # dense quotation drags every ratio toward the assistant side. Japanese
+    # first: a kana character pulls in the kana, ー and kanji run following it,
+    # which is how a title or a lyric leaves no CJK residue behind.
     text = re.sub(r'[぀-ヿ][぀-ヿー一-鿿]*', '', text)
     text = re.sub(r'[「『][^」』]{0,80}[」』]', '', text)
     text = re.sub(r"[A-Za-z][A-Za-z',. ]{6,}", '', text)
@@ -147,7 +175,7 @@ def per_1k(body: str, words: Sequence[str]) -> float:
     return round(sum(body.count(w) for w in words) / len(body) * 1000, 2)
 
 
-def classify(text: str, model: str) -> dict | None:
+def classify(text: str, model: str) -> Report | None:
     body = strip_noise(text)
     if len(body) < MIN_CHARS:
         return None
@@ -182,11 +210,15 @@ def classify(text: str, model: str) -> dict | None:
     }
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('model', choices=list(MODELS))
+    return parser.parse_args()
+
+
 def main() -> int:
-    if len(sys.argv) != 2 or sys.argv[1] not in MODELS:
-        print(f'usage: {sys.argv[0]} {{{"|".join(MODELS)}}}', file=sys.stderr)
-        return 2
-    result = classify(sys.stdin.read(), sys.argv[1])
+    args = parse_args()
+    result = classify(sys.stdin.read(), args.model)
     if result is None:
         return 1
     json.dump(result, sys.stdout, ensure_ascii=False)
