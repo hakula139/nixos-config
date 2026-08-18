@@ -45,9 +45,11 @@ All of them run backwards on the held-out set, where the human half uses them mo
 
 Emit one line of compact JSON and nothing else:
 
-`{"ai":true|false,"conf":0.0-1.0,"tics":["<病症名>"],"fix":"<不超过五十字>"}`
+`{"ai":true|false,"conf":0.0-1.0,"tics":["<symptom name>"],"fix":"<at most 50 characters>"}`
 
 Rule `false` when `score` is negative and every metric sits on the human side, leaving `tics` empty and `fix` an empty string.
+
+Name each tic with the Chinese label from the list above, copied verbatim.
 
 Write `fix` in Chinese, and name the edit: which word to cut, which word goes into which sentence, or what a quoted sentence becomes.
 `「原因很直接：」的冒号改成逗号，句末加一个「其实」` is the right shape.
