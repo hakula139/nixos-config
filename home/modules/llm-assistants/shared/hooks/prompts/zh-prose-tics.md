@@ -28,18 +28,18 @@ Every other metric ships with the human median and this model's median, so compa
 - **coined-maxim**: a short sentence built to be quoted rather than to explain (`永远是它成本最低的路径`). Rewrite it as a plain statement of cause.
 - **clipped-verdicts**: a run of assertions under ten characters each, function words squeezed out, every sentence passing a verdict with no derivation behind it.
 - **compressed-derivation**: a causal step that wanted unpacking waved through with `原因很直接`, or several comma-linked clauses carrying an entire argument. Say the cause outright in one sentence without adding a second.
-- **flattened-attitude**: no concession and no stance anywhere. Add one word such as `大概`, `未必`, `其实`, or `反而` at a conclusion or a turn.
+- **flattened-attitude**: no concession and no stance anywhere. Add one word such as `大概`, `未必`, `其实`, or `反而` in front of the predicate it qualifies, at a conclusion or a turn. These are adverbs, so they never go at the end of a sentence.
 - **antithesis-repeat**: `不是 X 而是 Y` or a variant twice or more in one paragraph. Make them direct statements. A single use is fair when it rules out a misreading the reader would actually have.
 - **empty-summary**: `综上所述` or `总而言之` followed by a restatement of what came before. Delete it.
 - **unanchored-maxim**: a paragraph written as a self-sufficient maxim, hooked onto nothing already established around it. Restore the connection.
-- **even-paragraphs**: every paragraph running to roughly the same length, and that length short. Humans write at length where they have something to say and briefly where they do not, so an even column of mid-length paragraphs is a model habit. Judge this only when the passage carries several paragraphs, and prescribe cutting the thinnest paragraph rather than padding the rest, since evening them up again is the same tic.
+- **even-paragraphs**: several paragraphs running to much the same length, and that length short. Merge two that carry one thought, or cut the thinnest, since padding them all back to even is the same tic. Judge this only when the passage carries several paragraphs.
 
 ## Not AI flavor
 
 Long sentences, a single sentence past 50 characters, redundant function words, explicit subjects (`我们`, `你`), explicit connectives, one content word recurring three or four times in a paragraph, and the low repetition that line-by-line commentary or heavy quotation forces.
 Chinese argumentative prose and lecture transcripts run long by nature, so sentence length is never itself a signal.
 
-The textbook inventory of 欧化中文 is excluded too: long attributives, chained `的`, `被` passives, `对……进行`, `……之一`, and abstract nouns ending in `性` or `化`.
+The textbook inventory of Europeanized Chinese is excluded too: long attributives, chained `的`, `被` passives, `对……进行`, `……之一`, and abstract nouns ending in `性` or `化`.
 All of them run backwards on the held-out set, where the human half uses them more than the models do, so flagging them only burns false positives.
 
 ## Output
@@ -53,7 +53,7 @@ Rule `false` when `score` is negative and every metric sits on the human side, l
 Name each tic with the English label from the list above, copied verbatim.
 
 Write `fix` in Chinese, and name the edit: which word to cut, which word goes into which sentence, or what a quoted sentence becomes.
-`「原因很直接：」的冒号改成逗号，句末加一个「其实」` is the right shape.
+`删掉「原因很直接：」，改写成「因为让同一个 agent 既要写实现、又要改测试」` is the right shape, since it retires the empty announcer along with the colon instead of just moving the mark, and it pads `既要…又要` back in where the compressed version dropped it.
 Vague advice such as `增加人味` is useless.
 Padding the wording is often the fix itself, since restoring a `的`, adding a hedge, and repeating a content word instead of a pronoun all add characters, so length is never the thing to avoid.
 What must not grow is the count of information items, so never prescribe a fresh claim, example, or explanation.
