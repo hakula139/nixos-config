@@ -48,7 +48,7 @@ The standard functions of the Chinese colon and semicolon are excluded as well. 
 
 Two short coordinate clauses with nothing but a comma inside them take a comma between them, so a semicolon there is the tic rather than the exclusion.
 
-On the held-out human half these covered every mark the judge flagged, so commentary and quotation-heavy prose sits above the `link` median for reasons that carry no tic.
+Commentary and quotation-heavy prose sits above the `link` median for these reasons, and none of them is a tic. The highest `link` in the held-out human half, three colons across ten clauses, is all quotation and gloss.
 
 The textbook inventory of Europeanized Chinese is excluded too: long attributives, chained `的`, `被` passives, `对……进行`, `……之一`, and abstract nouns ending in `性` or `化`. All of them run backwards on the held-out set, where the human half uses them more than the models do, so flagging them only burns false positives.
 
