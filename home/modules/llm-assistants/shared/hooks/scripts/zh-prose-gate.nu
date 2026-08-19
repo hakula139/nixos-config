@@ -124,7 +124,7 @@ def gate []: nothing -> any {
       additionalContext: ([
         $"Chinese AI-flavor gate flagged this. Tics: ($tics). Fix: ($fix)"
         "Apply it in place and continue."
-        "Adding characters is fine, adding information items is not."
+        "The prescriptions add characters, so a longer result is expected."
       ] | str join " ")
     }
   }
