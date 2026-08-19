@@ -26,15 +26,15 @@ Inventory and deployment metadata live in `data/servers.nix`. Every proxy node i
 
 ```bash
 nix build '.#nixosConfigurations.wsl.config.system.build.tarballBuilder'
-sudo ./result/bin/nixos-wsl-tarball-builder           # produces ./nixos.wsl
+sudo ./result/bin/nixos-wsl-tarball-builder    # produces ./nixos.wsl
 ```
 
 Move `nixos.wsl` to the Windows side and import it (PowerShell):
 
 ```powershell
 wsl --shutdown
-wsl --install --from-file .\nixos.wsl                 # WSL >= 2.4.4
-wsl -d NixOS                                          # first launch
+wsl --install --from-file .\nixos.wsl    # WSL >= 2.4.4
+wsl -d NixOS                             # first launch
 ```
 
 On older WSL versions, use `wsl --import NixOS C:\WSL\NixOS .\nixos.wsl`.
