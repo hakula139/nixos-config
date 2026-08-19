@@ -46,9 +46,7 @@ let
     ''}
   '';
 
-  # Project-scoped notification: projectNotify <title> <message>
-  # Prepends "[project-name]" to the message body, with the thread id when the
-  # caller supplies a payload carrying one.
+  # Project-scoped notification: projectNotify <title> <message> [payload]
   mkProjectNotifyScript = pkgs.writeShellScript "project-notify" ''
     set -euo pipefail
 
@@ -56,20 +54,15 @@ let
     message="''${2:-}"
     payload="''${3:-}"
     project="$(basename "$PWD")"
-    session_tag=""
 
     if [[ -n "$payload" ]] && printf '%s' "$payload" | ${pkgs.jq}/bin/jq -e . >/dev/null 2>&1; then
-      thread_id="$(printf '%s' "$payload" | ${pkgs.jq}/bin/jq -r '."thread-id" // empty')"
       payload_cwd="$(printf '%s' "$payload" | ${pkgs.jq}/bin/jq -r '.cwd // empty')"
       if [[ -n "$payload_cwd" ]]; then
         project="$(basename "$payload_cwd")"
       fi
-      if [[ -n "$thread_id" ]]; then
-        session_tag=" ''${thread_id:0:8}"
-      fi
     fi
 
-    "${notifyScript}" "$title" "[$project$session_tag] $message"
+    "${notifyScript}" "$title" "[$project] $message"
   '';
 in
 {

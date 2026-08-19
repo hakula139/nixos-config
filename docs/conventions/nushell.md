@@ -46,4 +46,4 @@ That accounts for the ~170 lines of inline shell across the 22 `writeShellScript
 
 `mihomo-update` is the one substantial rejection, and worth knowing before proposing it again. The script merges base config and subscription as text with the subscription last, so a provider shipping its own `mode:` or `dns:` silently overrides the base. `yq -e .` accepts the duplicate key and mihomo resolves last-wins, where `from yaml` rejects it outright with no flag to relax. That refusal is the merge strategy failing rather than a nushell limitation, so the port stays blocked only while the text merge stands. Verified against `yq-go` 4.53.2 on a merged fixture.
 
-`project-notify` is the one small holdout, and it needs nothing. Its three `jq` forks only run for Codex, which appends a JSON payload, once per response behind a desktop notification, so folding them into one call would save time nobody waits on.
+`project-notify` is the one small holdout, and it needs nothing. Its two `jq` forks only run for Codex, which appends a JSON payload, once per response behind a desktop notification, so folding them into one call would save time nobody waits on.
