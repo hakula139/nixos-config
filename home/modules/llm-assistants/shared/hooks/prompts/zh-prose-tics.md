@@ -13,7 +13,7 @@ Every other metric ships with the human median and this model's median, so compa
 - `adv` is the adverb share. Below the human median means attitude was flattened out.
 - `part` is the share of structural particles (`的`, `了`, `着`, `过`). Below the human median means the sentences were cleaned until they read like a formal translation.
 - `noun` is the noun share. Low `noun` under high `ttr` means actions were recast as noun phrases and the concepts then given fresh synonyms.
-- `link` is colons plus semicolons per clause. Above the human median means English punctuation hierarchy is doing work that Chinese does by stringing short clauses on commas.
+- `link` is colons plus semicolons per clause. Above the human median means the mark may be carrying an English division of labour that Chinese does by stringing short clauses on commas. The count cannot separate that from the standard Chinese uses listed below, so a high value says where to look and settles nothing.
 - `reuse` is content-word reuse. A zero means a keyword the passage just established was never picked up again.
 - `pent` is the entropy of the punctuation mix. Above the human median means more mark types are in play than Chinese usually needs.
 - An empty `hedge_hits` means no concessive word anywhere, and an empty `attitude_hits` means no attitude adverb. Human Chinese rarely runs 200 characters without either.
@@ -24,7 +24,7 @@ Every other metric ships with the human median and this model's median, so compa
 - **synonym-churn**: one concept wearing three synonyms in a single paragraph. Collapse them onto one word and tolerate the repetition.
 - **nominalized-action**: an action written as a noun phrase (`进行了一次转变`). Put the verb back.
 - **dropped-particle**: a `的` or `了` dropped where the sentence wants one. Restore it.
-- **punctuation-hierarchy**: a colon or semicolon splitting two clauses that Chinese would run together on a comma (`原因很直接：让同一个 agent 既写实现又改测试`). That division of labour belongs to English punctuation. Swap the mark for a comma and add a connective such as `因为` or `于是` if the join needs one.
+- **punctuation-hierarchy**: a colon or semicolon splitting two clauses that Chinese would run together on a comma (`原因很直接：让同一个 agent 既写实现又改测试`). That division of labour belongs to English punctuation. Swap the mark for a comma and add a connective such as `因为` or `于是` if the join needs one. Rule out the standard functions below before naming this, since they are far commoner and none of them is this tic.
 - **coined-maxim**: a short sentence built to be quoted rather than to explain (`永远是它成本最低的路径`). Rewrite it as a plain statement of cause.
 - **clipped-verdicts**: a run of assertions under ten characters each, function words squeezed out, every sentence passing a verdict with no derivation behind it.
 - **compressed-derivation**: a causal step that wanted unpacking waved through with `原因很直接`, or several comma-linked clauses carrying an entire argument. Say the cause outright in one sentence without adding a second.
@@ -37,6 +37,10 @@ Every other metric ships with the human median and this model's median, so compa
 
 Long sentences, a single sentence past 50 characters, redundant function words, explicit subjects (`我们`, `你`), explicit connectives, one content word recurring three or four times in a paragraph, and the low repetition that line-by-line commentary or heavy quotation forces.
 Chinese argumentative prose and lecture transcripts run long by nature, so sentence length is never itself a signal.
+
+The standard functions of the Chinese colon and semicolon are excluded as well.
+A colon introduces quoted speech (`她说道：「……」`), glosses the term ahead of it (`amor 的属格：「属于爱的」`), or opens the enumeration that unpacks a summary just given (`最决绝的方式：不解释、不道歉`), and a semicolon separates coordinate clauses in a series (`会导致 A；会导致 B`).
+On the held-out human half these covered every mark the judge flagged, so commentary and quotation-heavy prose sits above the `link` median for reasons that carry no tic.
 
 The textbook inventory of Europeanized Chinese is excluded too: long attributives, chained `的`, `被` passives, `对……进行`, `……之一`, and abstract nouns ending in `性` or `化`.
 All of them run backwards on the held-out set, where the human half uses them more than the models do, so flagging them only burns false positives.
