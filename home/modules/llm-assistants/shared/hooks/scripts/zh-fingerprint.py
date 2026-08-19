@@ -14,11 +14,18 @@ import jieba.posseg as pseg
 jieba.setLogLevel(60)
 
 
+class FeatureStats(TypedDict):
+    mu: float
+    sd: float
+    human: float
+    assistant: float
+
+
 class Report(TypedDict):
     model: str
     score: float
     chars: int
-    # Keyed dynamically off MEDIANS and `features`, so these stay plain mappings.
+    # Both are keyed off MEDIANS at runtime, so they stay plain mappings.
     metrics: dict[str, float]
     medians: dict[str, dict[str, float]]
     hedge_per_1k: float
@@ -28,14 +35,6 @@ class Report(TypedDict):
     antithesis: int
 
 
-class ModelConfig(TypedDict):
-    features: list[str]
-    mu: dict[str, float]
-    sd: dict[str, float]
-    human: list[float]
-    assistant: list[float]
-
-
 # Nearest-centroid parameters, one classifier per assistant, fitted on the
 # training half of a labelled corpus (hakula.xyz-kiln prose for human, session
 # transcripts for each assistant's own Chinese) and scored on the disjoint other
@@ -43,48 +42,22 @@ class ModelConfig(TypedDict):
 # 10% false positives, codex 92% at 3%. Gemini is absent on purpose: its Chinese
 # sits too close to human prose to separate.
 #
-# `mu` and `sd` z-score a measured ratio against the training half. `human` and
-# `assistant` are the two class centroids in that z-scored space, positional and
-# aligned with `features`, so reordering one without the other silently corrupts
-# every score. Only a length mismatch raises.
-MODELS: dict[str, ModelConfig] = {
+# Per feature, `mu` and `sd` z-score the measured ratio against the training
+# half, and `human` and `assistant` are the two class centroids in that space.
+MODELS: dict[str, dict[str, FeatureStats]] = {
     'claude-code': {
-        'features': ['ttr', 'adv', 'part', 'noun', 'link'],
-        'mu': {
-            'ttr': 0.7750,
-            'adv': 0.0693,
-            'part': 0.0839,
-            'noun': 0.1726,
-            'link': 0.0715,
-        },
-        'sd': {
-            'ttr': 0.0761,
-            'adv': 0.0298,
-            'part': 0.0342,
-            'noun': 0.0450,
-            'link': 0.0812,
-        },
-        'human': [-0.463, 0.499, 0.573, 0.325, -0.432],
-        'assistant': [0.561, -0.604, -0.694, -0.393, 0.523],
+        'ttr': {'mu': 0.7750, 'sd': 0.0761, 'human': -0.463, 'assistant': 0.561},
+        'adv': {'mu': 0.0693, 'sd': 0.0298, 'human': 0.499, 'assistant': -0.604},
+        'part': {'mu': 0.0839, 'sd': 0.0342, 'human': 0.573, 'assistant': -0.694},
+        'noun': {'mu': 0.1726, 'sd': 0.0450, 'human': 0.325, 'assistant': -0.393},
+        'link': {'mu': 0.0715, 'sd': 0.0812, 'human': -0.432, 'assistant': 0.523},
     },
     'codex': {
-        'features': ['ttr', 'part', 'noun', 'pent', 'link'],
-        'mu': {
-            'ttr': 0.8128,
-            'part': 0.0726,
-            'noun': 0.1977,
-            'pent': 1.7864,
-            'link': 0.0983,
-        },
-        'sd': {
-            'ttr': 0.0982,
-            'part': 0.0409,
-            'noun': 0.0504,
-            'pent': 0.3636,
-            'link': 0.1159,
-        },
-        'human': [-0.744, 0.755, -0.208, -0.054, -0.534],
-        'assistant': [0.834, -0.847, 0.233, 0.060, 0.599],
+        'ttr': {'mu': 0.8128, 'sd': 0.0982, 'human': -0.744, 'assistant': 0.834},
+        'part': {'mu': 0.0726, 'sd': 0.0409, 'human': 0.755, 'assistant': -0.847},
+        'noun': {'mu': 0.1977, 'sd': 0.0504, 'human': -0.208, 'assistant': 0.233},
+        'pent': {'mu': 1.7864, 'sd': 0.3636, 'human': -0.054, 'assistant': 0.060},
+        'link': {'mu': 0.0983, 'sd': 0.1159, 'human': -0.534, 'assistant': 0.599},
     },
 }
 
@@ -98,27 +71,57 @@ MEDIANS: dict[str, dict[str, float]] = {
     'pent': {'human': 1.811, 'claude-code': 2.121, 'codex': 1.842},
 }
 
-# Grouped by hand: E501 counts a CJK char as two columns, and the formatter
-# would otherwise break these to one word per line.
-# fmt: off
 HEDGES = [
-    '大概', '或许', '可能', '未必', '似乎', '多少', '有点', '稍微',
-    '大抵', '不太', '恐怕', '说不定', '某种程度', '基本', '一般',
-    '往往', '通常', '算是', '起码', '至少',
+    '不太',
+    '大抵',
+    '大概',
+    '多少',
+    '或许',
+    '基本',
+    '可能',
+    '恐怕',
+    '某种程度',
+    '起码',
+    '稍微',
+    '说不定',
+    '似乎',
+    '算是',
+    '通常',
+    '往往',
+    '未必',
+    '一般',
+    '有点',
+    '至少',
 ]
 ATTITUDE = [
-    '其实', '反而', '偏偏', '倒是', '本来', '无非', '早就', '照样',
-    '明明', '毕竟', '居然', '竟然', '到底', '终究', '反正', '好歹',
-    '干脆', '索性', '实在',
+    '本来',
+    '毕竟',
+    '到底',
+    '倒是',
+    '反而',
+    '反正',
+    '干脆',
+    '好歹',
+    '竟然',
+    '居然',
+    '明明',
+    '偏偏',
+    '其实',
+    '实在',
+    '索性',
+    '无非',
+    '早就',
+    '照样',
+    '终究',
 ]
-# fmt: on
 ANTITHESIS = re.compile(
     r'不是[^，。；]{1,25}[，、]?\s*(?:而是|是)|而不是|并非[^，。；]{1,25}而是'
 )
 
 MIN_CHARS = 100
 MIN_CJK_RATIO = 0.55
-CJK = re.compile(r'[一-鿿]')
+CJK = re.compile(r'[\u4e00-\u9fff]')
+
 MARKS = '，。；、：！？…（）「」『』—()《》%'
 
 # Chinese runs short clauses in series on commas, where English divides a
@@ -140,9 +143,9 @@ def strip_noise(text: str) -> str:
     text = re.sub(r'[*_>|#]', '', text)
     # The next three drop text whose diction belongs to someone else, since
     # dense quotation drags every ratio toward the assistant side. Japanese
-    # first: a kana character pulls in the kana, ー and kanji run following it,
+    # first: one kana character pulls in the kana and kanji run following it,
     # which is how a title or a lyric leaves no CJK residue behind.
-    text = re.sub(r'[぀-ヿ][぀-ヿー一-鿿]*', '', text)
+    text = re.sub(r'[\u3040-\u30ff][\u3040-\u30ff\u4e00-\u9fff]*', '', text)
     text = re.sub(r'[「『][^」』]{0,80}[」』]', '', text)
     text = re.sub(r"[A-Za-z][A-Za-z',. ]{6,}", '', text)
     return re.sub(r'\s+', '', text)
@@ -184,19 +187,15 @@ def classify(text: str, model: str) -> Report | None:
 
     config = MODELS[model]
     metrics = measure(body)
-    point = [
-        (metrics[k] - config['mu'][k]) / config['sd'][k] for k in config['features']
-    ]
+    point = {k: (metrics[k] - f['mu']) / f['sd'] for k, f in config.items()}
 
-    def distance(centroid: list[float]) -> float:
-        return math.sqrt(
-            sum((a - b) ** 2 for a, b in zip(point, centroid, strict=True))
-        )
+    def distance(centroid: str) -> float:
+        return math.sqrt(sum((point[k] - f[centroid]) ** 2 for k, f in config.items()))
 
     return {
         'model': model,
         # Positive means closer to the assistant's centroid than to a human's.
-        'score': round(distance(config['human']) - distance(config['assistant']), 2),
+        'score': round(distance('human') - distance('assistant'), 2),
         'chars': len(body),
         'metrics': {k: round(metrics[k], 3) for k in MEDIANS},
         'medians': {
