@@ -1,6 +1,6 @@
 # Bootstrap
 
-First-time setup per platform. Day-to-day applies use the `nixsw` zsh alias everywhere, so this page only covers the steps that precede a managed configuration.
+First-time setup per platform. Day-to-day applies use the [`nixsw` alias](../../README.md#applying-a-configuration) everywhere, so this page only covers the steps that precede a managed configuration.
 
 ## NixOS server
 

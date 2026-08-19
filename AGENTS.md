@@ -34,8 +34,6 @@ nix build '.#systemConfigs.wsl-non-nixos'
 nix build '.#packages.x86_64-linux.devvm-docker'
 ```
 
-Day-to-day applies use the `nixsw` zsh alias on every platform.
-
 When a change should be store-path-equivalent, e.g. a rename or a comment-only edit, compare `nix build --no-link --print-out-paths` before and after. Note that `checks.pre-commit` does not force host modules, so a broken reference there only shows up in a host build. A worktree under `.claude/worktrees/` needs one `nix develop` to materialize the gitignored pre-commit symlink, and `cspell` there checks zero files unless you pass `--no-gitignore`.
 
 ## Documentation maintenance
