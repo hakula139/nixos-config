@@ -126,6 +126,7 @@ ANTITHESIS = re.compile(
 MIN_CHARS = 100
 MIN_CJK_RATIO = 0.55
 CJK = re.compile(r'[\u4e00-\u9fff]')
+LATIN = re.compile(r'[A-Za-z]')
 
 MARKS = '，。；、：！？…（）「」『』—()《》%'
 
@@ -187,7 +188,11 @@ def classify(text: str, model: str) -> Report | None:
     body = strip_noise(text)
     if len(body) < MIN_CHARS:
         return None
-    if len(CJK.findall(body)) / len(body) < MIN_CJK_RATIO:
+    # Chinese punctuation is not CJK, so measuring against the whole body counted
+    # a paragraph's own commas as foreign and refused Chinese prose about code.
+    cjk = len(CJK.findall(body))
+    alpha = cjk + len(LATIN.findall(body))
+    if not alpha or cjk / alpha < MIN_CJK_RATIO:
         return None
 
     config = MODELS[model]
