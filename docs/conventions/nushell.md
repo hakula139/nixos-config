@@ -30,20 +30,17 @@ Both writers prepend an absolute-store-path shebang, which demotes a script's ow
 
 ## Linting
 
-`nu-check` (`packages/nu-check/`) wraps `nu --ide-check`, which upstream `git-hooks-nix` does not offer. It gates delimiters and the arity of your own `def`s and little else, since a mistyped command name passes as an external call. None of the three bugs the nushell migration shipped were visible to it, so a script still needs one real run. `--ide-check` always exits 0 even for a missing path, hence the explicit `"severity":"Error"` filter and the missing-file and non-UTF-8 guards.
+`nu-check` (`packages/nu-check/`) wraps `nu --ide-check`. It gates delimiters and the arity of your own `def`s and little else, since a mistyped command name passes as an external call, so a script still needs one real run.
 
-Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for every tracked file. `nufmt` stays out because it has no line-breaking logic, so it only joins: on current `health-check.nu` it collapsed a four-stage pipeline to 177 characters and another line to 221. It also reindents to four spaces, which contradicts the `[*.nu] indent_size = 2` the previous sentence relies on.
+Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for every tracked file. `nufmt` is unused: it only joins lines, and it reindents to four spaces against the `[*.nu] indent_size = 2` in force here.
 
 ## What stays bash
 
-Startup cost cuts both ways, so measure the script. Nushell starts in ~33ms of CPU time against bash's ~3ms and a `jq` fork costs ~3ms, so parsing in-process wins only past a handful of forks. The statusline crossed that line and is nushell now, where the three hook scripts under `shared/hooks/scripts/` read two fields each and stay bash. They also fail open, so a porting bug would disable a gate silently.
+Nushell starts in ~33ms against bash's ~3ms, so a script on a hot synchronous path stays bash. `auto-format.sh` and `wakatime.sh` read a few fields each and return in 8.6ms, so they stay. Every hook fails open, so a porting bug reads as a gate that quietly stopped firing: diff the old script against the new over a battery of hook payloads before deleting the bash.
 
-Three limits are structural rather than a matter of cost, so check them before proposing a port:
+The rest are structural:
 
-- **A `--run` or sourced script must be bash.** `profile-loader.sh` and `mkProxyScript` are injected through `makeWrapper --run`, so the wrapper's own shell evaluates them. `teammate-launcher.sh` inherits the constraint, since it sources `profile-loader.sh`.
-- **An argv-forwarding wrapper cannot be expressed.** `nu script.nu --log-as-netdata` fails with `doesn't have flag`, and there is no argv escape hatch outside `def main` parameters, which rules out `systemd-cat-native`.
-- **About half the rest are `exec` wrappers.** Setting a variable and handing off to the real binary has no data to structure. Nushell's `exec` does replace the process and does propagate `$env`, so these would work and gain nothing, while each rewrite risks the credential fallback. `agent.sh` is the other holdout, reached through `writeShellApplication` rather than an inline body: it emits a `{key}value{/key}` wire format that is neither JSON nor tabular.
-
-That accounts for the ~105 lines of inline shell across the 21 `writeShellScript*` sites that carry a literal body. The other seven take a Nix expression, three of them a `builtins.readFile` of an adjacent `.sh` file.
-
-`project-notify` is the one small holdout, and it needs nothing. Its two `jq` forks only run for Codex, which appends a JSON payload, once per response behind a desktop notification, so folding them into one call would save time nobody waits on.
+- **A `--run` or sourced script.** `profile-loader.sh` and `mkProxyScript` are injected through `makeWrapper --run`, so the wrapper's own shell evaluates them. `teammate-launcher.sh` sources `profile-loader.sh`.
+- **An argv-forwarding wrapper.** `nu script.nu --log-as-netdata` fails with `doesn't have flag`, and there is no argv escape hatch outside `def main` parameters, which rules out `systemd-cat-native`.
+- **`exec` wrappers.** Setting a variable and handing off to the real binary has no data to structure. This covers the MCP wrappers, `notify`, and most of the remaining `writeShellScript` sites.
+- **`agent.sh`**, which emits a `{key}value{/key}` wire format that is neither JSON nor tabular.

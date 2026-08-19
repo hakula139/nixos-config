@@ -47,23 +47,9 @@ let
   '';
 
   # Project-scoped notification: projectNotify <title> <message> [payload]
-  mkProjectNotifyScript = pkgs.writeShellScript "project-notify" ''
-    set -euo pipefail
-
-    title="''${1:-Notification}"
-    message="''${2:-}"
-    payload="''${3:-}"
-    project="$(basename "$PWD")"
-
-    if [[ -n "$payload" ]] && printf '%s' "$payload" | ${pkgs.jq}/bin/jq -e . >/dev/null 2>&1; then
-      payload_cwd="$(printf '%s' "$payload" | ${pkgs.jq}/bin/jq -r '.cwd // empty')"
-      if [[ -n "$payload_cwd" ]]; then
-        project="$(basename "$payload_cwd")"
-      fi
-    fi
-
-    "${notifyScript}" "$title" "[$project] $message"
-  '';
+  mkProjectNotifyScript = pkgs.writers.writeNu "project-notify" (
+    builtins.replaceStrings [ "@notify@" ] [ "${notifyScript}" ] (builtins.readFile ./project-notify.nu)
+  );
 in
 {
   inherit notifyScript mkProjectNotifyScript;
