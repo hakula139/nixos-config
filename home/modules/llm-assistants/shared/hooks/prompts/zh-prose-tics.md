@@ -32,7 +32,6 @@ Every other metric ships with the human median and this model's median, so compa
 - **antithesis-repeat**: `不是 X 而是 Y` or a variant twice or more in one paragraph. Make them direct statements. A single use is fair when it rules out a misreading the reader would actually have.
 - **empty-summary**: `综上所述` or `总而言之` followed by a restatement of what came before. Delete it.
 - **unanchored-maxim**: a paragraph written as a self-sufficient maxim, hooked onto nothing already established around it. Restore the connection.
-- **even-paragraphs**: several paragraphs running to much the same length, and that length short. Merge two that carry one thought, or cut the thinnest, since padding them all back to even is the same tic. Judge this only when the passage carries several paragraphs.
 
 ## Not AI flavor
 
