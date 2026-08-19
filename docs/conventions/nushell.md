@@ -29,6 +29,8 @@ These either fail silently or raise an error that points somewhere other than th
 
 Both writers prepend an absolute-store-path shebang, which demotes a script's own `#!/usr/bin/env nu` line to a comment. Keep that line anyway, since it makes the file runnable and LSP-checkable standalone. To spawn nushell from inside a generated script, read `$nu.current-exe` rather than substituting a store path.
 
+Neither writer validates a `use` target. A `use @placeholder@ *` whose substitution is missing or misspelled builds without complaint, then dies at parse time on first run, which lands before any `try` in the script can fail open. So a shared module costs one real run per consumer to keep honest, and a gate that must fail open is better off duplicating a helper than importing one.
+
 ## Linting
 
 `nu-check` (`packages/nu-check/`) wraps `nu --ide-check`. It gates delimiters and the arity of your own `def`s and little else, since a mistyped command name passes as an external call, so a script still needs one real run.
