@@ -9,7 +9,6 @@
 # error, and stays inert when no classifier was fitted for this assistant.
 # ==============================================================================
 
-const CAT = "@cat@"
 const TIMEOUT = "@timeout@"
 const FINGERPRINT = "@fingerprint@"
 const PROMPT_FILE = "@promptFile@"
@@ -93,7 +92,7 @@ def gate []: nothing -> any {
   if ($FINGERPRINT | is-empty) or ($PROMPT_FILE | path exists) == false {
     return null
   }
-  let input = (^$CAT | from json)
+  let input = (^cat | from json)
   if ($input | describe | str starts-with "record") == false {
     return null
   }

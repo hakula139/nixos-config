@@ -7,7 +7,6 @@
 # additionalContext (non-halting) on a violation. Fails open on any error.
 # ==============================================================================
 
-const CAT = "@cat@"
 const TIMEOUT = "@timeout@"
 const PROMPT_FILE = "@promptFile@"
 const JUDGE_TIMEOUT = "@judgeTimeout@"
@@ -81,7 +80,7 @@ def gate []: nothing -> any {
   }
   # `open /dev/stdin` re-opens fd 0 by path and raises ENXIO once the caller
   # passes a socket, which is what Node's `spawn` hands a hook.
-  let input = (^$CAT | from json)
+  let input = (^cat | from json)
   if ($input | describe | str starts-with "record") == false {
     return null
   }

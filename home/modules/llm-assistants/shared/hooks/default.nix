@@ -137,7 +137,6 @@ in
     script = ./scripts/prose-gate.nu;
     writer = pkgs.writers.writeNu;
     substitutions = {
-      "@cat@" = "${pkgs.coreutils}/bin/cat";
       "@timeout@" = "${pkgs.coreutils}/bin/timeout";
       "@promptFile@" = "${./prompts/prose-tics.md}";
       "@judgeTimeout@" = toString timeouts.judge;
@@ -159,7 +158,6 @@ in
     script = ./scripts/zh-prose-gate.nu;
     writer = pkgs.writers.writeNu;
     substitutions = {
-      "@cat@" = "${pkgs.coreutils}/bin/cat";
       "@timeout@" = "${pkgs.coreutils}/bin/timeout";
       "@fingerprint@" = lib.optionalString (builtins.elem assistant zhFingerprintModels) "${
         zhFingerprint
