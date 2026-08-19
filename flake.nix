@@ -424,6 +424,6 @@
       # ------------------------------------------------------------------------
       # Formatter (nix fmt)
       # ------------------------------------------------------------------------
-      formatter = forAllSystems (system: (pkgsFor system).nixfmt);
+      formatter = forAllSystems (system: (pkgsFor system).nixfmt-tree);
     };
 }
