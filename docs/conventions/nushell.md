@@ -37,7 +37,7 @@ Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for e
 
 ## What stays bash
 
-Nushell starts in ~33ms against bash's ~3ms, so a script on a hot synchronous path stays bash. `auto-format.sh` and `wakatime.sh` read a few fields each and return in 8.6ms, so they stay. Every hook fails open, so a porting bug reads as a gate that quietly stopped firing: diff the old script against the new over a battery of hook payloads before deleting the bash.
+Startup cost cuts both ways, so measure the script. Nushell starts in ~33ms of CPU time against bash's ~3ms and a `jq` fork costs ~3ms, so parsing in-process wins only past a handful of forks. The statusline crossed that line and is nushell now. The two prose gates under `shared/hooks/scripts/` crossed it on both counts, forking `jq` nine and eleven times while blocking on a `claude -p` judge for tens of seconds, with 344ms of python and jieba startup ahead of the Chinese one, so the interpreter never shows up in the total. `auto-format.sh` and `wakatime.sh` read three fields and two and return in 8.6ms against nushell's 24.7ms, so they stay bash. Every hook fails open, so a porting bug reads as a gate that quietly stopped firing. Diff the old script against the new over a battery of hook payloads before deleting the bash.
 
 The rest are structural:
 
