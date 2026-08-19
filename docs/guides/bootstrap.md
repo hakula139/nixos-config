@@ -4,6 +4,8 @@ First-time setup per platform. Day-to-day applies use the `nixsw` zsh alias ever
 
 ## NixOS server
 
+NixOS servers partition their disks with [disko](https://github.com/nix-community/disko) and install over SSH via [nixos-anywhere](https://github.com/nix-community/nixos-anywhere). Provision one from a workstation with the flake checked out:
+
 ```bash
 nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 ```
@@ -64,12 +66,20 @@ system-manager-health-check agenix-install-secrets.service home-manager-hakula.s
 
 ## macOS
 
+`macbook` is a macOS workstation managed by [nix-darwin](https://github.com/LnL7/nix-darwin), including Homebrew cask installation.
+
+Install Nix with the Determinate Nix Installer, then bootstrap nix-darwin:
+
 ```bash
 curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 sudo nix run nix-darwin/nix-darwin-26.05#darwin-rebuild -- switch --flake '.#macbook'
 ```
 
 ## Docker image
+
+`devvm` packages a NixOS environment as a Docker image for running Claude Code, Codex, and OpenCode behind a corporate proxy.
+
+Build the image with Nix, then load and start it with Docker:
 
 ```bash
 nix build '.#packages.x86_64-linux.devvm-docker'
