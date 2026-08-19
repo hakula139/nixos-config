@@ -60,7 +60,7 @@ def verdict-of [raw: string]: nothing -> record {
     | get -o result
     | default ""
     | str replace --all "\n" ""
-    | parse -r '(?<json>\{.*\})'
+    | parse --regex '(?<json>\{.*\})'
     | get json
   )
   if ($found | is-empty) {
