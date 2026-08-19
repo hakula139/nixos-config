@@ -30,8 +30,9 @@ let
       slug,
       script,
       substitutions ? { },
+      writer ? pkgs.writeShellScript,
     }:
-    pkgs.writeShellScript "${assistant}-${slug}" (
+    writer "${assistant}-${slug}" (
       builtins.replaceStrings (builtins.attrNames substitutions) (builtins.attrValues substitutions) (
         builtins.readFile script
       )
@@ -133,8 +134,11 @@ in
 
   proseGate = mkHookScript {
     slug = "prose-gate";
-    script = ./scripts/prose-gate.sh;
+    script = ./scripts/prose-gate.nu;
+    writer = pkgs.writers.writeNu;
     substitutions = {
+      "@cat@" = "${pkgs.coreutils}/bin/cat";
+      "@timeout@" = "${pkgs.coreutils}/bin/timeout";
       "@promptFile@" = "${./prompts/prose-tics.md}";
       "@judgeTimeout@" = toString timeouts.judge;
     };
@@ -154,8 +158,11 @@ in
   # against, the same way an empty tool path disables a formatter above.
   zhProseGate = mkHookScript {
     slug = "zh-prose-gate";
-    script = ./scripts/zh-prose-gate.sh;
+    script = ./scripts/zh-prose-gate.nu;
+    writer = pkgs.writers.writeNu;
     substitutions = {
+      "@cat@" = "${pkgs.coreutils}/bin/cat";
+      "@timeout@" = "${pkgs.coreutils}/bin/timeout";
       "@fingerprint@" = lib.optionalString (builtins.elem assistant zhFingerprintModels) "${
         zhFingerprint
       }";
