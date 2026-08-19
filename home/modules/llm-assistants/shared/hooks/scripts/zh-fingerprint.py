@@ -117,12 +117,10 @@ ATTITUDE = [
     '照样',
     '终究',
 ]
-# The class spans clause dividers as well as sentence enders, since without
-# them a match runs past a question mark into the next sentence.
+# The gap spans clause dividers as well as sentence enders, or a match runs
+# past a question mark into the next. The lookbehind drops the rhetorical 是不是.
 ANTITHESIS = re.compile(
-    r'不是[^，。；？！：—…]{1,25}[，、]?\s*(?:而是|是)'
-    r'|而不是'
-    r'|并非[^，。；？！：—…]{1,25}而是'
+    r'(?<!是)(?:不是|并非)[^，。；？！：—…]{1,25}[，、]?\s*(?:而是|是)|而不是'
 )
 
 MIN_CHARS = 100
