@@ -154,8 +154,6 @@ in
     };
   };
 
-  # An empty classifier path disables the gate on assistants it was never fitted
-  # against, the same way an empty tool path disables a formatter above.
   zhProseGate = mkHookScript {
     slug = "zh-prose-gate";
     script = ./scripts/zh-prose-gate.nu;
