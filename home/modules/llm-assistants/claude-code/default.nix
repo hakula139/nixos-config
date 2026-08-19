@@ -82,7 +82,6 @@ in
         sharedPermissions = llmAssistantLib.permissions;
       };
 
-      notify = import ../shared/notify.nix { inherit pkgs lib; };
       hooks = import ./hooks.nix {
         inherit
           pkgs
@@ -124,13 +123,9 @@ in
       # Status line
       # ------------------------------------------------------------------------
       statusLineScript = pkgs.writers.writeNu "statusline-command" (
-        builtins.replaceStrings
-          [ "@npx@" "@getTtyNum@" ]
-          [
-            "${pkgs.nodejs_24}/bin/npx"
-            "${notify.getTtyNum}"
-          ]
-          (builtins.readFile ./scripts/statusline-command.nu)
+        builtins.replaceStrings [ "@npx@" ] [ "${pkgs.nodejs_24}/bin/npx" ] (
+          builtins.readFile ./scripts/statusline-command.nu
+        )
       );
 
       # ------------------------------------------------------------------------

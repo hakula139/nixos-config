@@ -3,12 +3,11 @@
 # ==============================================================================
 # Claude Code Status Line Command
 # ==============================================================================
-# Row 1: #tty <directory> <git>
+# Row 1: <directory> <git>
 # Row 2: Model | Ctx: X% (XXk/200k) | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
 # ==============================================================================
 
 const NPX = "@npx@"
-const GET_TTY_NUM = "@getTtyNum@"
 
 const CCUSAGE_CACHE = "/tmp/ccusage-statusline.json"
 const CCUSAGE_TTL = 30sec
@@ -289,9 +288,8 @@ def main [] {
   let input = (^cat | from json)
   let cwd = $input.workspace.current_dir
 
-  let tty_num = (^$GET_TTY_NUM | str trim)
   let dir_name = if $cwd == $nu.home-dir { "~" } else { $cwd | path basename }
-  let row1 = $"(dim $'#($tty_num)') (paint $dir_name 'blue_bold')(format-git-info $cwd)"
+  let row1 = $"(paint $dir_name 'blue_bold')(format-git-info $cwd)"
 
   let model = ($input.model?.display_name? | default "")
   let claude = (format-claude-info $input)
