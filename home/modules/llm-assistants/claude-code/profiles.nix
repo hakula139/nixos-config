@@ -197,19 +197,8 @@ let
   # ----------------------------------------------------------------------------
   # Profile switcher
   # ----------------------------------------------------------------------------
-  profileNames = builtins.attrNames cfg.auth.profiles;
-
   claudeSwitch = pkgs.writers.writeNuBin "claude-switch" (
-    builtins.replaceStrings
-      [
-        "@stateDir@"
-        "@profileNames@"
-      ]
-      [
-        stateDir
-        (builtins.toJSON profileNames)
-      ]
-      (builtins.readFile ./scripts/claude-switch.nu)
+    builtins.replaceStrings [ "@stateDir@" ] [ stateDir ] (builtins.readFile ./scripts/claude-switch.nu)
   );
 
   # ----------------------------------------------------------------------------

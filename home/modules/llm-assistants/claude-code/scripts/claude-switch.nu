@@ -9,7 +9,11 @@
 
 const PROFILES_DIR = "@stateDir@/profiles"
 const ACTIVE_LINK = "@stateDir@/active-profile"
-const PROFILE_NAMES = @profileNames@
+
+# `glob` rather than `ls`, which raises when no profile has been written yet.
+def profile-names []: nothing -> list<string> {
+  glob ($PROFILES_DIR | path join "*.sh") | path parse | get stem | sort
+}
 
 def active-profile []: nothing -> string {
   try { readlink $ACTIVE_LINK | path parse | get stem } catch { "" }
@@ -19,7 +23,7 @@ def list-profiles [--stderr]: nothing -> nothing {
   let current = (active-profile)
   let highlight = (if $stderr { is-terminal --stderr } else { is-terminal --stdout })
 
-  for name in $PROFILE_NAMES {
+  for name in (profile-names) {
     let line = if $name != $current {
       $"    ($name)"
     } else if $highlight {
