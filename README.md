@@ -11,12 +11,12 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 
 | Looking for                                | Read                                                             |
 | ------------------------------------------ | ---------------------------------------------------------------- |
-| First-time setup on any platform           | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)             |
 | The host inventory and how hosts are wired | [docs/reference/architecture.md](docs/reference/architecture.md) |
+| First-time setup on any platform           | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)             |
 | Editing or re-keying a secret              | [docs/guides/secrets.md](docs/guides/secrets.md)                 |
 | Assistant proxy configuration              | [docs/reference/proxy.md](docs/reference/proxy.md)               |
-| What CI checks on every push               | [docs/reference/ci.md](docs/reference/ci.md)                     |
 | Coding conventions                         | [docs/conventions/](docs/conventions/)                           |
+| What CI checks on every push               | [docs/reference/ci.md](docs/reference/ci.md)                     |
 | Changing the code with a coding assistant  | [AGENTS.md](AGENTS.md)                                           |
 
 ## Applying a configuration

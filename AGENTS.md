@@ -8,9 +8,9 @@ This file is an index. It holds only what applies to every task, while anything 
 
 | Touching                              | Read                                                             |
 | ------------------------------------- | ---------------------------------------------------------------- |
-| A `.nu` script                        | [docs/conventions/nushell.md](docs/conventions/nushell.md)       |
-| A `.sh` script or inline shell in Nix | [docs/conventions/shell.md](docs/conventions/shell.md)           |
 | A module, package, or host            | [docs/conventions/nix.md](docs/conventions/nix.md)               |
+| A `.sh` script or inline shell in Nix | [docs/conventions/shell.md](docs/conventions/shell.md)           |
+| A `.nu` script                        | [docs/conventions/nushell.md](docs/conventions/nushell.md)       |
 | Anything, before committing           | [docs/conventions/git.md](docs/conventions/git.md)               |
 | A secret or a recipient list          | [docs/guides/secrets.md](docs/guides/secrets.md)                 |
 | First-time setup on any platform      | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)             |
