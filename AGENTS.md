@@ -26,7 +26,7 @@ This file is an index. It holds only what applies to every task, while anything 
 
 ## Verification
 
-`nix flake check` covers structure and the pre-commit hooks. A per-host build is cheaper when iterating:
+`nix flake check` covers structure and the pre-commit hooks, and `nix develop -c zsh` enters the shell those tools come from. A per-host build is cheaper when iterating:
 
 ```bash
 nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'

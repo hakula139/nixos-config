@@ -17,7 +17,7 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 | Assistant proxy configuration              | [docs/reference/proxy.md](docs/reference/proxy.md)               |
 | Coding conventions                         | [docs/conventions/](docs/conventions/)                           |
 | What CI checks on every push               | [docs/reference/ci.md](docs/reference/ci.md)                     |
-| Changing the code with a coding assistant  | [AGENTS.md](AGENTS.md)                                           |
+| Changing the code                          | [AGENTS.md](AGENTS.md)                                           |
 
 ## Applying a configuration
 
@@ -32,11 +32,3 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 | `nixgc`   | `nh clean all --keep-since 3d` | same                         | same                                                  |
 
 A machine with no managed configuration yet needs the bootstrap steps first, which differ per platform.
-
-## Development
-
-```bash
-nix develop -c zsh                                      # Enter the development shell
-nix flake check                                         # Run CI-style validation
-nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
-```
