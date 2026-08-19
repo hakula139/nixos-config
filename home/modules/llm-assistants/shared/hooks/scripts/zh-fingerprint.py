@@ -117,8 +117,12 @@ ATTITUDE = [
     '照样',
     '终究',
 ]
+# The class spans clause dividers as well as sentence enders, since without
+# them a match runs past a question mark into the next sentence.
 ANTITHESIS = re.compile(
-    r'不是[^，。；]{1,25}[，、]?\s*(?:而是|是)|而不是|并非[^，。；]{1,25}而是'
+    r'不是[^，。；？！：—…]{1,25}[，、]?\s*(?:而是|是)'
+    r'|而不是'
+    r'|并非[^，。；？！：—…]{1,25}而是'
 )
 
 MIN_CHARS = 100
