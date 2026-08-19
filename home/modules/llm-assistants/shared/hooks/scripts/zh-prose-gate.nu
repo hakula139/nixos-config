@@ -20,7 +20,7 @@ const JUDGE_TIMEOUT = "@judgeTimeout@"
 # through, so the cheap check only has to skip what is clearly clean.
 const SCORE_FLOOR = -0.4
 
-const MCP_FIELDS = [message, description, body, note, content]
+const MCP_FIELDS = [message, description, body, note, content, new_content]
 
 def content-of [input: record]: nothing -> string {
   let tool = ($input | get -o tool_name | default "")
