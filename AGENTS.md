@@ -45,5 +45,5 @@ Every page has one home, and the others link to it. Before adding a paragraph, c
 - `README.md` is for a human evaluating or operating the repo: what it manages, how to run it. Keep internal progress out.
 - `AGENTS.md` and `docs/` are for whoever is changing the code.
 - Keep the layout tree in [docs/reference/architecture.md](docs/reference/architecture.md) matched to the filesystem when directories move or land.
-- After a substantive change, sweep for stale claims: the layout tree, the host table, the alias matrix in `README.md`.
+- After a substantive change, sweep for stale claims: the layout tree and host table in `docs/reference/architecture.md`, and the alias matrix in `README.md`.
 - Run changed prose through the repo's own prose gate. This file's predecessor never was, which is how a `, not` antithesis survived in the document that bans it.
