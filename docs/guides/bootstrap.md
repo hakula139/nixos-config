@@ -77,7 +77,7 @@ sudo nix run nix-darwin/nix-darwin-26.05#darwin-rebuild -- switch --flake '.#mac
 
 ## Docker image
 
-`devvm` packages a NixOS environment as a Docker image for running Claude Code, Codex, and OpenCode behind a corporate proxy.
+`devvm` bakes a whole NixOS system closure into a Docker image, so every dependency ships inside it and the container comes up in an air-gapped environment.
 
 Build the image with Nix, then load and start it with Docker:
 
