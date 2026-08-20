@@ -22,7 +22,12 @@ def content-of [input: record]: nothing -> string {
   }
   if ($tool | str starts-with "mcp__") {
     return ($MCP_FIELDS | reduce --fold "" {|field, found|
-      if ($found | is-not-empty) { $found } else { $args | get -o $field | default "" }
+      if ($found | is-not-empty) {
+        $found
+      } else {
+        let v = ($args | get -o $field | default "")
+        if ($v | describe) == "string" { $v } else { "" }
+      }
     })
   }
   match $tool {
@@ -85,7 +90,8 @@ def gate []: nothing -> any {
     return null
   }
   let content = (content-of $input)
-  if ($content | str trim | is-empty) or ($content | str length) < $MIN_CHARS {
+  # `str length` defaults to UTF-8 bytes.
+  if ($content | str trim | is-empty) or ($content | str length --grapheme-clusters) < $MIN_CHARS {
     return null
   }
   if ($PROMPT_FILE | path exists) == false {
