@@ -7,6 +7,11 @@
 # own unpolished-output fingerprint, then hands the numbers to a headless
 # `claude -p` judge. Emits additionalContext (non-halting). Fails open on any
 # error, and stays inert when no classifier was fitted for this assistant.
+#
+# The prompt and this context stay English apart from the specimens and the
+# judge's own `fix`: an all-Chinese prompt doubles as the judge's model of
+# normal Chinese, and scored 0.37 colons-and-semicolons per clause in its
+# prescriptions against 0.13 once the scaffolding moved to English.
 # ==============================================================================
 
 const TIMEOUT = "@timeout@"
