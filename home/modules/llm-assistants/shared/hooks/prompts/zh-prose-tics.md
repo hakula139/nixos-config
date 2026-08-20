@@ -13,7 +13,7 @@ A positive `score` puts the passage nearer the centroid of this model's own unpo
 - `link` is colons plus semicolons per clause. Above the human median means the mark may be carrying an English division of labour that Chinese does by stringing short clauses on commas. The count cannot separate that from the standard Chinese uses listed below, so a high value says where to look and settles nothing.
 - `reuse` is content-word reuse. A zero means a keyword the passage just established was never picked up again.
 - `pent` is the entropy of the punctuation mix. Above the human median means more mark types are in play than Chinese usually needs.
-- An empty `hedge_hits` means no concessive word anywhere, and an empty `attitude_hits` means no attitude adverb. Both come up empty in about a quarter of human paragraphs past 200 characters against half of the model ones, so this roughly doubles the odds and settles nothing on its own.
+- An empty `hedge_hits` means no concessive word anywhere, and an empty `attitude_hits` means no attitude adverb. Both come up empty in a quarter of the human paragraphs long enough for this gate to measure, against four fifths of the model ones, so an empty pair is about three times as likely from the model and still settles nothing on its own.
 - `antithesis` counts `不是 X 而是 Y`. Two or more is a symptom.
 
 ## Symptoms and prescriptions
