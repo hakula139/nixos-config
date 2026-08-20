@@ -20,11 +20,6 @@ const PROMPT_FILE = "@promptFile@"
 const MODEL_ID = "@modelId@"
 const JUDGE_TIMEOUT = "@judgeTimeout@"
 
-# Held-out rates at this threshold: 89% recall against 15% false positives for
-# claude-code, 92% against 9% for codex. The judge then rules on whatever gets
-# through, so the cheap check only has to skip what is clearly clean.
-const SCORE_FLOOR = -0.4
-
 const MCP_FIELDS = [message, description, body, note, content, new_content]
 
 def content-of [input: record]: nothing -> string {
@@ -120,7 +115,7 @@ def gate []: nothing -> any {
   if ($parsed | describe | str starts-with "record") == false {
     return null
   }
-  if ($parsed | get -o score | default 0) <= $SCORE_FLOOR {
+  if ($parsed | get -o score | default 0) <= ($parsed | get -o floor | default 0) {
     return null
   }
   # The judge rules on the one paragraph the metrics were computed from, since a
