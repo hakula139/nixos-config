@@ -30,7 +30,12 @@ def content-of [input: record]: nothing -> string {
   }
   if ($tool | str starts-with "mcp__") {
     return ($MCP_FIELDS | reduce --fold "" {|field, found|
-      if ($found | is-not-empty) { $found } else { $args | get -o $field | default "" }
+      if ($found | is-not-empty) {
+        $found
+      } else {
+        let v = ($args | get -o $field | default "")
+        if ($v | describe) == "string" { $v } else { "" }
+      }
     })
   }
   match $tool {
@@ -106,12 +111,22 @@ def gate []: nothing -> any {
   if $measured.exit_code != 0 or ($measured.stdout | is-empty) {
     return null
   }
-  let report = ($measured.stdout | str trim)
-  let score = ($report | from json | get -o score | default 0)
-  if $score <= $SCORE_FLOOR {
+  let parsed = ($measured.stdout | str trim | from json)
+  if ($parsed | describe | str starts-with "record") == false {
     return null
   }
-  let verdict = (verdict-of (judge $report $content))
+  if ($parsed | get -o score | default 0) <= $SCORE_FLOOR {
+    return null
+  }
+  # The judge rules on the one paragraph the metrics were computed from, since a
+  # report describing 114 characters of a 3000-character payload asks it to find
+  # symptoms in text that was never measured.
+  let passage = ($parsed | get -o passage | default "")
+  if ($passage | is-empty) {
+    return null
+  }
+  let report = ($parsed | reject passage | to json --raw)
+  let verdict = (verdict-of (judge $report $passage))
   if ($verdict | get -o ai | default false) != true {
     return null
   }

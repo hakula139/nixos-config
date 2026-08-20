@@ -7,12 +7,6 @@ from collections import Counter
 from collections.abc import Sequence
 from typing import TypedDict
 
-import jieba
-import jieba.posseg as pseg
-
-
-jieba.setLogLevel(60)
-
 
 class FeatureStats(TypedDict):
     mu: float
@@ -25,6 +19,7 @@ class Report(TypedDict):
     model: str
     score: float
     chars: int
+    passage: str
     # Both are keyed off MEDIANS at runtime, so they stay plain mappings.
     metrics: dict[str, float]
     medians: dict[str, dict[str, float]]
@@ -117,14 +112,19 @@ ATTITUDE = [
     '照样',
     '终究',
 ]
-# The gap spans clause dividers as well as sentence enders, or a match runs
-# past a question mark into the next. The lookbehind drops the rhetorical 是不是.
+# A bare 是 needs the comma: without it the pattern matches ordinary sentences
+# such as 不是所有人都是这样想的, and it caught none of the 这并非……，这是 forms it
+# was meant for. 而是 takes the comma or not. The lookbehind drops 是不是 and 要不是.
 ANTITHESIS = re.compile(
-    r'(?<!是)(?:不是|并非)[^，。；？！：—…]{1,25}[，、]?\s*(?:而是|是)|而不是'
+    r'(?<![是要])(?:不是|并非)[^，。；？！：—…,.;?!]{1,25}'
+    r'(?:[，、](?:这|那)?是|[，、]?而是)'
+    r'|而不是'
 )
 
 MIN_CHARS = 100
 MIN_CJK_RATIO = 0.55
+MIN_CJK_DENSITY = 0.30
+PARA_SPLIT = re.compile(r'\n\s*\n')
 CJK = re.compile(r'[\u4e00-\u9fff]')
 LATIN = re.compile(r'[A-Za-z]')
 
@@ -158,6 +158,12 @@ def strip_noise(text: str) -> str:
 
 
 def measure(body: str) -> dict[str, float]:
+    # Imported here rather than at module scope: jieba costs 484ms to load and the
+    # admission guards reject before reaching this, which is most calls.
+    import jieba
+    import jieba.posseg as pseg
+
+    jieba.setLogLevel(60)
     words = [w for w in jieba.lcut(body) if w.strip() and w not in MARKS]
     tagged = pseg.lcut(body)
     total = len(words) or 1
@@ -184,29 +190,53 @@ def per_1k(body: str, words: Sequence[str]) -> float:
     return round(sum(body.count(w) for w in words) / len(body) * 1000, 2)
 
 
-def classify(text: str, model: str) -> Report | None:
-    body = strip_noise(text)
+def admissible(body: str) -> bool:
     if len(body) < MIN_CHARS:
-        return None
-    # Chinese punctuation is not CJK, so measuring against the whole body counted
-    # a paragraph's own commas as foreign and refused Chinese prose about code.
+        return False
     cjk = len(CJK.findall(body))
+    # Two floors. Density refuses a payload that is mostly digits, rules or ASCII
+    # art, none of which count as either script, so the ratio below would read a
+    # single CJK character as 100% Chinese. The ratio then refuses real prose in
+    # another language, where measuring against the whole body would instead have
+    # counted a Chinese paragraph's own commas as foreign.
+    if cjk / len(body) < MIN_CJK_DENSITY:
+        return False
     alpha = cjk + len(LATIN.findall(body))
-    if not alpha or cjk / alpha < MIN_CJK_RATIO:
+    return bool(alpha) and cjk / alpha >= MIN_CJK_RATIO
+
+
+def distance(
+    point: dict[str, float], config: dict[str, FeatureStats], to: str
+) -> float:
+    return math.sqrt(sum((point[k] - f[to]) ** 2 for k, f in config.items()))
+
+
+def classify(text: str, model: str) -> Report | None:
+    config = MODELS[model]
+    # Scored one paragraph at a time, because `ttr` falls mechanically with token
+    # count and carries the largest centroid separation of any feature. Measured
+    # whole, the same prose repeated twice drops from +2.05 to -0.38 and the gate
+    # loses it, so a payload is only ever compared against the paragraph-sized
+    # units the centroids were fitted on. The worst paragraph carries the verdict.
+    scored = []
+    for para in PARA_SPLIT.split(text):
+        body = strip_noise(para)
+        if not admissible(body):
+            continue
+        metrics = measure(body)
+        point = {k: (metrics[k] - f['mu']) / f['sd'] for k, f in config.items()}
+        score = distance(point, config, 'human') - distance(point, config, 'assistant')
+        scored.append((score, para, body, metrics))
+    if not scored:
         return None
 
-    config = MODELS[model]
-    metrics = measure(body)
-    point = {k: (metrics[k] - f['mu']) / f['sd'] for k, f in config.items()}
-
-    def distance(centroid: str) -> float:
-        return math.sqrt(sum((point[k] - f[centroid]) ** 2 for k, f in config.items()))
-
+    score, passage, body, metrics = max(scored, key=lambda row: row[0])
     return {
         'model': model,
         # Positive means closer to the assistant's centroid than to a human's.
-        'score': round(distance('human') - distance('assistant'), 2),
+        'score': round(score, 2),
         'chars': len(body),
+        'passage': passage.strip(),
         'metrics': {k: round(metrics[k], 3) for k in MEDIANS},
         'medians': {
             k: {'human': v['human'], model: v[model]} for k, v in MEDIANS.items()
