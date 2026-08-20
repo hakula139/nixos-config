@@ -9,24 +9,24 @@
 }:
 
 let
-  agentScript = pkgs.copyPathToStore ./agent.sh;
-in
-pkgs.writeShellApplication {
-  name = "cloudcone-agent";
+  inherit (pkgs) lib;
+
+  # `inetutils` is deliberately absent: it ships a `ping` that rejects `-B`, and
+  # on PATH it would shadow the one from `iputils`.
   runtimeInputs = with pkgs; [
     coreutils
     curl
-    findutils
-    gawk
-    gnugrep
-    inetutils
     iproute2
     iputils
     procps
     util-linux
   ];
-  text = ''
-    export CLOUDCONE_SERVER_KEY_FILE="${serverKeyFile}"
-    exec ${pkgs.bash}/bin/bash ${agentScript}
-  '';
-}
+in
+pkgs.writers.writeNuBin "cloudcone-agent" {
+  makeWrapperArgs = [
+    "--prefix"
+    "PATH"
+    ":"
+    (lib.makeBinPath runtimeInputs)
+  ];
+} (builtins.replaceStrings [ "@serverKeyFile@" ] [ serverKeyFile ] (builtins.readFile ./agent.nu))
