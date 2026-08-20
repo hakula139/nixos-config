@@ -48,5 +48,5 @@ ARGS=(
 [[ -n "$PROJECT_FOLDER" ]] && ARGS+=(--project-folder "$PROJECT_FOLDER")
 
 mkdir -p "$STATE_DIR"
-timeout "@toolTimeout@" wakatime-cli "${ARGS[@]}" >/dev/null 2>&1 || true
+"@timeout@" "@toolTimeout@" wakatime-cli "${ARGS[@]}" >/dev/null 2>&1 || true
 printf '%s\n' "$NOW" >"$STATE_FILE"
