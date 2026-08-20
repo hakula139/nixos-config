@@ -29,7 +29,7 @@ These either fail silently or raise an error that points somewhere other than th
 
 Both writers prepend an absolute-store-path shebang, which demotes a script's own `#!/usr/bin/env nu` line to a comment. Keep that line anyway, since it makes the file runnable and LSP-checkable standalone. To spawn nushell from inside a generated script, read `$nu.current-exe` rather than substituting a store path.
 
-Neither writer validates a `use` target. A `use @placeholder@ *` whose substitution is missing or misspelled builds without complaint, then dies at parse time on first run, which lands before any `try` in the script can fail open. So a shared module costs one real run per consumer to keep honest, and a gate that must fail open is better off duplicating a helper than importing one.
+Neither writer validates a `use` target. A missing or misspelled substitution builds clean, then dies at parse time before any `try` can fail open, so a script that has to fail open is better off duplicating a helper than importing one.
 
 ## Linting
 
@@ -39,7 +39,7 @@ Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for e
 
 ## What stays bash
 
-Startup cost cuts both ways, so measure the script. Nushell starts in ~33ms of CPU time against bash's ~3ms and a `jq` fork costs ~3ms, so parsing in-process wins only past a handful of forks. The statusline crossed that line and is nushell now. The two prose gates under `shared/hooks/scripts/` crossed it on both counts, forking `jq` nine and eleven times while blocking on a `claude -p` judge for tens of seconds, with 344ms of python and jieba startup ahead of the Chinese one, so the interpreter never shows up in the total. `auto-format.sh` and `wakatime.sh` read three fields and two and return in 8.6ms against nushell's 24.7ms, so they stay bash. Every hook fails open, so a porting bug reads as a gate that quietly stopped firing. Diff the old script against the new over a battery of hook payloads before deleting the bash.
+Nushell starts in ~33ms against bash's ~3ms, so a script on a hot synchronous path stays bash. Past a handful of `jq` forks, or in anything that already blocks for seconds, that startup disappears into the total and nushell wins. `auto-format.sh` and `wakatime.sh` read a few fields each and return in 8.6ms, so they stay. Every hook fails open, so a porting bug reads as a gate that quietly stopped firing: diff the old script against the new over a battery of hook payloads before deleting the bash.
 
 The rest are structural:
 
