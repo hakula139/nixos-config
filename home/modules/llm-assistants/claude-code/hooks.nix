@@ -55,7 +55,7 @@ in
         }
       ];
     }
-    # Style gate - flag banned prose tics in edited files and MCP-published prose
+    # English style gate - flag banned prose tics
     {
       matcher = proseGateMatcher;
       hooks = [
@@ -63,6 +63,17 @@ in
           type = "command";
           command = "${hookScripts.proseGate}";
           statusMessage = "Checking prose style";
+        }
+      ];
+    }
+    # Chinese style gate - flag prose that reads as unpolished output
+    {
+      matcher = proseGateMatcher;
+      hooks = [
+        {
+          type = "command";
+          command = "${hookScripts.zhProseGate}";
+          statusMessage = "Checking Chinese prose style";
         }
       ];
     }
