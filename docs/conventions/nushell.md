@@ -39,10 +39,10 @@ Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for e
 
 ## What stays bash
 
-Nushell starts in ~33ms against bash's ~3ms, so a script on a hot synchronous path stays bash. Past a handful of `jq` forks, or in anything that already blocks for seconds, that startup disappears into the total and nushell wins. `auto-format.sh` and `wakatime.sh` read a few fields each and return in 8.6ms, so they stay. Every hook fails open, so a porting bug reads as a gate that quietly stopped firing: diff the old script against the new over a battery of hook payloads before deleting the bash.
-
-The rest are structural:
+Nushell is the default, so what follows is the exception list, and every entry earns its place structurally. Interpreter startup is not a reason: it is tens of milliseconds against the 484ms `zh-fingerprint.py` spends importing jieba on a hook path this repo already accepts.
 
 - **A `--run` or sourced script.** `profile-loader.sh` and `mkProxyScript` are injected through `makeWrapper --run`, so the wrapper's own shell evaluates them. `teammate-launcher.sh` sources `profile-loader.sh`.
 - **An argv-forwarding wrapper.** `nu script.nu --log-as-netdata` fails with `doesn't have flag`, and there is no argv escape hatch outside `def main` parameters, which rules out `systemd-cat-native`.
 - **`exec` wrappers.** Setting a variable and handing off to the real binary has no data to structure. This covers the MCP wrappers, `notify`, and most of the remaining `writeShellScript` sites.
+
+Every hook fails open, so a porting bug reads as a gate that quietly stopped firing. Diff the old script against the new over a battery of hook payloads before deleting the bash.

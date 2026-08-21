@@ -113,7 +113,8 @@ in
 
   autoFormat = mkHookScript {
     slug = "auto-format";
-    script = ./post-tool-use/auto-format/auto-format.sh;
+    script = ./post-tool-use/auto-format/auto-format.nu;
+    writer = pkgs.writers.writeNu;
     substitutions = {
       "@nixfmt@" = lib.getExe pkgs.nixfmt;
       "@nuCheck@" = "${pkgs.nu-check}";
@@ -145,7 +146,8 @@ in
 
   wakatime = mkHookScript {
     slug = "wakatime-heartbeat";
-    script = ./post-tool-use/wakatime/wakatime.sh;
+    script = ./post-tool-use/wakatime/wakatime.nu;
+    writer = pkgs.writers.writeNu;
     substitutions = {
       "@pluginName@" = "${assistant}-hook/1.0";
       "@timeout@" = "${pkgs.coreutils}/bin/timeout";
