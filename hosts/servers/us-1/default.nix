@@ -30,8 +30,8 @@
     interfaces.ens3 = {
       ipv4.addresses = [
         {
-          address = "74.48.108.20";
-          prefixLength = 24;
+          address = "148.135.55.79";
+          prefixLength = 25;
         }
       ];
       ipv6.addresses = [
@@ -50,7 +50,7 @@
       ];
     };
 
-    defaultGateway = "74.48.108.1";
+    defaultGateway = "148.135.55.1";
     defaultGateway6 = "2607:f130:0:10d::1";
   };
 
