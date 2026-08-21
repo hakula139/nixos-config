@@ -7,7 +7,7 @@ let
 in
 {
   us-1 = {
-    ip = "74.48.108.20";
+    ip = "148.135.55.79";
     port = 35060;
     name = "us-1";
     displayName = "CloudCone-US-1";
