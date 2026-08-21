@@ -100,6 +100,7 @@ ints
 ipcidr
 iputils
 isort
+jieba
 jnoortheen
 journalctl
 kdelpf
@@ -110,6 +111,7 @@ kubeconfig
 kubectx
 lancidr
 lcount
+lcut
 libgbm
 libkrb
 libuuid
@@ -195,14 +197,15 @@ pmem
 pmset
 pname
 poppler
+posseg
 ppid
 precmd
 proxify
 psql
 pulumi
 pushd
-pydantic
 pycache
+pydantic
 pypi
 pyproject
 pyright

@@ -17,8 +17,9 @@ let
   # ----------------------------------------------------------------------------
   timeouts = rec {
     judge = 30;
+    zhJudge = 180;
     tool = 10;
-    postEdit = judge + 3 * tool;
+    postEdit = judge + zhJudge + 3 * tool;
   };
 
   # ----------------------------------------------------------------------------
@@ -29,8 +30,9 @@ let
       slug,
       script,
       substitutions ? { },
+      writer ? pkgs.writeShellScript,
     }:
-    pkgs.writeShellScript "${assistant}-${slug}" (
+    writer "${assistant}-${slug}" (
       builtins.replaceStrings (builtins.attrNames substitutions) (builtins.attrValues substitutions) (
         builtins.readFile script
       )
@@ -92,6 +94,19 @@ let
     };
     plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
   };
+
+  # ----------------------------------------------------------------------------
+  # Chinese fingerprint classifier
+  # ----------------------------------------------------------------------------
+  zhFingerprintEnv = pkgs.python3.withPackages (ps: [ ps.jieba ]);
+  zhFingerprint = pkgs.writeShellScript "zh-fingerprint" ''
+    exec ${zhFingerprintEnv}/bin/python3 ${pkgs.copyPathToStore ./scripts/zh-fingerprint.py} "$@"
+  '';
+
+  zhFingerprintModels = [
+    "claude-code"
+    "codex"
+  ];
 in
 {
   inherit timeouts;
@@ -119,8 +134,10 @@ in
 
   proseGate = mkHookScript {
     slug = "prose-gate";
-    script = ./scripts/prose-gate.sh;
+    script = ./scripts/prose-gate.nu;
+    writer = pkgs.writers.writeNu;
     substitutions = {
+      "@timeout@" = "${pkgs.coreutils}/bin/timeout";
       "@promptFile@" = "${./prompts/prose-tics.md}";
       "@judgeTimeout@" = toString timeouts.judge;
     };
@@ -133,6 +150,21 @@ in
       "@pluginName@" = "${assistant}-hook/1.0";
       "@timeout@" = "${pkgs.coreutils}/bin/timeout";
       "@toolTimeout@" = toString timeouts.tool;
+    };
+  };
+
+  zhProseGate = mkHookScript {
+    slug = "zh-prose-gate";
+    script = ./scripts/zh-prose-gate.nu;
+    writer = pkgs.writers.writeNu;
+    substitutions = {
+      "@timeout@" = "${pkgs.coreutils}/bin/timeout";
+      "@fingerprint@" = lib.optionalString (builtins.elem assistant zhFingerprintModels) "${
+        zhFingerprint
+      }";
+      "@judgeTimeout@" = toString timeouts.zhJudge;
+      "@modelId@" = assistant;
+      "@promptFile@" = "${./prompts/zh-prose-tics.md}";
     };
   };
 }
