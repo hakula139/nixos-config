@@ -29,6 +29,8 @@ These either fail silently or raise an error that points somewhere other than th
 
 Both writers prepend an absolute-store-path shebang, which demotes a script's own `#!/usr/bin/env nu` line to a comment. Keep that line anyway, since it makes the file runnable and LSP-checkable standalone. To spawn nushell from inside a generated script, read `$nu.current-exe` rather than substituting a store path.
 
+Neither writer validates a `use` target. A missing or misspelled substitution builds clean, then dies at parse time before any `try` can fail open, so a script that has to fail open is better off duplicating a helper than importing one.
+
 ## Linting
 
 `nu-check` (`packages/nu-check/`) wraps `nu --ide-check`. It gates delimiters and the arity of your own `def`s and little else, since a mistyped command name passes as an external call, so a script still needs one real run.
@@ -37,7 +39,7 @@ Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for e
 
 ## What stays bash
 
-Nushell starts in ~33ms against bash's ~3ms, so a script on a hot synchronous path stays bash. `auto-format.sh` and `wakatime.sh` read a few fields each and return in 8.6ms, so they stay. Every hook fails open, so a porting bug reads as a gate that quietly stopped firing: diff the old script against the new over a battery of hook payloads before deleting the bash.
+Nushell starts in ~33ms against bash's ~3ms, so a script on a hot synchronous path stays bash. Past a handful of `jq` forks, or in anything that already blocks for seconds, that startup disappears into the total and nushell wins. `auto-format.sh` and `wakatime.sh` read a few fields each and return in 8.6ms, so they stay. Every hook fails open, so a porting bug reads as a gate that quietly stopped firing: diff the old script against the new over a battery of hook payloads before deleting the bash.
 
 The rest are structural:
 
