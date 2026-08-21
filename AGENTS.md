@@ -20,7 +20,7 @@ This file is an index. It holds only what applies to every task, while anything 
 
 ## Two things that bite regardless of the task
 
-**Never commit `data/corp-domain.nix` with the real value.** The placeholder lives in git while the real value stays working-tree only. On a long branch, audit it before pushing.
+**Never commit `data/corp-domain.nix` with the real value.** The placeholder lives in git while the real value stays working-tree only. On a long branch, audit it before pushing. A worktree checkout therefore holds the placeholder, so a `nixsw` from one renders `no_proxy` without the corp domain and routes the LLM gateway and every corp MCP server through the proxy, which fails at the transport layer with no HTTP status to explain it. Build from the main tree, or copy the real file in first.
 
 **Never run `agenix -r` from a shell tool.** It checks `[ -t 0 ]` and overrides `EDITOR` to `cp -- /dev/stdin` when stdin lacks a TTY, silently emptying every secret before re-encrypting. It needs an interactive terminal. Details in [docs/guides/secrets.md](docs/guides/secrets.md).
 
