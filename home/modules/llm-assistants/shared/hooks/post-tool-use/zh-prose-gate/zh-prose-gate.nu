@@ -3,15 +3,11 @@
 # ==============================================================================
 # Chinese Prose Gate (PostToolUse)
 # ==============================================================================
-# Measures the Chinese prose the assistant just wrote against this assistant's
-# own unpolished-output fingerprint, then hands the numbers to a headless
-# `claude -p` judge. Emits additionalContext (non-halting). Fails open on any
+# Measures the Chinese the assistant just wrote against this assistant's own
+# unpolished-output fingerprint, then hands the numbers to a headless
+# `claude -p` judge. Emits additionalContext (non-halting), fails open on any
 # error, and stays inert when no classifier was fitted for this assistant.
-#
-# The prompt and this context stay English apart from the specimens and the
-# judge's own `fix`: an all-Chinese prompt doubles as the judge's model of
-# normal Chinese, and scored 0.37 colons-and-semicolons per clause in its
-# prescriptions against 0.13 once the scaffolding moved to English.
+# README.md holds the corpus, the method, and why the prompt stays English.
 # ==============================================================================
 
 const TIMEOUT = "@timeout@"
@@ -106,7 +102,7 @@ def gate []: nothing -> any {
     return null
   }
   # The classifier reports its own short-text and low-Chinese rejections through
-  # a non-zero exit, since both leave the ratios unstable rather than noisy.
+  # a non-zero exit, since both leave the ratios too unstable to score.
   let measured = ($content | ^$FINGERPRINT $MODEL_ID | complete)
   if $measured.exit_code != 0 or ($measured.stdout | is-empty) {
     return null

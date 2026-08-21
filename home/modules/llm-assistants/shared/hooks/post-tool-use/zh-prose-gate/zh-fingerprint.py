@@ -5,14 +5,15 @@ import re
 import sys
 from collections import Counter
 from collections.abc import Sequence
-from typing import TypedDict
+from typing import NamedTuple, TypedDict
 
 
-class FeatureStats(TypedDict):
-    mu: float
-    sd: float
-    human: float
-    assistant: float
+class FeatureStats(NamedTuple):
+    human_intercept: float
+    human_slope: float
+    assistant_intercept: float
+    assistant_slope: float
+    pooled_sd: float
 
 
 class Report(TypedDict):
@@ -31,29 +32,27 @@ class Report(TypedDict):
     antithesis: int
 
 
-# Nearest-centroid parameters, one classifier per assistant, fitted on the
-# training half of a labelled corpus (hakula.xyz-kiln prose for human, session
-# transcripts for each assistant's own Chinese) and scored on the disjoint other
-# half, over the paragraphs long enough to measure: claude-code 82% recall at
-# 10% false positives, codex 92% at 3%. Gemini is absent on purpose: its Chinese
-# sits too close to human prose to separate.
-#
-# Per feature, `mu` and `sd` z-score the measured ratio against the training
-# half, and `human` and `assistant` are the two class centroids in that space.
+# One classifier per assistant. Corpus, method and measured rates are in
+# README.md; re-derive rather than hand-edit these. Gemini is absent on purpose,
+# since its Chinese sits too close to human prose to separate.
 MODELS: dict[str, dict[str, FeatureStats]] = {
     'claude-code': {
-        'ttr': {'mu': 0.7750, 'sd': 0.0761, 'human': -0.463, 'assistant': 0.561},
-        'adv': {'mu': 0.0693, 'sd': 0.0298, 'human': 0.499, 'assistant': -0.604},
-        'part': {'mu': 0.0839, 'sd': 0.0342, 'human': 0.573, 'assistant': -0.694},
-        'noun': {'mu': 0.1726, 'sd': 0.0450, 'human': 0.325, 'assistant': -0.393},
-        'link': {'mu': 0.0715, 'sd': 0.0812, 'human': -0.432, 'assistant': 0.523},
+        'ttr': FeatureStats(1.2980, -0.1175, 1.1885, -0.0771, 0.1039),
+        'adv': FeatureStats(0.0601, 0.0, 0.0530, 0.0, 0.0392),
+        'part': FeatureStats(0.0757, 0.0, 0.0607, 0.0, 0.0365),
+        'noun': FeatureStats(0.1810, 0.0, 0.1473, 0.0, 0.0630),
+        'link': FeatureStats(0.0454, 0.0, 0.0863, 0.0, 0.1104),
+        'reuse': FeatureStats(-0.1314, 0.0509, -0.0187, 0.0102, 0.1206),
+        'pent': FeatureStats(0.0108, 0.3076, -1.1333, 0.6562, 0.5315),
     },
     'codex': {
-        'ttr': {'mu': 0.8128, 'sd': 0.0982, 'human': -0.744, 'assistant': 0.834},
-        'part': {'mu': 0.0726, 'sd': 0.0409, 'human': 0.755, 'assistant': -0.847},
-        'noun': {'mu': 0.1977, 'sd': 0.0504, 'human': -0.208, 'assistant': 0.233},
-        'pent': {'mu': 1.7864, 'sd': 0.3636, 'human': -0.054, 'assistant': 0.060},
-        'link': {'mu': 0.0983, 'sd': 0.1159, 'human': -0.534, 'assistant': 0.599},
+        'ttr': FeatureStats(1.2980, -0.1175, 1.4582, -0.1298, 0.1002),
+        'adv': FeatureStats(0.0601, 0.0, 0.0594, 0.0, 0.0397),
+        'part': FeatureStats(0.0757, 0.0, 0.0412, 0.0, 0.0358),
+        'noun': FeatureStats(0.1810, 0.0, 0.1858, 0.0, 0.0649),
+        'link': FeatureStats(0.0454, 0.0, 0.1295, 0.0, 0.1207),
+        'reuse': FeatureStats(-0.1314, 0.0509, -0.0798, 0.0220, 0.1185),
+        'pent': FeatureStats(0.0108, 0.3076, -0.2894, 0.4118, 0.4745),
     },
 }
 
@@ -89,7 +88,7 @@ HEDGES = [
     '有点',
     '至少',
 ]
-ATTITUDE = [
+ATTITUDES = [
     '本来',
     '毕竟',
     '当然',
@@ -122,56 +121,64 @@ ANTITHESIS = re.compile(
     r'|而不是'
 )
 
-MIN_CHARS = 100
+MIN_CHARS = 45
 MIN_CJK_RATIO = 0.55
 MIN_CJK_DENSITY = 0.30
-PARA_SPLIT = re.compile(r'\n\s*\n')
-
-# Held-out rates at the one-paragraph floor: 89% recall against 15% false
-# positives for claude-code, 92% against 9% for codex. The judge then rules on
-# whatever gets through, so the cheap check only has to skip what is clearly
-# clean. Since the verdict is the worst of a payload's paragraphs, a longer
-# payload gets more draws and its rate compounds, taking a five-paragraph
-# document to 82% at a fixed floor against 27% for one. The log term holds the
-# rate flat where it was fitted, and the extra draws carry document recall to
-# roughly 100%.
-SCORE_FLOOR = -0.4
-FLOOR_PER_LOG_BLOCK = 0.6
 CJK = re.compile(r'[\u4e00-\u9fff]')
 LATIN = re.compile(r'[A-Za-z]')
+PARA_SPLIT = re.compile(r'\n\s*\n')
 
-MARKS = '，。；、：！？…（）「」『』—()《》%'
+# Outside the fitted length range the class means are extrapolation, so scoring
+# clamps to it.
+LN_CHARS_RANGE = (math.log(MIN_CHARS), math.log(584))
 
-# Chinese runs short clauses in series on commas, where English divides a
-# sentence with a punctuation hierarchy. Assistant Chinese keeps the words and
-# imports the hierarchy, which is where the translated feel comes from.
-LINK_MARKS = '：；'
-CLAUSE_SPLIT = re.compile(r'[，。；、：！？…—]')
+# Calibrated so that one paragraph of the author's own typed Chinese clears the
+# floor 20% of the time. The log term pays for worst-of-k: the verdict is the
+# highest-scoring paragraph, so a longer payload draws more chances at the same
+# threshold. Typed Chinese is the register to calibrate on, since it disagrees
+# with essay prose by 2.5 points of score and a hook payload is typed.
+SCORE_FLOOR = 3.04
+FLOOR_PER_LOG_BLOCK = 1.23
+
+# Chinese strings short clauses on commas where English divides with a
+# punctuation hierarchy, and assistant Chinese imports the hierarchy.
+LINK_MARKS = '；：'
+CLAUSE_MARKS = '。！？…；：，、—'
+CLAUSE_SPLIT = re.compile(f'[{CLAUSE_MARKS}]')
+MARK_RUN = re.compile(f'[{CLAUSE_MARKS}]{{2,}}')
+MARKS = CLAUSE_MARKS + '（）()「」『』《》%'
+
+
+def collapse_marks(run: re.Match[str]) -> str:
+    # A run of marks is residue from the removals above, and would inflate `link`
+    # and `pent`. A link mark inside it cannot be residue, so it survives.
+    text = run.group(0)
+    return next((ch for ch in LINK_MARKS if ch in text), text[0])
 
 
 def strip_noise(text: str) -> str:
     text = re.sub(r'^\+\+\+.*?\+\+\+', '', text, flags=re.S)
     text = re.sub(r'```.*?```', '', text, flags=re.S)
     text = re.sub(r':::.*?:::', '', text, flags=re.S)
-    text = re.sub(r'`[^`]*`', 'X', text)
+    text = re.sub(r'`[^`]*`', '', text)
     text = re.sub(r'!?\[([^\]]*)\]\([^)]*\)', r'\1', text)
     text = re.sub(r'^\s*#+ .*$', '', text, flags=re.M)
     text = re.sub(r'<!--.*?-->', '', text, flags=re.S)
     text = re.sub(r'\[\^[^\]]+\]:?', '', text)
     text = re.sub(r'[*_>|#]', '', text)
-    # The next three drop text whose diction belongs to someone else, since
-    # dense quotation drags every ratio toward the assistant side. Japanese
-    # first: one kana character pulls in the kana and kanji run following it,
-    # which is how a title or a lyric leaves no CJK residue behind.
+    # Quoted diction is someone else's and drags every ratio toward the assistant
+    # side, so the next three remove it. Japanese leads: one kana character pulls in
+    # the kana and kanji run after it, which is how a lyric leaves no CJK residue.
     text = re.sub(r'[\u3040-\u30ff][\u3040-\u30ff\u4e00-\u9fff]*', '', text)
     text = re.sub(r'[「『][^」』]{0,80}[」』]', '', text)
     text = re.sub(r"[A-Za-z][A-Za-z',. ]{6,}", '', text)
-    return re.sub(r'\s+', '', text)
+    text = re.sub(r'\s+', '', text)
+    return MARK_RUN.sub(collapse_marks, text)
 
 
 def measure(body: str) -> dict[str, float]:
-    # Imported here rather than at module scope: jieba costs 484ms to load and the
-    # admission guards reject before reaching this, which is most calls.
+    # Imported inside the function: jieba costs 484ms to load, and the admission
+    # guards reject before reaching this on most calls.
     import jieba
     import jieba.posseg as pseg
 
@@ -190,7 +197,7 @@ def measure(body: str) -> dict[str, float]:
         'adv': pos.get('d', 0) / tags,
         'part': pos.get('u', 0) / tags,
         'noun': pos.get('n', 0) / tags,
-        'link': sum(1 for ch in body if ch in LINK_MARKS) / clauses,
+        'link': sum(marks[ch] for ch in LINK_MARKS) / clauses,
         'reuse': sum(v for v in bigrams.values() if v > 1) / max(1, total - 1),
         'pent': -sum(
             (v / mark_total) * math.log2(v / mark_total) for v in marks.values()
@@ -217,35 +224,38 @@ def admissible(body: str) -> bool:
     return bool(alpha) and cjk / alpha >= MIN_CJK_RATIO
 
 
-def distance(
-    point: dict[str, float], config: dict[str, FeatureStats], to: str
+def class_score(
+    metrics: dict[str, float], config: dict[str, FeatureStats], chars: int
 ) -> float:
-    return math.sqrt(sum((point[k] - f[to]) ** 2 for k, f in config.items()))
+    lo, hi = LN_CHARS_RANGE
+    ln = max(lo, min(hi, math.log(chars)))
+    total = 0.0
+    for k, f in config.items():
+        x = metrics[k]
+        human = f.human_intercept + f.human_slope * ln
+        assistant = f.assistant_intercept + f.assistant_slope * ln
+        total += ((x - human) ** 2 - (x - assistant) ** 2) / f.pooled_sd**2
+    return total
 
 
 def classify(text: str, model: str) -> Report | None:
     config = MODELS[model]
-    # Scored one paragraph at a time, because `ttr` falls mechanically with token
-    # count and carries the largest centroid separation of any feature. Measured
-    # whole, the same prose repeated twice drops from +2.05 to -0.38 and the gate
-    # loses it, so a payload is only ever compared against the paragraph-sized
-    # units the centroids were fitted on. The worst paragraph carries the verdict.
+    # Several features move with length, so scoring a whole payload would compare it
+    # against means fitted for a length it does not have.
     scored = []
     for para in PARA_SPLIT.split(text):
         body = strip_noise(para)
         if not admissible(body):
             continue
         metrics = measure(body)
-        point = {k: (metrics[k] - f['mu']) / f['sd'] for k, f in config.items()}
-        score = distance(point, config, 'human') - distance(point, config, 'assistant')
-        scored.append((score, para, body, metrics))
+        scored.append((class_score(metrics, config, len(body)), para, body, metrics))
     if not scored:
         return None
 
     score, passage, body, metrics = max(scored, key=lambda row: row[0])
     return {
         'model': model,
-        # Positive means closer to the assistant's centroid than to a human's.
+        # Positive means nearer this assistant's mean than a human's.
         'score': round(score, 2),
         'floor': round(SCORE_FLOOR + FLOOR_PER_LOG_BLOCK * math.log(len(scored)), 2),
         'chars': len(body),
@@ -256,8 +266,8 @@ def classify(text: str, model: str) -> Report | None:
         },
         'hedge_per_1k': per_1k(body, HEDGES),
         'hedge_hits': [w for w in HEDGES if w in body],
-        'attitude_per_1k': per_1k(body, ATTITUDE),
-        'attitude_hits': [w for w in ATTITUDE if w in body],
+        'attitude_per_1k': per_1k(body, ATTITUDES),
+        'attitude_hits': [w for w in ATTITUDES if w in body],
         'antithesis': len(ANTITHESIS.findall(body)),
     }
 

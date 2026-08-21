@@ -168,6 +168,7 @@ npmjs
 nslookup
 nspr
 nufmt
+numstat
 numtide
 nvcr
 nvim
