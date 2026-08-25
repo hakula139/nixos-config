@@ -132,8 +132,6 @@ def collect-files [input: record]: nothing -> list<string> {
 }
 
 def format-edited [] {
-  # `open /dev/stdin` re-opens fd 0 by path and raises ENXIO once the caller
-  # passes a socket, which is what Node's `spawn` hands a hook.
   let input = (^cat | from json)
   if ($input | describe | str starts-with "record") == false {
     return

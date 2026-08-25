@@ -20,8 +20,6 @@ const BEAT_INTERVAL = 60
 # `from json` hands back non-JSON text unchanged rather than raising, and a
 # payload the hook cannot read still earns a heartbeat, hence the empty record.
 def payload []: nothing -> record {
-  # `^cat`, since `open /dev/stdin` raises ENXIO on the socket Node's `spawn`
-  # hands a hook.
   let parsed = (try { ^cat | from json } catch { {} })
   if ($parsed | describe | str starts-with "record") { $parsed } else { {} }
 }
