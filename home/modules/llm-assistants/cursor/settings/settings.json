@@ -257,6 +257,8 @@
   },
   "nix.enableLanguageServer": true,
   "notebook.output.scrolling": true,
+  "python-envs.terminal.autoActivationType": "off",
+  "python.terminal.activateEnvironment": false,
   "python.terminal.useEnvFile": true,
   "redhat.telemetry.enabled": true,
   "remote.autoForwardPortsSource": "hybrid",
