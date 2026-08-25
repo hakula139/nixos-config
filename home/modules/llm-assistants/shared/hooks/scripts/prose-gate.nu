@@ -38,27 +38,30 @@ def content-of [input: record]: nothing -> string {
   }
 }
 
-# The verdict sits under `.result`, sometimes wrapped in a code fence, so take
-# the outermost braces. `from json` returns non-JSON text unchanged rather than
-# raising, hence the shape check.
+# The judge scans in prose before the verdict, and that scan quotes the text
+# under judgement, braces and all. The last line parsing as a JSON object with
+# `ok` is therefore the only safe anchor.
 def verdict-of [raw: string]: nothing -> record {
   let outer = ($raw | from json)
   if ($outer | describe | str starts-with "record") == false {
     return {}
   }
-  let found = (
+  let candidates = (
     $outer
     | get -o result
     | default ""
-    | str replace --all "\n" ""
-    | parse --regex '(?<json>\{.*\})'
-    | get json
+    | lines
+    | reverse
+    | each {|line| $line | parse --regex '(?<json>\{.*\})' | get json }
+    | flatten
   )
-  if ($found | is-empty) {
-    return {}
+  for candidate in $candidates {
+    let parsed = (try { $candidate | from json } catch { null })
+    if ($parsed | describe | str starts-with "record") and ($parsed | get -o ok) != null {
+      return $parsed
+    }
   }
-  let parsed = ($found | first | from json)
-  if ($parsed | describe | str starts-with "record") == false { {} } else { $parsed }
+  {}
 }
 
 def judge [content: string]: nothing -> string {
