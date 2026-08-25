@@ -19,6 +19,7 @@ const TAPLO = "@taplo@"
 
 const MAX_LINES = 20
 
+# A `whenDev` tool is an empty string on a non-dev host.
 def have [tool: string]: nothing -> bool {
   which $tool | is-not-empty
 }
