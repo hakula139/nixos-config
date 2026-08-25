@@ -144,9 +144,9 @@ FLOOR_PER_LOG_BLOCK = 1.23
 # punctuation hierarchy, and assistant Chinese imports the hierarchy.
 LINK_MARKS = '；：'
 CLAUSE_MARKS = '。！？…；：，、—'
-CLAUSE_SPLIT = re.compile(f'[{CLAUSE_MARKS}]')
-MARK_RUN = re.compile(f'[{CLAUSE_MARKS}]{{2,}}')
 MARKS = CLAUSE_MARKS + '（）()「」『』《》%'
+CLAUSE_SPLIT = re.compile(f'[{CLAUSE_MARKS}]')
+CLAUSE_MARK_RUN = re.compile(f'[{CLAUSE_MARKS}]{{2,}}')
 
 
 def collapse_marks(run: re.Match[str]) -> str:
@@ -173,7 +173,7 @@ def strip_noise(text: str) -> str:
     text = re.sub(r'[「『][^」』]{0,80}[」』]', '', text)
     text = re.sub(r"[A-Za-z][A-Za-z',. ]{6,}", '', text)
     text = re.sub(r'\s+', '', text)
-    return MARK_RUN.sub(collapse_marks, text)
+    return CLAUSE_MARK_RUN.sub(collapse_marks, text)
 
 
 def measure(body: str) -> dict[str, float]:
