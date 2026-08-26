@@ -103,7 +103,7 @@ let
     exec ${zhFingerprintEnv}/bin/python3 ${pkgs.copyPathToStore ./post-tool-use/zh-prose-gate/zh-fingerprint.py} "$@"
   '';
 
-  zhFingerprintModels = [
+  zhFingerprintAssistants = [
     "claude-code"
     "codex"
   ];
@@ -159,11 +159,11 @@ in
     writer = pkgs.writers.writeNu;
     substitutions = {
       "@timeout@" = "${pkgs.coreutils}/bin/timeout";
-      "@fingerprint@" = lib.optionalString (builtins.elem assistant zhFingerprintModels) "${
+      "@fingerprint@" = lib.optionalString (builtins.elem assistant zhFingerprintAssistants) "${
         zhFingerprint
       }";
       "@judgeTimeout@" = toString timeouts.zhJudge;
-      "@modelId@" = assistant;
+      "@assistantId@" = assistant;
       "@promptFile@" = "${./post-tool-use/zh-prose-gate/zh-prose-tics.md}";
     };
   };

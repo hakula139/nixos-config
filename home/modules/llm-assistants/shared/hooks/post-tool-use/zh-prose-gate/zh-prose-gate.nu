@@ -13,7 +13,7 @@
 const TIMEOUT = "@timeout@"
 const FINGERPRINT = "@fingerprint@"
 const PROMPT_FILE = "@promptFile@"
-const MODEL_ID = "@modelId@"
+const ASSISTANT_ID = "@assistantId@"
 const JUDGE_TIMEOUT = "@judgeTimeout@"
 
 const MCP_FIELDS = [message, description, body, note, content, new_content]
@@ -103,7 +103,7 @@ def gate []: nothing -> any {
   }
   # The classifier reports its own short-text and low-Chinese rejections through
   # a non-zero exit, since both leave the ratios too unstable to score.
-  let measured = ($content | ^$FINGERPRINT $MODEL_ID | complete)
+  let measured = ($content | ^$FINGERPRINT $ASSISTANT_ID | complete)
   if $measured.exit_code != 0 or ($measured.stdout | is-empty) {
     return null
   }
@@ -114,9 +114,8 @@ def gate []: nothing -> any {
   if ($parsed | get -o score | default 0) <= ($parsed | get -o floor | default 0) {
     return null
   }
-  # The judge rules on the one paragraph the metrics were computed from, since a
-  # report describing 114 characters of a 3000-character payload asks it to find
-  # symptoms in text that was never measured.
+  # The judge rules on the highest-scoring paragraph alone. A report on 114 of a
+  # 3000-character payload asks it to find symptoms in unmeasured text.
   let passage = ($parsed | get -o passage | default "")
   if ($passage | is-empty) {
     return null

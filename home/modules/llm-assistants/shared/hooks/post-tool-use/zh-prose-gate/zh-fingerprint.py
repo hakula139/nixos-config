@@ -17,14 +17,14 @@ class FeatureStats(NamedTuple):
 
 
 class Report(TypedDict):
-    model: str
+    assistant: str
     score: float
     floor: float
-    chars: int
+    body_chars: int
     passage: str
-    # Both are keyed off MEDIANS at runtime, so they stay plain mappings.
+    # Keyed by feature name at runtime, so both stay plain mappings.
     metrics: dict[str, float]
-    medians: dict[str, dict[str, float]]
+    means: dict[str, dict[str, float]]
     hedge_per_1k: float
     hedge_hits: list[str]
     attitude_per_1k: float
@@ -32,10 +32,11 @@ class Report(TypedDict):
     antithesis: int
 
 
-# One classifier per assistant. Corpus, method and measured rates are in
-# README.md; re-derive rather than hand-edit these. Gemini is absent on purpose,
-# since its Chinese sits too close to human prose to separate.
-MODELS: dict[str, dict[str, FeatureStats]] = {
+# One classifier per assistant. These are a fit, so one hand-edited row breaks
+# the pooled variance the rest of it depends on. Corpus and method are in
+# README.md. Gemini is absent on purpose, since its Chinese sits too close to
+# human prose to separate.
+ASSISTANTS: dict[str, dict[str, FeatureStats]] = {
     'claude-code': {
         'ttr': FeatureStats(1.2980, -0.1175, 1.1885, -0.0771, 0.1039),
         'adv': FeatureStats(0.0601, 0.0, 0.0530, 0.0, 0.0392),
@@ -54,16 +55,6 @@ MODELS: dict[str, dict[str, FeatureStats]] = {
         'reuse': FeatureStats(-0.1314, 0.0509, -0.0798, 0.0220, 0.1185),
         'pent': FeatureStats(0.0108, 0.3076, -0.2894, 0.4118, 0.4745),
     },
-}
-
-MEDIANS: dict[str, dict[str, float]] = {
-    'ttr': {'human': 0.737, 'claude-code': 0.828, 'codex': 0.898},
-    'adv': {'human': 0.083, 'claude-code': 0.046, 'codex': 0.062},
-    'part': {'human': 0.103, 'claude-code': 0.062, 'codex': 0.035},
-    'noun': {'human': 0.185, 'claude-code': 0.153, 'codex': 0.214},
-    'link': {'human': 0.000, 'claude-code': 0.111, 'codex': 0.143},
-    'reuse': {'human': 0.048, 'claude-code': 0.000, 'codex': 0.000},
-    'pent': {'human': 1.811, 'claude-code': 2.121, 'codex': 1.842},
 }
 
 HEDGES = [
@@ -122,8 +113,8 @@ ANTITHESIS = re.compile(
 )
 
 MIN_CHARS = 45
-MIN_CJK_RATIO = 0.55
-MIN_CJK_DENSITY = 0.30
+MIN_CJK_OF_CHARS = 0.30
+MIN_CJK_OF_ALPHA = 0.55
 CJK = re.compile(r'[\u4e00-\u9fff]')
 LATIN = re.compile(r'[A-Za-z]')
 PARA_SPLIT = re.compile(r'\n\s*\n')
@@ -135,10 +126,10 @@ LN_CHARS_RANGE = (math.log(MIN_CHARS), math.log(584))
 # Calibrated so that one paragraph of the author's own typed Chinese clears the
 # floor 20% of the time. The log term pays for worst-of-k: the verdict is the
 # highest-scoring paragraph, so a longer payload draws more chances at the same
-# threshold. Typed Chinese is the register to calibrate on, since it disagrees
-# with essay prose by 2.5 points of score and a hook payload is typed.
+# threshold. Typed Chinese is the register to calibrate on, since a hook payload
+# is typed and README.md measures how far it sits from essay prose.
 SCORE_FLOOR = 3.04
-FLOOR_PER_LOG_BLOCK = 1.23
+FLOOR_PER_LOG_PARA = 1.23
 
 # Chinese strings short clauses on commas where English divides with a
 # punctuation hierarchy, and assistant Chinese imports the hierarchy.
@@ -147,28 +138,33 @@ CLAUSE_MARKS = '。！？…；：，、—'
 MARKS = CLAUSE_MARKS + '（）()「」『』《》%'
 CLAUSE_SPLIT = re.compile(f'[{CLAUSE_MARKS}]')
 CLAUSE_MARK_RUN = re.compile(f'[{CLAUSE_MARKS}]{{2,}}')
+# `%` rides along because jieba emits it as a token and the fit counted it.
+MARK_SET = frozenset(MARKS)
 
 
-def collapse_marks(run: re.Match[str]) -> str:
-    # A run of marks is residue from the removals above, and would inflate `link`
-    # and `pent`. A link mark inside it cannot be residue, so it survives.
-    text = run.group(0)
+def collapse_marks(match: re.Match[str]) -> str:
+    # Removing quotes and code leaves marks adjacent, which would inflate `link`
+    # and `pent`. A link mark cannot be that residue, so it survives.
+    text = match.group(0)
     return next((ch for ch in LINK_MARKS if ch in text), text[0])
 
 
-def strip_noise(text: str) -> str:
+def strip_blocks(text: str) -> str:
+    # These four span blank lines, so they run before the paragraph split. A fence
+    # split first keeps its Chinese string literals, which then score as prose.
     text = re.sub(r'^\+\+\+.*?\+\+\+', '', text, flags=re.S)
     text = re.sub(r'```.*?```', '', text, flags=re.S)
     text = re.sub(r':::.*?:::', '', text, flags=re.S)
+    return re.sub(r'<!--.*?-->', '', text, flags=re.S)
+
+
+def strip_noise(text: str) -> str:
     text = re.sub(r'`[^`]*`', '', text)
     text = re.sub(r'!?\[([^\]]*)\]\([^)]*\)', r'\1', text)
     text = re.sub(r'^\s*#+ .*$', '', text, flags=re.M)
-    text = re.sub(r'<!--.*?-->', '', text, flags=re.S)
     text = re.sub(r'\[\^[^\]]+\]:?', '', text)
     text = re.sub(r'[*_>|#]', '', text)
-    # Quoted diction is someone else's and drags every ratio toward the assistant
-    # side, so the next three remove it. Japanese leads: one kana character pulls in
-    # the kana and kanji run after it, which is how a lyric leaves no CJK residue.
+    # A quoted Japanese line would otherwise measure as Chinese.
     text = re.sub(r'[\u3040-\u30ff][\u3040-\u30ff\u4e00-\u9fff]*', '', text)
     text = re.sub(r'[「『][^」』]{0,80}[」』]', '', text)
     text = re.sub(r"[A-Za-z][A-Za-z',. ]{6,}", '', text)
@@ -183,13 +179,13 @@ def measure(body: str) -> dict[str, float]:
     import jieba.posseg as pseg
 
     jieba.setLogLevel(60)
-    words = [w for w in jieba.lcut(body) if w.strip() and w not in MARKS]
+    words = [w for w in jieba.lcut(body) if w not in MARK_SET]
     tagged = pseg.lcut(body)
     total = len(words) or 1
     pos = Counter(t.flag[0] for t in tagged)
     tags = sum(pos.values()) or 1
     bigrams = Counter(zip(words, words[1:], strict=False))
-    marks = Counter(ch for ch in body if ch in MARKS)
+    marks = Counter(ch for ch in body if ch in MARK_SET)
     mark_total = sum(marks.values()) or 1
     clauses = len([c for c in CLAUSE_SPLIT.split(body) if c]) or 1
     return {
@@ -213,74 +209,85 @@ def admissible(body: str) -> bool:
     if len(body) < MIN_CHARS:
         return False
     cjk = len(CJK.findall(body))
-    # Two floors. Density refuses a payload that is mostly digits, rules or ASCII
-    # art, none of which count as either script, so the ratio below would read a
-    # single CJK character as 100% Chinese. The ratio then refuses real prose in
-    # another language, where measuring against the whole body would instead have
-    # counted a Chinese paragraph's own commas as foreign.
-    if cjk / len(body) < MIN_CJK_DENSITY:
+    # Two floors. The first refuses a payload that is mostly digits, rules or ASCII
+    # art, where the second would read a single CJK character as 100% Chinese. The
+    # second catches a technical Chinese paragraph carrying more Latin identifiers
+    # than prose.
+    if cjk / len(body) < MIN_CJK_OF_CHARS:
         return False
-    alpha = cjk + len(LATIN.findall(body))
-    return bool(alpha) and cjk / alpha >= MIN_CJK_RATIO
+    return cjk / (cjk + len(LATIN.findall(body))) >= MIN_CJK_OF_ALPHA
 
 
-def class_score(
-    metrics: dict[str, float], config: dict[str, FeatureStats], chars: int
-) -> float:
+class Scored(NamedTuple):
+    score: float
+    passage: str
+    body: str
+    metrics: dict[str, float]
+    means: dict[str, dict[str, float]]
+
+
+def discriminant(
+    metrics: dict[str, float], stats: dict[str, FeatureStats], chars: int
+) -> tuple[float, dict[str, dict[str, float]]]:
     lo, hi = LN_CHARS_RANGE
     ln = max(lo, min(hi, math.log(chars)))
     total = 0.0
-    for k, f in config.items():
+    means: dict[str, dict[str, float]] = {}
+    for k, f in stats.items():
         x = metrics[k]
-        human = f.human_intercept + f.human_slope * ln
-        assistant = f.assistant_intercept + f.assistant_slope * ln
-        total += ((x - human) ** 2 - (x - assistant) ** 2) / f.pooled_sd**2
-    return total
+        human_mean = f.human_intercept + f.human_slope * ln
+        assistant_mean = f.assistant_intercept + f.assistant_slope * ln
+        total += ((x - human_mean) ** 2 - (x - assistant_mean) ** 2) / f.pooled_sd**2
+        means[k] = {
+            'human': round(human_mean, 3),
+            'assistant': round(assistant_mean, 3),
+        }
+    return total, means
 
 
-def classify(text: str, model: str) -> Report | None:
-    config = MODELS[model]
+def classify(text: str, assistant: str) -> Report | None:
+    stats = ASSISTANTS[assistant]
     # Several features move with length, so scoring a whole payload would compare it
     # against means fitted for a length it does not have.
-    scored = []
-    for para in PARA_SPLIT.split(text):
+    scored: list[Scored] = []
+    for para in PARA_SPLIT.split(strip_blocks(text)):
         body = strip_noise(para)
         if not admissible(body):
             continue
         metrics = measure(body)
-        scored.append((class_score(metrics, config, len(body)), para, body, metrics))
+        score, means = discriminant(metrics, stats, len(body))
+        scored.append(Scored(score, para, body, metrics, means))
     if not scored:
         return None
 
-    score, passage, body, metrics = max(scored, key=lambda row: row[0])
+    top = max(scored, key=lambda row: row.score)
     return {
-        'model': model,
+        'assistant': assistant,
         # Positive means nearer this assistant's mean than a human's.
-        'score': round(score, 2),
-        'floor': round(SCORE_FLOOR + FLOOR_PER_LOG_BLOCK * math.log(len(scored)), 2),
-        'chars': len(body),
-        'passage': passage.strip(),
-        'metrics': {k: round(metrics[k], 3) for k in MEDIANS},
-        'medians': {
-            k: {'human': v['human'], model: v[model]} for k, v in MEDIANS.items()
-        },
-        'hedge_per_1k': per_1k(body, HEDGES),
-        'hedge_hits': [w for w in HEDGES if w in body],
-        'attitude_per_1k': per_1k(body, ATTITUDES),
-        'attitude_hits': [w for w in ATTITUDES if w in body],
-        'antithesis': len(ANTITHESIS.findall(body)),
+        'score': round(top.score, 2),
+        'floor': round(SCORE_FLOOR + FLOOR_PER_LOG_PARA * math.log(len(scored)), 2),
+        'body_chars': len(top.body),
+        'passage': top.passage.strip(),
+        'metrics': {k: round(v, 3) for k, v in top.metrics.items()},
+        # Fitted at this passage's own length, so the judge compares like with like.
+        'means': top.means,
+        'hedge_per_1k': per_1k(top.body, HEDGES),
+        'hedge_hits': [w for w in HEDGES if w in top.body],
+        'attitude_per_1k': per_1k(top.body, ATTITUDES),
+        'attitude_hits': [w for w in ATTITUDES if w in top.body],
+        'antithesis': len(ANTITHESIS.findall(top.body)),
     }
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument('model', choices=list(MODELS))
+    parser.add_argument('assistant', choices=list(ASSISTANTS))
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    result = classify(sys.stdin.read(), args.model)
+    result = classify(sys.stdin.read(), args.assistant)
     if result is None:
         return 1
     json.dump(result, sys.stdout, ensure_ascii=False)

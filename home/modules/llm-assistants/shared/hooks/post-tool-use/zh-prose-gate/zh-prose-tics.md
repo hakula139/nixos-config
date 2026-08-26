@@ -4,15 +4,15 @@ Read the report first to learn which symptom to look for, then locate that sympt
 
 ## Metrics
 
-A positive `score` puts the passage nearer the centroid of this model's own unpolished output, and a higher value is more suspect. Every other metric ships with the human median and this model's median, so compare against both.
+A positive `score` puts the passage nearer this assistant's own fitted mean than a human's, and a higher value is more suspect. The seven scored ratios each ship with `means`, the two class means fitted at this passage's own length, so compare a metric against both of its own means and not against any fixed figure. `body_chars` is the length those means were computed for, and `floor` is the threshold the score already cleared.
 
-- `ttr` is lexical diversity. Above the human median means synonyms were swapped in to dodge repetition.
-- `adv` is the adverb share. Below the human median means attitude was flattened out.
-- `part` is the share of structural particles (`的`, `了`, `着`, `过`). Below the human median means the sentences were cleaned until they read like a formal translation.
-- `noun` is the noun share. Low `noun` under high `ttr` means actions were recast as noun phrases and the concepts then given fresh synonyms.
-- `link` is colons plus semicolons per clause. Above the human median means the mark may be carrying an English division of labour that Chinese does by stringing short clauses on commas. The count cannot separate that from the standard Chinese uses listed below, so a high value says where to look and settles nothing.
+- `ttr` is lexical diversity. Above `means.human` means synonyms were swapped in to dodge repetition.
+- `adv` is the adverb share. Below `means.human` means attitude was flattened out. The two classes sit level for `codex`, so this one only carries information for `claude-code`.
+- `part` is the share of structural particles (`的`, `了`, `着`, `过`). Below `means.human` means the sentences were cleaned until they read like a formal translation.
+- `noun` is the noun share. For `claude-code`, low `noun` under high `ttr` means actions were recast as noun phrases and the concepts then given fresh synonyms. `codex` sits above the human mean instead, so read the direction off `means` rather than assuming low is the suspect side.
+- `link` is colons plus semicolons per clause. Above `means.human` means the mark may be carrying an English division of labour that Chinese does by stringing short clauses on commas. The count cannot separate that from the standard Chinese uses listed below, so a high value says where to look and settles nothing.
 - `reuse` is the share of adjacent word pairs that recur. A zero means no two-word sequence appears twice, which is what a passage does when it renames its subject instead of repeating it. It counts pairs, so a keyword that recurs in varying company still reads zero.
-- `pent` is the entropy of the punctuation mix. Above the human median means more mark types are in play than Chinese usually needs.
+- `pent` is the entropy of the punctuation mix. Above `means.human` means more mark types are in play than Chinese usually needs.
 - An empty `hedge_hits` means no concessive word anywhere, and an empty `attitude_hits` means no attitude adverb. Both come up empty in three fifths of the human paragraphs long enough for this gate to measure, against four fifths of the model ones, so an empty pair is only about a third more likely from the model and carries almost nothing on its own.
 - `antithesis` counts `不是 X 而是 Y`. Two or more is a symptom.
 
@@ -48,7 +48,7 @@ The standard functions of the Chinese colon and semicolon are excluded as well. 
 
 Two short coordinate clauses with nothing but a comma inside them take a comma between them, so a semicolon there is the tic rather than the exclusion.
 
-Commentary and quotation-heavy prose sits above the `link` median for these reasons, and none of them is a tic. Markdown layout is the other source, and it accounts for every one of the highest `link` values in the human corpus: a colon following a list marker, or one separating the cells of a table row, is structure that survived the stripping of the marker around it. A payload built out of bullets or table rows therefore carries a high `link` for no stylistic reason at all.
+Commentary and quotation-heavy prose sits above the human `link` mean for these reasons, and none of them is a tic. Markdown layout is the other source, and it accounts for every one of the highest `link` values in the human corpus: a colon following a list marker, or one separating the cells of a table row, is structure that survived the stripping of the marker around it. A payload built out of bullets or table rows therefore carries a high `link` for no stylistic reason at all.
 
 The textbook inventory of Europeanized Chinese is excluded too: long attributives, chained `的`, `被` passives, `对……进行`, `……之一`, and abstract nouns ending in `性` or `化`. The human half uses most of them more than the models do and the remainder land level, so not one separates in the direction the textbooks predict, and flagging them only burns false positives.
 
@@ -58,7 +58,7 @@ Emit one line of compact JSON and nothing else:
 
 `{"ai":true|false,"conf":0.0-1.0,"tics":["<symptom name>"],"fix":"<at most 50 characters>"}`
 
-Rule `false` when `score` is negative and every metric sits on the human side, leaving `tics` empty and `fix` an empty string. Name each tic with the English label from the list above, copied verbatim.
+Rule `false` when you cannot locate a symptom in the passage, leaving `tics` empty and `fix` an empty string. You are called only on a passage whose score already cleared the floor, so the score itself is not evidence for anything. Name each tic with the English label from the list above, copied verbatim.
 
 Write `fix` in Chinese, and name the edit: which word to cut, which word goes into which sentence, or what a quoted sentence becomes.
 

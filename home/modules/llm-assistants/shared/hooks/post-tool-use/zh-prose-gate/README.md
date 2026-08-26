@@ -2,7 +2,7 @@
 
 Read this before changing this gate, its judge prompt, or the classifier's fitted constants.
 
-A `PostToolUse` hook that reads the Chinese the assistant just wrote and, when it reads as machine-generated, hands back a correction to apply in place. It emits `additionalContext` without halting and fails open, so a break costs a missed catch rather than a blocked edit. Its English sibling in `../prose-gate/` is a rule list plus a judge, and needs no more explanation than its prompt gives. This one puts a statistical classifier in front of the judge, because the tics it looks for are ratios rather than phrases, and because judging every edit would be too slow to leave enabled.
+A `PostToolUse` hook that reads the Chinese the assistant just wrote and, when it reads as machine-generated, hands back a correction to apply in place. It emits `additionalContext` without halting and fails open, so a break costs a missed catch rather than a blocked edit. Its English sibling, `../../scripts/prose-gate.nu` with its prompt at `../../prompts/prose-tics.md`, is a rule list plus a judge and needs no more explanation than that prompt gives. This one puts a statistical classifier in front of the judge, because the tics it looks for are ratios rather than phrases, and because judging every edit would be too slow to leave enabled.
 
 | File                | Role                                                                 |
 | ------------------- | -------------------------------------------------------------------- |
@@ -20,23 +20,25 @@ The inventory that turned out **not** to separate is worth as much as the one th
 
 ## What gets measured
 
-`measure()` segments the passage with `jieba` and returns seven ratios. The direction column gives the side the assistant sits on relative to human prose.
+`measure()` segments the passage with `jieba` and returns seven ratios. Each assistant column gives the side that assistant's fitted mean sits on relative to the human mean, with the class gap in pooled standard deviations at 85 characters, the corpus median.
 
-| Feature | Definition                                        | Assistant side |
-| ------- | ------------------------------------------------- | -------------- |
-| `ttr`   | distinct words / words                            | higher         |
-| `adv`   | adverb (`d`) share of POS tags                    | lower          |
-| `part`  | particle (`u`) share of POS tags                  | lower          |
-| `noun`  | noun (`n`) share of POS tags                      | lower          |
-| `link`  | colons and semicolons per clause                  | higher         |
-| `reuse` | repeated word bigrams / bigrams                   | lower          |
-| `pent`  | Shannon entropy over punctuation-mark frequencies | higher         |
+| Feature | Definition                                        | `claude-code` | `codex`      |
+| ------- | ------------------------------------------------- | ------------- | ------------ |
+| `ttr`   | distinct words / words                            | higher, 0.67  | higher, 1.05 |
+| `adv`   | adverb (`d`) share of POS tags                    | lower, 0.18   | level, 0.02  |
+| `part`  | particle (`u`) share of POS tags                  | lower, 0.41   | lower, 0.96  |
+| `noun`  | noun (`n`) share of POS tags                      | lower, 0.53   | higher, 0.07 |
+| `link`  | colons and semicolons per clause                  | higher, 0.37  | higher, 0.70 |
+| `reuse` | repeated word bigrams / bigrams                   | lower, 0.56   | lower, 0.65  |
+| `pent`  | Shannon entropy over punctuation-mark frequencies | higher, 0.76  | higher, 0.34 |
+
+The two columns disagree on `noun`, where both classes are flat in length and `codex` sits above the human mean at every length. Two `codex` cells carry no usable gap, `adv` at 0.02 sd and `noun` at 0.07 sd, so neither moves a `codex` score much either way. The gap moves with length wherever the fit has a slope: `claude-code` `pent` runs 0.34 at 45 characters and 2.03 at 584, and `codex` `ttr` shrinks from 1.13 to 0.82 across the same range. The report therefore ships both fitted means per ratio and the judge prompt reads each direction off them.
 
 Three more ride along in the report for the judge to read and are never scored: hedge and attitude-adverb rates per 1000 characters with the matching words, plus a count of `不是……而是` antithesis constructions. They give the judge concrete vocabulary for its `fix`, and folding them into the score would double-count what `adv` already sees. Their own discrimination is weak, and it weakened further when the floor dropped to 45 characters, since a short paragraph has fewer chances to contain a hedge. An empty hedge-and-attitude pair covers three fifths of human paragraphs against four fifths of model ones, a likelihood ratio of 1.34. The judge prompt is calibrated to that, replacing the 3× it inherited from the old ≥60-character population.
 
 ## Length-conditional means
 
-`ttr`, `reuse`, and `pent` all move with passage length, because a short paragraph has fewer chances to repeat itself. A classifier with one fixed centroid per class, fitted at the corpus median of about 85 characters, therefore reads a short human paragraph as assistant-flavored and a long assistant paragraph as human. That bias is what held the previous version's floor at 60 characters.
+`ttr`, `reuse`, and `pent` all move with passage length, because a short paragraph has fewer chances to repeat itself. The previous version scored against one fixed centroid per class, fitted at the corpus median of about 85 characters, so it read a short human paragraph as assistant-flavored and a long assistant paragraph as human. That bias is what held its floor at 60 characters.
 
 Each class mean is a function of length, and the score is the difference of squared standardized distances to the two means:
 
@@ -54,11 +56,15 @@ Each feature's coefficient is proportional to the gap between its two class mean
 
 ## Paragraph scoring and the floor
 
-A payload splits on blank lines and every admissible paragraph scores separately, because comparing a 3000-character diff against means fitted for 85 characters asks the wrong question. The highest-scoring paragraph carries the verdict, and only that paragraph reaches the judge.
+A payload splits on blank lines and every admissible paragraph scores separately, because comparing a 3000-character diff against means fitted for 85 characters asks the wrong question. The highest-scoring paragraph carries the verdict, and only that paragraph reaches the judge. `strip_blocks` removes frontmatter, fences, `:::` containers and HTML comments from the whole payload first, since each of those can hold a blank line and would otherwise survive the split as prose: before that ordering was fixed, a fence containing two Chinese string literals was the winning passage on a payload whose only real prose was elsewhere.
 
-Taking a maximum over $k$ paragraphs is a multiple comparison, so a longer payload draws more chances at the same threshold. The floor grows to pay for them, as `SCORE_FLOOR + FLOOR_PER_LOG_BLOCK * ln(k)`. `SCORE_FLOOR = 3.04` is the 80th percentile of the author's own typed Chinese, so one typed paragraph trips it about one time in five, and `FLOOR_PER_LOG_BLOCK = 1.23` holds that rate roughly constant as $k$ grows.
+The split needs a genuinely blank line, which the payloads this hook sees often do not carry. This repo soft-wraps Markdown one sentence per line, and on the `apply_patch` path the hook keeps the added lines only and joins them with single newlines, so the blank separators between paragraphs are context lines that never reach the classifier. A Chinese documentation edit therefore usually arrives as one chunk: $k$ stays 1, the worst-of-$k$ floor never grows past 3.04, and `body_chars` is the sum of those lines. On three paragraphs of 51, 47 and 45 characters, blank lines between them give $k = 3$ and a floor of 4.39, while single newlines give $k = 1$, a floor of 3.04, and one 143-character unit. The one-scored-unit-per-paragraph intent above does not hold for a soft-wrapped payload. Splitting on single newlines would push most units under the 45-character floor, so which unit is right here is unsettled.
 
-Both were calibrated on typed Chinese rather than on the essays, and the choice matters. The same floor rejects 21.0% of typed paragraphs against 4.6% of essay paragraphs, a gap of 2.8 points of median score. A hook payload is usually typed-register prose, so calibrating on essays would have set the floor far too low in practice.
+The report the judge receives carries `means`, the two class means fitted at the scored paragraph's own length, one pair per ratio. An earlier version reported medians taken once at the corpus median length, which reintroduced for the judge exactly the length bias the score had been fixed to remove: at 45 characters the fitted human `ttr` mean is 0.851 against a reported median of 0.737, so most human paragraphs read as above it, and `pent` inverted outright.
+
+Taking a maximum over $k$ paragraphs is a multiple comparison, so a longer payload draws more chances at the same threshold. The floor grows to pay for them, as `SCORE_FLOOR + FLOOR_PER_LOG_PARA * ln(k)`. `SCORE_FLOOR = 3.04` is the 80th percentile of scores over the typed-Chinese calibration set, so one typed paragraph trips it about one time in five, and `FLOOR_PER_LOG_PARA = 1.23` holds that rate roughly constant as $k$ grows.
+
+Both were calibrated on typed Chinese. The same floor rejects 21.0% of typed paragraphs against 4.6% of essay paragraphs, a gap of 2.8 points of median score. The 20% an 80th percentile implies holds by construction on the calibration set it was taken over, while the 21.0% is a separate measurement over the 648 typed paragraphs that serve as negatives in [Clean held-out text](#clean-held-out-text). Nothing recorded here says those two populations are the same paragraphs, and one in five is the figure to carry for either. A hook payload is usually typed-register prose, so calibrating on essays would have set the floor far too low in practice.
 
 `admissible()` also refuses anything under 45 characters, under 30% CJK density, or under 55% CJK among alphabetic characters. The density floor stops a table of digits with one Chinese character in it from reading as 100% Chinese.
 
@@ -74,7 +80,9 @@ Human prose comes from the author's own Chinese essays, split so that a reserve 
 | of which the held-out notes | 99         | 1       | 82           |
 | `codex`                     | 251        | 24      | 80           |
 
-Cross-validation splits by source document and never by paragraph, since paragraphs from one file share topic and diction, so a random split would leak both. Re-derive the constants rather than editing them by hand: `MODELS` is a fit, and nudging one row breaks the pooled variance the rest of that row depends on.
+The 99 note units are counted inside the 325, so whether the fit excluded them is not recorded here, and the 0.548 clean-text AUC below reads as held out only if it did.
+
+Cross-validation splits by source document and never by paragraph, since paragraphs from one file share topic and diction, so a random split would leak both. Re-derive the constants rather than editing them by hand: `ASSISTANTS` is a fit, and nudging one row breaks the pooled variance the rest of that row depends on.
 
 One contamination survives, recorded here because a refit costs more than it would return. About 4.7% of the human units are markdown residue: a table separator row, or a run of bullets whose `：` outlived the marker `strip_noise` removed. Those units average `link` 0.127 against 0.041 for clean prose, which inflates the fitted human `link` mean by roughly a tenth and narrows that feature's class gap by about as much. It does not reach runtime behavior, since a table payload collapses `pent` to zero and scores strongly human, and a Chinese bullet list measured +1.05 against a floor of 3.04. The judge prompt excludes layout colons by hand instead.
 
@@ -130,7 +138,7 @@ Treat the score as volume reduction on the judge's workload. The judge decides, 
 - **Aggregating short units.** A turn usually edits several lines, so concatenating them should give the ratios a longer sample to stabilize on. Measured across blocks of 1 to 6 contiguous units from one source, aggregation produced no lift at any block size. The first attempt shuffled before blocking and made aggregation look actively harmful, which is an artifact, since shuffling destroys the within-passage repetition `ttr` and `reuse` exist to measure.
 - **Dropping the floor below 45 characters.** 45 characters is where the fit stops being valid, and the clean-text results give no reason to expect signal below it. The line that motivated this work is 36 characters and stays out of reach.
 - **Genre-conditional means.** Length explains most of the drift genre would have, a genre split needs per-document annotation the corpus does not carry, and the same-medium ceiling leaves nothing for the added parameters to buy.
-- **A `gemini` classifier.** Its Chinese sits close enough to human prose that the fit produced no usable separation, so the gate stays inert for it by having no `MODELS` entry.
+- **A `gemini` classifier.** Its Chinese sits close enough to human prose that the fit produced no usable separation, so the gate stays inert for it by having no `ASSISTANTS` entry.
 - **Replacing inline code with a placeholder.** `strip_noise` now deletes backticked spans, which is correct, since a placeholder inflated `pent` and `ttr` on code-dense prose. It moved discrimination by well under a point of AUC, so it is in for correctness rather than accuracy.
 
 ## Rebuilding
