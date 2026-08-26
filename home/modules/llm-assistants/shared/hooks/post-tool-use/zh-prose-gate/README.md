@@ -2,7 +2,7 @@
 
 Read this before changing this gate, its judge prompt, or the classifier's fitted constants.
 
-A `PostToolUse` hook that reads the Chinese the assistant just wrote and, when it reads as machine-generated, hands back a correction to apply in place. It emits `additionalContext` without halting and fails open, so a break costs a missed catch rather than a blocked edit. Its English sibling, `../../scripts/prose-gate.nu` with its prompt at `../../prompts/prose-tics.md`, is a rule list plus a judge and needs no more explanation than that prompt gives. This one puts a statistical classifier in front of the judge, because the tics it looks for are ratios rather than phrases, and because judging every edit would be too slow to leave enabled.
+A `PostToolUse` hook that reads the Chinese the assistant just wrote and, when it reads as machine-generated, hands back a correction to apply in place. It emits `additionalContext` without halting and fails open, so a break costs a missed catch rather than a blocked edit. Its English sibling in `../prose-gate/` is a rule list plus a judge and needs no more explanation than its prompt gives. This one puts a statistical classifier in front of the judge, because the tics it looks for are ratios rather than phrases, and because judging every edit would be too slow to leave enabled.
 
 | File                | Role                                                                 |
 | ------------------- | -------------------------------------------------------------------- |
