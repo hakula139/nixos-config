@@ -3,9 +3,9 @@
 # ==============================================================================
 
 {
-  stdenvNoCC,
-  fetchFromGitHub,
   lib,
+  fetchFromGitHub,
+  stdenvNoCC,
 }:
 
 stdenvNoCC.mkDerivation {
