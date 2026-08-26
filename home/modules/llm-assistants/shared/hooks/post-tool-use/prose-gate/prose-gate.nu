@@ -86,8 +86,6 @@ def gate []: nothing -> any {
   if ($env | get -o CLAUDE_PROSE_GATE_ACTIVE | default "" | is-not-empty) {
     return null
   }
-  # `open /dev/stdin` re-opens fd 0 by path and raises ENXIO once the caller
-  # passes a socket, which is what Node's `spawn` hands a hook.
   let input = (^cat | from json)
   if ($input | describe | str starts-with "record") == false {
     return null
