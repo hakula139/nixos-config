@@ -41,6 +41,17 @@ def capped [tool: string, args: list<string>] {
   )
 }
 
+# Node's own resolution order, since eslint only works with the config and the
+# plugins its project installed.
+def project-bin [path: string, tool: string]: nothing -> string {
+  let parts = ($path | path expand | path dirname | path split)
+  for n in (($parts | length)..1) {
+    let candidate = ([($parts | first $n | path join) "node_modules" ".bin" $tool] | path join)
+    if ($candidate | path exists) { return $candidate }
+  }
+  ""
+}
+
 def format-markdown [path: string] {
   try {
     let run = (
@@ -93,9 +104,18 @@ def format-file [path: string] {
         quiet $TAPLO ["fmt" $path]
       }
     }
-    "css" | "js" => {
-      if (have $PRETTIER) {
-        quiet $PRETTIER ["--write" $path]
+    "css" | "scss" | "less" | "js" | "jsx" | "mjs" | "cjs" | "ts" | "tsx" | "vue" => {
+      # A pinned prettier cannot load the plugins the project's config names.
+      let prettier = (project-bin $path "prettier")
+      let formatter = if ($prettier | is-not-empty) { $prettier } else { $PRETTIER }
+      if (have $formatter) {
+        quiet $formatter ["--log-level" "warn" "--write" $path]
+      }
+      # `--fix` reports whatever it could not fix, so one call covers both. A
+      # file the project ignores is not this hook's business.
+      let eslint = (project-bin $path "eslint")
+      if ($eslint | is-not-empty) {
+        capped $eslint ["--fix" "--no-warn-ignored" $path]
       }
     }
     "md" => {
