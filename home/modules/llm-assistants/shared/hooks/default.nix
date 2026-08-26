@@ -100,10 +100,10 @@ let
   # ----------------------------------------------------------------------------
   zhFingerprintEnv = pkgs.python3.withPackages (ps: [ ps.jieba ]);
   zhFingerprint = pkgs.writeShellScript "zh-fingerprint" ''
-    exec ${zhFingerprintEnv}/bin/python3 ${pkgs.copyPathToStore ./scripts/zh-fingerprint.py} "$@"
+    exec ${zhFingerprintEnv}/bin/python3 ${pkgs.copyPathToStore ./post-tool-use/zh-prose-gate/zh-fingerprint.py} "$@"
   '';
 
-  zhFingerprintModels = [
+  zhFingerprintAssistants = [
     "claude-code"
     "codex"
   ];
@@ -155,16 +155,16 @@ in
 
   zhProseGate = mkHookScript {
     slug = "zh-prose-gate";
-    script = ./scripts/zh-prose-gate.nu;
+    script = ./post-tool-use/zh-prose-gate/zh-prose-gate.nu;
     writer = pkgs.writers.writeNu;
     substitutions = {
       "@timeout@" = "${pkgs.coreutils}/bin/timeout";
-      "@fingerprint@" = lib.optionalString (builtins.elem assistant zhFingerprintModels) "${
+      "@fingerprint@" = lib.optionalString (builtins.elem assistant zhFingerprintAssistants) "${
         zhFingerprint
       }";
       "@judgeTimeout@" = toString timeouts.zhJudge;
-      "@modelId@" = assistant;
-      "@promptFile@" = "${./prompts/zh-prose-tics.md}";
+      "@assistantId@" = assistant;
+      "@promptFile@" = "${./post-tool-use/zh-prose-gate/zh-prose-tics.md}";
     };
   };
 }

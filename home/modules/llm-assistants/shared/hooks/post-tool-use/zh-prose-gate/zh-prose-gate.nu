@@ -3,21 +3,17 @@
 # ==============================================================================
 # Chinese Prose Gate (PostToolUse)
 # ==============================================================================
-# Measures the Chinese prose the assistant just wrote against this assistant's
-# own unpolished-output fingerprint, then hands the numbers to a headless
-# `claude -p` judge. Emits additionalContext (non-halting). Fails open on any
+# Measures the Chinese the assistant just wrote against this assistant's own
+# unpolished-output fingerprint, then hands the numbers to a headless
+# `claude -p` judge. Emits additionalContext (non-halting), fails open on any
 # error, and stays inert when no classifier was fitted for this assistant.
-#
-# The prompt and this context stay English apart from the specimens and the
-# judge's own `fix`: an all-Chinese prompt doubles as the judge's model of
-# normal Chinese, and scored 0.37 colons-and-semicolons per clause in its
-# prescriptions against 0.13 once the scaffolding moved to English.
+# README.md holds the corpus, the method, and why the prompt stays English.
 # ==============================================================================
 
 const TIMEOUT = "@timeout@"
 const FINGERPRINT = "@fingerprint@"
 const PROMPT_FILE = "@promptFile@"
-const MODEL_ID = "@modelId@"
+const ASSISTANT_ID = "@assistantId@"
 const JUDGE_TIMEOUT = "@judgeTimeout@"
 
 const MCP_FIELDS = [message, description, body, note, content, new_content]
@@ -106,8 +102,8 @@ def gate []: nothing -> any {
     return null
   }
   # The classifier reports its own short-text and low-Chinese rejections through
-  # a non-zero exit, since both leave the ratios unstable rather than noisy.
-  let measured = ($content | ^$FINGERPRINT $MODEL_ID | complete)
+  # a non-zero exit, since both leave the ratios too unstable to score.
+  let measured = ($content | ^$FINGERPRINT $ASSISTANT_ID | complete)
   if $measured.exit_code != 0 or ($measured.stdout | is-empty) {
     return null
   }
@@ -118,9 +114,8 @@ def gate []: nothing -> any {
   if ($parsed | get -o score | default 0) <= ($parsed | get -o floor | default 0) {
     return null
   }
-  # The judge rules on the one paragraph the metrics were computed from, since a
-  # report describing 114 characters of a 3000-character payload asks it to find
-  # symptoms in text that was never measured.
+  # The judge rules on the highest-scoring paragraph alone. A report on 114 of a
+  # 3000-character payload asks it to find symptoms in unmeasured text.
   let passage = ($parsed | get -o passage | default "")
   if ($passage | is-empty) {
     return null
