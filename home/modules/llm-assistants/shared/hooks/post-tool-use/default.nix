@@ -115,17 +115,6 @@ in
     };
   };
 
-  wakatime = mkHookScript {
-    slug = "wakatime-heartbeat";
-    script = ./wakatime/wakatime.nu;
-    writer = pkgs.writers.writeNu;
-    substitutions = {
-      "@pluginName@" = "${assistant}-hook/1.0";
-      "@timeout@" = "${pkgs.coreutils}/bin/timeout";
-      "@toolTimeout@" = toString timeouts.tool;
-    };
-  };
-
   zhProseGate = mkHookScript {
     slug = "zh-prose-gate";
     script = ./zh-prose-gate/zh-prose-gate.nu;
@@ -135,9 +124,20 @@ in
       "@fingerprint@" = lib.optionalString (builtins.elem assistant zhFingerprintAssistants) "${
         zhFingerprint
       }";
-      "@judgeTimeout@" = toString timeouts.zhJudge;
-      "@assistantId@" = assistant;
       "@promptFile@" = "${./zh-prose-gate/zh-prose-tics.md}";
+      "@assistantId@" = assistant;
+      "@judgeTimeout@" = toString timeouts.zhJudge;
+    };
+  };
+
+  wakatime = mkHookScript {
+    slug = "wakatime-heartbeat";
+    script = ./wakatime/wakatime.nu;
+    writer = pkgs.writers.writeNu;
+    substitutions = {
+      "@pluginName@" = "${assistant}-hook/1.0";
+      "@timeout@" = "${pkgs.coreutils}/bin/timeout";
+      "@toolTimeout@" = toString timeouts.tool;
     };
   };
 }
