@@ -113,7 +113,7 @@ in
 
   autoFormat = mkHookScript {
     slug = "auto-format";
-    script = ./scripts/auto-format.sh;
+    script = ./post-tool-use/auto-format/auto-format.sh;
     substitutions = {
       "@nixfmt@" = lib.getExe pkgs.nixfmt;
       "@nuCheck@" = "${pkgs.nu-check}";
@@ -130,22 +130,22 @@ in
     };
   };
 
-  completenessPrompt = builtins.readFile ./prompts/completeness.md;
+  completenessPrompt = builtins.readFile ./stop/completeness/completeness.md;
 
   proseGate = mkHookScript {
     slug = "prose-gate";
-    script = ./scripts/prose-gate.nu;
+    script = ./post-tool-use/prose-gate/prose-gate.nu;
     writer = pkgs.writers.writeNu;
     substitutions = {
       "@timeout@" = "${pkgs.coreutils}/bin/timeout";
-      "@promptFile@" = "${./prompts/prose-tics.md}";
+      "@promptFile@" = "${./post-tool-use/prose-gate/prose-tics.md}";
       "@judgeTimeout@" = toString timeouts.judge;
     };
   };
 
   wakatime = mkHookScript {
     slug = "wakatime-heartbeat";
-    script = ./scripts/wakatime.sh;
+    script = ./post-tool-use/wakatime/wakatime.sh;
     substitutions = {
       "@pluginName@" = "${assistant}-hook/1.0";
       "@timeout@" = "${pkgs.coreutils}/bin/timeout";
