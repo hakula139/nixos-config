@@ -16,7 +16,10 @@ let
   # Hook timeouts
   # ----------------------------------------------------------------------------
   timeouts = rec {
-    judge = 30;
+    # The judge writes out its scan before the verdict, so a call costs about 28s
+    # of which 22s is API time. At 30s it raced its own timeout and failed open on
+    # roughly half of all invocations.
+    judge = 90;
     zhJudge = 180;
     tool = 10;
     postEdit = judge + zhJudge + 3 * tool;
