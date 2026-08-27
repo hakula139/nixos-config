@@ -38,9 +38,7 @@ let
 in
 {
   PreToolUse = [
-    # Chinese polisher - substitute a better writer's rewrite into the tool input
-    # before it lands. This runs before the payload is sent, which is the only
-    # point where an MCP surface is still reachable.
+    # Chinese polisher - rewrite the tool input before it lands
     {
       matcher = zhPolishMatcher;
       hooks = [
