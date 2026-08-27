@@ -26,7 +26,7 @@ let
     printf '%s' "$input" | ${hookScripts.wakatime} || true
     printf '%s' "$input" | ${hookScripts.autoFormat} || true
     printf '%s' "$input" | ${hookScripts.proseGate} || true
-    printf '%s' "$input" | ${hookScripts.zhProseGate} || true
+    printf '%s' "$input" | ${hookScripts.zhPolish} || true
   '';
 
   mkWorkmuxHook = status: {

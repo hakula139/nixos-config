@@ -20,9 +20,9 @@ let
     # of which 22s is API time. At 30s it raced its own timeout and failed open on
     # roughly half of all invocations.
     judge = 90;
-    zhJudge = 180;
+    zhPolish = 90;
     tool = 10;
-    postEdit = judge + zhJudge + 3 * tool;
+    postEdit = judge + zhPolish + 3 * tool;
   };
 
   # ----------------------------------------------------------------------------

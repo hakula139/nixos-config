@@ -71,17 +71,22 @@ let
   };
 
   # ----------------------------------------------------------------------------
-  # Chinese fingerprint classifier
+  # Chinese polisher
   # ----------------------------------------------------------------------------
-  zhFingerprintEnv = pkgs.python3.withPackages (ps: [ ps.jieba ]);
-  zhFingerprint = pkgs.writeShellScript "zh-fingerprint" ''
-    exec ${zhFingerprintEnv}/bin/python3 ${pkgs.copyPathToStore ./zh-prose-gate/zh-fingerprint.py} "$@"
-  '';
+  # Sliced out of the instructions the assistant already follows, so the rewriter
+  # cannot drift from them. These two sections beat a Chinese rule list, human
+  # exemplars, and a bare call in a blind read on two models.
+  zhDoctrine = pkgs.writeText "zh-doctrine.md" (
+    "## Response Length"
+    + lib.head (
+      lib.splitString "## Punctuation" (
+        lib.last (lib.splitString "## Response Length" (builtins.readFile ../../instructions/shared.md))
+      )
+    )
+  );
 
-  zhFingerprintAssistants = [
-    "claude-code"
-    "codex"
-  ];
+  # Stdlib only, so this costs a bare interpreter start rather than a jieba import.
+  writePython = name: text: pkgs.writeScript name "#!${lib.getExe pkgs.python3}\n${text}";
 in
 {
   autoFormat = mkHookScript {
@@ -115,18 +120,15 @@ in
     };
   };
 
-  zhProseGate = mkHookScript {
-    slug = "zh-prose-gate";
-    script = ./zh-prose-gate/zh-prose-gate.nu;
-    writer = pkgs.writers.writeNu;
+  zhPolish = mkHookScript {
+    slug = "zh-polish";
+    script = ./zh-polish/zh-polish.py;
+    writer = writePython;
     substitutions = {
-      "@timeout@" = "${pkgs.coreutils}/bin/timeout";
-      "@fingerprint@" = lib.optionalString (builtins.elem assistant zhFingerprintAssistants) "${
-        zhFingerprint
-      }";
-      "@promptFile@" = "${./zh-prose-gate/zh-prose-tics.md}";
-      "@assistantId@" = assistant;
-      "@judgeTimeout@" = toString timeouts.zhJudge;
+      "@promptFile@" = "${./zh-polish/zh-polish-prompt.md}";
+      "@doctrineFile@" = "${zhDoctrine}";
+      "@model@" = "openrouter/google/gemini-3.7-flash";
+      "@polishTimeout@" = toString timeouts.zhPolish;
     };
   };
 

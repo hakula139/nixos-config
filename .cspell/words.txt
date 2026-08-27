@@ -17,6 +17,7 @@ btop
 busctl
 cachain
 cachix
+cafile
 catppuccin
 ccache
 ccagent

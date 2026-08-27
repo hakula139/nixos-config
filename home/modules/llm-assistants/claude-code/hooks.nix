@@ -66,14 +66,14 @@ in
         }
       ];
     }
-    # Chinese style gate - flag prose that reads as unpolished output
+    # Chinese polisher - hand the Chinese just written to a better Chinese writer
     {
-      matcher = proseGateMatcher;
+      matcher = "Edit|Write";
       hooks = [
         {
           type = "command";
-          command = "${hookScripts.zhProseGate}";
-          statusMessage = "Checking Chinese prose style";
+          command = "${hookScripts.zhPolish}";
+          statusMessage = "Polishing Chinese";
         }
       ];
     }
