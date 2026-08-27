@@ -21,12 +21,12 @@ let
     assistant = "codex";
   };
 
+  # No Chinese polisher: its rewrite returns via PreToolUse `updatedInput`, unimplemented here.
   postEditScript = pkgs.writeShellScript "codex-post-edit" ''
     input="$(cat)"
     printf '%s' "$input" | ${hookScripts.wakatime} || true
     printf '%s' "$input" | ${hookScripts.autoFormat} || true
     printf '%s' "$input" | ${hookScripts.proseGate} || true
-    printf '%s' "$input" | ${hookScripts.zhPolish} || true
   '';
 
   mkWorkmuxHook = status: {

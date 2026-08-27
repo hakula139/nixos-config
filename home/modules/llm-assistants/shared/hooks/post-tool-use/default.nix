@@ -8,6 +8,7 @@
   assistant,
   enableDevToolchains,
   mkHookScript,
+  proseDoctrine,
   repo,
   timeouts,
 }:
@@ -70,23 +71,11 @@ let
     plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
   };
 
-  # ----------------------------------------------------------------------------
-  # Chinese polisher
-  # ----------------------------------------------------------------------------
-  # Sliced out of the instructions the assistant already follows, so the rewriter
-  # cannot drift from them. These two sections beat a Chinese rule list, human
-  # exemplars, and a bare call in a blind read on two models.
-  zhDoctrine = pkgs.writeText "zh-doctrine.md" (
-    "## Response Length"
-    + lib.head (
-      lib.splitString "## Punctuation" (
-        lib.last (lib.splitString "## Response Length" (builtins.readFile ../../instructions/shared.md))
-      )
+  proseGatePrompt = pkgs.writeText "prose-tics.md" (
+    builtins.replaceStrings [ "@doctrine@" ] [ proseDoctrine ] (
+      builtins.readFile ./prose-gate/prose-tics.md
     )
   );
-
-  # Stdlib only, so this costs a bare interpreter start rather than a jieba import.
-  writePython = name: text: pkgs.writeScript name "#!${lib.getExe pkgs.python3}\n${text}";
 in
 {
   autoFormat = mkHookScript {
@@ -115,20 +104,11 @@ in
     writer = pkgs.writers.writeNu;
     substitutions = {
       "@timeout@" = "${pkgs.coreutils}/bin/timeout";
-      "@promptFile@" = "${./prose-gate/prose-tics.md}";
-      "@judgeTimeout@" = toString timeouts.judge;
-    };
-  };
-
-  zhPolish = mkHookScript {
-    slug = "zh-polish";
-    script = ./zh-polish/zh-polish.py;
-    writer = writePython;
-    substitutions = {
-      "@promptFile@" = "${./zh-polish/zh-polish-prompt.md}";
-      "@doctrineFile@" = "${zhDoctrine}";
-      "@model@" = "openrouter/google/gemini-3.7-flash";
-      "@polishTimeout@" = toString timeouts.zhPolish;
+      "@promptFile@" = "${proseGatePrompt}";
+      "@candidates@" = "${pkgs.writers.writeNu "prose-candidates" (
+        builtins.readFile ./prose-gate/prose-candidates.nu
+      )}";
+      "@judgeTimeout@" = toString timeouts.modelCall;
     };
   };
 

@@ -23,7 +23,7 @@ let
   };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
-  proseGateMatcher = lib.concatStringsSep "|" [
+  proseSurfaces = [
     "Edit"
     "Write"
     "mcp__Atlassian__confluence_(create_page|update_page|add_comment|add_inline_comment|reply_to_comment)"
@@ -31,8 +31,28 @@ let
     "mcp__(GitHub|GitLab)__(create|update|add)_"
     "mcp__.*_write"
   ];
+  proseGateMatcher = lib.concatStringsSep "|" proseSurfaces;
+  # A question is answered within the turn, so only a hook that runs before the
+  # tool can reach its prose at all.
+  zhPolishMatcher = lib.concatStringsSep "|" (proseSurfaces ++ [ "AskUserQuestion" ]);
 in
 {
+  PreToolUse = [
+    # Chinese polisher - substitute a better writer's rewrite into the tool input
+    # before it lands. This runs before the payload is sent, which is the only
+    # point where an MCP surface is still reachable.
+    {
+      matcher = zhPolishMatcher;
+      hooks = [
+        {
+          type = "command";
+          command = "${hookScripts.zhPolish}";
+          statusMessage = "Polishing Chinese";
+        }
+      ];
+    }
+  ];
+
   PostToolUse = [
     # WakaTime heartbeat for AI-generated file edits
     {
@@ -63,17 +83,6 @@ in
           type = "command";
           command = "${hookScripts.proseGate}";
           statusMessage = "Checking prose style";
-        }
-      ];
-    }
-    # Chinese polisher - hand the Chinese just written to a better Chinese writer
-    {
-      matcher = "Edit|Write";
-      hooks = [
-        {
-          type = "command";
-          command = "${hookScripts.zhPolish}";
-          statusMessage = "Polishing Chinese";
         }
       ];
     }
