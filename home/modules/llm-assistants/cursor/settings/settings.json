@@ -249,12 +249,6 @@
   "markdown.extension.toc.levels": "2..6",
   "markdown.marp.html": "all",
   "markdown.preview.fontFamily": "Sarasa Gothic SC, sans-serif",
-  "markdownlint.config": {
-    "MD010": {
-      "code_blocks": false
-    },
-    "MD041": false
-  },
   "nix.enableLanguageServer": true,
   "notebook.output.scrolling": true,
   "python-envs.terminal.autoActivationType": "off",

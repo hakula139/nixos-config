@@ -1,0 +1,52 @@
+{
+  // Every rule on unless overridden below.
+  "default": true,
+
+  // Heading style: ATX (`#`), never a Setext underline.
+  "MD003": { "style": "atx" },
+
+  // Unordered list style: dash, which is what dprint's markdown plugin emits.
+  "MD004": { "style": "dash" },
+
+  // Unordered list indentation: 2 spaces per level.
+  "MD007": { "indent": 2 },
+
+  // Hard tabs: allowed inside a fence, where a tab is content that a Go or
+  // Makefile sample needs.
+  "MD010": { "code_blocks": false },
+
+  // Line length: off, since prose is soft-wrapped one sentence per line.
+  "MD013": false,
+
+  // Multiple headings with the same content: allowed under different parents.
+  "MD024": { "siblings_only": true },
+
+  // Trailing punctuation in a heading: flag only these four, so a heading can
+  // still ask something.
+  "MD026": { "punctuation": ".,;:" },
+
+  // Ordered list item prefix: increment (1. 2. 3.).
+  "MD029": { "style": "ordered" },
+
+  // Inline HTML: a raw tag such as `<br>` in prose passes.
+  "MD033": false,
+
+  // Bare URL: a link with no `<>` or `[]()` around it passes.
+  "MD034": false,
+
+  // First line should be a top-level heading: off, since a skill or an agent
+  // file opens with YAML front matter and a prompt file opens with prose.
+  "MD041": false,
+
+  // Code block style: fenced, never indented.
+  "MD046": { "style": "fenced" },
+
+  // Code fence style: backtick, which is what dprint's markdown plugin emits.
+  "MD048": { "style": "backtick" },
+
+  // Emphasis style: underscore, matching dprint's `emphasisKind`.
+  "MD049": { "style": "underscore" },
+
+  // Strong style: asterisk, matching dprint's `strongKind`.
+  "MD050": { "style": "asterisk" },
+}
