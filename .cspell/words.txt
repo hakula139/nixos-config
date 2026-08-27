@@ -133,6 +133,7 @@ linkify
 litellm
 lldb
 localectl
+logit
 lualine
 malva
 marp
@@ -212,6 +213,7 @@ pyproject
 pyright
 pytest
 qdisc
+Qwen
 raku
 recents
 regen
