@@ -8,7 +8,8 @@ const CONFIG_DIR = "@configDir@"
 const SECRET_FILE = "@secretFile@"
 const SUBSCRIPTION_URL_FILE = "@subscriptionUrlFile@"
 
-# `$e.msg` is always "Error while parsing as yaml", so the key comes from $e.rendered.
+# `$e.msg` is always "Error while parsing as yaml", so the key has to come
+# from `$e.rendered`.
 def yaml_error [e: record]: nothing -> string {
     let marker = "Could not load YAML: "
     let hit = ($e.rendered | lines | where ($it | str contains $marker) | get -o 0)

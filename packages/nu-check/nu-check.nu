@@ -10,7 +10,7 @@
 const MAX_ERRORS = 100
 
 # A `@name@` placeholder only parses once Nix has substituted it. `[]` stands in
-# because it satisfies a `list` parameter and degrades to a string inside quotes,
+# because it satisfies a `list` parameter and degrades to a string in quotes,
 # where a bare word would trip the type checker.
 def substitute [text: string, stub: string]: nothing -> string {
   $text
