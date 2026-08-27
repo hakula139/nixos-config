@@ -9,6 +9,7 @@
 
 const TIMEOUT = "@timeout@"
 const PROMPT_FILE = "@promptFile@"
+const CANDIDATES = "@candidates@"
 const JUDGE_TIMEOUT = "@judgeTimeout@"
 
 const MIN_CHARS = 12
@@ -64,7 +65,30 @@ def verdict-of [raw: string]: nothing -> record {
   {}
 }
 
+# The judge missed literal tics it was staring at, so a regex enumerates them
+# first and the judge only rules on whether each meets its exemption. Scanning
+# is best-effort: an empty list still leaves the judge reading the full text.
+def candidates-in [content: string]: nothing -> string {
+  let run = (try { $content | ^$CANDIDATES | complete } catch { null })
+  if $run == null or $run.exit_code != 0 { "" } else { $run.stdout | str trim }
+}
+
 def judge [content: string]: nothing -> string {
+  let found = (candidates-in $content)
+  let message = if ($found | is-empty) {
+    $content
+  } else {
+    [
+      "A scanner located these tic candidates. Rule on each against its exemption,"
+      "and keep reading for the tics no regex can find."
+      ""
+      $found
+      ""
+      "The text under judgement follows."
+      ""
+      $content
+    ] | str join "\n"
+  }
   # `--` is required: content starting with `-`, such as a Markdown bullet, is
   # otherwise parsed as an unknown option and the judge never sees it.
   let run = with-env {CLAUDE_PROSE_GATE_ACTIVE: "1"} {
@@ -75,7 +99,7 @@ def judge [content: string]: nothing -> string {
         --system-prompt-file $PROMPT_FILE
         --model sonnet
         --output-format json
-        "--" $content
+        "--" $message
       | complete
     )
   }
