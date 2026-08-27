@@ -105,9 +105,7 @@ in
     substitutions = {
       "@timeout@" = "${pkgs.coreutils}/bin/timeout";
       "@promptFile@" = "${proseGatePrompt}";
-      "@candidates@" = "${pkgs.writers.writeNu "prose-candidates" (
-        builtins.readFile ./prose-gate/prose-candidates.nu
-      )}";
+      "@candidates@" = "${pkgs.prose-candidates}";
       "@judgeTimeout@" = toString timeouts.modelCall;
     };
   };

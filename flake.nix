@@ -144,17 +144,13 @@
               types = [ "file" ];
             };
 
-            # The model-based gate that judges the same tics runs per tool call,
-            # so it never sees a file another tool or a human wrote. This catches
-            # only the tics the style guide bans with no exemption, which is why
-            # it can fail a commit without adjudicating anything.
+            # The model-based gate judging the same tics runs per tool call, so
+            # it never sees a file another tool or a human wrote.
             prose-tics = {
               enable = true;
               name = "prose-tics";
               description = "Flag banned prose tics in Markdown.";
-              entry = "${pkgs.writers.writeNu "prose-tics" (
-                builtins.readFile ./home/modules/llm-assistants/shared/hooks/post-tool-use/prose-gate/prose-candidates.nu
-              )}";
+              entry = "${pkgs.prose-candidates}";
               files = "\\.md$";
               types = [ "file" ];
             };
