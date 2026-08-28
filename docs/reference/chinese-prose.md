@@ -148,13 +148,15 @@ and came back as:
 
 > 禁令只能限制表层的形式，管不住背后的表达动机。当模型被禁止使用某种标点或句式时，原本需要停顿、补充或转折的语意依然存在，它往往就会改用冒号、括号，甚至切成零碎的短句来替代。形式虽然被抹去了，底层的表达习惯还在，结果只能套进更别扭的结构里，反而平添一股生硬的断裂感。
 
-The largest measured gain is the shared draft from section 3.5, which the owner scored 3.5, noting "Punctuation is wrong, and sentences are still being clipped short". The selected rewriter scored 9.0 on it. Its opening paragraph before:
+The largest measured gain is the shared draft from section 3.5, which the owner scored 3.5, noting "Punctuation is wrong, and sentences are still being clipped short". The selected rewriter scored 9.0 on it. Both faults sit in the draft's third paragraph, which carries ten half-width commas and a shortest sentence of 12 characters:
 
-> 给 AI 写作立一条「不许用某种句式」的规矩，问题往往出在这条规矩管的是表层形态，而读起来自然与否，取决于各类表达在整篇文章里的密度分布。被禁掉的句式原本承担着某种功能，比如标示转折、收束论点、把两个概念摆在一起比较。禁令不会消除这种表达需求，只会让它改道，涌向最邻近的那个结构。于是分号少了，短句碎片多了；对比句式没了，让步从句开始密集出现。旧的标志性痕迹刚被抹掉，新的痕迹就在别处堆积起来，而且因为这次的替代品是被挤出来的，用得更僵硬。
+> 还有一层是规则的表述方式。否定式的指令只画出边界,不给出落点,模型得自己猜什么算合格,猜的过程会占用它本该花在内容上的注意力,写出来的东西因此变得谨慎、拘谨、缺少推进感。更根本的是,那些让人不适的句式大多只是症状,底下的病因是一种把话说得像有力量的冲动——用形式上的对称、节奏上的顿挫来填补论证的空缺。症状被封住,冲动还在,它会找到新的出口。真正有用的约束通常是描述目标效果、给出正面样例、限定某类结构的出现上限,把判断权留在写作过程里面,而不是在外面砌一道墙。
 
-and after:
+and after, with no half-width mark and a shortest sentence of 36:
 
-> 给 AI 写作立规矩时，如果直接禁止某种句式，往往很难真正改善文风。文本读起来是否自然，主要取决于各类表达在整篇里的分布密度。被禁掉的句式本身承担着转折或对比的功能，禁令消除不了这种表达需求，只会逼着模型转向邻近的替代结构，结果旧的痕迹刚抹掉，新的句式又在别处密集堆积起来，用得更加僵硬。
+> 单纯的否定指令只划定了边界，模型在揣摩合格标准的过程中容易变得畏手畏脚，导致行文滞涩。那些招致反感的句式，根源通常在于试图用形式上的对仗和顿挫去掩盖论证本身的单薄。如果不解决立论的问题，单靠堵截表层的句式，表达冲动就会流向其他机械的形式。比较有效的做法是提供具体的正面样例，或者限定特定结构的出现频率，引导模型在写作过程中自主平衡。
+
+The draft's opening paragraph shows neither fault, so a rewrite of it would demonstrate nothing. At 3.5 the draft also sits mid-scale, and the arm carrying coding history in section 3.4 averaged 1.90.
 
 ## 5. Coverage and limits
 
