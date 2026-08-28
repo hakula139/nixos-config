@@ -15,6 +15,37 @@ const JUDGE_TIMEOUT = "@judgeTimeout@"
 const MIN_CHARS = 12
 const MCP_FIELDS = [message, description, body, note, content, new_content]
 
+# `from json` yields a table for a uniform array, so only the detailed type
+# reports both that and a mixed list as `list`.
+def kind-of [value: any]: nothing -> string {
+  $value | describe --detailed | get type
+}
+
+def questions-in [questions: any]: nothing -> string {
+  if (kind-of $questions) != "list" {
+    return ""
+  }
+  $questions
+  | each {|q|
+    if (kind-of $q) != "record" {
+      []
+    } else {
+      let opts = ($q | get -o options)
+      let described = if (kind-of $opts) == "list" {
+        $opts | each {|o|
+          if (kind-of $o) == "record" { $o | get -o description }
+        }
+      } else {
+        []
+      }
+      [($q | get -o question)] ++ $described
+    }
+  }
+  | flatten
+  | where {|t| (kind-of $t) == "string" and ($t | is-not-empty) }
+  | str join "\n\n"
+}
+
 def content-of [input: record]: nothing -> string {
   let tool = ($input | get -o tool_name | default "")
   let args = ($input | get -o tool_input | default {})
@@ -35,6 +66,7 @@ def content-of [input: record]: nothing -> string {
     "Write" => ($args | get -o content | default "")
     "Edit" => ($args | get -o new_string | default "")
     "apply_patch" => ($args | get -o command | default "")
+    "AskUserQuestion" => (questions-in ($args | get -o questions))
     _ => ""
   }
 }

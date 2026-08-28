@@ -23,7 +23,8 @@ let
   };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
-  proseSurfaces = [
+  proseMatcher = lib.concatStringsSep "|" [
+    "AskUserQuestion"
     "Edit"
     "Write"
     "mcp__Atlassian__confluence_(create_page|update_page|add_comment|add_inline_comment|reply_to_comment)"
@@ -31,16 +32,12 @@ let
     "mcp__(GitHub|GitLab)__(create|update|add)_"
     "mcp__.*_write"
   ];
-  proseGateMatcher = lib.concatStringsSep "|" proseSurfaces;
-  # A question is answered within the turn, so only a hook that runs before the
-  # tool can reach its prose at all.
-  zhPolishMatcher = lib.concatStringsSep "|" (proseSurfaces ++ [ "AskUserQuestion" ]);
 in
 {
   PreToolUse = [
-    # Chinese polisher - rewrite the tool input before it lands
+    # Chinese polisher — rewrite the tool input before it lands
     {
-      matcher = zhPolishMatcher;
+      matcher = proseMatcher;
       hooks = [
         {
           type = "command";
@@ -73,9 +70,9 @@ in
         }
       ];
     }
-    # English style gate - flag banned prose tics
+    # English style gate — flag banned prose tics
     {
-      matcher = proseGateMatcher;
+      matcher = proseMatcher;
       hooks = [
         {
           type = "command";
@@ -124,7 +121,7 @@ in
   ];
 
   Stop = [
-    # Completeness gate - block stopping while requested work is unfinished
+    # Completeness gate — block stopping while requested work is unfinished
     {
       hooks = [
         {
@@ -134,7 +131,7 @@ in
         }
       ];
     }
-    # Response complete - notify when Claude Code finishes responding
+    # Response complete — notify when Claude Code finishes responding
     {
       hooks = [
         {
