@@ -63,10 +63,10 @@ def content-of [input: record]: nothing -> string {
     })
   }
   match $tool {
+    "AskUserQuestion" => (questions-in ($args | get -o questions))
     "Write" => ($args | get -o content | default "")
     "Edit" => ($args | get -o new_string | default "")
     "apply_patch" => ($args | get -o command | default "")
-    "AskUserQuestion" => (questions-in ($args | get -o questions))
     _ => ""
   }
 }
