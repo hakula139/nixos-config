@@ -49,23 +49,23 @@ One mechanism explains both halves. The judges reward dense metaphor and ornamen
 
 ### 3.2 Mechanical signals do not generalise
 
-A seven-feature composite correlated at $\rho = -0.459$ with human scores in round 1, and -0.450 after controlling for length. Only one feature, particle density, carried the composite, while two others pointed the wrong way.
+A seven-feature composite correlated at $\rho = -0.459$ with human scores in round 1, and $\rho = -0.450$ after controlling for length. Only one feature, particle density, carried the composite, while two others pointed the wrong way.
 
 Adding quotation-mark density lifted the in-sample correlation to -0.633, and this was withdrawn after out-of-sample testing:
 
-| Signal          | Round 1 (n=26) | Round 3 (n=10, held out) |
-| --------------- | -------------- | ------------------------ |
-| Composite score | -0.459         | -0.263                   |
-| Quotation marks | -0.442         | **-0.013**               |
-| Combined        | -0.633         | **-0.201**               |
+| Signal          | Round 1 ($n = 26$) | Round 3 ($n = 10$, held out) |
+| --------------- | ------------------ | ---------------------------- |
+| Composite score | -0.459             | -0.263                       |
+| Quotation marks | -0.442             | **-0.013**                   |
+| Combined        | -0.633             | **-0.201**                   |
 
 The quotation signal vanished entirely. The cause was a single sample that imitated the owner's own writing, a register that uses corner brackets heavily: it had the highest quote count in the round and the second-highest score. The signal was tracking register.
 
-Paragraph length, function-word density, adverb density, and information-item count all failed on held-out data as well. The strongest was paragraph length at rho = +0.100, which is to say nothing.
+Paragraph length, function-word density, adverb density, and information-item count all failed on held-out data as well. The strongest was paragraph length at $\rho = +0.100$, which is to say nothing.
 
 ### 3.3 Model identity dominates
 
-Six models were crossed with three tasks under one frame. Within that set, no pair separated: the model effect was F(5,10) = 1.19, $p = 0.378$, against a task effect of F(2,10) = 5.00, $p = 0.031$. The largest observed pairwise gap, 1.33 points, sat just inside the 1.36-point half-width of its own confidence interval, and per-task rankings contradicted each other, with two of three inter-task rank correlations negative.
+Six models were crossed with three tasks under one frame. Within that set, no pair separated: the model effect was $F(5,10) = 1.19$, $p = 0.378$, against a task effect of $F(2,10) = 5.00$, $p = 0.031$. The largest observed pairwise gap, 1.33 points, sat just inside the 1.36-point half-width of its own confidence interval, and per-task rankings contradicted each other, with two of three inter-task rank correlations negative.
 
 This nearly produced the wrong conclusion. The six models were all already good, so the design had measured spread within a restricted range and found none. Placing the weakest model on the same scale showed what the restriction had hidden:
 
