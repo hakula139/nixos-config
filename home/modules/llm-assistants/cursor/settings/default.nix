@@ -53,7 +53,7 @@ let
   };
 
   # ----------------------------------------------------------------------------
-  # nixd - machine-specific option completions
+  # nixd — machine-specific option completions
   # ----------------------------------------------------------------------------
   nixdCompletions =
     if flakePath != null && flakeConfigName != null then
