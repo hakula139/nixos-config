@@ -119,7 +119,7 @@ One model was disqualified on a defect no score captures: DeepSeek V3.2 emitted 
 
 Section 3.1 and 3.2 rule out detection: no available signal separates good Chinese from bad at usable precision. Section 3.3 makes detection unnecessary anyway, because the variable that predicts quality is which model wrote the text, and that is known at generation time. A classifier for a variable you already control has nothing to contribute.
 
-The implementation is a rewriter. `home/modules/llm-assistants/shared/hooks/pre-tool-use/zh-polish/` runs before any tool that carries prose out of the session, which means a file write, an interactive question, and the MCP calls that publish a page, a comment, or a commit body. It:
+The implementation is a rewriter. `home/modules/llm-assistants/shared/hooks/pre-tool-use/zh-polish/` runs at `PreToolUse`, before the tool call carries the prose out of the session. It:
 
 1. Takes only the span the tool call introduced, so prose already in a file is never rewritten, and for a file write takes only `.md`, since rewriting a source file to polish one Chinese comment would put the code around it at risk.
 2. Requires 120 CJK characters outside fenced code for a whole-file write, and 8 for an edited span, a question, or an MCP field. A model usually rewrites one sentence at a time, so an edit is worth a call at a length a whole file would not be.
@@ -160,11 +160,11 @@ At 3.5 this draft sits mid-scale. The arm carrying coding history in section 3.4
 
 ## 5. Coverage and limits
 
-The mechanism covers text the assistant sends out through a tool, substituting its rewrite into the tool input at `PreToolUse` so the polished version is what lands. That reaches file writes, the MCP surfaces that publish prose (Confluence pages and comments, commit bodies, issue and merge-request text), and the prose of an interactive question. It does not cover conversational replies, and cannot: at the `Stop` event the response text is read-only, so a hook may block or inject context but not substitute the text a user sees.
+Coverage is the text the assistant sends out through a tool: file writes, the MCP surfaces that publish prose (Confluence pages and comments, commit bodies, issue and merge-request text), and the prose of an interactive question. It does not reach conversational replies, and cannot: at the `Stop` event the response text is read-only, so a hook may block or inject context but not substitute the text a user sees.
 
 The rewrite applies only where the host implements `updatedInput`, which the second assistant does not, so its edits go unpolished.
 
-The transport constrains the model choice. The assistant CLI routes only one vendor's models, and every model from that vendor scored 4.0 to 4.5 as a rewriter, against 9.0 for the one selected. The hook calls the configured endpoint directly, reading its credentials and certificate path from the environment the assistant already runs in.
+The transport constrains the model choice. The assistant CLI routes only one vendor's models, and section 3.5 scores every one of them at 4.0 to 4.5 against 9.0 for the model selected. The hook therefore calls the configured endpoint directly, reading its credentials and certificate path from the environment the assistant already runs in.
 
 Statistical limits worth keeping in view. There is one reviewer, so nothing here separates their preferences from Chinese prose quality in general, and that distinction does not matter for the purpose but would matter for any wider claim. The frame effect rests on five draws per arm at $p = 0.049$. The rewriter ranking rests on one draw per model on one draft, so the ordering below the top score is not resolved, and a 9.0 from a single draw should be expected to regress. Sample counts per condition are between 1 and 5 throughout.
 
@@ -180,4 +180,4 @@ Statistical limits worth keeping in view. There is one reviewer, so nothing here
 
 ## 7. What is checkable
 
-The scores throughout are the owner's own blind reads, and the raw annotations and per-round analysis are not published, so the rankings here have to be taken on trust. What the repository does carry is the hook itself: its rules are sliced from the instruction file at build time, and its behaviour on a given payload can be reproduced by running it.
+The scores throughout are the owner's own blind reads, and the raw annotations and per-round analysis are not published, so the rankings here have to be taken on trust. What the repository does carry is the hook itself, whose rules are the instruction file's own by the slicing in section 4, and whose behaviour on a given payload can be reproduced by running it.
