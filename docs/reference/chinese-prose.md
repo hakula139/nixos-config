@@ -4,7 +4,7 @@ Why this repository rewrites Chinese prose with a hook, and what the measurement
 
 ## Abstract
 
-The assistant's default Chinese output was judged unusable by the repository owner, who is a native speaker and the sole consumer of that output. Six rounds of blind human review, covering 78 samples across twelve models and five context frames, were used to locate the cause and test candidate fixes.
+The assistant's default Chinese output was judged unusable by the owner, its sole consumer. Six rounds of blind human review, covering 78 samples across twelve models and five context frames, were used to locate the cause and test candidate fixes.
 
 Three findings drove the design. Model identity dominates: under an identical prompt and frame, the weakest model scored 3.70 out of 10 while six others clustered between 7.00 and 8.33, a gap of 3.3 to 4.6 points. Context isolation is real but secondary, worth 1.80 points. Every automated proxy for quality failed, including three LLM judges, which ranked samples in reverse.
 
@@ -14,7 +14,7 @@ The resulting mechanism performs no classification. It routes Chinese prose to a
 
 The assistant writes Chinese for documentation, commit bodies, and conversational replies. The owner's assessment was that its output is markedly worse than that of the previous model generation, and that reading it costs more than rewriting it.
 
-Automated quality measurement was attempted first and is reported here as a negative result, because its failure is what forced the design. Throughout, the single ground truth is the owner's blind scores on a 0 to 10 scale, and every mechanical or model-based signal is validated against them.
+Automated quality measurement was attempted first, and its failure is what forced the design. Throughout, the single ground truth is the owner's blind scores on a 0 to 10 scale, and every mechanical or model-based signal is validated against them.
 
 ## 2. Method
 
@@ -166,7 +166,7 @@ The rewrite applies only where the host implements `updatedInput`, which the sec
 
 The transport constrains the model choice. The assistant CLI routes only one vendor's models, and section 3.5 scores every one of them at 4.0 to 4.5 against 9.0 for the model selected. The hook therefore calls the configured endpoint directly, reading its credentials and certificate path from the environment the assistant already runs in.
 
-Statistical limits worth keeping in view. There is one reviewer, so nothing here separates their preferences from Chinese prose quality in general, and that distinction does not matter for the purpose but would matter for any wider claim. The frame effect rests on five draws per arm at $p = 0.049$. The rewriter ranking rests on one draw per model on one draft, so the ordering below the top score is not resolved, and a 9.0 from a single draw should be expected to regress. Sample counts per condition are between 1 and 5 throughout.
+Statistical limits worth keeping in view. There is one reviewer, so the target is that reviewer's preference and nothing broader. The frame effect rests on five draws per arm at $p = 0.049$. The rewriter ranking rests on one draw per model on one draft, so the ordering below the top score is not resolved, and a 9.0 from a single draw should be expected to regress. Sample counts per condition are between 1 and 5 throughout.
 
 ## 6. Ruled out
 
@@ -177,7 +177,3 @@ Statistical limits worth keeping in view. There is one reviewer, so nothing here
 - **Human sample paragraphs as a style anchor.** Section 3.4, effective but grafts the author's persona.
 - **Two-stage drafting, where one model drafts and another rewrites.** Section 3.5, rewriting tops out below direct generation, so delegate the generation where the mechanism allows it.
 - **Injecting an n-gram style prior at the logit layer.** Published negative result: too small has no effect, too large degrades into repetition loops.
-
-## 7. What is checkable
-
-The scores throughout are the owner's own blind reads, and the raw annotations and per-round analysis are not published, so the rankings here have to be taken on trust. What the repository does carry is the hook itself, whose rules are the instruction file's own by the slicing in section 4, and whose behaviour on a given payload can be reproduced by running it.
