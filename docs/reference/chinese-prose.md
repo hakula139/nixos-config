@@ -32,6 +32,8 @@ Absolute scores are comparable across rounds. The owner confirmed that a uniform
 
 Sample pairs differing by at least 1.5 human points were put to three models, each pair in both orders, counting only pairs where the verdict survived an order swap. Two opposite framings were used, asking which sample was better and which read as more machine-written, so that a simple polarity error would show up as a sign flip.
 
+`Agrees` is measured against the human ranking under both framings. Under _which is better_ it means the judge picked the higher-scoring sample. Under _more machine_ it means the judge called the lower-scoring sample the more machine-written one.
+
 | Framing         | Judge            | Agrees | Disagrees | Order-unstable |
 | --------------- | ---------------- | ------ | --------- | -------------- |
 | Which is better | Gemini 3.7 Flash | 15.0%  | 51.7%     | 33.3%          |
@@ -41,7 +43,7 @@ Sample pairs differing by at least 1.5 human points were put to three models, ea
 | More machine    | Opus 4.7         | 15.0%  | 70.0%     | 15.0%          |
 | More machine    | Opus 5           | 10.0%  | 73.3%     | 16.7%          |
 
-Agreement of 10% to 22% is far below the 50% a coin would give, and the sign did not flip when the question was inverted. Both framings therefore place the owner's low-scoring samples on the same side: the judges read them as both better written and more human.
+Agreement of 10% to 22% is far below the 50% a coin would give, and the sign did not flip when the question was inverted. Read through the definition above, the two framings say the same thing about the same samples. Low agreement on the first means the judges picked the owner's low-scoring samples as the better written ones. Low agreement on the second means they called the high-scoring samples the more machine-written ones, which leaves the low-scoring samples on the human side. A prompt that made one judge answer backwards cannot explain this, since that would have raised agreement under the opposite framing.
 
 One mechanism explains both halves. The judges reward dense metaphor and ornamented diction, which is exactly what the owner's annotations deduct for. Best-of-N against any of these judges would select reliably worse output, so that route is closed.
 
