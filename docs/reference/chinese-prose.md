@@ -43,7 +43,7 @@ Sample pairs differing by at least 1.5 human points were put to three models, ea
 | More machine    | Opus 4.7         | 15.0%  | 70.0%     | 15.0%          |
 | More machine    | Opus 5           | 10.0%  | 73.3%     | 16.7%          |
 
-Agreement of 10% to 22% is far below the 50% a coin would give, and the sign did not flip when the question was inverted. Read through the definition above, the two framings say the same thing about the same samples. Low agreement on the first means the judges picked the owner's low-scoring samples as the better written ones. Low agreement on the second means they called the high-scoring samples the more machine-written ones, which leaves the low-scoring samples on the human side. A prompt that made one judge answer backwards cannot explain this, since that would have raised agreement under the opposite framing.
+Agreement of 10% to 22% is far below the 50% a coin would give, and the sign did not flip when the question was inverted. Low agreement on the first framing means the judges picked the owner's low-scoring samples as the better written ones. Low agreement on the second means they called the high-scoring samples the more machine-written ones, which leaves the low-scoring samples on the human side. A prompt that made one judge answer backwards cannot explain this, since that would have raised agreement under the opposite framing.
 
 One mechanism explains both halves. The judges reward dense metaphor and ornamented diction, which is exactly what the owner's annotations deduct for. Best-of-N against any of these judges would select reliably worse output, so that route is closed.
 
@@ -156,7 +156,7 @@ and after, with no half-width mark and a shortest sentence of 36:
 
 > 单纯的否定指令只划定了边界，模型在揣摩合格标准的过程中容易变得畏手畏脚，导致行文滞涩。那些招致反感的句式，根源通常在于试图用形式上的对仗和顿挫去掩盖论证本身的单薄。如果不解决立论的问题，单靠堵截表层的句式，表达冲动就会流向其他机械的形式。比较有效的做法是提供具体的正面样例，或者限定特定结构的出现频率，引导模型在写作过程中自主平衡。
 
-The draft's opening paragraph shows neither fault, so a rewrite of it would demonstrate nothing. At 3.5 the draft also sits mid-scale, and the arm carrying coding history in section 3.4 averaged 1.90.
+At 3.5 this draft sits mid-scale. The arm carrying coding history in section 3.4 averaged 1.90.
 
 ## 5. Coverage and limits
 
