@@ -3,7 +3,9 @@
 # ==============================================================================
 
 let
-  sharedBody = builtins.readFile ./shared.md;
+  sharedBody = builtins.replaceStrings [ "@phrasing@" ] [ (builtins.readFile ./phrasing.md) ] (
+    builtins.readFile ./shared.md
+  );
   claudeBody = builtins.readFile ./claude-code.md;
   agentsBody = builtins.readFile ./agents.md;
 

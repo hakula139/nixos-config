@@ -16,11 +16,12 @@ let
   # Hook timeouts
   # ----------------------------------------------------------------------------
   timeouts = rec {
-    judge = 30;
-    zhJudge = 180;
+    modelCall = 90;
     tool = 10;
-    postEdit = judge + zhJudge + 3 * tool;
+    postEdit = 3 * tool;
   };
+
+  proseDoctrine = ../instructions/phrasing.md;
 
   # ----------------------------------------------------------------------------
   # Script generation
@@ -37,19 +38,27 @@ let
         builtins.readFile script
       )
     );
+
+  preToolUseHooks = import ./pre-tool-use {
+    inherit
+      pkgs
+      lib
+      mkHookScript
+      proseDoctrine
+      timeouts
+      ;
+  };
+  postToolUseHooks = import ./post-tool-use {
+    inherit
+      pkgs
+      lib
+      assistant
+      enableDevToolchains
+      mkHookScript
+      repo
+      timeouts
+      ;
+  };
+  stopHooks = import ./stop;
 in
-{
-  inherit timeouts;
-}
-// import ./post-tool-use {
-  inherit
-    pkgs
-    lib
-    assistant
-    mkHookScript
-    repo
-    timeouts
-    enableDevToolchains
-    ;
-}
-// import ./stop
+{ inherit timeouts; } // preToolUseHooks // postToolUseHooks // stopHooks
