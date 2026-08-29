@@ -31,10 +31,12 @@ def enough-prose [text: string, whole_file: bool]: nothing -> bool {
 def supported-markdown [text: string]: nothing -> bool {
   let content = (prose $text)
   # Long backtick fences, tilde fences, and indented code blocks
-  let supported_blocks = ($text | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}|(?: {4}|\t)[ \t]*\S))' | is-empty)
+  let supported_blocks = ($text | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}|(?: {4,}| {0,3}\t)[ \t]*\S))' | is-empty)
   # Multiple-backtick inline code
   let supported_inline = ($content | str contains "``") == false
-  $supported_blocks and $supported_inline
+  # Raw HTML code containers
+  let supported_html = ($text | parse --regex '(?i)(?<m><(?:pre|code|script|style)(?:\s|>))' | is-empty)
+  $supported_blocks and $supported_inline and $supported_html
 }
 
 def protected [text: string]: nothing -> list {
@@ -62,7 +64,7 @@ def protected [text: string]: nothing -> list {
     # URLs
     ($text | parse --regex '(?<m>https?://[^\s)>]+)')
     # Identifiers containing digits
-    ($text | parse --regex '(?<m>(?<![A-Za-z0-9_])[A-Za-z_][A-Za-z0-9_.:/+-]*\d(?:[A-Za-z0-9_.:/+-]*[A-Za-z0-9_])?(?![A-Za-z0-9_]))')
+    ($text | parse --regex '(?<m>(?<![A-Za-z0-9_])(?=[A-Za-z0-9_.:/+-]*[A-Za-z])(?=[A-Za-z0-9_.:/+-]*\d)[A-Za-z0-9_](?:[A-Za-z0-9_.:/+-]*[A-Za-z0-9_])?(?![A-Za-z0-9_]))')
     # Numbers with decimal segments and optional unit suffixes
     ($text | parse --regex '(?<m>[-+]?\d+(?:\.\d+)*(?:%|[A-Za-z]+)?)')
     # Quoted text
