@@ -158,6 +158,7 @@ def polish [items: list<string>]: nothing -> list<string> {
     model: $MODEL
     max_tokens: 16384
     stream: false
+    response_format: {type: "json_object"}
     messages: [
       {role: "system", content: (open --raw $DOCTRINE_FILE | into string)}
       {
@@ -165,9 +166,9 @@ def polish [items: list<string>]: nothing -> list<string> {
         content: ([
           $instruction
           ""
-          "The input is JSON. Return only JSON with the same passages array and numeric IDs, replacing each text value with its rewrite."
+          "The input is a JSON object. Return only the same object shape and numeric IDs, replacing each text value with its rewrite."
           ""
-          ($passages | to json --raw)
+          ({passages: $passages} | to json --raw)
         ] | str join "\n")
       }
     ]
