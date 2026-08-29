@@ -23,18 +23,30 @@ let
   };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
-  proseGateMatcher = lib.concatStringsSep "|" [
-    "Edit"
-    "Write"
-    "mcp__Atlassian__confluence_(create_page|update_page|add_comment|add_inline_comment|reply_to_comment)"
-    "mcp__Git__git_commit"
-    "mcp__(GitHub|GitLab)__(create|update|add)_"
-    "mcp__.*_write"
-  ];
+  proseTools = lib.concatStringsSep "|" (
+    [
+      "AskUserQuestion"
+      "Edit"
+      "Write"
+    ]
+    ++ builtins.attrNames hookScripts.mcpProseFields
+  );
 in
 {
+  PreToolUse = [
+    {
+      matcher = proseTools;
+      hooks = [
+        {
+          type = "command";
+          command = "${hookScripts.prosePolish}";
+          statusMessage = "Polishing prose";
+        }
+      ];
+    }
+  ];
+
   PostToolUse = [
-    # WakaTime heartbeat for AI-generated file edits
     {
       matcher = "Edit|Write";
       hooks = [
@@ -45,7 +57,6 @@ in
         }
       ];
     }
-    # Auto-format and lint edited files
     {
       matcher = "Edit|Write";
       hooks = [
@@ -55,32 +66,9 @@ in
         }
       ];
     }
-    # English style gate - flag banned prose tics
-    {
-      matcher = proseGateMatcher;
-      hooks = [
-        {
-          type = "command";
-          command = "${hookScripts.proseGate}";
-          statusMessage = "Checking prose style";
-        }
-      ];
-    }
-    # Chinese style gate - flag prose that reads as unpolished output
-    {
-      matcher = proseGateMatcher;
-      hooks = [
-        {
-          type = "command";
-          command = "${hookScripts.zhProseGate}";
-          statusMessage = "Checking Chinese prose style";
-        }
-      ];
-    }
   ];
 
   PermissionRequest = [
-    # Notify when Claude Code asks a question
     {
       matcher = "AskUserQuestion";
       hooks = [
@@ -94,7 +82,6 @@ in
     }
   ];
 
-  # Nudge teammates once to check for remaining work before going idle
   TeammateIdle = [
     {
       hooks = [
@@ -117,7 +104,6 @@ in
   ];
 
   Stop = [
-    # Completeness gate - block stopping while requested work is unfinished
     {
       hooks = [
         {
@@ -127,7 +113,6 @@ in
         }
       ];
     }
-    # Response complete - notify when Claude Code finishes responding
     {
       hooks = [
         {

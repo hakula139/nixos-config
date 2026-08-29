@@ -69,19 +69,6 @@ let
     };
     plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
   };
-
-  # ----------------------------------------------------------------------------
-  # Chinese fingerprint classifier
-  # ----------------------------------------------------------------------------
-  zhFingerprintEnv = pkgs.python3.withPackages (ps: [ ps.jieba ]);
-  zhFingerprint = pkgs.writeShellScript "zh-fingerprint" ''
-    exec ${zhFingerprintEnv}/bin/python3 ${pkgs.copyPathToStore ./zh-prose-gate/zh-fingerprint.py} "$@"
-  '';
-
-  zhFingerprintAssistants = [
-    "claude-code"
-    "codex"
-  ];
 in
 {
   autoFormat = mkHookScript {
@@ -101,32 +88,6 @@ in
       "@prettier@" = whenDev pkgs.unstable.prettier;
       "@ruff@" = whenDev pkgs.ruff;
       "@taplo@" = whenDev pkgs.taplo;
-    };
-  };
-
-  proseGate = mkHookScript {
-    slug = "prose-gate";
-    script = ./prose-gate/prose-gate.nu;
-    writer = pkgs.writers.writeNu;
-    substitutions = {
-      "@timeout@" = "${pkgs.coreutils}/bin/timeout";
-      "@promptFile@" = "${./prose-gate/prose-tics.md}";
-      "@judgeTimeout@" = toString timeouts.judge;
-    };
-  };
-
-  zhProseGate = mkHookScript {
-    slug = "zh-prose-gate";
-    script = ./zh-prose-gate/zh-prose-gate.nu;
-    writer = pkgs.writers.writeNu;
-    substitutions = {
-      "@timeout@" = "${pkgs.coreutils}/bin/timeout";
-      "@fingerprint@" = lib.optionalString (builtins.elem assistant zhFingerprintAssistants) "${
-        zhFingerprint
-      }";
-      "@promptFile@" = "${./zh-prose-gate/zh-prose-tics.md}";
-      "@assistantId@" = assistant;
-      "@judgeTimeout@" = toString timeouts.zhJudge;
     };
   };
 
