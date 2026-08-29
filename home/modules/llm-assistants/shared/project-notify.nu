@@ -6,9 +6,7 @@
 # projectNotify <title> <message> [payload]
 # ==============================================================================
 
-const NOTIFY = "@notify@"
-
-def main [title: string, message: string = "", payload: string = ""] {
+def main [notify: string, title: string, message: string = "", payload: string = ""] {
   mut project = ($env.PWD | path basename)
 
   if ($payload | is-not-empty) {
@@ -23,5 +21,5 @@ def main [title: string, message: string = "", payload: string = ""] {
     }
   }
 
-  ^$NOTIFY $title $"[($project)] ($message)"
+  ^$notify $title $"[($project)] ($message)"
 }

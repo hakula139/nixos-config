@@ -28,5 +28,7 @@ pkgs.writers.writeNuBin "cloudcone-agent" {
     "PATH"
     ":"
     (lib.makeBinPath runtimeInputs)
+    "--add-flag"
+    serverKeyFile
   ];
-} (builtins.replaceStrings [ "@serverKeyFile@" ] [ serverKeyFile ] (builtins.readFile ./agent.nu))
+} (builtins.readFile ./agent.nu)

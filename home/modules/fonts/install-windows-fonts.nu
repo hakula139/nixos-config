@@ -7,10 +7,7 @@
 # and register them in the HKCU registry.
 # ==============================================================================
 
-use @windowsInterop@ *
-
 const FONT_EXTENSIONS = [ttf otf ttc otc]
-const FONT_DIRS = @fontDirs@
 
 def extension [file: string]: nothing -> string {
   $file | path parse | get extension | str downcase
@@ -27,12 +24,14 @@ def font-type [file: string]: nothing -> string {
   if (extension $file) in [otf otc] { "OpenType" } else { "TrueType" }
 }
 
-def main [] {
-  let font_dir = ([(windows-env-path LOCALAPPDATA) "Microsoft" "Windows" "Fonts"] | path join)
+def main [config_file: string] {
+  let config = (open $config_file)
+  let local_app_data = (^$config.windowsInterop LOCALAPPDATA | str trim)
+  let font_dir = ([$local_app_data "Microsoft" "Windows" "Fonts"] | path join)
   mkdir $font_dir
 
   let results = (
-    font-files $FONT_DIRS | each {|font|
+    font-files $config.fontDirs | each {|font|
       let dest = ([$font_dir ($font | path basename)] | path join)
       if ($dest | path exists) {
         "skipped"
@@ -61,7 +60,7 @@ def main [] {
     let name = ($font | path basename)
     let value = $"($font | path parse | get stem) \((font-type $font)\)"
     (
-      ^reg.exe add "HKCU\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts"
+      ^/mnt/c/Windows/System32/reg.exe add "HKCU\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts"
         /v $value /t REG_SZ /d $"($win_font_dir)\\($name)" /f
       | complete
       | ignore
