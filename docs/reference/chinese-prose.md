@@ -127,7 +127,7 @@ Sections 3.1 and 3.2 rule out a quality gate: neither model judgment nor surface
 4. Rejects empty, excessively short or long, and structurally altered results. Fenced code, inline code, headings, link targets, and list markers must survive unchanged; passages using fence syntax the validator cannot parse safely are skipped.
 5. Returns the complete tool input through `updatedInput`. Any error leaves the original call untouched.
 
-The rewriter receives no coding conversation, which preserves the context-isolation gain from section 3.4. The doctrine is sliced out of the assistant's own instruction file at build time so the writer and rewriter share one source.
+The rewriter receives no coding conversation, which preserves the context-isolation gain from section 3.4. The assistant instructions and rewriter use the same phrasing fragment.
 
 Measured end to end on a Chinese sample the owner had scored low, the earlier language-specific hook completed in 12 seconds and removed the half-width punctuation the owner had flagged. It also rejoined clipped sentences: the sentence count fell while the mean sentence grew.
 
@@ -176,4 +176,3 @@ Statistical limits worth keeping in view. There is one reviewer, so the target i
 - **Selecting a model on Chinese quality among already-good models.** Section 3.3, six models across four vendors were statistically indistinguishable.
 - **Chinese style rules written as a checklist.** Section 3.4, worst of five frames on both models.
 - **Human sample paragraphs as a style anchor.** Section 3.4, effective but grafts the author's persona.
-- **Injecting an n-gram style prior at the logit layer.** Published negative result: too small has no effect, too large degrades into repetition loops.
