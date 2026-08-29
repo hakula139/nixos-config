@@ -195,9 +195,6 @@ def polish [items: list<string>]: nothing -> list<string> {
   let reply = ($response | get -o choices.0.message.content | default "")
   let parsed = (try { $reply | from json } catch { return [] })
   let rewritten = ($parsed | get -o passages | default [])
-  if ($rewritten | describe --detailed | get type) != "list" {
-    return []
-  }
   let expected = (0..<($items | length) | each {|i| $i })
   if ($rewritten | length) != ($items | length) or ($rewritten | get -o id) != $expected {
     return []
@@ -223,19 +220,12 @@ def acceptable [before: string, after: string]: nothing -> bool {
 
 def polished []: nothing -> any {
   let payload = (^cat | from json)
-  if ($payload | describe | str starts-with "record") == false {
-    return null
-  }
   let found = (targets $payload)
   if ($found | is-empty) {
     return null
   }
 
   let rewritten = (polish ($found | get text))
-  if ($rewritten | length) != ($found | length) {
-    return null
-  }
-
   mut args = ($payload | get tool_input)
   mut changed = false
   for pair in ($found | zip $rewritten) {

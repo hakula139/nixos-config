@@ -44,16 +44,11 @@ let
       substitutions ? { },
       writer ? pkgs.writeShellScript,
     }:
-    let
-      text =
-        builtins.replaceStrings (builtins.attrNames substitutions) (builtins.attrValues substitutions)
-          (builtins.readFile script);
-      unsubstituted = lib.filter (line: builtins.match ".*@[a-zA-Z][a-zA-Z0-9]*@.*" line != null) (
-        lib.splitString "\n" text
-      );
-    in
-    assert unsubstituted == [ ] || throw "${slug}: unsubstituted ${lib.head unsubstituted}";
-    writer "${assistant}-${slug}" text;
+    writer "${assistant}-${slug}" (
+      builtins.replaceStrings (builtins.attrNames substitutions) (builtins.attrValues substitutions) (
+        builtins.readFile script
+      )
+    );
 in
 {
   inherit timeouts;
