@@ -11,8 +11,6 @@ const MIN_HAN_FILE = 120
 const MIN_HAN_SPAN = 8
 const MIN_LATIN_FILE = 240
 const MIN_LATIN_SPAN = 32
-const MIN_RATIO = 0.75
-const MAX_RATIO = 1.4
 
 def prose [text: string]: nothing -> string {
   $text | str replace --regex --all $FENCE ""
@@ -213,15 +211,7 @@ def polish [items: list<string>, config: record]: nothing -> list<string> {
 }
 
 def acceptable [before: string, after: string]: nothing -> bool {
-  let before_letters = ((count $before $HAN) + (count $before $LATIN))
-  let after_letters = ((count $after $HAN) + (count $after $LATIN))
-  let ratio = ($after_letters / ([$before_letters 1] | math max))
-  let han_before = (count $before $HAN)
-  let han_ratio = ((count $after $HAN) / ([$han_before 1] | math max))
-  (($ratio >= $MIN_RATIO)
-    and ($ratio <= $MAX_RATIO)
-    and ($han_before == 0 or ($han_ratio >= $MIN_RATIO and $han_ratio <= $MAX_RATIO))
-    and (margins $after) == (margins $before)
+  ((margins $after) == (margins $before)
     and (protected $after) == (protected $before))
 }
 
