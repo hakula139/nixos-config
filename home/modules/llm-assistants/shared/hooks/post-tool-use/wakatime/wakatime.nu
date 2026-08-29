@@ -8,10 +8,6 @@
 # download or install its own CLI binary.
 # ==============================================================================
 
-const PLUGIN_NAME = "@pluginName@"
-const TIMEOUT = "@timeout@"
-const TOOL_TIMEOUT = "@toolTimeout@"
-
 const ID_FIELDS = [transcript_path, session_id, "thread-id", thread_id, cwd]
 const MAX_ID_CHARS = 160
 const MAX_PLUGIN_CHARS = 80
@@ -30,6 +26,7 @@ def text-field [input: record, field: string]: nothing -> string {
 }
 
 def sanitize [raw: string, limit: int]: nothing -> string {
+  # Safe state-file component characters
   $raw | str replace --all --regex '[^A-Za-z0-9._-]' '_' | str substring ..<$limit
 }
 
@@ -42,6 +39,7 @@ def state-id [input: record]: nothing -> string {
 
 def throttled [file: string, now: int]: nothing -> bool {
   let last = (try { open $file | str trim } catch { "" })
+  # Decimal timestamp
   if ($last =~ '^[0-9]+$') == false {
     return false
   }
@@ -53,7 +51,7 @@ def wakatime-home []: nothing -> string {
   if ($override | is-not-empty) { $override } else { $env | get -o HOME | default "" }
 }
 
-def beat []: nothing -> nothing {
+def beat [config: record]: nothing -> nothing {
   let input = (payload)
   let probe = (^wakatime-cli --help | complete)
   if ($probe.stdout | str contains "--sync-ai-activity") == false {
@@ -64,7 +62,7 @@ def beat []: nothing -> nothing {
     return
   }
   let state_dir = ([$home ".wakatime" "llm-assistants"] | path join)
-  let plugin_id = (sanitize $PLUGIN_NAME $MAX_PLUGIN_CHARS)
+  let plugin_id = (sanitize $config.pluginName $MAX_PLUGIN_CHARS)
   let state_file = (
     [$state_dir $"($plugin_id)-(sanitize (state-id $input) $MAX_ID_CHARS).wakatime"] | path join
   )
@@ -74,14 +72,14 @@ def beat []: nothing -> nothing {
   }
   let project = (text-field $input cwd)
   let args = (
-    ["--sync-ai-activity" "--plugin" $PLUGIN_NAME]
+    ["--sync-ai-activity" "--plugin" $config.pluginName]
     | append (if ($project | is-empty) { [] } else { ["--project-folder" $project] })
   )
   mkdir $state_dir
-  ^$TIMEOUT $TOOL_TIMEOUT wakatime-cli ...$args | complete | ignore
+  ^$config.timeout $config.toolTimeout wakatime-cli ...$args | complete | ignore
   $"($now)\n" | save --force $state_file
 }
 
-def main [] {
-  try { beat } catch { null }
+def main [config_file: string] {
+  try { beat (open $config_file) } catch { null }
 }

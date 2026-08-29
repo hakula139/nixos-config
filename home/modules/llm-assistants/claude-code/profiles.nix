@@ -197,9 +197,12 @@ let
   # ----------------------------------------------------------------------------
   # Profile switcher
   # ----------------------------------------------------------------------------
-  claudeSwitch = pkgs.writers.writeNuBin "claude-switch" (
-    builtins.replaceStrings [ "@stateDir@" ] [ stateDir ] (builtins.readFile ./scripts/claude-switch.nu)
-  );
+  claudeSwitch = pkgs.writers.writeNuBin "claude-switch" {
+    makeWrapperArgs = [
+      "--add-flag"
+      stateDir
+    ];
+  } (builtins.readFile ./scripts/claude-switch.nu);
 
   # ----------------------------------------------------------------------------
   # Teammate launcher

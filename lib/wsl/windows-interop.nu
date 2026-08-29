@@ -32,3 +32,7 @@ export def --env windows-env-path [name: string]: nothing -> string {
 
   ^wslpath $value | str trim
 }
+
+def main [name: string] {
+  windows-env-path $name
+}

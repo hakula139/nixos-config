@@ -3,5 +3,5 @@
 # ==============================================================================
 
 {
-  completenessPrompt = builtins.readFile ./completeness/completeness.md;
+  completenessPrompt = import ./completeness;
 }

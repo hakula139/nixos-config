@@ -7,8 +7,6 @@
 # Row 2: Model | Ctx: X% (XXk/200k) | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
 # ==============================================================================
 
-const NPX = "@npx@"
-
 const CCUSAGE_CACHE = "/tmp/ccusage-statusline.json"
 const CCUSAGE_TTL = 30sec
 const CCUSAGE_FIELDS = [has_data, block_cost, remaining_minutes, burn_rate, daily_cost]
@@ -66,6 +64,7 @@ def simplify-model-name [raw: string]: nothing -> string {
     return $raw
   }
 
+  # Model family followed by a numeric version
   let version = (
     $lc
     | parse --regex `(?:opus|sonnet|haiku|gpt)[- ](?<v>\d+(?:[-.]\d+)?)`
@@ -100,6 +99,7 @@ def git-status [cwd: string]: nothing -> list<string> {
 }
 
 def track-count [track: string, label: string]: nothing -> int {
+  # Tracking label followed by its count
   $track | parse --regex ($label + ' (?<n>\d+)') | get -o 0.n | default "0" | into int
 }
 
@@ -210,7 +210,7 @@ def read-cache []: nothing -> record {
 }
 
 def active-block []: nothing -> record {
-  let result = (^$NPX -y ccusage@latest blocks --json --offline | complete)
+  let result = (^npx -y ccusage@latest blocks --json --offline | complete)
   if $result.exit_code != 0 {
     return $NO_BLOCK
   }

@@ -5,6 +5,7 @@ Read this before writing or editing a `.nu` file. Nushell is the default for new
 - **Entry point**: `def main` with typed parameters, so nushell checks arity and types for you.
 - **Data**: records, since a delimited string has to be re-split at every use.
 - **Output**: the `table` renderer.
+- **Regexes**: precede each non-obvious regex with a short label for the construct it matches. Restating the decoded pattern improves readability here.
 
 ## Traps
 
@@ -26,11 +27,13 @@ These either fail silently or raise an error that points somewhere other than th
 
 ## In Nix
 
-`pkgs.writers.writeNu` produces a plain script and `writeNuBin` produces `$out/bin/<name>`. Both take an optional attrset as their second argument, after the name. The `@placeholder@` plus `builtins.replaceStrings` pattern works unchanged and is how every site here supplies absolute store paths, and `builtins.toJSON` substitutes a list, since a nushell list literal accepts JSON verbatim.
+`pkgs.writers.writeNu` produces a plain script and `writeNuBin` produces `$out/bin/<name>`. Both take an optional attrset as their second argument, after the name.
+
+Keep checked-in Nushell valid on its own. Supply one or two scalar values as typed `main` arguments through `makeWrapperArgs` and `--add-flag`. For structured values, write one JSON config, inject its path the same way, and open it in `main`. Put ordinary executable dependencies on the wrapper's `PATH`.
 
 Both writers prepend an absolute-store-path shebang, which demotes a script's own `#!/usr/bin/env nu` line to a comment. Keep that line anyway, since it makes the file runnable and LSP-checkable standalone. To spawn nushell from inside a generated script, read `$nu.current-exe` rather than substituting a store path.
 
-Neither writer validates a `use` target. A missing or misspelled substitution builds clean, then dies at parse time before any `try` can fail open, so a script that has to fail open is better off duplicating a helper than importing one.
+A parse-time `use` target must resolve in both the source tree and the store output. Expose a helper as an executable when no stable module path exists in both places.
 
 ## Linting
 

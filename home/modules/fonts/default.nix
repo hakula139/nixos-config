@@ -16,19 +16,20 @@ let
   cfg = config.hakula.fonts;
 
   fontDirs = map (p: "${p}/share/fonts") shared.fonts;
-
-  installWindowsFonts = pkgs.writers.writeNuBin "install-windows-fonts" (
-    builtins.replaceStrings
-      [
-        "@windowsInterop@"
-        "@fontDirs@"
-      ]
-      [
-        "${pkgs.copyPathToStore wslLib.windowsInteropScript}"
-        (builtins.toJSON fontDirs)
-      ]
-      (builtins.readFile ./install-windows-fonts.nu)
+  windowsInterop = wslLib.mkWindowsInterop pkgs;
+  fontConfig = pkgs.writeText "windows-fonts.json" (
+    builtins.toJSON {
+      inherit fontDirs;
+      windowsInterop = "${windowsInterop}";
+    }
   );
+
+  installWindowsFonts = pkgs.writers.writeNuBin "install-windows-fonts" {
+    makeWrapperArgs = [
+      "--add-flag"
+      "${fontConfig}"
+    ];
+  } (builtins.readFile ./install-windows-fonts.nu);
 in
 {
   # ----------------------------------------------------------------------------
