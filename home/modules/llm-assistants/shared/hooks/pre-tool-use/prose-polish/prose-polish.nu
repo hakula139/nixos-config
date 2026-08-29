@@ -43,25 +43,40 @@ def supported-markdown [text: string]: nothing -> bool {
 
 def protected [text: string]: nothing -> list {
   [
+    # Fenced code blocks
     ($text | parse --regex $FENCE)
+    # Inline code
     ($text | parse --regex '(?<m>`[^`\n]+`)')
+    # ATX headings
     ($text | parse --regex '(?m)^(?<m>#{1,6} .*)$')
+    # Setext headings
     ($text | parse --regex '(?m)^(?<m>.+\n[=-]{2,}\s*)$')
+    # Inline link destinations
     ($text | parse --regex '\]\((?<m>[^)]+)\)')
+    # Reference link destinations
     ($text | parse --regex '(?m)^\s*\[[^]]+\]:\s*(?<m>\S+)')
+    # List markers
     ($text | parse --regex '(?m)^(?<m>\s*(?:[-*+]|\d+\.) )')
+    # YAML front matter
     ($text | parse --regex '(?s)\A(?<m>---\n.*?\n---(?:\n|\z))')
+    # Table rows
     ($text | parse --regex '(?m)^(?<m>\s*\|.*\|\s*)$')
+    # HTML tags
     ($text | parse --regex '(?<m></?[A-Za-z][^>\n]*>)')
+    # URLs
     ($text | parse --regex '(?<m>https?://[^\s)>]+)')
+    # Numeric literals and identifiers
     ($text | parse --regex '(?<m>(?<![A-Za-z0-9_])[-+]?[A-Za-z_]*\d[A-Za-z0-9_.:%/+-]*(?![A-Za-z0-9_]))')
+    # Quoted text
     ($text | parse --regex '(?<m>“[^”\n]*”|「[^」\n]*」|『[^』\n]*』|"[^"\n]*")')
   ]
 }
 
 def margins [text: string]: nothing -> list<string> {
   [
+    # Leading whitespace
     ($text | parse --regex '(?s)\A(?<m>\s*)' | get -o 0.m | default "")
+    # Trailing whitespace
     ($text | parse --regex '(?s)(?<m>\s*)\z' | get -o 0.m | default "")
   ]
 }
