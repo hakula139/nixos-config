@@ -8,7 +8,6 @@
 const AGENT_VERSION = '1.0'
 const GATEWAY = 'http://watch.cloudc.one/agent'
 const PING_TARGET = '1.1.1.1'
-const DEFAULT_SERVER_KEY_FILE = '@serverKeyFile@'
 
 # ------------------------------------------------------------------------------
 # Utility Functions
@@ -39,6 +38,7 @@ def get-os-name []: nothing -> string {
   if ($release | is-not-empty) {
     let vars = (
       $release | lines
+      # Uppercase KEY=value assignments
       | parse -r '^(?<k>[A-Z_]+)=(?<v>.*)$'
       | reduce -f {} {|it, acc| $acc | insert $it.k ($it.v | str trim -c '"') }
     )
@@ -52,11 +52,11 @@ def get-os-name []: nothing -> string {
 }
 
 def get-cpu-speed []: nothing -> string {
-  let cpuinfo = (slurp /proc/cpuinfo | lines | where ($it =~ 'cpu MHz') | get -o 0)
+  let cpuinfo = (slurp /proc/cpuinfo | lines | where ($it | str contains 'cpu MHz') | get -o 0)
   if ($cpuinfo | is-not-empty) {
     return ($cpuinfo | split row ':' | get -o 1 | default "" | str trim)
   }
-  let lscpu = (sh lscpu | lines | where ($it =~ 'CPU MHz') | get -o 0)
+  let lscpu = (sh lscpu | lines | where ($it | str contains 'CPU MHz') | get -o 0)
   if ($lscpu | is-not-empty) {
     return ($lscpu | split row ':' | get -o 1 | default "" | str trim)
   }
@@ -85,6 +85,7 @@ def get-default-interface []: nothing -> string {
 
   let eth = (
     sh ip [link show] | lines
+    # Numbered ethN interface rows
     | where ($it =~ '^[0-9]+: eth[0-9]+:')
     | get -o 0
   )
@@ -103,7 +104,7 @@ def get-active-connections []: nothing -> string {
 }
 
 def get-ping-latency []: nothing -> string {
-  let rtt = (sh ping [-B -w 2 -n -c 2 $PING_TARGET] | lines | where ($it =~ 'rtt') | get -o 0)
+  let rtt = (sh ping [-B -w 2 -n -c 2 $PING_TARGET] | lines | where ($it | str contains 'rtt') | get -o 0)
   if ($rtt | is-empty) { return "" }
   $rtt | split row '/' | get -o 4 | default ""
 }
@@ -156,7 +157,9 @@ def collect-addresses [family: string]: nothing -> string {
 # are percent-escaped inside the command line.
 def escape-cmd [cmd: string]: nothing -> string {
   $cmd
+  # ASCII control whitespace
   | str replace --all -r '[\r\n\t]' ' '
+  # Repeated spaces
   | str replace --all -r ' +' ' '
   | str replace --all '%' '%25'
   | str replace --all ',' '%2C'
@@ -187,8 +190,8 @@ def collect-processes []: nothing -> string {
 # Main Collection
 # ------------------------------------------------------------------------------
 
-def main []: nothing -> nothing {
-  let key_file = ($env.CLOUDCONE_SERVER_KEY_FILE? | default $DEFAULT_SERVER_KEY_FILE)
+def main [server_key_file: string]: nothing -> nothing {
+  let key_file = ($env.CLOUDCONE_SERVER_KEY_FILE? | default $server_key_file)
   # If set to 1, do not send to gateway; print the payload to stdout instead.
   let dry_run = ($env.CLOUDCONE_DRY_RUN? | default "0")
   # If set to 1, redact the server key from output. Defaults to the dry-run value.
@@ -204,7 +207,7 @@ def main []: nothing -> nothing {
   let swap_free = (meminfo-kb $meminfo 'SwapFree:')
 
   let cpu_model = (
-    slurp /proc/cpuinfo | lines | where ($it =~ 'model name') | get -o 0
+    slurp /proc/cpuinfo | lines | where ($it | str contains 'model name') | get -o 0
     | default "" | split row ':' | get -o 1 | default "" | str trim
   )
 

@@ -32,13 +32,14 @@ let
     }:
     let
       configFile = pkgs.writeText "${assistant}-${slug}.json" (builtins.toJSON config);
+      package = pkgs.writers.writeNuBin "${assistant}-${slug}" {
+        makeWrapperArgs = [
+          "--add-flag"
+          "${configFile}"
+        ];
+      } (builtins.readFile script);
     in
-    pkgs.writers.writeNu "${assistant}-${slug}" {
-      makeWrapperArgs = [
-        "--add-flags"
-        "${configFile}"
-      ];
-    } (builtins.readFile script);
+    "${package}/bin/${assistant}-${slug}";
 
   # ----------------------------------------------------------------------------
   # Hook groups

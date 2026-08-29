@@ -50,18 +50,15 @@ let
   # ----------------------------------------------------------------------------
   # Windows sync
   # ----------------------------------------------------------------------------
-  syncWindowsSettings = pkgs.writers.writeNuBin "sync-windows-cursor-settings" (
-    builtins.replaceStrings
-      [
-        "@windowsInterop@"
-        "@settings@"
-      ]
-      [
-        "${pkgs.copyPathToStore wslLib.windowsInteropScript}"
-        "${settings.windowsSettingsJson}"
-      ]
-      (builtins.readFile ./settings/sync-windows-settings.nu)
-  );
+  windowsInterop = wslLib.mkWindowsInterop pkgs;
+  syncWindowsSettings = pkgs.writers.writeNuBin "sync-windows-cursor-settings" {
+    makeWrapperArgs = [
+      "--add-flag"
+      "${settings.windowsSettingsJson}"
+      "--add-flag"
+      windowsInterop
+    ];
+  } (builtins.readFile ./settings/sync-windows-settings.nu);
 
   # ----------------------------------------------------------------------------
   # Cursor paths

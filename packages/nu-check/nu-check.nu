@@ -9,28 +9,16 @@
 
 const MAX_ERRORS = 100
 
-# A `@name@` placeholder only parses once Nix has substituted it. `[]` stands in
-# because it satisfies a `list` parameter and degrades to a string inside quotes,
-# where a bare word would trip the type checker.
-def substitute [text: string, stub: string]: nothing -> string {
-  $text
-  | str replace --regex --multiline '^(use\s+)@[a-zA-Z][a-zA-Z0-9]*@' $"${1}($stub)"
-  | str replace --all --regex '@[a-zA-Z][a-zA-Z0-9]*@' "[]"
-}
-
 def diagnostics [target: string]: nothing -> list<string> {
   ^$nu.current-exe --ide-check $MAX_ERRORS $target
   | complete
   | get stdout
-  | lines
-  | each {|line| try { $line | from json } catch { {} } }
+  | from json --objects
   | where ($it.severity? | default "") == "Error"
   | each {|d| $"  ($d.message) \(offset ($d.span.start)\)" }
 }
 
 def main [...files: string] {
-  let stub = (mktemp --tmpdir --suffix .nu)
-  "" | save --force $stub
   mut failed = false
 
   for file in $files {
@@ -49,19 +37,13 @@ def main [...files: string] {
       continue
     }
 
-    let target = (mktemp --tmpdir --suffix .nu)
-    substitute $text $stub | save --force $target
-
-    let errors = (diagnostics $target)
-    rm --force $target
+    let errors = (diagnostics $file)
     if ($errors | is-not-empty) {
       print -e $"($file):"
       $errors | each {|e| print -e $e }
       $failed = true
     }
   }
-
-  rm --force $stub
   if $failed {
     exit 1
   }
