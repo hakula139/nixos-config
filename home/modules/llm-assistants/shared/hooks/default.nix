@@ -21,30 +21,33 @@ let
     postEdit = 3 * tool;
   };
 
-  proseDoctrine = ../instructions/phrasing.md;
-
   # ----------------------------------------------------------------------------
-  # Script generation
+  # Hook generation
   # ----------------------------------------------------------------------------
-  mkHookScript =
+  mkNuHook =
     {
       slug,
       script,
-      substitutions ? { },
-      writer ? pkgs.writeShellScript,
+      config,
     }:
-    writer "${assistant}-${slug}" (
-      builtins.replaceStrings (builtins.attrNames substitutions) (builtins.attrValues substitutions) (
-        builtins.readFile script
-      )
-    );
+    let
+      configFile = pkgs.writeText "${assistant}-${slug}.json" (builtins.toJSON config);
+    in
+    pkgs.writers.writeNu "${assistant}-${slug}" {
+      makeWrapperArgs = [
+        "--add-flags"
+        "${configFile}"
+      ];
+    } (builtins.readFile script);
 
+  # ----------------------------------------------------------------------------
+  # Hook groups
+  # ----------------------------------------------------------------------------
   preToolUseHooks = import ./pre-tool-use {
     inherit
       pkgs
       lib
-      mkHookScript
-      proseDoctrine
+      mkNuHook
       timeouts
       ;
   };
@@ -54,7 +57,7 @@ let
       lib
       assistant
       enableDevToolchains
-      mkHookScript
+      mkNuHook
       repo
       timeouts
       ;

@@ -1,25 +1,18 @@
 #!/usr/bin/env nu
 
-const CURL = "@curl@"
-const DOCTRINE_FILE = "@doctrineFile@"
-const PROMPT_FILE = "@promptFile@"
-
-const MODEL = "@model@"
-const POLISH_TIMEOUT = "@polishTimeout@"
-
 # Match complete triple-backtick blocks because Rust regexes cannot pair arbitrary delimiters.
 const FENCE = '(?ms)^(?<m>```[^\n]*\n.*?^```\s*$)'
+# Han characters
 const HAN = '(?<c>[\x{4e00}-\x{9fff}])'
-const LETTER = '(?<c>\p{L})'
+# Latin-script letters
+const LATIN = '(?<c>\p{Latin})'
 
 const MIN_HAN_FILE = 120
 const MIN_HAN_SPAN = 8
-const MIN_LETTER_FILE = 240
-const MIN_LETTER_SPAN = 32
+const MIN_LATIN_FILE = 240
+const MIN_LATIN_SPAN = 32
 const MIN_RATIO = 0.75
 const MAX_RATIO = 1.4
-
-const MCP_FIELDS = @mcpProseFields@
 
 def prose [text: string]: nothing -> string {
   $text | str replace --regex --all $FENCE ""
@@ -31,14 +24,17 @@ def count [text: string, pattern: string]: nothing -> int {
 
 def enough-prose [text: string, whole_file: bool]: nothing -> bool {
   let han_floor = if $whole_file { $MIN_HAN_FILE } else { $MIN_HAN_SPAN }
-  let letter_floor = if $whole_file { $MIN_LETTER_FILE } else { $MIN_LETTER_SPAN }
-  (count $text $HAN) >= $han_floor or (count $text $LETTER) >= $letter_floor
+  let latin_floor = if $whole_file { $MIN_LATIN_FILE } else { $MIN_LATIN_SPAN }
+  (count $text $HAN) >= $han_floor or (count $text $LATIN) >= $latin_floor
 }
 
 def supported-markdown [text: string]: nothing -> bool {
   let content = (prose $text)
-  (($text | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}| {4}\S|\t\S))' | is-empty)
-    and ($content | str contains "``") == false)
+  # Long backtick fences, tilde fences, and indented code blocks
+  let supported_blocks = ($text | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}| {4}\S|\t\S))' | is-empty)
+  # Multiple-backtick inline code
+  let supported_inline = ($content | str contains "``") == false
+  $supported_blocks and $supported_inline
 }
 
 def protected [text: string]: nothing -> list {
@@ -65,8 +61,8 @@ def protected [text: string]: nothing -> list {
     ($text | parse --regex '(?<m></?[A-Za-z][^>\n]*>)')
     # URLs
     ($text | parse --regex '(?<m>https?://[^\s)>]+)')
-    # Numeric literals and identifiers
-    ($text | parse --regex '(?<m>(?<![A-Za-z0-9_])[-+]?[A-Za-z_]*\d[A-Za-z0-9_.:%/+-]*(?![A-Za-z0-9_]))')
+    # Numbers with decimal segments and optional unit suffixes
+    ($text | parse --regex '(?<m>[-+]?\d+(?:\.\d+)*(?:%|[A-Za-z]+)?)')
     # Quoted text
     ($text | parse --regex '(?<m>“[^”\n]*”|「[^」\n]*」|『[^』\n]*』|"[^"\n]*")')
   ]
@@ -108,7 +104,7 @@ def question-targets [questions: list<record>]: nothing -> list<record> {
   | flatten
 }
 
-def targets [payload: record]: nothing -> list<record> {
+def targets [payload: record, mcp_fields: record]: nothing -> list<record> {
   let tool = ($payload | get tool_name)
   let args = ($payload | get tool_input)
 
@@ -128,7 +124,7 @@ def targets [payload: record]: nothing -> list<record> {
     return (question-targets ($args | get questions))
   }
 
-  mut fields = ($MCP_FIELDS | get -o $tool | default [])
+  mut fields = ($mcp_fields | get -o $tool | default [])
   if $tool in [mcp__Atlassian__confluence_create_page mcp__Atlassian__confluence_update_page] {
     let format = ($args | get -o content_format | default "markdown")
     if $format != "markdown" {
@@ -140,26 +136,27 @@ def targets [payload: record]: nothing -> list<record> {
   | flatten
 }
 
-def polish [items: list<string>]: nothing -> list<string> {
+def polish [items: list<string>, config: record]: nothing -> list<string> {
+  # Claude profile API suffix
   let base = ($env | get -o ANTHROPIC_BASE_URL | default "" | str replace -r '/anthropic$' '')
   let token = ($env | get -o ANTHROPIC_AUTH_TOKEN | default "")
   if ($base | is-empty) or ($token | is-empty) {
     return []
   }
 
-  let instruction = (open --raw $PROMPT_FILE | into string | str trim)
+  let instruction = ($config.prompt | str trim)
   let passages = (
     $items
     | enumerate
     | each {|item| {id: $item.index, text: $item.item} }
   )
   let body = {
-    model: $MODEL
+    model: $config.model
     max_tokens: 16384
     stream: false
     response_format: {type: "json_object"}
     messages: [
-      {role: "system", content: (open --raw $DOCTRINE_FILE | into string)}
+      {role: "system", content: $config.phrasing}
       {
         role: "user"
         content: ([
@@ -175,10 +172,11 @@ def polish [items: list<string>]: nothing -> list<string> {
 
   let ca = ($env | get -o NODE_EXTRA_CA_CERTS | default "")
   let cacert = if ($ca | is-empty) { [] } else { [--cacert $ca] }
+  let curl = $config.curl
   let run = (
     $body
     | to json
-    | ^$CURL --silent --show-error --fail --max-time $POLISH_TIMEOUT
+    | ^$curl --silent --show-error --fail --max-time $config.polishTimeout
       ...$cacert
       --header $"Authorization: Bearer ($token)"
       --header "content-type: application/json"
@@ -195,14 +193,14 @@ def polish [items: list<string>]: nothing -> list<string> {
     return []
   }
   let reply = ($response | get -o choices.0.message.content | default "")
-  let parsed = (try { $reply | from json } catch { return [] })
+  let parsed = ($reply | from json)
   let rewritten = ($parsed | get -o passages | default [])
   let expected = (0..<($items | length) | each {|i| $i })
   if ($rewritten | length) != ($items | length) or ($rewritten | get -o id) != $expected {
     return []
   }
   let out = ($rewritten | get -o text)
-  if ($out | length) != ($items | length) or ($out | any {|text| ($text | describe) != "string" or ($text | is-empty) }) {
+  if ($out | any {|text| ($text | describe) != "string" or ($text | is-empty) }) {
     []
   } else {
     $out
@@ -210,7 +208,9 @@ def polish [items: list<string>]: nothing -> list<string> {
 }
 
 def acceptable [before: string, after: string]: nothing -> bool {
-  let ratio = ((count $after $LETTER) / ([(count $before $LETTER) 1] | math max))
+  let before_letters = ((count $before $HAN) + (count $before $LATIN))
+  let after_letters = ((count $after $HAN) + (count $after $LATIN))
+  let ratio = ($after_letters / ([$before_letters 1] | math max))
   let han_before = (count $before $HAN)
   let han_ratio = ((count $after $HAN) / ([$han_before 1] | math max))
   (($ratio >= $MIN_RATIO)
@@ -220,14 +220,14 @@ def acceptable [before: string, after: string]: nothing -> bool {
     and (protected $after) == (protected $before))
 }
 
-def polished []: nothing -> any {
+def polished [config: record]: nothing -> any {
   let payload = (^cat | from json)
-  let found = (targets $payload)
+  let found = (targets $payload $config.mcpProseFields)
   if ($found | is-empty) {
     return null
   }
 
-  let rewritten = (polish ($found | get text))
+  let rewritten = (polish ($found | get text) $config)
   mut args = ($payload | get tool_input)
   mut changed = false
   for pair in ($found | zip $rewritten) {
@@ -249,8 +249,8 @@ def polished []: nothing -> any {
   | to json --raw
 }
 
-def main [] {
-  let out = (try { polished } catch { null })
+def main [config_file: string] {
+  let out = (try { polished (open $config_file) } catch { null })
   if $out != null {
     print $out
   }
