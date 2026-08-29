@@ -7,7 +7,8 @@ const PROMPT_FILE = "@promptFile@"
 const MODEL = "@model@"
 const POLISH_TIMEOUT = "@polishTimeout@"
 
-const FENCE = '(?ms)^```[^\n]*\n.*?^```\s*$'
+# Match complete triple-backtick blocks because Rust regexes cannot pair arbitrary delimiters.
+const FENCE = '(?ms)^(?<m>```[^\n]*\n.*?^```\s*$)'
 const HAN = '(?<c>[\x{4e00}-\x{9fff}])'
 const LETTER = '(?<c>\p{L})'
 
@@ -18,21 +19,7 @@ const MIN_LETTER_SPAN = 32
 const MIN_RATIO = 0.75
 const MAX_RATIO = 1.4
 
-const MCP_FIELDS = {
-  mcp__Atlassian__confluence_create_page: [content title]
-  mcp__Atlassian__confluence_update_page: [content title]
-  mcp__Atlassian__confluence_add_comment: [body]
-  mcp__Atlassian__confluence_reply_to_comment: [body]
-  mcp__Git__git_commit: [message]
-  mcp__GitHub__create_pull_request: [body title]
-  mcp__GitHub__issue_write: [body title]
-  mcp__GitHub__pull_request_review_write: [body]
-  mcp__GitLab__create_issue: [description title]
-  mcp__GitLab__update_issue: [description title]
-  mcp__GitLab__create_merge_request: [description title]
-  mcp__GitLab__update_merge_request: [description title]
-  mcp__GitLab__create_note: [body]
-}
+const MCP_FIELDS = @mcpProseFields@
 
 def prose [text: string]: nothing -> string {
   $text | str replace --regex --all $FENCE ""
@@ -56,7 +43,7 @@ def supported-markdown [text: string]: nothing -> bool {
 
 def protected [text: string]: nothing -> list {
   [
-    ($text | parse --regex '(?ms)^(?<m>```[^\n]*\n.*?^```\s*$)')
+    ($text | parse --regex $FENCE)
     ($text | parse --regex '(?<m>`[^`\n]+`)')
     ($text | parse --regex '(?m)^(?<m>#{1,6} .*)$')
     ($text | parse --regex '(?m)^(?<m>.+\n[=-]{2,}\s*)$')

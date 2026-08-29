@@ -10,7 +10,13 @@
   timeouts,
 }:
 
+let
+  mcpProseFieldsFile = ./prose-polish/mcp-fields.json;
+  mcpProseFields = builtins.fromJSON (builtins.readFile mcpProseFieldsFile);
+in
 {
+  inherit mcpProseFields;
+
   prosePolish = mkHookScript {
     slug = "prose-polish";
     script = ./prose-polish/prose-polish.nu;
@@ -20,6 +26,7 @@
       "@doctrineFile@" = "${proseDoctrine}";
       "@promptFile@" = "${./prose-polish/prose-polish-prompt.md}";
       "@model@" = "openrouter/google/gemini-3.7-flash";
+      "@mcpProseFields@" = builtins.readFile mcpProseFieldsFile;
       "@polishTimeout@" = toString timeouts.modelCall;
     };
   };

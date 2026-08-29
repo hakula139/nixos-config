@@ -21,18 +21,7 @@ let
     postEdit = 3 * tool;
   };
 
-  # ----------------------------------------------------------------------------
-  # Prose doctrine
-  # ----------------------------------------------------------------------------
-  instructions = builtins.readFile ../instructions/shared.md;
-
-  section =
-    name:
-    "## ${name}\n"
-    + lib.head (lib.splitString "\n## " (lib.elemAt (lib.splitString "\n## ${name}\n" instructions) 1))
-    + "\n";
-
-  proseDoctrine = pkgs.writeText "prose-doctrine.md" (section "Phrasing");
+  proseDoctrine = ../instructions/phrasing.md;
 
   # ----------------------------------------------------------------------------
   # Script generation
@@ -49,28 +38,27 @@ let
         builtins.readFile script
       )
     );
+
+  preToolUseHooks = import ./pre-tool-use {
+    inherit
+      pkgs
+      lib
+      mkHookScript
+      proseDoctrine
+      timeouts
+      ;
+  };
+  postToolUseHooks = import ./post-tool-use {
+    inherit
+      pkgs
+      lib
+      assistant
+      enableDevToolchains
+      mkHookScript
+      repo
+      timeouts
+      ;
+  };
+  stopHooks = import ./stop;
 in
-{
-  inherit timeouts;
-}
-// import ./post-tool-use {
-  inherit
-    pkgs
-    lib
-    assistant
-    enableDevToolchains
-    mkHookScript
-    repo
-    timeouts
-    ;
-}
-// import ./pre-tool-use {
-  inherit
-    pkgs
-    lib
-    mkHookScript
-    proseDoctrine
-    timeouts
-    ;
-}
-// import ./stop
+{ inherit timeouts; } // preToolUseHooks // postToolUseHooks // stopHooks

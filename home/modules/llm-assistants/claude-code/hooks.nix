@@ -23,15 +23,14 @@ let
   };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
-  proseTools = lib.concatStringsSep "|" [
-    "AskUserQuestion"
-    "Edit"
-    "Write"
-    "mcp__Atlassian__confluence_(create_page|update_page|add_comment|reply_to_comment)"
-    "mcp__Git__git_commit"
-    "mcp__GitHub__(create_pull_request|issue_write|pull_request_review_write)"
-    "mcp__GitLab__(create_issue|update_issue|create_merge_request|update_merge_request|create_note)"
-  ];
+  proseTools = lib.concatStringsSep "|" (
+    [
+      "AskUserQuestion"
+      "Edit"
+      "Write"
+    ]
+    ++ builtins.attrNames hookScripts.mcpProseFields
+  );
 in
 {
   PreToolUse = [

@@ -1,0 +1,15 @@
+{
+  "mcp__Atlassian__confluence_add_comment": ["body"],
+  "mcp__Atlassian__confluence_create_page": ["content", "title"],
+  "mcp__Atlassian__confluence_reply_to_comment": ["body"],
+  "mcp__Atlassian__confluence_update_page": ["content", "title"],
+  "mcp__Git__git_commit": ["message"],
+  "mcp__GitHub__create_pull_request": ["body", "title"],
+  "mcp__GitHub__issue_write": ["body", "title"],
+  "mcp__GitHub__pull_request_review_write": ["body"],
+  "mcp__GitLab__create_issue": ["description", "title"],
+  "mcp__GitLab__create_merge_request": ["description", "title"],
+  "mcp__GitLab__create_note": ["body"],
+  "mcp__GitLab__update_issue": ["description", "title"],
+  "mcp__GitLab__update_merge_request": ["description", "title"]
+}
