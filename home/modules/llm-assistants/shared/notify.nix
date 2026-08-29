@@ -46,10 +46,13 @@ let
     ''}
   '';
 
-  # Project-scoped notification: projectNotify <title> <message> [payload]
-  mkProjectNotifyScript = pkgs.writers.writeNu "project-notify" (
-    builtins.replaceStrings [ "@notify@" ] [ "${notifyScript}" ] (builtins.readFile ./project-notify.nu)
-  );
+  projectNotifyPackage = pkgs.writers.writeNuBin "project-notify" {
+    makeWrapperArgs = [
+      "--add-flag"
+      "${notifyScript}"
+    ];
+  } (builtins.readFile ./project-notify.nu);
+  mkProjectNotifyScript = "${projectNotifyPackage}/bin/project-notify";
 in
 {
   inherit notifyScript mkProjectNotifyScript;

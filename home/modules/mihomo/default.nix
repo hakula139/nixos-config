@@ -29,26 +29,28 @@ let
       (builtins.readFile ./config.yaml)
   );
 
-  updateScript = pkgs.writers.writeNu "mihomo-update" (
-    builtins.replaceStrings
-      [
-        "@curl@"
-        "@baseConfigFile@"
-        "@configDir@"
-        "@proxyVars@"
-        "@secretFile@"
-        "@subscriptionUrlFile@"
-      ]
-      [
-        "${pkgs.curl}/bin/curl"
-        "${baseConfigFile}"
+  updateConfig = pkgs.writeText "mihomo-update.json" (
+    builtins.toJSON {
+      inherit
+        baseConfigFile
         configDir
-        (lib.concatStringsSep " " proxyLib.proxyVars)
         secretFile
         subscriptionUrlFile
-      ]
-      (builtins.readFile ./mihomo-update.nu)
+        ;
+      inherit (proxyLib) proxyVars;
+    }
   );
+  updatePackage = pkgs.writers.writeNuBin "mihomo-update" {
+    makeWrapperArgs = [
+      "--add-flag"
+      "${updateConfig}"
+      "--prefix"
+      "PATH"
+      ":"
+      (lib.makeBinPath [ pkgs.curl ])
+    ];
+  } (builtins.readFile ./mihomo-update.nu);
+  updateScript = "${updatePackage}/bin/mihomo-update";
 
   startScript = pkgs.writeShellScript "mihomo-start" ''
     set -euo pipefail

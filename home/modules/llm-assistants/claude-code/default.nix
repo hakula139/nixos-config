@@ -122,11 +122,15 @@ in
       # ------------------------------------------------------------------------
       # Status line
       # ------------------------------------------------------------------------
-      statusLineScript = pkgs.writers.writeNu "statusline-command" (
-        builtins.replaceStrings [ "@npx@" ] [ "${pkgs.nodejs_24}/bin/npx" ] (
-          builtins.readFile ./scripts/statusline-command.nu
-        )
-      );
+      statusLinePackage = pkgs.writers.writeNuBin "statusline-command" {
+        makeWrapperArgs = [
+          "--prefix"
+          "PATH"
+          ":"
+          (lib.makeBinPath [ pkgs.nodejs_24 ])
+        ];
+      } (builtins.readFile ./scripts/statusline-command.nu);
+      statusLineScript = "${statusLinePackage}/bin/statusline-command";
 
       # ------------------------------------------------------------------------
       # Package wrapper
@@ -171,7 +175,7 @@ in
       {
         home.file = {
           ".claude/CLAUDE.md".text = instructions.claudeCode;
-          ".claude/statusline-command.nu" = {
+          ".claude/statusline-command" = {
             source = statusLineScript;
             executable = true;
           };

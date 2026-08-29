@@ -4,22 +4,9 @@
 # Auto-Format and Lint (PostToolUse)
 # ==============================================================================
 
-const NIXFMT = "@nixfmt@"
-const NU_CHECK = "@nuCheck@"
-const SHELLCHECK = "@shellcheck@"
-const SHFMT = "@shfmt@"
-
-const CSPELL = "@cspell@"
-const DPRINT = "@dprint@"
-const DPRINT_CONFIG = "@dprintConfig@"
-const MARKDOWNLINT = "@markdownlint@"
-const PRETTIER = "@prettier@"
-const RUFF = "@ruff@"
-const TAPLO = "@taplo@"
-
 const MAX_LINES = 20
 
-# A `whenDev` tool is an empty string on a non-dev host.
+# Dev-only tools are empty strings on non-dev hosts.
 def have [tool: string]: nothing -> bool {
   which $tool | is-not-empty
 }
@@ -52,11 +39,12 @@ def project-bin [path: string, tool: string]: nothing -> string {
   ""
 }
 
-def format-markdown [path: string] {
+def format-markdown [path: string, config: record] {
   try {
+    let dprint = $config.dprint
     let run = (
       open --raw $path
-      | ^$DPRINT fmt --config $DPRINT_CONFIG --stdin md
+      | ^$dprint fmt --config $config.dprintConfig --stdin md
       | complete
     )
     if $run.exit_code == 0 and ($run.stdout | is-not-empty) {
@@ -65,23 +53,23 @@ def format-markdown [path: string] {
   } catch { null }
 }
 
-def format-file [path: string] {
+def format-file [path: string, config: record] {
   match ($path | path parse | get extension) {
     "sh" => {
-      quiet $SHFMT ["-w" $path]
-      capped $SHELLCHECK [$path]
+      quiet $config.shfmt ["-w" $path]
+      capped $config.shellcheck [$path]
     }
     "nix" => {
-      quiet $NIXFMT [$path]
+      quiet $config.nixfmt [$path]
     }
     "nu" => {
-      capped $NU_CHECK [$path]
+      capped $config.nuCheck [$path]
     }
     "py" => {
-      if (have $RUFF) {
-        quiet $RUFF ["format" $path]
-        quiet $RUFF ["check" "--fix" $path]
-        capped $RUFF ["check" $path]
+      if (have $config.ruff) {
+        quiet $config.ruff ["format" $path]
+        quiet $config.ruff ["check" "--fix" $path]
+        capped $config.ruff ["check" $path]
       }
     }
     # Rust and Go stay unpinned, since either toolchain would add GiBs to every
@@ -100,14 +88,14 @@ def format-file [path: string] {
       }
     }
     "toml" => {
-      if (have $TAPLO) {
-        quiet $TAPLO ["fmt" $path]
+      if (have $config.taplo) {
+        quiet $config.taplo ["fmt" $path]
       }
     }
     "css" | "scss" | "less" | "js" | "jsx" | "mjs" | "cjs" | "ts" | "tsx" | "vue" => {
       # A pinned prettier cannot load the plugins the project's config names.
       let prettier = (project-bin $path "prettier")
-      let formatter = if ($prettier | is-not-empty) { $prettier } else { $PRETTIER }
+      let formatter = if ($prettier | is-not-empty) { $prettier } else { $config.prettier }
       if (have $formatter) {
         quiet $formatter ["--log-level" "warn" "--write" $path]
       }
@@ -119,11 +107,11 @@ def format-file [path: string] {
       }
     }
     "md" => {
-      if (have $DPRINT) {
-        format-markdown $path
-        quiet $MARKDOWNLINT ["--fix" $path]
-        capped $MARKDOWNLINT [$path]
-        capped $CSPELL ["--no-progress" $path]
+      if (have $config.dprint) {
+        format-markdown $path $config
+        quiet $config.markdownlint ["--fix" $path]
+        capped $config.markdownlint [$path]
+        capped $config.cspell ["--no-progress" $path]
       }
     }
   }
@@ -139,6 +127,7 @@ def collect-files [input: record]: nothing -> list<string> {
     | get -o command
     | default ""
     | lines
+    # File paths in apply_patch headers
     | parse --regex '^\*\*\* (?:Add|Update) File: (?<path>.*)$'
     | get -o path
     | default []
@@ -152,16 +141,16 @@ def collect-files [input: record]: nothing -> list<string> {
   | where ($it | path expand | path type) == "file"
 }
 
-def format-edited [] {
+def format-edited [config: record] {
   let input = (^cat | from json)
   if ($input | describe | str starts-with "record") == false {
     return
   }
   for path in (collect-files $input) {
-    format-file $path
+    format-file $path $config
   }
 }
 
-def main [] {
-  try { format-edited } catch { null }
+def main [config_file: string] {
+  try { format-edited (open $config_file) } catch { null }
 }

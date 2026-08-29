@@ -150,7 +150,7 @@ def main [
   let gone = (
     ^git for-each-ref --format='%(refname:short)%09%(upstream:track)%09%(upstream:remotename)' refs/heads/
     | parse "{branch}\t{tracking}\t{remote}"
-    | where tracking =~ 'gone'
+    | where ($it.tracking | str contains "gone")
   )
 
   if ($gone | is-empty) {
