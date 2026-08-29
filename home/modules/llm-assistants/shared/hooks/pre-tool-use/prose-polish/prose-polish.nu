@@ -177,10 +177,11 @@ def polish [items: list<string>, config: record]: nothing -> list<string> {
   let ca = ($env | get -o NODE_EXTRA_CA_CERTS | default "")
   let cacert = if ($ca | is-empty) { [] } else { [--cacert $ca] }
   let curl = $config.curl
+  # The gateway's advertised IPv6 endpoint closes during TLS.
   let run = (
     $body
     | to json
-    | ^$curl --silent --show-error --fail --max-time $config.polishTimeout
+    | ^$curl --ipv4 --silent --show-error --fail --max-time $config.polishTimeout
       ...$cacert
       --header $"Authorization: Bearer ($token)"
       --header "content-type: application/json"
