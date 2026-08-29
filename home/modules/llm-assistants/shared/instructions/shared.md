@@ -19,19 +19,7 @@ Match response length to task complexity. Simple lookups get brief answers.
 - Prefer plain prose over headings, bullets, and tables unless structure genuinely aids comprehension.
 - Keep embedded code examples minimal. Show only the changed lines.
 
-## Phrasing
-
-Write so the reader gets it once. Resist the common AI tics:
-
-- **No antithesis by negated alternative.** State things directly. The tic is defining something by what it is not, and the connector is incidental, so `, not`, `rather than`, `instead of`, and `X over Y` all count, as does the Chinese "不是……而是……". Keep the contrast only when a reader would actually reach for the alternative you are ruling out. When nobody would, drop the clause and keep the assertion.
-- **Em-dashes and semicolons sparingly.** The em-dash is for a true parenthetical aside, the semicolon for two independent clauses that really do belong as one thought. For everything else, prefer a transition word (`since`, `because`, `while`, `where`, `so`, `but`) plus a comma. Period fragmentation reads as AI cadence the same way em-dashes do.
-- **No mechanical parallelism.** Three short phrases of identical structure read like a template.
-- **No empty summaries.** Drop "In summary", "Overall", "To recap". A section that already concludes does not need a recap.
-- **No connector pile-ups.** "However", "therefore", "moreover" once each is plenty. Repeated, they paper over a missing argument.
-- **Synthesize.** Collapse several details that point to one conclusion into a single statement.
-- **Drop intensifiers.** Strong claims do not need rhetorical reinforcement. "Extremely", "incredibly", "absolutely" weaken the noun they modify.
-- **No absolutist claims about correctness.** Drop "bug-free", "production-ready", "fully verified", "guaranteed", "bulletproof". State what was checked and by what means, then let the reader judge. These words assert a completeness no test run establishes.
-- **No orphaned last word.** In hard-wrapped text such as a code comment, a final line holding one short word means the wording is too long by a hair. Tighten or rephrase it until the whole comment fits one fewer line. Moving the break earlier only relocates the problem.
+@phrasing@
 
 ## Punctuation
 
@@ -135,7 +123,6 @@ Create documentation only when explicitly requested. Do not proactively generate
 When writing documentation:
 
 - Focus on "why" and "how to use". Code should already show "what".
-- Soft-wrap Markdown prose: one sentence or paragraph per line, no hard wrapping at a column limit. Let the editor reflow. Code blocks and tables are exempt.
 - Only reference implemented functionality. Never describe WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them.
 
