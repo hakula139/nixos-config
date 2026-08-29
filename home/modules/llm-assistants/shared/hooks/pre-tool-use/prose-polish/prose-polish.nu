@@ -7,7 +7,7 @@ const PROMPT_FILE = "@promptFile@"
 const MODEL = "@model@"
 const POLISH_TIMEOUT = "@polishTimeout@"
 
-const FENCE = '(?s)```.*?```'
+const FENCE = '(?ms)^```[^\n]*\n.*?^```\s*$'
 const HAN = '(?<c>[\x{4e00}-\x{9fff}])'
 const LETTER = '(?<c>\p{L})'
 
@@ -48,9 +48,15 @@ def enough-prose [text: string, whole_file: bool]: nothing -> bool {
   (count $text $HAN) >= $han_floor or (count $text $LETTER) >= $letter_floor
 }
 
+def supported-markdown [text: string]: nothing -> bool {
+  let content = (prose $text)
+  (($text | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}| {4}\S|\t\S))' | is-empty)
+    and ($content | str contains "``") == false)
+}
+
 def protected [text: string]: nothing -> list {
   [
-    ($text | parse --regex '(?ms)^(?<m>(?:`{3,}|~{3,})[^\n]*\n.*?^(?:`{3,}|~{3,})\s*$)')
+    ($text | parse --regex '(?ms)^(?<m>```[^\n]*\n.*?^```\s*$)')
     ($text | parse --regex '(?<m>`[^`\n]+`)')
     ($text | parse --regex '(?m)^(?<m>#{1,6} .*)$')
     ($text | parse --regex '(?m)^(?<m>.+\n[=-]{2,}\s*)$')
@@ -61,7 +67,7 @@ def protected [text: string]: nothing -> list {
     ($text | parse --regex '(?m)^(?<m>\s*\|.*\|\s*)$')
     ($text | parse --regex '(?<m></?[A-Za-z][^>\n]*>)')
     ($text | parse --regex '(?<m>https?://[^\s)>]+)')
-    ($text | parse --regex '(?<m>(?<![\p{L}_])[-+]?\d[\d,.:/%+-]*(?![\p{L}_]))')
+    ($text | parse --regex '(?<m>(?<![A-Za-z0-9_])[-+]?[A-Za-z_]*\d[A-Za-z0-9_.:%/+-]*(?![A-Za-z0-9_]))')
     ($text | parse --regex '(?<m>“[^”\n]*”|「[^」\n]*」|『[^』\n]*』|"[^"\n]*")')
   ]
 }
@@ -74,7 +80,7 @@ def margins [text: string]: nothing -> list<string> {
 }
 
 def target [path: list, text: any, whole_file: bool = false]: nothing -> list<record> {
-  if ($text | describe) == "string" and (enough-prose $text $whole_file) {
+  if ($text | describe) == "string" and (supported-markdown $text) and (enough-prose $text $whole_file) {
     [{path: $path, text: $text}]
   } else {
     []
@@ -101,11 +107,8 @@ def question-targets [questions: list<record>]: nothing -> list<record> {
 }
 
 def targets [payload: record]: nothing -> list<record> {
-  let tool = ($payload | get -o tool_name | default "")
-  let args = ($payload | get -o tool_input)
-  if ($args | describe | str starts-with "record") == false {
-    return []
-  }
+  let tool = ($payload | get tool_name)
+  let args = ($payload | get tool_input)
 
   let file = match $tool {
     "Write" => {key: "content", whole_file: true}
@@ -113,8 +116,7 @@ def targets [payload: record]: nothing -> list<record> {
     _ => null,
   }
   if $file != null {
-    let path = ($args | get -o file_path)
-    if ($path | describe) != "string" or ($path | str ends-with ".md") == false {
+    if ($args.file_path | str ends-with ".md") == false {
       return []
     }
     return (target [$file.key] ($args | get -o $file.key) $file.whole_file)
@@ -131,14 +133,9 @@ def targets [payload: record]: nothing -> list<record> {
       $fields = ($fields | where $it != content)
     }
   }
-  if ($fields | is-not-empty) {
-    return (
-      $fields
-      | each {|key| target [$key] ($args | get -o $key) }
-      | flatten
-    )
-  }
-  []
+  $fields
+  | each {|key| target [$key] ($args | get -o $key) }
+  | flatten
 }
 
 def polish [items: list<string>]: nothing -> list<string> {
@@ -214,9 +211,6 @@ def polish [items: list<string>]: nothing -> list<string> {
 }
 
 def acceptable [before: string, after: string]: nothing -> bool {
-  if ($after | is-empty) {
-    return false
-  }
   let ratio = ((count $after $LETTER) / ([(count $before $LETTER) 1] | math max))
   let han_before = (count $before $HAN)
   let han_ratio = ((count $after $HAN) / ([$han_before 1] | math max))

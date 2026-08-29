@@ -95,7 +95,7 @@ A Chinese rule checklist was worst, and human sample paragraphs came second with
 
 Repeat-sampling confirmed the frame effect at five draws per arm. The doctrine-only arm averaged 3.70 against 1.90 with coding history, a gap of 1.80 points ($t(8) = 2.76$, $p = 0.049$, AUC of 0.90), clearing the 1.0-point threshold fixed before reading. Mechanical measurement confirmed the manipulation landed: function-word density, paragraph length, and total length all moved with effect sizes of 0.70 to 1.50. Those metrics fail as quality predictors, but they are valid as a manipulation check, which is a different claim.
 
-### 3.5 Rewriting is weaker than generating, and the best rewriter is not the best generator
+### 3.5 Rewrite and generation skill differ
 
 Seven models rewrote one shared draft, itself real output scored 3.5 with the note "Punctuation is wrong, and sentences are still being clipped short."
 
@@ -124,7 +124,7 @@ Sections 3.1 and 3.2 rule out a quality gate: neither model judgment nor surface
 1. Takes only fields whose tool schema defines as prose. AskUserQuestion targets the question and option descriptions, while file edits are limited to Markdown so source code is never rewritten around a comment.
 2. Uses language-aware length thresholds only to decide whether a model call is worthwhile: 120 Han characters or 240 letters for a whole file, and 8 Han characters or 32 letters for a span.
 3. Applies one positive prompt to Chinese and English. It asks for fidelity, natural flow, and less repetition without prescribing banned tokens.
-4. Rejects empty, excessively short or long, and structurally altered results. Fenced code, inline code, headings, link targets, and list markers must survive unchanged.
+4. Rejects empty, excessively short or long, and structurally altered results. Fenced code, inline code, headings, link targets, and list markers must survive unchanged; passages using fence syntax the validator cannot parse safely are skipped.
 5. Returns the complete tool input through `updatedInput`. Any error leaves the original call untouched.
 
 The rewriter receives no coding conversation, which preserves the context-isolation gain from section 3.4. The doctrine is sliced out of the assistant's own instruction file at build time so the writer and rewriter share one source.
@@ -166,7 +166,7 @@ The hook runs only when the active profile exposes a base URL and API-key token,
 
 The transport constrains the model choice. The assistant CLI routes only one vendor's models, and section 3.5 scores every one of them at 4.0 to 4.5 against 9.0 for the model selected. The hook therefore calls the configured endpoint directly, reading its credentials and certificate path from the environment the assistant already runs in.
 
-Statistical limits worth keeping in view. There is one reviewer, so the target is that reviewer's preference and nothing broader. The frame effect rests on five draws per arm at $p = 0.049$. The rewriter ranking rests on one draw per model on one draft, so the ordering below the top score is not resolved, and a 9.0 from a single draw should be expected to regress. Sample counts per condition are between 1 and 5 throughout.
+Statistical limits worth keeping in view. There is one reviewer, so the target is that reviewer's preference and nothing broader. The frame effect rests on five draws per arm at $p = 0.049$. The rewriter ranking rests on one Chinese draft per model, so the ordering below the top score is not resolved, a 9.0 from one draw should be expected to regress, and the selected model's English rewrite quality remains unmeasured. Sample counts per condition are between 1 and 5 throughout.
 
 ## 6. Ruled out
 
