@@ -1,6 +1,6 @@
-# Chinese Prose Quality
+# Prose Polishing
 
-Why this repository rewrites Chinese prose with a hook, and what the measurements were that decided it.
+Why this repository rewrites outbound prose with a hook, and which Chinese-language measurements shaped the design.
 
 ## Abstract
 
@@ -8,7 +8,7 @@ The assistant's default Chinese output was judged unusable by the owner, its sol
 
 Three findings drove the design. Model identity dominates: under an identical prompt and frame, the weakest model scored 3.70 out of 10 while six others clustered between 7.00 and 8.33, a gap of 3.3 to 4.6 points. Context isolation is real but secondary, worth 1.80 points. Every automated proxy for quality failed, including three LLM judges, which ranked samples in reverse.
 
-The resulting mechanism performs no classification. It routes Chinese prose to a model selected on measured rewrite quality, triggered structurally so it cannot be skipped. A pre-existing detector was removed.
+The resulting mechanism performs no quality classification and uses no banned-word list. It rewrites editable outbound prose with a model selected on measured Chinese rewrite quality. The same fidelity contract applies to Chinese and English.
 
 ## 1. Problem
 
@@ -77,7 +77,7 @@ This nearly produced the wrong conclusion. The six models were all already good,
 
 The gap between the weakest model and the weakest of the others is 3.30 points, and 4.63 to the best. Model choice is the largest single lever measured, roughly twice the next one.
 
-### 3.4 English style rules help, and the coding context around them hurts
+### 3.4 A positive style doctrine helps, and coding context hurts
 
 Five context frames were tested on two models. The project had assumed that the English phrasing doctrine in the assistant's instructions was suppressing Chinese, since it measurably shortens paragraphs and thins the function-word layer. The blind read reversed that.
 
@@ -111,27 +111,25 @@ Seven models rewrote one shared draft, itself real output scored 3.5 with the no
 
 Rewrite skill is close to unrelated to generation skill: across the earlier round the correlation between the two was $\rho = -0.103$. Two models that generate at 7.33 and 7.00 rewrite at 4.5, barely above the 4.0 a model scores rewriting its own output. The owner's summary of the low scorers: "A problem common to all of these is that they do not dare revise boldly, when the original phrasing is itself poor."
 
-Two prompt defects were identified and removed before this round, which is why its numbers supersede the earlier rewrite round. Instructing the rewriter to preserve every information item is counterproductive, since the three most obedient models scored lowest. Supplying human sample paragraphs causes persona grafting, which cost five samples points.
+Two prompt defects were identified before this round. An exhaustive item-by-item preservation checklist made the rewriters timid, while human sample paragraphs caused persona grafting. The operational hook still requires factual fidelity because it handles commits, documentation, and published text; its prompt states that constraint once and lets the model reorganise sentences within it.
 
 One model was disqualified on a defect no score captures: DeepSeek V3.2 emitted Traditional Chinese, drawing "Why has this turned into Traditional Chinese? It is also too formal."
 
-## 4. Mechanism
+## 4. Design
 
-Section 3.1 and 3.2 rule out detection: no available signal separates good Chinese from bad at usable precision. Section 3.3 makes detection unnecessary anyway, because the variable that predicts quality is which model wrote the text, and that is known at generation time. A classifier for a variable you already control has nothing to contribute.
+Sections 3.1 and 3.2 rule out a quality gate: neither model judgment nor surface statistics separates good Chinese from bad at usable precision. A lexical blacklist has the same defect and encourages token substitution while leaving the underlying prose unchanged.
 
-The implementation is a rewriter. `home/modules/llm-assistants/shared/hooks/pre-tool-use/zh-polish/` runs at `PreToolUse`, before the tool call carries the prose out of the session. It:
+`home/modules/llm-assistants/shared/hooks/pre-tool-use/prose-polish/` runs at `PreToolUse`, before a tool call carries prose out of the session. It:
 
-1. Takes only the span the tool call introduced, so prose already in a file is never rewritten, and for a file write takes only `.md`, since rewriting a source file to polish one Chinese comment would put the code around it at risk.
-2. Requires 120 CJK characters outside fenced code for a whole-file write, and 8 for an edited span, a question, or an MCP field. A model usually rewrites one sentence at a time, so an edit is worth a call at a length a whole file would not be.
-3. Sends the span to the model from section 3.5, under the doctrine from section 3.4 as a system prompt.
-4. Rejects the result unless it is non-empty, within 0.55 to 1.6 times the original CJK length, and structurally identical in fenced blocks, inline code, headings, and link targets.
-5. Returns the rewrite through `updatedInput` on success, and fails open on every error.
+1. Takes only fields whose tool schema defines as prose. AskUserQuestion targets the question and option descriptions, while file edits are limited to Markdown so source code is never rewritten around a comment.
+2. Uses language-aware length thresholds only to decide whether a model call is worthwhile: 120 Han characters or 240 letters for a whole file, and 8 Han characters or 32 letters for a span.
+3. Applies one positive prompt to Chinese and English. It asks for fidelity, natural flow, and less repetition without prescribing banned tokens.
+4. Rejects empty, excessively short or long, and structurally altered results. Fenced code, inline code, headings, link targets, and list markers must survive unchanged.
+5. Returns the complete tool input through `updatedInput`. Any error leaves the original call untouched.
 
-Two properties hold structurally. The rewrite is not routed through the generating model, so it cannot be quietly re-degraded in transit. And the hook fires on the tool call, so the generating model cannot skip it by forgetting to ask.
+The rewriter receives no coding conversation, which preserves the context-isolation gain from section 3.4. The doctrine is sliced out of the assistant's own instruction file at build time so the writer and rewriter share one source.
 
-The doctrine is sliced out of the assistant's own instruction file at build time, so the two cannot drift apart.
-
-Measured end to end on a sample the owner had scored low, the hook completed in 12 seconds and removed the half-width punctuation the owner had flagged. It also rejoined clipped sentences, which is the fault the doctrine targets: the sentence count fell while the mean sentence grew.
+Measured end to end on a Chinese sample the owner had scored low, the earlier language-specific hook completed in 12 seconds and removed the half-width punctuation the owner had flagged. It also rejoined clipped sentences: the sentence count fell while the mean sentence grew.
 
 |                                              | Before | After |
 | -------------------------------------------- | ------ | ----- |
@@ -160,9 +158,11 @@ At 3.5 this draft sits mid-scale. The arm carrying coding history in section 3.4
 
 ## 5. Coverage and limits
 
-Coverage is the text the assistant sends out through a tool: file writes, the MCP surfaces that publish prose (Confluence pages and comments, commit bodies, issue and merge-request text), and the prose of an interactive question. It does not reach conversational replies, and cannot: at the `Stop` event the response text is read-only, so a hook may block or inject context but not substitute the text a user sees.
+Coverage is text Claude Code sends through a mutable tool input: Markdown writes and edits, selected MCP publishing fields, commit bodies, and interactive questions. Ordinary conversational replies continue to rely on the shared instructions because a Stop hook can request another response but cannot replace the completed one directly.
 
-The rewrite applies only where the host implements `updatedInput`, which the second assistant does not, so its edits go unpolished.
+Codex and OpenCode are not wired until their adapters and transports have end-to-end tests. Both expose pre-tool mutation points, but their event schemas differ from Claude Code and the current rewriter depends on Anthropic-compatible profile credentials.
+
+The hook runs only when the active profile exposes a base URL and API-key token, and when that endpoint accepts the configured rewrite model through Chat Completions. Subscription and OAuth profiles therefore fail open without rewriting.
 
 The transport constrains the model choice. The assistant CLI routes only one vendor's models, and section 3.5 scores every one of them at 4.0 to 4.5 against 9.0 for the model selected. The hook therefore calls the configured endpoint directly, reading its credentials and certificate path from the environment the assistant already runs in.
 
@@ -172,8 +172,8 @@ Statistical limits worth keeping in view. There is one reviewer, so the target i
 
 - **LLM judges as a reward or reranking signal.** Section 3.1, all six cells inverted.
 - **Detecting bad Chinese from surface statistics.** Section 3.2, no signal survived held-out testing.
+- **Banning words or punctuation as a quality proxy.** The model can preserve the same weak reasoning with different tokens, while valid quoted or technical uses become false positives.
 - **Selecting a model on Chinese quality among already-good models.** Section 3.3, six models across four vendors were statistically indistinguishable.
 - **Chinese style rules written as a checklist.** Section 3.4, worst of five frames on both models.
 - **Human sample paragraphs as a style anchor.** Section 3.4, effective but grafts the author's persona.
-- **Two-stage drafting, where one model drafts and another rewrites.** Section 3.5, rewriting tops out below direct generation, so delegate the generation where the mechanism allows it.
 - **Injecting an n-gram style prior at the logit layer.** Published negative result: too small has no effect, too large degrades into repetition loops.

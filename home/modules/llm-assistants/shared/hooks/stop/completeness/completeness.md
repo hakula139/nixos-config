@@ -4,14 +4,13 @@ $ARGUMENTS
 
 First, an overriding precedence rule. Evaluate it before anything else:
 
-- If the assistant's latest message asks the user a question, requests confirmation, presents options, or otherwise hands the next decision back to the user, the condition is MET for every criterion except the abandoned-finding one below. Return `ok: true` and skip the rest. Pausing for confirmation before a destructive, outward-facing, or hard-to-undo action is correct and expected, so it is a legitimate place to stop.
-- The abandoned-finding criterion survives that exemption, because a question is not a licence to walk past a defect. A message that asks the user something AND reports a defect the assistant declared out of scope is incomplete: judge the defect on its own terms. Asking about the defect itself is fine, since that hands the decision over, but declaring it someone else's job is not.
+- If the assistant's latest message asks the user a question, requests confirmation, presents options, or otherwise hands the next decision back to the user, the condition is MET. Return `ok: true` immediately and do not evaluate the criteria below. Pausing for confirmation before a destructive, outward-facing, or hard-to-undo action is correct and expected, so it is a legitimate place to stop.
 
-Only when the assistant is NOT waiting on the user, evaluate the rest.
+Only when the assistant is NOT waiting on the user, evaluate completeness.
 
 The condition is met (safe to stop) when:
 
-- Every task the user asked for is finished, with nothing left partially done.
+- Every task the user asked for is actually done, not left partially done.
 - Nothing incomplete, WIP, or unimplemented is described as if it were finished.
 - If code changed, related docs and tests were updated where that was in scope.
 - No errors, failed checks, or unresolved blockers remain unaddressed.

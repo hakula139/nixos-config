@@ -17,7 +17,7 @@ This file is an index. It holds only what applies to every task, while anything 
 | Host wiring, builders, or the layout  | [docs/reference/architecture.md](docs/reference/architecture.md)   |
 | The workflow or a failing check       | [docs/reference/ci.md](docs/reference/ci.md)                       |
 | Assistant proxy configuration         | [docs/reference/proxy.md](docs/reference/proxy.md)                 |
-| The Chinese polisher or its model     | [docs/reference/chinese-prose.md](docs/reference/chinese-prose.md) |
+| The prose polisher or its model       | [docs/reference/chinese-prose.md](docs/reference/chinese-prose.md) |
 
 ## Two things that bite regardless of the task
 
@@ -45,4 +45,3 @@ Every page has one home, and the others link to it. Before adding a paragraph, c
 - `AGENTS.md` and `docs/` are for whoever is changing the code.
 - Keep the layout tree in [docs/reference/architecture.md](docs/reference/architecture.md) matched to the filesystem when directories move or land.
 - After a substantive change, sweep for stale claims: the layout tree and host table in `docs/reference/architecture.md`, and the alias matrix in `README.md`.
-- Run changed prose through the repo's own prose gate. This file's predecessor never was, which is how a `, not` antithesis survived in the document that bans it.

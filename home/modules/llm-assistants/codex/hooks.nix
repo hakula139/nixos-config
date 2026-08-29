@@ -25,7 +25,6 @@ let
     input="$(cat)"
     printf '%s' "$input" | ${hookScripts.wakatime} || true
     printf '%s' "$input" | ${hookScripts.autoFormat} || true
-    printf '%s' "$input" | ${hookScripts.proseGate} || true
   '';
 
   mkWorkmuxHook = status: {

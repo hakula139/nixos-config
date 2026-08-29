@@ -144,17 +144,6 @@
               types = [ "file" ];
             };
 
-            # The model-based gate judging the same tics runs per tool call, so
-            # it never sees a file another tool or a human wrote.
-            prose-tics = {
-              enable = true;
-              name = "prose-tics";
-              description = "Flag banned prose tics in Markdown.";
-              entry = "${pkgs.prose-candidates}";
-              files = "\\.md$";
-              types = [ "file" ];
-            };
-
             statix.enable = true;
 
             # `shfmt` reads `.editorconfig` only when the entry passes no

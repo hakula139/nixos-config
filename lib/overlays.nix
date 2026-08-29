@@ -62,7 +62,6 @@
     mcp-server-gitlab = final.callPackage ../packages/mcp/mcp-server-gitlab { };
     nu-check = final.callPackage ../packages/nu-check { };
     peertube-runner = final.callPackage ../packages/peertube/runner.nix { };
-    prose-candidates = final.callPackage ../packages/prose-candidates { };
     zsh-hist = final.callPackage ../packages/zsh-hist { };
   })
 ]

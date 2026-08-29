@@ -40,7 +40,7 @@ Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for e
 
 ## What stays bash
 
-Nushell is the default, so what follows is the exception list, and every entry earns its place structurally. Interpreter startup costs tens of milliseconds, which the hook budget here already absorbs, so it never qualifies on its own.
+Nushell is the default, so what follows is the exception list, and every entry earns its place structurally. Interpreter startup alone does not justify an exception.
 
 - **A `--run` or sourced script.** `profile-loader.sh` and `mkProxyScript` are injected through `makeWrapper --run`, so the wrapper's own shell evaluates them. `teammate-launcher.sh` sources `profile-loader.sh`.
 - **An argv-forwarding wrapper.** `nu script.nu --log-as-netdata` fails with `doesn't have flag`, and there is no argv escape hatch outside `def main` parameters, which rules out `systemd-cat-native`.

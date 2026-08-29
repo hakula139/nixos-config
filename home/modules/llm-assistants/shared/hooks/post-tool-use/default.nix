@@ -8,7 +8,6 @@
   assistant,
   enableDevToolchains,
   mkHookScript,
-  proseDoctrine,
   repo,
   timeouts,
 }:
@@ -70,12 +69,6 @@ let
     };
     plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
   };
-
-  proseGatePrompt = pkgs.writeText "prose-tics.md" (
-    builtins.replaceStrings [ "@doctrine@" ] [ proseDoctrine ] (
-      builtins.readFile ./prose-gate/prose-tics.md
-    )
-  );
 in
 {
   autoFormat = mkHookScript {
@@ -95,18 +88,6 @@ in
       "@prettier@" = whenDev pkgs.unstable.prettier;
       "@ruff@" = whenDev pkgs.ruff;
       "@taplo@" = whenDev pkgs.taplo;
-    };
-  };
-
-  proseGate = mkHookScript {
-    slug = "prose-gate";
-    script = ./prose-gate/prose-gate.nu;
-    writer = pkgs.writers.writeNu;
-    substitutions = {
-      "@timeout@" = "${pkgs.coreutils}/bin/timeout";
-      "@promptFile@" = "${proseGatePrompt}";
-      "@candidates@" = "${pkgs.prose-candidates}";
-      "@judgeTimeout@" = toString timeouts.modelCall;
     };
   };
 

@@ -6,21 +6,21 @@
   pkgs,
   lib,
   mkHookScript,
+  proseDoctrine,
   timeouts,
-  zhDoctrine,
 }:
 
 {
-  zhPolish = mkHookScript {
-    slug = "zh-polish";
-    script = ./zh-polish/zh-polish.nu;
+  prosePolish = mkHookScript {
+    slug = "prose-polish";
+    script = ./prose-polish/prose-polish.nu;
     writer = pkgs.writers.writeNu;
     substitutions = {
-      "@promptFile@" = "${./zh-polish/zh-polish-prompt.md}";
-      "@doctrineFile@" = "${zhDoctrine}";
+      "@curl@" = lib.getExe pkgs.curl;
+      "@doctrineFile@" = "${proseDoctrine}";
+      "@promptFile@" = "${./prose-polish/prose-polish-prompt.md}";
       "@model@" = "openrouter/google/gemini-3.7-flash";
       "@polishTimeout@" = toString timeouts.modelCall;
-      "@curl@" = lib.getExe pkgs.curl;
     };
   };
 }

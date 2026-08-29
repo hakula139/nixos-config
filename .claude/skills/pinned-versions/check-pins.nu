@@ -54,7 +54,7 @@ def gh-latest-release [repo: string]: nothing -> string {
   gh-api $"repos/($repo)/releases/latest" ".tag_name"
 }
 
-# Upstream's newest release may ship no binaries, so it is not bumpable.
+# Upstream's newest release may ship no binaries, which is not a bumpable target.
 def gh-latest-release-with-asset [repo: string, asset: string]: nothing -> string {
   gh-api $"repos/($repo)/releases?per_page=100" $"[.[] | select\(.assets | any\(.name == \"($asset)\"\)\)] | first | .tag_name // empty"
 }
@@ -276,7 +276,7 @@ def registry [root: string]: nothing -> list<record> {
         {
           pin: $repo
           local: {|| $pin | split row "@" | last }
-          # Actions pin to a major tag, so compare only the major component.
+          # Actions are pinned to a major tag, so compare only the major component.
           upstream: {|| gh-latest-release $repo | split row "." | first }
         }
       })
@@ -310,7 +310,7 @@ def cloudflare-drift [root: string]: nothing -> string {
     | each {|url| query { http get --raw $url } }
   )
 
-  # An empty half would otherwise read as drift against the half we fetched.
+  # An empty half would otherwise surface as drift against the half we did fetch.
   if ($pinned | is-empty) or ($fetched | any {|r| $r | is-empty }) {
     return ""
   }
@@ -388,8 +388,8 @@ def cmd-check [] {
     registry (repo-root)
     | par-each --keep-order {|group|
       let rows = if ($group.pins | is-empty) {
-        # An empty group would print as a clean sweep, indistinguishable from
-        # every pin being current.
+        # An empty group would print as a clean sweep, which is indistinguishable
+        # from every pin being current.
         [{pin: $group.title, pinned: "?", upstream: "?", status: "UNKNOWN"}]
       } else {
         $group.pins | resolve

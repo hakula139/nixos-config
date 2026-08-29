@@ -191,7 +191,7 @@ def main []: nothing -> nothing {
   let key_file = ($env.CLOUDCONE_SERVER_KEY_FILE? | default $DEFAULT_SERVER_KEY_FILE)
   # If set to 1, do not send to gateway; print the payload to stdout instead.
   let dry_run = ($env.CLOUDCONE_DRY_RUN? | default "0")
-  # If 1, redact the server key from output. Defaults to the dry-run value.
+  # If set to 1, redact the server key from output. Defaults to the dry-run value.
   let redact = ($env.CLOUDCONE_REDACT_SERVERKEY? | default $dry_run)
 
   # A trailing newline in the key file is not part of the key.
