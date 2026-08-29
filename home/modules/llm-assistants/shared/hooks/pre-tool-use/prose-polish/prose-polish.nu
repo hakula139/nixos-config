@@ -31,7 +31,7 @@ def enough-prose [text: string, whole_file: bool]: nothing -> bool {
 def supported-markdown [text: string]: nothing -> bool {
   let content = (prose $text)
   # Long backtick fences, tilde fences, and indented code blocks
-  let supported_blocks = ($text | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}| {4}\S|\t\S))' | is-empty)
+  let supported_blocks = ($text | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}|(?: {4}|\t)[ \t]*\S))' | is-empty)
   # Multiple-backtick inline code
   let supported_inline = ($content | str contains "``") == false
   $supported_blocks and $supported_inline
