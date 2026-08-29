@@ -61,6 +61,8 @@ def protected [text: string]: nothing -> list {
     ($text | parse --regex '(?<m></?[A-Za-z][^>\n]*>)')
     # URLs
     ($text | parse --regex '(?<m>https?://[^\s)>]+)')
+    # Identifiers containing digits
+    ($text | parse --regex '(?<m>(?<![A-Za-z0-9_])[A-Za-z_][A-Za-z0-9_.:/+-]*\d(?:[A-Za-z0-9_.:/+-]*[A-Za-z0-9_])?(?![A-Za-z0-9_]))')
     # Numbers with decimal segments and optional unit suffixes
     ($text | parse --regex '(?<m>[-+]?\d+(?:\.\d+)*(?:%|[A-Za-z]+)?)')
     # Quoted text
