@@ -183,8 +183,11 @@ def polish [items: list<string>, config: record]: nothing -> list<string> {
 }
 
 def acceptable [before: string, after: string]: nothing -> bool {
+  # A rewrite may merge lines, since rejoining clipped sentences is the point,
+  # but gaining one means a paragraph was cut into pieces.
   ((margins $after) == (margins $before)
-    and (protected $after) == (protected $before))
+    and (protected $after) == (protected $before)
+    and ($after | lines | length) <= ($before | lines | length))
 }
 
 def polished [config: record]: nothing -> any {
