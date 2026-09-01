@@ -70,9 +70,8 @@ in
       matcher = "Edit|Write";
       hooks = [
         {
-          type = "agent";
-          agent = "comment-gate";
-          prompt = "Judge the comments in this tool call against your doctrine.\n\n$ARGUMENTS";
+          type = "command";
+          command = "${hookScripts.commentGate}";
           statusMessage = "Checking comments";
         }
       ];

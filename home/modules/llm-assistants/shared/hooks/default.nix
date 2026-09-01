@@ -41,16 +41,25 @@ let
     in
     "${package}/bin/${assistant}-${slug}";
 
+  instructionsDir = ../instructions;
+
+  inherit
+    (import ./lib/model-call {
+      inherit
+        pkgs
+        lib
+        mkNuHook
+        timeouts
+        ;
+    })
+    modelCall
+    ;
+
   # ----------------------------------------------------------------------------
   # Hook groups
   # ----------------------------------------------------------------------------
   preToolUseHooks = import ./pre-tool-use {
-    inherit
-      pkgs
-      lib
-      mkNuHook
-      timeouts
-      ;
+    inherit mkNuHook modelCall;
   };
   postToolUseHooks = import ./post-tool-use {
     inherit
@@ -58,7 +67,9 @@ let
       lib
       assistant
       enableDevToolchains
+      instructionsDir
       mkNuHook
+      modelCall
       repo
       timeouts
       ;

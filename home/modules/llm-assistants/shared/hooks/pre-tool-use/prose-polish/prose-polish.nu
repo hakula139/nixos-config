@@ -139,64 +139,36 @@ def targets [payload: record, mcp_fields: record]: nothing -> list<record> {
 }
 
 def polish [items: list<string>, config: record]: nothing -> list<string> {
-  # Claude profile API suffix
-  let base = ($env | get -o ANTHROPIC_BASE_URL | default "" | str replace -r '/anthropic$' '')
-  let token = ($env | get -o ANTHROPIC_AUTH_TOKEN | default "")
-  if ($base | is-empty) or ($token | is-empty) {
-    return []
-  }
-
   let instruction = ($config.prompt | str trim)
   let passages = (
     $items
     | enumerate
     | each {|item| {id: $item.index, text: $item.item} }
   )
-  let body = {
+  let request = {
+    json: true
+    maxTokens: 16384
     model: $config.model
-    max_tokens: 16384
-    stream: false
-    response_format: {type: "json_object"}
-    messages: [
-      {role: "system", content: $config.phrasing}
-      {
-        role: "user"
-        content: ([
-          $instruction
-          ""
-          "The input is a JSON object. Return only the same object shape and numeric IDs, replacing each text value with its rewrite."
-          ""
-          ({passages: $passages} | to json --raw)
-        ] | str join "\n")
-      }
-    ]
+    system: $config.phrasing
+    user: ([
+      $instruction
+      ""
+      "The input is a JSON object. Return only the same object shape and numeric IDs, replacing each text value with its rewrite."
+      ""
+      ({passages: $passages} | to json --raw)
+    ] | str join "\n")
   }
 
-  let ca = ($env | get -o NODE_EXTRA_CA_CERTS | default "")
-  let cacert = if ($ca | is-empty) { [] } else { [--cacert $ca] }
-  let curl = $config.curl
-  # The gateway's advertised IPv6 endpoint closes during TLS.
-  let run = (
-    $body
-    | to json
-    | ^$curl --ipv4 --silent --show-error --fail --max-time $config.polishTimeout
-      ...$cacert
-      --header $"Authorization: Bearer ($token)"
-      --header "content-type: application/json"
-      --data @-
-      $"($base)/v1/chat/completions"
-    | complete
-  )
-  if $run.exit_code != 0 {
+  let caller = $config.modelCall
+  let run = ($request | to json | ^$caller | complete)
+  if $run.exit_code != 0 or ($run.stdout | str trim | is-empty) {
     return []
   }
 
-  let response = ($run.stdout | from json)
-  if ($response | get -o choices.0.finish_reason | default "") != "stop" {
+  let parsed = ($run.stdout | from json)
+  if ($parsed | describe | str starts-with "record") == false {
     return []
   }
-  let reply = ($response | get -o choices.0.message.content | default "")
-  let parsed = ($reply | from json)
   let rewritten = ($parsed | get -o passages | default [])
   let expected = (0..<($items | length) | each {|i| $i })
   if ($rewritten | length) != ($items | length) or ($rewritten | get -o id) != $expected {

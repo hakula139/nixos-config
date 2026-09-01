@@ -56,24 +56,32 @@ let
 
   instructionsDir = ../../shared/instructions;
 
-  # The gate and the global instructions state one doctrine, so both read the
-  # same fragments. `prose-polish` deliberately gets only the positive
-  # `phrasing.md`, since a rule checklist measured worst as a rewrite frame.
-  renderCommentGate =
-    builtins.replaceStrings
-      [
-        "@comments@"
-        "@proseTics@"
-      ]
-      [
-        (builtins.readFile "${instructionsDir}/comments.md")
-        (builtins.readFile "${instructionsDir}/prose-tics.md")
-      ]
-      (builtins.readFile ./comment-gate.md);
+  # The gate hook and this role state one doctrine, so both compose the same
+  # fragments over the same prompt body. `prose-polish` deliberately gets only
+  # the positive `phrasing.md`, since a rule checklist measured worst as a
+  # rewrite frame.
+  commentGateFragments = {
+    "@comments@" = "${instructionsDir}/comments.md";
+    "@proseTics@" = "${instructionsDir}/prose-tics.md";
+    "@proseTicsZh@" = "${instructionsDir}/prose-tics-zh.md";
+  };
+
+  commentGateBody =
+    builtins.replaceStrings (builtins.attrNames commentGateFragments)
+      (map builtins.readFile (builtins.attrValues commentGateFragments))
+      (builtins.readFile ../../shared/hooks/post-tool-use/comment-gate/comment-gate-prompt.md);
 
   allAgents = lib.mapAttrs renderAgent sharedAgents // {
     codex-worker = builtins.readFile ./codex-worker.md;
-    comment-gate = renderCommentGate;
+    comment-gate = renderAgent "comment-gate" {
+      description = "Audits comments and docstrings against the owner's default-to-none doctrine. Use to sweep a file or a diff for comments that should be dropped or tightened.";
+      prompt = commentGateBody;
+      claude = {
+        color = "gray";
+        model = "sonnet";
+        permissionMode = "plan";
+      };
+    };
   };
 in
 lib.filterAttrs (name: _: lib.elem name enabledAgents) allAgents

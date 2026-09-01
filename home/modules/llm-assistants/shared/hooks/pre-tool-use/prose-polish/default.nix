@@ -3,10 +3,8 @@
 # ==============================================================================
 
 {
-  pkgs,
-  lib,
   mkNuHook,
-  timeouts,
+  modelCall,
 }:
 
 let
@@ -20,11 +18,9 @@ in
     slug = "prose-polish";
     script = ./prose-polish.nu;
     config = {
-      curl = lib.getExe pkgs.curl;
-      inherit mcpProseFields;
+      inherit mcpProseFields modelCall;
       model = "openrouter/google/gemini-3.7-flash";
       phrasing = builtins.readFile ../../../instructions/phrasing.md;
-      polishTimeout = timeouts.modelCall;
       prompt = builtins.readFile ./prose-polish-prompt.md;
     };
   };

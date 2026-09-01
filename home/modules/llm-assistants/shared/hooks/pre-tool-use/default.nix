@@ -2,4 +2,6 @@
 # PreToolUse Hooks
 # ==============================================================================
 
-import ./prose-polish
+{ mkNuHook, modelCall }:
+
+import ./prose-polish { inherit mkNuHook modelCall; }

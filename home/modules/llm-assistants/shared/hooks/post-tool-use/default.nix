@@ -8,6 +8,8 @@
   assistant,
   enableDevToolchains,
   mkNuHook,
+  modelCall,
+  instructionsDir,
   repo,
   timeouts,
 }:
@@ -30,4 +32,11 @@
       timeouts
       ;
   };
+}
+// import ./comment-gate {
+  inherit
+    mkNuHook
+    modelCall
+    instructionsDir
+    ;
 }
