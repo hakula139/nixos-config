@@ -28,6 +28,8 @@
       core = {
         eol = "lf";
         fileMode = true;
+        # The default omits loose-object and reference, which an unclean WSL2 shutdown zeroes.
+        fsync = "all";
       };
 
       # Rebase on pull
