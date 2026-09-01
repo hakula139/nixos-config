@@ -35,7 +35,10 @@ let
       ;
   };
 
-  claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
+  claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [
+    "codex-worker"
+    "comment-gate"
+  ];
   claudeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
 in
 {

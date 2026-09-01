@@ -66,6 +66,17 @@ in
         }
       ];
     }
+    {
+      matcher = "Edit|Write";
+      hooks = [
+        {
+          type = "agent";
+          agent = "comment-gate";
+          prompt = "Judge the comments in this tool call against your doctrine.\n\n$ARGUMENTS";
+          statusMessage = "Checking comments";
+        }
+      ];
+    }
   ];
 
   PermissionRequest = [

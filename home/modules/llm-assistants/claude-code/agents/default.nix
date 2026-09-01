@@ -54,8 +54,26 @@ let
     ${agent.prompt}
   '';
 
+  instructionsDir = ../../shared/instructions;
+
+  # The gate and the global instructions state one doctrine, so both read the
+  # same fragments. `prose-polish` deliberately gets only the positive
+  # `phrasing.md`, since a rule checklist measured worst as a rewrite frame.
+  renderCommentGate =
+    builtins.replaceStrings
+      [
+        "@comments@"
+        "@proseTics@"
+      ]
+      [
+        (builtins.readFile "${instructionsDir}/comments.md")
+        (builtins.readFile "${instructionsDir}/prose-tics.md")
+      ]
+      (builtins.readFile ./comment-gate.md);
+
   allAgents = lib.mapAttrs renderAgent sharedAgents // {
     codex-worker = builtins.readFile ./codex-worker.md;
+    comment-gate = renderCommentGate;
   };
 in
 lib.filterAttrs (name: _: lib.elem name enabledAgents) allAgents

@@ -21,6 +21,10 @@ Match response length to task complexity. Simple lookups get brief answers.
 
 @phrasing@
 
+Avoid these tics, which show specifically how the guidance above goes wrong:
+
+@proseTics@
+
 ## Punctuation
 
 Use spaces around connector symbols when they separate distinct words or phrases. This applies to `/`, arrows (`→`, `←`, `↔`, `⇒`, `⇔`), and comparison operators (`≤`, `≥`, `≠`) used in prose, comments, and docs (e.g., `"Read / Write"`, `"Speed ↔ Intelligence"`, `"low → high"`, `"size ≥ 4"`).
@@ -63,18 +67,7 @@ How to make changes, debug, and finish.
 
 ## Commenting Guidelines
 
-**Default to no comments.** Code should be self-explanatory through clear naming and structure. Add a comment only when the WHY is non-obvious to a future reader: a hidden constraint, a subtle invariant, a non-trivial algorithm, a magic number, a workaround for a known bug, behavior that would surprise a reader, or a security / performance consideration. If removing the comment would not confuse a reader, do not write it. When one is justified, **1–2 short lines is the target**.
-
-**Docstrings follow the same discipline and the project's convention.** Check whether surrounding code uses them, and if the project has few or none, add none. When one is warranted, keep it to a line or two of non-obvious contract: a constraint, unit, ownership, error, or invariant. A docstring that restates the item name, documents a trivial getter, or rambles across several lines is verbose, so drop or trim it.
-
-**When in doubt, delete.** Removing a comment that could have stayed is cheaper than keeping one that should have gone. Prune freely unless the user asked to keep that specific comment.
-
-Avoid:
-
-- Comments that restate WHAT the code does (`// increment counter`), or describe the shape, order, or layout of the code below them (`# Required fields first`).
-- Comments that narrate the change or reference the task (`// Updated to use X`, `// Fix for #123`). That belongs in the commit message and rots in the source tree. Resolving an issue or meeting a requirement is not on its own a reason to leave a comment.
-- Comments explaining a WHY a competent reader could already infer. Being a "why" earns nothing on its own. The reason has to be genuinely non-obvious.
-- Commented-out code. Use version control instead.
+@comments@
 
 ## Test Quality
 
