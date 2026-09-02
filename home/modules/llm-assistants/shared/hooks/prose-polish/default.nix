@@ -23,6 +23,10 @@ in
     script = ./prose-polish.nu;
     config = {
       inherit mcpProseFields modelCall;
+      # Every Markdown file under this tree is a prompt, a doctrine fragment, or
+      # a skill body, and `phrasing.md` is this hook's own system prompt. A
+      # reworded copy silently changes what the model is told.
+      excludedPaths = [ "home/modules/llm-assistants/" ];
       model = "openrouter/google/gemini-3.7-flash";
       phrasing = builtins.readFile ../../instructions/phrasing.md;
       prompt = builtins.readFile ./prose-polish-prompt.md;

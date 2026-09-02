@@ -114,7 +114,7 @@ def question-targets [questions: list<record>]: nothing -> list<record> {
   | flatten
 }
 
-def targets [payload: record, mcp_fields: record]: nothing -> list<record> {
+def targets [payload: record, config: record]: nothing -> list<record> {
   let tool = ($payload | get tool_name)
   let args = ($payload | get tool_input)
 
@@ -127,6 +127,9 @@ def targets [payload: record, mcp_fields: record]: nothing -> list<record> {
     if ($args.file_path | str ends-with ".md") == false {
       return []
     }
+    if ($config.excludedPaths | any {|fragment| $args.file_path | str contains $fragment }) {
+      return []
+    }
     return (target [$file.key] ($args | get -o $file.key) $file.whole_file)
   }
 
@@ -134,7 +137,7 @@ def targets [payload: record, mcp_fields: record]: nothing -> list<record> {
     return (question-targets ($args | get questions))
   }
 
-  mut fields = ($mcp_fields | get -o $tool | default [])
+  mut fields = ($config.mcpProseFields | get -o $tool | default [])
   if $tool in [mcp__Atlassian__confluence_create_page mcp__Atlassian__confluence_update_page] {
     let format = ($args | get -o content_format | default "markdown")
     if $format != "markdown" {
@@ -217,7 +220,7 @@ def acceptable [before: string, after: string]: nothing -> bool {
 
 def polished [config: record]: nothing -> any {
   let payload = (^cat | from json)
-  let found = (targets $payload $config.mcpProseFields)
+  let found = (targets $payload $config)
   if ($found | is-empty) {
     return null
   }
