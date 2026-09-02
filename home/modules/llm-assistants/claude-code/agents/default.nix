@@ -4,6 +4,7 @@
 
 {
   lib,
+  commentGate,
   enabledAgents,
 }:
 
@@ -56,6 +57,15 @@ let
 
   allAgents = lib.mapAttrs renderAgent sharedAgents // {
     codex-worker = builtins.readFile ./codex-worker.md;
+    comment-gate = renderAgent "comment-gate" {
+      description = "Audits comments and docstrings against the owner's default-to-none doctrine. Use to sweep a file or a diff for comments that should be dropped or tightened.";
+      prompt = commentGate;
+      claude = {
+        color = "gray";
+        model = "sonnet";
+        permissionMode = "plan";
+      };
+    };
   };
 in
 lib.filterAttrs (name: _: lib.elem name enabledAgents) allAgents

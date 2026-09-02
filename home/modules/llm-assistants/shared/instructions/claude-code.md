@@ -15,7 +15,7 @@ Treat Claude Code as a capable engineer you delegate to. Avoid line-by-line stee
 
 `WebSearch` runs on Anthropic's own infrastructure rather than locally, so it fails under any `corp-gateway-*` profile, where `ANTHROPIC_BASE_URL` points at the corp Bifrost gateway. On those profiles go straight to Brave Search (`mcp__BraveSearch__brave_web_search`) instead of spending a turn on a call that cannot succeed. Check the statusline for the active profile when unsure. `WebFetch` is a local tool and works on every profile.
 
-## MCP Server Usage
+## Additional MCP Servers
 
 The shared MCP servers are documented in the shared instructions above. Claude Code adds these:
 
