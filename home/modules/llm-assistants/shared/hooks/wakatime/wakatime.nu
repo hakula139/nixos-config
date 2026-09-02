@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 # ==============================================================================
-# WakaTime Heartbeat for AI-Generated Code (PostToolUse)
+# WakaTime Heartbeat for AI-Generated Code
 # ==============================================================================
 # Asks wakatime-cli to parse the assistant's transcript and send file-level AI
 # heartbeats, mirroring the claude-code-wakatime plugin without letting the hook
