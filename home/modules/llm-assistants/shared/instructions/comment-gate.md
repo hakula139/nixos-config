@@ -18,7 +18,7 @@ Check the comment prose and the user-facing strings for these.
 
 Some of these are tics in the mark itself, and the rest of this prompt calls them the character tics: `—`, `--`, `;`, `…`, and a curly quote. One inside backticks or a code span names the literal character, so ignore it there. Comments are hard-wrapped to the file's column limit by convention, so a mid-sentence line break inside one is never a tic, and an orphaned last word is the only wrapping fault a comment can commit.
 
-Chinese text is exempt from the character tics, since 「——」 and 「；」 are ordinary Chinese punctuation. It carries one rule of its own: Han characters take fullwidth punctuation, so a half-width comma, period, or colon between them is a generation artifact.
+Chinese text uses 「——」 and 「；」 legitimately, so one of either is no tic on its own, while overuse still is: dashes and semicolons stacked across neighbouring clauses, as in 「X——是 Y；Z——也只有 W」, or a colon or semicolon in most clauses. Reserve 「——」 for a turn or a key step and put subordinate detail in parentheses. Han characters also take fullwidth punctuation, so a half-width comma, period, or colon between them is a generation artifact.
 
 ## Grounding
 
