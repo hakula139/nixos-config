@@ -1,4 +1,4 @@
-## MCP Server Usage
+## Additional MCP Servers
 
 The shared MCP servers are documented in the shared instructions above. These tool-specific servers may also be available:
 
