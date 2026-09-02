@@ -127,9 +127,6 @@ def targets [payload: record, config: record]: nothing -> list<record> {
     if ($args.file_path | str ends-with ".md") == false {
       return []
     }
-    if ($config.excludedPaths | any {|fragment| $args.file_path | str contains $fragment }) {
-      return []
-    }
     return (target [$file.key] ($args | get -o $file.key) $file.whole_file)
   }
 
