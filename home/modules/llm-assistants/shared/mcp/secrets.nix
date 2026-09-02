@@ -11,6 +11,10 @@
     name = "llm-assistants/mcp/context7-api-key";
   };
 
+  exa-api-key = {
+    name = "llm-assistants/mcp/exa-api-key";
+  };
+
   github-pat = {
     name = "github/pat-personal";
   };
