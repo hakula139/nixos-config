@@ -7,7 +7,6 @@ let
     "@comments@" = ./comments.md;
     "@phrasing@" = ./phrasing.md;
     "@proseTics@" = ./prose-tics.md;
-    "@proseTicsZh@" = ./prose-tics-zh.md;
   };
 
   compose =
@@ -50,7 +49,5 @@ in
     body = ./agents.md;
   };
 
-  # `prose-polish` takes `phrasing.md` alone, since a rule checklist measured
-  # worst of the five frames tested as a rewrite prompt.
   commentGate = compose ./comment-gate.md;
 }
