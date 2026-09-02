@@ -16,6 +16,10 @@ const MIN_HAN_SPAN = 8
 const MIN_LATIN_FILE = 240
 const MIN_LATIN_SPAN = 32
 
+# Compared by count, so a passage keeps whatever it arrived with and only the
+# rewriter is held to the ban. Chinese prose takes the fullwidth `；`.
+const BANNED_MARKS = ['—' '--' '…' ';']
+
 def prose [text: string]: nothing -> string {
   $text | str replace --regex --all $FENCE ""
 }
@@ -186,12 +190,29 @@ def polish [items: list<string>, config: record]: nothing -> list<string> {
   }
 }
 
+def bare [text: string]: nothing -> string {
+  prose $text
+  # Inline code
+  | str replace --regex --all '`[^`\n]+`' ""
+  # URLs
+  | str replace --regex --all 'https?://[^\s)>]+' ""
+}
+
+def adds-no-mark [before: string, after: string]: nothing -> bool {
+  let source = (bare $before)
+  let result = (bare $after)
+  $BANNED_MARKS | all {|mark|
+    ($result | split row $mark | length) <= ($source | split row $mark | length)
+  }
+}
+
 def acceptable [before: string, after: string]: nothing -> bool {
   # A rewrite may merge lines, since rejoining clipped sentences is the point,
   # but gaining one means a paragraph was cut into pieces.
   ((margins $after) == (margins $before)
     and (protected $after) == (protected $before)
-    and ($after | lines | length) <= ($before | lines | length))
+    and ($after | lines | length) <= ($before | lines | length)
+    and (adds-no-mark $before $after))
 }
 
 def polished [config: record]: nothing -> any {
