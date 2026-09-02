@@ -8,19 +8,23 @@
 }:
 
 let
-  mcpProseFieldsFile = ./mcp-fields.json;
-  mcpProseFields = builtins.fromJSON (builtins.readFile mcpProseFieldsFile);
+  mcpProseFields = builtins.fromJSON (builtins.readFile ./mcp-fields.json);
 in
 {
-  inherit mcpProseFields;
-
-  prosePolish = mkNuHook {
+  event = "PreToolUse";
+  tools = [
+    "askQuestion"
+    "fileWrite"
+  ]
+  ++ builtins.attrNames mcpProseFields;
+  statusMessage = "Polishing prose";
+  command = mkNuHook {
     slug = "prose-polish";
     script = ./prose-polish.nu;
     config = {
       inherit mcpProseFields modelCall;
       model = "openrouter/google/gemini-3.7-flash";
-      phrasing = builtins.readFile ../../../instructions/phrasing.md;
+      phrasing = builtins.readFile ../../instructions/phrasing.md;
       prompt = builtins.readFile ./prose-polish-prompt.md;
     };
   };

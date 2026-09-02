@@ -1,7 +1,9 @@
 # ==============================================================================
-# Stop Hooks
+# Completeness Gate
 # ==============================================================================
 
 {
-  completenessPrompt = import ./completeness;
+  event = "Stop";
+  statusMessage = "Checking completeness";
+  prompt = builtins.readFile ./completeness.md;
 }

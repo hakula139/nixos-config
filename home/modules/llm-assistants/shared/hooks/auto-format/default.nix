@@ -65,20 +65,24 @@ let
     plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
   };
 in
-mkNuHook {
-  slug = "auto-format";
-  script = ./auto-format.nu;
-  config = {
-    cspell = whenDev pkgs.cspell;
-    dprint = whenDev pkgs.dprint;
-    dprintConfig = whenDevPath dprintConfig;
-    markdownlint = whenDev pkgs.markdownlint-cli2;
-    nixfmt = lib.getExe pkgs.nixfmt;
-    nuCheck = "${pkgs.nu-check}";
-    prettier = whenDev pkgs.unstable.prettier;
-    ruff = whenDev pkgs.ruff;
-    shellcheck = lib.getExe pkgs.shellcheck;
-    shfmt = lib.getExe pkgs.shfmt;
-    taplo = whenDev pkgs.taplo;
+{
+  event = "PostToolUse";
+  tools = [ "fileWrite" ];
+  command = mkNuHook {
+    slug = "auto-format";
+    script = ./auto-format.nu;
+    config = {
+      cspell = whenDev pkgs.cspell;
+      dprint = whenDev pkgs.dprint;
+      dprintConfig = whenDevPath dprintConfig;
+      markdownlint = whenDev pkgs.markdownlint-cli2;
+      nixfmt = lib.getExe pkgs.nixfmt;
+      nuCheck = "${pkgs.nu-check}";
+      prettier = whenDev pkgs.unstable.prettier;
+      ruff = whenDev pkgs.ruff;
+      shellcheck = lib.getExe pkgs.shellcheck;
+      shfmt = lib.getExe pkgs.shfmt;
+      taplo = whenDev pkgs.taplo;
+    };
   };
 }

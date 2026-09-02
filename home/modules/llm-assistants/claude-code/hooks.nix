@@ -12,7 +12,7 @@
 
 let
   notify = import ../shared/notify.nix { inherit pkgs lib; };
-  hookScripts = import ../shared/hooks {
+  sharedHooks = import ../shared/hooks {
     inherit
       pkgs
       lib
@@ -23,115 +23,113 @@ let
   };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
-  proseTools = lib.concatStringsSep "|" (
-    [
-      "AskUserQuestion"
+  # ----------------------------------------------------------------------------
+  # Shared hook vocabulary
+  # ----------------------------------------------------------------------------
+  toolClasses = {
+    askQuestion = [ "AskUserQuestion" ];
+    fileWrite = [
       "Edit"
       "Write"
-    ]
-    ++ builtins.attrNames hookScripts.mcpProseFields
+    ];
+  };
+
+  enabledHooks = [
+    "prosePolish"
+    "wakatime"
+    "autoFormat"
+    "commentGate"
+    "completeness"
+  ];
+
+  mkCommand =
+    hook:
+    if hook ? command then
+      {
+        type = "command";
+        inherit (hook) command;
+      }
+    else
+      {
+        type = "prompt";
+        inherit (hook) prompt;
+      };
+
+  mkEntry =
+    hook:
+    lib.optionalAttrs (hook ? tools) {
+      matcher = lib.concatStringsSep "|" (
+        lib.concatMap (tool: toolClasses.${tool} or [ tool ]) hook.tools
+      );
+    }
+    // {
+      hooks = [
+        (
+          mkCommand hook
+          // lib.optionalAttrs (hook ? statusMessage) { inherit (hook) statusMessage; }
+          // lib.optionalAttrs (hook ? async) { inherit (hook) async; }
+        )
+      ];
+    };
+
+  sharedEvents = lib.mapAttrs (_: names: map (name: mkEntry sharedHooks.hooks.${name}) names) (
+    lib.groupBy (name: sharedHooks.hooks.${name}.event) enabledHooks
   );
+
+  # ----------------------------------------------------------------------------
+  # Claude Code only
+  # ----------------------------------------------------------------------------
+  ownEvents = {
+    PermissionRequest = [
+      {
+        matcher = "AskUserQuestion";
+        hooks = [
+          {
+            type = "command";
+            command = ''
+              ${projectNotify} "Question asked"
+            '';
+          }
+        ];
+      }
+    ];
+
+    TeammateIdle = [
+      {
+        hooks = [
+          {
+            type = "command";
+            command = ''
+              input="$(cat)"
+              session_id="$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.session_id // empty')"
+              teammate_name="$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.teammate_name // empty')"
+              nudge_flag="/tmp/claude-team-nudged-''${session_id:-unknown}"
+              if [ ! -f "$nudge_flag" ]; then
+                touch "$nudge_flag"
+                printf "Teammate %s: before going idle, check TaskList for unclaimed tasks and send any unsent findings via SendMessage." "$teammate_name" >&2
+                exit 2
+              fi
+            '';
+          }
+        ];
+      }
+    ];
+
+    Stop = [
+      {
+        hooks = [
+          {
+            type = "command";
+            command = ''
+              ${projectNotify} "Response complete"
+            '';
+          }
+        ];
+      }
+    ];
+  };
 in
-{
-  PreToolUse = [
-    {
-      matcher = proseTools;
-      hooks = [
-        {
-          type = "command";
-          command = "${hookScripts.prosePolish}";
-          statusMessage = "Polishing prose";
-        }
-      ];
-    }
-  ];
-
-  PostToolUse = [
-    {
-      matcher = "Edit|Write";
-      hooks = [
-        {
-          type = "command";
-          command = "${hookScripts.wakatime}";
-          async = true;
-        }
-      ];
-    }
-    {
-      matcher = "Edit|Write";
-      hooks = [
-        {
-          type = "command";
-          command = "${hookScripts.autoFormat}";
-        }
-      ];
-    }
-    {
-      matcher = "Edit|Write";
-      hooks = [
-        {
-          type = "command";
-          command = "${hookScripts.commentGate}";
-          statusMessage = "Checking comments";
-        }
-      ];
-    }
-  ];
-
-  PermissionRequest = [
-    {
-      matcher = "AskUserQuestion";
-      hooks = [
-        {
-          type = "command";
-          command = ''
-            ${projectNotify} "Question asked"
-          '';
-        }
-      ];
-    }
-  ];
-
-  TeammateIdle = [
-    {
-      hooks = [
-        {
-          type = "command";
-          command = ''
-            input="$(cat)"
-            session_id="$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.session_id // empty')"
-            teammate_name="$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.teammate_name // empty')"
-            nudge_flag="/tmp/claude-team-nudged-''${session_id:-unknown}"
-            if [ ! -f "$nudge_flag" ]; then
-              touch "$nudge_flag"
-              printf "Teammate %s: before going idle, check TaskList for unclaimed tasks and send any unsent findings via SendMessage." "$teammate_name" >&2
-              exit 2
-            fi
-          '';
-        }
-      ];
-    }
-  ];
-
-  Stop = [
-    {
-      hooks = [
-        {
-          type = "prompt";
-          prompt = hookScripts.completenessPrompt;
-          statusMessage = "Checking completeness";
-        }
-      ];
-    }
-    {
-      hooks = [
-        {
-          type = "command";
-          command = ''
-            ${projectNotify} "Response complete"
-          '';
-        }
-      ];
-    }
-  ];
-}
+lib.zipAttrsWith (_: lib.concatLists) [
+  sharedEvents
+  ownEvents
+]

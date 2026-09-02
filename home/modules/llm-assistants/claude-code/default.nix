@@ -119,6 +119,7 @@ in
 
       agents = import ./agents {
         inherit lib;
+        inherit (instructions) commentGate;
         inherit (cfg.agents) enabledAgents;
       };
 

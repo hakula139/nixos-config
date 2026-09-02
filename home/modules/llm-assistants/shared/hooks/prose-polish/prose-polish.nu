@@ -1,5 +1,9 @@
 #!/usr/bin/env nu
 
+# ==============================================================================
+# Prose Polish
+# ==============================================================================
+
 # Match complete triple-backtick blocks because Rust regexes cannot pair arbitrary delimiters.
 const FENCE = '(?ms)^(?<m>```[^\n]*\n.*?^```\s*$)'
 # Han characters

@@ -1,5 +1,9 @@
 # ==============================================================================
-# Shared Hook Scripts
+# Shared Hooks
+# ==============================================================================
+# Claude Code and Codex name their events alike, so a hook states its own event
+# and only its tool classes need translating. Each adapter owns that map, and a
+# class the map does not cover reaches the matcher as a literal tool name.
 # ==============================================================================
 
 {
@@ -41,7 +45,7 @@ let
     in
     "${package}/bin/${assistant}-${slug}";
 
-  instructionsDir = ../instructions;
+  instructions = import ../instructions;
 
   inherit
     (import ./lib/model-call {
@@ -54,26 +58,39 @@ let
     })
     modelCall
     ;
-
-  # ----------------------------------------------------------------------------
-  # Hook groups
-  # ----------------------------------------------------------------------------
-  preToolUseHooks = import ./pre-tool-use {
-    inherit mkNuHook modelCall;
-  };
-  postToolUseHooks = import ./post-tool-use {
-    inherit
-      pkgs
-      lib
-      assistant
-      enableDevToolchains
-      instructionsDir
-      mkNuHook
-      modelCall
-      repo
-      timeouts
-      ;
-  };
-  stopHooks = import ./stop;
 in
-{ inherit timeouts; } // preToolUseHooks // postToolUseHooks // stopHooks
+{
+  inherit timeouts;
+
+  hooks = {
+    autoFormat = import ./auto-format {
+      inherit
+        pkgs
+        lib
+        enableDevToolchains
+        mkNuHook
+        repo
+        ;
+    };
+
+    commentGate = import ./comment-gate {
+      inherit mkNuHook modelCall;
+      inherit (instructions) commentGate;
+    };
+
+    completeness = import ./completeness;
+
+    prosePolish = import ./prose-polish {
+      inherit mkNuHook modelCall;
+    };
+
+    wakatime = import ./wakatime {
+      inherit
+        pkgs
+        assistant
+        mkNuHook
+        timeouts
+        ;
+    };
+  };
+}

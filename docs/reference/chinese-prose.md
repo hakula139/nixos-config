@@ -119,7 +119,7 @@ One model was disqualified on a defect no score captures: DeepSeek V3.2 emitted 
 
 Sections 3.1 and 3.2 rule out a quality gate: neither model judgment nor surface statistics separates good Chinese from bad at usable precision. A lexical blacklist has the same defect and encourages token substitution while leaving the underlying prose unchanged.
 
-`home/modules/llm-assistants/shared/hooks/pre-tool-use/prose-polish/` runs at `PreToolUse`, before a tool call carries prose out of the session. It:
+`home/modules/llm-assistants/shared/hooks/prose-polish/` runs at `PreToolUse` before a tool call carries prose out of the session. It:
 
 1. Takes only fields whose tool schema defines as prose. AskUserQuestion targets the question and option descriptions, while file edits are limited to Markdown so source code is never rewritten around a comment.
 2. Uses language-aware length thresholds only to decide whether a model call is worthwhile: 120 Han characters or 240 Latin-script letters for a whole file, and 8 Han characters or 32 Latin-script letters for a span.
@@ -158,7 +158,7 @@ At 3.5 this draft sits mid-scale. The arm carrying coding history in section 3.4
 
 ## 5. Coverage and limits
 
-Coverage applies to text Claude Code sends through mutable tool inputs, including Markdown writes and edits, selected MCP publishing fields, commit bodies, and interactive questions. Comments and docstrings in source files are covered separately by `post-tool-use/comment-gate/`, which evaluates rather than rewrites because safely rewriting source code around a comment cannot be delegated to a model. Ordinary conversational replies continue to rely on shared instructions because a Stop hook can only request a new response, not replace a completed one.
+Coverage applies to text Claude Code sends through mutable tool inputs, including Markdown writes and edits, selected MCP publishing fields, commit bodies, and interactive questions. Source file comments and docstrings are covered separately by `hooks/comment-gate/`, which evaluates rather than rewrites them because safely rewriting source code around a comment cannot be delegated to a model. Ordinary conversational replies continue to rely on shared instructions because a Stop hook can only request a new response, not replace a completed one.
 
 Codex and OpenCode will not be wired until their adapters and transports pass end-to-end tests, as their event schemas differ from Claude Code despite exposing pre-tool mutation points.
 
