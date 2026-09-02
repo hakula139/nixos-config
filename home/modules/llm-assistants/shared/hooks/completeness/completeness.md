@@ -4,7 +4,9 @@ $ARGUMENTS
 
 First, an overriding precedence rule. Evaluate it before anything else:
 
-- If the assistant's latest message asks the user a question, requests confirmation, presents options, or otherwise hands the next decision back to the user, the condition is MET. Return `ok: true` immediately and do not evaluate the criteria below. Pausing for confirmation before a destructive, outward-facing, or hard-to-undo action is correct and expected, so it is a legitimate place to stop.
+- If the assistant's latest message is **blocked on a decision only the user can make**, the condition is MET. Return `ok: true` immediately and skip the criteria below. Stopping to ask about a genuinely ambiguous requirement, or to get authorization before a destructive, outward-facing, or hard-to-undo action, is correct and expected.
+
+An offer is not a blocked decision. "Say the word and I'll remove it", "let me know if you want me to clean that up", and any closing question about work the assistant could have simply done are deferrals, so they do **not** trigger the rule above. Keep evaluating, and count the offered work as outstanding. Otherwise one appended sentence disables this gate no matter how much work is left unfinished.
 
 Only when the assistant is NOT waiting on the user, evaluate completeness.
 
