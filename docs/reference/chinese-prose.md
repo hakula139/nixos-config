@@ -119,7 +119,7 @@ One model was disqualified on a defect no score captures: DeepSeek V3.2 emitted 
 
 Sections 3.1 and 3.2 rule out a quality gate: neither model judgment nor surface statistics separates good Chinese from bad at usable precision. A lexical blacklist has the same defect and encourages token substitution while leaving the underlying prose unchanged.
 
-`home/modules/llm-assistants/shared/hooks/pre-tool-use/prose-polish/` runs at `PreToolUse`, before a tool call carries prose out of the session. It:
+`home/modules/llm-assistants/shared/hooks/prose-polish/` runs at `PreToolUse` before a tool call carries prose out of the session. It:
 
 1. Takes only fields whose tool schema defines as prose. AskUserQuestion targets the question and option descriptions, while file edits are limited to Markdown so source code is never rewritten around a comment.
 2. Uses language-aware length thresholds only to decide whether a model call is worthwhile: 120 Han characters or 240 Latin-script letters for a whole file, and 8 Han characters or 32 Latin-script letters for a span.
@@ -158,13 +158,13 @@ At 3.5 this draft sits mid-scale. The arm carrying coding history in section 3.4
 
 ## 5. Coverage and limits
 
-Coverage is text Claude Code sends through a mutable tool input: Markdown writes and edits, selected MCP publishing fields, commit bodies, and interactive questions. Ordinary conversational replies continue to rely on the shared instructions because a Stop hook can request another response but cannot replace the completed one directly.
+Coverage applies to text Claude Code sends through mutable tool inputs, including Markdown writes and edits, selected MCP publishing fields, commit bodies, and interactive questions. Source file comments and docstrings are covered separately by `hooks/comment-gate/`, which evaluates rather than rewrites them because safely rewriting source code around a comment cannot be delegated to a model. Ordinary conversational replies continue to rely on shared instructions because a Stop hook can only request a new response, not replace a completed one.
 
-Codex and OpenCode are not wired until their adapters and transports have end-to-end tests. Both expose pre-tool mutation points, but their event schemas differ from Claude Code and the current rewriter depends on Anthropic-compatible profile credentials.
+Codex and OpenCode will not be wired until their adapters and transports pass end-to-end tests, as their event schemas differ from Claude Code despite exposing pre-tool mutation points.
 
-The hook runs only when the active profile exposes a base URL and API-key token, and when that endpoint accepts the configured rewrite model through Chat Completions. Subscription and OAuth profiles therefore fail open without rewriting.
+Both hooks invoke the model through `hooks/lib/model-call/`, which tries the active profile's gateway and falls back to `codex exec`. Because Codex supplies its own credentials, this fallback maintains coverage for subscription or OAuth profiles where gateway variables are absent. The fallback provides availability rather than quality: on a shared draft, it left mechanical parallelism that the gateway model removed, illustrating the section 3.5 finding that rewriting capability is model-specific.
 
-The transport constrains the model choice. The assistant CLI routes only one vendor's models, and section 3.5 scores every one of them at 4.0 to 4.5 against 9.0 for the model selected. The hook therefore calls the configured endpoint directly, reading its credentials and certificate path from the environment the assistant already runs in.
+Transport constraints govern model selection. The assistant CLI routes models from only one vendor, all of which section 3.5 scores between 4.0 and 4.5 compared to 9.0 for the selected model. Both legs therefore call their endpoints directly, reading credentials and certificate paths from the assistant's execution environment.
 
 Statistical limits worth keeping in view. There is one reviewer, so the target is that reviewer's preference and nothing broader. The frame effect rests on five draws per arm at $p = 0.049$. The rewriter ranking rests on one Chinese draft per model, so the ordering below the top score is not resolved, a 9.0 from one draw should be expected to regress, and the selected model's English rewrite quality remains unmeasured. Sample counts per condition are between 1 and 5 throughout.
 

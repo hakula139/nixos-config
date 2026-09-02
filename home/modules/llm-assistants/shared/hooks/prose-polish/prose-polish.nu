@@ -1,5 +1,9 @@
 #!/usr/bin/env nu
 
+# ==============================================================================
+# Prose Polish
+# ==============================================================================
+
 # Match complete triple-backtick blocks because Rust regexes cannot pair arbitrary delimiters.
 const FENCE = '(?ms)^(?<m>```[^\n]*\n.*?^```\s*$)'
 # Han characters
@@ -11,6 +15,10 @@ const MIN_HAN_FILE = 120
 const MIN_HAN_SPAN = 8
 const MIN_LATIN_FILE = 240
 const MIN_LATIN_SPAN = 32
+
+# Compared by count, so a passage keeps whatever it arrived with and only the
+# rewriter is held to the ban. Chinese prose takes the fullwidth `；`.
+const BANNED_MARKS = ['—' '--' '…' ';']
 
 def prose [text: string]: nothing -> string {
   $text | str replace --regex --all $FENCE ""
@@ -106,7 +114,7 @@ def question-targets [questions: list<record>]: nothing -> list<record> {
   | flatten
 }
 
-def targets [payload: record, mcp_fields: record]: nothing -> list<record> {
+def targets [payload: record, config: record]: nothing -> list<record> {
   let tool = ($payload | get tool_name)
   let args = ($payload | get tool_input)
 
@@ -126,7 +134,7 @@ def targets [payload: record, mcp_fields: record]: nothing -> list<record> {
     return (question-targets ($args | get questions))
   }
 
-  mut fields = ($mcp_fields | get -o $tool | default [])
+  mut fields = ($config.mcpProseFields | get -o $tool | default [])
   if $tool in [mcp__Atlassian__confluence_create_page mcp__Atlassian__confluence_update_page] {
     let format = ($args | get -o content_format | default "markdown")
     if $format != "markdown" {
@@ -139,64 +147,36 @@ def targets [payload: record, mcp_fields: record]: nothing -> list<record> {
 }
 
 def polish [items: list<string>, config: record]: nothing -> list<string> {
-  # Claude profile API suffix
-  let base = ($env | get -o ANTHROPIC_BASE_URL | default "" | str replace -r '/anthropic$' '')
-  let token = ($env | get -o ANTHROPIC_AUTH_TOKEN | default "")
-  if ($base | is-empty) or ($token | is-empty) {
-    return []
-  }
-
   let instruction = ($config.prompt | str trim)
   let passages = (
     $items
     | enumerate
     | each {|item| {id: $item.index, text: $item.item} }
   )
-  let body = {
+  let request = {
+    json: true
+    maxTokens: 16384
     model: $config.model
-    max_tokens: 16384
-    stream: false
-    response_format: {type: "json_object"}
-    messages: [
-      {role: "system", content: $config.phrasing}
-      {
-        role: "user"
-        content: ([
-          $instruction
-          ""
-          "The input is a JSON object. Return only the same object shape and numeric IDs, replacing each text value with its rewrite."
-          ""
-          ({passages: $passages} | to json --raw)
-        ] | str join "\n")
-      }
-    ]
+    system: $config.phrasing
+    user: ([
+      $instruction
+      ""
+      "The input is a JSON object. Return only the same object shape and numeric IDs, replacing each text value with its rewrite."
+      ""
+      ({passages: $passages} | to json --raw)
+    ] | str join "\n")
   }
 
-  let ca = ($env | get -o NODE_EXTRA_CA_CERTS | default "")
-  let cacert = if ($ca | is-empty) { [] } else { [--cacert $ca] }
-  let curl = $config.curl
-  # The gateway's advertised IPv6 endpoint closes during TLS.
-  let run = (
-    $body
-    | to json
-    | ^$curl --ipv4 --silent --show-error --fail --max-time $config.polishTimeout
-      ...$cacert
-      --header $"Authorization: Bearer ($token)"
-      --header "content-type: application/json"
-      --data @-
-      $"($base)/v1/chat/completions"
-    | complete
-  )
-  if $run.exit_code != 0 {
+  let caller = $config.modelCall
+  let run = ($request | to json | ^$caller | complete)
+  if $run.exit_code != 0 or ($run.stdout | str trim | is-empty) {
     return []
   }
 
-  let response = ($run.stdout | from json)
-  if ($response | get -o choices.0.finish_reason | default "") != "stop" {
+  let parsed = ($run.stdout | from json)
+  if ($parsed | describe | str starts-with "record") == false {
     return []
   }
-  let reply = ($response | get -o choices.0.message.content | default "")
-  let parsed = ($reply | from json)
   let rewritten = ($parsed | get -o passages | default [])
   let expected = (0..<($items | length) | each {|i| $i })
   if ($rewritten | length) != ($items | length) or ($rewritten | get -o id) != $expected {
@@ -210,14 +190,34 @@ def polish [items: list<string>, config: record]: nothing -> list<string> {
   }
 }
 
+def bare [text: string]: nothing -> string {
+  prose $text
+  # Inline code
+  | str replace --regex --all '`[^`\n]+`' ""
+  # URLs
+  | str replace --regex --all 'https?://[^\s)>]+' ""
+}
+
+def adds-no-mark [before: string, after: string]: nothing -> bool {
+  let source = (bare $before)
+  let result = (bare $after)
+  $BANNED_MARKS | all {|mark|
+    ($result | split row $mark | length) <= ($source | split row $mark | length)
+  }
+}
+
 def acceptable [before: string, after: string]: nothing -> bool {
+  # A rewrite may merge lines, since rejoining clipped sentences is the point,
+  # but gaining one means a paragraph was cut into pieces.
   ((margins $after) == (margins $before)
-    and (protected $after) == (protected $before))
+    and (protected $after) == (protected $before)
+    and ($after | lines | length) <= ($before | lines | length)
+    and (adds-no-mark $before $after))
 }
 
 def polished [config: record]: nothing -> any {
   let payload = (^cat | from json)
-  let found = (targets $payload $config.mcpProseFields)
+  let found = (targets $payload $config)
   if ($found | is-empty) {
     return null
   }

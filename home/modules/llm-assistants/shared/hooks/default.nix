@@ -1,5 +1,9 @@
 # ==============================================================================
-# Shared Hook Scripts
+# Shared Hooks
+# ==============================================================================
+# Claude Code and Codex name their events alike, so a hook states its own event
+# and only its tool classes need translating. Each adapter owns that map and
+# hands it to `mkMatcher`.
 # ==============================================================================
 
 {
@@ -12,6 +16,8 @@
 }:
 
 let
+  instructions = import ../instructions;
+
   # ----------------------------------------------------------------------------
   # Hook timeouts
   # ----------------------------------------------------------------------------
@@ -41,28 +47,66 @@ let
     in
     "${package}/bin/${assistant}-${slug}";
 
+  inherit
+    (import ./lib/model-call {
+      inherit
+        pkgs
+        lib
+        mkNuHook
+        timeouts
+        ;
+    })
+    modelCall
+    ;
+
   # ----------------------------------------------------------------------------
-  # Hook groups
+  # Tool matchers
   # ----------------------------------------------------------------------------
-  preToolUseHooks = import ./pre-tool-use {
-    inherit
-      pkgs
-      lib
-      mkNuHook
-      timeouts
-      ;
-  };
-  postToolUseHooks = import ./post-tool-use {
-    inherit
-      pkgs
-      lib
-      assistant
-      enableDevToolchains
-      mkNuHook
-      repo
-      timeouts
-      ;
-  };
-  stopHooks = import ./stop;
+  mkMatcher =
+    toolClasses: hooks:
+    lib.concatStringsSep "|" (
+      lib.unique (
+        lib.concatMap (
+          hook:
+          lib.concatMap (tool: if lib.hasPrefix "mcp__" tool then [ tool ] else toolClasses.${tool}) (
+            hook.tools or [ ]
+          )
+        ) hooks
+      )
+    );
 in
-{ inherit timeouts; } // preToolUseHooks // postToolUseHooks // stopHooks
+{
+  inherit mkMatcher timeouts;
+
+  hooks = {
+    autoFormat = import ./auto-format {
+      inherit
+        pkgs
+        lib
+        enableDevToolchains
+        mkNuHook
+        repo
+        ;
+    };
+
+    commentGate = import ./comment-gate {
+      inherit mkNuHook modelCall;
+      inherit (instructions) commentGate;
+    };
+
+    completeness = import ./completeness;
+
+    prosePolish = import ./prose-polish {
+      inherit mkNuHook modelCall;
+    };
+
+    wakatime = import ./wakatime {
+      inherit
+        pkgs
+        assistant
+        mkNuHook
+        timeouts
+        ;
+    };
+  };
+}

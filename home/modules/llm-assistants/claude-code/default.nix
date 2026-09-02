@@ -35,7 +35,10 @@ let
       ;
   };
 
-  claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [ "codex-worker" ];
+  claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [
+    "codex-worker"
+    "comment-gate"
+  ];
   claudeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
 in
 {
@@ -116,6 +119,7 @@ in
 
       agents = import ./agents {
         inherit lib;
+        inherit (instructions) commentGate;
         inherit (cfg.agents) enabledAgents;
       };
 

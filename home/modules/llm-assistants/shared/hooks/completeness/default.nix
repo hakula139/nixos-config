@@ -1,5 +1,9 @@
 # ==============================================================================
-# PreToolUse Hooks
+# Completeness Gate
 # ==============================================================================
 
-import ./prose-polish
+{
+  event = "Stop";
+  statusMessage = "Checking completeness";
+  prompt = builtins.readFile ./completeness.md;
+}

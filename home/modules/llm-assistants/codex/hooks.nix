@@ -11,7 +11,7 @@
 }:
 
 let
-  hookScripts = import ../shared/hooks {
+  sharedHooks = import ../shared/hooks {
     inherit
       pkgs
       lib
@@ -21,10 +21,26 @@ let
     assistant = "codex";
   };
 
+  toolClasses = {
+    fileWrite = [
+      "Edit"
+      "Write"
+      "^apply_patch$"
+    ];
+  };
+
+  postEditHooks = with sharedHooks.hooks; [
+    wakatime
+    autoFormat
+  ];
+
+  postEditMatcher = sharedHooks.mkMatcher toolClasses postEditHooks;
+
   postEditScript = pkgs.writeShellScript "codex-post-edit" ''
     input="$(cat)"
-    printf '%s' "$input" | ${hookScripts.wakatime} || true
-    printf '%s' "$input" | ${hookScripts.autoFormat} || true
+    ${lib.concatMapStringsSep "\n" (
+      hook: ''printf '%s' "$input" | ${hook.command} || true''
+    ) postEditHooks}
   '';
 
   mkWorkmuxHook = status: {
@@ -41,12 +57,12 @@ in
 
   PostToolUse = [
     {
-      matcher = "Edit|Write|^apply_patch$";
+      matcher = postEditMatcher;
       hooks = [
         {
           type = "command";
           command = "${postEditScript}";
-          timeout = hookScripts.timeouts.postEdit;
+          timeout = sharedHooks.timeouts.postEdit;
           statusMessage = "Processing edited files";
         }
       ];
