@@ -14,8 +14,8 @@
     slug = "model-call";
     script = ./model-call.nu;
     config = {
-      # Resolved from PATH like the other unpinned toolchains, so a server
-      # closure does not carry it and the leg uses the profile's own auth.
+      # A bare name resolves the proxy-wrapped Codex the module puts on PATH,
+      # where the unwrapped package would make its call without a proxy.
       codex = "codex";
       codexModel = "gpt-5.6-luna";
       codexTimeout = timeouts.modelCall;

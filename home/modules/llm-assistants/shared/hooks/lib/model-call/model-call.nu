@@ -1,8 +1,12 @@
 #!/usr/bin/env nu
 
-# Two legs, each bounded on its own: the profile's gateway, then Codex. Codex
-# carries its own credentials, so it is the only leg that survives a
-# subscription profile, where the gateway variables are absent.
+# ==============================================================================
+# Shared Model Call
+# ==============================================================================
+# Two legs: the profile's gateway, then Codex. Codex carries its own
+# credentials, so it is the only leg that survives a subscription profile,
+# where the gateway variables are absent.
+# ==============================================================================
 
 def gateway [request: record, config: record]: nothing -> string {
   # Claude profile API suffix
@@ -62,8 +66,7 @@ def codex [request: record, config: record]: nothing -> string {
     return ""
   }
   let timeout = $config.timeout
-  # Codex has no response-format switch, so JSON mode is asked for in words. The
-  # caller validates the shape either way.
+  # Codex has no response-format switch, so JSON mode is asked for in words.
   let instruction = if ($request | get -o json | default false) {
     "Reply with one JSON object and nothing else. No prose, no code fence."
   } else {
