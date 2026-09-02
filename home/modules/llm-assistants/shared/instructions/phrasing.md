@@ -1,5 +1,3 @@
-## Phrasing
-
 Write so the reader gets it once.
 
 - State the conclusion directly. Use contrast only when it rules out a plausible interpretation.

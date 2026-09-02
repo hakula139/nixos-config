@@ -19,6 +19,8 @@ Match response length to task complexity. Simple lookups get brief answers.
 - Prefer plain prose over headings, bullets, and tables unless structure genuinely aids comprehension.
 - Keep embedded code examples minimal. Show only the changed lines.
 
+## Phrasing
+
 @phrasing@
 
 Avoid these tics, which show specifically how the guidance above goes wrong:
@@ -32,8 +34,6 @@ Use spaces around connector symbols when they separate distinct words or phrases
 Omit spaces for abbreviations, compound terms, and tight notation (`"I/O"`, `"TCP/IP"`, `"k≥0"` as a math constraint, `"2x"` as a multiplier). Single-character UI labels like `←/→` (arrow keys) are compact strings. Leave them alone.
 
 Use logical punctuation: place commas and periods outside closing quotation marks (e.g., `"foobar",` not `"foobar,"`).
-
-Write an ellipsis as three periods (`...`), never the single `…` character. Likewise prefer `"` and `'` over curly quotes. Arrows and comparison operators are exempt, since the rule above calls for them.
 
 ## Secret Handling
 
