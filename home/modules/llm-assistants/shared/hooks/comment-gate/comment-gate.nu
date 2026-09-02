@@ -22,8 +22,8 @@ const OPENERS = {
   yaml: ["#"], yml: ["#"], zsh: ["#"]
 }
 
-# A rule of repeated punctuation is a banner frame rather than a comment, so it
-# never justifies a judge call on its own.
+# A whole line of nothing but a comment opener and four or more rule characters.
+# That frames a banner, so it never justifies a judge call on its own.
 const BANNER_RULE = '(?m)^\s*(?://|#|--|;)\s*[=*_-]{4,}\s*$'
 
 def payload [input: record]: nothing -> record {
