@@ -62,6 +62,7 @@ let
         (
           mkCommand hook
           // lib.optionalAttrs (hook ? statusMessage) { inherit (hook) statusMessage; }
+          // lib.optionalAttrs (hook ? timeout) { inherit (hook) timeout; }
           // lib.optionalAttrs (hook ? async) { inherit (hook) async; }
         )
       ];

@@ -5,6 +5,7 @@
 {
   mkNuHook,
   modelCall,
+  timeouts,
 }:
 
 let
@@ -18,6 +19,7 @@ in
   ]
   ++ builtins.attrNames mcpProseFields;
   statusMessage = "Polishing prose";
+  timeout = timeouts.prosePolish;
   command = mkNuHook {
     slug = "prose-polish";
     script = ./prose-polish.nu;

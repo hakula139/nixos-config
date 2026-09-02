@@ -20,6 +20,10 @@ const MIN_LATIN_SPAN = 32
 # rewriter is held to the ban. Chinese prose takes the fullwidth `；`.
 const BANNED_MARKS = ['—' '--' '…' ';']
 
+# Each round of feedback removes some of the faults but rarely all of them, so
+# one retry is not enough to converge on a dense document.
+const MAX_REPAIRS = 2
+
 def prose [text: string]: nothing -> string {
   $text | str replace --regex --all $FENCE ""
 }
@@ -87,6 +91,11 @@ def margins [text: string]: nothing -> list<string> {
   ]
 }
 
+def reframe [before: string, after: string]: nothing -> string {
+  let edges = (margins $before)
+  ($edges | get 0) + ($after | str trim) + ($edges | get 1)
+}
+
 def target [path: list, text: any, whole_file: bool = false]: nothing -> list<record> {
   if ($text | describe) == "string" and (supported-markdown $text) and (enough-prose $text $whole_file) {
     [{path: $path, text: $text}]
@@ -146,25 +155,23 @@ def targets [payload: record, config: record]: nothing -> list<record> {
   | flatten
 }
 
-def polish [items: list<string>, config: record]: nothing -> list<string> {
-  let instruction = ($config.prompt | str trim)
-  let passages = (
-    $items
-    | enumerate
-    | each {|item| {id: $item.index, text: $item.item} }
-  )
+def call-model [passages: list<record>, notes: list<string>, config: record]: nothing -> list<string> {
   let request = {
     json: true
     maxTokens: 16384
     model: $config.model
     system: $config.phrasing
-    user: ([
-      $instruction
-      ""
-      "The input is a JSON object. Return only the same object shape and numeric IDs, replacing each text value with its rewrite."
-      ""
-      ({passages: $passages} | to json --raw)
-    ] | str join "\n")
+    user: (
+      [
+        ($config.prompt | str trim)
+        ""
+        "The input is a JSON object. Return only the same object shape and numeric IDs, replacing each text value with its rewrite."
+      ]
+      | append $notes
+      | append ""
+      | append ({passages: $passages} | to json --raw)
+      | str join "\n"
+    )
   }
 
   let caller = $config.modelCall
@@ -178,8 +185,7 @@ def polish [items: list<string>, config: record]: nothing -> list<string> {
     return []
   }
   let rewritten = ($parsed | get -o passages | default [])
-  let expected = (0..<($items | length) | each {|i| $i })
-  if ($rewritten | length) != ($items | length) or ($rewritten | get -o id) != $expected {
+  if ($rewritten | length) != ($passages | length) or ($rewritten | get -o id) != ($passages | get id) {
     return []
   }
   let out = ($rewritten | get -o text)
@@ -188,6 +194,26 @@ def polish [items: list<string>, config: record]: nothing -> list<string> {
   } else {
     $out
   }
+}
+
+def polish [items: list<string>, config: record]: nothing -> list<string> {
+  call-model ($items | enumerate | each {|item| {id: $item.index, text: $item.item} }) [] $config
+}
+
+# The rewriter cannot see why a passage was refused, so name the fault and the
+# offending spans and let it try once more.
+def repair [rejects: list<record>, config: record]: nothing -> list<string> {
+  let passages = (
+    $rejects
+    | each {|reject|
+      {id: $reject.id, text: $reject.before, rejected: $reject.after, problem: $reject.problem}
+    }
+  )
+  let notes = [
+    ""
+    "Each passage also carries `rejected`, an earlier rewrite of it that was refused, and `problem`, the reason for the refusal. Rewrite `text` again so that `problem` does not recur, and keep every code span, heading, link, list marker, table row, number, and quoted span of `text` character for character, including the corner brackets of a 「」 quotation."
+  ]
+  call-model $passages $notes $config
 }
 
 def bare [text: string]: nothing -> string {
@@ -206,13 +232,24 @@ def adds-no-mark [before: string, after: string]: nothing -> bool {
   }
 }
 
-def acceptable [before: string, after: string]: nothing -> bool {
+def violations [before: string, after: string]: nothing -> list<string> {
+  mut found = []
+  if (protected $after) != (protected $before) {
+    $found = ($found | append "a code span, heading, link, list marker, table row, number, or quoted span was altered or dropped")
+  }
   # A rewrite may merge lines, since rejoining clipped sentences is the point,
   # but gaining one means a paragraph was cut into pieces.
-  ((margins $after) == (margins $before)
-    and (protected $after) == (protected $before)
-    and ($after | lines | length) <= ($before | lines | length)
-    and (adds-no-mark $before $after))
+  if ($after | lines | length) > ($before | lines | length) {
+    $found = ($found | append "the rewrite holds more lines than the input, so a paragraph was split")
+  }
+  if (adds-no-mark $before $after) == false {
+    $found = ($found | append $"the rewrite introduced one of these marks: ($BANNED_MARKS | str join ' ')")
+  }
+  $found
+}
+
+def acceptable [before: string, after: string]: nothing -> bool {
+  violations $before $after | is-empty
 }
 
 def polished [config: record]: nothing -> any {
@@ -223,11 +260,65 @@ def polished [config: record]: nothing -> any {
   }
 
   let rewritten = (polish ($found | get text) $config)
+  if ($rewritten | is-empty) {
+    return null
+  }
+
+  let graded = (
+    $found
+    | zip $rewritten
+    | enumerate
+    | each {|pair|
+      let before = $pair.item.0.text
+      let after = (reframe $before $pair.item.1)
+      {
+        id: $pair.index
+        path: $pair.item.0.path
+        before: $before
+        after: $after
+        problem: (violations $before $after | str join "; ")
+      }
+    }
+  )
+
+  mut pending = ($graded | where problem != "")
+  mut repaired = {}
+  mut round = 0
+  while ($pending | is-not-empty) and $round < $MAX_REPAIRS {
+    $round = $round + 1
+    let retried = (repair $pending $config)
+    if ($retried | is-empty) {
+      break
+    }
+    let regraded = (
+      $pending
+      | zip $retried
+      | each {|pair|
+        let fixed = (reframe $pair.0.before $pair.1)
+        {
+          id: $pair.0.id
+          before: $pair.0.before
+          after: $fixed
+          problem: (violations $pair.0.before $fixed | str join "; ")
+        }
+      }
+    )
+    for row in ($regraded | where problem == "") {
+      $repaired = ($repaired | insert ($row.id | into string) $row.after)
+    }
+    $pending = ($regraded | where problem != "")
+  }
+
   mut args = ($payload | get tool_input)
   mut changed = false
-  for pair in ($found | zip $rewritten) {
-    if $pair.0.text != $pair.1 and (acceptable $pair.0.text $pair.1) {
-      $args = ($args | update ($pair.0.path | into cell-path) $pair.1)
+  for row in $graded {
+    let final = if ($row.problem | is-empty) {
+      $row.after
+    } else {
+      $repaired | get -o ($row.id | into string)
+    }
+    if $final != null and $final != $row.before {
+      $args = ($args | update ($row.path | into cell-path) $final)
       $changed = true
     }
   }
