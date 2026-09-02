@@ -15,8 +15,8 @@ in
   tools = [
     "askQuestion"
     "fileWrite"
-  ]
-  ++ builtins.attrNames mcpProseFields;
+  ];
+  extraTools = builtins.attrNames mcpProseFields;
   statusMessage = "Polishing prose";
   command = mkNuHook {
     slug = "prose-polish";

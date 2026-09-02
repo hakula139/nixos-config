@@ -36,7 +36,7 @@ let
 
   postEditMatcher = lib.concatStringsSep "|" (
     lib.unique (
-      lib.concatMap (hook: lib.concatMap (tool: toolClasses.${tool} or [ tool ]) hook.tools) postEditHooks
+      lib.concatMap (hook: lib.concatMap (tool: toolClasses.${tool}) hook.tools) postEditHooks
     )
   );
 

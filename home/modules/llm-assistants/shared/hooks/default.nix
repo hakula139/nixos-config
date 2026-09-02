@@ -2,8 +2,8 @@
 # Shared Hooks
 # ==============================================================================
 # Claude Code and Codex name their events alike, so a hook states its own event
-# and only its tool classes need translating. Each adapter owns that map, and a
-# class the map does not cover reaches the matcher as a literal tool name.
+# and only its tool classes need translating. Each adapter owns that map, and an
+# `extraTools` entry bypasses it to name a tool literally.
 # ==============================================================================
 
 {

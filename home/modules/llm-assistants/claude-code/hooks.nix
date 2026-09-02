@@ -23,9 +23,6 @@ let
   };
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
-  # ----------------------------------------------------------------------------
-  # Shared hook vocabulary
-  # ----------------------------------------------------------------------------
   toolClasses = {
     askQuestion = [ "AskUserQuestion" ];
     fileWrite = [
@@ -59,7 +56,7 @@ let
     hook:
     lib.optionalAttrs (hook ? tools) {
       matcher = lib.concatStringsSep "|" (
-        lib.concatMap (tool: toolClasses.${tool} or [ tool ]) hook.tools
+        lib.concatMap (tool: toolClasses.${tool}) hook.tools ++ (hook.extraTools or [ ])
       );
     }
     // {
@@ -76,9 +73,6 @@ let
     lib.groupBy (name: sharedHooks.hooks.${name}.event) enabledHooks
   );
 
-  # ----------------------------------------------------------------------------
-  # Claude Code only
-  # ----------------------------------------------------------------------------
   ownEvents = {
     PermissionRequest = [
       {
