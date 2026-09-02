@@ -16,6 +16,8 @@
 }:
 
 let
+  instructions = import ../instructions;
+
   # ----------------------------------------------------------------------------
   # Hook timeouts
   # ----------------------------------------------------------------------------
@@ -44,8 +46,6 @@ let
       } (builtins.readFile script);
     in
     "${package}/bin/${assistant}-${slug}";
-
-  instructions = import ../instructions;
 
   inherit
     (import ./lib/model-call {
