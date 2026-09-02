@@ -2,8 +2,8 @@
 # Shared Hooks
 # ==============================================================================
 # Claude Code and Codex name their events alike, so a hook states its own event
-# and only its tool classes need translating. Each adapter owns that map, and an
-# `extraTools` entry bypasses it to name a tool literally.
+# and only its tool classes need translating. Each adapter owns that map and
+# hands it to `mkMatcher`.
 # ==============================================================================
 
 {
@@ -58,9 +58,25 @@ let
     })
     modelCall
     ;
+
+  # ----------------------------------------------------------------------------
+  # Tool matchers
+  # ----------------------------------------------------------------------------
+  mkMatcher =
+    toolClasses: hooks:
+    lib.concatStringsSep "|" (
+      lib.unique (
+        lib.concatMap (
+          hook:
+          lib.concatMap (tool: if lib.hasPrefix "mcp__" tool then [ tool ] else toolClasses.${tool}) (
+            hook.tools or [ ]
+          )
+        ) hooks
+      )
+    );
 in
 {
-  inherit timeouts;
+  inherit mkMatcher timeouts;
 
   hooks = {
     autoFormat = import ./auto-format {

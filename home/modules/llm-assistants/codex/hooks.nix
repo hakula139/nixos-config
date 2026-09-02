@@ -34,11 +34,7 @@ let
     autoFormat
   ];
 
-  postEditMatcher = lib.concatStringsSep "|" (
-    lib.unique (
-      lib.concatMap (hook: lib.concatMap (tool: toolClasses.${tool}) hook.tools) postEditHooks
-    )
-  );
+  postEditMatcher = sharedHooks.mkMatcher toolClasses postEditHooks;
 
   postEditScript = pkgs.writeShellScript "codex-post-edit" ''
     input="$(cat)"

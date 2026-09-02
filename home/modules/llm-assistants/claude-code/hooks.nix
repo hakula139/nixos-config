@@ -55,9 +55,7 @@ let
   mkEntry =
     hook:
     lib.optionalAttrs (hook ? tools) {
-      matcher = lib.concatStringsSep "|" (
-        lib.concatMap (tool: toolClasses.${tool}) hook.tools ++ (hook.extraTools or [ ])
-      );
+      matcher = sharedHooks.mkMatcher toolClasses [ hook ];
     }
     // {
       hooks = [
