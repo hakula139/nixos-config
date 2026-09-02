@@ -20,7 +20,7 @@ Some of these are tics in the mark itself, and the rest of this prompt calls the
 
 ## Chinese prose tics
 
-Judge Chinese text against the rules below instead of the punctuation bans above, because the two languages fail in opposite directions: English prose earns its AI cadence from the em-dash and the semicolon, while Chinese earns it from over-fragmentation.
+Judge Chinese text against the rules below instead of the tics above, because the two languages fail in opposite directions: English prose earns its AI cadence from the em-dash and the semicolon, while Chinese earns it from over-fragmentation.
 
 @proseTicsZh@
 
