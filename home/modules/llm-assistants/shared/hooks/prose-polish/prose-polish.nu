@@ -121,20 +121,31 @@ def pieces [text: string]: nothing -> list<record> {
 }
 
 def blocks [text: string]: nothing -> list<string> {
+  pieces $text | where prose | each {|slot| $slot.block | str trim }
+}
+
+# A rewrite goes back by piece position, since the same text can occur elsewhere in
+# the field. Separators come back untouched, so a piece nobody edited stays byte-identical.
+def splice [text: string, edits: list<record>]: nothing -> string {
   pieces $text
-  | where prose
-  | each {|piece| $piece.block | str trim }
-  | where {|block| not ($block | is-empty) }
+  | enumerate
+  | each {|slot|
+    let edit = ($edits | where piece == $slot.index | get -o 0)
+    # A rewrite arrives trimmed, so the piece's own margins carry its indent back.
+    let block = if $edit == null { $slot.item.block } else { reframe $slot.item.block $edit.after }
+    $block + $slot.item.sep
+  }
+  | str join ""
 }
 
 def target [
   path: list,
   text: any,
   whole_file: bool = false,
-  index: any = null,
+  piece: any = null,
 ]: nothing -> list<record> {
   if ($text | describe) == "string" and (supported-markdown $text) and (enough-prose $text $whole_file) {
-    [{path: $path, text: $text, index: $index}]
+    [{path: $path, before: $text, piece: $piece}]
   } else {
     []
   }
@@ -159,43 +170,46 @@ def question-targets [questions: list<record>]: nothing -> list<record> {
   | flatten
 }
 
+def file-targets [args: record, file: record]: nothing -> list<record> {
+  if (not ($args.file_path | str ends-with ".md")) {
+    return []
+  }
+  let text = ($args | get -o $file.key)
+  # Only the blocks a write introduces are the agent's own prose, and splitting a
+  # document this cannot parse would strand a fence interior.
+  let disk = if $file.split and ($text | describe) == "string" and (supported-markdown $text) {
+    try { open --raw $args.file_path } catch { null }
+  } else {
+    null
+  }
+  # Held blocks are one side of an equality test, so a disk document this cannot parse
+  # gives the write up: a short held list marks prose the write never touched as new.
+  if $disk != null and (not (supported-markdown $disk)) {
+    return []
+  }
+  if $disk == null {
+    return (target [$file.key] $text $file.whole_file)
+  }
+
+  let held = (blocks $disk)
+  pieces $text
+  | enumerate
+  | where {|slot| $slot.item.prose and (($slot.item.block | str trim) not-in $held) }
+  | each {|slot| target [$file.key] ($slot.item.block | str trim) false $slot.index }
+  | flatten
+}
+
 def targets [payload: record, config: record]: nothing -> list<record> {
   let tool = ($payload | get tool_name)
   let args = ($payload | get tool_input)
 
   let file = match $tool {
-    "Write" => {key: "content", whole_file: true}
-    "Edit" => {key: "new_string", whole_file: false}
+    "Write" => {key: "content", whole_file: true, split: true}
+    "Edit" => {key: "new_string", whole_file: false, split: false}
     _ => null,
   }
   if $file != null {
-    if (not ($args.file_path | str ends-with ".md")) {
-      return []
-    }
-    let text = ($args | get -o $file.key)
-    # Only the blocks a write introduces are the agent's own prose, and splitting a
-    # document this cannot parse would strand a fence interior.
-    let disk = if $tool == "Write" and ($text | describe) == "string" and (supported-markdown $text) {
-      try { open --raw $args.file_path } catch { null }
-    } else {
-      null
-    }
-    # Held blocks are one side of an equality test, so a disk document this cannot parse
-    # gives the write up: a short held list marks prose the write never touched as new.
-    if $disk != null and (not (supported-markdown $disk)) {
-      return []
-    }
-    let held = if $disk == null { null } else { blocks $disk }
-    if $held != null {
-      return (
-        pieces $text
-        | enumerate
-        | where {|piece| $piece.item.prose and (($piece.item.block | str trim) not-in $held) }
-        | each {|piece| target [$file.key] ($piece.item.block | str trim) false $piece.index }
-        | flatten
-      )
-    }
-    return (target [$file.key] $text $file.whole_file)
+    return (file-targets $args $file)
   }
 
   if $tool == "AskUserQuestion" {
@@ -304,15 +318,9 @@ def violations [before: string, after: string]: nothing -> list<string> {
   $found
 }
 
-def grade [path: list, before: string, raw: string, index: any]: nothing -> record {
-  let after = (reframe $before $raw)
-  {
-    path: $path
-    before: $before
-    after: $after
-    index: $index
-    problem: (violations $before $after | str join "; ")
-  }
+def grade [target: record, raw: string]: nothing -> record {
+  let after = (reframe $target.before $raw)
+  $target | merge {after: $after, problem: (violations $target.before $after | str join "; ")}
 }
 
 def polished [config: record]: nothing -> any {
@@ -323,15 +331,13 @@ def polished [config: record]: nothing -> any {
   }
 
   let opening = (
-    call-model ($found | get text | enumerate | each {|item| {id: $item.index, text: $item.item} }) [] $config
+    call-model ($found | enumerate | each {|slot| {id: $slot.index, text: $slot.item.before} }) [] $config
   )
   if ($opening | is-empty) {
     return null
   }
 
-  mut graded = (
-    $found | zip $opening | each {|pair| grade $pair.0.path $pair.0.text $pair.1 $pair.0.index }
-  )
+  mut graded = ($found | zip $opening | each {|pair| grade $pair.0 $pair.1 })
 
   # A fault drives the next round rather than vetoing the result. A rewrite that
   # still trips one reads better than the text the agent wrote, so the newest
@@ -346,12 +352,7 @@ def polished [config: record]: nothing -> any {
       break
     }
     for pair in ($pending | zip $retried) {
-      $graded = (
-        $graded
-        | update $pair.0.index (
-          grade $pair.0.item.path $pair.0.item.before $pair.1 $pair.0.item.index
-        )
-      )
+      $graded = ($graded | update $pair.0.index (grade $pair.0.item $pair.1))
     }
   }
 
@@ -361,27 +362,14 @@ def polished [config: record]: nothing -> any {
   }
 
   mut args = ($payload | get tool_input)
-  for edit in ($edits | where index == null) {
+  for edit in ($edits | where piece == null) {
     $args = ($args | update ($edit.path | into cell-path) $edit.after)
   }
 
-  let spliced = ($edits | where index != null)
+  let spliced = ($edits | where piece != null)
   if not ($spliced | is-empty) {
     let cell = ($spliced.0.path | into cell-path)
-    $args = (
-      $args
-      | update $cell (
-        pieces ($args | get $cell)
-        | enumerate
-        | each {|piece|
-          let edit = ($spliced | where index == $piece.index | get -o 0)
-          # A rewrite comes back trimmed, so the piece's own margins carry its indent.
-          let block = if $edit == null { $piece.item.block } else { reframe $piece.item.block $edit.after }
-          $block + $piece.item.sep
-        }
-        | str join ""
-      )
-    )
+    $args = ($args | update $cell (splice ($args | get $cell) $spliced))
   }
 
   {
