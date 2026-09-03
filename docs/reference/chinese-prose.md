@@ -124,8 +124,9 @@ Sections 3.1 and 3.2 rule out a quality gate: neither model judgment nor surface
 1. Takes only fields whose tool schema defines as prose. AskUserQuestion targets the question and option descriptions, while file edits are limited to Markdown so source code is never rewritten around a comment.
 2. Uses language-aware length thresholds only to decide whether a model call is worthwhile: 120 Han characters or 240 Latin-script letters for a whole file, and 8 Han characters or 32 Latin-script letters for a span.
 3. Applies one positive prompt to Chinese and English. It asks for fidelity, natural flow, and less repetition without prescribing banned tokens.
-4. Rejects empty or structurally altered results. Fenced code, inline code, headings, link targets, and list markers must survive unchanged; passages using syntax the validator cannot parse safely are skipped.
-5. Returns the complete tool input through `updatedInput`. Any error leaves the original call untouched.
+4. Checks each result for lost structure and edited literals, and returns a failing passage to the model with the refused attempt and the reason, up to three times. Passages using syntax the validator cannot parse safely are skipped.
+5. Ships the newest attempt even when it still trips a check, since a rewrite that lost a span still reads better than the prose the agent wrote. The checks pace the retry loop, and only an empty or failed model call leaves the original standing.
+6. Returns the complete tool input through `updatedInput`. Any error leaves the original call untouched.
 
 The rewriter receives no coding conversation, which preserves the context-isolation gain from section 3.4. The assistant instructions and rewriter use the same phrasing fragment.
 

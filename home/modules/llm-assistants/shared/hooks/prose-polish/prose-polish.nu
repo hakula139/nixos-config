@@ -20,10 +20,6 @@ const MIN_LATIN_SPAN = 32
 # rewriter is held to the ban. Chinese prose takes the fullwidth `；`.
 const BANNED_MARKS = ['—' '--' '…' ';']
 
-# Each round of feedback removes some of the faults but rarely all of them, so
-# one retry is not enough to converge on a dense document.
-const MAX_REPAIRS = 2
-
 def prose [text: string]: nothing -> string {
   $text | str replace --regex --all $FENCE ""
 }
@@ -89,15 +85,13 @@ def literals [text: string]: nothing -> list {
     # Quoted text
     ($text | parse --regex '(?<m>“[^”\n]*”|「[^」\n]*」|『[^』\n]*』|"[^"\n]*")')
   ]
-  | each {|spans| $spans | get -o m | default [] | sort }
+  | each {|spans| $spans | get -o m | sort }
 }
 
 def margins [text: string]: nothing -> list<string> {
   [
-    # Leading whitespace
-    ($text | parse --regex '(?s)\A(?<m>\s*)' | get -o 0.m | default "")
-    # Trailing whitespace
-    ($text | parse --regex '(?s)(?<m>\s*)\z' | get -o 0.m | default "")
+    ($text | parse --regex '(?s)\A(?<m>\s*)' | get 0.m)
+    ($text | parse --regex '(?s)(?<m>\s*)\z' | get 0.m)
   ]
 }
 
@@ -206,21 +200,16 @@ def call-model [passages: list<record>, notes: list<string>, config: record]: no
   }
 }
 
-def polish [items: list<string>, config: record]: nothing -> list<string> {
-  call-model ($items | enumerate | each {|item| {id: $item.index, text: $item.item} }) [] $config
-}
-
-# The rewriter cannot see why a passage was refused, so name the fault and the
-# offending spans and let it try once more.
-def repair [rejects: list<record>, config: record]: nothing -> list<string> {
+# The rewriter cannot see why a passage was refused, so hand the refused attempt
+# back beside the reason.
+def repair [pending: list<record>, config: record]: nothing -> list<string> {
   let passages = (
-    $rejects
-    | each {|reject|
-      {id: $reject.id, text: $reject.before, rejected: $reject.after, problem: $reject.problem}
+    $pending
+    | each {|row|
+      {id: $row.index, text: $row.item.before, rejected: $row.item.after, problem: $row.item.problem}
     }
   )
-  let notes = ["" ($config.repairPrompt | str trim)]
-  call-model $passages $notes $config
+  call-model $passages ["" ($config.repairPrompt | str trim)] $config
 }
 
 def bare [text: string]: nothing -> string {
@@ -231,11 +220,11 @@ def bare [text: string]: nothing -> string {
   | str replace --regex --all 'https?://[^\s)>]+' ""
 }
 
-def adds-no-mark [before: string, after: string]: nothing -> bool {
+def adds-mark [before: string, after: string]: nothing -> bool {
   let source = (bare $before)
   let result = (bare $after)
-  $BANNED_MARKS | all {|mark|
-    ($result | split row $mark | length) <= ($source | split row $mark | length)
+  $BANNED_MARKS | any {|mark|
+    ($result | split row $mark | length) > ($source | split row $mark | length)
   }
 }
 
@@ -252,14 +241,20 @@ def violations [before: string, after: string]: nothing -> list<string> {
   if ($after | lines | length) > ($before | lines | length) {
     $found = ($found | append "the rewrite holds more lines than the input, so a paragraph was split")
   }
-  if (adds-no-mark $before $after) == false {
+  if (adds-mark $before $after) {
     $found = ($found | append $"the rewrite introduced one of these marks: ($BANNED_MARKS | str join ' ')")
   }
   $found
 }
 
-def acceptable [before: string, after: string]: nothing -> bool {
-  violations $before $after | is-empty
+def grade [path: list, before: string, raw: string]: nothing -> record {
+  let after = (reframe $before $raw)
+  {
+    path: $path
+    before: $before
+    after: $after
+    problem: (violations $before $after | str join "; ")
+  }
 }
 
 def polished [config: record]: nothing -> any {
@@ -269,71 +264,40 @@ def polished [config: record]: nothing -> any {
     return null
   }
 
-  let rewritten = (polish ($found | get text) $config)
-  if ($rewritten | is-empty) {
+  let opening = (
+    call-model ($found | get text | enumerate | each {|item| {id: $item.index, text: $item.item} }) [] $config
+  )
+  if ($opening | is-empty) {
     return null
   }
 
-  let graded = (
-    $found
-    | zip $rewritten
-    | enumerate
-    | each {|pair|
-      let before = $pair.item.0.text
-      let after = (reframe $before $pair.item.1)
-      {
-        id: $pair.index
-        path: $pair.item.0.path
-        before: $before
-        after: $after
-        problem: (violations $before $after | str join "; ")
-      }
-    }
-  )
+  mut graded = ($found | zip $opening | each {|pair| grade $pair.0.path $pair.0.text $pair.1 })
 
-  mut pending = ($graded | where problem != "")
-  mut repaired = {}
-  mut round = 0
-  while ($pending | is-not-empty) and $round < $MAX_REPAIRS {
-    $round = $round + 1
+  # A fault drives the next round rather than vetoing the result. A rewrite that
+  # still trips one reads better than the text the agent wrote, so the newest
+  # attempt ships and only a dead model call leaves the original standing.
+  for _ in 0..<$config.maxRepairs {
+    let pending = ($graded | enumerate | where item.problem != "")
+    if ($pending | is-empty) {
+      break
+    }
     let retried = (repair $pending $config)
     if ($retried | is-empty) {
       break
     }
-    let regraded = (
-      $pending
-      | zip $retried
-      | each {|pair|
-        let fixed = (reframe $pair.0.before $pair.1)
-        {
-          id: $pair.0.id
-          before: $pair.0.before
-          after: $fixed
-          problem: (violations $pair.0.before $fixed | str join "; ")
-        }
-      }
-    )
-    for row in ($regraded | where problem == "") {
-      $repaired = ($repaired | insert ($row.id | into string) $row.after)
+    for pair in ($pending | zip $retried) {
+      $graded = ($graded | update $pair.0.index (grade $pair.0.item.path $pair.0.item.before $pair.1))
     }
-    $pending = ($regraded | where problem != "")
+  }
+
+  let edits = ($graded | where after != before)
+  if ($edits | is-empty) {
+    return null
   }
 
   mut args = ($payload | get tool_input)
-  mut changed = false
-  for row in $graded {
-    let final = if ($row.problem | is-empty) {
-      $row.after
-    } else {
-      $repaired | get -o ($row.id | into string)
-    }
-    if $final != null and $final != $row.before {
-      $args = ($args | update ($row.path | into cell-path) $final)
-      $changed = true
-    }
-  }
-  if $changed == false {
-    return null
+  for edit in $edits {
+    $args = ($args | update ($edit.path | into cell-path) $edit.after)
   }
 
   {

@@ -25,8 +25,6 @@ let
     modelCall = 90;
     tool = 10;
     postEdit = 3 * tool;
-    # A rejected rewrite is retried twice, so budget three model calls.
-    prosePolish = 3 * modelCall;
   };
 
   # ----------------------------------------------------------------------------
