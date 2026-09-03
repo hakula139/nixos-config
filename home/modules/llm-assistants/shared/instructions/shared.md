@@ -27,6 +27,8 @@ Avoid these tics, which show specifically how the guidance above goes wrong:
 
 @proseTics@
 
+Before writing to the file, a hook rewrites your Markdown prose, question text, and certain MCP fields to enforce the guidance above. Treat this output as final rather than reverting or re-editing it toward your original wording, checking only to restore any substantive claim or qualification that was dropped.
+
 ## Punctuation
 
 Use spaces around connector symbols when they separate distinct words or phrases. This applies to `/`, arrows (`→`, `←`, `↔`, `⇒`, `⇔`), and comparison operators (`≤`, `≥`, `≠`) used in prose, comments, and docs (e.g., `"Read / Write"`, `"Speed ↔ Intelligence"`, `"low → high"`, `"size ≥ 4"`).
