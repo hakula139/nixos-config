@@ -99,29 +99,36 @@ def reframe [before: string, after: string]: nothing -> string {
   ($edges | get 0) + ($after | str trim) + ($edges | get 1)
 }
 
-def blocks [text: string]: nothing -> list<string> {
+# Blank-line-separated pieces, each carrying the separator that follows it, so a
+# rewrite goes back by position and every piece left alone stays byte-identical.
+def pieces [text: string]: nothing -> list<record> {
   mut out = []
   mut inside = false
-  for piece in ($text | split row --regex '\n\s*\n') {
+  for piece in ($text | parse --regex '(?s)(?<block>.*?)(?<sep>\n\s*\n|\z)') {
     # A fence holding a blank line splits across pieces, and no piece of one is prose.
-    let fences = ($piece | parse --regex '(?m)^(?<m>```)' | length)
+    let fences = ($piece.block | parse --regex '(?m)^(?<m>```)' | length)
     let ends_inside = if ($fences mod 2) == 0 { $inside } else { not $inside }
-    if (not $inside) and (not $ends_inside) {
-      $out = ($out | append ($piece | str trim))
-    }
+    $out = ($out | append ($piece | insert prose ((not $inside) and (not $ends_inside))))
     $inside = $ends_inside
   }
-  $out | where {|block| not ($block | is-empty) }
+  $out
+}
+
+def blocks [text: string]: nothing -> list<string> {
+  pieces $text
+  | where prose
+  | each {|piece| $piece.block | str trim }
+  | where {|block| not ($block | is-empty) }
 }
 
 def target [
   path: list,
   text: any,
   whole_file: bool = false,
-  partial: bool = false,
+  index: any = null,
 ]: nothing -> list<record> {
   if ($text | describe) == "string" and (supported-markdown $text) and (enough-prose $text $whole_file) {
-    [{path: $path, text: $text, partial: $partial}]
+    [{path: $path, text: $text, index: $index}]
   } else {
     []
   }
@@ -160,18 +167,25 @@ def targets [payload: record, config: record]: nothing -> list<record> {
       return []
     }
     let text = ($args | get -o $file.key)
-    # Only the blocks a write introduces are the agent's own prose. Splitting a
-    # document this cannot parse would strand a fence interior, so it skips the split.
-    let held = if $tool == "Write" and ($text | describe) == "string" and (supported-markdown $text) {
-      try { blocks (open --raw $args.file_path) } catch { null }
+    # Only the blocks a write introduces are the agent's own prose, and splitting a
+    # document this cannot parse would strand a fence interior.
+    let disk = if $tool == "Write" and ($text | describe) == "string" and (supported-markdown $text) {
+      try { open --raw $args.file_path } catch { null }
     } else {
       null
     }
+    # Held blocks are one side of an equality test, so a disk document this cannot parse
+    # gives the write up: a short held list marks prose the write never touched as new.
+    if $disk != null and (not (supported-markdown $disk)) {
+      return []
+    }
+    let held = if $disk == null { null } else { blocks $disk }
     if $held != null {
       return (
-        blocks $text
-        | where {|block| $block not-in $held }
-        | each {|block| target [$file.key] $block false true }
+        pieces $text
+        | enumerate
+        | where {|piece| $piece.item.prose and (($piece.item.block | str trim) not-in $held) }
+        | each {|piece| target [$file.key] ($piece.item.block | str trim) false $piece.index }
         | flatten
       )
     }
@@ -284,13 +298,13 @@ def violations [before: string, after: string]: nothing -> list<string> {
   $found
 }
 
-def grade [path: list, before: string, raw: string, partial: bool]: nothing -> record {
+def grade [path: list, before: string, raw: string, index: any]: nothing -> record {
   let after = (reframe $before $raw)
   {
     path: $path
     before: $before
     after: $after
-    partial: $partial
+    index: $index
     problem: (violations $before $after | str join "; ")
   }
 }
@@ -310,7 +324,7 @@ def polished [config: record]: nothing -> any {
   }
 
   mut graded = (
-    $found | zip $opening | each {|pair| grade $pair.0.path $pair.0.text $pair.1 $pair.0.partial }
+    $found | zip $opening | each {|pair| grade $pair.0.path $pair.0.text $pair.1 $pair.0.index }
   )
 
   # A fault drives the next round rather than vetoing the result. A rewrite that
@@ -329,7 +343,7 @@ def polished [config: record]: nothing -> any {
       $graded = (
         $graded
         | update $pair.0.index (
-          grade $pair.0.item.path $pair.0.item.before $pair.1 $pair.0.item.partial
+          grade $pair.0.item.path $pair.0.item.before $pair.1 $pair.0.item.index
         )
       )
     }
@@ -341,13 +355,27 @@ def polished [config: record]: nothing -> any {
   }
 
   mut args = ($payload | get tool_input)
-  for edit in $edits {
-    let cell = ($edit.path | into cell-path)
-    $args = if $edit.partial {
-      $args | update $cell (($args | get $cell) | str replace --no-expand $edit.before $edit.after)
-    } else {
-      $args | update $cell $edit.after
-    }
+  for edit in ($edits | where index == null) {
+    $args = ($args | update ($edit.path | into cell-path) $edit.after)
+  }
+
+  let spliced = ($edits | where index != null)
+  if not ($spliced | is-empty) {
+    let cell = ($spliced.0.path | into cell-path)
+    $args = (
+      $args
+      | update $cell (
+        pieces ($args | get $cell)
+        | enumerate
+        | each {|piece|
+          let edit = ($spliced | where index == $piece.index | get -o 0)
+          # A rewrite comes back trimmed, so the piece's own margins carry its indent.
+          let block = if $edit == null { $piece.item.block } else { reframe $piece.item.block $edit.after }
+          $block + $piece.item.sep
+        }
+        | str join ""
+      )
+    )
   }
 
   {
