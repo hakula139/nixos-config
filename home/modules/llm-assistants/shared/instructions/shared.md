@@ -124,7 +124,7 @@ When writing documentation:
 Reach for a CLI first. `git`, `gh`, and `glab` are faster, compose with pipes, and their output survives `grep`, where an MCP call costs a schema round-trip and returns prose you cannot filter. Use an MCP server when it offers something no CLI does: an authenticated API you have no local credential for, a browser engine, or a hosted index. Servers beyond this shared set are documented per assistant.
 
 - **Atlassian**: the only route to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Reads are auto-approved, writes require confirmation.
-- **Brave Search**: fallback web search. Use when native search fails, returns unhelpful results, or a specialized type is needed (news, images, video, local businesses).
+- **Exa**: default MCP web search and page fetcher. Use when native search is unavailable or returns weak results, especially for coding research and multi-step retrieval.
 - **DeepWiki**: AI-powered documentation for public GitHub repositories. Use for unfamiliar repos: architecture, patterns, API design.
 - **Fetcher**: Playwright-based web fetcher. Fallback when native fetch is blocked (403, bot protection) or the page needs JavaScript rendering.
 - **Filesystem**: sandboxed file operations. The native file tools and shell cover this, so reach for it only when a sandboxed path demands it.
