@@ -100,10 +100,18 @@ def reframe [before: string, after: string]: nothing -> string {
 }
 
 def blocks [text: string]: nothing -> list<string> {
-  $text
-  | split row --regex '\n\s*\n'
-  | each {|block| $block | str trim }
-  | where {|block| not ($block | is-empty) }
+  mut out = []
+  mut inside = false
+  for piece in ($text | split row --regex '\n\s*\n') {
+    # A fence holding a blank line splits across pieces, and no piece of one is prose.
+    let fences = ($piece | parse --regex '(?m)^(?<m>```)' | length)
+    let ends_inside = if ($fences mod 2) == 0 { $inside } else { not $inside }
+    if (not $inside) and (not $ends_inside) {
+      $out = ($out | append ($piece | str trim))
+    }
+    $inside = $ends_inside
+  }
+  $out | where {|block| not ($block | is-empty) }
 }
 
 def target [
@@ -152,9 +160,9 @@ def targets [payload: record, config: record]: nothing -> list<record> {
       return []
     }
     let text = ($args | get -o $file.key)
-    # A write hands over the whole file, so only the blocks it introduces are the
-    # agent's own prose. Everything the file already held is left untouched.
-    let held = if $tool == "Write" and ($text | describe) == "string" {
+    # Only the blocks a write introduces are the agent's own prose. Splitting a
+    # document this cannot parse would strand a fence interior, so it skips the split.
+    let held = if $tool == "Write" and ($text | describe) == "string" and (supported-markdown $text) {
       try { blocks (open --raw $args.file_path) } catch { null }
     } else {
       null
