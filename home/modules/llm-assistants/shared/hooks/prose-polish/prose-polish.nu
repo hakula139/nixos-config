@@ -38,8 +38,7 @@ def supported-markdown [text: string]: nothing -> bool {
   let content = (prose $text)
   # Long backtick fences, tilde fences, and indented code blocks
   let supported_blocks = ($text | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}|(?: {4,}| {0,3}\t)[ \t]*\S))' | is-empty)
-  # Multiple-backtick inline code
-  let supported_inline = ($content | str contains "``") == false
+  let supported_inline = (not ($content | str contains "``"))
   # Raw HTML code containers
   let supported_html = ($text | parse --regex '(?i)(?<m><(?:pre|code|script|style)(?:\s|>))' | is-empty)
   $supported_blocks and $supported_inline and $supported_html
@@ -137,7 +136,7 @@ def targets [payload: record, config: record]: nothing -> list<record> {
     _ => null,
   }
   if $file != null {
-    if ($args.file_path | str ends-with ".md") == false {
+    if (not ($args.file_path | str ends-with ".md")) {
       return []
     }
     return (target [$file.key] ($args | get -o $file.key) $file.whole_file)
@@ -185,11 +184,13 @@ def call-model [passages: list<record>, notes: list<string>, config: record]: no
   }
 
   let parsed = ($run.stdout | from json)
-  if ($parsed | describe | str starts-with "record") == false {
+  if (not ($parsed | describe | str starts-with "record")) {
     return []
   }
+  # An id mismatch also catches a short, long, or id-less reply, and a rewrite
+  # landing in another passage's slot would corrupt both.
   let rewritten = ($parsed | get -o passages | default [])
-  if ($rewritten | length) != ($passages | length) or ($rewritten | get -o id) != ($passages | get id) {
+  if ($rewritten | get -o id) != ($passages | get id) {
     return []
   }
   let out = ($rewritten | get -o text)
