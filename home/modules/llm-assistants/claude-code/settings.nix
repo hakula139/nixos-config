@@ -70,8 +70,6 @@
     CLAUDE_CODE_AUTO_COMPACT_WINDOW = "400000";
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
     CLAUDE_CODE_ENABLE_AUTO_MODE = "1";
-    # Opus 4.8 and newer drop the Task tools unless this is set, and the flag that
-    # would restore them cannot evaluate with nonessential traffic disabled.
     CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";
     CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
     CLAUDE_CODE_SCROLL_SPEED = "1";
