@@ -35,7 +35,11 @@ Use spaces around connector symbols when they separate distinct words or phrases
 
 Omit spaces for abbreviations, compound terms, and tight notation (`"I/O"`, `"TCP/IP"`, `"k≥0"` as a math constraint, `"2x"` as a multiplier). Single-character UI labels like `←/→` (arrow keys) are compact strings. Leave them alone.
 
-Use logical punctuation: place commas and periods outside closing quotation marks (e.g., `"foobar",` not `"foobar,"`).
+Follow logical punctuation by placing commas and periods outside closing quotation marks (e.g., `"foobar",` rather than `"foobar,"`).
+
+Wrap punctuation marks in code spans when discussing the marks themselves (such as `、；：`, `「」`, and `——`), but leave them unformatted when they merely punctuate surrounding examples, like the `、` between two work titles.
+
+Han text requires fullwidth punctuation across both your replies and generated files, as half-width commas, periods, or colons between Han characters are generation artifacts.
 
 ## Secret Handling
 
@@ -65,7 +69,8 @@ How to make changes, debug, and finish.
 - **Inspect, then iterate.** When a fix does not work, look at real state (DOM, traces, logs, payloads) before guessing again. One inspection beats several blind retries.
 - **Use the framework's primitive.** Reach for the library's own pattern before writing a helper that reproduces it.
 - **When told to clean up, delete.** "Trim", "remove stale", and "clean up" mean removing sections. Paraphrasing them shorter just preserves the noise.
-- **Verify before declaring done.** Confirm async or external work actually landed: API responses, advanced git refs, multi-repo build pass. For UI changes you cannot test in a browser, say so explicitly.
+- **Order the general case before its exceptions.** Apply this rule across prose sections, record fields, function parameters, and definitions, because opening with an exemption or nesting exceptions before establishing the baseline rule gives readers qualifications without context.
+- **Verify before declaring done.** Confirm that asynchronous or external operations have actually landed, including API responses, advanced git refs, and multi-repo build passes. Explicitly note any UI changes you cannot test in a browser.
 
 ## Commenting Guidelines
 
