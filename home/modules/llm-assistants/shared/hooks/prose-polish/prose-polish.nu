@@ -38,33 +38,41 @@ def supported-markdown [text: string]: nothing -> bool {
   let content = (prose $text)
   # Long backtick fences, tilde fences, and indented code blocks
   let supported_blocks = ($text | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}|(?: {4,}| {0,3}\t)[ \t]*\S))' | is-empty)
-  # Multiple-backtick inline code
-  let supported_inline = ($content | str contains "``") == false
+  let supported_inline = (not ($content | str contains "``"))
   # Raw HTML code containers
   let supported_html = ($text | parse --regex '(?i)(?<m><(?:pre|code|script|style)(?:\s|>))' | is-empty)
   $supported_blocks and $supported_inline and $supported_html
 }
 
-def protected [text: string]: nothing -> list {
+# Block structure has to keep its order, since that is what the order encodes.
+def structure [text: string]: nothing -> list {
   [
     # Fenced code blocks
     ($text | parse --regex $FENCE)
-    # Inline code
-    ($text | parse --regex '(?<m>`[^`\n]+`)')
     # ATX headings
     ($text | parse --regex '(?m)^(?<m>#{1,6} .*)$')
     # Setext headings
     ($text | parse --regex '(?m)^(?<m>.+\n[=-]{2,}\s*)$')
-    # Inline link destinations
-    ($text | parse --regex '\]\((?<m>[^)]+)\)')
-    # Reference link destinations
-    ($text | parse --regex '(?m)^\s*\[[^]]+\]:\s*(?<m>\S+)')
     # List markers
     ($text | parse --regex '(?m)^(?<m>\s*(?:[-*+]|\d+\.) )')
     # YAML front matter
     ($text | parse --regex '(?s)\A(?<m>---\n.*?\n---(?:\n|\z))')
     # Table rows
     ($text | parse --regex '(?m)^(?<m>\s*\|.*\|\s*)$')
+  ]
+}
+
+# Literal spans are compared as a multiset, because merging or reordering two
+# sentences that each carry a quotation must stay allowed while losing or
+# editing one must not.
+def literals [text: string]: nothing -> list {
+  [
+    # Inline code
+    ($text | parse --regex '(?<m>`[^`\n]+`)')
+    # Inline link destinations
+    ($text | parse --regex '\]\((?<m>[^)]+)\)')
+    # Reference link destinations
+    ($text | parse --regex '(?m)^\s*\[[^]]+\]:\s*(?<m>\S+)')
     # HTML tags
     ($text | parse --regex '(?<m></?[A-Za-z][^>\n]*>)')
     # URLs
@@ -76,15 +84,19 @@ def protected [text: string]: nothing -> list {
     # Quoted text
     ($text | parse --regex '(?<m>“[^”\n]*”|「[^」\n]*」|『[^』\n]*』|"[^"\n]*")')
   ]
+  | each {|spans| $spans | get -o m | sort }
 }
 
 def margins [text: string]: nothing -> list<string> {
   [
-    # Leading whitespace
-    ($text | parse --regex '(?s)\A(?<m>\s*)' | get -o 0.m | default "")
-    # Trailing whitespace
-    ($text | parse --regex '(?s)(?<m>\s*)\z' | get -o 0.m | default "")
+    ($text | parse --regex '(?s)\A(?<m>\s*)' | get 0.m)
+    ($text | parse --regex '(?s)(?<m>\s*)\z' | get 0.m)
   ]
+}
+
+def reframe [before: string, after: string]: nothing -> string {
+  let edges = (margins $before)
+  ($edges | get 0) + ($after | str trim) + ($edges | get 1)
 }
 
 def target [path: list, text: any, whole_file: bool = false]: nothing -> list<record> {
@@ -124,7 +136,7 @@ def targets [payload: record, config: record]: nothing -> list<record> {
     _ => null,
   }
   if $file != null {
-    if ($args.file_path | str ends-with ".md") == false {
+    if (not ($args.file_path | str ends-with ".md")) {
       return []
     }
     return (target [$file.key] ($args | get -o $file.key) $file.whole_file)
@@ -146,25 +158,23 @@ def targets [payload: record, config: record]: nothing -> list<record> {
   | flatten
 }
 
-def polish [items: list<string>, config: record]: nothing -> list<string> {
-  let instruction = ($config.prompt | str trim)
-  let passages = (
-    $items
-    | enumerate
-    | each {|item| {id: $item.index, text: $item.item} }
-  )
+def call-model [passages: list<record>, notes: list<string>, config: record]: nothing -> list<string> {
   let request = {
     json: true
     maxTokens: 16384
     model: $config.model
     system: $config.phrasing
-    user: ([
-      $instruction
-      ""
-      "The input is a JSON object. Return only the same object shape and numeric IDs, replacing each text value with its rewrite."
-      ""
-      ({passages: $passages} | to json --raw)
-    ] | str join "\n")
+    user: (
+      [
+        ($config.prompt | str trim)
+        ""
+        "The input is a JSON object. Return only the same object shape and numeric IDs, replacing each text value with its rewrite."
+      ]
+      | append $notes
+      | append ""
+      | append ({passages: $passages} | to json --raw)
+      | str join "\n"
+    )
   }
 
   let caller = $config.modelCall
@@ -174,12 +184,13 @@ def polish [items: list<string>, config: record]: nothing -> list<string> {
   }
 
   let parsed = ($run.stdout | from json)
-  if ($parsed | describe | str starts-with "record") == false {
+  if (not ($parsed | describe | str starts-with "record")) {
     return []
   }
+  # An id mismatch also catches a short, long, or id-less reply, and a rewrite
+  # landing in another passage's slot would corrupt both.
   let rewritten = ($parsed | get -o passages | default [])
-  let expected = (0..<($items | length) | each {|i| $i })
-  if ($rewritten | length) != ($items | length) or ($rewritten | get -o id) != $expected {
+  if ($rewritten | get -o id) != ($passages | get id) {
     return []
   }
   let out = ($rewritten | get -o text)
@@ -190,6 +201,18 @@ def polish [items: list<string>, config: record]: nothing -> list<string> {
   }
 }
 
+# The rewriter cannot see why a passage was refused, so hand the refused attempt
+# back beside the reason.
+def repair [pending: list<record>, config: record]: nothing -> list<string> {
+  let passages = (
+    $pending
+    | each {|row|
+      {id: $row.index, text: $row.item.before, rejected: $row.item.after, problem: $row.item.problem}
+    }
+  )
+  call-model $passages ["" ($config.repairPrompt | str trim)] $config
+}
+
 def bare [text: string]: nothing -> string {
   prose $text
   # Inline code
@@ -198,21 +221,41 @@ def bare [text: string]: nothing -> string {
   | str replace --regex --all 'https?://[^\s)>]+' ""
 }
 
-def adds-no-mark [before: string, after: string]: nothing -> bool {
+def adds-mark [before: string, after: string]: nothing -> bool {
   let source = (bare $before)
   let result = (bare $after)
-  $BANNED_MARKS | all {|mark|
-    ($result | split row $mark | length) <= ($source | split row $mark | length)
+  $BANNED_MARKS | any {|mark|
+    ($result | split row $mark | length) > ($source | split row $mark | length)
   }
 }
 
-def acceptable [before: string, after: string]: nothing -> bool {
+def violations [before: string, after: string]: nothing -> list<string> {
+  mut found = []
+  if (structure $after) != (structure $before) {
+    $found = ($found | append "a heading, list marker, table row, or fenced block was altered, dropped, or moved")
+  }
+  if (literals $after) != (literals $before) {
+    $found = ($found | append "a code span, link, URL, number, or quoted span was dropped or edited")
+  }
   # A rewrite may merge lines, since rejoining clipped sentences is the point,
   # but gaining one means a paragraph was cut into pieces.
-  ((margins $after) == (margins $before)
-    and (protected $after) == (protected $before)
-    and ($after | lines | length) <= ($before | lines | length)
-    and (adds-no-mark $before $after))
+  if ($after | lines | length) > ($before | lines | length) {
+    $found = ($found | append "the rewrite holds more lines than the input, so a paragraph was split")
+  }
+  if (adds-mark $before $after) {
+    $found = ($found | append $"the rewrite introduced one of these marks: ($BANNED_MARKS | str join ' ')")
+  }
+  $found
+}
+
+def grade [path: list, before: string, raw: string]: nothing -> record {
+  let after = (reframe $before $raw)
+  {
+    path: $path
+    before: $before
+    after: $after
+    problem: (violations $before $after | str join "; ")
+  }
 }
 
 def polished [config: record]: nothing -> any {
@@ -222,17 +265,40 @@ def polished [config: record]: nothing -> any {
     return null
   }
 
-  let rewritten = (polish ($found | get text) $config)
-  mut args = ($payload | get tool_input)
-  mut changed = false
-  for pair in ($found | zip $rewritten) {
-    if $pair.0.text != $pair.1 and (acceptable $pair.0.text $pair.1) {
-      $args = ($args | update ($pair.0.path | into cell-path) $pair.1)
-      $changed = true
+  let opening = (
+    call-model ($found | get text | enumerate | each {|item| {id: $item.index, text: $item.item} }) [] $config
+  )
+  if ($opening | is-empty) {
+    return null
+  }
+
+  mut graded = ($found | zip $opening | each {|pair| grade $pair.0.path $pair.0.text $pair.1 })
+
+  # A fault drives the next round rather than vetoing the result. A rewrite that
+  # still trips one reads better than the text the agent wrote, so the newest
+  # attempt ships and only a dead model call leaves the original standing.
+  for _ in 0..<$config.maxRepairs {
+    let pending = ($graded | enumerate | where item.problem != "")
+    if ($pending | is-empty) {
+      break
+    }
+    let retried = (repair $pending $config)
+    if ($retried | is-empty) {
+      break
+    }
+    for pair in ($pending | zip $retried) {
+      $graded = ($graded | update $pair.0.index (grade $pair.0.item.path $pair.0.item.before $pair.1))
     }
   }
-  if $changed == false {
+
+  let edits = ($graded | where after != before)
+  if ($edits | is-empty) {
     return null
+  }
+
+  mut args = ($payload | get tool_input)
+  for edit in $edits {
+    $args = ($args | update ($edit.path | into cell-path) $edit.after)
   }
 
   {

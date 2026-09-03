@@ -97,7 +97,7 @@ in
     completeness = import ./completeness;
 
     prosePolish = import ./prose-polish {
-      inherit mkNuHook modelCall;
+      inherit mkNuHook modelCall timeouts;
     };
 
     wakatime = import ./wakatime {
