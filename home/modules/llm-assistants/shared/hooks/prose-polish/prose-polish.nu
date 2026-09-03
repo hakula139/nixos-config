@@ -6,6 +6,8 @@
 
 # Match complete triple-backtick blocks because Rust regexes cannot pair arbitrary delimiters.
 const FENCE = '(?ms)^(?<m>```[^\n]*\n.*?^```\s*$)'
+# YAML or TOML front matter
+const FRONT = '(?s)\A(?<m>(?:---|\+\+\+)\n.*?\n(?:---|\+\+\+)(?:\n|\z))'
 # Han characters
 const HAN = '(?<c>[\x{4e00}-\x{9fff}])'
 # Latin-script letters
@@ -35,12 +37,14 @@ def enough-prose [text: string, whole_file: bool]: nothing -> bool {
 }
 
 def supported-markdown [text: string]: nothing -> bool {
-  let content = (prose $text)
+  # Front matter is data, and a post's indented list values read as an indented code block.
+  let body = ($text | str replace --regex $FRONT "")
+  let content = (prose $body)
   # Long backtick fences, tilde fences, and indented code blocks
-  let supported_blocks = ($text | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}|(?: {4,}| {0,3}\t)[ \t]*\S))' | is-empty)
+  let supported_blocks = ($body | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}|(?: {4,}| {0,3}\t)[ \t]*\S))' | is-empty)
   let supported_inline = (not ($content | str contains "``"))
   # Raw HTML code containers
-  let supported_html = ($text | parse --regex '(?i)(?<m><(?:pre|code|script|style)(?:\s|>))' | is-empty)
+  let supported_html = ($body | parse --regex '(?i)(?<m><(?:pre|code|script|style)(?:\s|>))' | is-empty)
   $supported_blocks and $supported_inline and $supported_html
 }
 
@@ -55,8 +59,8 @@ def structure [text: string]: nothing -> list {
     ($text | parse --regex '(?m)^(?<m>.+\n[=-]{2,}\s*)$')
     # List markers
     ($text | parse --regex '(?m)^(?<m>\s*(?:[-*+]|\d+\.) )')
-    # YAML front matter
-    ($text | parse --regex '(?s)\A(?<m>---\n.*?\n---(?:\n|\z))')
+    # Front matter
+    ($text | parse --regex $FRONT)
     # Table rows
     ($text | parse --regex '(?m)^(?<m>\s*\|.*\|\s*)$')
   ]
@@ -102,9 +106,11 @@ def reframe [before: string, after: string]: nothing -> string {
 # Blank-line-separated pieces, each carrying the separator that follows it, so a
 # rewrite goes back by position and every piece left alone stays byte-identical.
 def pieces [text: string]: nothing -> list<record> {
-  mut out = []
+  # Front matter goes in whole and never counts as prose, whatever blank lines it holds.
+  let front = ($text | parse --regex $FRONT | get -o 0.m | default "")
+  mut out = if ($front | is-empty) { [] } else { [{block: $front, sep: "", prose: false}] }
   mut inside = false
-  for piece in ($text | parse --regex '(?s)(?<block>.*?)(?<sep>\n\s*\n|\z)') {
+  for piece in (($text | str substring ($front | str length)..) | parse --regex '(?s)(?<block>.*?)(?<sep>\n\s*\n|\z)') {
     # A fence holding a blank line splits across pieces, and no piece of one is prose.
     let fences = ($piece.block | parse --regex '(?m)^(?<m>```)' | length)
     let ends_inside = if ($fences mod 2) == 0 { $inside } else { not $inside }
