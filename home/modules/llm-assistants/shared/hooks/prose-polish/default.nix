@@ -27,7 +27,8 @@ in
       inherit mcpProseFields modelCall;
       model = "openrouter/google/gemini-3.7-flash";
       phrasing = builtins.readFile ../../instructions/phrasing.md;
-      prompt = builtins.readFile ./prose-polish-prompt.md;
+      prompt = builtins.readFile ./prompt.md;
+      repairPrompt = builtins.readFile ./repair-prompt.md;
     };
   };
 }

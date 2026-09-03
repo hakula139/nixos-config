@@ -5,5 +5,5 @@
 {
   event = "Stop";
   statusMessage = "Checking completeness";
-  prompt = builtins.readFile ./completeness.md;
+  prompt = builtins.readFile ./prompt.md;
 }

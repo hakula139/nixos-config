@@ -219,10 +219,7 @@ def repair [rejects: list<record>, config: record]: nothing -> list<string> {
       {id: $reject.id, text: $reject.before, rejected: $reject.after, problem: $reject.problem}
     }
   )
-  let notes = [
-    ""
-    "Each passage also carries `rejected`, an earlier rewrite of it that was refused, and `problem`, the reason for the refusal. Rewrite `text` again so that `problem` does not recur. Every quotation, code span, link, and number of `text` has to reappear character for character, including the corner brackets of a 「」 quotation and the digits of a numeral, though you may carry one into a different sentence. Headings, list markers, and table rows have to stay where they are."
-  ]
+  let notes = ["" ($config.repairPrompt | str trim)]
   call-model $passages $notes $config
 }
 
@@ -248,7 +245,7 @@ def violations [before: string, after: string]: nothing -> list<string> {
     $found = ($found | append "a heading, list marker, table row, or fenced block was altered, dropped, or moved")
   }
   if (literals $after) != (literals $before) {
-    $found = ($found | append "a code span, link, URL, number, or quoted span was dropped or edited; moving one to another sentence is allowed, changing its characters is not")
+    $found = ($found | append "a code span, link, URL, number, or quoted span was dropped or edited")
   }
   # A rewrite may merge lines, since rejoining clipped sentences is the point,
   # but gaining one means a paragraph was cut into pieces.
