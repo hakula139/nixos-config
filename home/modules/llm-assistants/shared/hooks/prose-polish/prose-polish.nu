@@ -99,9 +99,21 @@ def reframe [before: string, after: string]: nothing -> string {
   ($edges | get 0) + ($after | str trim) + ($edges | get 1)
 }
 
-def target [path: list, text: any, whole_file: bool = false]: nothing -> list<record> {
+def blocks [text: string]: nothing -> list<string> {
+  $text
+  | split row --regex '\n\s*\n'
+  | each {|block| $block | str trim }
+  | where {|block| not ($block | is-empty) }
+}
+
+def target [
+  path: list,
+  text: any,
+  whole_file: bool = false,
+  partial: bool = false,
+]: nothing -> list<record> {
   if ($text | describe) == "string" and (supported-markdown $text) and (enough-prose $text $whole_file) {
-    [{path: $path, text: $text}]
+    [{path: $path, text: $text, partial: $partial}]
   } else {
     []
   }
@@ -139,7 +151,23 @@ def targets [payload: record, config: record]: nothing -> list<record> {
     if (not ($args.file_path | str ends-with ".md")) {
       return []
     }
-    return (target [$file.key] ($args | get -o $file.key) $file.whole_file)
+    let text = ($args | get -o $file.key)
+    # A write hands over the whole file, so only the blocks it introduces are the
+    # agent's own prose. Everything the file already held is left untouched.
+    let held = if $tool == "Write" and ($text | describe) == "string" {
+      try { blocks (open --raw $args.file_path) } catch { null }
+    } else {
+      null
+    }
+    if $held != null {
+      return (
+        blocks $text
+        | where {|block| $block not-in $held }
+        | each {|block| target [$file.key] $block false true }
+        | flatten
+      )
+    }
+    return (target [$file.key] $text $file.whole_file)
   }
 
   if $tool == "AskUserQuestion" {
@@ -248,12 +276,13 @@ def violations [before: string, after: string]: nothing -> list<string> {
   $found
 }
 
-def grade [path: list, before: string, raw: string]: nothing -> record {
+def grade [path: list, before: string, raw: string, partial: bool]: nothing -> record {
   let after = (reframe $before $raw)
   {
     path: $path
     before: $before
     after: $after
+    partial: $partial
     problem: (violations $before $after | str join "; ")
   }
 }
@@ -272,7 +301,9 @@ def polished [config: record]: nothing -> any {
     return null
   }
 
-  mut graded = ($found | zip $opening | each {|pair| grade $pair.0.path $pair.0.text $pair.1 })
+  mut graded = (
+    $found | zip $opening | each {|pair| grade $pair.0.path $pair.0.text $pair.1 $pair.0.partial }
+  )
 
   # A fault drives the next round rather than vetoing the result. A rewrite that
   # still trips one reads better than the text the agent wrote, so the newest
@@ -287,7 +318,12 @@ def polished [config: record]: nothing -> any {
       break
     }
     for pair in ($pending | zip $retried) {
-      $graded = ($graded | update $pair.0.index (grade $pair.0.item.path $pair.0.item.before $pair.1))
+      $graded = (
+        $graded
+        | update $pair.0.index (
+          grade $pair.0.item.path $pair.0.item.before $pair.1 $pair.0.item.partial
+        )
+      )
     }
   }
 
@@ -298,7 +334,12 @@ def polished [config: record]: nothing -> any {
 
   mut args = ($payload | get tool_input)
   for edit in $edits {
-    $args = ($args | update ($edit.path | into cell-path) $edit.after)
+    let cell = ($edit.path | into cell-path)
+    $args = if $edit.partial {
+      $args | update $cell (($args | get $cell) | str replace --no-expand $edit.before $edit.after)
+    } else {
+      $args | update $cell $edit.after
+    }
   }
 
   {
