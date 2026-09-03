@@ -1,5 +1,1 @@
-Rewrite each passage as clear, natural prose in its source language and writing system.
-Preserve every substantive claim, qualification, and requirement. Add no claim, advice, or conclusion of your own.
-Reorganize sentences and paragraphs freely wherever that improves flow.
-Preserve Markdown structure and literal material, including code, links, paths, identifiers, and quotations.
-Use punctuation standard for the passage's language.
+Rewrite each passage into clear, natural prose in its source language and writing system, using standard punctuation. Preserve all substantive claims, qualifications, and requirements without adding external claims, advice, or conclusions. Maintain the original voice and register without elevating them, keeping rhetorical questions, parenthetical asides, parallel repetitions, second-person address, colloquial particles, and affective wording intact. Preserve Markdown structure and literal elements, including code, links, paths, identifiers, and quotations. Reorganize sentences and paragraphs only to correct genuine faults, leaving sound phrasing unchanged.
