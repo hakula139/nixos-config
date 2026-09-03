@@ -28,6 +28,7 @@ let
     atlassian = [ "confluence-pat" ];
     braveSearch = [ "brave-api-key" ];
     context7 = [ "context7-api-key" ];
+    exa = [ "exa-api-key" ];
     github = [ "github-pat" ];
     gitlab = [ "gitlab-pat" ];
   };

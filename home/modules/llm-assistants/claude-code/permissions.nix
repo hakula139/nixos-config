@@ -176,7 +176,7 @@
     "Bash(httpie *)"
     "Bash(https *)"
     "Bash(wget *)"
-    "mcp__BraveSearch"
+    "mcp__Exa"
     "mcp__Fetcher"
     "WebFetch"
     "WebSearch"

@@ -102,6 +102,15 @@ let
   };
 
   # ----------------------------------------------------------------------------
+  # Exa
+  # ----------------------------------------------------------------------------
+  exaBin = mkNpmServer {
+    name = "exa";
+    package = "exa-mcp-server";
+    env.EXA_API_KEY = secretPath "exa-api-key";
+  };
+
+  # ----------------------------------------------------------------------------
   # Fetcher
   # ----------------------------------------------------------------------------
   fetcherBin = mkNpmServer {
@@ -192,6 +201,11 @@ in
 
     deepwiki = {
       command = "${deepwikiBin}/bin/deepwiki-mcp";
+      type = "stdio";
+    };
+
+    exa = {
+      command = "${exaBin}/bin/exa-mcp";
       type = "stdio";
     };
 

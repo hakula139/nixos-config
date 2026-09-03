@@ -11,6 +11,7 @@ let
     codex = "Codex";
     context7 = "Context7";
     deepwiki = "DeepWiki";
+    exa = "Exa";
     fetcher = "Fetcher";
     filesystem = "Filesystem";
     git = "Git";
@@ -22,8 +23,8 @@ let
 
   commonServerNames = [
     "atlassian"
-    "braveSearch"
     "deepwiki"
+    "exa"
     "fetcher"
     "filesystem"
     "git"
