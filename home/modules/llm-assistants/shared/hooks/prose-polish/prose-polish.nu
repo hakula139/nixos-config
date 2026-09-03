@@ -49,26 +49,35 @@ def supported-markdown [text: string]: nothing -> bool {
   $supported_blocks and $supported_inline and $supported_html
 }
 
-def protected [text: string]: nothing -> list {
+# Block structure has to keep its order, since that is what the order encodes.
+def structure [text: string]: nothing -> list {
   [
     # Fenced code blocks
     ($text | parse --regex $FENCE)
-    # Inline code
-    ($text | parse --regex '(?<m>`[^`\n]+`)')
     # ATX headings
     ($text | parse --regex '(?m)^(?<m>#{1,6} .*)$')
     # Setext headings
     ($text | parse --regex '(?m)^(?<m>.+\n[=-]{2,}\s*)$')
-    # Inline link destinations
-    ($text | parse --regex '\]\((?<m>[^)]+)\)')
-    # Reference link destinations
-    ($text | parse --regex '(?m)^\s*\[[^]]+\]:\s*(?<m>\S+)')
     # List markers
     ($text | parse --regex '(?m)^(?<m>\s*(?:[-*+]|\d+\.) )')
     # YAML front matter
     ($text | parse --regex '(?s)\A(?<m>---\n.*?\n---(?:\n|\z))')
     # Table rows
     ($text | parse --regex '(?m)^(?<m>\s*\|.*\|\s*)$')
+  ]
+}
+
+# Literal spans are compared as a multiset, because merging or reordering two
+# sentences that each carry a quotation must stay allowed while losing or
+# editing one must not.
+def literals [text: string]: nothing -> list {
+  [
+    # Inline code
+    ($text | parse --regex '(?<m>`[^`\n]+`)')
+    # Inline link destinations
+    ($text | parse --regex '\]\((?<m>[^)]+)\)')
+    # Reference link destinations
+    ($text | parse --regex '(?m)^\s*\[[^]]+\]:\s*(?<m>\S+)')
     # HTML tags
     ($text | parse --regex '(?<m></?[A-Za-z][^>\n]*>)')
     # URLs
@@ -80,6 +89,7 @@ def protected [text: string]: nothing -> list {
     # Quoted text
     ($text | parse --regex '(?<m>“[^”\n]*”|「[^」\n]*」|『[^』\n]*』|"[^"\n]*")')
   ]
+  | each {|spans| $spans | get -o m | default [] | sort }
 }
 
 def margins [text: string]: nothing -> list<string> {
@@ -211,7 +221,7 @@ def repair [rejects: list<record>, config: record]: nothing -> list<string> {
   )
   let notes = [
     ""
-    "Each passage also carries `rejected`, an earlier rewrite of it that was refused, and `problem`, the reason for the refusal. Rewrite `text` again so that `problem` does not recur, and keep every code span, heading, link, list marker, table row, number, and quoted span of `text` character for character, including the corner brackets of a 「」 quotation."
+    "Each passage also carries `rejected`, an earlier rewrite of it that was refused, and `problem`, the reason for the refusal. Rewrite `text` again so that `problem` does not recur. Every quotation, code span, link, and number of `text` has to reappear character for character, including the corner brackets of a 「」 quotation and the digits of a numeral, though you may carry one into a different sentence. Headings, list markers, and table rows have to stay where they are."
   ]
   call-model $passages $notes $config
 }
@@ -234,8 +244,11 @@ def adds-no-mark [before: string, after: string]: nothing -> bool {
 
 def violations [before: string, after: string]: nothing -> list<string> {
   mut found = []
-  if (protected $after) != (protected $before) {
-    $found = ($found | append "a code span, heading, link, list marker, table row, number, or quoted span was altered or dropped")
+  if (structure $after) != (structure $before) {
+    $found = ($found | append "a heading, list marker, table row, or fenced block was altered, dropped, or moved")
+  }
+  if (literals $after) != (literals $before) {
+    $found = ($found | append "a code span, link, URL, number, or quoted span was dropped or edited; moving one to another sentence is allowed, changing its characters is not")
   }
   # A rewrite may merge lines, since rejoining clipped sentences is the point,
   # but gaining one means a paragraph was cut into pieces.
