@@ -30,17 +30,26 @@ let
     fi
   '';
 
+  exportLiteral = var: value: ''
+    export ${var}="${value}"
+  '';
+
   # Wrapper for `npx -y <package>` style MCP servers, sharing nodeSetup + env exports + exec.
+  # `envFiles` values are runtime paths read on start, keeping secrets out of the store path.
+  # `envVars` values land in the store path verbatim, so never pass a secret there.
   mkNpmServer =
     {
       name,
       package,
-      env ? { },
+      envFiles ? { },
+      envVars ? { },
       extraArgs ? [ ],
     }:
     pkgs.writeShellScriptBin "${name}-mcp" (
       let
-        exports = lib.concatStrings (lib.mapAttrsToList exportFromFile env);
+        exports = lib.concatStrings (
+          lib.mapAttrsToList exportFromFile envFiles ++ lib.mapAttrsToList exportLiteral envVars
+        );
         argLine = lib.concatStringsSep " " ([ "npx -y ${package}" ] ++ extraArgs ++ [ ''"$@"'' ]);
       in
       ''
@@ -69,7 +78,7 @@ let
   braveSearchBin = mkNpmServer {
     name = "brave-search";
     package = "@brave/brave-search-mcp-server";
-    env.BRAVE_API_KEY = secretPath "brave-api-key";
+    envFiles.BRAVE_API_KEY = secretPath "brave-api-key";
   };
 
   # ----------------------------------------------------------------------------
@@ -85,7 +94,7 @@ let
   context7Bin = mkNpmServer {
     name = "context7";
     package = "@upstash/context7-mcp";
-    env.CONTEXT7_API_KEY = secretPath "context7-api-key";
+    envFiles.CONTEXT7_API_KEY = secretPath "context7-api-key";
   };
 
   # ----------------------------------------------------------------------------
@@ -107,7 +116,10 @@ let
   exaBin = mkNpmServer {
     name = "exa";
     package = "exa-mcp-server";
-    env.EXA_API_KEY = secretPath "exa-api-key";
+    envFiles.EXA_API_KEY = secretPath "exa-api-key";
+    # Exa's eight other tools are deprecated aliases of these four. crawling_exa in
+    # particular registers the same handler as web_fetch_exa under a second name.
+    envVars.ENABLED_TOOLS = "web_search_exa,web_fetch_exa,web_search_advanced_exa,agent_run";
   };
 
   # ----------------------------------------------------------------------------
