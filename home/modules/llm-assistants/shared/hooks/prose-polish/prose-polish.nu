@@ -393,7 +393,8 @@ def polished [config: record]: nothing -> any {
 
   # A passage that still trips a check keeps the agent's own text. Better prose is not
   # worth a dropped code span, and the checks only fire on something already lost.
-  let edits = ($graded | where problem == "" and after != before)
+  # A row condition reads a bare word as a string, so a column-to-column test needs a closure.
+  let edits = ($graded | where {|row| $row.problem == "" and $row.after != $row.before })
   if ($edits | is-empty) {
     return null
   }
