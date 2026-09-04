@@ -22,6 +22,7 @@ const NO_BLOCK = {
 
 const MODEL_FAMILIES = [
   [pattern, name];
+  ["fable", "Fable"]
   ["opus", "Opus"]
   ["sonnet", "Sonnet"]
   ["haiku", "Haiku"]
@@ -67,7 +68,7 @@ def simplify-model-name [raw: string]: nothing -> string {
   # Model family followed by a numeric version
   let version = (
     $lc
-    | parse --regex `(?:opus|sonnet|haiku|gpt)[- ](?<v>\d+(?:[-.]\d+)?)`
+    | parse --regex `(?:fable|opus|sonnet|haiku|gpt)[- ](?<v>\d+(?:[-.]\d+)?)`
     | get -o 0.v
     | default ""
     | str replace --all "-" "."

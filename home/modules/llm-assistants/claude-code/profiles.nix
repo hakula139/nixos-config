@@ -25,6 +25,7 @@ let
   requiredSecrets = lib.genAttrs requiredSecretNames (_: { });
 
   modelEnvVars = {
+    fable = "ANTHROPIC_DEFAULT_FABLE_MODEL";
     opus = "ANTHROPIC_DEFAULT_OPUS_MODEL";
     sonnet = "ANTHROPIC_DEFAULT_SONNET_MODEL";
     haiku = "ANTHROPIC_DEFAULT_HAIKU_MODEL";

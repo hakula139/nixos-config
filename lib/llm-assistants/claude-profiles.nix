@@ -48,6 +48,9 @@ in
 // lib.optionalAttrs enableCorpGateway {
   corp-gateway-bedrock = corpGatewayCommon // {
     modelOverrides = {
+      # Bedrock rejects Fable 5.1 while the AWS account's data retention mode is
+      # 'default', so this one model routes through openrouter.
+      fable = "openrouter/anthropic/claude-fable-5.1";
       opus = "bedrock/global.anthropic.claude-opus-5";
       sonnet = "bedrock/global.anthropic.claude-sonnet-5";
       haiku = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
