@@ -4,17 +4,22 @@
 # Prose Polish
 # ==============================================================================
 
-# Match complete triple-backtick blocks because Rust regexes cannot pair arbitrary delimiters.
-const FENCE = '(?ms)^(?<m>```[^\n]*\n.*?^```\s*$)'
+# Match complete triple-backtick blocks because Rust regexes cannot pair arbitrary
+# delimiters. Either delimiter takes the three leading spaces CommonMark allows.
+const FENCE = '(?ms)^(?<m> {0,3}```[^\n]*\n.*?^ {0,3}```\s*$)'
+# Fence delimiters, for tracking which pieces sit inside one. Only whitespace may
+# follow a closing delimiter, so a line carrying an info string never closes a fence.
+const OPENER = '\A {0,3}```'
+const CLOSER = '\A {0,3}```\s*\z'
+# YAML or TOML front matter
+const FRONT = '(?s)\A(?<m>(?:---|\+\+\+)\r?\n.*?\r?\n(?:---|\+\+\+)(?:\r?\n|\z))'
 # Han characters
 const HAN = '(?<c>[\x{4e00}-\x{9fff}])'
 # Latin-script letters
 const LATIN = '(?<c>\p{Latin})'
 
-const MIN_HAN_FILE = 120
-const MIN_HAN_SPAN = 8
-const MIN_LATIN_FILE = 240
-const MIN_LATIN_SPAN = 32
+const MIN_HAN = 8
+const MIN_LATIN = 32
 
 # Compared by count, so a passage keeps whatever it arrived with and only the
 # rewriter is held to the ban. Chinese prose takes the fullwidth `；`.
@@ -28,19 +33,19 @@ def count [text: string, pattern: string]: nothing -> int {
   prose $text | parse --regex $pattern | length
 }
 
-def enough-prose [text: string, whole_file: bool]: nothing -> bool {
-  let han_floor = if $whole_file { $MIN_HAN_FILE } else { $MIN_HAN_SPAN }
-  let latin_floor = if $whole_file { $MIN_LATIN_FILE } else { $MIN_LATIN_SPAN }
-  (count $text $HAN) >= $han_floor or (count $text $LATIN) >= $latin_floor
+def enough-prose [text: string]: nothing -> bool {
+  (count $text $HAN) >= $MIN_HAN or (count $text $LATIN) >= $MIN_LATIN
 }
 
 def supported-markdown [text: string]: nothing -> bool {
-  let content = (prose $text)
+  # Front matter is data, and a post's indented list values read as an indented code block.
+  let body = ($text | str replace --regex $FRONT "")
+  let content = (prose $body)
   # Long backtick fences, tilde fences, and indented code blocks
-  let supported_blocks = ($text | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}|(?: {4,}| {0,3}\t)[ \t]*\S))' | is-empty)
+  let supported_blocks = ($body | parse --regex '(?m)^(?<m>(?:`{4,}|~{3,}|(?: {4,}| {0,3}\t)[ \t]*\S))' | is-empty)
   let supported_inline = (not ($content | str contains "``"))
   # Raw HTML code containers
-  let supported_html = ($text | parse --regex '(?i)(?<m><(?:pre|code|script|style)(?:\s|>))' | is-empty)
+  let supported_html = ($body | parse --regex '(?i)(?<m><(?:pre|code|script|style)(?:\s|>))' | is-empty)
   $supported_blocks and $supported_inline and $supported_html
 }
 
@@ -55,8 +60,8 @@ def structure [text: string]: nothing -> list {
     ($text | parse --regex '(?m)^(?<m>.+\n[=-]{2,}\s*)$')
     # List markers
     ($text | parse --regex '(?m)^(?<m>\s*(?:[-*+]|\d+\.) )')
-    # YAML front matter
-    ($text | parse --regex '(?s)\A(?<m>---\n.*?\n---(?:\n|\z))')
+    # Front matter
+    ($text | parse --regex $FRONT)
     # Table rows
     ($text | parse --regex '(?m)^(?<m>\s*\|.*\|\s*)$')
   ]
@@ -87,6 +92,20 @@ def literals [text: string]: nothing -> list {
   | each {|spans| $spans | get -o m | sort }
 }
 
+# Line endings are formatting, so comparisons run on one form and a rewrite takes
+# back whichever form its own piece arrived in.
+def unix [text: string]: nothing -> string {
+  $text | str replace --all "\r\n" "\n"
+}
+
+def match-endings [sample: string, text: string]: nothing -> string {
+  if ($sample | str contains "\r\n") {
+    unix $text | str replace --all "\n" "\r\n"
+  } else {
+    $text
+  }
+}
+
 def margins [text: string]: nothing -> list<string> {
   [
     ($text | parse --regex '(?s)\A(?<m>\s*)' | get 0.m)
@@ -99,9 +118,55 @@ def reframe [before: string, after: string]: nothing -> string {
   ($edges | get 0) + ($after | str trim) + ($edges | get 1)
 }
 
-def target [path: list, text: any, whole_file: bool = false]: nothing -> list<record> {
-  if ($text | describe) == "string" and (supported-markdown $text) and (enough-prose $text $whole_file) {
-    [{path: $path, text: $text}]
+# Blank-line-separated pieces, each carrying the separator that follows it, so a
+# rewrite goes back by position and every piece left alone stays byte-identical.
+def pieces [text: string]: nothing -> list<record> {
+  # Front matter goes in whole and never counts as prose, whatever blank lines it holds.
+  let front = ($text | parse --regex $FRONT | get -o 0.m | default "")
+  mut out = if ($front | is-empty) { [] } else { [{block: $front, sep: "", prose: false}] }
+  mut inside = false
+  for piece in (($text | str substring ($front | str length)..) | parse --regex '(?s)(?<block>.*?)(?<sep>\n\s*\n|\z)') {
+    # A fence holding a blank line splits across pieces, and no piece of one is prose.
+    mut state = $inside
+    for line in ($piece.block | lines) {
+      $state = if $state {
+        not ($line | parse --regex $CLOSER | is-not-empty)
+      } else {
+        ($line | parse --regex $OPENER | is-not-empty)
+      }
+    }
+    let ends_inside = $state
+    $out = ($out | append ($piece | insert prose ((not $inside) and (not $ends_inside))))
+    $inside = $ends_inside
+  }
+  $out
+}
+
+def blocks [text: string]: nothing -> list<string> {
+  pieces $text | where prose | each {|slot| unix $slot.block | str trim }
+}
+
+# A rewrite goes back by piece position, since the same text can occur elsewhere in
+# the field. Separators come back untouched, so a piece nobody edited stays byte-identical.
+def splice [text: string, edits: list<record>]: nothing -> string {
+  pieces $text
+  | enumerate
+  | each {|slot|
+    let edit = ($edits | where piece == $slot.index | get -o 0)
+    # A rewrite arrives trimmed, so the piece's own margins carry its indent back.
+    let block = if $edit == null {
+      $slot.item.block
+    } else {
+      reframe $slot.item.block (match-endings $slot.item.block $edit.after)
+    }
+    $block + $slot.item.sep
+  }
+  | str join ""
+}
+
+def target [path: list, text: any, piece: any = null]: nothing -> list<record> {
+  if ($text | describe) == "string" and (supported-markdown $text) and (enough-prose $text) {
+    [{path: $path, before: (unix $text), piece: $piece}]
   } else {
     []
   }
@@ -126,20 +191,61 @@ def question-targets [questions: list<record>]: nothing -> list<record> {
   | flatten
 }
 
+# Blocks the document already holds, or null when the file resists reading or parsing.
+# Held blocks are one side of an equality test, so a short list would mark prose the
+# write never touched as newly introduced. They are compared as a set, so a paragraph
+# the document already holds stays untouched even when the write adds another copy.
+def held-blocks [path: string]: nothing -> any {
+  let disk = (try { open --raw $path } catch { null })
+  if ($disk | describe) == "string" {
+    return (if (supported-markdown $disk) { blocks $disk } else { null })
+  }
+  # A read fails both for a file that is absent and for one that cannot be reached,
+  # and only absence means every block is new. Listing the parent tells them apart.
+  let siblings = (
+    try { ls --all ($path | path dirname) | get name | each {|name| $name | path basename } } catch { null }
+  )
+  if $siblings == null or (($path | path basename) in $siblings) {
+    null
+  } else {
+    []
+  }
+}
+
+def file-targets [args: record, key: string]: nothing -> list<record> {
+  if (not ($args.file_path | str ends-with ".md")) {
+    return []
+  }
+  let text = ($args | get -o $key)
+  # Splitting a document this cannot parse would strand a fence interior.
+  if ($text | describe) != "string" or (not (supported-markdown $text)) {
+    return []
+  }
+  # Only the blocks a write introduces are the agent's own prose. An `Edit` carries
+  # context lines the document already holds, and those are not the agent's to rewrite.
+  let held = (held-blocks $args.file_path)
+  if $held == null {
+    return []
+  }
+
+  pieces $text
+  | enumerate
+  | where {|slot| $slot.item.prose and ((unix $slot.item.block | str trim) not-in $held) }
+  | each {|slot| target [$key] ($slot.item.block | str trim) $slot.index }
+  | flatten
+}
+
 def targets [payload: record, config: record]: nothing -> list<record> {
   let tool = ($payload | get tool_name)
   let args = ($payload | get tool_input)
 
-  let file = match $tool {
-    "Write" => {key: "content", whole_file: true}
-    "Edit" => {key: "new_string", whole_file: false}
+  let key = match $tool {
+    "Write" => "content"
+    "Edit" => "new_string"
     _ => null,
   }
-  if $file != null {
-    if (not ($args.file_path | str ends-with ".md")) {
-      return []
-    }
-    return (target [$file.key] ($args | get -o $file.key) $file.whole_file)
+  if $key != null {
+    return (file-targets $args $key)
   }
 
   if $tool == "AskUserQuestion" {
@@ -248,14 +354,9 @@ def violations [before: string, after: string]: nothing -> list<string> {
   $found
 }
 
-def grade [path: list, before: string, raw: string]: nothing -> record {
-  let after = (reframe $before $raw)
-  {
-    path: $path
-    before: $before
-    after: $after
-    problem: (violations $before $after | str join "; ")
-  }
+def grade [target: record, raw: string]: nothing -> record {
+  let after = (reframe $target.before $raw)
+  $target | merge {after: $after, problem: (violations $target.before $after | str join "; ")}
 }
 
 def polished [config: record]: nothing -> any {
@@ -266,17 +367,16 @@ def polished [config: record]: nothing -> any {
   }
 
   let opening = (
-    call-model ($found | get text | enumerate | each {|item| {id: $item.index, text: $item.item} }) [] $config
+    call-model ($found | enumerate | each {|slot| {id: $slot.index, text: $slot.item.before} }) [] $config
   )
   if ($opening | is-empty) {
     return null
   }
 
-  mut graded = ($found | zip $opening | each {|pair| grade $pair.0.path $pair.0.text $pair.1 })
+  mut graded = ($found | zip $opening | each {|pair| grade $pair.0 $pair.1 })
 
-  # A fault drives the next round rather than vetoing the result. A rewrite that
-  # still trips one reads better than the text the agent wrote, so the newest
-  # attempt ships and only a dead model call leaves the original standing.
+  # A fault drives the next round rather than vetoing the result outright, since the
+  # rewriter usually repairs it once told what broke.
   for _ in 0..<$config.maxRepairs {
     let pending = ($graded | enumerate | where item.problem != "")
     if ($pending | is-empty) {
@@ -287,18 +387,27 @@ def polished [config: record]: nothing -> any {
       break
     }
     for pair in ($pending | zip $retried) {
-      $graded = ($graded | update $pair.0.index (grade $pair.0.item.path $pair.0.item.before $pair.1))
+      $graded = ($graded | update $pair.0.index (grade $pair.0.item $pair.1))
     }
   }
 
-  let edits = ($graded | where after != before)
+  # A passage that still trips a check keeps the agent's own text. Better prose is not
+  # worth a dropped code span, and the checks only fire on something already lost.
+  # A row condition reads a bare word as a string, so a column-to-column test needs a closure.
+  let edits = ($graded | where {|row| $row.problem == "" and $row.after != $row.before })
   if ($edits | is-empty) {
     return null
   }
 
   mut args = ($payload | get tool_input)
-  for edit in $edits {
+  for edit in ($edits | where piece == null) {
     $args = ($args | update ($edit.path | into cell-path) $edit.after)
+  }
+
+  let spliced = ($edits | where piece != null)
+  if not ($spliced | is-empty) {
+    let cell = ($spliced.0.path | into cell-path)
+    $args = ($args | update $cell (splice ($args | get $cell) $spliced))
   }
 
   {
