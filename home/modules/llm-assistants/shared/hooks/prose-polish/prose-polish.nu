@@ -166,7 +166,7 @@ def splice [text: string, edits: list<record>]: nothing -> string {
 
 def target [path: list, text: any, piece: any = null]: nothing -> list<record> {
   if ($text | describe) == "string" and (supported-markdown $text) and (enough-prose $text) {
-    [{path: $path, before: $text, piece: $piece}]
+    [{path: $path, before: (unix $text), piece: $piece}]
   } else {
     []
   }
