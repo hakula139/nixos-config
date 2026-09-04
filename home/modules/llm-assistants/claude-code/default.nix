@@ -25,12 +25,31 @@ let
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   inherit (llmAssistantLib) mcpOptions;
 
+  mcp = import ./mcp.nix {
+    inherit
+      config
+      pkgs
+      lib
+      llmAssistantLib
+      corpHosts
+      proxyLib
+      secretPath
+      ;
+    enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
+  };
+
+  # `--mcp-config` is variadic, so the `=` form is required: the space-separated
+  # form swallows the prompt and any subcommand. Shared with the teammate
+  # launcher, which repeats it for the agents Claude Code spawns itself.
+  mcpFlag = "--mcp-config=${mcp.configFile}";
+
   profiles = import ./profiles.nix {
     inherit
       config
       pkgs
       lib
       hostType
+      mcpFlag
       secretPath
       ;
   };
@@ -94,19 +113,6 @@ in
           ;
       };
 
-      mcp = import ./mcp.nix {
-        inherit
-          config
-          pkgs
-          lib
-          llmAssistantLib
-          corpHosts
-          proxyLib
-          secretPath
-          ;
-        enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
-      };
-
       plugins = import ./plugins.nix {
         inherit
           pkgs
@@ -153,10 +159,8 @@ in
           (proxyLib.mkProxyScript cfg.proxy)
         ]
         ++ [
-          # `--mcp-config` is variadic, so the `=` form is required: the
-          # space-separated form swallows the prompt and any subcommand.
           "--add-flags"
-          "--mcp-config=${mcp.configFile}"
+          mcpFlag
         ];
 
       claudeCodeBin = pkgs.symlinkJoin {
