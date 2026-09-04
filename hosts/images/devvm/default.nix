@@ -64,7 +64,7 @@ in
       # Assistant Tooling
       # ------------------------------------------------------------------------
       hakula.claude-code = {
-        auth.defaultProfile = "corp-gateway-bedrock";
+        auth.defaultProfile = "corp-gateway";
         mcp.enabledServers = claudeMcpServers;
         plugins.bundle = true;
       };

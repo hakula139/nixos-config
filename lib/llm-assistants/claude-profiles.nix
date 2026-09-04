@@ -46,10 +46,11 @@ in
   };
 }
 // lib.optionalAttrs enableCorpGateway {
-  corp-gateway-bedrock = corpGatewayCommon // {
+  corp-gateway = corpGatewayCommon // {
     modelOverrides = {
-      # Bedrock rejects Fable 5.1 while the AWS account's data retention mode is
-      # 'default', so this one model routes through openrouter.
+      # Bedrock refuses Fable 5.1 while the AWS account's data retention mode is
+      # 'default', so this model routes through openrouter. That route reports
+      # zero cache_creation and cache_read, so it re-bills the prefix each turn.
       fable = "openrouter/anthropic/claude-fable-5.1";
       opus = "bedrock/global.anthropic.claude-opus-5";
       sonnet = "bedrock/global.anthropic.claude-sonnet-5";

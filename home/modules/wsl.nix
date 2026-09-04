@@ -29,7 +29,7 @@ in
     # --------------------------------------------------------------------------
     # Home Manager Overrides
     # --------------------------------------------------------------------------
-    hakula.claude-code.auth.defaultProfile = "corp-gateway-bedrock";
+    hakula.claude-code.auth.defaultProfile = "corp-gateway";
 
     hakula.cursor = {
       extensions.prune = lib.mkForce false;
