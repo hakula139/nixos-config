@@ -13,12 +13,14 @@ The condition is met (safe to stop) when:
 
 The condition is NOT met (keep working) when any of those fails, for example a claim of success that the transcript does not support, a check left failing, or a requested step silently skipped.
 
-## Exemption
+## Exemptions
 
-This outranks the criteria above. Evaluate it first, and return `ok: true` without judging completeness when it applies.
+Evaluate exemptions before the criteria above. When an exemption applies, return `ok: true` without judging completeness.
 
-- **The assistant is blocked on a decision only the user can make.** Stopping to ask about a genuinely ambiguous requirement, or to get authorization before a destructive, outward-facing, or hard-to-undo action, is correct and expected.
-  - **An offer is not a blocked decision.** "Say the word and I'll remove it", "let me know if you want me to clean that up", and any closing question about work the assistant could have simply done are deferrals, so they do **not** trigger this exemption. Keep evaluating and count the offered work as outstanding, since otherwise one appended sentence disables this gate however much work is left unfinished.
+- **The assistant is blocked on a decision only the user can make.** Stopping is correct and expected when asking about a genuinely ambiguous requirement or getting authorization before a destructive, outward-facing, or hard-to-undo action.
+  - **An offer is not a blocked decision.** Deferrals such as "Say the word and I'll remove it", "let me know if you want me to clean that up", or closing questions about work the assistant could have completed directly do **not** trigger this exemption. Continue evaluating and count the offered work as outstanding, ensuring that a single appended sentence cannot disable this gate while work remains unfinished.
+- **The remaining work is delegated and still running.** Because a subagent's or teammate's report reaches the assistant only after its turn ends, stopping allows it to collect the report and resume instead of burning a turn that cannot advance the work.
+  - **Work the assistant can do itself is not delegated.** Any pending item the assistant could finish while the delegate runs still counts as outstanding.
 
 ## Posture
 
