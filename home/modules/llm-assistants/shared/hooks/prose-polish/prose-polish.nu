@@ -7,10 +7,12 @@
 # Match complete triple-backtick blocks because Rust regexes cannot pair arbitrary
 # delimiters. Either delimiter takes the three leading spaces CommonMark allows.
 const FENCE = '(?ms)^(?<m> {0,3}```[^\n]*\n.*?^ {0,3}```\s*$)'
-# A fence delimiter line, for tracking which pieces sit inside one
-const DELIMITER = '(?m)^(?<m> {0,3}```)'
+# Fence delimiters, for tracking which pieces sit inside one. Only whitespace may
+# follow a closing delimiter, so a line carrying an info string never closes a fence.
+const OPENER = '\A {0,3}```'
+const CLOSER = '\A {0,3}```\s*\z'
 # YAML or TOML front matter
-const FRONT = '(?s)\A(?<m>(?:---|\+\+\+)\n.*?\n(?:---|\+\+\+)(?:\n|\z))'
+const FRONT = '(?s)\A(?<m>(?:---|\+\+\+)\r?\n.*?\r?\n(?:---|\+\+\+)(?:\r?\n|\z))'
 # Han characters
 const HAN = '(?<c>[\x{4e00}-\x{9fff}])'
 # Latin-script letters
@@ -125,8 +127,15 @@ def pieces [text: string]: nothing -> list<record> {
   mut inside = false
   for piece in (($text | str substring ($front | str length)..) | parse --regex '(?s)(?<block>.*?)(?<sep>\n\s*\n|\z)') {
     # A fence holding a blank line splits across pieces, and no piece of one is prose.
-    let fences = ($piece.block | parse --regex $DELIMITER | length)
-    let ends_inside = if ($fences mod 2) == 0 { $inside } else { not $inside }
+    mut state = $inside
+    for line in ($piece.block | lines) {
+      $state = if $state {
+        not ($line | parse --regex $CLOSER | is-not-empty)
+      } else {
+        ($line | parse --regex $OPENER | is-not-empty)
+      }
+    }
+    let ends_inside = $state
     $out = ($out | append ($piece | insert prose ((not $inside) and (not $ends_inside))))
     $inside = $ends_inside
   }
@@ -184,16 +193,23 @@ def question-targets [questions: list<record>]: nothing -> list<record> {
 
 # Blocks the document already holds, or null when the file resists reading or parsing.
 # Held blocks are one side of an equality test, so a short list would mark prose the
-# write never touched as newly introduced.
+# write never touched as newly introduced. They are compared as a set, so a paragraph
+# the document already holds stays untouched even when the write adds another copy.
 def held-blocks [path: string]: nothing -> any {
-  if (not ($path | path exists)) {
-    return []
-  }
   let disk = (try { open --raw $path } catch { null })
-  if ($disk | describe) != "string" or (not (supported-markdown $disk)) {
-    return null
+  if ($disk | describe) == "string" {
+    return (if (supported-markdown $disk) { blocks $disk } else { null })
   }
-  blocks $disk
+  # A read fails both for a file that is absent and for one that cannot be reached,
+  # and only absence means every block is new. Listing the parent tells them apart.
+  let siblings = (
+    try { ls --all ($path | path dirname) | get name | each {|name| $name | path basename } } catch { null }
+  )
+  if $siblings == null or (($path | path basename) in $siblings) {
+    null
+  } else {
+    []
+  }
 }
 
 def file-targets [args: record, key: string]: nothing -> list<record> {
@@ -359,9 +375,8 @@ def polished [config: record]: nothing -> any {
 
   mut graded = ($found | zip $opening | each {|pair| grade $pair.0 $pair.1 })
 
-  # A fault drives the next round rather than vetoing the result. A rewrite that
-  # still trips one reads better than the text the agent wrote, so the newest
-  # attempt ships and only a dead model call leaves the original standing.
+  # A fault drives the next round rather than vetoing the result outright, since the
+  # rewriter usually repairs it once told what broke.
   for _ in 0..<$config.maxRepairs {
     let pending = ($graded | enumerate | where item.problem != "")
     if ($pending | is-empty) {
@@ -376,7 +391,9 @@ def polished [config: record]: nothing -> any {
     }
   }
 
-  let edits = ($graded | where after != before)
+  # A passage that still trips a check keeps the agent's own text. Better prose is not
+  # worth a dropped code span, and the checks only fire on something already lost.
+  let edits = ($graded | where problem == "" and after != before)
   if ($edits | is-empty) {
     return null
   }
