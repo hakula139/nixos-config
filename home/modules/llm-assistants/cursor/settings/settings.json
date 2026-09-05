@@ -176,6 +176,9 @@
   "files.autoSave": "off",
   "files.eol": "\n",
   "files.trimFinalNewlines": true,
+  "files.watcherExclude": {
+    "**/.direnv/**": true
+  },
   "git.allowForcePush": true,
   "git.allowNoVerifyCommit": true,
   "git.autofetch": true,
