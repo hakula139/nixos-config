@@ -157,6 +157,7 @@ in
             ${pkgs.yq}/bin/tomlq -s -t '
               . as [$current, $baseline]
               | $current * $baseline
+              | .mcp_servers = $baseline.mcp_servers
               | .hooks = (
                   $baseline.hooks
                   + (if $current.hooks.state? then { state: $current.hooks.state } else { } end)
