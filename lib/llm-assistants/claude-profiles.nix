@@ -56,7 +56,7 @@ in
 
   corp-gateway-openai = corpGatewayCommon // {
     modelOverrides = {
-      opus = "openai/gpt-5.6-sol";
+      opus = "openai/gpt-6-astra";
       sonnet = "openai/gpt-5.6-terra";
       haiku = "openai/gpt-5.6-luna";
     };
