@@ -7,6 +7,7 @@
   pkgs,
   lib,
   hostType,
+  mcpFlag,
   secretPath,
   ...
 }:
@@ -208,9 +209,16 @@ let
   # Teammate launcher
   # ----------------------------------------------------------------------------
   teammateLauncher = pkgs.writeShellScript "claude-teammate-launcher" (
-    builtins.replaceStrings [ "@profileLoader@" ] [ "${profileLoader}" ] (
-      builtins.readFile ./scripts/teammate-launcher.sh
-    )
+    builtins.replaceStrings
+      [
+        "@profileLoader@"
+        "@mcpFlag@"
+      ]
+      [
+        "${profileLoader}"
+        mcpFlag
+      ]
+      (builtins.readFile ./scripts/teammate-launcher.sh)
   );
 
   # ----------------------------------------------------------------------------
