@@ -27,13 +27,25 @@ let
       ;
   };
 
-  mkEntry = s: {
-    name = mcpOptions.serverDisplayNames.${s};
-    value = {
-      type = "local";
-      command = [ mcp.servers.${s}.command ];
+  mkEntry =
+    s:
+    let
+      server = mcp.servers.${s};
+    in
+    {
+      name = mcpOptions.serverDisplayNames.${s};
+      value =
+        if server.type == "stdio" then
+          {
+            type = "local";
+            command = [ server.command ];
+          }
+        else
+          {
+            type = "remote";
+            inherit (server) url;
+          };
     };
-  };
 in
 {
   serversConfig = builtins.listToAttrs (map mkEntry enabledServers);
