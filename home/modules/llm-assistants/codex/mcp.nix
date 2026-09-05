@@ -30,6 +30,7 @@ let
   fieldRenames = {
     command = "command";
     startupTimeoutSec = "startup_timeout_sec";
+    url = "url";
   };
 
   mkEntry =

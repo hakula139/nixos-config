@@ -43,19 +43,17 @@ let
       package,
       envFiles ? { },
       envVars ? { },
-      extraArgs ? [ ],
     }:
     pkgs.writeShellScriptBin "${name}-mcp" (
       let
         exports = lib.concatStrings (
           lib.mapAttrsToList exportFromFile envFiles ++ lib.mapAttrsToList exportLiteral envVars
         );
-        argLine = lib.concatStringsSep " " ([ "npx -y ${package}" ] ++ extraArgs ++ [ ''"$@"'' ]);
       in
       ''
         ${nodeSetup}
         ${exports}
-        exec ${argLine}
+        exec npx -y ${package} "$@"
       ''
     );
 
@@ -95,19 +93,6 @@ let
     name = "context7";
     package = "@upstash/context7-mcp";
     envFiles.CONTEXT7_API_KEY = secretPath "context7-api-key";
-  };
-
-  # ----------------------------------------------------------------------------
-  # DeepWiki
-  # ----------------------------------------------------------------------------
-  deepwikiBin = mkNpmServer {
-    name = "deepwiki";
-    package = "mcp-remote";
-    extraArgs = [
-      "https://mcp.deepwiki.com/mcp"
-      "--transport"
-      "http-first"
-    ];
   };
 
   # ----------------------------------------------------------------------------
@@ -212,8 +197,8 @@ in
     };
 
     deepwiki = {
-      command = "${deepwikiBin}/bin/deepwiki-mcp";
-      type = "stdio";
+      type = "http";
+      url = "https://mcp.deepwiki.com/mcp";
     };
 
     exa = {
