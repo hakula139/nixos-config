@@ -31,7 +31,6 @@ let
     haiku = "ANTHROPIC_DEFAULT_HAIKU_MODEL";
   };
 
-  # Which env var carries the auth token for each non-subscription profile type.
   authEnvByType = {
     oauth-token = "CLAUDE_CODE_OAUTH_TOKEN";
     api-key = "ANTHROPIC_AUTH_TOKEN";
@@ -149,10 +148,8 @@ let
   # ----------------------------------------------------------------------------
   # Auth env vars
   # ----------------------------------------------------------------------------
-  # Blocklist: always unset regardless of which profiles are declared. Prevents
-  # externally-set auth vars from bypassing profile switching. Covers every env
-  # var the profile scripts may export (via authEnvByType or ANTHROPIC_BASE_URL),
-  # plus ANTHROPIC_API_KEY, which no profile writes but external callers might.
+  # Clear inherited credentials, including ANTHROPIC_API_KEY, so they cannot
+  # bypass the active profile.
   knownAuthEnvVars = lib.naturalSort (
     builtins.attrValues authEnvByType
     ++ [
@@ -180,8 +177,6 @@ let
   # ----------------------------------------------------------------------------
   # Profile loader
   # ----------------------------------------------------------------------------
-  # Sourced by the claude wrapper at startup to unset stale auth env vars and
-  # export the active profile's variables.
   profileLoader = pkgs.writeShellScript "claude-profile-loader" (
     builtins.replaceStrings
       [
@@ -235,7 +230,6 @@ let
   # ----------------------------------------------------------------------------
   # Activation
   # ----------------------------------------------------------------------------
-  # Creates the default active-profile symlink on first rebuild if missing.
   activation = lib.hm.dag.entryAfter [ "writeBoundary" ] (
     lib.optionalString (hasProfiles && cfg.auth.defaultProfile != null) ''
       __dir="${stateDir}"
@@ -250,8 +244,6 @@ let
   # ----------------------------------------------------------------------------
   # Per-profile assertions
   # ----------------------------------------------------------------------------
-  # Declares which auth types require or forbid each field. Order matches the
-  # field declarations in profileType above.
   fieldConstraints = [
     {
       field = "tokenSecret";

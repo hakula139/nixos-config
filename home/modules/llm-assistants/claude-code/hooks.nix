@@ -12,6 +12,7 @@
 
 let
   notify = import ../shared/notify { inherit pkgs lib; };
+
   sharedHooks = import ../shared/hooks {
     inherit
       pkgs
@@ -21,6 +22,7 @@ let
       ;
     assistant = "claude-code";
   };
+
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
   toolClasses = {

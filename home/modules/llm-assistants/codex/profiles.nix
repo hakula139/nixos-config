@@ -58,10 +58,12 @@ let
       model_provider = "corp-gateway";
       model_catalog_json = toString modelCatalog;
       model_auto_compact_token_limit = 250000;
+
       model_providers.corp-gateway = {
         name = "Corporate gateway";
         base_url = "${corpHosts.llmGatewayUrl}/v1";
         wire_api = "responses";
+
         auth = {
           command = "${pkgs.coreutils}/bin/cat";
           args = [ tokenFile ];
@@ -69,6 +71,22 @@ let
       };
     };
   };
+
+  # ----------------------------------------------------------------------------
+  # Profile loader
+  # ----------------------------------------------------------------------------
+  loader = pkgs.writeShellScript "codex-profile-loader" (
+    builtins.replaceStrings
+      [
+        "@caEnv@"
+        "@stateDir@"
+      ]
+      [
+        (lib.optionalString cfg.enableCorpGateway ''export CODEX_CA_CERTIFICATE="${caFile}"'')
+        stateDir
+      ]
+      (builtins.readFile ./scripts/profile-loader.sh)
+  );
 
   # ----------------------------------------------------------------------------
   # Profile switcher
@@ -94,6 +112,7 @@ in
       default = "official";
       description = "Authentication profile initialized on rebuild when no active profile exists";
     };
+
     enableCorpGateway = lib.mkOption {
       type = lib.types.bool;
       default = hostType == "work";
@@ -105,21 +124,40 @@ in
   # Module config
   # ----------------------------------------------------------------------------
   config = {
+    # --------------------------------------------------------------------------
+    # Assertions
+    # --------------------------------------------------------------------------
     assertions = [
       {
         assertion = builtins.hasAttr cfg.defaultProfile profiles;
         message = "hakula.codex.auth.defaultProfile requires its profile to be enabled";
       }
     ];
+
+    # --------------------------------------------------------------------------
+    # Secrets
+    # --------------------------------------------------------------------------
     hakula.secrets.required = lib.optionalAttrs cfg.enableCorpGateway {
       "llm-assistants/bifrost-api-key" = { };
       "llm-assistants/corp-cachain.crt" = { };
     };
+
+    # --------------------------------------------------------------------------
+    # Packages
+    # --------------------------------------------------------------------------
     home.packages = [ switch ];
+
+    # --------------------------------------------------------------------------
+    # Home files
+    # --------------------------------------------------------------------------
     home.file = lib.mapAttrs' (name: settings: {
       name = "${configDir}/${name}.config.toml";
       value.source = toml.generate "codex-profile-${name}.toml" settings;
     }) profiles;
+
+    # --------------------------------------------------------------------------
+    # Activation
+    # --------------------------------------------------------------------------
     home.activation.codexAuthProfile = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       __dir=${lib.escapeShellArg stateDir}
       __link="$__dir/active-profile"
@@ -131,18 +169,7 @@ in
   };
 
   # ----------------------------------------------------------------------------
-  # Profile loader
+  # Exports
   # ----------------------------------------------------------------------------
-  loader = pkgs.writeShellScript "codex-profile-loader" (
-    builtins.replaceStrings
-      [
-        "@caEnv@"
-        "@stateDir@"
-      ]
-      [
-        (lib.optionalString cfg.enableCorpGateway ''export CODEX_CA_CERTIFICATE="${caFile}"'')
-        stateDir
-      ]
-      (builtins.readFile ./scripts/profile-loader.sh)
-  );
+  inherit loader;
 }

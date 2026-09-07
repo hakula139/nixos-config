@@ -31,6 +31,7 @@ let
       "${config.xdg.configHome}/codex"
     else
       "${config.home.homeDirectory}/.codex";
+
   profiles = import ./profiles.nix {
     inherit
       config
@@ -75,6 +76,7 @@ in
       # Module imports
       # ------------------------------------------------------------------------
       notify = import ../shared/notify { inherit pkgs lib; };
+
       hooks = import ./hooks.nix {
         inherit
           pkgs
@@ -142,6 +144,7 @@ in
     in
     lib.mkMerge [
       profiles.config
+
       {
         # ----------------------------------------------------------------------
         # Program configuration
