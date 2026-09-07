@@ -22,7 +22,7 @@ in
   ]
   ++ builtins.attrNames mcpProseFields;
   statusMessage = "Polishing prose";
-  timeout = (1 + maxRepairs) * timeouts.modelCall;
+  timeout = 2 * (1 + maxRepairs) * timeouts.modelCall;
   command = mkNuHook {
     slug = "prose-polish";
     script = ./prose-polish.nu;

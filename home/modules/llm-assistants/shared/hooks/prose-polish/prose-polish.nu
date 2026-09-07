@@ -223,7 +223,7 @@ def file-targets [args: record, key: string]: nothing -> list<record> {
   }
   # Only the blocks a write introduces are the agent's own prose. An `Edit` carries
   # context lines the document already holds, and those are not the agent's to rewrite.
-  let held = (held-blocks $args.file_path)
+  let held = (held-blocks ($args.file_path | path expand))
   if $held == null {
     return []
   }
@@ -359,8 +359,9 @@ def grade [target: record, raw: string]: nothing -> record {
   $target | merge {after: $after, problem: (violations $target.before $after | str join "; ")}
 }
 
-def polished [config: record]: nothing -> any {
+def --env polished [config: record]: nothing -> any {
   let payload = (^cat | from json)
+  cd ($payload | get -o cwd | default $env.PWD)
   let found = (targets $payload $config)
   if ($found | is-empty) {
     return null
