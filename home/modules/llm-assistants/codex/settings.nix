@@ -57,7 +57,7 @@
   # ----------------------------------------------------------------------------
   web_search = "live";
   tools = {
-    view_image = true;
+    update_plan.enabled = true;
     web_search.context_size = "high";
   };
 

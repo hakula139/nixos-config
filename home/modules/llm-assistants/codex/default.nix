@@ -99,7 +99,15 @@ in
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
       };
 
-      skills = import ./skills { inherit pkgs lib inputs; };
+      skills = import ./skills {
+        inherit
+          config
+          pkgs
+          lib
+          inputs
+          ;
+        configDir = codexConfigDir;
+      };
 
       agents = import ./agents.nix {
         inherit pkgs lib;
@@ -158,6 +166,8 @@ in
         # ----------------------------------------------------------------------
         # Mutable config
         # ----------------------------------------------------------------------
+        home.activation.codexSkills = skills.activation;
+
         # Codex writes project trust and hook review state back into config.toml.
         # Keep the live file writable, preserving those tables across rebuilds.
         home.activation.codexMutableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -179,6 +189,7 @@ in
             ${pkgs.yq}/bin/tomlq -s -t '
               . as [$current, $baseline]
               | $current * $baseline
+              | del(.tools.view_image)
               | .mcp_servers = $baseline.mcp_servers
               | .hooks = (
                   $baseline.hooks
