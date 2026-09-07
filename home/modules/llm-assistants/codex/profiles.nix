@@ -148,17 +148,37 @@ in
     home.packages = [ switch ];
 
     # --------------------------------------------------------------------------
-    # Home files
-    # --------------------------------------------------------------------------
-    home.file = lib.mapAttrs' (name: settings: {
-      name = "${configDir}/${name}.config.toml";
-      value.source = toml.generate "codex-profile-${name}.toml" settings;
-    }) profiles;
-
-    # --------------------------------------------------------------------------
     # Activation
     # --------------------------------------------------------------------------
-    home.activation.codexAuthProfile = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    # Codex persists trust and settings in the selected profile file.
+    home.activation.codexMutableProfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] (
+      lib.concatStringsSep "\n" (
+        lib.mapAttrsToList (name: settings: ''
+          configFile=${lib.escapeShellArg "${configDir}/${name}.config.toml"}
+          baseline=${toml.generate "codex-profile-${name}.toml" settings}
+
+          install -d -m 0700 ${lib.escapeShellArg configDir}
+          if [[ -e "$configFile" && ! -f "$configFile" ]]; then
+            echo "Refusing to replace non-file Codex profile: $configFile" >&2
+            exit 1
+          fi
+
+          tmpFile="$(mktemp "$configFile.XXXXXX")"
+          trap 'rm -f "$tmpFile"' EXIT
+          if [[ -s "$configFile" ]]; then
+            ${pkgs.yq}/bin/tomlq -s -t '.[0] * .[1]' "$configFile" "$baseline" >"$tmpFile"
+          else
+            cp "$baseline" "$tmpFile"
+          fi
+
+          chmod 0600 "$tmpFile"
+          mv "$tmpFile" "$configFile"
+          trap - EXIT
+        '') profiles
+      )
+    );
+
+    home.activation.codexAuthProfile = lib.hm.dag.entryAfter [ "codexMutableProfiles" ] ''
       __dir=${lib.escapeShellArg stateDir}
       __link="$__dir/active-profile"
       if [[ ! -e "$__link" ]]; then
