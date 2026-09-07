@@ -5,6 +5,7 @@
 {
   pkgs,
   lib,
+  gateway,
   mkNuHook,
   timeouts,
 }:
@@ -14,6 +15,7 @@
     slug = "model-call";
     script = ./model-call.nu;
     config = {
+      inherit gateway;
       # A bare name resolves the proxy-wrapped Codex the module puts on PATH,
       # where the unwrapped package would make its call without a proxy.
       codex = "codex";
