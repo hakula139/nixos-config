@@ -198,12 +198,13 @@ let
   # ----------------------------------------------------------------------------
   # Profile switcher
   # ----------------------------------------------------------------------------
-  claudeSwitch = pkgs.writers.writeNuBin "claude-switch" {
-    makeWrapperArgs = [
-      "--add-flag"
-      stateDir
-    ];
-  } (builtins.readFile ./scripts/claude-switch.nu);
+  claudeSwitch = import ../shared/profile-switch {
+    inherit pkgs lib stateDir;
+    name = "claude-switch";
+    assistant = "Claude Code";
+    profilesDir = "${stateDir}/profiles";
+    extension = "sh";
+  };
 
   # ----------------------------------------------------------------------------
   # Teammate launcher

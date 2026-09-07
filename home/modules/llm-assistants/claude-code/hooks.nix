@@ -11,7 +11,7 @@
 }:
 
 let
-  notify = import ../shared/notify.nix { inherit pkgs lib; };
+  notify = import ../shared/notify { inherit pkgs lib; };
   sharedHooks = import ../shared/hooks {
     inherit
       pkgs
