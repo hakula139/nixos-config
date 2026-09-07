@@ -64,6 +64,7 @@ The test: every changed line should trace back to the requested change.
 How to make changes, debug, and finish.
 
 - **Think from first principles.** Before applying a familiar pattern, check whether the actual constraints still call for it. Cached intuitions are starting points only.
+- **Inspect conventions before editing.** Read the surrounding code and comparable files, using the closest existing counterpart for a new file. Match their structure, naming, comments, docstrings, and section banners where applicable.
 - **Act on findings.** A real bug, broken contract, or simple correctness win uncovered during investigation gets fixed in the same response. Destructive or hard-to-reverse actions still confirm first.
 - **Root cause before symptom.** When tests fail, coverage drops, or behavior breaks, investigate why before patching around. Temporary mitigations need an explicit ask.
 - **Inspect, then iterate.** When a fix does not work, look at real state (DOM, traces, logs, payloads) before guessing again. One inspection beats several blind retries.
