@@ -19,12 +19,7 @@ let
     let
       configFile = toml.generate "codex-agent-${name}" (
         {
-          developer_instructions = agent.prompt + ''
-
-            ## Codex Memory
-
-            Update persistent memory only when the user explicitly requests it. Return useful discoveries to the parent agent as findings.
-          '';
+          developer_instructions = agent.prompt;
           model_reasoning_effort = agent.codex.reasoningEffort;
           personality = "pragmatic";
         }
