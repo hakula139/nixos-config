@@ -239,7 +239,7 @@ def patch-targets [args: record, config: record]: nothing -> list<record> {
   let parser = $config.patchInput
   let files = ($args.command | ^$parser | from json)
   $files
-  | where action == "Add"
+  | where {|file| $file.action == "Add" and ($file.added | length) == ($file.end - $file.start) }
   | each {|file|
     let text = ($file.added | get text | str join "\n")
     # An Add File has no context to preserve. Updates need a Markdown-aware hunk parser.

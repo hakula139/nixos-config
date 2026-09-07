@@ -136,6 +136,18 @@ class HooksTest(unittest.TestCase):
         self.assertIsNone(
             self.polish(
                 'apply_patch',
+                {
+                    'command': (
+                        '*** Begin Patch\n*** Add File: file.md\n'
+                        '+This very useful paragraph should remain unchanged.\n'
+                        'unprefixed content\n*** End Patch'
+                    )
+                },
+            )
+        )
+        self.assertIsNone(
+            self.polish(
+                'apply_patch',
                 {'command': '*** Begin Patch\n*** Delete File: file.md\n*** End Patch'},
             )
         )
