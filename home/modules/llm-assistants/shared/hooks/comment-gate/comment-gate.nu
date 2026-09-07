@@ -56,11 +56,8 @@ const OPENERS = {
 const BANNER_RULE = '(?m)^\s*(?://|#|--|;)\s*[=*_-]{4,}\s*$'
 
 def payload [input: record, config: record]: nothing -> list<record> {
-  let tool = ($input | get -o tool_name | default "")
-  let args = ($input | get -o tool_input | default {})
-  if ($args | describe | str starts-with "record") == false {
-    return []
-  }
+  let tool = $input.tool_name
+  let args = $input.tool_input
   if $tool == "apply_patch" {
     let parser = $config.patchInput
     return ($args.command | ^$parser | from json | where action != "Delete" | each {|file|
@@ -75,11 +72,7 @@ def payload [input: record, config: record]: nothing -> list<record> {
   if ($key | is-empty) {
     return []
   }
-  let text = ($args | get -o $key | default "")
-  [{
-    path: ($args | get -o file_path | default "")
-    text: (if ($text | describe) == "string" { $text } else { "" })
-  }]
+  [{path: $args.file_path, text: ($args | get $key)}]
 }
 
 def commentish [path: string, text: string]: nothing -> bool {
@@ -131,9 +124,6 @@ def reason [raw: string]: nothing -> string {
 
 def gate [config: record]: nothing -> any {
   let input = (^cat | from json)
-  if ($input | describe | str starts-with "record") == false {
-    return null
-  }
   let found = (payload $input $config | where {|file|
     (($file.path | str ends-with ".md") == false
       and ($file.text | str trim | str length --grapheme-clusters) >= $MIN_CHARS

@@ -6,9 +6,6 @@
 
 def parse-patch [command: string]: nothing -> list<record> {
   let lines = ($command | lines)
-  if ($lines | first | default "") != "*** Begin Patch" or ($lines | last | default "") != "*** End Patch" {
-    return []
-  }
   mut files = []
   mut current = null
   for line in $lines {
@@ -32,10 +29,6 @@ def parse-patch [command: string]: nothing -> list<record> {
 
 # Read an apply_patch payload from stdin and emit file changes as JSON.
 def main [] {
-  try {
-    let command = (^cat)
-    parse-patch $command | to json --raw | print
-  } catch {
-    print '[]'
-  }
+  let command = (^cat)
+  parse-patch $command | to json --raw | print
 }
