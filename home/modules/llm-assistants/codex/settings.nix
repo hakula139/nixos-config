@@ -16,7 +16,7 @@
   # Model
   # ----------------------------------------------------------------------------
   model = "gpt-6-astra";
-  model_reasoning_effort = "high";
+  model_reasoning_effort = "medium";
   model_verbosity = "low";
   personality = "pragmatic";
 

@@ -3,9 +3,6 @@
 # ==============================================================================
 # Claude Code Auth Profile Loader
 # ==============================================================================
-# Sourced by the Claude Code wrapper at startup. Resets all auth-related
-# environment variables, then sources the active profile script.
-# ==============================================================================
 
 @unsetVars@
 
