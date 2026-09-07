@@ -125,7 +125,7 @@ Sections 3.1 and 3.2 rule out a quality gate: neither model judgment nor surface
 2. Uses language-aware length thresholds only to decide whether a model call is worthwhile: 120 Han characters or 240 Latin-script letters for a whole file, and 8 Han characters or 32 Latin-script letters for a span.
 3. Applies one positive prompt to Chinese and English. It asks for fidelity, natural flow, and less repetition without prescribing banned tokens.
 4. Checks each result for lost structure and edited literals, and returns a failing passage to the model with the refused attempt and the reason, up to three times. Passages using syntax the validator cannot parse safely are skipped.
-5. Ships the newest attempt even when it still trips a check, since a rewrite that lost a span still reads better than the prose the agent wrote. The checks pace the retry loop, and only an empty or failed model call leaves the original standing.
+5. Keeps the original passage when the newest attempt still fails a structure or literal check, or when the model call fails.
 6. Returns the complete tool input through `updatedInput`. Any error leaves the original call untouched.
 
 The rewriter receives no coding conversation, which preserves the context-isolation gain from section 3.4. The assistant instructions and rewriter use the same phrasing fragment.
@@ -161,9 +161,9 @@ At 3.5 this draft sits mid-scale. The arm carrying coding history in section 3.4
 
 Coverage applies to text Claude Code sends through mutable tool inputs, including Markdown writes and edits, selected MCP publishing fields, commit bodies, and interactive questions. Source file comments and docstrings are covered separately by `hooks/comment-gate/`, which evaluates rather than rewrites them because safely rewriting source code around a comment cannot be delegated to a model. Ordinary conversational replies continue to rely on shared instructions because a Stop hook can only request a new response, not replace a completed one.
 
-Codex and OpenCode will not be wired until their adapters and transports pass end-to-end tests, as their event schemas differ from Claude Code despite exposing pre-tool mutation points.
+Codex uses the shared writing instructions without automatic prose rewriting. Its comment review examines added source lines, and formatting follows rename destinations. OpenCode remains unwired.
 
-Both hooks invoke the model through `hooks/lib/model-call/`, which tries the active profile's gateway and falls back to `codex exec`. Because Codex supplies its own credentials, this fallback maintains coverage for subscription or OAuth profiles where gateway variables are absent. The fallback provides availability rather than quality: on a shared draft, it left mechanical parallelism that the gateway model removed, illustrating the section 3.5 finding that rewriting capability is model-specific.
+Both hooks invoke the model through `hooks/lib/model-call/`, which tries the gateway and falls back to `codex exec`. Claude supplies gateway credentials through its active profile environment. When the Codex corporate gateway is enabled, its hooks use the same configured endpoint, credential file, and CA even if the main session uses the official provider. Because Codex supplies its own credentials, this fallback maintains coverage for subscription or OAuth profiles where gateway variables are absent. The fallback provides availability rather than quality: on a shared draft, it left mechanical parallelism that the gateway model removed, illustrating the section 3.5 finding that rewriting capability is model-specific.
 
 Transport constraints govern model selection. The assistant CLI routes models from only one vendor, all of which section 3.5 scores between 4.0 and 4.5 compared to 9.0 for the selected model. Both legs therefore call their endpoints directly, reading credentials and certificate paths from the assistant's execution environment.
 

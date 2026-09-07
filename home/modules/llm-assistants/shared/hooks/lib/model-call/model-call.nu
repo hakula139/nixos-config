@@ -9,10 +9,22 @@
 # ==============================================================================
 
 def gateway [request: record, config: record]: nothing -> string {
-  # Claude profile API suffix
-  let base = ($env | get -o ANTHROPIC_BASE_URL | default "" | str replace -r '/anthropic$' '')
-  let token = ($env | get -o ANTHROPIC_AUTH_TOKEN | default "")
-  if ($base | is-empty) or ($token | is-empty) {
+  # Codex authenticates its provider with a command, so hooks do not inherit a token.
+  let credentials = if ($config.gateway | is-not-empty) {
+    {
+      baseUrl: $config.gateway.baseUrl
+      token: (open --raw $config.gateway.tokenFile | str trim)
+      caFile: $config.gateway.caFile
+    }
+  } else {
+    {
+      # Claude profile API suffix
+      baseUrl: ($env | get -o ANTHROPIC_BASE_URL | default "" | str replace -r '/anthropic$' '')
+      token: ($env | get -o ANTHROPIC_AUTH_TOKEN | default "")
+      caFile: ($env | get -o NODE_EXTRA_CA_CERTS | default "")
+    }
+  }
+  if ($credentials.baseUrl | is-empty) or ($credentials.token | is-empty) {
     return ""
   }
 
@@ -30,7 +42,7 @@ def gateway [request: record, config: record]: nothing -> string {
   } else {
     $body
   }
-  let ca = ($env | get -o NODE_EXTRA_CA_CERTS | default "")
+  let ca = $credentials.caFile
   let cacert = if ($ca | is-empty) { [] } else { [--cacert $ca] }
   let curl = $config.curl
   # The gateway's advertised IPv6 endpoint closes during TLS.
@@ -39,10 +51,10 @@ def gateway [request: record, config: record]: nothing -> string {
     | to json
     | ^$curl --ipv4 --silent --show-error --fail --max-time $config.gatewayTimeout
       ...$cacert
-      --header $"Authorization: Bearer ($token)"
+      --header $"Authorization: Bearer ($credentials.token)"
       --header "content-type: application/json"
       --data @-
-      $"($base)/v1/chat/completions"
+      $"($credentials.baseUrl)/v1/chat/completions"
     | complete
   )
   if $run.exit_code != 0 {
