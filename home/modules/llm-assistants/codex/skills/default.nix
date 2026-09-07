@@ -30,7 +30,6 @@ let
 
     # Local skills
     clean-gone = ./clean-gone;
-    pr-draft-summary = ./pr-draft-summary;
     pr-review-toolkit = ./pr-review-toolkit;
     read-pdfs = ./read-pdfs;
   };
@@ -43,6 +42,7 @@ let
       name = lib.removePrefix ".agents/skills/" file.target;
       path = file.source;
     }) managedSkills
+    ++ lib.mapAttrsToList (name: path: { inherit name path; }) (import ../../shared/skills)
   );
 in
 {

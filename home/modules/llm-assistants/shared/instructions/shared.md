@@ -81,35 +81,13 @@ Tests must fail against a plausible bug. Avoid structural-only assertions like `
 
 After writing tests, audit each one: does it add unique coverage? Drop or merge subsumed tests.
 
-## Commits and Pull Requests
-
-Keep commit messages and PR descriptions focused on _why_. The diff itself shows _what_.
-
-- **Commit subject**: Conventional Commits — `type(scope): description`, imperative mood.
-  - **Types**: `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, `perf`.
-  - **Scope**: the most specific area changed. Omit only when no meaningful scope applies.
-- **Atomic commits**: one logical change per commit.
-- **Commit at the seam.** When a logical chunk builds and tests pass, commit before moving on. Don't let finished changes pile up unstaged across a long task. Iterative feedback creates more chances to commit.
-- **Commit body**: only when context is needed (rationale, tradeoffs, issue links).
-- **Branches**: `<type>/<short-name>`, reusing the commit type set.
-- **Check PR conventions before creating a PR or MR.** Read the repository's contribution instructions and template, then inspect recent comparable human-authored PRs or MRs for title, body structure, assignees, and labels. Follow explicit repository rules where examples differ, and use existing labels appropriate to the change.
-- **PR opening.** Lead with the concrete problem or goal and the resulting behavior. A short paragraph or a few bullets can cover a small change without headings.
-- **PR detail.** Scale the description to what a reviewer needs to assess the change. Add sections for non-obvious rationale, tradeoffs, measurements, or migration steps when relevant, using headings that fit the content. Avoid repeating the same points under Summary, Changes, and Design decisions.
-- **PR verification.** Report relevant checks and their results, distinguishing verified behavior from untested limits. Use prose, bullets, tables, or checklists as the evidence warrants. Neither `Test plan` nor `Verification` is a required heading.
-- **PR descriptions describe the merged unit.** Fold review-driven fixes into existing sections (Summary, Design decisions, Changes). Avoid "Post-review follow-ups" or "Cleanup commits" segments. The Commits tab already records the sequence.
-- **One purpose per PR.** Unrelated changes ride in their own PR. Dependency or lockfile churn in particular does not tag along with a feature or fix, since burying it hides the real diff and makes the revert lossy.
-- **No local-only paths in committed artifacts.** Keep `.claude/plans/`, `.claude/settings.local.json`, `.dev.vars` and similar out of code comments, commit messages, PR descriptions, and issue replies. Gitignored paths leak personal state and rot for everyone else.
-- **Skip boilerplate sections** that do not apply.
-- **No generated-by attributions or emojis** unless explicitly requested.
-
 ## Git Workflow
 
-- Verify the current branch before committing. Switch first if a new branch was created.
+Before preparing commits, pushing, or drafting, creating, updating, or merging a PR / MR, load the `git-workflow` skill. It owns commit conventions, PR writing, and publication checks. Repository-specific rules remain in the repository's instructions.
+
+- **Commit at the seam.** When a logical chunk builds and tests pass, commit before moving on. Don't let finished changes pile up unstaged across a long task. Iterative feedback creates more chances to commit.
 - **Do not create refs unless asked.** Branches, tags, and archive or backup refs are visible artifacts that outlive the task. Work on the branch you were given, and ask before inventing one. This holds even when the tooling permits it without a prompt: a permitted action is not a requested one.
-- When preparing PRs, verify that the diff and commit count match expectations before pushing.
-- **PR creation includes metadata.** Set assignees and labels according to the repository's conventions when creating a PR or MR. Read back the created request to verify its base, diff, assignees, and labels, and correct omissions before reporting completion.
 - **Wait for explicit per-PR approval before merging.** Earlier blanket approvals do not extend to PRs opened later in the session. After opening a PR, push, report the URL, and wait for `lgtm` or `merge` referencing that specific PR.
-- **PR body authoring.** Prefer `gh pr edit --body-file <file>` or `gh pr create --body-file -` over inline `--body "$(cat <<'EOF' ... EOF)"`. The file-input form avoids shell-escape bugs around backticks and `$()` substitution. Either way, do not reference prior PRs as `#N` in the body. GitHub auto-expands them into title cards that break sentence flow.
 
 ### Shared-Tree Safety
 
@@ -128,6 +106,7 @@ When writing documentation:
 - Focus on "why" and "how to use". Code should already show "what".
 - Only reference implemented functionality. Never describe WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them.
+- In directory trees and similar aligned listings, align trailing comment markers at one column. Leave several spaces after the longest entry so small name changes do not force every comment to move.
 
 ## MCP Server Usage
 
