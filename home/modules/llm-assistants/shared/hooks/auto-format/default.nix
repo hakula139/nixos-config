@@ -7,6 +7,7 @@
   lib,
   enableDevToolchains,
   mkNuHook,
+  patchInput,
   repo,
 }:
 
@@ -72,6 +73,7 @@ in
     slug = "auto-format";
     script = ./auto-format.nu;
     config = {
+      patchInput = toString patchInput;
       cspell = whenDev pkgs.cspell;
       dprint = whenDev pkgs.dprint;
       dprintConfig = whenDevPath dprintConfig;

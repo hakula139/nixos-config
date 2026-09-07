@@ -6,6 +6,7 @@
   pkgs,
   lib,
   repo,
+  gateway ? { },
   enableDevToolchains ? true,
   ...
 }:
@@ -16,12 +17,17 @@ let
       pkgs
       lib
       repo
+      gateway
       enableDevToolchains
       ;
     assistant = "codex";
   };
 
   toolClasses = {
+    askQuestion = [
+      "^request_user_input$"
+      "^request_user_input_async$"
+    ];
     fileWrite = [
       "Edit"
       "Write"
@@ -31,17 +37,37 @@ let
 
   postEditHooks = with sharedHooks.hooks; [
     wakatime
-    autoFormat
+    (
+      autoFormat
+      // {
+        timeout = sharedHooks.timeouts.postEdit;
+        statusMessage = "Formatting edited files";
+        command = toString (
+          pkgs.writeShellScript "codex-format-feedback" ''
+            set -euo pipefail
+            ${autoFormat.command} | ${pkgs.jq}/bin/jq -Rs '
+              select(length > 0)
+              | {hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: .}}
+            '
+          ''
+        );
+      }
+    )
   ];
 
-  postEditMatcher = sharedHooks.mkMatcher toolClasses postEditHooks;
-
-  postEditScript = pkgs.writeShellScript "codex-post-edit" ''
-    input="$(cat)"
-    ${lib.concatMapStringsSep "\n" (
-      hook: ''printf '%s' "$input" | ${hook.command} || true''
-    ) postEditHooks}
-  '';
+  mkEntry = hook: {
+    matcher = sharedHooks.mkMatcher toolClasses [ hook ];
+    hooks = [
+      (
+        {
+          type = "command";
+          inherit (hook) command;
+        }
+        // lib.optionalAttrs (hook ? timeout) { inherit (hook) timeout; }
+        // lib.optionalAttrs (hook ? statusMessage) { inherit (hook) statusMessage; }
+      )
+    ];
+  };
 
   mkWorkmuxHook = status: {
     hooks = [
@@ -55,18 +81,9 @@ in
 {
   UserPromptSubmit = [ (mkWorkmuxHook "working") ];
 
-  PostToolUse = [
-    {
-      matcher = postEditMatcher;
-      hooks = [
-        {
-          type = "command";
-          command = "${postEditScript}";
-          timeout = sharedHooks.timeouts.postEdit;
-          statusMessage = "Processing edited files";
-        }
-      ];
-    }
+  PreToolUse = [ (mkEntry sharedHooks.hooks.prosePolish) ];
+
+  PostToolUse = map mkEntry (postEditHooks ++ [ sharedHooks.hooks.commentGate ]) ++ [
     (mkWorkmuxHook "working")
   ];
 

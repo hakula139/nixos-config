@@ -212,7 +212,7 @@ def held-blocks [path: string]: nothing -> any {
   }
 }
 
-def file-targets [args: record, key: string]: nothing -> list<record> {
+def file-targets [args: record, key: string, --new-file]: nothing -> list<record> {
   if (not ($args.file_path | str ends-with ".md")) {
     return []
   }
@@ -223,7 +223,7 @@ def file-targets [args: record, key: string]: nothing -> list<record> {
   }
   # Only the blocks a write introduces are the agent's own prose. An `Edit` carries
   # context lines the document already holds, and those are not the agent's to rewrite.
-  let held = (held-blocks $args.file_path)
+  let held = if $new_file { [] } else { held-blocks ($args.file_path | path expand) }
   if $held == null {
     return []
   }
@@ -235,9 +235,27 @@ def file-targets [args: record, key: string]: nothing -> list<record> {
   | flatten
 }
 
+def patch-targets [args: record, config: record]: nothing -> list<record> {
+  let parser = $config.patchInput
+  let files = ($args.command | ^$parser | from json)
+  $files
+  | where action == "Add"
+  | each {|file|
+    let text = ($file.added | get text | str join "\n")
+    # An Add File has no context to preserve. Updates need a Markdown-aware hunk parser.
+    file-targets {file_path: $file.path, content: $text} content --new-file
+    | each {|found| $found | insert patchFile ($file | insert text $text) }
+  }
+  | flatten
+}
+
 def targets [payload: record, config: record]: nothing -> list<record> {
   let tool = ($payload | get tool_name)
   let args = ($payload | get tool_input)
+
+  if $tool == "apply_patch" {
+    return (patch-targets $args $config)
+  }
 
   let key = match $tool {
     "Write" => "content"
@@ -248,7 +266,18 @@ def targets [payload: record, config: record]: nothing -> list<record> {
     return (file-targets $args $key)
   }
 
-  if $tool == "AskUserQuestion" {
+  if $tool == "request_user_input_async" {
+    return ($args.questions | enumerate | each {|question|
+      let prefix = [questions $question.index]
+      (target ($prefix | append title) $question.item.title) ++ (
+        $question.item | get -o options | default [] | enumerate | each {|option|
+          target ($prefix | append options | append $option.index) $option.item
+        } | flatten
+      )
+    } | flatten)
+  }
+
+  if $tool in ["AskUserQuestion" "request_user_input"] {
     return (question-targets ($args | get questions))
   }
 
@@ -359,8 +388,9 @@ def grade [target: record, raw: string]: nothing -> record {
   $target | merge {after: $after, problem: (violations $target.before $after | str join "; ")}
 }
 
-def polished [config: record]: nothing -> any {
+def --env polished [config: record]: nothing -> any {
   let payload = (^cat | from json)
+  cd ($payload | get -o cwd | default $env.PWD)
   let found = (targets $payload $config)
   if ($found | is-empty) {
     return null
@@ -400,6 +430,21 @@ def polished [config: record]: nothing -> any {
   }
 
   mut args = ($payload | get tool_input)
+  if $payload.tool_name == "apply_patch" {
+    mut lines = ($args.command | lines)
+    # Replace backwards so a shorter paragraph cannot shift another file's offsets.
+    for group in ($edits | group-by { $in.patchFile.start | into string } | values | sort-by { $in.0.patchFile.start } | reverse) {
+      let file = $group.0.patchFile
+      let replacement = (splice $file.text $group | lines | each {|line| "+" + $line })
+      $lines = (($lines | take $file.start) ++ $replacement ++ ($lines | skip $file.end))
+    }
+    $args.command = ($lines | str join "\n")
+    return ({hookSpecificOutput: {
+      hookEventName: "PreToolUse"
+      permissionDecision: "allow"
+      updatedInput: $args
+    }} | to json --raw)
+  }
   for edit in ($edits | where piece == null) {
     $args = ($args | update ($edit.path | into cell-path) $edit.after)
   }
@@ -411,10 +456,10 @@ def polished [config: record]: nothing -> any {
   }
 
   {
-    hookSpecificOutput: {
+    hookSpecificOutput: ({
       hookEventName: "PreToolUse"
       updatedInput: $args
-    }
+    } | merge (if $config.assistant == "codex" { {permissionDecision: "allow"} } else { {} }))
   }
   | to json --raw
 }

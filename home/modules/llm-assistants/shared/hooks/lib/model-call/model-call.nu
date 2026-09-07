@@ -9,9 +9,19 @@
 # ==============================================================================
 
 def gateway [request: record, config: record]: nothing -> string {
-  # Claude profile API suffix
-  let base = ($env | get -o ANTHROPIC_BASE_URL | default "" | str replace -r '/anthropic$' '')
-  let token = ($env | get -o ANTHROPIC_AUTH_TOKEN | default "")
+  let configured = ($config | get -o gateway | default {})
+  # Codex authenticates its provider with a command, so hooks do not inherit a token.
+  let base = if ($configured | is-not-empty) {
+    $configured.baseUrl
+  } else {
+    # Claude profile API suffix
+    $env | get -o ANTHROPIC_BASE_URL | default "" | str replace -r '/anthropic$' ''
+  }
+  let token = if ($configured | is-not-empty) {
+    open --raw $configured.tokenFile | str trim
+  } else {
+    $env | get -o ANTHROPIC_AUTH_TOKEN | default ""
+  }
   if ($base | is-empty) or ($token | is-empty) {
     return ""
   }
@@ -30,7 +40,7 @@ def gateway [request: record, config: record]: nothing -> string {
   } else {
     $body
   }
-  let ca = ($env | get -o NODE_EXTRA_CA_CERTS | default "")
+  let ca = ($configured | get -o caFile | default ($env | get -o NODE_EXTRA_CA_CERTS | default ""))
   let cacert = if ($ca | is-empty) { [] } else { [--cacert $ca] }
   let curl = $config.curl
   # The gateway's advertised IPv6 endpoint closes during TLS.

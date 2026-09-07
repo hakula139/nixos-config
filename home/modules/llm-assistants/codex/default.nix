@@ -84,6 +84,11 @@ in
           repo
           enableDevToolchains
           ;
+        gateway = lib.optionalAttrs cfg.auth.enableCorpGateway {
+          baseUrl = corpHosts.llmGatewayUrl;
+          tokenFile = secretPath "llm-assistants/bifrost-api-key";
+          caFile = secretPath "llm-assistants/corp-cachain.crt";
+        };
       };
 
       mcp = import ./mcp.nix {

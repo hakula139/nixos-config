@@ -12,6 +12,7 @@
   assistant,
   repo,
   enableDevToolchains ? true,
+  gateway ? { },
   ...
 }:
 
@@ -47,11 +48,16 @@ let
     in
     "${package}/bin/${assistant}-${slug}";
 
+  patchInput = pkgs.writers.writeNu "patch-input" { } (
+    builtins.readFile ./lib/patch-input/patch-input.nu
+  );
+
   inherit
     (import ./lib/model-call {
       inherit
         pkgs
         lib
+        gateway
         mkNuHook
         timeouts
         ;
@@ -85,19 +91,31 @@ in
         lib
         enableDevToolchains
         mkNuHook
+        patchInput
         repo
         ;
     };
 
     commentGate = import ./comment-gate {
-      inherit mkNuHook modelCall;
+      inherit
+        mkNuHook
+        modelCall
+        patchInput
+        timeouts
+        ;
       inherit (instructions) commentGate;
     };
 
     completeness = import ./completeness;
 
     prosePolish = import ./prose-polish {
-      inherit mkNuHook modelCall timeouts;
+      inherit
+        assistant
+        mkNuHook
+        modelCall
+        patchInput
+        timeouts
+        ;
     };
 
     wakatime = import ./wakatime {

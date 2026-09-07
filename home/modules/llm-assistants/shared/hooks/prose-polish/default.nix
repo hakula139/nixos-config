@@ -3,8 +3,10 @@
 # ==============================================================================
 
 {
+  assistant,
   mkNuHook,
   modelCall,
+  patchInput,
   timeouts,
 }:
 
@@ -22,12 +24,18 @@ in
   ]
   ++ builtins.attrNames mcpProseFields;
   statusMessage = "Polishing prose";
-  timeout = (1 + maxRepairs) * timeouts.modelCall;
+  timeout = 2 * (1 + maxRepairs) * timeouts.modelCall;
   command = mkNuHook {
     slug = "prose-polish";
     script = ./prose-polish.nu;
     config = {
-      inherit maxRepairs mcpProseFields modelCall;
+      inherit
+        assistant
+        maxRepairs
+        mcpProseFields
+        modelCall
+        ;
+      patchInput = toString patchInput;
       model = "openrouter/google/gemini-3.7-flash";
       phrasing = builtins.readFile ../../instructions/phrasing.md;
       prompt = builtins.readFile ./prompt.md;

@@ -55,11 +55,17 @@ const OPENERS = {
 # That frames a banner, so it never justifies a judge call on its own.
 const BANNER_RULE = '(?m)^\s*(?://|#|--|;)\s*[=*_-]{4,}\s*$'
 
-def payload [input: record]: nothing -> record {
+def payload [input: record, config: record]: nothing -> list<record> {
   let tool = ($input | get -o tool_name | default "")
   let args = ($input | get -o tool_input | default {})
   if ($args | describe | str starts-with "record") == false {
-    return {path: "", text: ""}
+    return []
+  }
+  if $tool == "apply_patch" {
+    let parser = $config.patchInput
+    return ($args.command | ^$parser | from json | where action != "Delete" | each {|file|
+      {path: $file.path, text: ($file.added | get text | str join "\n")}
+    })
   }
   let key = match $tool {
     "Write" => "content"
@@ -67,13 +73,13 @@ def payload [input: record]: nothing -> record {
     _ => "",
   }
   if ($key | is-empty) {
-    return {path: "", text: ""}
+    return []
   }
   let text = ($args | get -o $key | default "")
-  {
+  [{
     path: ($args | get -o file_path | default "")
     text: (if ($text | describe) == "string" { $text } else { "" })
-  }
+  }]
 }
 
 def commentish [path: string, text: string]: nothing -> bool {
@@ -128,20 +134,14 @@ def gate [config: record]: nothing -> any {
   if ($input | describe | str starts-with "record") == false {
     return null
   }
-  let found = (payload $input)
-  # Markdown belongs to the prose rewriter.
-  if ($found.path | str ends-with ".md") {
-    return null
-  }
-  # `str length` defaults to UTF-8 bytes.
-  if ($found.text | str trim | str length --grapheme-clusters) < $MIN_CHARS {
-    return null
-  }
-  if (commentish $found.path $found.text) == false {
-    return null
-  }
+  let found = (payload $input $config | where {|file|
+    (($file.path | str ends-with ".md") == false
+      and ($file.text | str trim | str length --grapheme-clusters) >= $MIN_CHARS
+      and (commentish $file.path $file.text))
+  })
+  if ($found | is-empty) { return null }
 
-  let raw = (judge $found.text $config)
+  let raw = (judge ($found | to json) $config)
   if ($raw | str trim | is-empty) {
     return null
   }
@@ -153,7 +153,7 @@ def gate [config: record]: nothing -> any {
       hookEventName: "PostToolUse"
       additionalContext: ([
         "The comment gate flagged comments in the text you just wrote."
-        "Drop or tighten them in place, then continue."
+        "Check each finding against surrounding code and comparable files before changing it."
         ""
         (reason $raw)
       ] | str join "\n")

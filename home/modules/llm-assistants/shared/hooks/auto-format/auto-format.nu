@@ -117,36 +117,33 @@ def format-file [path: string, config: record] {
   }
 }
 
-def collect-files [input: record]: nothing -> list<string> {
+def collect-files [input: record, config: record]: nothing -> list<string> {
   let args = ($input | get -o tool_input | default {})
   if ($args | describe | str starts-with "record") == false {
     return []
   }
   let paths = if ($input | get -o tool_name | default "") == "apply_patch" {
-    $args
-    | get -o command
-    | default ""
-    | lines
-    # File paths in apply_patch headers
-    | parse --regex '^\*\*\* (?:Add|Update) File: (?<path>.*)$'
-    | get -o path
-    | default []
+    let parser = $config.patchInput
+    $args.command | ^$parser | from json | where action != "Delete" | get path
   } else {
     [($args | get -o file_path | default "")]
   }
   $paths
   | where ($it | is-not-empty)
+  | each {|path| $path | path expand }
   | sort
   | uniq
-  | where ($it | path expand | path type) == "file"
+  | where ($it | path type) == "file"
 }
 
-def format-edited [config: record] {
+def --env format-edited [config: record] {
   let input = (^cat | from json)
   if ($input | describe | str starts-with "record") == false {
     return
   }
-  for path in (collect-files $input) {
+  let cwd = ($input | get -o cwd | default $env.PWD)
+  cd $cwd
+  for path in (collect-files $input $config) {
     format-file $path $config
   }
 }
