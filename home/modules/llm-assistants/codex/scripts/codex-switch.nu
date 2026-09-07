@@ -1,5 +1,9 @@
 #!/usr/bin/env nu
 
+# ==============================================================================
+# Codex Auth Profile Switcher
+# ==============================================================================
+
 # Switch the default Codex profile, or list the available ones.
 def main [
   config_dir: string

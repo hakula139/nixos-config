@@ -3,9 +3,6 @@
 # ==============================================================================
 # Claude Code Auth Profile Switcher
 # ==============================================================================
-# List and switch between authentication profiles by updating the active-profile
-# symlink in the state directory.
-# ==============================================================================
 
 # `glob` rather than `ls`, which raises when no profile has been written yet.
 def profile-names [profiles_dir: string]: nothing -> list<string> {
