@@ -109,13 +109,7 @@ in
     completeness = import ./completeness;
 
     prosePolish = import ./prose-polish {
-      inherit
-        assistant
-        mkNuHook
-        modelCall
-        patchInput
-        timeouts
-        ;
+      inherit mkNuHook modelCall timeouts;
     };
 
     wakatime = import ./wakatime {

@@ -1,3 +1,7 @@
+## Prose Polish
+
+Before writing to the file, a hook rewrites your Markdown prose, question text, and certain MCP fields to enforce the guidance above. Treat this output as final rather than reverting or re-editing it toward your original wording, checking only to restore any substantive claim or qualification that was dropped.
+
 ## Session Patterns
 
 Treat Claude Code as a capable engineer you delegate to. Avoid line-by-line steering.

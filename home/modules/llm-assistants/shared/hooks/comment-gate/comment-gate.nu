@@ -64,7 +64,7 @@ def payload [input: record, config: record]: nothing -> list<record> {
   if $tool == "apply_patch" {
     let parser = $config.patchInput
     return ($args.command | ^$parser | from json | where action != "Delete" | each {|file|
-      {path: $file.path, text: ($file.added | get text | str join "\n")}
+      {path: $file.path, text: ($file.added | str join "\n")}
     })
   }
   let key = match $tool {

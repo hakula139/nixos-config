@@ -36,7 +36,6 @@ class HooksTest(unittest.TestCase):
         )
         self.model.chmod(0o755)
         self.config = {
-            'assistant': 'codex',
             'patchInput': str(self.parser),
             'modelCall': str(self.model),
             'model': 'test',
@@ -67,91 +66,24 @@ class HooksTest(unittest.TestCase):
 
     def test_questions_and_mcp_preserve_other_fields(self):
         question = 'This is a very useful question about the preferred workflow?'
-        for tool in ['AskUserQuestion', 'request_user_input']:
-            args = {
-                'questions': [
-                    {
-                        'id': 'workflow',
-                        'header': 'Workflow',
-                        'question': question,
-                        'options': [{'label': 'Default', 'description': question}],
-                    }
-                ]
-            }
-            result = self.polish(tool, args)['hookSpecificOutput']
-            self.assertEqual(result['permissionDecision'], 'allow')
-            updated = result['updatedInput']['questions'][0]
-            self.assertEqual(updated['id'], 'workflow')
-            self.assertIn('helpful', updated['question'])
-            self.assertIn('helpful', updated['options'][0]['description'])
-        result = self.polish(
-            'request_user_input_async',
-            {'questions': [{'title': question, 'options': [question]}]},
-        )
-        updated = result['hookSpecificOutput']['updatedInput']['questions'][0]
-        self.assertIn('helpful', updated['title'])
-        self.assertIn('helpful', updated['options'][0])
+        args = {
+            'questions': [{
+                'header': 'Workflow',
+                'question': question,
+                'options': [{'label': 'Default', 'description': question}],
+            }]
+        }
+        result = self.polish('AskUserQuestion', args)['hookSpecificOutput']
+        updated = result['updatedInput']['questions'][0]
+        self.assertEqual(updated['header'], 'Workflow')
+        self.assertIn('helpful', updated['question'])
+        self.assertIn('helpful', updated['options'][0]['description'])
         result = self.polish(
             'mcp__GitHub__create_pull_request', {'body': question, 'head': 'feat/topic'}
         )
-        self.assertEqual(
-            result['hookSpecificOutput']['updatedInput']['head'], 'feat/topic'
-        )
-
-    def test_multifile_patch_preserves_updates_deletes_and_renames(self):
-        patch = (
-            '*** Begin Patch\n*** Add File: first.md\n'
-            '+This is very useful information about the current implementation.\n'
-            '*** Update File: existing.md\n*** Move to: renamed.md\n@@\n'
-            ' unchanged context\n-old\n'
-            '+This is very useful information about an update.\n'
-            '*** Delete File: gone.md\n*** Add File: nested/second.md\n'
-            '+This is very useful information about the second implementation.\n'
-            '*** End Patch'
-        )
-        result = self.polish('apply_patch', {'command': patch, 'extra': True})
         updated = result['hookSpecificOutput']['updatedInput']
-        expected = patch.replace(
-            'very useful information about the current',
-            'helpful information about the current',
-        )
-        expected = expected.replace(
-            'very useful information about the second',
-            'helpful information about the second',
-        )
-        self.assertEqual(updated, {'command': expected, 'extra': True})
-
-    def test_noop_fenced_code_and_unsupported_markdown(self):
-        for body in [
-            'short',
-            '```text\nThis is very useful information in a code block.\n```',
-            '~~~text\nThis is very useful information in a code block.\n~~~',
-        ]:
-            patch = (
-                '*** Begin Patch\n*** Add File: file.md\n'
-                + '\n'.join('+' + line for line in body.splitlines())
-                + '\n*** End Patch'
-            )
-            self.assertIsNone(self.polish('apply_patch', {'command': patch}))
-        self.assertIsNone(self.polish('apply_patch', {'command': 'invalid patch'}))
-        self.assertIsNone(
-            self.polish(
-                'apply_patch',
-                {
-                    'command': (
-                        '*** Begin Patch\n*** Add File: file.md\n'
-                        '+This very useful paragraph should remain unchanged.\n'
-                        'unprefixed content\n*** End Patch'
-                    )
-                },
-            )
-        )
-        self.assertIsNone(
-            self.polish(
-                'apply_patch',
-                {'command': '*** Begin Patch\n*** Delete File: file.md\n*** End Patch'},
-            )
-        )
+        self.assertEqual(updated['head'], 'feat/topic')
+        self.assertIn('helpful', updated['body'])
 
     def test_rewrite_cannot_change_protected_literals(self):
         self.model.write_text(

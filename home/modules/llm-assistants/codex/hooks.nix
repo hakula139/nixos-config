@@ -24,10 +24,6 @@ let
   };
 
   toolClasses = {
-    askQuestion = [
-      "^request_user_input$"
-      "^request_user_input_async$"
-    ];
     fileWrite = [
       "Edit"
       "Write"
@@ -53,6 +49,7 @@ let
         );
       }
     )
+    commentGate
   ];
 
   mkEntry = hook: {
@@ -81,9 +78,7 @@ in
 {
   UserPromptSubmit = [ (mkWorkmuxHook "working") ];
 
-  PreToolUse = [ (mkEntry sharedHooks.hooks.prosePolish) ];
-
-  PostToolUse = map mkEntry (postEditHooks ++ [ sharedHooks.hooks.commentGate ]) ++ [
+  PostToolUse = map mkEntry postEditHooks ++ [
     (mkWorkmuxHook "working")
   ];
 
