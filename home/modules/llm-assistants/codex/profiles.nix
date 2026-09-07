@@ -135,10 +135,13 @@ in
   # ----------------------------------------------------------------------------
   loader = pkgs.writeShellScript "codex-profile-loader" (
     builtins.replaceStrings
-      [ "@stateDir@" "@caFile@" ]
       [
-        (lib.escapeShellArg stateDir)
-        (lib.escapeShellArg (if cfg.enableCorpGateway then caFile else ""))
+        "@caEnv@"
+        "@stateDir@"
+      ]
+      [
+        (lib.optionalString cfg.enableCorpGateway ''export CODEX_CA_CERTIFICATE="${caFile}"'')
+        stateDir
       ]
       (builtins.readFile ./scripts/profile-loader.sh)
   );
