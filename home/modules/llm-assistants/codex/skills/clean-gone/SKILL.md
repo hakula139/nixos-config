@@ -36,7 +36,13 @@ Clean branches whose upstream refs were deleted without risking uncommitted or u
 
    Otherwise, present the dry-run output and wait for authorization before deleting anything.
 
-4. Report removed and skipped worktrees and branches. Explain each skip. Never work around a skip with manual force deletion or directory removal.
+4. Investigate skips when other evidence can establish that a worktree is stale. The script is conservative around squash merges and overlapping changes. A merged PR or MR is sufficient evidence when its recorded head exactly matches the local branch tip and its merge commit is an ancestor of the target branch. A merged title or matching branch name alone is insufficient.
+
+   Inspect tracked, untracked, and ignored files before manual cleanup. Preserve unique local content. A local change already preserved elsewhere can be discarded from the stale worktree after verifying the copies match. Leave active worktrees and unresolved changes alone.
+
+   Once integration and local-content preservation are established, use `git worktree remove` and then `git branch -D` if squash history prevents ordinary branch deletion. Avoid force-removing worktrees or recursively deleting directories to bypass unresolved state. Existing cleanup authorization covers removals supported by this evidence.
+
+5. Report removed and skipped worktrees and branches, including the evidence used for manual cleanup and the reason for each remaining skip.
 
 ## Non-default bases
 
