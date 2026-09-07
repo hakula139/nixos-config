@@ -1,6 +1,7 @@
 import json
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,7 +23,7 @@ class HooksTest(unittest.TestCase):
         self.parser.chmod(0o755)
         self.model = self.root / 'model'
         self.model.write_text(
-            '#!/usr/bin/env python3\n'
+            f'#!{sys.executable}\n'
             'import json, sys\n'
             'request = json.load(sys.stdin)\n'
             'if request.get("json"):\n'
@@ -154,7 +155,7 @@ class HooksTest(unittest.TestCase):
 
     def test_rewrite_cannot_change_protected_literals(self):
         self.model.write_text(
-            '#!/usr/bin/env python3\nimport json,sys\nr=json.load(sys.stdin)\n'
+            f'#!{sys.executable}\nimport json,sys\nr=json.load(sys.stdin)\n'
             'p=json.loads(r["user"].split("\\n")[-1])["passages"]\n'
             'for x in p: x["text"]="Rewritten paragraph drops the protected '
             'literal."\nprint(json.dumps({"passages":p}))\n'
@@ -191,7 +192,7 @@ class HooksTest(unittest.TestCase):
     def test_formatter_uses_payload_cwd_and_move_destination(self):
         formatter = self.root / 'formatter'
         formatter.write_text(
-            '#!/usr/bin/env python3\nimport sys\nfrom pathlib import Path\n'
+            f'#!{sys.executable}\nimport sys\nfrom pathlib import Path\n'
             'p=Path(sys.argv[-1]); p.write_text(p.read_text()+"formatted\\n'
             '")\nprint("diagnostic")\n'
         )
@@ -228,7 +229,7 @@ class HooksTest(unittest.TestCase):
         token.write_text('fixture-token\n')
         curl = self.root / 'curl'
         curl.write_text(
-            '#!/usr/bin/env python3\nimport json,sys\n'
+            f'#!{sys.executable}\nimport json,sys\n'
             'a=sys.argv; request=json.load(sys.stdin)\n'
             'assert a[a.index("--header")+1]=="Authorization: Bearer fixture-token"\n'
             'assert a[-1]=="https://gateway.example/v1/chat/completions"\n'

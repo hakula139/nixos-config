@@ -379,11 +379,30 @@
       };
 
       # ------------------------------------------------------------------------
-      # Pre-commit Hooks (git-hooks.nix)
+      # Checks
       # ------------------------------------------------------------------------
-      checks = forAllSystems (system: {
-        pre-commit = preCommitCheckFor system;
-      });
+      checks = forAllSystems (
+        system:
+        let
+          pkgs = pkgsFor system;
+        in
+        {
+          pre-commit = preCommitCheckFor system;
+          assistant-hooks =
+            pkgs.runCommand "assistant-hooks"
+              {
+                nativeBuildInputs = with pkgs; [
+                  coreutils
+                  nushell
+                  python3
+                ];
+              }
+              ''
+                python3 -m unittest discover -s ${./home/modules/llm-assistants/shared/hooks}/tests -v
+                touch "$out"
+              '';
+        }
+      );
 
       # ------------------------------------------------------------------------
       # Dev shell
