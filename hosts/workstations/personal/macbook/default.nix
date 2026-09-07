@@ -48,7 +48,7 @@
       defaultProfile = "official";
       enableCorpGateway = true;
     };
-
+    hakula.codex.auth.enableCorpGateway = true;
     hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
   };
 
