@@ -50,6 +50,7 @@
     };
 
     hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
+    hakula.codex.auth.enableCorpGateway = true;
   };
 
   # ----------------------------------------------------------------------------

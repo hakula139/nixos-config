@@ -8,6 +8,7 @@
   lib,
   inputs,
   corpHosts,
+  hostType,
   llmAssistantLib,
   proxyLib,
   repo,
@@ -22,8 +23,26 @@ let
   agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
   inherit (llmAssistantLib) mcpOptions;
   instructions = import ../shared/instructions;
+  codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
 
   codexMcpServers = mcpOptions.commonServerNames ++ [ "context7" ];
+  codexConfigDir =
+    if config.home.preferXdgDirectories then
+      "${config.xdg.configHome}/codex"
+    else
+      "${config.home.homeDirectory}/.codex";
+  profiles = import ./profiles.nix {
+    inherit
+      config
+      pkgs
+      lib
+      codexPkg
+      corpHosts
+      hostType
+      secretPath
+      ;
+    configDir = codexConfigDir;
+  };
 in
 {
   # ----------------------------------------------------------------------------
@@ -31,6 +50,8 @@ in
   # ----------------------------------------------------------------------------
   options.hakula.codex = {
     enable = lib.mkEnableOption "OpenAI Codex CLI";
+
+    auth = profiles.options;
 
     agents = {
       enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
@@ -86,16 +107,18 @@ in
       # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
-      codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
+      proxyScript = pkgs.writeShellScript "codex-proxy-env" (proxyLib.mkProxyScript cfg.proxy);
 
-      # Keep codex version in the derivation name so Home Manager detects
-      # this as a modern codex for config directory layout.
-      codexBin = proxyLib.wrapWithProxy {
-        inherit pkgs;
-        pkg = codexPkg;
-        proxyCfg = cfg.proxy;
+      # Home Manager uses the version in the name to select the config layout.
+      codexBin = pkgs.symlinkJoin {
         name = "codex-${codexPkg.version}";
-        bin = "codex";
+        paths = [ codexPkg ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/codex \
+            --run ${lib.escapeShellArg "source ${profiles.loader}"} \
+            ${lib.optionalString cfg.proxy.enable "--run ${lib.escapeShellArg "source ${proxyScript}"}"}
+        '';
       };
 
       codexSettings = import ./settings.nix {
@@ -109,11 +132,6 @@ in
       };
 
       codexConfig = toml.generate "codex-config" codexSettings;
-      codexConfigDir =
-        if config.home.preferXdgDirectories then
-          "${config.xdg.configHome}/codex"
-        else
-          "${config.home.homeDirectory}/.codex";
 
       # Separate from default.rules, which Codex rewrites on TUI allowlisting.
       codexRulesTarget =
@@ -123,6 +141,7 @@ in
           ".codex/rules/nixos-config.rules";
     in
     lib.mkMerge [
+      profiles.config
       {
         # ----------------------------------------------------------------------
         # Program configuration
