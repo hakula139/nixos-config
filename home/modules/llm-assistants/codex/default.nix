@@ -74,7 +74,7 @@ in
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
-      notify = import ../shared/notify.nix { inherit pkgs lib; };
+      notify = import ../shared/notify { inherit pkgs lib; };
       hooks = import ./hooks.nix {
         inherit
           pkgs

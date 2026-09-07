@@ -73,7 +73,7 @@ let
   # ----------------------------------------------------------------------------
   # Profile switcher
   # ----------------------------------------------------------------------------
-  switch = import ../shared/profile-switch.nix {
+  switch = import ../shared/profile-switch {
     inherit pkgs lib stateDir;
     name = "codex-switch";
     assistant = "Codex";
