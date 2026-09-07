@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
+# ==============================================================================
+# Codex Auth Profile Loader
+# ==============================================================================
+
 set -euo pipefail
 
-__codex_state_dir=@stateDir@
-__codex_profile=@defaultProfile@
+__codex_profile=@stateDir@/active-profile
 __codex_ca_file=@caFile@
-if [[ -L "$__codex_state_dir/active-profile" ]]; then
-  __codex_profile="$(basename "$(readlink "$__codex_state_dir/active-profile")" .config.toml)"
-fi
 
 # Explicit CLI profiles and config-free hook calls retain their own selection.
 __codex_add_profile=true
@@ -23,7 +23,11 @@ for __codex_arg in "$@"; do
   esac
 done
 if [[ "$__codex_add_profile" == true ]]; then
-  set -- --profile "$__codex_profile" "$@"
+  if [[ -f "$__codex_profile" ]]; then
+    set -- --profile "$(basename "$(readlink "$__codex_profile")" .config.toml)" "$@"
+  else
+    echo "codex: no active auth profile at ${__codex_profile}" >&2
+  fi
 fi
 
 # Codex adds this bundle to its system roots, including for native --profile calls.

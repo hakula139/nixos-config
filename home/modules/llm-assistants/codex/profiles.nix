@@ -1,3 +1,7 @@
+# ==============================================================================
+# Codex Auth Profiles
+# ==============================================================================
+
 {
   config,
   pkgs,
@@ -15,6 +19,10 @@ let
   stateDir = "${config.xdg.stateHome}/codex";
   tokenFile = secretPath "llm-assistants/bifrost-api-key";
   caFile = secretPath "llm-assistants/corp-cachain.crt";
+
+  # ----------------------------------------------------------------------------
+  # Model catalog
+  # ----------------------------------------------------------------------------
   # The gateway's /models response is not a Codex model catalog.
   modelCatalog =
     pkgs.runCommand "codex-corp-models.json"
@@ -31,6 +39,9 @@ let
         ' > "$out"
       '';
 
+  # ----------------------------------------------------------------------------
+  # Profile definitions
+  # ----------------------------------------------------------------------------
   profiles = {
     official = {
       model = "gpt-6-astra";
@@ -55,18 +66,21 @@ let
     };
   };
 
-  switch = pkgs.writers.writeNuBin "codex-switch" {
-    makeWrapperArgs = [
-      "--add-flag"
-      configDir
-      "--add-flag"
-      stateDir
-      "--add-flag"
-      cfg.defaultProfile
-    ];
-  } (builtins.readFile ./scripts/codex-switch.nu);
+  # ----------------------------------------------------------------------------
+  # Profile switcher
+  # ----------------------------------------------------------------------------
+  switch = import ../shared/profile-switch.nix {
+    inherit pkgs lib stateDir;
+    name = "codex-switch";
+    assistant = "Codex";
+    profilesDir = configDir;
+    extension = "config.toml";
+  };
 in
 {
+  # ----------------------------------------------------------------------------
+  # Module options
+  # ----------------------------------------------------------------------------
   options = {
     defaultProfile = lib.mkOption {
       type = lib.types.enum [
@@ -74,7 +88,7 @@ in
         "corp-gateway"
       ];
       default = "official";
-      description = "Authentication profile used before the first codex-switch";
+      description = "Authentication profile initialized on rebuild when no active profile exists";
     };
     enableCorpGateway = lib.mkOption {
       type = lib.types.bool;
@@ -83,6 +97,9 @@ in
     };
   };
 
+  # ----------------------------------------------------------------------------
+  # Module config
+  # ----------------------------------------------------------------------------
   config = {
     assertions = [
       {
@@ -99,14 +116,24 @@ in
       name = "${configDir}/${name}.config.toml";
       value.source = toml.generate "codex-profile-${name}.toml" settings;
     }) profiles;
+    home.activation.codexAuthProfile = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      __dir=${lib.escapeShellArg stateDir}
+      __link="$__dir/active-profile"
+      if [[ ! -e "$__link" ]]; then
+        mkdir -p "$__dir"
+        ln -sf ${lib.escapeShellArg "${configDir}/${cfg.defaultProfile}.config.toml"} "$__link"
+      fi
+    '';
   };
 
+  # ----------------------------------------------------------------------------
+  # Profile loader
+  # ----------------------------------------------------------------------------
   loader = pkgs.writeShellScript "codex-profile-loader" (
     builtins.replaceStrings
-      [ "@stateDir@" "@defaultProfile@" "@caFile@" ]
+      [ "@stateDir@" "@caFile@" ]
       [
         (lib.escapeShellArg stateDir)
-        (lib.escapeShellArg cfg.defaultProfile)
         (lib.escapeShellArg (if cfg.enableCorpGateway then caFile else ""))
       ]
       (builtins.readFile ./scripts/profile-loader.sh)
