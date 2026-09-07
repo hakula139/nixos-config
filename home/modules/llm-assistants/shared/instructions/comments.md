@@ -1,8 +1,8 @@
-**Default to no comments.** Code should be self-explanatory through clear naming and structure. Add a comment only when the WHY is non-obvious to a future reader: a hidden constraint, a subtle invariant, a non-trivial algorithm, a magic number, a workaround for a known bug, behavior that would surprise a reader, or a security / performance consideration. If removing the comment would not confuse a reader, do not write it. When one is justified, **1–2 short lines is the target**.
+**Write comments that help maintain the code.** Use clear naming and structure, and add concise explanations of intent, constraints, invariants, tradeoffs, or surprising behavior that a future maintainer would otherwise have to rediscover. Usually **1–2 short lines suffice**, with more detail when the reasoning requires it. Follow the comment and section-banner conventions found during inspection.
 
-**Docstrings follow the same discipline and the project's convention.** Check whether surrounding code uses them, and if the project has few or none, add none. When one is warranted, keep it to a line or two of non-obvious contract: a constraint, unit, ownership, error, or invariant. A docstring that restates the item name, documents a trivial getter, or rambles across several lines is verbose, so drop or trim it.
+**Docstrings explain contracts according to the project's conventions.** Document non-obvious constraints, units, ownership, errors, or invariants where callers need them. Keep the explanation concise, and omit text that merely restates the item name or implementation.
 
-**When in doubt, delete.** Removing a comment that could have stayed is cheaper than keeping one that should have gone. Prune freely unless the user asked to keep that specific comment.
+**Preserve useful rationale.** Within the scope of an edit, remove comments that repeat the code and correct those that have become misleading. Investigate an uncertain comment before deleting it, because the constraint it records may still apply.
 
 Each ban below carries its reason, because a rule stated without one gets satisfied on the surface while the underlying habit finds a new outlet.
 
@@ -12,9 +12,9 @@ Each ban below carries its reason, because a rule stated without one gets satisf
 - **A durable project rule stated at one call site.** It belongs in the instruction file or the documentation that owns it, where it applies everywhere and gets maintained once.
 - **Commented-out code.** Version control preserves it without leaving a reader to guess whether it is pending, broken, or forgotten.
 
-A comment does earn its place when it carries information the code cannot:
+These comments also serve a purpose:
 
 - **The meaning of a cryptic flag, literal, or API quirk** a reader could not recover without going to external documentation, such as what a flag does to a squash merge or why a unit is `oneshot`.
 - **A nushell comment directly above a `def`**, which Nushell renders as the command's `--help` text, so deleting it blanks the CLI documentation.
 - **A label naming the construct a non-obvious regex matches.** Restating the pattern in words is the one case where WHAT earns its place, since nobody reads `[=*_-]{4,}\s*$` as "a run of rule characters to end of line" without stepping through it character by character.
-- **A section banner**, which names code instead of describing it. A banner is a bare label of at most four words with no verb and no sentence (`# Module options`, `# Formatter configuration`), whether or not it is wrapped in a rule of repeated `=`, `*`, `_`, or `-` characters. The exemption covers only that label line, and every sentence in a file header must earn its place as an ordinary comment.
+- **A section banner** helps readers navigate distinct groups of code. Preserve and add banners where surrounding or comparable files use them, including nested sections when that is the convention. Use short labels (`# Module options`, `# Formatter configuration`) and match the existing decoration. Explanatory sentences in a file header still follow the ordinary comment rules.
