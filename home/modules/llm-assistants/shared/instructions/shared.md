@@ -92,6 +92,7 @@ Keep commit messages and PR descriptions focused on _why_. The diff itself shows
 - **Commit at the seam.** When a logical chunk builds and tests pass, commit before moving on. Don't let finished changes pile up unstaged across a long task. Iterative feedback creates more chances to commit.
 - **Commit body**: only when context is needed (rationale, tradeoffs, issue links).
 - **Branches**: `<type>/<short-name>`, reusing the commit type set.
+- **Check PR conventions before creating a PR or MR.** Read the repository's contribution instructions and template, then inspect recent comparable PRs or MRs for title, body structure, assignees, and labels. Follow explicit repository rules where examples differ, and use existing labels appropriate to the change.
 - **PR Summary**: 1–3 bullets stating the goal and any notable decisions.
 - **PR descriptions describe the merged unit.** Fold review-driven fixes into existing sections (Summary, Design decisions, Changes). Avoid "Post-review follow-ups" or "Cleanup commits" segments. The Commits tab already records the sequence.
 - **One purpose per PR.** Unrelated changes ride in their own PR. Dependency or lockfile churn in particular does not tag along with a feature or fix, since burying it hides the real diff and makes the revert lossy.
@@ -104,6 +105,7 @@ Keep commit messages and PR descriptions focused on _why_. The diff itself shows
 - Verify the current branch before committing. Switch first if a new branch was created.
 - **Do not create refs unless asked.** Branches, tags, and archive or backup refs are visible artifacts that outlive the task. Work on the branch you were given, and ask before inventing one. This holds even when the tooling permits it without a prompt: a permitted action is not a requested one.
 - When preparing PRs, verify that the diff and commit count match expectations before pushing.
+- **PR creation includes metadata.** Set assignees and labels according to the repository's conventions when creating a PR or MR. Read back the created request to verify its base, diff, assignees, and labels, and correct omissions before reporting completion.
 - **Wait for explicit per-PR approval before merging.** Earlier blanket approvals do not extend to PRs opened later in the session. After opening a PR, push, report the URL, and wait for `lgtm` or `merge` referencing that specific PR.
 - **PR body authoring.** Prefer `gh pr edit --body-file <file>` or `gh pr create --body-file -` over inline `--body "$(cat <<'EOF' ... EOF)"`. The file-input form avoids shell-escape bugs around backticks and `$()` substitution. Either way, do not reference prior PRs as `#N` in the body. GitHub auto-expands them into title cards that break sentence flow.
 
