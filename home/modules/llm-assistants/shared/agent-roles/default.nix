@@ -3,8 +3,17 @@
 # ==============================================================================
 
 let
-  preamble = builtins.readFile ./prompts/preamble.md;
-  readPrompt = file: preamble + "\n" + builtins.readFile file;
+  fragments = {
+    "@preamble@" = ./prompts/preamble.md;
+    "@memory@" = ./prompts/memory.md;
+    "@coordination@" = ./prompts/coordination.md;
+  };
+
+  readPrompt =
+    file:
+    builtins.replaceStrings (builtins.attrNames fragments) (map builtins.readFile (
+      builtins.attrValues fragments
+    )) (builtins.readFile file);
 in
 {
   architect = {
@@ -17,6 +26,8 @@ in
       permissionMode = "plan";
     };
     codex = {
+      reasoningEffort = "high";
+      sandboxMode = "read-only";
       nicknameCandidates = [
         "architect"
         "arch"
@@ -40,6 +51,7 @@ in
       memory = "local";
     };
     codex = {
+      reasoningEffort = "high";
       nicknameCandidates = [
         "debugger"
         "debug"
@@ -57,6 +69,7 @@ in
       memory = "local";
     };
     codex = {
+      reasoningEffort = "high";
       nicknameCandidates = [
         "implementer"
         "builder"
@@ -77,6 +90,8 @@ in
       permissionMode = "plan";
     };
     codex = {
+      reasoningEffort = "medium";
+      sandboxMode = "read-only";
       nicknameCandidates = [
         "researcher"
         "explorer"
@@ -101,6 +116,8 @@ in
       permissionMode = "plan";
     };
     codex = {
+      reasoningEffort = "high";
+      sandboxMode = "read-only";
       nicknameCandidates = [
         "reviewer"
         "audit"
@@ -125,6 +142,7 @@ in
       memory = "local";
     };
     codex = {
+      reasoningEffort = "medium";
       nicknameCandidates = [
         "tester"
         "qa"
@@ -143,6 +161,8 @@ in
       permissionMode = "plan";
     };
     codex = {
+      reasoningEffort = "medium";
+      sandboxMode = "read-only";
       nicknameCandidates = [
         "usability"
         "ux-review"
