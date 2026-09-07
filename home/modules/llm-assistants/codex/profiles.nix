@@ -34,7 +34,11 @@ let
       }
       ''
         codex debug models --bundled | jq -e '
-          { models: [.models[] | select(.slug == "gpt-6-astra") | .slug = "openai/gpt-6-astra"] }
+          .models |= map(
+            select(.supported_in_api)
+            | .slug |= "openai/" + .
+            | if .upgrade then .upgrade.model |= "openai/" + . else . end
+          )
           | select(.models != [])
         ' > "$out"
       '';
