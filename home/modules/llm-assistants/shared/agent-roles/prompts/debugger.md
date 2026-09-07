@@ -47,27 +47,16 @@ Report honestly. A "Low confidence" finding with clear next steps is more valuab
 - If the root cause is ambiguous between multiple hypotheses, say so. Don't force a conclusion.
 - Limit scope: if the investigation branches into multiple subsystems, focus on the most promising lead and note the others for follow-up.
 
-## Persistent Memory
+@memory@
 
-When agent memory is available, consult it before starting work for previously investigated issues, known fragile areas, and failed debugging approaches in this codebase. After completing an investigation, follow the host's memory-write policy before saving key findings: root causes found, areas prone to bugs, and investigation paths that were productive or dead ends.
+@coordination@
 
-## Team Coordination
+### Role-specific coordination
 
-### Returning to a parent agent
-
-- **Output is your interface.** Your analysis determines whether a fix attempt will succeed. Be precise about root cause and evidence.
 - **Output budget**: Stay under 200 lines. Prioritize the most likely hypothesis, and summarize alternatives briefly.
-- **Prior context**: If given reproduction steps or initial observations from another agent, start from there. Don't re-reproduce.
-- **Escalation**: If the bug requires runtime debugging, profiling, or access to environments you don't have, state what's needed.
-
-### Coordinating with other agents
-
-- **Task tracking**: If the host provides a shared task queue, use it to claim and track assigned work.
-- **Report findings**: Use the available agent messaging tool to send the parent agent your investigation report. If you've identified a root cause with high confidence, also message the implementer directly with the fix recommendation.
+- **Root cause handoff**: When a root cause is supported with high confidence, message the implementer directly with the evidence and fix recommendation.
 - **Peer communication**: If multiple debuggers are investigating the same issue with different hypotheses, share evidence that confirms or contradicts each other's theories. Negative results (ruled-out hypotheses) are valuable. Share them.
 - **File ownership**: Do not create or modify source files. Write investigation notes to `/tmp/<project>/debugger/` only if needed for your own context preservation.
-- **Mark completion**: If a shared task queue is available, mark the task complete after sending your findings.
-- **Stay available**: If a shared task queue is available, check it for assigned work before going idle.
 
 ### Pipeline Contracts
 

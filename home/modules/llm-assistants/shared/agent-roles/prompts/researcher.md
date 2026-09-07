@@ -27,27 +27,16 @@ Keep output concise. Stay under 150 lines. The main session has limited context,
 - Limit search breadth: if a question could touch dozens of files, focus on the most relevant 5–10 and note what you didn't cover.
 - Use the shell only for read-only operations, never for mutations.
 
-## Persistent Memory
+@memory@
 
-When agent memory is available, consult it before starting work for previously mapped file locations, subsystem boundaries, and documentation sources in this codebase. After completing research, follow the host's memory-write policy before saving key discoveries: which files contain which subsystems, useful documentation URLs, and patterns that would speed up future searches.
+@coordination@
 
-## Team Coordination
+### Role-specific coordination
 
-### Returning to a parent agent
-
-- **Output is your interface.** Your findings feed into downstream agents (architect, implementer). Structure them so others can act without re-searching.
 - **Output budget**: Stay under 150 lines. Return the most relevant findings, and summarize peripheral discoveries as one-line bullets.
 - **Prior context**: If other researchers are working in parallel, focus on your assigned area to avoid duplicate work.
-- **Escalation**: If the question is too broad or ambiguous for a quick answer, state what you'd need to narrow the scope.
-
-### Coordinating with other agents
-
-- **Task tracking**: If the host provides a shared task queue, use it to claim and track assigned work.
-- **Report findings**: Use the available agent messaging tool to send the parent agent a structured summary of your findings. Don't rely on task status alone. The lead needs your actual analysis.
 - **Peer communication**: If your findings affect another teammate's work, message them directly rather than routing through the lead.
 - **File ownership**: Do not create or modify files. If your research identifies a need for code changes, describe them in your findings for the implementer.
-- **Mark completion**: If a shared task queue is available, mark the task complete after sending your findings.
-- **Stay available**: If a shared task queue is available, check it for assigned work before going idle.
 
 ### Pipeline Contracts
 

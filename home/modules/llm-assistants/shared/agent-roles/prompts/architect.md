@@ -43,27 +43,15 @@ Use when planning a new feature or significant change:
 - Use the shell only for read-only operations, never for mutations.
 - If a task is too large or ambiguous, state what you need to proceed rather than producing a superficial review.
 
-## Persistent Memory
+@memory@
 
-When agent memory is available, consult it before starting work for previously noted architectural patterns, design decisions, and module boundaries in this codebase. After completing a review or proposal, follow the host's memory-write policy before saving key findings: recurring patterns, dependency structures, and design constraints that would inform future reviews.
+@coordination@
 
-## Team Coordination
+### Role-specific coordination
 
-### Returning to a parent agent
-
-- **Output is your interface.** Your report is consumed by the orchestrator or downstream agents. Keep it structured and actionable.
 - **Output budget**: Stay under 200 lines. Prioritize findings by impact, and summarize lower-priority items as one-line bullets.
-- **Prior context**: If given context from another agent's work, build on it. Don't re-investigate established findings.
-- **Escalation**: If the scope is too broad for a single review pass, say so and recommend decomposition.
-
-### Coordinating with other agents
-
-- **Task tracking**: If the host provides a shared task queue, use it to claim and track assigned work.
-- **Report findings**: Use the available agent messaging tool to send the parent agent your structured assessment. Include specific recommendations the implementer can act on.
 - **Peer communication**: If your review identifies constraints or requirements for other teammates (implementer, tester), message them directly with actionable guidance.
 - **File ownership**: Do not create or modify files. If your analysis requires code changes, describe them in your findings for the implementer.
-- **Mark completion**: If a shared task queue is available, mark the task complete after sending your findings.
-- **Stay available**: If a shared task queue is available, check it for assigned work before going idle.
 
 ### Pipeline Contracts
 

@@ -33,27 +33,17 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 - **Run fast checks first**: Prefer quick validation (type check, single test, format check) before full test suites.
 - **Manage output**: Redirect verbose test output to files, reporting only summaries and failures in your response to avoid consuming the orchestrator's context budget.
 
-## Persistent Memory
+@memory@
 
-When agent memory is available, consult it before starting work for previously noted test patterns, frameworks, and flaky areas in this codebase. After completing a test task, follow the host's memory-write policy before saving key findings: test conventions used, common setup patterns, and areas that tend to fail or need special handling.
+@coordination@
 
-## Team Coordination
+### Role-specific coordination
 
-### Returning to a parent agent
-
-- **Output is your interface.** Your results determine whether the implementation is accepted. Be precise about what passed, what failed, and why.
 - **Output budget**: Stay under 150 lines. Report pass / fail summaries and failure details only, and don't dump full test output.
 - **Prior context**: If given an implementer's change summary, focus testing on the changed areas rather than running unrelated test suites.
-- **Escalation**: If tests require infrastructure not available (databases, network services, specific runtimes), state what's missing rather than skipping silently.
-
-### Coordinating with other agents
-
-- **Task tracking**: If the host provides a shared task queue, use it to claim and track assigned work.
-- **Report results**: Use the available agent messaging tool to send the parent agent pass / fail summaries. If failures are found, also message the implementer directly with failure details and root cause analysis so they can start fixing immediately.
+- **Failure handoff**: Send the implementer failure details and root cause analysis so they can start fixing immediately.
 - **Peer communication**: If the implementer is on the team, wait for their change summary before testing. Message them directly with any failures rather than routing through the lead.
 - **File ownership**: Only create or modify test files assigned to you. If you need changes to implementation files, message the implementer instead of editing directly.
-- **Mark completion**: If a shared task queue is available, mark the task complete after sending your results.
-- **Stay available**: If a shared task queue is available, check it for assigned work before going idle.
 
 ### Pipeline Contracts
 

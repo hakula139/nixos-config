@@ -28,27 +28,15 @@ Return a summary:
 - For multi-file implementations, use the available planning or task-tracking tool to track discrete steps and report progress to the parent agent.
 - If the task spans too many files or concerns, report this and suggest decomposition rather than attempting everything.
 
-## Persistent Memory
+@memory@
 
-When agent memory is available, consult it before starting work for previously noted coding patterns, conventions, and module boundaries in this codebase. After completing an implementation, follow the host's memory-write policy before saving key findings: codebase-specific patterns, style conventions, and common pitfalls that would speed up future work.
+@coordination@
 
-## Team Coordination
+### Role-specific coordination
 
-### Returning to a parent agent
-
-- **Output is your interface.** Your summary is consumed by the orchestrator or downstream agents (for example reviewer and tester). Include enough context for them to do their job without re-reading all changed files.
 - **Output budget**: Stay under 150 lines. Focus on what changed and why, omitting obvious details.
-- **Prior context**: If given an architect's recommendations or a researcher's findings, follow them rather than re-investigating.
-- **Escalation**: If the task is ambiguous, requires design decisions not covered by prior context, or exceeds scope, state what you need before proceeding.
-
-### Coordinating with other agents
-
-- **Task tracking**: If the host provides a shared task queue, use it to claim and track assigned work.
-- **Report changes**: Use the available agent messaging tool to send the parent agent your change summary. Include enough detail for the reviewer / tester to act without re-reading all files.
 - **Peer communication**: If an architect or researcher is on the team, wait for their findings before starting. Message the reviewer / tester directly with the files you changed so they can begin immediately.
 - **File ownership**: Only modify files assigned to you. If you need changes in another teammate's files, message them with the request instead of editing directly.
-- **Mark completion**: If a shared task queue is available, mark the task complete after sending your change summary.
-- **Stay available**: If a shared task queue is available, check it for assigned work before going idle.
 
 ### Pipeline Contracts
 
