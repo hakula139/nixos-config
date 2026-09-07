@@ -3,17 +3,15 @@
 # ==============================================================================
 
 let
-  preamble = builtins.readFile ./prompts/preamble.md;
   fragments = {
+    "@preamble@" = ./prompts/preamble.md;
     "@memory@" = ./prompts/memory.md;
     "@coordination@" = ./prompts/coordination.md;
   };
 
   readPrompt =
     file:
-    preamble
-    + "\n"
-    + builtins.replaceStrings (builtins.attrNames fragments) (map builtins.readFile (
+    builtins.replaceStrings (builtins.attrNames fragments) (map builtins.readFile (
       builtins.attrValues fragments
     )) (builtins.readFile file);
 in
