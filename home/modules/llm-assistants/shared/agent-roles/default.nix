@@ -17,6 +17,8 @@ in
       permissionMode = "plan";
     };
     codex = {
+      reasoningEffort = "high";
+      sandboxMode = "read-only";
       nicknameCandidates = [
         "architect"
         "arch"
@@ -40,6 +42,7 @@ in
       memory = "local";
     };
     codex = {
+      reasoningEffort = "high";
       nicknameCandidates = [
         "debugger"
         "debug"
@@ -57,6 +60,7 @@ in
       memory = "local";
     };
     codex = {
+      reasoningEffort = "high";
       nicknameCandidates = [
         "implementer"
         "builder"
@@ -77,6 +81,8 @@ in
       permissionMode = "plan";
     };
     codex = {
+      reasoningEffort = "medium";
+      sandboxMode = "read-only";
       nicknameCandidates = [
         "researcher"
         "explorer"
@@ -101,6 +107,8 @@ in
       permissionMode = "plan";
     };
     codex = {
+      reasoningEffort = "high";
+      sandboxMode = "read-only";
       nicknameCandidates = [
         "reviewer"
         "audit"
@@ -125,6 +133,7 @@ in
       memory = "local";
     };
     codex = {
+      reasoningEffort = "medium";
       nicknameCandidates = [
         "tester"
         "qa"
@@ -143,6 +152,8 @@ in
       permissionMode = "plan";
     };
     codex = {
+      reasoningEffort = "medium";
+      sandboxMode = "read-only";
       nicknameCandidates = [
         "usability"
         "ux-review"
