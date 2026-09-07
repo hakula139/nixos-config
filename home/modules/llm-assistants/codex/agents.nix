@@ -17,11 +17,16 @@ let
   mkAgentConfig =
     name: agent:
     let
-      configFile = toml.generate "codex-agent-${name}" {
-        developer_instructions = agent.prompt;
-        model_reasoning_effort = "high";
-        personality = "pragmatic";
-      };
+      configFile = toml.generate "codex-agent-${name}" (
+        {
+          developer_instructions = agent.prompt;
+          model_reasoning_effort = agent.codex.reasoningEffort;
+          personality = "pragmatic";
+        }
+        // lib.optionalAttrs (agent.codex ? sandboxMode) {
+          sandbox_mode = agent.codex.sandboxMode;
+        }
+      );
     in
     {
       inherit (agent) description;
