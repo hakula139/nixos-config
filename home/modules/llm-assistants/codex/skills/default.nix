@@ -37,6 +37,7 @@ let
   managedSkills = lib.filterAttrs (
     _: file: file.enable && lib.hasPrefix ".agents/skills/" file.target
   ) config.home.file;
+
   skillBundle = pkgs.linkFarm "codex-managed-skills" (
     lib.mapAttrsToList (_: file: {
       name = lib.removePrefix ".agents/skills/" file.target;
