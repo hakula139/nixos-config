@@ -6,13 +6,10 @@
   config,
   pkgs,
   lib,
-  corpHosts,
   flakeConfigName,
   isDesktop ? false,
   isNixOS ? false,
   llmAssistantLib,
-  proxyLib,
-  secretPath,
   systemManagerLib,
   wslLib,
   ...
@@ -21,6 +18,7 @@
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
   cfg = config.hakula.cursor;
+  shared = config.lib.llmAssistants;
 
   # ----------------------------------------------------------------------------
   # MCP
@@ -106,16 +104,9 @@ in
   config = lib.mkIf cfg.enable (
     let
       mcp = import ./mcp.nix {
-        inherit
-          config
-          pkgs
-          lib
-          llmAssistantLib
-          corpHosts
-          proxyLib
-          secretPath
-          ;
+        inherit pkgs llmAssistantLib;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
+        mcpServers = shared.mcp.servers;
       };
 
       darwinFiles = {

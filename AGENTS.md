@@ -11,7 +11,6 @@ This file is an index. It holds only what applies to every task, while anything 
 | A module, package, or host            | [docs/conventions/nix.md](docs/conventions/nix.md)                 |
 | A `.sh` script or inline shell in Nix | [docs/conventions/shell.md](docs/conventions/shell.md)             |
 | A `.nu` script                        | [docs/conventions/nushell.md](docs/conventions/nushell.md)         |
-| Anything, before committing           | [docs/conventions/git.md](docs/conventions/git.md)                 |
 | A secret or a recipient list          | [docs/guides/secrets.md](docs/guides/secrets.md)                   |
 | First-time setup on any platform      | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)               |
 | Host wiring, builders, or the layout  | [docs/reference/architecture.md](docs/reference/architecture.md)   |
@@ -35,7 +34,7 @@ nix build '.#systemConfigs.wsl-non-nixos'
 nix build '.#packages.x86_64-linux.devvm-docker'
 ```
 
-When a change should be store-path-equivalent, e.g. a rename or a comment-only edit, compare `nix build --no-link --print-out-paths` before and after. Note that `checks.pre-commit` does not force host modules, so a broken reference there only shows up in a host build. A worktree under `.claude/worktrees/` needs one `nix develop` to materialize the gitignored pre-commit symlink, and `cspell` there checks zero files unless you pass `--no-gitignore`.
+For refactors expected to preserve derivation inputs, compare `nix build --no-link --print-out-paths` before and after. Note that `checks.pre-commit` does not force host modules, so a broken reference there only shows up in a host build. A worktree under `.claude/worktrees/` needs one `nix develop` to materialize the gitignored pre-commit symlink, and `cspell` there checks zero files unless you pass `--no-gitignore`.
 
 ## Documentation maintenance
 
@@ -43,5 +42,5 @@ Every page has one home, and the others link to it. Before adding a paragraph, c
 
 - `README.md` is for a human evaluating or operating the repo: what it manages, how to run it. Keep internal progress out.
 - `AGENTS.md` and `docs/` are for whoever is changing the code.
-- Keep the layout tree in [docs/reference/architecture.md](docs/reference/architecture.md) matched to the filesystem when directories move or land.
-- After a substantive change, sweep for stale claims: the layout tree and host table in `docs/reference/architecture.md`, and the alias matrix in `README.md`.
+- Keep represented directories in [docs/reference/architecture.md](docs/reference/architecture.md) accurate at the tree's existing level of detail. Expand the overview only as part of a consistent review of the layout.
+- Check documentation affected by the change, including the architecture's host table when host wiring changes and the README's alias matrix when commands change.

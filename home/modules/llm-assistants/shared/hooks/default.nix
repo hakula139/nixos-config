@@ -9,11 +9,14 @@
 {
   pkgs,
   lib,
-  assistant,
   repo,
   enableDevToolchains ? true,
-  gateway ? { },
   ...
+}:
+
+{
+  assistant,
+  gateway ? { },
 }:
 
 let

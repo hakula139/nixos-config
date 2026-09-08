@@ -5,21 +5,13 @@
 {
   pkgs,
   lib,
-  repo,
-  enableDevToolchains ? true,
+  mkHooks,
+  notify,
   ...
 }:
 
 let
-  notify = import ../shared/notify { inherit pkgs lib; };
-
-  sharedHooks = import ../shared/hooks {
-    inherit
-      pkgs
-      lib
-      repo
-      enableDevToolchains
-      ;
+  sharedHooks = mkHooks {
     assistant = "claude-code";
   };
 

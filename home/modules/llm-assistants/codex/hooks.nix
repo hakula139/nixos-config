@@ -5,21 +5,14 @@
 {
   pkgs,
   lib,
-  repo,
+  mkHooks,
   gateway ? { },
-  enableDevToolchains ? true,
   ...
 }:
 
 let
-  sharedHooks = import ../shared/hooks {
-    inherit
-      pkgs
-      lib
-      repo
-      gateway
-      enableDevToolchains
-      ;
+  sharedHooks = mkHooks {
+    inherit gateway;
     assistant = "codex";
   };
 
