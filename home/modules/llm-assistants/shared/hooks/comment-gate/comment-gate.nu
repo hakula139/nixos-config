@@ -72,7 +72,8 @@ def payload [input: record, config: record]: nothing -> list<record> {
   if ($key | is-empty) {
     return []
   }
-  [{path: $args.file_path, text: ($args | get $key)}]
+  let file = {path: $args.file_path, text: ($args | get $key)}
+  [($file | merge (if $tool == "Edit" { {before: $args.old_string} } else { {} }))]
 }
 
 def commentish [path: string, text: string]: nothing -> bool {
@@ -96,7 +97,7 @@ def judge [text: string, config: record]: nothing -> string {
   if $run.exit_code != 0 { "" } else { $run.stdout }
 }
 
-# The verdict sits at the end of the reply, after a scan that quotes the text
+# The verdict sits at the end of the reply, after findings that quote the text
 # under judgement. Reading from the last line backwards is what keeps a brace
 # or an `ok:` inside a quoted span from being mistaken for the verdict.
 def verdict [raw: string]: nothing -> record {
