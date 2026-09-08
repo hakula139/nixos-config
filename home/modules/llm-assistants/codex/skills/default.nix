@@ -7,13 +7,12 @@
   pkgs,
   lib,
   inputs,
+  llmAssistantSkills,
   configDir,
   ...
 }:
 
 let
-  sharedSkills = import ../../shared/skills { inherit lib; };
-
   sources = {
     anthropic = inputs.anthropics-skills + "/skills";
     openai = inputs.openai-skills + "/skills/.curated";
@@ -45,7 +44,7 @@ let
       name = lib.removePrefix ".agents/skills/" file.target;
       path = file.source;
     }) managedSkills
-    ++ lib.mapAttrsToList (name: path: { inherit name path; }) sharedSkills.sources
+    ++ lib.mapAttrsToList (name: path: { inherit name path; }) llmAssistantSkills
   );
 in
 {

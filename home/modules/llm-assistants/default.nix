@@ -76,6 +76,7 @@ in
     ./codex
     ./cursor
     ./opencode
+    ./shared/skills
     ./workmux
   ];
 

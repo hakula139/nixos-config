@@ -69,8 +69,6 @@ in
         inherit (cfg.agents) enabledAgents;
       };
 
-      skills = import ../shared/skills { inherit lib; };
-
       mcp = import ./mcp.nix {
         inherit
           config
@@ -145,8 +143,6 @@ in
         # ----------------------------------------------------------------------
         # Program configuration
         # ----------------------------------------------------------------------
-        home.file = skills.homeFile;
-
         xdg.configFile = {
           "opencode/package.json".source = "${workmux.src}/resources/opencode/package.json";
           "opencode/plugins/workmux-status.ts".source =

@@ -10,6 +10,7 @@
   corpHosts,
   hostType,
   llmAssistantLib,
+  llmAssistantSkills,
   proxyLib,
   repo,
   secretPath,
@@ -110,6 +111,7 @@ in
           pkgs
           lib
           inputs
+          llmAssistantSkills
           ;
         configDir = codexConfigDir;
       };

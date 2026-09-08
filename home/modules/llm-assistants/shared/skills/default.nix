@@ -2,7 +2,7 @@
 # Shared Skills
 # ==============================================================================
 
-{ lib }:
+{ config, lib, ... }:
 
 let
   sources = {
@@ -10,15 +10,16 @@ let
   };
 in
 {
-  inherit sources;
+  _module.args.llmAssistantSkills = sources;
 
-  # OpenCode also discovers Claude's directory. Both modules declare the same
-  # targets so Home Manager installs each shared skill once.
-  homeFile = lib.mapAttrs' (
-    name: source:
-    lib.nameValuePair ".claude/skills/${name}" {
-      inherit source;
-      recursive = true;
-    }
-  ) sources;
+  # OpenCode also discovers Claude's directory, so install shared skills once.
+  home.file = lib.mkIf (config.hakula.claude-code.enable || config.hakula.opencode.enable) (
+    lib.mapAttrs' (
+      name: source:
+      lib.nameValuePair ".claude/skills/${name}" {
+        inherit source;
+        recursive = true;
+      }
+    ) sources
+  );
 }
