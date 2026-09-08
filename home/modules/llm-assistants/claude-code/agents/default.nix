@@ -6,11 +6,10 @@
   lib,
   commentGate,
   enabledAgents,
+  sharedAgents,
 }:
 
 let
-  sharedAgents = import ../../shared/agent-roles;
-
   renderIndentedLines =
     value: map (line: "  ${line}") (lib.filter (line: line != "") (lib.splitString "\n" value));
 

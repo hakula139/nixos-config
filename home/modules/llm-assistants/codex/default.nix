@@ -11,19 +11,16 @@
   hostType,
   llmAssistantLib,
   proxyLib,
-  repo,
   secretPath,
-  sharedSkills,
-  enableDevToolchains ? false,
   ...
 }:
 
 let
   cfg = config.hakula.codex;
+  shared = config.lib.llmAssistants;
 
-  agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
+  inherit (shared) instructions agentRoleOptions;
   inherit (llmAssistantLib) mcpOptions;
-  instructions = import ../shared/instructions;
   codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
 
   codexMcpServers = mcpOptions.commonServerNames ++ [ "context7" ];
@@ -43,6 +40,7 @@ let
       hostType
       secretPath
       ;
+    inherit (shared) mkProfileSwitch;
     configDir = codexConfigDir;
   };
 in
@@ -76,15 +74,11 @@ in
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
-      notify = import ../shared/notify { inherit pkgs lib; };
+      inherit (shared) notify;
 
       hooks = import ./hooks.nix {
-        inherit
-          pkgs
-          lib
-          repo
-          enableDevToolchains
-          ;
+        inherit pkgs lib;
+        inherit (shared) mkHooks;
         gateway = lib.optionalAttrs cfg.auth.enableCorpGateway {
           baseUrl = corpHosts.llmGatewayUrl;
           tokenFile = secretPath "llm-assistants/bifrost-api-key";
@@ -93,16 +87,9 @@ in
       };
 
       mcp = import ./mcp.nix {
-        inherit
-          config
-          pkgs
-          lib
-          llmAssistantLib
-          corpHosts
-          proxyLib
-          secretPath
-          ;
+        inherit lib llmAssistantLib;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
+        mcpServers = shared.mcp.servers;
       };
 
       skills = import ./skills {
@@ -111,14 +98,15 @@ in
           pkgs
           lib
           inputs
-          sharedSkills
           ;
         configDir = codexConfigDir;
+        sharedSkills = shared.skills;
       };
 
       agents = import ./agents.nix {
         inherit pkgs lib;
         inherit (cfg.agents) enabledAgents;
+        sharedAgents = shared.agentRoles;
       };
 
       # ------------------------------------------------------------------------

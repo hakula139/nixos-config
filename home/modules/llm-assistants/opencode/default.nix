@@ -7,10 +7,8 @@
   pkgs,
   lib,
   inputs,
-  corpHosts,
   llmAssistantLib,
   proxyLib,
-  secretPath,
   enableDevToolchains ? false,
   ...
 }:
@@ -21,10 +19,10 @@ let
   json = pkgs.formats.json { };
 
   cfg = config.hakula.opencode;
+  shared = config.lib.llmAssistants;
 
-  agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
+  inherit (shared) instructions agentRoleOptions;
   inherit (llmAssistantLib) mcpOptions;
-  instructions = import ../shared/instructions;
 
   opencodeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
 in
@@ -67,19 +65,13 @@ in
       agents = import ./agents.nix {
         inherit lib;
         inherit (cfg.agents) enabledAgents;
+        sharedAgents = shared.agentRoles;
       };
 
       mcp = import ./mcp.nix {
-        inherit
-          config
-          pkgs
-          lib
-          llmAssistantLib
-          corpHosts
-          proxyLib
-          secretPath
-          ;
+        inherit llmAssistantLib;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
+        mcpServers = shared.mcp.servers;
       };
 
       # ------------------------------------------------------------------------

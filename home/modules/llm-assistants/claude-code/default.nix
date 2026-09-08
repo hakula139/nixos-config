@@ -7,11 +7,9 @@
   pkgs,
   lib,
   inputs,
-  corpHosts,
   hostType,
   llmAssistantLib,
   proxyLib,
-  repo,
   secretPath,
   enableDevToolchains ? false,
   ...
@@ -19,23 +17,16 @@
 
 let
   cfg = config.hakula.claude-code;
+  shared = config.lib.llmAssistants;
   homeDir = config.home.homeDirectory;
 
-  instructions = import ../shared/instructions;
-  agentRoleOptions = import ../shared/agent-roles/options.nix { inherit lib; };
+  inherit (shared) instructions agentRoleOptions;
   inherit (llmAssistantLib) mcpOptions;
 
   mcp = import ./mcp.nix {
-    inherit
-      config
-      pkgs
-      lib
-      llmAssistantLib
-      corpHosts
-      proxyLib
-      secretPath
-      ;
+    inherit pkgs llmAssistantLib;
     enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
+    mcpServers = shared.mcp.servers;
   };
 
   # `--mcp-config` is variadic, so the `=` form is required: the space-separated
@@ -52,6 +43,7 @@ let
       mcpFlag
       secretPath
       ;
+    inherit (shared) mkProfileSwitch;
   };
 
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [
@@ -105,12 +97,8 @@ in
       };
 
       hooks = import ./hooks.nix {
-        inherit
-          pkgs
-          lib
-          repo
-          enableDevToolchains
-          ;
+        inherit pkgs lib;
+        inherit (shared) mkHooks notify;
       };
 
       plugins = import ./plugins.nix {
@@ -127,6 +115,7 @@ in
         inherit lib;
         inherit (instructions) commentGate;
         inherit (cfg.agents) enabledAgents;
+        sharedAgents = shared.agentRoles;
       };
 
       # ------------------------------------------------------------------------

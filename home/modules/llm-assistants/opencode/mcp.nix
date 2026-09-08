@@ -3,34 +3,19 @@
 # ==============================================================================
 
 {
-  config,
-  pkgs,
-  lib,
-  corpHosts,
-  llmAssistantLib,
-  proxyLib,
-  secretPath,
   enabledServers,
+  llmAssistantLib,
+  mcpServers,
   ...
 }:
 
 let
   inherit (llmAssistantLib) mcpOptions;
-  mcp = import ../shared/mcp {
-    inherit
-      config
-      pkgs
-      lib
-      corpHosts
-      proxyLib
-      secretPath
-      ;
-  };
 
   mkEntry =
     s:
     let
-      server = mcp.servers.${s};
+      server = mcpServers.${s};
     in
     {
       name = mcpOptions.serverDisplayNames.${s};

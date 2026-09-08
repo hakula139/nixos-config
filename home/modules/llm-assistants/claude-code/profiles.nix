@@ -8,6 +8,7 @@
   lib,
   hostType,
   mcpFlag,
+  mkProfileSwitch,
   secretPath,
   ...
 }:
@@ -193,8 +194,8 @@ let
   # ----------------------------------------------------------------------------
   # Profile switcher
   # ----------------------------------------------------------------------------
-  claudeSwitch = import ../shared/profile-switch {
-    inherit pkgs lib stateDir;
+  claudeSwitch = mkProfileSwitch {
+    inherit stateDir;
     name = "claude-switch";
     assistant = "Claude Code";
     profilesDir = "${stateDir}/profiles";

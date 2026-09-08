@@ -19,7 +19,7 @@ assert lib.assertOneOf "hostType" hostType [
 
 let
   cfg = config.hakula.llm-assistants;
-  mcpSecrets = import ./shared/mcp/secrets.nix;
+  inherit (config.lib.llmAssistants) mcpSecrets;
 
   # Map each MCP server to the secret it needs at runtime. Servers absent
   # from this attrset (codex, deepwiki, fetcher, filesystem, git) don't
@@ -76,7 +76,7 @@ in
     ./codex
     ./cursor
     ./opencode
-    ./shared/skills
+    ./shared
     ./workmux
   ];
 
