@@ -7,8 +7,7 @@
   pkgs,
   lib,
   inputs,
-  llmAssistantLib,
-  proxyLib,
+  repoLib,
   enableDevToolchains ? false,
   ...
 }:
@@ -22,7 +21,7 @@ let
   shared = config.lib.llmAssistants;
 
   inherit (shared) instructions agentRoleOptions;
-  inherit (llmAssistantLib) mcpOptions;
+  inherit (repoLib.llmAssistants) mcpOptions;
 
   opencodeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
 in
@@ -51,7 +50,7 @@ in
       };
     };
 
-    proxy = proxyLib.mkProxyOptions "OpenCode";
+    proxy = repoLib.proxy.mkProxyOptions "OpenCode";
   };
 
   # ----------------------------------------------------------------------------
@@ -69,7 +68,7 @@ in
       };
 
       mcp = import ./mcp.nix {
-        inherit llmAssistantLib;
+        inherit mcpOptions;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
         mcpServers = shared.mcp.servers;
       };
@@ -109,7 +108,7 @@ in
         exec ${lib.getExe' pkgs.go "gofmt"} -w "$1"
       '';
 
-      opencodeBin = proxyLib.wrapWithProxy {
+      opencodeBin = repoLib.proxy.wrapWithProxy {
         inherit pkgs;
         pkg = opencodePkg;
         proxyCfg = cfg.proxy;
@@ -174,7 +173,7 @@ in
             # ------------------------------------------------------------------
             # Permissions
             # ------------------------------------------------------------------
-            permission.bash = llmAssistantLib.permissions.opencodeBash;
+            permission.bash = repoLib.llmAssistants.permissions.opencodeBash;
 
             # ------------------------------------------------------------------
             # MCP servers

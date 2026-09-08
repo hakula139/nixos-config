@@ -177,16 +177,12 @@
       # ------------------------------------------------------------------------
       caches = import ./data/caches.nix;
       corpHosts = import ./data/corp-hosts.nix;
+      defaults = import ./data/defaults.nix;
       keys = import ./secrets/keys.nix;
-      secrets = import ./lib/secrets.nix { inherit (nixpkgs) lib; };
-      systemManagerLib = import ./data/system-manager.nix;
+      servers = import ./data/servers.nix;
+      systemManagerPaths = (import ./data/system-manager.nix).systemPaths;
 
-      llmAssistantLib = import ./lib/llm-assistants { inherit (nixpkgs) lib; };
-      proxyLib = import ./lib/proxy.nix { inherit (nixpkgs) lib; };
-      systemdLib = import ./lib/systemd.nix;
-      sharedConfig = { pkgs, lib }: import ./modules/shared.nix { inherit pkgs lib; };
-      toolingFor = pkgs: import ./lib/tooling.nix { inherit pkgs; };
-      wslLib = import ./lib/wsl;
+      repoLib = import ./lib { inherit (nixpkgs) lib; };
 
       repo = {
         root = ./.;
@@ -215,16 +211,12 @@
           inputs
           caches
           corpHosts
+          defaults
           keys
-          llmAssistantLib
-          proxyLib
           repo
-          secrets
-          sharedConfig
-          systemdLib
-          systemManagerLib
-          toolingFor
-          wslLib
+          repoLib
+          servers
+          systemManagerPaths
           ;
       };
 

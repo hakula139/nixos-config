@@ -9,8 +9,7 @@
   inputs,
   corpHosts,
   hostType,
-  llmAssistantLib,
-  proxyLib,
+  repoLib,
   secretPath,
   ...
 }:
@@ -20,7 +19,7 @@ let
   shared = config.lib.llmAssistants;
 
   inherit (shared) instructions agentRoleOptions;
-  inherit (llmAssistantLib) mcpOptions;
+  inherit (repoLib.llmAssistants) mcpOptions;
   codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
 
   codexMcpServers = mcpOptions.commonServerNames ++ [ "context7" ];
@@ -61,7 +60,7 @@ in
 
     mcp = mcpOptions.mkMcpOptions { names = codexMcpServers; };
 
-    proxy = proxyLib.mkProxyOptions "Codex";
+    proxy = repoLib.proxy.mkProxyOptions "Codex";
   };
 
   # ----------------------------------------------------------------------------
@@ -87,7 +86,7 @@ in
       };
 
       mcp = import ./mcp.nix {
-        inherit lib llmAssistantLib;
+        inherit lib mcpOptions;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
         mcpServers = shared.mcp.servers;
       };
@@ -112,7 +111,7 @@ in
       # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
-      proxyScript = pkgs.writeShellScript "codex-proxy-env" (proxyLib.mkProxyScript cfg.proxy);
+      proxyScript = pkgs.writeShellScript "codex-proxy-env" (repoLib.proxy.mkProxyScript cfg.proxy);
 
       # Home Manager uses the version in the name to select the config layout.
       codexBin = pkgs.symlinkJoin {
@@ -203,7 +202,7 @@ in
         home.file = skills.homeFile // {
           codexRules = {
             target = codexRulesTarget;
-            text = llmAssistantLib.permissions.codexRules + "\n";
+            text = repoLib.llmAssistants.permissions.codexRules + "\n";
           };
         };
       }

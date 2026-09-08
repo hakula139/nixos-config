@@ -6,8 +6,7 @@
   config,
   lib,
   hostType,
-  llmAssistantLib,
-  proxyLib,
+  repoLib,
   enableDevToolchains ? false,
   ...
 }:
@@ -33,7 +32,7 @@ let
     gitlab = [ "gitlab-pat" ];
   };
 
-  inherit (llmAssistantLib) mcpOptions;
+  inherit (repoLib.llmAssistants) mcpOptions;
 
   assistants = with config.hakula; [
     claude-code
@@ -96,7 +95,7 @@ in
       };
     };
 
-    proxy = proxyLib.mkProxyOptions "LLM assistants";
+    proxy = repoLib.proxy.mkProxyOptions "LLM assistants";
   };
 
   # ----------------------------------------------------------------------------

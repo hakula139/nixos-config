@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -58,7 +58,7 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.qq-smtp-authcode = secrets.mkSecret {
+    age.secrets.qq-smtp-authcode = repoLib.secrets.mkSecret {
       name = "netdata/qq-smtp-authcode";
       owner = "netdata";
       group = "netdata";
