@@ -9,6 +9,7 @@
   codexPkg,
   corpHosts,
   hostType,
+  mkProfileSwitch,
   secretPath,
   configDir,
 }:
@@ -91,8 +92,8 @@ let
   # ----------------------------------------------------------------------------
   # Profile switcher
   # ----------------------------------------------------------------------------
-  switch = import ../shared/profile-switch {
-    inherit pkgs lib stateDir;
+  switch = mkProfileSwitch {
+    inherit stateDir;
     name = "codex-switch";
     assistant = "Codex";
     profilesDir = configDir;

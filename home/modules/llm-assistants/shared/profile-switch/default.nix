@@ -5,6 +5,9 @@
 {
   pkgs,
   lib,
+}:
+
+{
   name,
   assistant,
   profilesDir,

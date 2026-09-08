@@ -3,36 +3,22 @@
 # ==============================================================================
 
 {
-  config,
   pkgs,
-  lib,
-  corpHosts,
-  llmAssistantLib,
-  proxyLib,
-  secretPath,
   enabledServers,
+  llmAssistantLib,
+  mcpServers,
   ...
 }:
 
 let
-  json = pkgs.formats.json { };
-
   inherit (llmAssistantLib) mcpOptions;
-  mcp = import ../shared/mcp {
-    inherit
-      config
-      pkgs
-      lib
-      corpHosts
-      proxyLib
-      secretPath
-      ;
-  };
+
+  json = pkgs.formats.json { };
 
   serversConfig = builtins.listToAttrs (
     map (s: {
       name = mcpOptions.serverDisplayNames.${s};
-      value = mcp.servers.${s};
+      value = mcpServers.${s};
     }) enabledServers
   );
 
