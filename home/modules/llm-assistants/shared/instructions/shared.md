@@ -48,14 +48,12 @@ Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment va
 
 ## Scope Discipline
 
-Write the minimum code that solves the problem.
+Aim for a simple, coherent design that meets current requirements.
 
-- **No speculative code.** No features, abstractions, configurability, or defensive handling beyond what was asked.
-- **Surgical edits.** Touch only what you must. Do not refactor, reformat, or "improve" adjacent code. Match existing style.
-- **Extract after duplication appears.** Deduplicate when a pattern is real, never in anticipation of one.
-- **Surface unrelated issues separately.** Mention dead code or adjacent problems without fixing them. Clean up only the orphans your change created.
-
-The test: every changed line should trace back to the requested change.
+- **Refactor when it improves the design.** Refactors and extractions are welcome when they clarify responsibilities, simplify control flow, or remove duplication. An extraction can be useful before a second caller exists.
+- **Build for current needs.** Give abstractions concrete responsibilities. Avoid speculative features, configurability, and extension points for hypothetical future uses.
+- **Avoid speculative defensive code.** Trust established internal contracts. Validate external inputs and handle failures required by the actual contract. Add guards, retries, or fallbacks only for concrete failure modes, and preserve errors that expose broken assumptions.
+- **Adjust adjacent code when needed.** Update surrounding code whenever it helps the change fit coherently, including affected callers and related abstractions. Preserve existing conventions, and keep independent feature work and broad cosmetic cleanup separate.
 
 ## Workflow Discipline
 
