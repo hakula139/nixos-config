@@ -113,17 +113,6 @@ in
       hakula.secrets.required = requiredMcpSecrets;
     })
 
-    (lib.mkIf (config.hakula.claude-code.enable || config.hakula.opencode.enable) {
-      # OpenCode also discovers Claude's skill directory, so install each skill once.
-      home.file = lib.mapAttrs' (
-        name: source:
-        lib.nameValuePair ".claude/skills/${name}" {
-          inherit source;
-          recursive = true;
-        }
-      ) (import ./shared/skills);
-    })
-
     (lib.mkIf cfg.enable (
       lib.mkMerge [
         {

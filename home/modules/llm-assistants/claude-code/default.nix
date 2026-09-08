@@ -123,6 +123,8 @@ in
         inherit (cfg.plugins) online;
       };
 
+      skills = import ../shared/skills { inherit lib; };
+
       agents = import ./agents {
         inherit lib;
         inherit (instructions) commentGate;
@@ -188,7 +190,8 @@ in
             executable = true;
           };
         }
-        // profiles.homeFiles;
+        // profiles.homeFiles
+        // skills.homeFile;
 
         home.packages = profiles.packages;
         home.activation.claudeCodeProfile = profiles.activation;
