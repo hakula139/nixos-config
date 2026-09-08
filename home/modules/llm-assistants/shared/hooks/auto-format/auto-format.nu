@@ -71,6 +71,9 @@ def format-file [path: string, config: record] {
         quiet $config.ruff ["check" "--fix" $path]
         capped $config.ruff ["check" $path]
       }
+      if (have $config.pyright) {
+        capped $config.pyright [$path]
+      }
     }
     # Rust and Go stay unpinned, since either toolchain would add GiBs to every
     # host's closure.

@@ -81,6 +81,7 @@ in
       nixfmt = lib.getExe pkgs.nixfmt;
       nuCheck = "${pkgs.nu-check}";
       prettier = whenDev pkgs.unstable.prettier;
+      pyright = whenDev pkgs.pyright;
       ruff = whenDev pkgs.ruff;
       shellcheck = lib.getExe pkgs.shellcheck;
       shfmt = lib.getExe pkgs.shfmt;
