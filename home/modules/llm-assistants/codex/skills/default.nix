@@ -7,8 +7,8 @@
   pkgs,
   lib,
   inputs,
-  llmAssistantSkills,
   configDir,
+  sharedSkills,
   ...
 }:
 
@@ -44,7 +44,7 @@ let
       name = lib.removePrefix ".agents/skills/" file.target;
       path = file.source;
     }) managedSkills
-    ++ lib.mapAttrsToList (name: path: { inherit name path; }) llmAssistantSkills
+    ++ lib.mapAttrsToList (name: path: { inherit name path; }) sharedSkills
   );
 in
 {

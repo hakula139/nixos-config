@@ -10,10 +10,10 @@
   corpHosts,
   hostType,
   llmAssistantLib,
-  llmAssistantSkills,
   proxyLib,
   repo,
   secretPath,
+  sharedSkills,
   enableDevToolchains ? false,
   ...
 }:
@@ -111,7 +111,7 @@ in
           pkgs
           lib
           inputs
-          llmAssistantSkills
+          sharedSkills
           ;
         configDir = codexConfigDir;
       };

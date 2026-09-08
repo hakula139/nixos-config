@@ -10,7 +10,7 @@ let
   };
 in
 {
-  _module.args.llmAssistantSkills = sources;
+  _module.args.sharedSkills = sources;
 
   # OpenCode also discovers Claude's directory, so install shared skills once.
   home.file = lib.mkIf (config.hakula.claude-code.enable || config.hakula.opencode.enable) (
