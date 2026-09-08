@@ -4,21 +4,17 @@
 
 {
   config,
-  pkgs,
   lib,
-  secrets,
   hostName,
-  sharedConfig,
+  repoLib,
+  servers,
   ...
 }:
 
 let
-  shared = sharedConfig { inherit pkgs lib; };
   cfg = config.hakula.builders;
 
-  allServers = lib.attrValues shared.servers;
-  servers = lib.filter (s: s.name != hostName) allServers;
-  builders = lib.filter (s: s.isBuilder) servers;
+  remoteServers = lib.filter (s: s.name != hostName) (lib.attrValues servers);
 in
 {
   # ----------------------------------------------------------------------------
@@ -35,7 +31,7 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.builder-ssh-key = secrets.mkSecret {
+    age.secrets.builder-ssh-key = repoLib.secrets.mkSecret {
       name = "builders/ssh-key";
       owner = "root";
       group = "root";
@@ -46,17 +42,15 @@ in
     # --------------------------------------------------------------------------
     nix = {
       distributedBuilds = true;
-      buildMachines = shared.mkBuildMachines builders config.age.secrets.builder-ssh-key.path;
+      buildMachines = repoLib.ssh.mkBuildMachines remoteServers config.age.secrets.builder-ssh-key.path;
       settings.builders-use-substitutes = true;
     };
 
     # --------------------------------------------------------------------------
     # SSH Configuration (system-wide)
     # --------------------------------------------------------------------------
-    programs.ssh.extraConfig =
-      shared.mkSshExtraConfig lib servers
-        config.age.secrets.builder-ssh-key.path;
+    programs.ssh.extraConfig = repoLib.ssh.mkExtraConfig remoteServers config.age.secrets.builder-ssh-key.path;
 
-    programs.ssh.knownHosts = shared.mkSshKnownHosts lib servers;
+    programs.ssh.knownHosts = repoLib.ssh.mkKnownHosts remoteServers;
   };
 }

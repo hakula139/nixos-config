@@ -6,14 +6,16 @@
   config,
   pkgs,
   lib,
-  secrets,
+  caches,
+  defaults,
   keys,
-  sharedConfig,
+  repoLib,
+  servers,
   ...
 }:
 
 let
-  shared = sharedConfig { inherit pkgs lib; };
+  packages = repoLib.packagesFor pkgs;
   userName = config.hakula.user.name;
   homeConfig = config.home-manager.users.${userName} or { };
   userConfig = {
@@ -21,8 +23,7 @@ let
     home = config.users.users.${userName}.home or "/Users/${userName}";
   };
   sshCfg = config.hakula.access.ssh;
-  servers = lib.attrValues shared.servers;
-  builders = lib.filter (s: s.isBuilder) servers;
+  serverList = lib.attrValues servers;
 in
 {
   imports = [
@@ -63,13 +64,13 @@ in
     age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
 
     age.secrets = {
-      builder-ssh-key = secrets.mkSecret {
+      builder-ssh-key = repoLib.secrets.mkSecret {
         name = "builders/ssh-key";
         owner = userName;
         group = "staff";
       };
     }
-    // secrets.mkRequiredUserSecrets {
+    // repoLib.secrets.mkRequiredUserSecrets {
       inherit homeConfig userConfig;
       group = "staff";
     };
@@ -81,17 +82,17 @@ in
       enable = true;
 
       settings =
-        shared.nixSettings
+        defaults.nixSettings
         // {
           extra-trusted-users = [ "hakula" ];
           builders-use-substitutes = true;
         }
         // lib.optionalAttrs config.hakula.cachix.enable {
-          inherit (shared.binaryCaches) substituters trusted-public-keys;
+          inherit (caches) substituters trusted-public-keys;
         };
 
       distributedBuilds = true;
-      buildMachines = shared.mkBuildMachines builders config.age.secrets.builder-ssh-key.path;
+      buildMachines = repoLib.ssh.mkBuildMachines serverList config.age.secrets.builder-ssh-key.path;
 
       gc = {
         automatic = true;
@@ -317,24 +318,22 @@ in
     # --------------------------------------------------------------------------
     # SSH Configuration (system-wide)
     # --------------------------------------------------------------------------
-    programs.ssh.extraConfig =
-      shared.mkSshExtraConfig lib servers
-        config.age.secrets.builder-ssh-key.path;
+    programs.ssh.extraConfig = repoLib.ssh.mkExtraConfig serverList config.age.secrets.builder-ssh-key.path;
 
-    programs.ssh.knownHosts = shared.mkSshKnownHosts lib servers;
+    programs.ssh.knownHosts = repoLib.ssh.mkKnownHosts serverList;
 
     # --------------------------------------------------------------------------
     # Shell & Environment
     # --------------------------------------------------------------------------
     programs.zsh.enable = true;
     environment.shells = [ pkgs.zsh ];
-    environment.variables = shared.localeSettings;
+    environment.variables = defaults.localeSettings;
 
     # --------------------------------------------------------------------------
     # Fonts & Packages
     # --------------------------------------------------------------------------
-    fonts.packages = shared.fonts;
-    environment.systemPackages = shared.basePackages;
+    fonts.packages = packages.fonts;
+    environment.systemPackages = packages.base;
 
     # --------------------------------------------------------------------------
     # Homebrew

@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -41,7 +41,7 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.clove-env = secrets.mkSecret {
+    age.secrets.clove-env = repoLib.secrets.mkSecret {
       name = "clove/env";
       owner = "root";
       group = "root";

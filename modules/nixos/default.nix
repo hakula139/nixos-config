@@ -6,10 +6,11 @@
   config,
   pkgs,
   lib,
-  secrets,
+  caches,
+  defaults,
   keys,
-  sharedConfig,
   isDesktop,
+  repoLib,
   ...
 }:
 
@@ -19,7 +20,7 @@ let
   userConfig = config.users.users.${cfg.user.name};
   homeConfig = config.home-manager.users.${cfg.user.name} or { };
 
-  shared = sharedConfig { inherit pkgs lib; };
+  packages = repoLib.packagesFor pkgs;
 in
 {
   imports = [
@@ -100,9 +101,9 @@ in
     # --------------------------------------------------------------------------
     nix = {
       settings =
-        shared.nixSettings
+        defaults.nixSettings
         // lib.optionalAttrs config.hakula.cachix.enable {
-          inherit (shared.binaryCaches) substituters trusted-public-keys;
+          inherit (caches) substituters trusted-public-keys;
         };
 
       gc = {
@@ -180,7 +181,7 @@ in
     # --------------------------------------------------------------------------
     programs.zsh.enable = true;
     environment.shells = [ pkgs.zsh ];
-    environment.variables = shared.localeSettings;
+    environment.variables = defaults.localeSettings;
 
     # Nix-LD: Run unpatched Linux binaries
     programs.nix-ld = {
@@ -241,15 +242,15 @@ in
     # Fonts & Packages
     # --------------------------------------------------------------------------
     fonts = lib.mkIf isDesktop {
-      packages = shared.fonts;
+      packages = packages.fonts;
       fontconfig.enable = true;
     };
-    environment.systemPackages = shared.basePackages;
+    environment.systemPackages = packages.base;
 
     # --------------------------------------------------------------------------
     # Secrets Configuration (agenix)
     # --------------------------------------------------------------------------
-    age.secrets = secrets.mkRequiredUserSecrets {
+    age.secrets = repoLib.secrets.mkRequiredUserSecrets {
       inherit homeConfig userConfig;
     };
   };

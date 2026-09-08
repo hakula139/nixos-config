@@ -6,8 +6,7 @@
   config,
   pkgs,
   lib,
-  secrets,
-  systemdLib,
+  repoLib,
   ...
 }:
 
@@ -57,13 +56,13 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.piclist-config = secrets.mkSecret {
+    age.secrets.piclist-config = repoLib.secrets.mkSecret {
       name = "piclist/config.json";
       owner = "piclist";
       group = "piclist";
     };
 
-    age.secrets.piclist-token = secrets.mkSecret {
+    age.secrets.piclist-token = repoLib.secrets.mkSecret {
       name = "piclist/token";
       owner = "piclist";
       group = "piclist";
@@ -79,7 +78,7 @@ in
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
 
-      serviceConfig = systemdLib.hardening // {
+      serviceConfig = repoLib.systemd.hardening // {
         Type = "simple";
         ExecStart = lib.getExe piclistServer;
         Restart = "on-failure";

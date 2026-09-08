@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  proxyLib,
+  repoLib,
   ...
 }:
 
@@ -20,7 +20,7 @@ let
       set -euo pipefail
       install -d -m 0700 "$(dirname ${lib.escapeShellArg envFile})"
     ''
-    + proxyLib.mkProxyEnvFileScript {
+    + repoLib.proxy.mkProxyEnvFileScript {
       proxyCfg = cfg;
       dest = envFile;
     }
@@ -30,7 +30,7 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.hakula.nix-daemon.proxy = proxyLib.mkProxyOptions "the Nix daemon";
+  options.hakula.nix-daemon.proxy = repoLib.proxy.mkProxyOptions "the Nix daemon";
 
   # ----------------------------------------------------------------------------
   # Module config

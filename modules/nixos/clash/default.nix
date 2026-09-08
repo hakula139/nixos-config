@@ -6,8 +6,7 @@
   config,
   pkgs,
   lib,
-  secrets,
-  systemdLib,
+  repoLib,
   ...
 }:
 
@@ -45,7 +44,7 @@ in
       # ------------------------------------------------------------------------
       # Secrets
       # ------------------------------------------------------------------------
-      age.secrets.clash-users = secrets.mkSecret {
+      age.secrets.clash-users = repoLib.secrets.mkSecret {
         name = "clash/users.json";
         owner = "clashgen";
         group = "clashgen";
@@ -58,7 +57,7 @@ in
         description = "Generate Clash subscription configs from user data";
         after = [ "agenix.service" ];
         wantedBy = [ "multi-user.target" ];
-        serviceConfig = systemdLib.hardening // {
+        serviceConfig = repoLib.systemd.hardening // {
           Type = "oneshot";
           ExecStart = clashGenerator;
           RemainAfterExit = true;

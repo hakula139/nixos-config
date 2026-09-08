@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -50,7 +50,7 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.twikoo-access-token = secrets.mkSecret {
+    age.secrets.twikoo-access-token = repoLib.secrets.mkSecret {
       name = "twikoo/access-token";
       owner = backupServiceName;
       group = backupServiceName;

@@ -2,7 +2,9 @@
 # LLM Assistants
 # ==============================================================================
 
-{ lib }:
+{
+  lib,
+}:
 
 let
   mcpOptions = import ./mcp-options.nix { inherit lib; };
@@ -15,7 +17,7 @@ in
 
   mkOptions =
     {
-      proxyLib,
+      mkProxyOptions,
       enableDescription,
       defaultUser,
     }:
@@ -34,7 +36,7 @@ in
         };
       };
 
-      proxy = proxyLib.mkProxyOptions "LLM assistants";
+      proxy = mkProxyOptions "LLM assistants";
     };
 
   mkHomeManagerConfig = cfg: {

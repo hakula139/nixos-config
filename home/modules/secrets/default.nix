@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -24,7 +24,7 @@ let
 
           path = lib.mkOption {
             type = str;
-            default = secrets.secretPath name;
+            default = repoLib.secrets.secretPath name;
             description = "Absolute path where the decrypted secret is installed";
           };
         };

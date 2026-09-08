@@ -5,8 +5,7 @@
 {
   config,
   lib,
-  llmAssistantLib,
-  proxyLib,
+  repoLib,
   ...
 }:
 
@@ -17,8 +16,8 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.hakula.llm-assistants = llmAssistantLib.mkOptions {
-    inherit proxyLib;
+  options.hakula.llm-assistants = repoLib.llmAssistants.mkOptions {
+    inherit (repoLib.proxy) mkProxyOptions;
     enableDescription = "LLM assistants for the primary Home Manager user";
     defaultUser = "hakula";
   };
@@ -26,5 +25,5 @@ in
   # ----------------------------------------------------------------------------
   # Module config
   # ----------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable (llmAssistantLib.mkHomeManagerConfig cfg);
+  config = lib.mkIf cfg.enable (repoLib.llmAssistants.mkHomeManagerConfig cfg);
 }

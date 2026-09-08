@@ -7,14 +7,14 @@
   pkgs,
   lib,
   repo,
-  toolingFor,
+  repoLib,
   enableDevToolchains ? false,
   ...
 }:
 
 let
   inherit (pkgs.stdenv) isLinux;
-  tooling = toolingFor pkgs;
+  tooling = repoLib.toolingFor pkgs;
 in
 {
   # ----------------------------------------------------------------------------

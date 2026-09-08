@@ -5,14 +5,12 @@
 {
   lib,
   enabledServers,
-  llmAssistantLib,
+  mcpOptions,
   mcpServers,
   ...
 }:
 
 let
-  inherit (llmAssistantLib) mcpOptions;
-
   fieldRenames = {
     command = "command";
     startupTimeoutSec = "startup_timeout_sec";

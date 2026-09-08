@@ -4,14 +4,12 @@
 
 {
   config,
-  pkgs,
   lib,
-  sharedConfig,
+  servers,
   ...
 }:
 
 let
-  shared = sharedConfig { inherit pkgs lib; };
   homeDir = config.home.homeDirectory;
 
   serverSettings = lib.mapAttrs' (
@@ -23,7 +21,7 @@ let
       IdentityFile = "${homeDir}/.ssh/${server.provider}/id_ed25519";
       ForwardAgent = true;
     }
-  ) shared.servers;
+  ) servers;
 in
 {
   programs.ssh = {
