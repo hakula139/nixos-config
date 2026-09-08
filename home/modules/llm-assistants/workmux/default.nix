@@ -22,7 +22,6 @@ let
   workmuxSkills = [
     "coordinator"
     "merge"
-    "open-pr"
     "rebase"
     "workmux"
     "worktree"
