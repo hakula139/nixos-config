@@ -48,14 +48,12 @@ Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment va
 
 ## Scope Discipline
 
-Write the minimum code that solves the problem.
+Aim for a simple, coherent design that meets current requirements.
 
-- **No speculative code.** No features, abstractions, configurability, or defensive handling beyond what was asked.
-- **Surgical edits.** Touch only what you must. Do not refactor, reformat, or "improve" adjacent code. Match existing style.
-- **Extract after duplication appears.** Deduplicate when a pattern is real, never in anticipation of one.
-- **Surface unrelated issues separately.** Mention dead code or adjacent problems without fixing them. Clean up only the orphans your change created.
-
-The test: every changed line should trace back to the requested change.
+- **Refactor when it improves the design.** Refactors and extractions are welcome when they clarify responsibilities, simplify control flow, or remove duplication. An extraction can be useful before a second caller exists.
+- **Build for current needs.** Give abstractions concrete responsibilities. Avoid speculative features, configurability, and extension points for hypothetical future uses.
+- **Avoid speculative defensive code.** Trust established internal contracts. Validate external inputs and handle failures required by the actual contract. Add guards, retries, or fallbacks only for concrete failure modes, and preserve errors that expose broken assumptions.
+- **Update surrounding code when needed.** Include affected callers and related abstractions so the change fits coherently. Preserve existing conventions, and keep independent feature work and broad cosmetic cleanup separate.
 
 ## Workflow Discipline
 
@@ -81,31 +79,13 @@ Tests must fail against a plausible bug. Avoid structural-only assertions like `
 
 After writing tests, audit each one: does it add unique coverage? Drop or merge subsumed tests.
 
-## Commits and Pull Requests
-
-Keep commit messages and PR descriptions focused on _why_. The diff itself shows _what_.
-
-- **Commit subject**: Conventional Commits — `type(scope): description`, imperative mood.
-  - **Types**: `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, `perf`.
-  - **Scope**: the most specific area changed. Omit only when no meaningful scope applies.
-- **Atomic commits**: one logical change per commit.
-- **Commit at the seam.** When a logical chunk builds and tests pass, commit before moving on. Don't let finished changes pile up unstaged across a long task. Iterative feedback creates more chances to commit.
-- **Commit body**: only when context is needed (rationale, tradeoffs, issue links).
-- **Branches**: `<type>/<short-name>`, reusing the commit type set.
-- **PR Summary**: 1–3 bullets stating the goal and any notable decisions.
-- **PR descriptions describe the merged unit.** Fold review-driven fixes into existing sections (Summary, Design decisions, Changes). Avoid "Post-review follow-ups" or "Cleanup commits" segments. The Commits tab already records the sequence.
-- **One purpose per PR.** Unrelated changes ride in their own PR. Dependency or lockfile churn in particular does not tag along with a feature or fix, since burying it hides the real diff and makes the revert lossy.
-- **No local-only paths in committed artifacts.** Keep `.claude/plans/`, `.claude/settings.local.json`, `.dev.vars` and similar out of code comments, commit messages, PR descriptions, and issue replies. Gitignored paths leak personal state and rot for everyone else.
-- **Skip boilerplate sections** that do not apply.
-- **No generated-by attributions or emojis** unless explicitly requested.
-
 ## Git Workflow
 
-- Verify the current branch before committing. Switch first if a new branch was created.
+Before preparing commits, pushing, or drafting, creating, updating, or merging a PR / MR, load the `git-workflow` skill. It owns commit conventions, PR writing, and publication checks. Repository-specific rules remain in the repository's instructions.
+
+- **Commit at the seam.** When a logical chunk builds and tests pass, commit before moving on. Don't let finished changes pile up unstaged across a long task. Iterative feedback creates more chances to commit.
 - **Do not create refs unless asked.** Branches, tags, and archive or backup refs are visible artifacts that outlive the task. Work on the branch you were given, and ask before inventing one. This holds even when the tooling permits it without a prompt: a permitted action is not a requested one.
-- When preparing PRs, verify that the diff and commit count match expectations before pushing.
 - **Wait for explicit per-PR approval before merging.** Earlier blanket approvals do not extend to PRs opened later in the session. After opening a PR, push, report the URL, and wait for `lgtm` or `merge` referencing that specific PR.
-- **PR body authoring.** Prefer `gh pr edit --body-file <file>` or `gh pr create --body-file -` over inline `--body "$(cat <<'EOF' ... EOF)"`. The file-input form avoids shell-escape bugs around backticks and `$()` substitution. Either way, do not reference prior PRs as `#N` in the body. GitHub auto-expands them into title cards that break sentence flow.
 
 ### Shared-Tree Safety
 
@@ -124,6 +104,7 @@ When writing documentation:
 - Focus on "why" and "how to use". Code should already show "what".
 - Only reference implemented functionality. Never describe WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them.
+- In directory trees and similar aligned listings, align trailing comment markers at one column. Leave several spaces after the longest entry so small name changes do not force every comment to move.
 
 ## MCP Server Usage
 
