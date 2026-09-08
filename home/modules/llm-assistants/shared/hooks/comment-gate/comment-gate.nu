@@ -56,24 +56,18 @@ const OPENERS = {
 const BANNER_RULE = '(?m)^\s*(?://|#|--|;)\s*[=*_-]{4,}\s*$'
 
 def payload [input: record, config: record]: nothing -> list<record> {
-  let tool = $input.tool_name
   let args = $input.tool_input
-  if $tool == "apply_patch" {
-    let parser = $config.patchInput
-    return ($args.command | ^$parser | from json | where action != "Delete" | each {|file|
-      {path: $file.path, text: ($file.added | str join "\n")}
-    })
+  match $input.tool_name {
+    "Write" => [{path: $args.file_path, text: $args.content}]
+    "Edit" => [{path: $args.file_path, before: $args.old_string, text: $args.new_string}]
+    "apply_patch" => {
+      let parser = $config.patchInput
+      $args.command | ^$parser | from json | where action != "Delete" | each {|file|
+        {path: $file.path, text: ($file.added | str join "\n")}
+      }
+    }
+    _ => []
   }
-  let key = match $tool {
-    "Write" => "content"
-    "Edit" => "new_string"
-    _ => "",
-  }
-  if ($key | is-empty) {
-    return []
-  }
-  let file = {path: $args.file_path, text: ($args | get $key)}
-  [($file | merge (if $tool == "Edit" { {before: $args.old_string} } else { {} }))]
 }
 
 def commentish [path: string, text: string]: nothing -> bool {
