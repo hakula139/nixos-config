@@ -3,29 +3,15 @@
 # ==============================================================================
 
 {
-  config,
-  pkgs,
   lib,
-  corpHosts,
-  llmAssistantLib,
-  proxyLib,
-  secretPath,
   enabledServers,
+  llmAssistantLib,
+  mcpServers,
   ...
 }:
 
 let
   inherit (llmAssistantLib) mcpOptions;
-  mcp = import ../shared/mcp {
-    inherit
-      config
-      pkgs
-      lib
-      corpHosts
-      proxyLib
-      secretPath
-      ;
-  };
 
   fieldRenames = {
     command = "command";
@@ -36,8 +22,8 @@ let
   mkEntry =
     name:
     lib.nameValuePair mcpOptions.serverDisplayNames.${name} (
-      lib.mapAttrs' (field: toml: lib.nameValuePair toml mcp.servers.${name}.${field}) (
-        lib.intersectAttrs mcp.servers.${name} fieldRenames
+      lib.mapAttrs' (field: toml: lib.nameValuePair toml mcpServers.${name}.${field}) (
+        lib.intersectAttrs mcpServers.${name} fieldRenames
       )
     );
 in

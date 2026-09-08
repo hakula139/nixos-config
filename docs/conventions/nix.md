@@ -11,6 +11,7 @@ Read this before adding a module, a package, or a host.
 
 ## Function arguments
 
+- **Top-level attribute-set argument lists are multiline.** Put each argument and the `...` entry on its own line, even when the list fits on one line.
 - **Framework arguments lead, in the order `modulesPath`, `config`, `pkgs`, `lib`, `inputs`.** Whichever of them a file takes keep that relative order and precede everything else, a `packages/` derivation included, where `callPackage` supplies them from nixpkgs.
 - **A default that mentions another argument follows it**, so `owner ? "root"` precedes `group ? owner` whatever the alphabet says. Everything else groups by concept under the ordering rule in [Style](#style), which is what keeps `configPath` beside `tokenPath`.
 

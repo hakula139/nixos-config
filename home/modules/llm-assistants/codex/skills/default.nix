@@ -8,6 +8,7 @@
   lib,
   inputs,
   configDir,
+  sharedSkills,
   ...
 }:
 
@@ -43,7 +44,7 @@ let
       name = lib.removePrefix ".agents/skills/" file.target;
       path = file.source;
     }) managedSkills
-    ++ lib.mapAttrsToList (name: path: { inherit name path; }) (import ../../shared/skills)
+    ++ lib.mapAttrsToList (name: path: { inherit name path; }) sharedSkills
   );
 in
 {

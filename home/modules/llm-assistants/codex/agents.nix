@@ -6,13 +6,12 @@
   pkgs,
   lib,
   enabledAgents,
+  sharedAgents,
   ...
 }:
 
 let
   toml = pkgs.formats.toml { };
-
-  sharedAgents = import ../shared/agent-roles;
 
   mkAgentConfig =
     name: agent:

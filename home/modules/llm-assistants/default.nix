@@ -19,7 +19,7 @@ assert lib.assertOneOf "hostType" hostType [
 
 let
   cfg = config.hakula.llm-assistants;
-  mcpSecrets = import ./shared/mcp/secrets.nix;
+  inherit (config.lib.llmAssistants) mcpSecrets;
 
   # Map each MCP server to the secret it needs at runtime. Servers absent
   # from this attrset (codex, deepwiki, fetcher, filesystem, git) don't
@@ -76,6 +76,7 @@ in
     ./codex
     ./cursor
     ./opencode
+    ./shared
     ./workmux
   ];
 
@@ -111,17 +112,6 @@ in
 
     (lib.mkIf anyAssistantEnabled {
       hakula.secrets.required = requiredMcpSecrets;
-    })
-
-    (lib.mkIf (config.hakula.claude-code.enable || config.hakula.opencode.enable) {
-      # OpenCode also discovers Claude's skill directory, so install each skill once.
-      home.file = lib.mapAttrs' (
-        name: source:
-        lib.nameValuePair ".claude/skills/${name}" {
-          inherit source;
-          recursive = true;
-        }
-      ) (import ./shared/skills);
     })
 
     (lib.mkIf cfg.enable (

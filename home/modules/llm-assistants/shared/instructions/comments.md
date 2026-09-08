@@ -4,7 +4,9 @@
 
 **Preserve useful rationale.** Within the scope of an edit, remove comments that repeat the code and correct those that have become misleading. Investigate an uncertain comment before deleting it, because the constraint it records may still apply.
 
-Each ban below carries its reason, because a rule stated without one gets satisfied on the surface while the underlying habit finds a new outlet.
+**Align trailing comments in directory trees and similar listings.** Put comment markers in one column, leaving several spaces after the longest entry so small name changes do not shift every comment.
+
+Avoid these patterns for the reasons below:
 
 - **Comments that restate WHAT the code does** (`// increment counter`), or **describe the shape, order, or layout** of the code below them (`# Required fields first`). The reader can already see all of this, so the comment adds a second place to keep current and no information. Sorting or grouping is never on its own a reason to leave a comment.
 - **Comments that narrate the change or reference the task** (`// Updated to use X`, `// Fix for #123`, `# Switched to a record because the user asked`, `# Fixed a bug where the counter double-incremented`). A future reader needs the code's present shape, and its edit history is noise to them. Version control already records why it changed, so this rots in the source tree while the commit message stays accurate. Resolving an issue or meeting a requirement is not on its own a reason to leave a comment.
