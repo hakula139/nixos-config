@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  proxyLib,
+  repoLib,
   secretPath,
   ...
 }:
@@ -37,7 +37,7 @@ let
         secretFile
         subscriptionUrlFile
         ;
-      inherit (proxyLib) proxyVars;
+      inherit (repoLib.proxy) proxyVars;
     }
   );
   updatePackage = pkgs.writers.writeNuBin "mihomo-update" {

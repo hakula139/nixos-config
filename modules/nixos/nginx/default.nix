@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -112,7 +112,7 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.cloudflare-credentials = secrets.mkSecret {
+    age.secrets.cloudflare-credentials = repoLib.secrets.mkSecret {
       name = "cloudflare/credentials";
       owner = "acme";
       group = "acme";

@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -121,13 +121,13 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.backup-env = secrets.mkSecret {
+    age.secrets.backup-env = repoLib.secrets.mkSecret {
       name = "backup/env";
       owner = serviceName;
       group = serviceName;
     };
 
-    age.secrets.backup-restic-password = secrets.mkSecret {
+    age.secrets.backup-restic-password = repoLib.secrets.mkSecret {
       name = "backup/restic-password";
       owner = serviceName;
       group = serviceName;

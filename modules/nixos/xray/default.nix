@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -37,7 +37,7 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.xray-config = secrets.mkSecret {
+    age.secrets.xray-config = repoLib.secrets.mkSecret {
       name = "xray/config.json";
       owner = "root";
       group = "root";

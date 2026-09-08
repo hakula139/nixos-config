@@ -6,9 +6,9 @@
   config,
   pkgs,
   lib,
-  secrets,
-  sharedConfig,
-  systemManagerLib,
+  defaults,
+  repoLib,
+  systemManagerPaths,
   ...
 }:
 
@@ -18,7 +18,7 @@ let
   sshCfg = cfg.access.ssh;
   userConfig = config.users.users.${cfg.user.name};
 
-  shared = sharedConfig { inherit pkgs lib; };
+  packages = repoLib.packagesFor pkgs;
   systemManagerHealthCheck = pkgs.writers.writeNuBin "system-manager-health-check" (
     builtins.readFile ./health-check.nu
   );
@@ -73,7 +73,7 @@ in
     # --------------------------------------------------------------------------
     nix = {
       enable = true;
-      settings = shared.nixSettings // {
+      settings = defaults.nixSettings // {
         trusted-users = [
           "root"
           cfg.user.name
@@ -85,21 +85,21 @@ in
     # Shell & Environment
     # --------------------------------------------------------------------------
     programs.zsh.enable = true;
-    environment.variables = shared.localeSettings;
+    environment.variables = defaults.localeSettings;
 
     # Nix-built zsh reads /etc/zprofile for login shells, the only hook
     # system-manager has for injecting the system PATH.
     environment.etc.zprofile = lib.mkIf config.programs.zsh.enable {
       text = ''
         typeset -U path PATH
-        path=(${lib.concatMapStringsSep " " (p: ''"${p}"'') systemManagerLib.systemPaths} $path)
+        path=(${lib.concatMapStringsSep " " (p: ''"${p}"'') systemManagerPaths} $path)
       '';
     };
 
     # --------------------------------------------------------------------------
     # Packages
     # --------------------------------------------------------------------------
-    environment.systemPackages = shared.basePackages ++ [
+    environment.systemPackages = packages.base ++ [
       systemManagerHealthCheck
       pkgs.system-manager
       pkgs.zsh
@@ -110,7 +110,7 @@ in
     # --------------------------------------------------------------------------
     age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
 
-    age.secrets = secrets.mkRequiredUserSecrets {
+    age.secrets = repoLib.secrets.mkRequiredUserSecrets {
       inherit homeConfig userConfig;
     };
 

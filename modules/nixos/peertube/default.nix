@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -66,13 +66,13 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.peertube-env = secrets.mkSecret {
+    age.secrets.peertube-env = repoLib.secrets.mkSecret {
       name = "peertube/env";
       owner = "peertube";
       group = "peertube";
     };
 
-    age.secrets.peertube-secret = secrets.mkSecret {
+    age.secrets.peertube-secret = repoLib.secrets.mkSecret {
       name = "peertube/secret";
       owner = "peertube";
       group = "peertube";

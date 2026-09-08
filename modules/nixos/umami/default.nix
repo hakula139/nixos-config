@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -54,7 +54,7 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.umami-env = secrets.mkSecret {
+    age.secrets.umami-env = repoLib.secrets.mkSecret {
       name = "umami/env";
       owner = "root";
       group = "postgres";

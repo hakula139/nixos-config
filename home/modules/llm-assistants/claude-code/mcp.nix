@@ -5,14 +5,12 @@
 {
   pkgs,
   enabledServers,
-  llmAssistantLib,
+  mcpOptions,
   mcpServers,
   ...
 }:
 
 let
-  inherit (llmAssistantLib) mcpOptions;
-
   json = pkgs.formats.json { };
 
   serversConfig = builtins.listToAttrs (

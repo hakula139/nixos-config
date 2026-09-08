@@ -7,8 +7,8 @@
   pkgs,
   lib,
   corpHosts,
-  proxyLib,
   repo,
+  repoLib,
   secretPath,
   enableDevToolchains ? false,
   ...
@@ -25,12 +25,12 @@
     agentRoleOptions = import ./agent-roles/options.nix { inherit lib; };
 
     mcp = import ./mcp {
+      inherit (repoLib.proxy) clearProxyEnv;
       inherit
         config
         pkgs
         lib
         corpHosts
-        proxyLib
         secretPath
         ;
     };

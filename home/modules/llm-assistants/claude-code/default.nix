@@ -8,8 +8,7 @@
   lib,
   inputs,
   hostType,
-  llmAssistantLib,
-  proxyLib,
+  repoLib,
   secretPath,
   enableDevToolchains ? false,
   ...
@@ -21,10 +20,10 @@ let
   homeDir = config.home.homeDirectory;
 
   inherit (shared) instructions agentRoleOptions;
-  inherit (llmAssistantLib) mcpOptions;
+  inherit (repoLib.llmAssistants) mcpOptions;
 
   mcp = import ./mcp.nix {
-    inherit pkgs llmAssistantLib;
+    inherit pkgs mcpOptions;
     enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
     mcpServers = shared.mcp.servers;
   };
@@ -81,7 +80,7 @@ in
       };
     };
 
-    proxy = proxyLib.mkProxyOptions "Claude Code";
+    proxy = repoLib.proxy.mkProxyOptions "Claude Code";
   };
 
   # ----------------------------------------------------------------------------
@@ -93,7 +92,7 @@ in
       # Module imports
       # ------------------------------------------------------------------------
       permissions = import ./permissions.nix {
-        sharedPermissions = llmAssistantLib.permissions;
+        sharedPermissions = repoLib.llmAssistants.permissions;
       };
 
       hooks = import ./hooks.nix {
@@ -145,7 +144,7 @@ in
         ]
         ++ lib.optionals cfg.proxy.enable [
           "--run"
-          (proxyLib.mkProxyScript cfg.proxy)
+          (repoLib.proxy.mkProxyScript cfg.proxy)
         ]
         ++ [
           "--add-flags"
