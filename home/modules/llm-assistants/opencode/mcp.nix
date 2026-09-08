@@ -3,6 +3,7 @@
 # ==============================================================================
 
 {
+  lib,
   enabledServers,
   mcpOptions,
   mcpServers,
@@ -18,16 +19,21 @@ let
     {
       name = mcpOptions.serverDisplayNames.${s};
       value =
-        if server.type == "stdio" then
-          {
-            type = "local";
-            command = [ server.command ];
-          }
-        else
-          {
-            type = "remote";
-            inherit (server) url;
-          };
+        (
+          if server.type == "stdio" then
+            {
+              type = "local";
+              command = [ server.command ];
+            }
+          else
+            {
+              type = "remote";
+              inherit (server) url;
+            }
+        )
+        // lib.optionalAttrs (server ? startupTimeoutSec) {
+          timeout = server.startupTimeoutSec * 1000;
+        };
     };
 in
 {

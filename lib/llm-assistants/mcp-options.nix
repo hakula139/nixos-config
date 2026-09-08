@@ -8,6 +8,7 @@ let
   serverDisplayNames = {
     atlassian = "Atlassian";
     braveSearch = "BraveSearch";
+    chromeDevtools = "ChromeDevTools";
     codex = "Codex";
     context7 = "Context7";
     deepwiki = "DeepWiki";
@@ -23,6 +24,7 @@ let
 
   commonServerNames = [
     "atlassian"
+    "chromeDevtools"
     "deepwiki"
     "exa"
     "fetcher"

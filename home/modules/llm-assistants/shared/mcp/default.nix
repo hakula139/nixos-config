@@ -80,6 +80,29 @@ let
   };
 
   # ----------------------------------------------------------------------------
+  # Chrome DevTools
+  # ----------------------------------------------------------------------------
+  chromeDevtoolsLauncher = pkgs.writeShellScript "chrome-devtools-launcher" ''
+    set -euo pipefail
+    playwrightPath=$(${pkgs.coreutils}/bin/realpath "$(command -v playwright)")
+    browserPath=$(node -e '
+      const { chromium } = require(process.argv[1]);
+      process.stdout.write(chromium.executablePath());
+    ' "$(${pkgs.coreutils}/bin/dirname "$playwrightPath")")
+    if [[ ! -x "$browserPath" ]]; then
+      PLAYWRIGHT_SKIP_BROWSER_GC=1 playwright install chromium --no-shell >&2
+    fi
+    exec chrome-devtools-mcp --executable-path="$browserPath" --headless --isolated "$@"
+  '';
+  chromeDevtoolsBin = pkgs.writeShellScriptBin "chrome-devtools-mcp" ''
+    set -euo pipefail
+    ${nodeSetup}
+    export CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS=1
+    # Resolve the browser through Playwright so its existing cache is reused.
+    exec npm exec -y --package=playwright --package=chrome-devtools-mcp -- ${chromeDevtoolsLauncher} "$@"
+  '';
+
+  # ----------------------------------------------------------------------------
   # Codex
   # ----------------------------------------------------------------------------
   codexBin = pkgs.writeShellScriptBin "codex-mcp" ''
@@ -184,6 +207,13 @@ in
     braveSearch = {
       command = "${braveSearchBin}/bin/brave-search-mcp";
       type = "stdio";
+    };
+
+    chromeDevtools = {
+      command = "${chromeDevtoolsBin}/bin/chrome-devtools-mcp";
+      type = "stdio";
+      # First launch may install Playwright's matching Chromium build.
+      startupTimeoutSec = 120;
     };
 
     codex = {

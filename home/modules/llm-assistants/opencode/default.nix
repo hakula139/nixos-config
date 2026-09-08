@@ -68,7 +68,7 @@ in
       };
 
       mcp = import ./mcp.nix {
-        inherit mcpOptions;
+        inherit lib mcpOptions;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
         mcpServers = shared.mcp.servers;
       };
