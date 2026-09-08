@@ -6,17 +6,15 @@
   config,
   pkgs,
   lib,
-  sharedConfig,
-  wslLib,
+  repoLib,
   ...
 }:
 
 let
-  shared = sharedConfig { inherit pkgs lib; };
   cfg = config.hakula.fonts;
 
-  fontDirs = map (p: "${p}/share/fonts") shared.fonts;
-  windowsInterop = wslLib.mkWindowsInterop pkgs;
+  fontDirs = map (p: "${p}/share/fonts") (repoLib.packagesFor pkgs).fonts;
+  windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
   fontConfig = pkgs.writeText "windows-fonts.json" (
     builtins.toJSON {
       inherit fontDirs;

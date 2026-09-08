@@ -7,11 +7,10 @@
   pkgs,
   lib,
   flakeConfigName,
+  repoLib,
+  systemManagerPaths,
   isDesktop ? false,
   isNixOS ? false,
-  llmAssistantLib,
-  systemManagerLib,
-  wslLib,
   ...
 }:
 
@@ -23,7 +22,7 @@ let
   # ----------------------------------------------------------------------------
   # MCP
   # ----------------------------------------------------------------------------
-  inherit (llmAssistantLib) mcpOptions;
+  inherit (repoLib.llmAssistants) mcpOptions;
   cursorMcpServers = mcpOptions.commonServerNames;
 
   # ----------------------------------------------------------------------------
@@ -48,7 +47,7 @@ let
   # ----------------------------------------------------------------------------
   # Windows sync
   # ----------------------------------------------------------------------------
-  windowsInterop = wslLib.mkWindowsInterop pkgs;
+  windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
   syncWindowsSettings = pkgs.writers.writeNuBin "sync-windows-cursor-settings" {
     makeWrapperArgs = [
       "--add-flag"
@@ -104,7 +103,7 @@ in
   config = lib.mkIf cfg.enable (
     let
       mcp = import ./mcp.nix {
-        inherit pkgs llmAssistantLib;
+        inherit pkgs mcpOptions;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
         mcpServers = shared.mcp.servers;
       };
@@ -128,9 +127,7 @@ in
         [ -r /etc/set-environment ] && . /etc/set-environment
 
         for p in ${
-          lib.concatMapStringsSep " " (p: ''"${p}"'') (
-            systemManagerLib.systemPaths ++ [ "$HOME/.nix-profile/bin" ]
-          )
+          lib.concatMapStringsSep " " (p: ''"${p}"'') (systemManagerPaths ++ [ "$HOME/.nix-profile/bin" ])
         }; do
           case ":$PATH:" in
             *":$p:"*) ;;

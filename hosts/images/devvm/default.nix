@@ -6,7 +6,7 @@
   lib,
   corpHosts,
   repo,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -45,7 +45,7 @@ in
   # ----------------------------------------------------------------------------
   hakula.nix-daemon.proxy = {
     enable = true;
-    secretUrlFile = secrets.secretPath proxyUrlSecret;
+    secretUrlFile = repoLib.secrets.secretPath proxyUrlSecret;
     noProxy = proxyNoProxy;
   };
 

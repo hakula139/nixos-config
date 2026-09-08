@@ -5,8 +5,7 @@
 {
   config,
   lib,
-  llmAssistantLib,
-  proxyLib,
+  repoLib,
   ...
 }:
 
@@ -21,8 +20,8 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.hakula.llm-assistants = llmAssistantLib.mkOptions {
-    inherit proxyLib;
+  options.hakula.llm-assistants = repoLib.llmAssistants.mkOptions {
+    inherit (repoLib.proxy) mkProxyOptions;
     enableDescription = "LLM assistants for the primary interactive user";
     defaultUser = config.hakula.user.name;
   };
@@ -36,7 +35,7 @@ in
         hakula.claude-code.enable = lib.mkDefault true;
       }
 
-      (llmAssistantLib.mkHomeManagerConfig cfg)
+      (repoLib.llmAssistants.mkHomeManagerConfig cfg)
     ]
   );
 }

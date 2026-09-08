@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -57,7 +57,7 @@ in
       # ------------------------------------------------------------------------
       # Secrets
       # ------------------------------------------------------------------------
-      age.secrets.dockerhub-token = secrets.mkSecret {
+      age.secrets.dockerhub-token = repoLib.secrets.mkSecret {
         name = "dockerhub/token";
         owner = "root";
         group = "dockerhub";

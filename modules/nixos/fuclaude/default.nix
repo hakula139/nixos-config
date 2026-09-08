@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -58,7 +58,7 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.fuclaude-env = secrets.mkSecret {
+    age.secrets.fuclaude-env = repoLib.secrets.mkSecret {
       name = "fuclaude/env";
       owner = "root";
       group = "root";

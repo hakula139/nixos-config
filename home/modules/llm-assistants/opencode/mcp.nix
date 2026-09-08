@@ -4,14 +4,12 @@
 
 {
   enabledServers,
-  llmAssistantLib,
+  mcpOptions,
   mcpServers,
   ...
 }:
 
 let
-  inherit (llmAssistantLib) mcpOptions;
-
   mkEntry =
     s:
     let

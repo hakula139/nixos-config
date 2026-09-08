@@ -7,7 +7,7 @@
   pkgs,
   lib,
   corpHosts,
-  llmAssistantLib,
+  repoLib,
   username ? "hakula",
   isNixOS ? false,
   isDesktop ? false,
@@ -77,7 +77,7 @@ in
   hakula.claude-code.auth.profiles =
     lib.mkIf (config.hakula.claude-code.auth.defaultProfile != null)
       (
-        llmAssistantLib.mkClaudeProfiles {
+        repoLib.llmAssistants.mkClaudeProfiles {
           inherit lib corpHosts;
           inherit (config.hakula.claude-code.auth) enableCorpGateway;
         }

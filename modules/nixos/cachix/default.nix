@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -41,7 +41,7 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.cachix-auth-token = secrets.mkSecret {
+    age.secrets.cachix-auth-token = repoLib.secrets.mkSecret {
       name = "cachix/auth-token";
       owner = cfg.user;
       inherit (userCfg) group;

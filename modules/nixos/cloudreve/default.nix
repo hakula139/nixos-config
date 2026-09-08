@@ -6,7 +6,7 @@
   config,
   pkgs,
   lib,
-  systemdLib,
+  repoLib,
   ...
 }:
 
@@ -155,7 +155,7 @@ in
         install -m 0600 ${configFile} "$STATE_DIRECTORY/data/conf.ini"
       '';
 
-      serviceConfig = systemdLib.hardening // {
+      serviceConfig = repoLib.systemd.hardening // {
         Type = "simple";
         ExecStart = "%S/%N/cloudreve";
         Restart = "on-failure";

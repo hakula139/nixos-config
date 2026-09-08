@@ -5,7 +5,7 @@
 {
   config,
   lib,
-  secrets,
+  repoLib,
   ...
 }:
 
@@ -27,7 +27,7 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    age.secrets.aria2-rpc-secret = secrets.mkSecret {
+    age.secrets.aria2-rpc-secret = repoLib.secrets.mkSecret {
       name = "cloudreve/aria2-rpc-secret";
       owner = "aria2";
       group = "aria2";
