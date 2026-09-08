@@ -53,7 +53,7 @@ Aim for a simple, coherent design that meets current requirements.
 - **Refactor when it improves the design.** Refactors and extractions are welcome when they clarify responsibilities, simplify control flow, or remove duplication. An extraction can be useful before a second caller exists.
 - **Build for current needs.** Give abstractions concrete responsibilities. Avoid speculative features, configurability, and extension points for hypothetical future uses.
 - **Avoid speculative defensive code.** Trust established internal contracts. Validate external inputs and handle failures required by the actual contract. Add guards, retries, or fallbacks only for concrete failure modes, and preserve errors that expose broken assumptions.
-- **Adjust adjacent code when needed.** Update surrounding code whenever it helps the change fit coherently, including affected callers and related abstractions. Preserve existing conventions, and keep independent feature work and broad cosmetic cleanup separate.
+- **Update surrounding code when needed.** Include affected callers and related abstractions so the change fits coherently. Preserve existing conventions, and keep independent feature work and broad cosmetic cleanup separate.
 
 ## Workflow Discipline
 
