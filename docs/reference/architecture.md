@@ -53,9 +53,6 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 ├── home/
 │   ├── hakula.nix                   # Home Manager entry point
 │   └── modules/                     # Home Manager modules (incl. `wsl.nix` workstation bundle)
-│       └── llm-assistants/
-│           └── shared/
-│               └── skills/          # Shared skill sources for Claude Code, Codex, and OpenCode
 ├── packages/                        # Custom package definitions (callPackage targets in lib/overlays.nix)
 ├── secrets/                         # agenix-encrypted secrets and recipient rules
 ├── docs/                            # This knowledge base
@@ -63,5 +60,3 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 ```
 
 `hosts/_profiles/` splits into `platform/` for hardware or runtime shape and `role/` for server against workstation.
-
-Shared assistant skills are registered once in `home/modules/llm-assistants/shared/skills/default.nix`. Claude Code and OpenCode share the `~/.claude/skills` deployment, while Codex receives regular files through its managed skill bundle. OpenCode scans both `~/.claude/skills` and `~/.agents/skills` and warns on duplicate names, so do not also register a shared skill under `.agents/skills`.
