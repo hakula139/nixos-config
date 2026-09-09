@@ -52,7 +52,6 @@ let
     {
       name,
       command,
-      args ? [ ],
       envFiles ? { },
       envVars ? { },
     }:
@@ -65,25 +64,20 @@ let
       ''
         ${nodeSetup}
         ${exports}
-        exec ${lib.escapeShellArgs ([ command ] ++ args)} "$@"
+        exec ${lib.escapeShellArgs command} "$@"
       ''
     );
 
   mkNpmServer =
-    {
-      package,
-      args ? [ ],
-      ...
-    }@server:
+    server:
     mkNodeServer (
-      builtins.removeAttrs server [ "package" ]
+      server
       // {
-        command = "npx";
-        args = [
+        command = [
+          "npx"
           "-y"
-          package
         ]
-        ++ args;
+        ++ server.command;
       }
     );
 
@@ -105,7 +99,7 @@ let
   # ----------------------------------------------------------------------------
   braveSearchBin = mkNpmServer {
     name = "brave-search";
-    package = "@brave/brave-search-mcp-server";
+    command = [ "@brave/brave-search-mcp-server" ];
     envFiles.BRAVE_API_KEY = secretPath "brave-api-key";
   };
 
@@ -114,8 +108,8 @@ let
   # ----------------------------------------------------------------------------
   chromeDevtoolsBin = mkNpmServer {
     name = "chrome-devtools";
-    package = "chrome-devtools-mcp";
-    args = [
+    command = [
+      "chrome-devtools-mcp"
       "--executable-path=${lib.getExe' pkgs.browser-tools "chromium"}"
       "--headless"
       "--isolated"
@@ -134,7 +128,7 @@ let
   # ----------------------------------------------------------------------------
   context7Bin = mkNpmServer {
     name = "context7";
-    package = "@upstash/context7-mcp";
+    command = [ "@upstash/context7-mcp" ];
     envFiles.CONTEXT7_API_KEY = secretPath "context7-api-key";
   };
 
@@ -143,7 +137,7 @@ let
   # ----------------------------------------------------------------------------
   exaBin = mkNpmServer {
     name = "exa";
-    package = "exa-mcp-server";
+    command = [ "exa-mcp-server" ];
     envFiles.EXA_API_KEY = secretPath "exa-api-key";
     # Exa's eight other tools are deprecated aliases of these four. crawling_exa in
     # particular registers the same handler as web_fetch_exa under a second name.
@@ -155,7 +149,7 @@ let
   # ----------------------------------------------------------------------------
   fetcherBin = mkNodeServer {
     name = "fetcher";
-    command = lib.getExe pkgs.fetcher-mcp;
+    command = [ (lib.getExe pkgs.fetcher-mcp) ];
   };
 
   # ----------------------------------------------------------------------------
