@@ -68,7 +68,8 @@ in
       };
 
       mcp = import ./mcp.nix {
-        inherit lib mcpOptions;
+        inherit mcpOptions;
+        inherit (shared.mcp) startupTimeoutSec;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
         mcpServers = shared.mcp.servers;
       };

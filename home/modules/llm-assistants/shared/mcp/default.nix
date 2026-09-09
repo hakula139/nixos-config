@@ -34,13 +34,14 @@ let
     export ${var}="${value}"
   '';
 
-  # Wrapper for `npx -y <package>` style MCP servers, sharing nodeSetup + env exports + exec.
+  # Node servers share proxy support and environment exports.
   # `envFiles` values are runtime paths read on start, keeping secrets out of the store path.
   # `envVars` values land in the store path verbatim, so never pass a secret there.
-  mkNpmServer =
+  mkNodeServer =
     {
       name,
-      package,
+      command,
+      args ? [ ],
       envFiles ? { },
       envVars ? { },
     }:
@@ -53,8 +54,26 @@ let
       ''
         ${nodeSetup}
         ${exports}
-        exec npx -y ${package} "$@"
+        exec ${lib.escapeShellArgs ([ command ] ++ args)} "$@"
       ''
+    );
+
+  mkNpmServer =
+    {
+      package,
+      args ? [ ],
+      ...
+    }@server:
+    mkNodeServer (
+      builtins.removeAttrs server [ "package" ]
+      // {
+        command = "npx";
+        args = [
+          "-y"
+          package
+        ]
+        ++ args;
+      }
     );
 
   # ----------------------------------------------------------------------------
@@ -82,12 +101,15 @@ let
   # ----------------------------------------------------------------------------
   # Chrome DevTools
   # ----------------------------------------------------------------------------
-  chromeDevtoolsBin = pkgs.writeShellScriptBin "chrome-devtools-mcp" ''
-    set -euo pipefail
-    ${nodeSetup}
-    export CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS=1
-    exec npx -y chrome-devtools-mcp --executable-path=${lib.getExe' pkgs.browser-tools "chromium"} --headless --isolated "$@"
-  '';
+  chromeDevtoolsBin = mkNpmServer {
+    name = "chrome-devtools";
+    package = "chrome-devtools-mcp";
+    args = [
+      "--executable-path=${lib.getExe' pkgs.browser-tools "chromium"}"
+      "--headless"
+      "--isolated"
+    ];
+  };
 
   # ----------------------------------------------------------------------------
   # Codex
@@ -120,11 +142,10 @@ let
   # ----------------------------------------------------------------------------
   # Fetcher
   # ----------------------------------------------------------------------------
-  fetcherBin = pkgs.writeShellScriptBin "fetcher-mcp" ''
-    set -euo pipefail
-    ${nodeSetup}
-    exec ${lib.getExe pkgs.fetcher-mcp} "$@"
-  '';
+  fetcherBin = mkNodeServer {
+    name = "fetcher";
+    command = lib.getExe pkgs.fetcher-mcp;
+  };
 
   # ----------------------------------------------------------------------------
   # Filesystem
@@ -183,6 +204,9 @@ let
   '';
 in
 {
+  # Allow first-launch npm / uv downloads before MCP initialization completes.
+  startupTimeoutSec = 120;
+
   # ----------------------------------------------------------------------------
   # MCP servers
   # ----------------------------------------------------------------------------
@@ -200,8 +224,6 @@ in
     chromeDevtools = {
       command = "${chromeDevtoolsBin}/bin/chrome-devtools-mcp";
       type = "stdio";
-      # npm may install the MCP package on first launch.
-      startupTimeoutSec = 120;
     };
 
     codex = {
@@ -227,7 +249,6 @@ in
     fetcher = {
       command = "${fetcherBin}/bin/fetcher-mcp";
       type = "stdio";
-      startupTimeoutSec = 60;
     };
 
     filesystem = {

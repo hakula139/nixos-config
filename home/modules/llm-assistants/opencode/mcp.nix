@@ -3,10 +3,10 @@
 # ==============================================================================
 
 {
-  lib,
   enabledServers,
   mcpOptions,
   mcpServers,
+  startupTimeoutSec,
   ...
 }:
 
@@ -31,8 +31,8 @@ let
               inherit (server) url;
             }
         )
-        // lib.optionalAttrs (server ? startupTimeoutSec) {
-          timeout = server.startupTimeoutSec * 1000;
+        // {
+          timeout = startupTimeoutSec * 1000;
         };
     };
 in

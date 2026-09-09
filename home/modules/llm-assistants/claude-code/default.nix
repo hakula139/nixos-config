@@ -198,6 +198,7 @@ in
               permissions
               plugins
               ;
+            inherit (shared.mcp) startupTimeoutSec;
             profileSettings = profiles.settings;
             bundlePlugins = cfg.plugins.bundle;
           };
