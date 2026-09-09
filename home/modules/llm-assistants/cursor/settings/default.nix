@@ -127,6 +127,8 @@ let
   # Final settings
   # ----------------------------------------------------------------------------
   settings = settingsBase // portableSettings;
+  machineSettingsJson = json.generate "cursor-machine-settings.json" machineSettings;
+  settingsJson = json.generate "cursor-settings.json" settings;
   windowsSettingsJson = json.generate "cursor-windows-settings.json" (settings // windowsSettings);
 
   # ----------------------------------------------------------------------------
@@ -142,7 +144,11 @@ let
   } (builtins.readFile ./sync-windows-settings.nu);
 in
 {
-  inherit settings windowsSettingsJson syncWindowsSettings;
-  machineSettingsJson = json.generate "cursor-machine-settings.json" machineSettings;
-  settingsJson = json.generate "cursor-settings.json" settings;
+  inherit
+    settings
+    machineSettingsJson
+    settingsJson
+    windowsSettingsJson
+    syncWindowsSettings
+    ;
 }
