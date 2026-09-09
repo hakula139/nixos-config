@@ -17,6 +17,17 @@ let
 
   homeDir = config.home.homeDirectory;
 
+  # ----------------------------------------------------------------------------
+  # MCP timeouts
+  # ----------------------------------------------------------------------------
+  timeouts = {
+    # Allow first-launch npm / uv downloads before MCP initialization completes.
+    startup = 120;
+  };
+
+  # ----------------------------------------------------------------------------
+  # Server wrappers
+  # ----------------------------------------------------------------------------
   # undici (Node's built-in fetch) needs --use-env-proxy to honour HTTP_PROXY.
   nodejs = pkgs.nodejs_24;
   nodeSetup = ''
@@ -204,8 +215,7 @@ let
   '';
 in
 {
-  # Allow first-launch npm / uv downloads before MCP initialization completes.
-  startupTimeoutSec = 120;
+  inherit timeouts;
 
   # ----------------------------------------------------------------------------
   # MCP servers

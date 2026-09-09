@@ -6,7 +6,7 @@
   enabledServers,
   mcpOptions,
   mcpServers,
-  startupTimeoutSec,
+  timeouts,
   ...
 }:
 
@@ -32,7 +32,7 @@ let
             }
         )
         // {
-          timeout = startupTimeoutSec * 1000;
+          timeout = timeouts.startup * 1000;
         };
     };
 in

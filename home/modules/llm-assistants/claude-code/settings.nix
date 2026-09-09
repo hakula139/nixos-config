@@ -10,7 +10,7 @@
   permissions,
   plugins,
   profileSettings,
-  startupTimeoutSec,
+  timeouts,
   ...
 }:
 
@@ -79,6 +79,6 @@
     ENABLE_PROMPT_CACHING_1H = "1";
     ENABLE_TOOL_SEARCH = "1";
     FORCE_AUTOUPDATE_PLUGINS = if bundlePlugins then "0" else "1";
-    MCP_TIMEOUT = toString (startupTimeoutSec * 1000);
+    MCP_TIMEOUT = toString (timeouts.startup * 1000);
   };
 }
