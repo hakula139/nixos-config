@@ -386,11 +386,22 @@
           pkgs = pkgsFor system;
           tooling = import ./lib/tooling.nix { inherit pkgs; };
           preCommitCheck = preCommitCheckFor system;
+          basePackages = preCommitCheck.enabledPackages ++ tooling.all;
         in
         {
           default = pkgs.mkShell {
             inherit (preCommitCheck) shellHook;
-            buildInputs = preCommitCheck.enabledPackages ++ tooling.all;
+            buildInputs = basePackages;
+          };
+
+          browser = pkgs.mkShell {
+            buildInputs = basePackages;
+            packages = [
+              pkgs.browser-tools
+              pkgs.nodejs_24
+              (pkgs.python3.withPackages (ps: [ ps.playwright ]))
+            ];
+            PLAYWRIGHT_BROWSERS_PATH = pkgs.browser-tools.browsers;
           };
         }
       );
