@@ -45,15 +45,15 @@ let
     export ${var}="${value}"
   '';
 
-  # npm servers share proxy support and environment exports.
   # `envFiles` values are runtime paths read on start, keeping secrets out of the store path.
   # `envVars` values land in the store path verbatim, so never pass a secret there.
-  mkNpmServer =
+  mkServer =
     {
       name,
       command,
       envFiles ? { },
       envVars ? { },
+      setup ? "",
     }:
     pkgs.writeShellScriptBin "${name}-mcp" (
       let
@@ -62,24 +62,47 @@ let
         );
       in
       ''
-        ${nodeSetup}
+        set -euo pipefail
         ${exports}
-        exec npx -y ${lib.escapeShellArgs command} "$@"
+        ${setup}
+        exec ${lib.escapeShellArgs command} "$@"
       ''
+    );
+
+  mkNpmServer =
+    server:
+    mkServer (
+      server
+      // {
+        setup = nodeSetup;
+        command = [
+          "npx"
+          "-y"
+        ]
+        ++ server.command;
+      }
+    );
+
+  mkUvServer =
+    server:
+    mkServer (
+      server
+      // {
+        command = [ "${pkgs.uv}/bin/uvx" ] ++ server.command;
+      }
     );
 
   # ----------------------------------------------------------------------------
   # Atlassian (Confluence)
   # ----------------------------------------------------------------------------
-  confluencePatFile = secretPath "confluence-pat";
-  atlassianBin = pkgs.writeShellScriptBin "atlassian-mcp" ''
-    export PATH="${pkgs.uv}/bin:$PATH"
-    ${exportFromFile "CONFLUENCE_PERSONAL_TOKEN" confluencePatFile}
-    export CONFLUENCE_URL="${wikiUrl}"
+  atlassianBin = mkUvServer {
+    name = "atlassian";
+    command = [ "mcp-atlassian" ];
+    envFiles.CONFLUENCE_PERSONAL_TOKEN = secretPath "confluence-pat";
+    envVars.CONFLUENCE_URL = wikiUrl;
     # mcp-atlassian honours HTTP_PROXY but ignores NO_PROXY, so unset proxies for internal Confluence.
-    ${clearProxyEnv}
-    exec uvx mcp-atlassian "$@"
-  '';
+    setup = clearProxyEnv;
+  };
 
   # ----------------------------------------------------------------------------
   # Brave Search
@@ -190,10 +213,15 @@ let
   # ----------------------------------------------------------------------------
   # Scrapling
   # ----------------------------------------------------------------------------
-  scraplingBin = pkgs.writeShellScriptBin "scrapling-mcp" ''
-    exec ${pkgs.uv}/bin/uvx --from 'scrapling[ai]==0.4.15' scrapling-mcp \
-      --executable-path=${lib.getExe' pkgs.browser-tools "chromium"} "$@"
-  '';
+  scraplingBin = mkUvServer {
+    name = "scrapling";
+    command = [
+      "--from"
+      "scrapling[ai]"
+      "scrapling-mcp"
+      "--executable-path=${lib.getExe' pkgs.browser-tools "chromium"}"
+    ];
+  };
 in
 {
   inherit timeouts;
