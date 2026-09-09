@@ -8,28 +8,30 @@ let
   serverDisplayNames = {
     atlassian = "Atlassian";
     braveSearch = "BraveSearch";
+    chromeDevtools = "ChromeDevTools";
     codex = "Codex";
     context7 = "Context7";
     deepwiki = "DeepWiki";
     exa = "Exa";
-    fetcher = "Fetcher";
     filesystem = "Filesystem";
     git = "Git";
     github = "GitHub";
     gitlab = "GitLab";
+    scrapling = "Scrapling";
   };
 
   allServerNames = builtins.attrNames serverDisplayNames;
 
   commonServerNames = [
     "atlassian"
+    "chromeDevtools"
     "deepwiki"
     "exa"
-    "fetcher"
     "filesystem"
     "git"
     "github"
     "gitlab"
+    "scrapling"
   ];
 
   corpServerNames = [

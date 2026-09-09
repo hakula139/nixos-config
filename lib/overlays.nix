@@ -55,6 +55,7 @@
     # --------------------------------------------------------------------------
     # Custom packages
     # --------------------------------------------------------------------------
+    browser-tools = final.callPackage ../packages/browser-tools { };
     cloudreve = final.callPackage ../packages/cloudreve { };
     mcp-server-filesystem = final.callPackage ../packages/mcp/mcp-server-filesystem { };
     mcp-server-git = final.callPackage ../packages/mcp/mcp-server-git { };

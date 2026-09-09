@@ -169,6 +169,10 @@ in
       profiles.config
 
       {
+        home.sessionVariables = lib.mkIf cfg.plugins.online {
+          AGENT_BROWSER_EXECUTABLE_PATH = lib.getExe' pkgs.browser-tools "chromium";
+        };
+
         home.file = {
           ".claude/CLAUDE.md".text = instructions.claudeCode;
           ".claude/statusline-command" = {
@@ -194,6 +198,7 @@ in
               permissions
               plugins
               ;
+            inherit (shared.mcp) timeouts;
             profileSettings = profiles.settings;
             bundlePlugins = cfg.plugins.bundle;
           };

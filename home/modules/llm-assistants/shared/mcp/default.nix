@@ -17,6 +17,17 @@ let
 
   homeDir = config.home.homeDirectory;
 
+  # ----------------------------------------------------------------------------
+  # MCP timeouts
+  # ----------------------------------------------------------------------------
+  timeouts = {
+    # Allow first-launch npm / uv downloads before MCP initialization completes.
+    startup = 120;
+  };
+
+  # ----------------------------------------------------------------------------
+  # Server wrappers
+  # ----------------------------------------------------------------------------
   # undici (Node's built-in fetch) needs --use-env-proxy to honour HTTP_PROXY.
   nodejs = pkgs.nodejs_24;
   nodeSetup = ''
@@ -34,15 +45,15 @@ let
     export ${var}="${value}"
   '';
 
-  # Wrapper for `npx -y <package>` style MCP servers, sharing nodeSetup + env exports + exec.
   # `envFiles` values are runtime paths read on start, keeping secrets out of the store path.
   # `envVars` values land in the store path verbatim, so never pass a secret there.
-  mkNpmServer =
+  mkServer =
     {
       name,
-      package,
+      command,
       envFiles ? { },
       envVars ? { },
+      setup ? "",
     }:
     pkgs.writeShellScriptBin "${name}-mcp" (
       let
@@ -51,32 +62,68 @@ let
         );
       in
       ''
-        ${nodeSetup}
+        set -euo pipefail
         ${exports}
-        exec npx -y ${package} "$@"
+        ${setup}
+        exec ${lib.escapeShellArgs command} "$@"
       ''
+    );
+
+  mkNpmServer =
+    server:
+    mkServer (
+      server
+      // {
+        setup = nodeSetup;
+        command = [
+          "npx"
+          "-y"
+        ]
+        ++ server.command;
+      }
+    );
+
+  mkUvServer =
+    server:
+    mkServer (
+      server
+      // {
+        command = [ "${pkgs.uv}/bin/uvx" ] ++ server.command;
+      }
     );
 
   # ----------------------------------------------------------------------------
   # Atlassian (Confluence)
   # ----------------------------------------------------------------------------
-  confluencePatFile = secretPath "confluence-pat";
-  atlassianBin = pkgs.writeShellScriptBin "atlassian-mcp" ''
-    export PATH="${pkgs.uv}/bin:$PATH"
-    ${exportFromFile "CONFLUENCE_PERSONAL_TOKEN" confluencePatFile}
-    export CONFLUENCE_URL="${wikiUrl}"
+  atlassianBin = mkUvServer {
+    name = "atlassian";
+    command = [ "mcp-atlassian" ];
+    envFiles.CONFLUENCE_PERSONAL_TOKEN = secretPath "confluence-pat";
+    envVars.CONFLUENCE_URL = wikiUrl;
     # mcp-atlassian honours HTTP_PROXY but ignores NO_PROXY, so unset proxies for internal Confluence.
-    ${clearProxyEnv}
-    exec uvx mcp-atlassian "$@"
-  '';
+    setup = clearProxyEnv;
+  };
 
   # ----------------------------------------------------------------------------
   # Brave Search
   # ----------------------------------------------------------------------------
   braveSearchBin = mkNpmServer {
     name = "brave-search";
-    package = "@brave/brave-search-mcp-server";
+    command = [ "@brave/brave-search-mcp-server" ];
     envFiles.BRAVE_API_KEY = secretPath "brave-api-key";
+  };
+
+  # ----------------------------------------------------------------------------
+  # Chrome DevTools
+  # ----------------------------------------------------------------------------
+  chromeDevtoolsBin = mkNpmServer {
+    name = "chrome-devtools";
+    command = [
+      "chrome-devtools-mcp"
+      "--executable-path=${lib.getExe' pkgs.browser-tools "chromium"}"
+      "--headless"
+      "--isolated"
+    ];
   };
 
   # ----------------------------------------------------------------------------
@@ -91,7 +138,7 @@ let
   # ----------------------------------------------------------------------------
   context7Bin = mkNpmServer {
     name = "context7";
-    package = "@upstash/context7-mcp";
+    command = [ "@upstash/context7-mcp" ];
     envFiles.CONTEXT7_API_KEY = secretPath "context7-api-key";
   };
 
@@ -100,19 +147,11 @@ let
   # ----------------------------------------------------------------------------
   exaBin = mkNpmServer {
     name = "exa";
-    package = "exa-mcp-server";
+    command = [ "exa-mcp-server" ];
     envFiles.EXA_API_KEY = secretPath "exa-api-key";
     # Exa's eight other tools are deprecated aliases of these four. crawling_exa in
     # particular registers the same handler as web_fetch_exa under a second name.
     envVars.ENABLED_TOOLS = "web_search_exa,web_fetch_exa,web_search_advanced_exa,agent_run";
-  };
-
-  # ----------------------------------------------------------------------------
-  # Fetcher
-  # ----------------------------------------------------------------------------
-  fetcherBin = mkNpmServer {
-    name = "fetcher";
-    package = "fetcher-mcp";
   };
 
   # ----------------------------------------------------------------------------
@@ -170,8 +209,23 @@ let
     export GITLAB_TOOLSETS="${gitlabToolsets}"
     exec ${pkgs.mcp-server-gitlab}/bin/mcp-server-gitlab "$@"
   '';
+
+  # ----------------------------------------------------------------------------
+  # Scrapling
+  # ----------------------------------------------------------------------------
+  scraplingBin = mkUvServer {
+    name = "scrapling";
+    command = [
+      "--from"
+      "scrapling[ai]"
+      "scrapling-mcp"
+      "--executable-path=${lib.getExe' pkgs.browser-tools "chromium"}"
+    ];
+  };
 in
 {
+  inherit timeouts;
+
   # ----------------------------------------------------------------------------
   # MCP servers
   # ----------------------------------------------------------------------------
@@ -183,6 +237,11 @@ in
 
     braveSearch = {
       command = "${braveSearchBin}/bin/brave-search-mcp";
+      type = "stdio";
+    };
+
+    chromeDevtools = {
+      command = "${chromeDevtoolsBin}/bin/chrome-devtools-mcp";
       type = "stdio";
     };
 
@@ -206,13 +265,6 @@ in
       type = "stdio";
     };
 
-    fetcher = {
-      command = "${fetcherBin}/bin/fetcher-mcp";
-      type = "stdio";
-      # Playwright downloads browser binaries on first launch.
-      startupTimeoutSec = 60;
-    };
-
     filesystem = {
       command = "${filesystemBin}/bin/filesystem-mcp";
       type = "stdio";
@@ -230,6 +282,11 @@ in
 
     gitlab = {
       command = "${gitlabBin}/bin/gitlab-mcp";
+      type = "stdio";
+    };
+
+    scrapling = {
+      command = "${scraplingBin}/bin/scrapling-mcp";
       type = "stdio";
     };
   };
