@@ -397,7 +397,6 @@
               (pkgs.python3.withPackages (ps: [ ps.playwright ]))
             ];
             PLAYWRIGHT_BROWSERS_PATH = pkgs.browser-tools.browsers;
-            NODE_PATH = "${pkgs.browser-tools}/lib/node_modules";
           };
         }
       );
