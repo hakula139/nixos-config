@@ -25,10 +25,6 @@
     "mcp__Atlassian"
     "mcp__Codex"
     "mcp__DeepWiki"
-    "mcp__data_core__get_data_core_answer"
-    "mcp__data_core__get_data_core_knowledge"
-    "mcp__data_core__list_data_core_knowledge"
-    "mcp__data_core__search_data_core_knowledge"
     "mcp__plugin_context7-plugin_context7"
 
     # --------------------------------------------------------------------------
