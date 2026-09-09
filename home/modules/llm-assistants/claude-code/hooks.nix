@@ -38,7 +38,13 @@ let
     if hook ? prompt then
       {
         type = "prompt";
-        prompt = hook.prompt + "\n\nConversation context:\n\n$ARGUMENTS";
+        prompt = ''
+          ${hook.prompt}
+
+          Conversation context:
+
+          $ARGUMENTS
+        '';
       }
     else
       {
