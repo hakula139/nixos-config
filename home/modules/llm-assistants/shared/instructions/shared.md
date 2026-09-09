@@ -115,6 +115,8 @@ Use only tools and capabilities available in the current session, and follow the
 
 Use agents for independent work or useful specialist review when the benefit justifies the coordination cost. Select roles and concurrency to fit the task within the current authorization. Inspect each role's available tools and permissions, which may differ from the parent's.
 
+When launching a Workmux worker, pass `--agent` matching the calling assistant: `codex` for Codex, `claude` for Claude Code, and `opencode` for OpenCode. An agent explicitly requested by the user takes precedence. Workmux's configured default is static, so omitting the flag does not inherit the caller.
+
 ### MCP Server Usage
 
 Use the CLI when it provides the needed capability, especially for structured `git`, `gh`, and `glab` output. Use MCP when it provides needed authentication or capabilities unavailable through the CLI. The guidance below describes known integrations, whose availability and tool names depend on the session.
