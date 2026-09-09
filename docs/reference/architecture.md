@@ -62,6 +62,6 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 └── .github/workflows/ci.yml    # CI pipeline
 ```
 
-`repoLib` exposes reusable helpers through `lib/default.nix`. Inventories and policy defaults remain separate inputs. The LLM assistant modules share skills, instructions, MCP servers, and hook factories through `config.lib.llmAssistants`, populated by `home/modules/llm-assistants/shared`.
+`repoLib` exposes reusable helpers through `lib/default.nix`, while inventories and policy defaults remain separate inputs. Through `config.lib.llmAssistants`, populated by `home/modules/llm-assistants/shared`, the LLM assistant modules share skills, instructions, MCP servers, and hook factories. Delegation between them runs over the Agent Client Protocol, wired by `home/modules/llm-assistants/acp` on the `acpx` client in `packages/acpx`.
 
 `hosts/_profiles/` splits into `platform/` for hardware or runtime shape and `role/` for server against workstation.

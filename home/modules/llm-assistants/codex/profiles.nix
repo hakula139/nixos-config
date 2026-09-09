@@ -76,14 +76,21 @@ let
   # ----------------------------------------------------------------------------
   # Profile loader
   # ----------------------------------------------------------------------------
+  # tomlkit renders each override as the `-c` parser expects, including key
+  # quoting and nested tables, which `to toml` and string splicing cannot.
+  overridesEnv = pkgs.python3.withPackages (ps: [ ps.tomlkit ]);
+  overridesScript = pkgs.copyPathToStore ./scripts/profile-overrides.py;
+
   loader = pkgs.writeShellScript "codex-profile-loader" (
     builtins.replaceStrings
       [
         "@caEnv@"
+        "@profileOverrides@"
         "@stateDir@"
       ]
       [
         (lib.optionalString cfg.enableCorpGateway ''export CODEX_CA_CERTIFICATE="${caFile}"'')
+        "${overridesEnv}/bin/python3 ${overridesScript}"
         stateDir
       ]
       (builtins.readFile ./scripts/profile-loader.sh)

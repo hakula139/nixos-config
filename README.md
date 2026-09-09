@@ -14,6 +14,7 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 | The host inventory and how hosts are wired | [docs/reference/architecture.md](docs/reference/architecture.md) |
 | First-time setup on any platform           | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)             |
 | Editing or re-keying a secret              | [docs/guides/secrets.md](docs/guides/secrets.md)                 |
+| Delegating between assistants over ACP     | [docs/reference/acp.md](docs/reference/acp.md)                   |
 | Assistant proxy configuration              | [docs/reference/proxy.md](docs/reference/proxy.md)               |
 | Coding conventions                         | [docs/conventions/](docs/conventions/)                           |
 | What CI checks on every push               | [docs/reference/ci.md](docs/reference/ci.md)                     |
