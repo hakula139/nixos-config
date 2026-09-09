@@ -20,7 +20,7 @@ pkgs.buildNpmPackage {
 
   npmDepsHash = "sha256-waLaOeDaCsgltLrri0kjjFJPazOE/cY+2F+Yu0i55Cg=";
   npmFlags = [ "--ignore-scripts" ];
-  nativeBuildInputs = [ pkgs.makeWrapper ];
+  nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
 
   postPatch = ''
     # Nix supplies the browser, so an MCP tool must not try to install it at runtime.

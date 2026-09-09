@@ -8,22 +8,19 @@
 }:
 
 let
+  inherit (driver) browsers;
   driver = pkgs.playwright-driver;
-  browsers = driver.selectBrowsers {
-    withFirefox = false;
-    withWebkit = false;
-  };
 in
 pkgs.runCommand "browser-tools"
   {
     nativeBuildInputs = [
       pkgs.nodejs_24
-      pkgs.makeWrapper
+      pkgs.makeBinaryWrapper
     ];
     PLAYWRIGHT_BROWSERS_PATH = browsers;
     passthru = { inherit driver browsers; };
     meta = {
-      description = "Playwright CLI and its matching Chromium browsers";
+      description = "Playwright CLI and its matching browsers";
       platforms = lib.platforms.unix;
       mainProgram = "playwright";
     };
