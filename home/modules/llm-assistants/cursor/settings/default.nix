@@ -134,12 +134,15 @@ let
   # ----------------------------------------------------------------------------
   # Windows sync
   # ----------------------------------------------------------------------------
+  syncWindowsSettingsConfig = json.generate "cursor-windows-sync.json" {
+    settingsFile = windowsSettingsJson;
+    inherit windowsInterop;
+  };
+
   syncWindowsSettings = pkgs.writers.writeNuBin "sync-windows-cursor-settings" {
     makeWrapperArgs = [
       "--add-flag"
-      "${windowsSettingsJson}"
-      "--add-flag"
-      windowsInterop
+      "${syncWindowsSettingsConfig}"
     ];
   } (builtins.readFile ./sync-windows-settings.nu);
 in
