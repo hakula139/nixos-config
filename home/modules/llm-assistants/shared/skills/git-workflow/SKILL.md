@@ -17,7 +17,7 @@ Read the repository's contribution instructions before changing Git state or pre
 - **Commit at the seam.** Commit each logical chunk once its relevant checks pass, before moving on.
 - Verify the current branch and inspect the diff before staging. Stage only the intended files or hunks.
 - Make each commit one logical change. Use `type(scope): description` in the imperative mood. Types are `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, and `perf`. Infer the scope from the affected component, file, or host and comparable commit history. Follow established naming and granularity.
-- Focus the message on why the change is needed. Add a body only for necessary rationale, tradeoffs, or issue links.
+- For substantial changes, include a body explaining the problem, rationale, and relevant tradeoffs or validation. Keep it proportional to the change and avoid repeating the subject. A subject alone is sufficient for small, self-explanatory changes.
 - Branch names use `<type>/<short-name>`, with the same type set. Keep an appropriate existing branch.
 
 ## Pull / Merge Requests

@@ -202,8 +202,8 @@ in
           util-linux
           zlib
         ]
-        # Shared libraries for Playwright's downloaded Chromium (Fetcher MCP),
-        # which links against a full desktop stack absent from a headless NixOS.
+        # Project-local Playwright versions may still download their own Chromium.
+        # The managed browser tools carry these libraries in their Nix closure.
         ++ [
           alsa-lib
           at-spi2-atk

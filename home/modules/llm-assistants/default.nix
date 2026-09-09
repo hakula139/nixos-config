@@ -21,8 +21,7 @@ let
   inherit (config.lib.llmAssistants) mcpSecrets;
 
   # Map each MCP server to the secret it needs at runtime. Servers absent
-  # from this attrset (codex, deepwiki, fetcher, filesystem, git) don't
-  # require any decrypted file.
+  # from this attrset do not require any decrypted file.
   mcpServerSecrets = {
     atlassian = [ "confluence-pat" ];
     braveSearch = [ "brave-api-key" ];
