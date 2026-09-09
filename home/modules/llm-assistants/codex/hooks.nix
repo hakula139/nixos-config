@@ -79,5 +79,8 @@ in
 
   SubagentStop = [ (mkWorkmuxHook "done") ];
 
-  Stop = [ (mkWorkmuxHook "done") ];
+  Stop = [
+    (mkEntry sharedHooks.hooks.completeness)
+    (mkWorkmuxHook "done")
+  ];
 }

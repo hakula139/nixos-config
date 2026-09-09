@@ -108,6 +108,17 @@ in
         mcpServers = shared.mcp.servers;
       };
 
+      completeness = (shared.mkHooks { assistant = "cursor"; }).hooks.completeness;
+      hooksFile = (pkgs.formats.json { }).generate "cursor-hooks.json" {
+        version = 1;
+        hooks.stop = [
+          {
+            inherit (completeness) command timeout;
+            loop_limit = 1;
+          }
+        ];
+      };
+
       darwinFiles = {
         "Library/Application Support/Cursor/User/settings.json".source = settings.settingsJson;
         "Library/Application Support/Cursor/User/keybindings.json".source = ./keybindings.json;
@@ -151,6 +162,7 @@ in
 
         home.file = {
           ".cursor/mcp.json".source = mcp.mcpJson;
+          ".cursor/hooks.json".source = hooksFile;
         }
         // (lib.optionalAttrs (isDesktop && isDarwin) darwinFiles)
         // (lib.optionalAttrs isLinux remoteFiles);

@@ -64,4 +64,6 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 
 `repoLib` exposes reusable helpers through `lib/default.nix`. Inventories and policy defaults remain separate inputs. The LLM assistant modules share skills, instructions, MCP servers, and hook factories through `config.lib.llmAssistants`, populated by `home/modules/llm-assistants/shared`.
 
+Completeness hooks share one policy in `shared/hooks/completeness`. Claude Code uses its native prompt judge, while Codex and local Cursor use the shared model-call command. OpenCode runs that command on completed root sessions and submits a synthetic follow-up when work remains. The command adapters permit one automatic continuation per user turn and allow stopping on judge failures. OpenCode rechecks session state before submitting, but its idle and prompt APIs cannot make that check atomic. Cursor hooks are installed in the managed home directory. Windows settings sync and Cursor cloud agents do not receive them.
+
 `hosts/_profiles/` splits into `platform/` for hardware or runtime shape and `role/` for server against workstation.

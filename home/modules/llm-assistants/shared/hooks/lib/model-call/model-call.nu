@@ -94,6 +94,7 @@ def codex [request: record, config: record]: nothing -> string {
     | ^$timeout $config.codexTimeout $codex_bin exec
       --ephemeral
       --ignore-user-config
+      -c features.hooks=false
       --skip-git-repo-check
       --color never
       --sandbox read-only

@@ -35,15 +35,15 @@ let
 
   mkCommand =
     hook:
-    if hook ? command then
+    if hook ? prompt then
       {
-        type = "command";
-        inherit (hook) command;
+        type = "prompt";
+        prompt = hook.prompt + "\n\nConversation context:\n\n$ARGUMENTS";
       }
     else
       {
-        type = "prompt";
-        inherit (hook) prompt;
+        type = "command";
+        inherit (hook) command;
       };
 
   mkEntry =
