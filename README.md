@@ -32,3 +32,9 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 | `nixgc`   | `nh clean all --keep-since 3d` | same                         | same                                                  |
 
 A machine with no managed configuration yet needs the bootstrap steps first, which differ per platform.
+
+## Browser debugging
+
+`nix develop .#browser` provides the Playwright CLI, Node.js and Python with a matching Nix-managed Chromium browser set. Use `playwright screenshot <url> <file>`, `node` with `require('playwright')`, or Python's `playwright` module inside this shell. Browser paths stay local to this environment so projects with their own Playwright version can keep their own browsers.
+
+Chrome DevTools MCP, Fetcher and agent-browser share these browser binaries. Nix supplies both Chromium and its headless shell, so the managed tools do not need `playwright install`.

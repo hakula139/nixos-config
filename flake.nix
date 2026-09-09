@@ -388,6 +388,16 @@
           preCommitCheck = preCommitCheckFor system;
         in
         {
+          browser = pkgs.mkShell {
+            packages = [
+              pkgs.browser-tools
+              pkgs.nodejs_24
+              (pkgs.python3.withPackages (ps: [ ps.playwright ]))
+            ];
+            PLAYWRIGHT_BROWSERS_PATH = pkgs.browser-tools.browsers;
+            NODE_PATH = "${pkgs.browser-tools}/lib/node_modules";
+          };
+
           default = pkgs.mkShell {
             inherit (preCommitCheck) shellHook;
             buildInputs = preCommitCheck.enabledPackages ++ tooling.all;

@@ -82,24 +82,11 @@ let
   # ----------------------------------------------------------------------------
   # Chrome DevTools
   # ----------------------------------------------------------------------------
-  chromeDevtoolsLauncher = pkgs.writeShellScript "chrome-devtools-launcher" ''
-    set -euo pipefail
-    playwrightPath=$(${pkgs.coreutils}/bin/realpath "$(command -v playwright)")
-    browserPath=$(node -e '
-      const { chromium } = require(process.argv[1]);
-      process.stdout.write(chromium.executablePath());
-    ' "$(${pkgs.coreutils}/bin/dirname "$playwrightPath")")
-    if [[ ! -x "$browserPath" ]]; then
-      PLAYWRIGHT_SKIP_BROWSER_GC=1 playwright install chromium --no-shell >&2
-    fi
-    exec chrome-devtools-mcp --executable-path="$browserPath" --headless --isolated "$@"
-  '';
   chromeDevtoolsBin = pkgs.writeShellScriptBin "chrome-devtools-mcp" ''
     set -euo pipefail
     ${nodeSetup}
     export CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS=1
-    # Resolve the browser through Playwright so its existing cache is reused.
-    exec npm exec -y --package=playwright --package=chrome-devtools-mcp -- ${chromeDevtoolsLauncher} "$@"
+    exec npx -y chrome-devtools-mcp --executable-path=${lib.getExe' pkgs.browser-tools "chromium"} --headless --isolated "$@"
   '';
 
   # ----------------------------------------------------------------------------
@@ -133,10 +120,11 @@ let
   # ----------------------------------------------------------------------------
   # Fetcher
   # ----------------------------------------------------------------------------
-  fetcherBin = mkNpmServer {
-    name = "fetcher";
-    package = "fetcher-mcp";
-  };
+  fetcherBin = pkgs.writeShellScriptBin "fetcher-mcp" ''
+    set -euo pipefail
+    ${nodeSetup}
+    exec ${lib.getExe pkgs.fetcher-mcp} "$@"
+  '';
 
   # ----------------------------------------------------------------------------
   # Filesystem
@@ -212,7 +200,7 @@ in
     chromeDevtools = {
       command = "${chromeDevtoolsBin}/bin/chrome-devtools-mcp";
       type = "stdio";
-      # First launch may install Playwright's matching Chromium build.
+      # npm may install the MCP package on first launch.
       startupTimeoutSec = 120;
     };
 
@@ -239,7 +227,6 @@ in
     fetcher = {
       command = "${fetcherBin}/bin/fetcher-mcp";
       type = "stdio";
-      # Playwright downloads browser binaries on first launch.
       startupTimeoutSec = 60;
     };
 
