@@ -109,14 +109,7 @@ in
       inherit (instructions) commentGate;
     };
 
-    completeness = import ./completeness {
-      inherit
-        assistant
-        mkNuHook
-        modelCall
-        timeouts
-        ;
-    };
+    completeness = import ./completeness;
 
     prosePolish = import ./prose-polish {
       inherit mkNuHook modelCall timeouts;

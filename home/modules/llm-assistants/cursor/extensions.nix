@@ -4,11 +4,26 @@
 
 {
   lib,
+  homeDir,
+  username,
+  isDarwin,
   prune ? false,
   ...
 }:
 
 let
+  paths =
+    if isDarwin then
+      [
+        "/usr/local/bin"
+        "/Applications/Cursor.app/Contents/Resources/app/bin"
+      ]
+    else
+      [
+        "/usr/local/bin"
+        "/usr/bin"
+      ];
+
   # ----------------------------------------------------------------------------
   # Extension List
   # ----------------------------------------------------------------------------
@@ -187,5 +202,28 @@ let
   '';
 in
 {
-  inherit installScript;
+  activation = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    cursor_server_path="$(
+      find "${homeDir}/.cursor-server/bin" -type d -name "remote-cli" 2>/dev/null | sort | tail -n 1 || true
+    )"
+
+    export PATH="${lib.concatStringsSep ":" paths}''${cursor_server_path:+:$cursor_server_path}:$PATH"
+
+    # Detect Cursor IPC socket for CLI communication (needed when running via sudo)
+    if [ -z "''${VSCODE_IPC_HOOK_CLI:-}" ]; then
+      uid="$(id -u "${username}")"
+      ipc_socket="$(ls -t /run/user/"$uid"/vscode-ipc-*.sock 2>/dev/null | head -1 || true)"
+      if [ -n "$ipc_socket" ]; then
+        export VSCODE_IPC_HOOK_CLI="$ipc_socket"
+      fi
+    fi
+
+    if command -v cursor &>/dev/null; then
+      (
+        ${installScript}
+      ) || echo "Cursor extension management failed, continuing anyway"
+    else
+      echo "Cursor not found, skipping extension installation"
+    fi
+  '';
 }

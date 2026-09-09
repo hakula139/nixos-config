@@ -9,6 +9,7 @@
   isDarwin,
   isNixOS,
   profileDirectory,
+  windowsInterop,
   ...
 }:
 
@@ -126,10 +127,22 @@ let
   # Final settings
   # ----------------------------------------------------------------------------
   settings = settingsBase // portableSettings;
+  windowsSettingsJson = json.generate "cursor-windows-settings.json" (settings // windowsSettings);
+
+  # ----------------------------------------------------------------------------
+  # Windows sync
+  # ----------------------------------------------------------------------------
+  syncWindowsSettings = pkgs.writers.writeNuBin "sync-windows-cursor-settings" {
+    makeWrapperArgs = [
+      "--add-flag"
+      "${windowsSettingsJson}"
+      "--add-flag"
+      windowsInterop
+    ];
+  } (builtins.readFile ./sync-windows-settings.nu);
 in
 {
-  inherit settings;
+  inherit settings windowsSettingsJson syncWindowsSettings;
   machineSettingsJson = json.generate "cursor-machine-settings.json" machineSettings;
   settingsJson = json.generate "cursor-settings.json" settings;
-  windowsSettingsJson = json.generate "cursor-windows-settings.json" (settings // windowsSettings);
 }

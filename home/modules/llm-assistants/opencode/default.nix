@@ -73,12 +73,6 @@ in
         mcpServers = shared.mcp.servers;
       };
 
-      completeness = (shared.mkHooks { assistant = "opencode"; }).hooks.completeness;
-      completenessPlugin = pkgs.replaceVars ./plugins/completeness.js {
-        inherit (completeness) command;
-        timeout = toString (completeness.timeout * 1000);
-      };
-
       # ------------------------------------------------------------------------
       # TUI config
       # ------------------------------------------------------------------------
@@ -145,7 +139,6 @@ in
           "opencode/plugins/workmux-status.ts".source =
             "${workmux.src}/resources/opencode/plugins/workmux-status.ts";
           "opencode/tui.json".source = tuiConfigFile;
-          "opencode/plugins/completeness.js".source = completenessPlugin;
         }
         // lib.optionalAttrs cfg.plugins.ohMyOpenCode {
           "opencode/oh-my-openagent.json".source = pluginConfigFile;
