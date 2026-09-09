@@ -1,24 +1,34 @@
 ---
 name: browser-debugging
-description: Debug and test web pages with browser automation. Use for Playwright tests, screenshots, visual regressions, console or network inspection, scrolling and rendering performance, and Chromium / Firefox / WebKit checks.
+description: Investigate web UI failures, visual regressions, and browser performance. Use for browser testing, Playwright scripts, screenshots, console or network inspection, and cross-browser reproduction.
 ---
 
 # Browser Debugging
 
-Check the existing browser tooling before installing Playwright or downloading browser binaries. Use configured Chrome DevTools MCP, Scrapling MCP, or agent-browser when their capabilities fit the task. They already receive the shared Chromium executable. For standalone automation, use the browser profile below.
+## Choose the tool
 
-The managed Nix registry names the deployed configuration `nixos-config`, so no checkout path is needed. Its `browser` dev shell includes the default shell's development and checking tools plus the Playwright CLI, Node.js, Python Playwright, Chromium, Firefox, and WebKit. It does not install repository Git hooks in the current project.
+Reuse available browser tooling before installing Playwright or downloading browser binaries.
 
-Run browser commands in that profile without changing the working directory:
+- For interactive navigation and page inspection, use agent-browser and follow its skill when available.
+- For performance traces, console errors, and network diagnostics, use Chrome DevTools MCP.
+- For reproducible scripts or Chromium / Firefox / WebKit comparisons, use Python Playwright in the shared browser profile.
+
+## Run standalone automation
+
+Write a Python Playwright script and run it with the managed browsers:
 
 ```bash
 nix develop nixos-config#browser -c python3 /tmp/browser-check.py
 ```
 
-For an interactive session, use `nix develop nixos-config#browser`. When changing browser infrastructure in a `nixos-config` worktree, use `.#browser` there to test the working tree instead of the deployed version.
+The profile supplies matching Python Playwright and browser binaries. Launch headless by default, choosing Firefox or WebKit when the issue calls for another engine.
 
-Use the profile's Python Playwright API for standalone debugging scripts. Launch headless browsers by default, select Firefox or WebKit when cross-engine coverage matters, and capture screenshots for visual changes. Wait for the relevant DOM state before measuring or capturing.
+Run project-owned Playwright suites in their project environment with the browser revisions required by their dependency version. The profile's `PLAYWRIGHT_BROWSERS_PATH` is paired with its bundled driver.
 
-The profile scopes `PLAYWRIGHT_BROWSERS_PATH` to its matching Nix browsers and does not set `NODE_PATH`. It needs no `playwright install`. For a project's own Node Playwright dependency, use the project's environment and matching browser revisions. Mixing that dependency with this profile's browser path can fail when revisions differ.
+When modifying the browser profile itself, run `nix develop .#browser` from the configuration worktree to test the local changes.
 
-Headless measurements establish behavior in the tested environment. For scrolling or blur performance, inspect rendering traces and GPU status before attributing a slowdown to acceleration, and distinguish headless results from the user's desktop browser.
+## Gather evidence
+
+Reproduce the reported interaction at the relevant viewport and device scale. Wait for the relevant content to render, then inspect the DOM and screenshots. Compare visual changes under the same conditions and inspect the resulting images yourself.
+
+For performance issues, capture a trace while reproducing the interaction. Check scripting, layout, paint, and compositing costs, then inspect GPU status when acceleration is a suspected cause. Record the browser engine, headless mode, and rendering backend with measurements so differences from the user's desktop browser remain visible.
