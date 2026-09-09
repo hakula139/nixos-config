@@ -93,6 +93,7 @@ hookify
 horiz
 iface
 ikuncode
+indoc
 inetutils
 inodes
 inotify
