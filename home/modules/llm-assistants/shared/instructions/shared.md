@@ -99,7 +99,7 @@ Han text requires fullwidth punctuation across both your replies and generated f
 
 ### Documentation
 
-Keep existing documentation accurate when behavior changes. Create new documentation only when requested.
+Update existing documentation to correct claims or instructions made inaccurate by the change, or remove obsolete or unnecessary material. Identify the concrete correction or removal before editing. Adding a feature does not by itself require expanding an overview. Create new documentation only when requested.
 
 When writing documentation:
 
