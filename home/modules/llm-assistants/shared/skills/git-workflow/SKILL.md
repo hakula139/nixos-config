@@ -25,6 +25,7 @@ Read the repository's contribution instructions before changing Git state or pre
 ### Repository conventions
 
 - Read the PR / MR template, then inspect recent comparable human-authored requests for title, body structure, assignees, and labels. Follow explicit repository rules where examples differ. Broaden the sample when recent examples do not cover the change.
+- Before drafting, record the chosen examples and the resulting conventions in working notes: heading names, hierarchy and order, prose or list structure, and validation format. Carry these notes into any handoff. When examples vary, use the ones closest in scope and size to the current change. A small fix's abbreviated body does not establish the format for a substantial feature.
 - Infer assignees from comparable human-authored requests and the current author or maintainer relationship. Check the authenticated identity when the convention is self-assignment. Do not assume the repository owner is always the assignee.
 - Inspect available labels and their descriptions, then match the change to established usage. Commit types can guide selection, but do not imply a fixed label mapping.
 - If metadata remains ambiguous after checking conventions, ask a focused question instead of inventing a rule or silently omitting it. Keep repository-specific instructions only for exceptions that history and metadata cannot reliably reveal.
@@ -32,16 +33,19 @@ Read the repository's contribution instructions before changing Git state or pre
 
 ### Description
 
-- Lead with the concrete problem or goal and the resulting behavior. A short paragraph or a few bullets can cover a small change without headings.
-- Scale detail to what a reviewer needs to assess the change. Add sections for non-obvious rationale, tradeoffs, measurements, or migration steps when relevant, using headings that fit the content. Avoid repeating the same points under Summary, Changes, and Design decisions.
-- Report relevant checks and their results, distinguishing verified behavior from untested limits. Use prose, bullets, tables, or checklists as the evidence warrants. Neither `Test plan` nor `Verification` is a required heading.
+The discovered repository conventions govern the description's structure. Apply the writing guidance below within that structure. Use it to choose a structure only where repository evidence leaves a gap.
+
+- Lead with the concrete problem or goal and the resulting behavior under the established opening section, if any.
+- Scale the detail within sections to what a reviewer needs to assess the change. Preserve the established headings and validation format while removing repetition. Include rationale, tradeoffs, measurements, or migration steps where relevant.
+- Report relevant checks and their results, distinguishing verified behavior from untested limits. Match the repository's validation heading and use of prose, bullets, tables, or checklists.
 - Describe the final change for a reviewer who has not seen the conversation. Fold review fixes into that description, and omit implementation history, commit inventories, and abandoned approaches unless they explain a current tradeoff.
 - Skip boilerplate sections. Omit generated-by attributions and emojis unless requested. Keep local-only paths out of commits and published descriptions.
 
 ### Publication
 
+- Before creating or updating a request, compare the complete draft title and body with the recorded conventions and selected examples. Correct differences in heading hierarchy, section order, and validation format before publishing. Reading examples alone does not complete this check.
 - Verify the base branch, diff, and commit count before pushing. When asked only to draft a title and body, return the text without publishing. A request to create a draft PR / MR authorizes publishing it in draft state.
 - When creating a PR / MR, set assignees and existing labels according to repository conventions. Use the hosting service's CLI when available.
 - Pass multiline bodies through a file or structured argument. Prefer `gh pr create --body-file <file>` and `gh pr edit --body-file <file>` to shell interpolation. Use native references such as `#N` for related issues and PRs in the same repository.
-- Read back the created or updated request to verify its base, diff, assignees, and labels. Correct omissions before reporting completion.
+- Read back the created or updated request to verify its title, body, base, diff, assignees, and labels. Check that the published body preserves the reviewed structure and content. Correct omissions before reporting completion.
 - For an approved merge, check the current head and CI status, use the repository's merge method, and confirm the resulting remote state. For GitHub squash merges, use GitHub's default commit message without supplying a custom subject or body. Report queued auto-merge as pending until it has landed.
