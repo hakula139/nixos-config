@@ -45,10 +45,10 @@ let
     export ${var}="${value}"
   '';
 
-  # Node servers share proxy support and environment exports.
+  # npm servers share proxy support and environment exports.
   # `envFiles` values are runtime paths read on start, keeping secrets out of the store path.
   # `envVars` values land in the store path verbatim, so never pass a secret there.
-  mkNodeServer =
+  mkNpmServer =
     {
       name,
       command,
@@ -64,21 +64,8 @@ let
       ''
         ${nodeSetup}
         ${exports}
-        exec ${lib.escapeShellArgs command} "$@"
+        exec npx -y ${lib.escapeShellArgs command} "$@"
       ''
-    );
-
-  mkNpmServer =
-    server:
-    mkNodeServer (
-      server
-      // {
-        command = [
-          "npx"
-          "-y"
-        ]
-        ++ server.command;
-      }
     );
 
   # ----------------------------------------------------------------------------
@@ -145,14 +132,6 @@ let
   };
 
   # ----------------------------------------------------------------------------
-  # Fetcher
-  # ----------------------------------------------------------------------------
-  fetcherBin = mkNodeServer {
-    name = "fetcher";
-    command = [ (lib.getExe pkgs.fetcher-mcp) ];
-  };
-
-  # ----------------------------------------------------------------------------
   # Filesystem
   # ----------------------------------------------------------------------------
   filesystemBin = pkgs.writeShellScriptBin "filesystem-mcp" ''
@@ -207,6 +186,14 @@ let
     export GITLAB_TOOLSETS="${gitlabToolsets}"
     exec ${pkgs.mcp-server-gitlab}/bin/mcp-server-gitlab "$@"
   '';
+
+  # ----------------------------------------------------------------------------
+  # Scrapling
+  # ----------------------------------------------------------------------------
+  scraplingBin = pkgs.writeShellScriptBin "scrapling-mcp" ''
+    exec ${pkgs.uv}/bin/uvx --from 'scrapling[ai]==0.4.15' scrapling-mcp \
+      --executable-path=${lib.getExe' pkgs.browser-tools "chromium"} "$@"
+  '';
 in
 {
   inherit timeouts;
@@ -250,11 +237,6 @@ in
       type = "stdio";
     };
 
-    fetcher = {
-      command = "${fetcherBin}/bin/fetcher-mcp";
-      type = "stdio";
-    };
-
     filesystem = {
       command = "${filesystemBin}/bin/filesystem-mcp";
       type = "stdio";
@@ -272,6 +254,11 @@ in
 
     gitlab = {
       command = "${gitlabBin}/bin/gitlab-mcp";
+      type = "stdio";
+    };
+
+    scrapling = {
+      command = "${scraplingBin}/bin/scrapling-mcp";
       type = "stdio";
     };
   };

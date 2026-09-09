@@ -57,7 +57,6 @@
     # --------------------------------------------------------------------------
     browser-tools = final.callPackage ../packages/browser-tools { };
     cloudreve = final.callPackage ../packages/cloudreve { };
-    fetcher-mcp = final.callPackage ../packages/mcp/fetcher-mcp { };
     mcp-server-filesystem = final.callPackage ../packages/mcp/mcp-server-filesystem { };
     mcp-server-git = final.callPackage ../packages/mcp/mcp-server-git { };
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };

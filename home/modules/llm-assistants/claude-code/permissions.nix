@@ -177,7 +177,10 @@
     "Bash(https *)"
     "Bash(wget *)"
     "mcp__Exa"
-    "mcp__Fetcher"
+    "mcp__Scrapling__bulk_fetch"
+    "mcp__Scrapling__bulk_stealthy_fetch"
+    "mcp__Scrapling__fetch"
+    "mcp__Scrapling__stealthy_fetch"
     "WebFetch"
     "WebSearch"
 
