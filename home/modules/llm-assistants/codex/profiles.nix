@@ -58,17 +58,6 @@ let
       model_provider = "corp-gateway";
       model_catalog_json = toString modelCatalog;
       model_auto_compact_token_limit = 250000;
-
-      model_providers.corp-gateway = {
-        name = "Corporate gateway";
-        base_url = "${corpHosts.llmGatewayUrl}/v1";
-        wire_api = "responses";
-
-        auth = {
-          command = "${pkgs.coreutils}/bin/cat";
-          args = [ tokenFile ];
-        };
-      };
     };
   };
 
@@ -81,15 +70,13 @@ let
   # ----------------------------------------------------------------------------
   switch = mkProfileSwitch {
     inherit stateDir;
+    inherit (cfg) defaultProfile;
     name = "codex-switch";
     assistant = "Codex";
     profilesDir = "${stateDir}/profiles";
     extension = "config.toml";
     configFile = "${configDir}/config.toml";
-    # Provider definitions remain available when selecting another provider.
-    resetKeys = lib.remove "model_providers" (
-      lib.unique (lib.concatMap builtins.attrNames (builtins.attrValues profiles))
-    );
+    resetKeys = lib.unique (lib.concatMap builtins.attrNames (builtins.attrValues profiles));
   };
 in
 {
@@ -103,7 +90,7 @@ in
         "corp-gateway"
       ];
       default = "official";
-      description = "Authentication profile initialized on rebuild when no active profile exists";
+      description = "Fallback authentication profile when no installed profile is active";
     };
 
     enableCorpGateway = lib.mkOption {
@@ -158,17 +145,7 @@ in
           "linkGeneration"
         ]
         ''
-          __dir=${lib.escapeShellArg stateDir}
-          __link="$__dir/active-profile"
-          if [[ -L "$__link" ]]; then
-            __profile="$(basename "$(readlink "$__link")" .config.toml)"
-          else
-            __profile=${lib.escapeShellArg cfg.defaultProfile}
-          fi
-          if [[ ! -f "$__dir/profiles/$__profile.config.toml" ]]; then
-            __profile=${lib.escapeShellArg cfg.defaultProfile}
-          fi
-          ${switch}/bin/codex-switch "$__profile"
+          ${switch}/bin/codex-switch --initialize
         '';
   };
 
@@ -176,6 +153,19 @@ in
   # Exports
   # ----------------------------------------------------------------------------
   inherit stateDir;
+
+  settings = lib.optionalAttrs cfg.enableCorpGateway {
+    model_providers.corp-gateway = {
+      name = "Corporate gateway";
+      base_url = "${corpHosts.llmGatewayUrl}/v1";
+      wire_api = "responses";
+
+      auth = {
+        command = "${pkgs.coreutils}/bin/cat";
+        args = [ tokenFile ];
+      };
+    };
+  };
 
   wrapArgs = lib.optionals cfg.enableCorpGateway [
     "--set"
