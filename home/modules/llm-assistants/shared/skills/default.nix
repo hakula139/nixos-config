@@ -25,12 +25,7 @@ in
   # Cursor and OpenCode discover Claude's directory, so install shared skills once.
   home.file =
     lib.mkIf
-      (
-        config.hakula.claude-code.enable
-        || config.hakula.cursor.enable
-        || config.hakula.opencode.enable
-        || (acpCfg.enable && acpCfg.cursor.enable)
-      )
+      (config.hakula.claude-code.enable || config.hakula.cursor.enable || config.hakula.opencode.enable)
       (
         lib.mapAttrs' (
           name: source:

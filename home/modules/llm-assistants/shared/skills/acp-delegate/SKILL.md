@@ -1,11 +1,11 @@
 ---
 name: acp-delegate
-description: Delegate a bounded task or consult another configured coding assistant through ACP, including work in another repository.
+description: Delegate a bounded task or consult Claude Code or Codex through ACP, including work in another repository.
 ---
 
 # ACP Delegation
 
-Use `acpx` to start or resume a configured assistant. `acpx config show` lists this host's targets: `claude`, `codex`, `cursor`, and `opencode`. Disabled targets report the option needed to enable them. Other names fall through to acpx's upstream registry and may launch an unmanaged agent.
+Use `acpx` to start or resume a configured assistant. `acpx config show` lists this host's targets: `claude` and `codex`. Disabled targets report the option needed to enable them. Other names fall through to acpx's upstream registry and may launch an unmanaged agent.
 
 Provide the repository, relevant files, task scope, and expected result. Delegates do not share your conversation. For code changes, assign file ownership and follow the shared worktree rules.
 

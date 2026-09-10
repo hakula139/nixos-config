@@ -7,13 +7,11 @@
   pkgs,
   lib,
   inputs,
-  repoLib,
   ...
 }:
 
 let
   cfg = config.hakula.llm-assistants.acp;
-  proxyCfg = config.hakula.llm-assistants.proxy;
 
   json = pkgs.formats.json { };
 
@@ -55,46 +53,19 @@ let
     executable = "${config.programs.codex.package}/bin/codex";
   };
 
-  cursorAgent = repoLib.proxy.wrapWithProxy {
-    inherit pkgs proxyCfg;
-    pkg = acpPackages.cursor-agent;
-    name = "cursor-agent-${acpPackages.cursor-agent.version}";
-    bin = "cursor-agent";
-  };
-
   managedAgents = {
     claude = {
       enable = config.hakula.claude-code.enable;
       option = "hakula.claude-code.enable";
-      packages = [ claudeAdapter ];
+      package = claudeAdapter;
       argv = [ (profileBin "claude-agent-acp") ];
     };
 
     codex = {
       enable = config.hakula.codex.enable;
       option = "hakula.codex.enable";
-      packages = [ codexAdapter ];
+      package = codexAdapter;
       argv = [ (profileBin "codex-acp") ];
-    };
-
-    cursor = {
-      enable = cfg.cursor.enable;
-      option = "hakula.llm-assistants.acp.cursor.enable";
-      packages = [ cursorAgent ];
-      argv = [
-        (profileBin "cursor-agent")
-        "acp"
-      ];
-    };
-
-    opencode = {
-      enable = config.hakula.opencode.enable;
-      option = "hakula.opencode.enable";
-      packages = [ ];
-      argv = [
-        (profileBin "opencode")
-        "acp"
-      ];
     };
   };
 
@@ -112,12 +83,7 @@ let
     argv = if agent.enable then agent.argv else [ "${mkUnavailable name agent}" ];
   }) managedAgents;
 
-  defaultAgent = lib.findFirst (name: managedAgents.${name}.enable) "codex" [
-    "codex"
-    "claude"
-    "opencode"
-    "cursor"
-  ];
+  defaultAgent = if config.hakula.codex.enable then "codex" else "claude";
 
   configFile = json.generate "acpx-config.json" { inherit agents defaultAgent; };
 
@@ -136,21 +102,10 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.hakula.llm-assistants.acp = {
-    enable = lib.mkOption {
-      type = lib.types.bool;
-      default = config.hakula.llm-assistants.enable;
-      description = "Whether to install the acpx ACP client and register the managed assistants";
-    };
-
-    cursor.enable = lib.mkOption {
-      type = lib.types.bool;
-      default = config.hakula.cursor.enable;
-      description = ''
-        Whether to install the Cursor CLI as an ACP target. It uses Cursor login
-        or API-token authentication independently of the editor configuration.
-      '';
-    };
+  options.hakula.llm-assistants.acp.enable = lib.mkOption {
+    type = lib.types.bool;
+    default = config.hakula.llm-assistants.enable && enabledAgents != { };
+    description = "Whether to install the acpx client for the enabled Claude Code and Codex assistants";
   };
 
   # ----------------------------------------------------------------------------
@@ -160,11 +115,11 @@ in
     assertions = [
       {
         assertion = enabledAgents != { };
-        message = "hakula.llm-assistants.acp needs at least one assistant enabled to delegate to";
+        message = "hakula.llm-assistants.acp requires Claude Code or Codex to be enabled";
       }
     ];
 
-    home.packages = [ acpxBin ] ++ lib.concatMap (agent: agent.packages) (lib.attrValues enabledAgents);
+    home.packages = [ acpxBin ] ++ lib.mapAttrsToList (_: agent: agent.package) enabledAgents;
 
     home.file.".acpx/config.json".source = configFile;
   };

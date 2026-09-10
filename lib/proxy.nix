@@ -83,7 +83,7 @@ let
         nativeBuildInputs = [ pkgs.makeWrapper ];
         postBuild = ''
           wrapProgram $out/bin/${bin} \
-            --run ${lib.escapeShellArg "source ${proxyRunScript}"}
+            --run ${lib.escapeShellArg proxyRunScript}
         '';
       };
 in
