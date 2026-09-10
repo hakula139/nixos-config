@@ -14,10 +14,23 @@ let
 
   json = pkgs.formats.json { };
 
-  # Session identity includes argv. Keep paths stable across rebuilds and
-  # upstream basenames intact for adapter detection.
-  profileBin = name: "${config.home.profileDirectory}/bin/${name}";
+  # ----------------------------------------------------------------------------
+  # Client package
+  # ----------------------------------------------------------------------------
+  # acpx excludes user settings by default, which would omit our Claude hooks,
+  # permissions, and instructions.
+  acpxBin = pkgs.symlinkJoin {
+    name = "acpx-${pkgs.acpx.version}";
+    paths = [ pkgs.acpx ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/acpx --set ACPX_CLAUDE_INCLUDE_USER_SETTINGS 1
+    '';
+  };
 
+  # ----------------------------------------------------------------------------
+  # Agent adapters
+  # ----------------------------------------------------------------------------
   # Adapters export their resolved binary to child agents. Override inherited
   # values so nested delegation also uses our auth and proxy wrappers.
   mkAdapter =
@@ -50,6 +63,13 @@ let
     executable = "${config.programs.codex.package}/bin/codex";
   };
 
+  # ----------------------------------------------------------------------------
+  # Agent targets
+  # ----------------------------------------------------------------------------
+  # Session identity includes argv. Keep paths stable across rebuilds and
+  # upstream basenames intact for adapter detection.
+  profileBin = name: "${config.home.profileDirectory}/bin/${name}";
+
   managedAgents = {
     claude = {
       enable = config.hakula.claude-code.enable;
@@ -68,6 +88,9 @@ let
 
   enabledAgents = lib.filterAttrs (_: agent: agent.enable) managedAgents;
 
+  # ----------------------------------------------------------------------------
+  # Client configuration
+  # ----------------------------------------------------------------------------
   # Missing entries fall back to acpx's unmanaged launch commands.
   mkUnavailable =
     name: agent:
@@ -83,17 +106,6 @@ let
   defaultAgent = if config.hakula.codex.enable then "codex" else "claude";
 
   configFile = json.generate "acpx-config.json" { inherit agents defaultAgent; };
-
-  # acpx excludes user settings by default, which would omit our Claude hooks,
-  # permissions, and instructions.
-  acpxBin = pkgs.symlinkJoin {
-    name = "acpx-${pkgs.acpx.version}";
-    paths = [ pkgs.acpx ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      wrapProgram $out/bin/acpx --set ACPX_CLAUDE_INCLUDE_USER_SETTINGS 1
-    '';
-  };
 in
 {
   # ----------------------------------------------------------------------------
