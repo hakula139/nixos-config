@@ -3,60 +3,57 @@
 # ==============================================================================
 
 {
-  pkgs,
   lib,
-  ...
+  stdenvNoCC,
+  fetchFromGitHub,
+  fetchPnpmDeps,
+  nodejs_24,
+  pnpm,
+  pnpmConfigHook,
+  pnpmBuildHook,
+  makeBinaryWrapper,
 }:
 
-let
-  # The upstream build tool supports Node 22 and 24, but rejects Node 25.
-  nodejs = pkgs.nodejs_24;
-in
-pkgs.stdenv.mkDerivation (finalAttrs: {
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "acpx";
   version = "0.15.1";
 
-  src = pkgs.fetchFromGitHub {
+  src = fetchFromGitHub {
     owner = "openclaw";
     repo = "acpx";
     tag = "v${finalAttrs.version}";
     hash = "sha256-EMr/7/JcEvoULwLYjGR0iy0aYyfnOTnwAxijZXxQnFc=";
   };
 
-  pnpmDeps = pkgs.fetchPnpmDeps {
+  pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
+    inherit pnpm;
     fetcherVersion = 4;
     hash = "sha256-z2pqCgG3lPUawQA1x/VkaouQZ4dTlhx17SRVXYF3R7A=";
   };
 
   nativeBuildInputs = [
-    pkgs.makeBinaryWrapper
-    pkgs.pnpm
-    pkgs.pnpmConfigHook
-    nodejs
+    # tsdown excludes Node 25 from its supported versions.
+    nodejs_24
+    pnpm
+    pnpmConfigHook
+    pnpmBuildHook
+    makeBinaryWrapper
   ];
-
-  buildPhase = ''
-    runHook preBuild
-    pnpm build
-    runHook postBuild
-  '';
 
   installPhase = ''
     runHook preInstall
 
-    # Reinstall to remove dev packages retained in node_modules/.pnpm.
-    rm -rf node_modules
-    pnpm install --prod --offline --ignore-scripts --frozen-lockfile
+    CI=true pnpm prune --prod --ignore-scripts
 
     mkdir -p "$out/lib/acpx"
     cp -r dist node_modules package.json skills "$out/lib/acpx"
 
     # Built-in adapters need npx. The resolved node binary lives in nodejs-slim,
     # so acpx cannot find npm beside process.execPath.
-    makeWrapper "${nodejs}/bin/node" "$out/bin/acpx" \
+    makeWrapper ${lib.getExe nodejs_24} "$out/bin/acpx" \
       --add-flags "$out/lib/acpx/dist/cli.js" \
-      --suffix PATH : "${lib.makeBinPath [ nodejs ]}"
+      --suffix PATH : "${lib.makeBinPath [ nodejs_24 ]}"
 
     runHook postInstall
   '';
