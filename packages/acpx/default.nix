@@ -1,5 +1,5 @@
 # ==============================================================================
-# ACPX – ACP Client
+# ACPX - ACP Client
 # ==============================================================================
 
 {
@@ -9,7 +9,7 @@
 }:
 
 let
-  # tsdown, the upstream build tool, rejects Node 25 and wants 22.18+ or 24.11+.
+  # The upstream build tool supports Node 22 and 24, but rejects Node 25.
   nodejs = pkgs.nodejs_24;
 in
 pkgs.stdenv.mkDerivation (finalAttrs: {
@@ -45,17 +45,15 @@ pkgs.stdenv.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
-    # `pnpm install --prod` rewrites the top-level links but leaves every dev
-    # package in `node_modules/.pnpm`, so reinstall into an empty tree.
+    # Reinstall to remove dev packages retained in node_modules/.pnpm.
     rm -rf node_modules
     pnpm install --prod --offline --ignore-scripts --frozen-lockfile
 
     mkdir -p "$out/lib/acpx"
     cp -r dist node_modules package.json skills "$out/lib/acpx"
 
-    # Built-in adapters spawn as literal `npx` commands, and acpx's fallback to
-    # the npm beside `process.execPath` misses because nodejs_24's `bin/node`
-    # symlinks into nodejs-slim, which ships no npm.
+    # Built-in adapters need npx. The resolved node binary lives in nodejs-slim,
+    # so acpx cannot find npm beside process.execPath.
     makeWrapper "${nodejs}/bin/node" "$out/bin/acpx" \
       --add-flags "$out/lib/acpx/dist/cli.js" \
       --suffix PATH : "${lib.makeBinPath [ nodejs ]}"

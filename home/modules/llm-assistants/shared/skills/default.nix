@@ -19,10 +19,8 @@ let
     acp-delegate = ./acp-delegate;
   };
 
-  # OpenCode also discovers Claude's directory, so those two share one install,
-  # and Codex takes the same sources through its own skill bundle. Cursor scans
-  # its own directory first and treats the others as third-party entries a user
-  # can turn off, so it needs its own copy.
+  # OpenCode shares Claude's directory. Cursor can disable third-party skill
+  # discovery, so install its skills in the native directory.
   targets =
     lib.optional (config.hakula.claude-code.enable || config.hakula.opencode.enable) ".claude/skills"
     ++ lib.optional (

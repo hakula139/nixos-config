@@ -19,17 +19,12 @@ let
 
   acpPackages = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
 
-  # acpx keys a saved session on the exact agent command string, so argv names a
-  # profile path: a store path would orphan every persistent session as soon as
-  # the adapter or the agent behind it is rebuilt. acpx also identifies an
-  # adapter by basename, so each launcher keeps its upstream program name.
+  # Session identity includes argv. Keep paths stable across rebuilds and
+  # upstream basenames intact for adapter detection.
   profileBin = name: "${config.home.profileDirectory}/bin/${name}";
 
-  # Both adapters take their agent binary from an environment variable, fall back
-  # to an unwrapped bundled build, and export the resolved value into the agent
-  # they start. An agent delegating onwards hands acpx those unwrapped paths, so
-  # the launcher overwrites rather than fills in: only the configured binaries
-  # carry the auth profile, proxy env and --mcp-config.
+  # Adapters export their resolved binary to child agents. Override inherited
+  # values so nested delegation also uses our auth and proxy wrappers.
   mkAdapter =
     {
       pkg,
@@ -60,8 +55,6 @@ let
     executable = "${config.programs.codex.package}/bin/codex";
   };
 
-  # The Cursor CLI serves ACP itself, and the editor module provisions no binary,
-  # so this target brings its own. Nothing else wraps it, hence the proxy here.
   cursorAgent = repoLib.proxy.wrapWithProxy {
     inherit pkgs proxyCfg;
     pkg = acpPackages.cursor-agent;
@@ -106,10 +99,8 @@ let
   };
 
   enabledAgents = lib.filterAttrs (_: agent: agent.enable) managedAgents;
-  enabledAgentNames = lib.attrNames enabledAgents;
 
-  # A disabled assistant keeps its entry. Dropping the name instead would uncover
-  # acpx's built-in command for it, which fetches and runs an unmanaged agent.
+  # Missing entries fall back to acpx's unmanaged launch commands.
   mkUnavailable =
     name: agent:
     pkgs.writeShellScript "acpx-${name}-unavailable" ''
@@ -121,9 +112,7 @@ let
     argv = if agent.enable then agent.argv else [ "${mkUnavailable name agent}" ];
   }) managedAgents;
 
-  # Upstream aims a target-less prompt at `codex`, which reaches the stub on a
-  # host without it.
-  defaultAgent = lib.findFirst (name: lib.elem name enabledAgentNames) "codex" [
+  defaultAgent = lib.findFirst (name: managedAgents.${name}.enable) "codex" [
     "codex"
     "claude"
     "opencode"
@@ -132,9 +121,8 @@ let
 
   configFile = json.generate "acpx-config.json" { inherit agents defaultAgent; };
 
-  # acpx confines a Claude ACP session to project and local settings unless this
-  # says otherwise, and this repo keeps Claude's settings, hooks, permissions and
-  # instructions user-scoped.
+  # acpx excludes user settings by default, which would omit our Claude hooks,
+  # permissions, and instructions.
   acpxBin = pkgs.symlinkJoin {
     name = "acpx-${pkgs.acpx.version}";
     paths = [ pkgs.acpx ];
@@ -159,9 +147,8 @@ in
       type = lib.types.bool;
       default = config.hakula.cursor.enable;
       description = ''
-        Whether to register Cursor as an ACP target. Unlike the other three, this
-        installs a CLI the editor configuration does not provide, and it
-        authenticates through Cursor's own login rather than a managed secret.
+        Whether to install the Cursor CLI as an ACP target. It uses Cursor login
+        or API-token authentication independently of the editor configuration.
       '';
     };
   };
@@ -179,7 +166,6 @@ in
 
     home.packages = [ acpxBin ] ++ lib.concatMap (agent: agent.packages) (lib.attrValues enabledAgents);
 
-    # acpx derives its config and session state root from the home directory.
     home.file.".acpx/config.json".source = configFile;
   };
 }

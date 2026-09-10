@@ -1,84 +1,41 @@
 ---
 name: acp-delegate
-description: Ask another coding agent a question or hand it a task through the Agent Client Protocol, including work in a different repository checkout. Use when a second agent's reading of a problem would help, when a task belongs in another repo you are not working in, or when a long job should run in its own session. Skip for work you can finish yourself.
+description: Delegate a bounded task or consult another configured coding assistant through ACP, including work in another repository.
 ---
 
 # ACP Delegation
 
-`acpx` is a headless Agent Client Protocol client. It starts a coding agent, sends it a prompt, and returns the result, so one agent can consult another without a terminal or an editor in between.
+Use `acpx` to start or resume a configured assistant. `acpx config show` lists this host's targets: `claude`, `codex`, `cursor`, and `opencode`. Disabled targets report the option needed to enable them. Other names fall through to acpx's upstream registry and may launch an unmanaged agent.
 
-Because each target launches a Nix-installed executable, the delegate is this machine's configured install of that assistant, carrying its auth profile, proxy settings, MCP servers, permission rules, and instruction files. Once running, its own plugins and MCP servers can still reach the network.
+Provide the repository, relevant files, task scope, and expected result. Delegates do not share your conversation. For code changes, assign file ownership and follow the shared worktree rules.
 
-Run `acpx config show` for the targets registered on this host. A target for an assistant that is not enabled here fails immediately with the option that would enable it.
+## Single task
 
-| Target     | Runs             |
-| ---------- | ---------------- |
-| `claude`   | Claude Code      |
-| `codex`    | OpenAI Codex CLI |
-| `cursor`   | Cursor CLI       |
-| `opencode` | OpenCode         |
-
-## One-shot against a persistent session
-
-`exec` sends one prompt in a throwaway session. Reach for it when the answer needs no follow-up.
+`exec` uses a disposable session. Pass `--cwd` to select another checkout and `--timeout` to bound the wait in seconds.
 
 ```bash
-acpx codex exec 'Which test covers the retry path in src/client.rs?'
+acpx --cwd /absolute/path/to/repo --timeout 120 codex exec 'Read src/auth/ and identify the token refresh race. Do not edit files.'
 ```
 
-A named session keeps context across several prompts. Create it once, then prompt it as often as needed. Sessions are scoped by target, working directory, and name, so the same name in two repositories stays two conversations.
+The delegate loads that checkout's project instructions. Configured targets use this host's assistant wrappers, including their authentication and proxy setup. The delegate's tools and plugins retain their own configuration.
+
+## Follow-up work
+
+Named sessions retain context and are scoped by target and working directory. Use the same `--cwd` on each command when working outside the current checkout.
 
 ```bash
 acpx claude sessions new --name auth-review
-acpx claude -s auth-review 'Read src/auth/ and summarise the token refresh flow.'
-acpx claude -s auth-review 'Which of those steps can run concurrently?'
+acpx --timeout 120 claude -s auth-review 'Inspect src/auth/ for token refresh races.'
+acpx --timeout 120 claude -s auth-review 'Which test would expose the race?'
 acpx claude sessions close auth-review
 ```
 
-`acpx <target> sessions list` shows what is open, and `sessions history <name>` shows earlier turns.
+`sessions list` lists sessions for the target and directory. acpx cannot attach to an assistant session already open in a terminal or editor.
 
-These commands only create or resume sessions owned by `acpx`, so they never reach a session someone already has open in a terminal or an editor.
+## Permissions and results
 
-## Working in another repository
+By default, acpx approves read requests and prompts for other operations. Without an interactive terminal, use `--non-interactive-permissions deny` to reject those requests. Use `--approve-all` only when the delegated work is already authorized.
 
-`--cwd` chooses the checkout the delegate works in. This is the whole point of cross-repository delegation: stay where you are and let the other agent read and change the other tree.
+These flags govern permission requests sent through ACP. They do not sandbox tools an assistant runs without asking its client, so state read-only scope explicitly in the prompt.
 
-```bash
-acpx --cwd ~/github/other-repo codex exec 'Does this repo still call the v1 endpoint anywhere?'
-```
-
-Pass an absolute path. The delegate resolves its own project instructions and configuration from that directory, so it picks up that repository's `AGENTS.md` rather than yours.
-
-## Permissions
-
-`acpx` answers the permission requests an agent sends to its client before acting. By default, it approves reads and searches and prompts for the rest. When invoked from an agent with no terminal to prompt at, it denies anything else, using exit code `5` to signal that at least one request came in and every one was refused.
-
-Read-only consultation works out of the box, and `--approve-all` accepts every request the delegate raises when you want it to edit. Because some agents allow their own file and shell tools without asking a client at all, what a delegate does depends as much on its own configuration as on this flag, so say in the prompt when you only want an answer.
-
-```bash
-acpx --approve-all --cwd ~/github/other-repo codex exec 'Add the missing regression test and run the suite.'
-```
-
-Use it only for work you are already authorized to do yourself. Because a delegate acts under your authority, passing `--approve-all` means you are approving the changes, not bypassing a restriction you were given.
-
-While `--deny-all` refuses every permission request and `--no-terminal` warns the delegate up front that client terminal calls are unavailable, neither option creates a sandbox. They govern only the requests routed through `acpx`, leaving the delegate's native tooling subject to its own configuration and whatever sandboxing that assistant enforces.
-
-## Reading the result
-
-Default output is human-readable text. `--format json` gives a machine-readable stream, and `--json-strict` keeps anything non-JSON off stdout.
-
-```bash
-acpx --format json codex exec 'List the public functions in src/lib.rs.'
-```
-
-Useful exit codes: `2` usage error, `3` timeout from `--timeout`, `4` no such session, `5` everything denied, `130` interrupted. Anything else non-zero is an agent or runtime error with detail on stderr.
-
-## Choosing well
-
-Give the delegate the context it cannot see. It does not share your conversation, so name the files, the branch, and the question. State the deliverable you expect back.
-
-Pick a target for what it is good at rather than at random, and say in your own report which agent you asked and what it answered. Treat the answer as a second opinion to check, since a delegate can be confidently wrong about a repository it has just met.
-
-Set `--timeout` on anything open-ended so a stalled delegate surfaces as exit `3` instead of hanging.
-
-Do not delegate a task whose result you cannot verify, and do not chain delegations for their own sake. Every hop loses context.
+For structured output, pass `--format json --json-strict`. Exit codes include `2` for invalid usage, `3` for timeout, `4` for a missing session, `5` for permission denial, and `130` for interruption. Inspect the result and verify the delegate's work before reporting completion.

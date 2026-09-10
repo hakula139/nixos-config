@@ -76,8 +76,6 @@ let
   # ----------------------------------------------------------------------------
   # Profile loader
   # ----------------------------------------------------------------------------
-  # tomlkit renders each override as the `-c` parser expects, including key
-  # quoting and nested tables, which `to toml` and string splicing cannot.
   overridesEnv = pkgs.python3.withPackages (ps: [ ps.tomlkit ]);
   overridesScript = pkgs.copyPathToStore ./scripts/profile-overrides.py;
 
