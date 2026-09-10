@@ -121,7 +121,7 @@ in
         nativeBuildInputs = [ pkgs.makeWrapper ];
         postBuild = ''
           wrapProgram $out/bin/codex \
-            --run ${lib.escapeShellArg "source ${profiles.loader}"} \
+            ${lib.escapeShellArgs profiles.wrapArgs} \
             ${lib.optionalString cfg.proxy.enable "--run ${lib.escapeShellArg "source ${proxyScript}"}"}
         '';
       };
@@ -181,8 +181,15 @@ in
           trap 'rm -f "$tmpFile"' EXIT
 
           if [[ -s "$configFile" ]]; then
+            configLayers=("$configFile")
+            activeProfile=${lib.escapeShellArg "${profiles.stateDir}/active-profile"}
+            # Preserve state written into the former native profile on migration.
+            if [[ -f "$activeProfile" && "$(dirname "$(readlink "$activeProfile")")" == "$configDir" ]]; then
+              configLayers+=("$activeProfile")
+            fi
             ${pkgs.yq}/bin/tomlq -s -t '
-              . as [$current, $baseline]
+              .[-1] as $baseline
+              | (.[0:-1] | reduce .[] as $layer ({}; . * $layer)) as $current
               | $current * $baseline
               | del(.tools.view_image)
               | .mcp_servers = $baseline.mcp_servers
@@ -190,7 +197,7 @@ in
                   $baseline.hooks
                   + (if $current.hooks.state? then { state: $current.hooks.state } else { } end)
                 )
-            ' "$configFile" "$baseline" >"$tmpFile"
+            ' "''${configLayers[@]}" "$baseline" >"$tmpFile"
           else
             cp "$baseline" "$tmpFile"
           fi

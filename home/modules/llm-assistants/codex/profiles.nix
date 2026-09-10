@@ -52,8 +52,7 @@ let
       model = "gpt-6-astra";
       model_provider = "openai";
     };
-  }
-  // lib.optionalAttrs cfg.enableCorpGateway {
+
     corp-gateway = {
       model = "openai/gpt-6-astra";
       model_provider = "corp-gateway";
@@ -73,26 +72,9 @@ let
     };
   };
 
-  # ----------------------------------------------------------------------------
-  # Profile loader
-  # ----------------------------------------------------------------------------
-  overridesEnv = pkgs.python3.withPackages (ps: [ ps.tomlkit ]);
-  overridesScript = pkgs.copyPathToStore ./scripts/profile-overrides.py;
-
-  loader = pkgs.writeShellScript "codex-profile-loader" (
-    builtins.replaceStrings
-      [
-        "@caEnv@"
-        "@profileOverrides@"
-        "@stateDir@"
-      ]
-      [
-        (lib.optionalString cfg.enableCorpGateway ''export CODEX_CA_CERTIFICATE="${caFile}"'')
-        "${overridesEnv}/bin/python3 ${overridesScript}"
-        stateDir
-      ]
-      (builtins.readFile ./scripts/profile-loader.sh)
-  );
+  enabledProfiles = lib.filterAttrs (
+    name: _: name != "corp-gateway" || cfg.enableCorpGateway
+  ) profiles;
 
   # ----------------------------------------------------------------------------
   # Profile switcher
@@ -101,8 +83,13 @@ let
     inherit stateDir;
     name = "codex-switch";
     assistant = "Codex";
-    profilesDir = configDir;
+    profilesDir = "${stateDir}/profiles";
     extension = "config.toml";
+    configFile = "${configDir}/config.toml";
+    # Provider definitions remain available when selecting another provider.
+    resetKeys = lib.remove "model_providers" (
+      lib.unique (lib.concatMap builtins.attrNames (builtins.attrValues profiles))
+    );
   };
 in
 {
@@ -135,7 +122,7 @@ in
     # --------------------------------------------------------------------------
     assertions = [
       {
-        assertion = builtins.hasAttr cfg.defaultProfile profiles;
+        assertion = builtins.hasAttr cfg.defaultProfile enabledProfiles;
         message = "hakula.codex.auth.defaultProfile requires its profile to be enabled";
       }
     ];
@@ -154,48 +141,45 @@ in
     home.packages = [ switch ];
 
     # --------------------------------------------------------------------------
+    # Profile files
+    # --------------------------------------------------------------------------
+    home.file = lib.mapAttrs' (name: settings: {
+      name = "${stateDir}/profiles/${name}.config.toml";
+      value.source = toml.generate "codex-profile-${name}.toml" settings;
+    }) enabledProfiles;
+
+    # --------------------------------------------------------------------------
     # Activation
     # --------------------------------------------------------------------------
-    # Codex persists trust and settings in the selected profile file.
-    home.activation.codexMutableProfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] (
-      lib.concatStringsSep "\n" (
-        lib.mapAttrsToList (name: settings: ''
-          configFile=${lib.escapeShellArg "${configDir}/${name}.config.toml"}
-          baseline=${toml.generate "codex-profile-${name}.toml" settings}
-
-          install -d -m 0700 ${lib.escapeShellArg configDir}
-          if [[ -e "$configFile" && ! -f "$configFile" ]]; then
-            echo "Refusing to replace non-file Codex profile: $configFile" >&2
-            exit 1
-          fi
-
-          tmpFile="$(mktemp "$configFile.XXXXXX")"
-          trap 'rm -f "$tmpFile"' EXIT
-          if [[ -s "$configFile" ]]; then
-            ${pkgs.yq}/bin/tomlq -s -t '.[0] * .[1]' "$configFile" "$baseline" >"$tmpFile"
+    home.activation.codexAuthProfile =
+      lib.hm.dag.entryAfter
+        [
+          "codexMutableConfig"
+          "linkGeneration"
+        ]
+        ''
+          __dir=${lib.escapeShellArg stateDir}
+          __link="$__dir/active-profile"
+          if [[ -L "$__link" ]]; then
+            __profile="$(basename "$(readlink "$__link")" .config.toml)"
           else
-            cp "$baseline" "$tmpFile"
+            __profile=${lib.escapeShellArg cfg.defaultProfile}
           fi
-
-          chmod 0600 "$tmpFile"
-          mv "$tmpFile" "$configFile"
-          trap - EXIT
-        '') profiles
-      )
-    );
-
-    home.activation.codexAuthProfile = lib.hm.dag.entryAfter [ "codexMutableProfiles" ] ''
-      __dir=${lib.escapeShellArg stateDir}
-      __link="$__dir/active-profile"
-      if [[ ! -e "$__link" ]]; then
-        mkdir -p "$__dir"
-        ln -sf ${lib.escapeShellArg "${configDir}/${cfg.defaultProfile}.config.toml"} "$__link"
-      fi
-    '';
+          if [[ ! -f "$__dir/profiles/$__profile.config.toml" ]]; then
+            __profile=${lib.escapeShellArg cfg.defaultProfile}
+          fi
+          ${switch}/bin/codex-switch "$__profile"
+        '';
   };
 
   # ----------------------------------------------------------------------------
   # Exports
   # ----------------------------------------------------------------------------
-  inherit loader;
+  inherit stateDir;
+
+  wrapArgs = lib.optionals cfg.enableCorpGateway [
+    "--set"
+    "CODEX_CA_CERTIFICATE"
+    caFile
+  ];
 }

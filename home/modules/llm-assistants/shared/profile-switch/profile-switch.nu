@@ -36,6 +36,23 @@ def list-profiles [config: record, active_link: string, --stderr]: nothing -> no
   }
 }
 
+def write-config [config: record, profile: path] {
+  let settings = (open --raw $config.configFile | from toml
+    | reject --optional ...$config.resetKeys
+    | merge deep --strategy overwrite (open --raw $profile | from toml))
+  let directory = ($config.configFile | path dirname)
+  let temporary = (^mktemp $"--tmpdir=($directory)" '.profile-config.XXXXXXXXXX' | str trim)
+
+  try {
+    $settings | to toml | save --force $temporary
+    ^chmod 600 $temporary
+    ^mv --force $temporary $config.configFile
+  } catch {|error|
+    rm --force $temporary
+    error make $error
+  }
+}
+
 # Switch the active auth profile, or list the available ones.
 def main [
   config_file: string
@@ -59,6 +76,10 @@ def main [
     exit 1
   }
 
+  if $config.configFile != null {
+    write-config $config $target
+  }
+  mkdir $config.stateDir
   ln -sf $target $active_link
   print $"Switched to profile: ($profile)"
   print $"Restart ($config.assistant) for changes to take effect."
