@@ -20,6 +20,7 @@
 }:
 
 let
+  json = pkgs.formats.json { };
   instructions = import ../instructions;
 
   # ----------------------------------------------------------------------------
@@ -41,7 +42,7 @@ let
       config,
     }:
     let
-      configFile = pkgs.writeText "${assistant}-${slug}.json" (builtins.toJSON config);
+      configFile = json.generate "${assistant}-${slug}.json" config;
       package = pkgs.writers.writeNuBin "${assistant}-${slug}" {
         makeWrapperArgs = [
           "--add-flag"
