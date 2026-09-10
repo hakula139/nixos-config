@@ -15,7 +15,6 @@ This file is an index. It holds only what applies to every task, while anything 
 | First-time setup on any platform      | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)               |
 | Host wiring, builders, or the layout  | [docs/reference/architecture.md](docs/reference/architecture.md)   |
 | The workflow or a failing check       | [docs/reference/ci.md](docs/reference/ci.md)                       |
-| Cross-assistant ACP delegation        | [docs/reference/acp.md](docs/reference/acp.md)                     |
 | Assistant proxy configuration         | [docs/reference/proxy.md](docs/reference/proxy.md)                 |
 | The prose polisher or its model       | [docs/reference/chinese-prose.md](docs/reference/chinese-prose.md) |
 
