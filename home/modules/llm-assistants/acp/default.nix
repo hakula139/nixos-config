@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  inputs,
   ...
 }:
 
@@ -14,8 +13,6 @@ let
   cfg = config.hakula.llm-assistants.acp;
 
   json = pkgs.formats.json { };
-
-  acpPackages = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
 
   # Session identity includes argv. Keep paths stable across rebuilds and
   # upstream basenames intact for adapter detection.
@@ -40,14 +37,14 @@ let
     };
 
   claudeAdapter = mkAdapter {
-    pkg = acpPackages.claude-agent-acp;
+    pkg = pkgs.claude-agent-acp;
     bin = "claude-agent-acp";
     executableVar = "CLAUDE_CODE_EXECUTABLE";
     executable = "${config.programs.claude-code.package}/bin/claude";
   };
 
   codexAdapter = mkAdapter {
-    pkg = acpPackages.codex-acp;
+    pkg = pkgs.codex-acp;
     bin = "codex-acp";
     executableVar = "CODEX_PATH";
     executable = "${config.programs.codex.package}/bin/codex";

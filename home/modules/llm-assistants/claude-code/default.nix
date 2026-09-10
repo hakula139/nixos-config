@@ -133,7 +133,7 @@ in
       # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
-      claudeCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
+      claudeCodePkg = pkgs.claude-code;
 
       wrapArgs =
         profiles.wrapArgs

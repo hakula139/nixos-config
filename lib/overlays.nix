@@ -25,7 +25,15 @@
 
     system-manager = inputs.system-manager.packages.${final.stdenv.hostPlatform.system}.default;
 
-    workmux = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.workmux;
+    inherit (inputs.llm-agents.packages.${final.stdenv.hostPlatform.system})
+      claude-agent-acp
+      claude-code
+      codex
+      codex-acp
+      oh-my-opencode
+      opencode
+      workmux
+      ;
 
     # --------------------------------------------------------------------------
     # Upstream overrides

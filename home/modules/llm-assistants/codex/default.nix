@@ -20,7 +20,7 @@ let
 
   inherit (shared) instructions agentRoleOptions;
   inherit (repoLib.llmAssistants) mcpOptions;
-  codexPkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
+  codexPkg = pkgs.codex;
 
   codexMcpServers = mcpOptions.commonServerNames ++ [ "context7" ];
   codexConfigDir =
