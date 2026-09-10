@@ -42,5 +42,5 @@ Every page has one home, and the others link to it. Before adding a paragraph, c
 
 - `README.md` is for a human evaluating or operating the repo: what it manages, how to run it. Keep internal progress out.
 - `AGENTS.md` and `docs/` are for whoever is changing the code.
-- Keep represented directories in [docs/reference/architecture.md](docs/reference/architecture.md) accurate at the tree's existing level of detail. Expand the overview only as part of a consistent review of the layout.
+- Normally limit edits to [docs/reference/architecture.md](docs/reference/architecture.md) to keeping the Layout tree accurate at its existing level of detail. Update or remove existing paragraphs when they become inaccurate or unnecessary. Add paragraphs below the tree only for essential shared knowledge that every module author needs. Feature behavior and implementation details belong in the PR description unless an existing dedicated document needs updating.
 - Check documentation affected by the change, including the architecture's host table when host wiring changes and the README's alias matrix when commands change.

@@ -22,6 +22,7 @@ A caller's set lifts its `inherit` entries into a leading block, then follows th
 - **Formatter**: `nixfmt` (enforced by pre-commit).
 - **Linting**: `statix`, `deadnix` (CI). `statix.toml` suppresses W20 `repeated_keys` because the flat-key style is intentional.
 - **Line width**: 100 chars (nixfmt default).
+- **Multiline text**: use Nix indented strings for inline text, with literal line breaks and contents aligned with the surrounding code. Nix strips the common leading indentation while preserving relative indentation within the text. Keep longer prompts and prose in adjacent text files.
 - **`with pkgs;`**: use in package lists for brevity.
 - **`inherit` placement**: top of `let` blocks, like imports. Combine bindings from the same source: `inherit (pkgs.stdenv) isDarwin isLinux;`. Inside a set that supplies declared options or returns data, keep `inherit` in its logical position (e.g., `group` between `owner` and `path`).
 - **Ordering**: group related fields first, then sort within the group when the names are self-describing. Order a `let` block so a binding follows what it depends on. Avoid reshuffling semantic groups just for alphabetical order.
