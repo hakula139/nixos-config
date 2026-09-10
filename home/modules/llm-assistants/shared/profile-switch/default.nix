@@ -16,21 +16,21 @@
 }:
 
 let
-  switchConfig = pkgs.writeText "${name}.json" (
-    builtins.toJSON {
-      inherit
-        assistant
-        profilesDir
-        extension
-        stateDir
-        ;
-    }
-  );
+  json = pkgs.formats.json { };
+
+  switchConfig = json.generate "${name}.json" {
+    inherit
+      assistant
+      profilesDir
+      extension
+      stateDir
+      ;
+  };
 in
 pkgs.writers.writeNuBin name {
   makeWrapperArgs = [
     "--add-flag"
-    switchConfig
+    "${switchConfig}"
     "--prefix"
     "PATH"
     ":"

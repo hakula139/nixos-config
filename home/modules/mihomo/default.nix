@@ -14,6 +14,7 @@
 let
   inherit (pkgs) mihomo;
   inherit (pkgs.stdenv) isDarwin;
+  json = pkgs.formats.json { };
   cfg = config.hakula.mihomo;
 
   homeDir = config.home.homeDirectory;
@@ -29,17 +30,15 @@ let
       (builtins.readFile ./config.yaml)
   );
 
-  updateConfig = pkgs.writeText "mihomo-update.json" (
-    builtins.toJSON {
-      inherit
-        baseConfigFile
-        configDir
-        secretFile
-        subscriptionUrlFile
-        ;
-      inherit (repoLib.proxy) proxyVars;
-    }
-  );
+  updateConfig = json.generate "mihomo-update.json" {
+    inherit
+      baseConfigFile
+      configDir
+      secretFile
+      subscriptionUrlFile
+      ;
+    inherit (repoLib.proxy) proxyVars;
+  };
   updatePackage = pkgs.writers.writeNuBin "mihomo-update" {
     makeWrapperArgs = [
       "--add-flag"

@@ -93,13 +93,19 @@ Wrap punctuation marks in code spans when discussing the marks themselves (such 
 
 Han text requires fullwidth punctuation across both your replies and generated files, as half-width commas, periods, or colons between Han characters are generation artifacts.
 
+### Multiline Text in Code
+
+Write multiline prompts, messages, and embedded documents so people can read their structure directly in the source. Use literal line breaks in text files or multiline strings. Encoding whole paragraphs with `\n` or assembling them from fragments obscures the text and makes edits harder to review. Escapes remain appropriate for delimiters and other programmatic string operations.
+
+Keep multiline string contents aligned with the surrounding code. Use native indentation stripping or a standard helper such as Rust's `indoc` so this source indentation does not leak into the resulting string. Strip the common leading indentation while preserving intentional relative indentation, such as nested lists and code blocks. Both the source and the rendered text should remain readable.
+
 ### Commenting Guidelines
 
 @comments@
 
 ### Documentation
 
-Keep existing documentation accurate when behavior changes. Create new documentation only when requested.
+Update existing documentation to correct claims or instructions made inaccurate by the change, or remove obsolete or unnecessary material. Identify the concrete correction or removal before editing. Adding a feature does not by itself require expanding an overview. Create new documentation only when requested.
 
 When writing documentation:
 

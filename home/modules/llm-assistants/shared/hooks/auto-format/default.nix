@@ -12,6 +12,8 @@
 }:
 
 let
+  json = pkgs.formats.json { };
+
   # An empty tool path keeps that package out of a non-dev host's closure.
   whenDev = pkg: if enableDevToolchains then lib.getExe pkg else "";
   whenDevPath = path: if enableDevToolchains then "${path}" else "";
@@ -34,7 +36,7 @@ let
     g-plane-pretty_yaml
   ];
 
-  dprintConfig = (pkgs.formats.json { }).generate "dprint.json" {
+  dprintConfig = json.generate "dprint.json" {
     json.lineWidth = prettierConfig.printWidth;
     malva = {
       inherit (prettierConfig) printWidth;

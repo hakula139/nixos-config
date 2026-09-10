@@ -19,58 +19,8 @@ let
   cfg = config.hakula.cursor;
   shared = config.lib.llmAssistants;
 
-  # ----------------------------------------------------------------------------
-  # MCP
-  # ----------------------------------------------------------------------------
   inherit (repoLib.llmAssistants) mcpOptions;
   cursorMcpServers = mcpOptions.commonServerNames;
-
-  # ----------------------------------------------------------------------------
-  # Settings and extensions
-  # ----------------------------------------------------------------------------
-  settings = import ./settings {
-    inherit
-      pkgs
-      flakeConfigName
-      isDarwin
-      isNixOS
-      ;
-    inherit (cfg.nixd) flakePath;
-    inherit (config.home) profileDirectory;
-  };
-
-  ext = import ./extensions.nix {
-    inherit lib;
-    inherit (cfg.extensions) prune;
-  };
-
-  # ----------------------------------------------------------------------------
-  # Windows sync
-  # ----------------------------------------------------------------------------
-  windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
-  syncWindowsSettings = pkgs.writers.writeNuBin "sync-windows-cursor-settings" {
-    makeWrapperArgs = [
-      "--add-flag"
-      "${settings.windowsSettingsJson}"
-      "--add-flag"
-      windowsInterop
-    ];
-  } (builtins.readFile ./settings/sync-windows-settings.nu);
-
-  # ----------------------------------------------------------------------------
-  # Cursor paths
-  # ----------------------------------------------------------------------------
-  paths =
-    if isDarwin then
-      [
-        "/usr/local/bin"
-        "/Applications/Cursor.app/Contents/Resources/app/bin"
-      ]
-    else
-      [
-        "/usr/local/bin"
-        "/usr/bin"
-      ];
 in
 {
   # ----------------------------------------------------------------------------
@@ -102,12 +52,42 @@ in
   # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     let
+      # ------------------------------------------------------------------------
+      # Module imports
+      # ------------------------------------------------------------------------
       mcp = import ./mcp.nix {
         inherit pkgs mcpOptions;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
         mcpServers = shared.mcp.servers;
       };
 
+      settings = import ./settings {
+        inherit
+          pkgs
+          flakeConfigName
+          isDarwin
+          isNixOS
+          ;
+        inherit (cfg.nixd) flakePath;
+        inherit (config.home) profileDirectory;
+        windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
+      };
+
+      extensions = import ./extensions.nix {
+        inherit lib isDarwin;
+        inherit (config.home) username;
+        inherit (cfg.extensions) prune;
+        homeDir = config.home.homeDirectory;
+      };
+
+      remoteFiles = import ./remote.nix {
+        inherit pkgs lib systemManagerPaths;
+        inherit (settings) machineSettingsJson;
+      };
+
+      # ------------------------------------------------------------------------
+      # Desktop configuration
+      # ------------------------------------------------------------------------
       darwinFiles = {
         "Library/Application Support/Cursor/User/settings.json".source = settings.settingsJson;
         "Library/Application Support/Cursor/User/keybindings.json".source = ./keybindings.json;
@@ -119,78 +99,25 @@ in
         "Cursor/User/keybindings.json".source = ./keybindings.json;
         "Cursor/User/snippets".source = ./snippets;
       };
-
-      # Cursor's remote server starts with a clean environment and skips
-      # zsh startup scripts, so prepend system-manager and Home Manager
-      # paths here. Sourced before the server launches the extension host.
-      serverEnvSetup = pkgs.writeText "cursor-server-env-setup" ''
-        [ -r /etc/set-environment ] && . /etc/set-environment
-
-        for p in ${
-          lib.concatMapStringsSep " " (p: ''"${p}"'') (systemManagerPaths ++ [ "$HOME/.nix-profile/bin" ])
-        }; do
-          case ":$PATH:" in
-            *":$p:"*) ;;
-            *) [ -d "$p" ] && PATH="$p:$PATH" ;;
-          esac
-        done
-        export PATH
-      '';
-
-      remoteFiles = {
-        ".cursor-server/data/Machine/settings.json".source = settings.machineSettingsJson;
-        ".cursor-server/server-env-setup".source = serverEnvSetup;
-      };
     in
-    lib.mkMerge [
-      {
-        # ----------------------------------------------------------------------
-        # User configuration files
-        # ----------------------------------------------------------------------
-        home.packages = lib.optional cfg.windowsSync.enable syncWindowsSettings;
+    {
+      # ------------------------------------------------------------------------
+      # User configuration files
+      # ------------------------------------------------------------------------
+      home.packages = lib.optional cfg.windowsSync.enable settings.syncWindowsSettings;
 
-        home.file = {
-          ".cursor/mcp.json".source = mcp.mcpJson;
-        }
-        // (lib.optionalAttrs (isDesktop && isDarwin) darwinFiles)
-        // (lib.optionalAttrs isLinux remoteFiles);
-
-        xdg.configFile = lib.optionalAttrs (isDesktop && !isDarwin) linuxFiles;
-
-        # ----------------------------------------------------------------------
-        # Extension management
-        # ----------------------------------------------------------------------
-        home.activation.cursorExtensions = lib.mkIf cfg.extensions.enable (
-          let
-            inherit (config.home) username;
-            homeDir = config.home.homeDirectory;
-          in
-          lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-            cursor_server_path="$(
-              find "${homeDir}/.cursor-server/bin" -type d -name "remote-cli" 2>/dev/null | sort | tail -n 1 || true
-            )"
-
-            export PATH="${lib.concatStringsSep ":" paths}''${cursor_server_path:+:$cursor_server_path}:$PATH"
-
-            # Detect Cursor IPC socket for CLI communication (needed when running via sudo)
-            if [ -z "''${VSCODE_IPC_HOOK_CLI:-}" ]; then
-              uid="$(id -u "${username}")"
-              ipc_socket="$(ls -t /run/user/"$uid"/vscode-ipc-*.sock 2>/dev/null | head -1 || true)"
-              if [ -n "$ipc_socket" ]; then
-                export VSCODE_IPC_HOOK_CLI="$ipc_socket"
-              fi
-            fi
-
-            if command -v cursor &>/dev/null; then
-              (
-                ${ext.installScript}
-              ) || echo "Cursor extension management failed, continuing anyway"
-            else
-              echo "Cursor not found, skipping extension installation"
-            fi
-          ''
-        );
+      home.file = {
+        ".cursor/mcp.json".source = mcp.mcpJson;
       }
-    ]
+      // lib.optionalAttrs (isDesktop && isDarwin) darwinFiles
+      // lib.optionalAttrs isLinux remoteFiles;
+
+      xdg.configFile = lib.optionalAttrs (isDesktop && !isDarwin) linuxFiles;
+
+      # ------------------------------------------------------------------------
+      # Extension management
+      # ------------------------------------------------------------------------
+      home.activation.cursorExtensions = lib.mkIf cfg.extensions.enable extensions.activation;
+    }
   );
 }

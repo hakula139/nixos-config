@@ -11,16 +11,14 @@
 }:
 
 let
+  json = pkgs.formats.json { };
   cfg = config.hakula.fonts;
 
   fontDirs = map (p: "${p}/share/fonts") (repoLib.packagesFor pkgs).fonts;
   windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
-  fontConfig = pkgs.writeText "windows-fonts.json" (
-    builtins.toJSON {
-      inherit fontDirs;
-      windowsInterop = "${windowsInterop}";
-    }
-  );
+  fontConfig = json.generate "windows-fonts.json" {
+    inherit fontDirs windowsInterop;
+  };
 
   installWindowsFonts = pkgs.writers.writeNuBin "install-windows-fonts" {
     makeWrapperArgs = [
