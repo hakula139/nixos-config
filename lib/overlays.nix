@@ -22,10 +22,9 @@
     # Flake-input CLIs
     # --------------------------------------------------------------------------
     agenix = inputs.agenix.packages.${final.stdenv.hostPlatform.system}.default;
-
     system-manager = inputs.system-manager.packages.${final.stdenv.hostPlatform.system}.default;
-
     inherit (inputs.llm-agents.packages.${final.stdenv.hostPlatform.system})
+      ccusage
       claude-agent-acp
       claude-code
       codex
