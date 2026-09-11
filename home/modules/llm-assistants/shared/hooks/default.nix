@@ -11,7 +11,6 @@
   lib,
   repo,
   enableDevToolchains ? true,
-  ...
 }:
 
 {

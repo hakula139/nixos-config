@@ -10,13 +10,11 @@
   mcpFlag,
   mkProfileSwitch,
   secretPath,
-  ...
 }:
 
 let
   cfg = config.hakula.claude-code;
-  homeDir = config.home.homeDirectory;
-  stateDir = "${homeDir}/.local/state/claude-code";
+  stateDir = "${config.xdg.stateHome}/claude-code";
   hasProfiles = cfg.auth.profiles != { };
 
   requiredSecretNames = lib.unique (
@@ -196,6 +194,7 @@ let
   # ----------------------------------------------------------------------------
   claudeSwitch = mkProfileSwitch {
     inherit stateDir;
+    inherit (cfg.auth) defaultProfile;
     name = "claude-switch";
     assistant = "Claude Code";
     profilesDir = "${stateDir}/profiles";
@@ -222,7 +221,7 @@ let
   # Home files
   # ----------------------------------------------------------------------------
   homeFiles = lib.mapAttrs' (name: script: {
-    name = ".local/state/claude-code/profiles/${name}.sh";
+    name = "${stateDir}/profiles/${name}.sh";
     value = {
       source = script;
     };
@@ -231,14 +230,9 @@ let
   # ----------------------------------------------------------------------------
   # Activation
   # ----------------------------------------------------------------------------
-  activation = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+  activation = lib.hm.dag.entryAfter [ "linkGeneration" ] (
     lib.optionalString (hasProfiles && cfg.auth.defaultProfile != null) ''
-      __dir="${stateDir}"
-      __link="$__dir/active-profile"
-      if [[ ! -e "$__link" ]]; then
-        mkdir -p "$__dir"
-        ln -sf "$__dir/profiles/${cfg.auth.defaultProfile}.sh" "$__link"
-      fi
+      ${claudeSwitch}/bin/claude-switch --initialize
     ''
   );
 
@@ -317,7 +311,7 @@ in
     defaultProfile = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
-      description = "Name of the active auth profile after rebuild (null = no auth)";
+      description = "Fallback authentication profile when no installed profile is active (null = no auth)";
     };
 
     profiles = lib.mkOption {
