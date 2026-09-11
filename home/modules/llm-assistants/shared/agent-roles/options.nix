@@ -2,7 +2,9 @@
 # Shared Agent Role Options
 # ==============================================================================
 
-{ lib }:
+{
+  lib,
+}:
 
 let
   sharedAgentNames = builtins.attrNames (import ./default.nix);

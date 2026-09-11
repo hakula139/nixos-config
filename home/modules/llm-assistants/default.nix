@@ -70,6 +70,7 @@ let
 in
 {
   imports = [
+    ./acp
     ./claude-code
     ./codex
     ./cursor

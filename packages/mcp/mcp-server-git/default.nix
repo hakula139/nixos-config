@@ -5,7 +5,6 @@
 {
   pkgs,
   lib,
-  ...
 }:
 
 pkgs.python3Packages.buildPythonApplication rec {

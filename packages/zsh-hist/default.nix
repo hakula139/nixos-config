@@ -3,16 +3,15 @@
 # ==============================================================================
 
 {
+  pkgs,
   lib,
-  fetchFromGitHub,
-  stdenvNoCC,
 }:
 
-stdenvNoCC.mkDerivation {
+pkgs.stdenvNoCC.mkDerivation {
   pname = "zsh-hist";
   version = "0-unstable-2026-02-13";
 
-  src = fetchFromGitHub {
+  src = pkgs.fetchFromGitHub {
     owner = "marlonrichert";
     repo = "zsh-hist";
     rev = "b2e65350660bdeb20f1a3059a7540c247a21b87d";

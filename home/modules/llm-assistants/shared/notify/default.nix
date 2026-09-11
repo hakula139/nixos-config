@@ -9,7 +9,6 @@
 {
   pkgs,
   lib,
-  ...
 }:
 
 let

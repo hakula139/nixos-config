@@ -7,7 +7,6 @@
   lib,
   mkHooks,
   gateway ? { },
-  ...
 }:
 
 let

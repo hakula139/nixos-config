@@ -9,9 +9,14 @@
 }:
 
 let
+  acpCfg = config.hakula.llm-assistants.acp;
+
   sources = {
     browser-debugging = ./browser-debugging;
     git-workflow = ./git-workflow;
+  }
+  // lib.optionalAttrs acpCfg.enable {
+    acp-delegate = ./acp-delegate;
   };
 in
 {
