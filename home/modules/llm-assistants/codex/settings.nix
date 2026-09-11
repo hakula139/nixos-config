@@ -118,6 +118,7 @@
   # ----------------------------------------------------------------------------
   suppress_unstable_features_warning = true;
   features = {
+    default_mode_request_user_input = true;
     goals = true;
     hooks = true;
     memories = true;
