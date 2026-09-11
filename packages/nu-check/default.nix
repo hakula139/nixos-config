@@ -2,6 +2,8 @@
 # Nushell Diagnostic Check
 # ==============================================================================
 
-{ writers }:
+{
+  pkgs,
+}:
 
-writers.writeNu "nu-check" (builtins.readFile ./nu-check.nu)
+pkgs.writers.writeNu "nu-check" (builtins.readFile ./nu-check.nu)

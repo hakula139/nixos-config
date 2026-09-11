@@ -9,7 +9,6 @@
   corpHosts,
   clearProxyEnv,
   secretPath,
-  ...
 }:
 
 let

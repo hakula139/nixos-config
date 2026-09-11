@@ -2,7 +2,9 @@
 # Claude Code Permissions
 # ==============================================================================
 
-{ sharedPermissions }:
+{
+  sharedPermissions,
+}:
 
 {
   defaultMode = "auto";

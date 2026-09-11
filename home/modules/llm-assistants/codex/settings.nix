@@ -8,7 +8,6 @@
   mcp,
   notify,
   skills,
-  ...
 }:
 
 {

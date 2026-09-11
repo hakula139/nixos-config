@@ -11,7 +11,6 @@
   plugins,
   profileSettings,
   timeouts,
-  ...
 }:
 
 {

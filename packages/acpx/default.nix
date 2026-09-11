@@ -3,42 +3,35 @@
 # ==============================================================================
 
 {
+  pkgs,
   lib,
-  stdenvNoCC,
-  fetchFromGitHub,
-  fetchPnpmDeps,
-  nodejs_24,
-  pnpm,
-  pnpmConfigHook,
-  pnpmBuildHook,
-  makeBinaryWrapper,
 }:
 
-stdenvNoCC.mkDerivation (finalAttrs: {
+pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "acpx";
   version = "0.15.1";
 
-  src = fetchFromGitHub {
+  src = pkgs.fetchFromGitHub {
     owner = "openclaw";
     repo = "acpx";
     tag = "v${finalAttrs.version}";
     hash = "sha256-EMr/7/JcEvoULwLYjGR0iy0aYyfnOTnwAxijZXxQnFc=";
   };
 
-  pnpmDeps = fetchPnpmDeps {
+  pnpmDeps = pkgs.fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    inherit pnpm;
+    inherit (pkgs) pnpm;
     fetcherVersion = 4;
     hash = "sha256-z2pqCgG3lPUawQA1x/VkaouQZ4dTlhx17SRVXYF3R7A=";
   };
 
   nativeBuildInputs = [
     # tsdown excludes Node 25 from its supported versions.
-    nodejs_24
-    pnpm
-    pnpmConfigHook
-    pnpmBuildHook
-    makeBinaryWrapper
+    pkgs.nodejs_24
+    pkgs.pnpm
+    pkgs.pnpmConfigHook
+    pkgs.pnpmBuildHook
+    pkgs.makeBinaryWrapper
   ];
 
   installPhase = ''
@@ -51,9 +44,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     # Built-in adapters need npx. The resolved node binary lives in nodejs-slim,
     # so acpx cannot find npm beside process.execPath.
-    makeWrapper ${lib.getExe nodejs_24} "$out/bin/acpx" \
+    makeWrapper ${lib.getExe pkgs.nodejs_24} "$out/bin/acpx" \
       --add-flags "$out/lib/acpx/dist/cli.js" \
-      --suffix PATH : "${lib.makeBinPath [ nodejs_24 ]}"
+      --suffix PATH : "${lib.makeBinPath [ pkgs.nodejs_24 ]}"
 
     runHook postInstall
   '';

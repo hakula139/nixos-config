@@ -10,7 +10,6 @@
   mcpFlag,
   mkProfileSwitch,
   secretPath,
-  ...
 }:
 
 let
