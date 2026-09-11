@@ -9,7 +9,6 @@
   inputs,
   configDir,
   sharedSkills,
-  ...
 }:
 
 let

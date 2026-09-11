@@ -2,7 +2,10 @@
 # Direnv (Auto-load .envrc per directory)
 # ==============================================================================
 
-{ pkgs, ... }:
+{
+  pkgs,
+  ...
+}:
 
 {
   programs.direnv = {

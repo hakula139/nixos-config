@@ -8,7 +8,6 @@
   username,
   isDarwin,
   prune ? false,
-  ...
 }:
 
 let

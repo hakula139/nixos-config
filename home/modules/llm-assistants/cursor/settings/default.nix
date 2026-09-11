@@ -10,7 +10,6 @@
   isNixOS,
   profileDirectory,
   windowsInterop,
-  ...
 }:
 
 let

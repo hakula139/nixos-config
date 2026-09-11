@@ -7,7 +7,6 @@
   lib,
   enabledAgents,
   sharedAgents,
-  ...
 }:
 
 let

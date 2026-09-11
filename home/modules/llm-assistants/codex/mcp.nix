@@ -8,7 +8,6 @@
   mcpOptions,
   mcpServers,
   timeouts,
-  ...
 }:
 
 let

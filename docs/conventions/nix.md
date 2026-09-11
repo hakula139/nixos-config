@@ -6,11 +6,13 @@ Read this before adding a module, a package, or a host.
 
 - **NixOS modules** in `modules/nixos/` are typically optionally enabled services. Define `options.hakula.services.<name>.enable`, gate with `config = lib.mkIf cfg.enable { ... }`, and enable from a host or profile.
 - **Home Manager modules** in `home/modules/` live under `hakula.<name>`. Branch on `pkgs.stdenv.{isDarwin, isLinux}` for platform variants. The flags `isNixOS` / `isDesktop` are threaded by the host builders, so only consume them when the host actually sets them.
-- **Custom packages** in `packages/` are registered through the overlay (`lib/overlays.nix`) and consumed via `pkgs.<name>`. A package needs nothing more than a `default.nix` taking its own inputs, since `callPackage` supplies them.
+- **Custom packages** in `packages/` are registered through the overlay (`lib/overlays.nix`) and consumed via `pkgs.<name>`. Use `pkgs` for package dependencies and add `lib` only when used. `callPackage` supplies both.
 - **Hosts** in `hosts/` register through one of the five `mk*` builders in `lib/builders.nix`. Reuse profiles from `hosts/_profiles/` for shared hardware or container shapes.
 
 ## Function arguments
 
+- **Keep parameter lists small.** Access package dependencies through `pkgs`, such as `pkgs.nodejs_24`, instead of declaring each dependency as a parameter or adding aliases just to shorten its name. Declare only the context and task-specific values the function uses.
+- **Use `...` when the caller supplies a broader argument set.** NixOS and Home Manager module functions need it for framework arguments. Packages called through `callPackage` and ordinary helpers with explicitly constructed argument sets omit it, so unexpected arguments are caught. Keep open record patterns where accepting additional fields is part of the contract.
 - **Top-level attribute-set argument lists are multiline.** Put each argument and the `...` entry on its own line, even when the list fits on one line.
 - **Framework arguments lead, in the order `modulesPath`, `config`, `pkgs`, `lib`, `inputs`.** Whichever of them a file takes keep that relative order and precede everything else, a `packages/` derivation included, where `callPackage` supplies them from nixpkgs.
 - **A default that mentions another argument follows it**, so `owner ? "root"` precedes `group ? owner` whatever the alphabet says. Everything else groups by concept under the ordering rule in [Style](#style), which is what keeps `configPath` beside `tokenPath`.

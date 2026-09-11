@@ -1,3 +1,4 @@
+acpx
 aipopup
 algif
 alnum
@@ -260,8 +261,10 @@ timedatectl
 tmp
 tmpfiles
 tmpfs
+tomlkit
 tomlq
 toolsai
+tsdown
 tulanp
 twikoo
 ulimits

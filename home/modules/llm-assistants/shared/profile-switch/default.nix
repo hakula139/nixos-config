@@ -13,6 +13,9 @@
   profilesDir,
   extension,
   stateDir,
+  defaultProfile,
+  configFile ? null,
+  resetKeys ? [ ],
 }:
 
 let
@@ -24,6 +27,9 @@ let
       profilesDir
       extension
       stateDir
+      defaultProfile
+      configFile
+      resetKeys
       ;
   };
 in

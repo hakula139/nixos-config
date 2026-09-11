@@ -2,15 +2,17 @@
 # PeerTube Runner (slim build)
 # ==============================================================================
 
-{ peertube }:
+{
+  pkgs,
+}:
 
-peertube.overrideAttrs (old: {
+pkgs.peertube.overrideAttrs (old: {
   pname = "peertube-runner";
   outputs = [ "out" ];
 
   # Pin to upstream's pnpm fetch; otherwise the `pname` rename re-derives it
   # via `finalAttrs.pname` and triggers an identical-content refetch.
-  inherit (peertube) pnpmDeps;
+  inherit (pkgs.peertube) pnpmDeps;
 
   buildPhase = ''
     runHook preBuild

@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  inputs,
   repoLib,
   enableDevToolchains ? false,
   ...
@@ -94,7 +93,7 @@ in
       # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
-      opencodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
+      opencodePkg = pkgs.opencode;
 
       ruffFormatScript = pkgs.writeShellScript "opencode-ruff-format" ''
         ${lib.getExe pkgs.ruff} format "$1"
@@ -120,7 +119,7 @@ in
       # ------------------------------------------------------------------------
       # oh-my-openagent
       # ------------------------------------------------------------------------
-      ohMyOpenCodePkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.oh-my-opencode;
+      ohMyOpenCodePkg = pkgs.oh-my-opencode;
       ohMyOpenCodeRoot = "${ohMyOpenCodePkg}/lib/oh-my-opencode";
 
       pluginConfigFile = json.generate "oh-my-openagent.json" {
