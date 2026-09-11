@@ -125,7 +125,7 @@ in
           "--prefix"
           "PATH"
           ":"
-          (lib.makeBinPath [ pkgs.nodejs_24 ])
+          (lib.makeBinPath [ pkgs.ccusage ])
         ];
       } (builtins.readFile ./scripts/statusline-command.nu);
       statusLineScript = "${statusLinePackage}/bin/statusline-command";
@@ -182,7 +182,7 @@ in
         }
         // profiles.homeFiles;
 
-        home.packages = profiles.packages;
+        home.packages = profiles.packages ++ [ pkgs.ccusage ];
         home.activation.claudeCodeProfile = profiles.activation;
 
         programs.claude-code = {

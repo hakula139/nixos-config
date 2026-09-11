@@ -11,7 +11,7 @@ const CCUSAGE_CACHE = "/tmp/ccusage-statusline.json"
 const CCUSAGE_TTL = 30sec
 const CCUSAGE_FIELDS = [has_data, block_cost, remaining_minutes, burn_rate, daily_cost]
 
-# Cached like any result, so a failed lookup does not respawn npx every render.
+# Cached like any result, so a failed lookup does not respawn ccusage every render.
 const NO_BLOCK = {
   has_data: false
   block_cost: 0.0
@@ -210,7 +210,7 @@ def read-cache []: nothing -> record {
 }
 
 def active-block []: nothing -> record {
-  let result = (^npx -y ccusage@latest blocks --json --offline | complete)
+  let result = (^ccusage blocks --json --offline | complete)
   if $result.exit_code != 0 {
     return $NO_BLOCK
   }
