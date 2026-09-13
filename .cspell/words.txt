@@ -231,6 +231,7 @@ rprx
 rustc
 ryantm
 sarasa
+scroblebler
 sdist
 sess
 sgid
@@ -263,6 +264,7 @@ tmpfiles
 tmpfs
 tomlkit
 tomlq
+tonioriol
 toolsai
 tsdown
 tulanp

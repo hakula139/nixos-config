@@ -346,13 +346,14 @@ in
         extraFlags = [ "--force-cleanup" ];
         upgrade = true;
       };
-      taps = [ ];
+      taps = [ "tonioriol/scroblebler" ];
       brews = [ ];
       casks = [
         "keyclu"
         "mos"
         "onedrive"
         "rectangle"
+        "tonioriol/scroblebler/scroblebler"
         "warp"
       ];
       masApps = { };
