@@ -170,7 +170,7 @@ in
 
       {
         home.sessionVariables = lib.mkIf cfg.plugins.online {
-          AGENT_BROWSER_EXECUTABLE_PATH = lib.getExe' pkgs.browser-tools "chromium";
+          AGENT_BROWSER_EXECUTABLE_PATH = lib.getExe pkgs.browser-tools.chromium;
         };
 
         home.file = {
