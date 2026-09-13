@@ -288,7 +288,7 @@
           nixpkgs.flake.source = nixpkgs.outPath;
           system.nixos = {
             inherit (nixpkgs.lib.trivial) versionSuffix;
-            revision = nixpkgs.rev;
+            revision = nixpkgs.lib.trivial.revisionWithDefault null;
           };
         };
       }
