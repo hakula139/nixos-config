@@ -107,6 +107,12 @@ in
         lib.optionals (hostType == "personal") mcpOptions.corpServerNames
         ++ lib.optionals (!config.hakula.codex.enable) [ "codex" ]
       );
+
+      # Clients enabled independently of the bundle still inherit its MCP policy.
+      hakula.claude-code.mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
+      hakula.codex.mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
+      hakula.cursor.mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
+      hakula.opencode.mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
     }
 
     (lib.mkIf anyAssistantEnabled {
@@ -116,24 +122,9 @@ in
     (lib.mkIf cfg.enable (
       lib.mkMerge [
         {
-          hakula.claude-code = {
-            enable = lib.mkDefault true;
-            mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-          };
-
-          hakula.codex = {
-            enable = lib.mkDefault true;
-            mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-          };
-
-          hakula.cursor = {
-            mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-          };
-
-          hakula.opencode = {
-            enable = lib.mkDefault true;
-            mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-          };
+          hakula.claude-code.enable = lib.mkDefault true;
+          hakula.codex.enable = lib.mkDefault true;
+          hakula.opencode.enable = lib.mkDefault true;
         }
 
         (lib.mkIf cfg.proxy.enable {
