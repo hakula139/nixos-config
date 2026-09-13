@@ -54,6 +54,15 @@
 
     llm-agents.url = "github:numtide/llm-agents.nix";
 
+    listenbrainz-scrobbler = {
+      url = "github:hakula139/listenbrainz-scrobbler/v0.1.0";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+        git-hooks-nix.follows = "git-hooks-nix";
+      };
+    };
+
     anthropics-skills = {
       url = "github:anthropics/skills";
       flake = false;
