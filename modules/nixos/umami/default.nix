@@ -29,7 +29,7 @@ in
 
     image = lib.mkOption {
       type = lib.types.str;
-      default = "ghcr.io/umami-software/umami:3.2.0";
+      default = "ghcr.io/umami-software/umami:3.3.1";
       description = "Docker image for Umami";
     };
 
