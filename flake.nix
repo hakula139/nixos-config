@@ -32,6 +32,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    colmena = {
+      url = "github:nix-community/colmena";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.stable.follows = "nixpkgs";
+    };
+
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -79,6 +85,7 @@
   # ----------------------------------------------------------------------------
   outputs =
     {
+      self,
       nixpkgs,
       nixpkgs-unstable,
       git-hooks-nix,
@@ -243,7 +250,6 @@
       };
 
       inherit (builders)
-        serverSharedModules
         mkServer
         mkWSL
         mkDarwin
@@ -255,42 +261,7 @@
       # ------------------------------------------------------------------------
       # NixOS Configurations (Linux servers + WSL workstation)
       # ------------------------------------------------------------------------
-      nixosConfigurations = {
-        us-1 = mkServer {
-          flakeConfigName = "us-1";
-          hostName = "us-1";
-          hostType = "personal";
-          hostModule = ./hosts/servers/us-1;
-        };
-
-        us-2 = mkServer {
-          flakeConfigName = "us-2";
-          hostName = "us-2";
-          hostType = "personal";
-          hostModule = ./hosts/servers/us-2;
-        };
-
-        us-3 = mkServer {
-          flakeConfigName = "us-3";
-          hostName = "us-3";
-          hostType = "personal";
-          hostModule = ./hosts/servers/us-3;
-        };
-
-        us-4 = mkServer {
-          flakeConfigName = "us-4";
-          hostName = "us-4";
-          hostType = "personal";
-          hostModule = ./hosts/servers/us-4;
-        };
-
-        sg-1 = mkServer {
-          flakeConfigName = "sg-1";
-          hostName = "sg-1";
-          hostType = "personal";
-          hostModule = ./hosts/servers/sg-1;
-        };
-
+      nixosConfigurations = self.colmenaHive.nodes // {
         wsl = mkWSL {
           flakeConfigName = "wsl";
           hostName = "wsl";
@@ -302,41 +273,44 @@
       # ------------------------------------------------------------------------
       # Colmena (multi-server deployment)
       # ------------------------------------------------------------------------
-      colmena =
-        let
-          servers = import ./data/servers.nix;
-        in
-        {
-          meta = {
-            nixpkgs = import nixpkgs {
-              system = "x86_64-linux";
-              config.allowUnfree = true;
-            };
-            specialArgs = commonSpecialArgs;
-            nodeSpecialArgs = builtins.mapAttrs (_: server: { hostName = server.name; }) servers;
-          };
+      colmena = {
+        meta = {
+          nixpkgs = pkgsFor "x86_64-linux";
+          specialArgs = commonSpecialArgs;
+          nodeSpecialArgs = builtins.mapAttrs (_: server: {
+            hostName = server.name;
+            hostType = "personal";
+          }) servers;
+        };
 
-          defaults = {
-            imports = [
-              { nixpkgs.overlays = overlays; }
-            ];
+        # Colmena uses eval-config directly, so retain nixosSystem's flake metadata.
+        defaults = {
+          nixpkgs.flake.source = nixpkgs.outPath;
+          system.nixos = {
+            inherit (nixpkgs.lib.trivial) versionSuffix;
+            revision = nixpkgs.rev;
           };
-        }
-        // builtins.mapAttrs (name: server: {
+        };
+      }
+      // builtins.mapAttrs (
+        name: server:
+        (mkServer {
+          flakeConfigName = name;
+          hostName = server.name;
+          hostType = "personal";
+          hostModule = ./hosts/servers + "/${name}";
+        })
+        // {
           deployment = {
             targetHost = server.displayName;
             targetUser = "hakula";
             buildOnTarget = true;
             tags = [ (nixpkgs.lib.toLower server.provider) ];
           };
-          imports =
-            serverSharedModules {
-              flakeConfigName = name;
-              hostName = server.name;
-              hostType = "personal";
-            }
-            ++ [ (./hosts/servers + "/${name}") ];
-        }) servers;
+        }
+      ) servers;
+
+      colmenaHive = inputs.colmena.lib.makeHive self.colmena;
 
       # ------------------------------------------------------------------------
       # Darwin Configurations (macOS)

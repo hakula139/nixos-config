@@ -10,7 +10,7 @@ NixOS servers partition their disks with [disko](https://github.com/nix-communit
 nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 ```
 
-Afterwards, deploy from a workstation with Colmena. `--on` takes a host name or a provider tag:
+Afterwards, enter `nix develop` on a workstation to use the pinned Colmena version, then deploy. `--on` takes a host name or a provider tag:
 
 ```bash
 colmena apply

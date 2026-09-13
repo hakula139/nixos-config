@@ -3,7 +3,7 @@
 `.github/workflows/ci.yml` runs on every push and pull request:
 
 1. **Nix Flake Check** runs `nix flake check --all-systems`, which validates flake structure and runs every pre-commit hook.
-2. **Build** fans out over a matrix of all 9 host targets, one job each. Successful builds upload to the `hakula` Cachix cache on `main` or when the actor is `hakula139`.
+2. **Build** fans out over a matrix of all 9 host targets, one job each. Successful builds upload to the `hakula` Cachix cache on `main` or when the actor is `hakula139`. Server `nixosConfigurations` are the evaluated `colmenaHive.nodes`, so CI and Colmena share the same deployment outputs. Cache reuse requires the same locked inputs and configuration sources.
 
 Two things the job list does not tell you:
 
