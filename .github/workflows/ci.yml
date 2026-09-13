@@ -39,22 +39,27 @@ jobs:
       matrix:
         config:
           - id: us-1
+            deploy: true
             name: us-1 (x86_64-linux, CloudCone SC2)
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-1.config.system.build.toplevel
           - id: us-2
+            deploy: true
             name: us-2 (x86_64-linux, CloudCone VPS)
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-2.config.system.build.toplevel
           - id: us-3
+            deploy: true
             name: us-3 (x86_64-linux, CloudCone SC2)
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-3.config.system.build.toplevel
           - id: us-4
+            deploy: true
             name: us-4 (x86_64-linux, DMIT)
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-4.config.system.build.toplevel
           - id: sg-1
+            deploy: true
             name: sg-1 (x86_64-linux, Tencent Lighthouse)
             runner: ubuntu-latest
             target: .#nixosConfigurations.sg-1.config.system.build.toplevel
@@ -86,6 +91,15 @@ jobs:
           cachix_name: ${{ env.CACHIX_NAME }}
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
           cachix_skip_push: ${{ !(github.ref == 'refs/heads/main' || github.actor == 'hakula139') }}
+
+      - name: Check deployment derivation
+        if: matrix.config.deploy == true
+        run: |
+          set -euo pipefail
+          ci_drv=$(nix eval --raw '${{ matrix.config.target }}.drvPath')
+          deployment_drv=$(nix eval --raw '.#colmenaHive.toplevel.${{ matrix.config.id }}.drvPath')
+          printf 'CI: %s\nColmena: %s\n' "$ci_drv" "$deployment_drv"
+          test "$ci_drv" = "$deployment_drv"
 
       - name: Build configuration
         run: |
