@@ -107,6 +107,25 @@ jobs:
             --print-build-logs \
             --show-trace
 
+      - name: Publish deployment closure
+        if: matrix.config.deploy == true && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          system_path=$(readlink -f result)
+          cachix push "$CACHIX_NAME" "$system_path"
+          cachix pin "$CACHIX_NAME" 'server-${{ matrix.config.id }}' "$system_path" --keep-revisions 2
+          jq -n --arg revision "$GITHUB_SHA" --arg host '${{ matrix.config.id }}' \
+            --arg system "$system_path" \
+            '{revision: $revision, host: $host, system: $system}' > deployment.json
+
+      - name: Publish deployment manifest
+        if: matrix.config.deploy == true && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v7
+        with:
+          name: deploy-${{ matrix.config.id }}
+          path: deployment.json
+          retention-days: 30
+
       - name: Pin critical store paths
         if: >-
           matrix.config.id == 'macos' &&

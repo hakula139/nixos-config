@@ -73,6 +73,7 @@ ffprobe
 findutils
 fmp4
 fuclaude
+gcroots
 geoip
 gfm
 ghcup
@@ -82,6 +83,7 @@ gofmt
 goimports
 gopath
 gopls
+gstatic
 gsub
 guillemets
 gvisor
@@ -154,6 +156,7 @@ msmtp
 msmtprc
 myip
 mypy
+narinfo
 nbsp
 netrc
 networkctl
