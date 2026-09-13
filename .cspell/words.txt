@@ -131,6 +131,7 @@ libxrender
 libxscrnsaver
 libxtst
 linkify
+listenbrainz
 litellm
 lldb
 localectl
@@ -231,6 +232,7 @@ rprx
 rustc
 ryantm
 sarasa
+scrobbler
 sdist
 sess
 sgid
