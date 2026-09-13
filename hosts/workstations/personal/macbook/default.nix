@@ -34,6 +34,7 @@
   # Services
   # ----------------------------------------------------------------------------
   hakula.services.corpTunnel.enable = true;
+  hakula.services.listenbrainz-scrobbler.enable = true;
   hakula.services.openssh.enable = true;
   hakula.services.tailscale = {
     enable = true;
@@ -50,7 +51,6 @@
     };
     hakula.codex.auth.enableCorpGateway = true;
     hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
-    services.listenbrainz-scrobbler.enable = true;
   };
 
   # ----------------------------------------------------------------------------
