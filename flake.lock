@@ -324,16 +324,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1789301086,
-        "narHash": "sha256-2JQPrIrrPBjBIhaitCBPYyL0KwXzs7vni7OGLfjfxKs=",
+        "lastModified": 1789304196,
+        "narHash": "sha256-vqEzQ4HtmqXGNVMG16Aqz31tlHmfpbxqZe9a4ZI+i8o=",
         "owner": "hakula139",
         "repo": "listenbrainz-scrobbler",
-        "rev": "fd341cf8ddc1f68e83a83415c98a7304069fa369",
+        "rev": "2aa3cdbc04fb084ee2d27d32f58ab222c800ad25",
         "type": "github"
       },
       "original": {
         "owner": "hakula139",
-        "ref": "v0.1.1",
+        "ref": "v0.2.0",
         "repo": "listenbrainz-scrobbler",
         "type": "github"
       }
