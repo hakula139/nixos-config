@@ -22,6 +22,7 @@
     # Flake-input CLIs
     # --------------------------------------------------------------------------
     agenix = inputs.agenix.packages.${final.stdenv.hostPlatform.system}.default;
+    colmena = inputs.colmena.packages.${final.stdenv.hostPlatform.system}.colmena;
     system-manager = inputs.system-manager.packages.${final.stdenv.hostPlatform.system}.default;
     inherit (inputs.llm-agents.packages.${final.stdenv.hostPlatform.system})
       ccusage

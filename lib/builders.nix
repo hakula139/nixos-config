@@ -89,24 +89,17 @@ let
       hostType,
       hostModule,
     }:
-    nixpkgs.lib.nixosSystem {
-      specialArgs = commonSpecialArgs // {
-        inherit hostName hostType;
-      };
-      modules = [
-        {
-          nixpkgs.hostPlatform = "x86_64-linux";
-          nixpkgs.overlays = overlays;
+    {
+      nixpkgs.hostPlatform = "x86_64-linux";
+      imports =
+        serverSharedModules {
+          inherit
+            flakeConfigName
+            hostName
+            hostType
+            ;
         }
-      ]
-      ++ serverSharedModules {
-        inherit
-          flakeConfigName
-          hostName
-          hostType
-          ;
-      }
-      ++ [ hostModule ];
+        ++ [ hostModule ];
     };
 
   # ----------------------------------------------------------------------------
@@ -273,7 +266,6 @@ in
 {
   inherit
     mkHomeManagerConfig
-    serverSharedModules
     mkServer
     mkWSL
     mkDarwin
