@@ -4,7 +4,6 @@
 
 {
   pkgs,
-  inputs,
   repo,
   hostName,
   displayName,
@@ -45,16 +44,13 @@
   # Home Manager Overrides
   # ----------------------------------------------------------------------------
   home-manager.users.hakula = {
-    imports = [ inputs.listenbrainz-scrobbler.homeManagerModules.default ];
-
-    services.listenbrainz-scrobbler.enable = true;
-
     hakula.claude-code.auth = {
       defaultProfile = "official";
       enableCorpGateway = true;
     };
     hakula.codex.auth.enableCorpGateway = true;
     hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
+    hakula.listenbrainz-scrobbler.enable = true;
   };
 
   # ----------------------------------------------------------------------------

@@ -33,6 +33,7 @@ in
     ./modules/stale-links.nix
     ./modules/fonts
     ./modules/git
+    ./modules/listenbrainz-scrobbler
     ./modules/llm-assistants
     ./modules/mihomo
     ./modules/nix
