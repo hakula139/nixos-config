@@ -28,7 +28,6 @@ in
 {
   imports = [
     ./corp-tunnel
-    ./listenbrainz-scrobbler
     ./llm-assistants
     ./ssh
     ./tailscale

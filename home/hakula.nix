@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   corpHosts,
   repoLib,
   username ? "hakula",
@@ -27,6 +28,8 @@ let
 in
 {
   imports = [
+    inputs.listenbrainz-scrobbler.homeManagerModules.default
+
     ./modules/shared.nix
     ./modules/darwin.nix
     ./modules/wsl.nix
