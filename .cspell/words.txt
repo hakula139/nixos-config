@@ -214,7 +214,6 @@ pypi
 pyproject
 pyright
 pytest
-PYTHONNOUSERSITE
 qdisc
 qwen
 raku
