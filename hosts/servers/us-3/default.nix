@@ -3,6 +3,7 @@
 # ==============================================================================
 
 {
+  pkgs,
   lib,
   keys,
   repo,
@@ -67,6 +68,12 @@
     enable = true;
     serverKeyAgeFile = lib.path.append repo.root "secrets/cloudcone/server-key-${hostName}.age";
   };
+
+  # ----------------------------------------------------------------------------
+  # Nix
+  # ----------------------------------------------------------------------------
+  # Nix 2.35.2 includes auto-GC thread and daemon store lifetime fixes.
+  nix.package = pkgs.nixVersions.nix_2_35;
 
   # ----------------------------------------------------------------------------
   # System State
