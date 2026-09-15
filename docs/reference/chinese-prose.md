@@ -8,7 +8,7 @@ The assistant's default Chinese output was judged unusable by the owner, its sol
 
 Three findings drove the design. Model identity dominates: under an identical prompt and frame, the weakest model scored 3.70 out of 10 while six others clustered between 7.00 and 8.33, a gap of 3.3 to 4.6 points. Context isolation is real but secondary, worth 1.80 points. Every automated proxy for quality failed, including three LLM judges, which ranked samples in reverse.
 
-The resulting mechanism performs no quality classification and uses no banned-word list. It rewrites editable outbound prose with a model selected on measured Chinese rewrite quality. The same fidelity contract applies to Chinese and English.
+The resulting mechanism performs no quality classification and uses no banned-word list. It rewrites editable outbound prose under the same fidelity contract for Chinese and English. The measurements informed the original model selection. Current models follow the shared catalog and have not been evaluated in these experiments.
 
 ## 1. Problem
 
@@ -161,11 +161,11 @@ At 3.5 this draft sits mid-scale. The arm carrying coding history in section 3.4
 
 Coverage applies to text Claude Code sends through mutable tool inputs, including Markdown writes and edits, selected MCP publishing fields, commit bodies, and interactive questions. Source file comments and docstrings are covered separately by `hooks/comment-gate/`, which evaluates rather than rewrites them because safely rewriting source code around a comment cannot be delegated to a model. Ordinary conversational replies continue to rely on shared instructions because a Stop hook can only request a new response, not replace a completed one.
 
-Codex uses the shared writing instructions without automatic prose rewriting. Its comment review examines added source lines, and formatting follows rename destinations. OpenCode remains unwired.
+Codex uses the shared writing instructions without automatic prose rewriting. Its comment review examines added source lines, and formatting follows rename destinations. OMP and OpenCode have no hook wiring.
 
-Both hooks invoke the model through `hooks/lib/model-call/`, which tries the gateway and falls back to `codex exec`. Claude supplies gateway credentials through its active profile environment. When the Codex corporate gateway is enabled, its hooks use the same configured endpoint, credential file, and CA even if the main session uses the official provider. Because Codex supplies its own credentials, this fallback maintains coverage for subscription or OAuth profiles where gateway variables are absent. The fallback provides availability rather than quality: on a shared draft, it left mechanical parallelism that the gateway model removed, illustrating the section 3.5 finding that rewriting capability is model-specific.
+Both hooks invoke the model through `hooks/lib/model-call/`, which calls the gateway over HTTP and falls back to `codex exec`. Claude supplies gateway credentials through its active profile environment. When the Codex corporate gateway is enabled, its hooks use the same configured endpoint, credential file, and CA even if the main session uses the official provider. Codex uses its own authentication for the fallback, so it can run when gateway variables are absent.
 
-Transport constraints govern model selection. The assistant CLI routes models from only one vendor, all of which section 3.5 scores between 4.0 and 4.5 compared to 9.0 for the selected model. Both legs therefore call their endpoints directly, reading credentials and certificate paths from the assistant's execution environment.
+`data/llm-models.nix` selects the gateway model through the Gemini `standard` default and the fallback through the GPT `mini` default, currently Gemini 3.8 Flash and GPT 5.6 Luna. Section 3.5 measured Gemini 3.7 Flash. It did not evaluate either current default, so its scores do not establish their rewrite quality.
 
 Statistical limits worth keeping in view. There is one reviewer, so the target is that reviewer's preference and nothing broader. The frame effect rests on five draws per arm at $p = 0.049$. The rewriter ranking rests on one Chinese draft per model, so the ordering below the top score is not resolved, a 9.0 from one draw should be expected to regress, and the selected model's English rewrite quality remains unmeasured. Sample counts per condition are between 1 and 5 throughout.
 
