@@ -1,13 +1,14 @@
 ---
 name: pinned-versions
-description: Registry of every manually pinned version in this repo and how to upgrade each one. Use this skill whenever the user wants to audit, check, or bump pinned versions: Claude Code plugin marketplace revs and hashes in plugins.nix, custom package versions under packages/, container image tags on oci-containers services, GitHub Actions `uses:` pins, runtime-installed npm/PyPI versions, or the Cloudflare IP range snapshot. Trigger on phrases like "check for outdated versions", "what's pinned here", "upgrade the claude plugins", "bump cloudreve", "are the actions out of date", "refresh cloudflare IPs", "update pinned hashes", or any request to sweep the repo for stale dependencies. Also use when a `nix build` fails on a hash mismatch after a version bump.
+description: >-
+  Registry of every manually pinned version in this repo and how to upgrade each one. Use this skill whenever the user wants to audit, check, or bump pinned versions: Claude Code plugin marketplace revs and hashes in plugins.nix, custom package versions under packages/, release tags in flake input URLs, container image tags on oci-containers services, GitHub Actions `uses:` pins, runtime-installed package versions, or the Cloudflare IP range snapshot. Trigger on phrases like "check for outdated versions", "what's pinned here", "upgrade the claude plugins", "bump cloudreve", "are the actions out of date", "refresh cloudflare IPs", "update pinned hashes", or any request to sweep the repo for stale dependencies. Also use when a `nix build` fails on a hash mismatch after a version bump.
 ---
 
 # Pinned Versions
 
 Every version in this repo that a human must bump by hand, where it lives, and the procedure to upgrade it.
 
-Renovate handles `flake.lock` on its own. Everything documented here is invisible to it.
+Renovate maintains `flake.lock`. The registry below covers versions and refs that still require manual changes.
 
 ## Check for drift
 
@@ -30,14 +31,20 @@ Treating 2 as success would report "0 stale" during a network outage, which read
 
 ## What Renovate does and does not cover
 
-`.github/renovate.json` sets `"enabledManagers": ["nix"]`, and Renovate's `nix` manager reads only `flake.lock`. Two consequences that surprise people:
+`.github/renovate.json` enables only Renovate's `nix` manager. It discovers `flake.nix` and updates resolved inputs in `flake.lock`:
 
-- The 13 flake inputs auto-update via grouped `chore(flake)` PRs on a nightly `lockFileMaintenance` schedule, automerged.
+- Resolved flake inputs refresh through grouped `chore(flake)` PRs on a nightly `lockFileMaintenance` schedule, automerged. An explicit release tag in an input URL stays on that tag until the URL changes.
 - Nothing else is watched. GitHub Actions pins in particular look managed because Renovate exists in the repo, but the `github-actions` manager is off.
 
-`nixpkgs` pins the `nixos-26.05` branch, so package versions inside nixpkgs move with lockfile updates and need no attention here. Only the pins below are manual.
+`nixpkgs` follows `nixos-26.05`, so its packages move with lockfile updates within that release branch. Moving to a new NixOS release requires updating the related input refs in `flake.nix`.
+
+`ccusage` and the assistant CLIs come from the locked `llm-agents` input through `lib/overlays.nix`. Home Manager installs that ccusage package, and Claude Code invokes it directly from its status line. Use `nix flake update llm-agents` to advance those packages together.
 
 ## Registry
+
+### Versioned flake input refs
+
+`listenbrainz-scrobbler` selects a release tag in its `flake.nix` URL. Check `hakula139/listenbrainz-scrobbler` releases, update that tag, then run `nix flake update listenbrainz-scrobbler`. Lockfile maintenance alone keeps resolving the selected tag.
 
 ### Claude Code plugin marketplaces
 
@@ -56,22 +63,30 @@ The last two delegate their pin to `flake.lock`, so Renovate keeps them fresh an
 
 Repos that cut releases (`agent-browser`, `openai-codex`) carry the release tag in the trailing comment. The other two track their default branch, so the comment carries a date instead.
 
-These pins only take effect where `hakula.claude-code.plugins.bundle` is set, which today is `devvm` alone (`hosts/images/devvm/default.nix`). That flag exists for air-gapped deployment: it prebuilds the plugin cache into the image and sets `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL`. Everywhere else Claude Code fetches plugins itself at runtime, so a stale `rev` here costs nothing until the image is rebuilt. The `enabledPlugins` list still matters on every host, since it drives which plugins get bundled.
+These pins take effect when `hakula.claude-code.plugins.bundle` is enabled, currently in `devvm` (`hosts/images/devvm/default.nix`). Bundling prebuilds the enabled plugin cache and sets `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL`. Other hosts let Claude Code fetch marketplaces at runtime. The `enabledPlugins` attrset controls plugin enablement on every host and selects marketplace sources for the bundle.
 
-### Custom packages
+Bundling defaults `plugins.online` to false, so `devvm` excludes `agent-browser` and `context7-marketplace`. Its build does not validate those two source hashes. Fetch each changed marketplace source explicitly before checking the assembled bundle.
 
-| Package                 | Location                                         | Upstream                                 |
-| ----------------------- | ------------------------------------------------ | ---------------------------------------- |
-| `cloudreve`             | `packages/cloudreve/default.nix`                 | `cloudreve/cloudreve` releases           |
-| `mcp-server-github`     | `packages/mcp/mcp-server-github/default.nix`     | `github/github-mcp-server` releases      |
-| `mcp-server-gitlab`     | `packages/mcp/mcp-server-gitlab/default.nix`     | `zereight/gitlab-mcp` releases           |
-| `mcp-server-filesystem` | `packages/mcp/mcp-server-filesystem/default.nix` | `modelcontextprotocol/servers` date tags |
-| `mcp-server-git`        | `packages/mcp/mcp-server-git/default.nix`        | `mcp-server-git` on PyPI                 |
-| `zsh-hist`              | `packages/zsh-hist/default.nix`                  | `marlonrichert/zsh-hist` default branch  |
+### Nix-built packages and helpers
+
+| Package                 | Location                                                | Upstream                                 |
+| ----------------------- | ------------------------------------------------------- | ---------------------------------------- |
+| `acpx`                  | `packages/acpx/default.nix`                             | `openclaw/acpx` releases                 |
+| `cloudreve`             | `packages/cloudreve/default.nix`                        | `cloudreve/cloudreve` releases           |
+| `mcp-server-github`     | `packages/mcp/mcp-server-github/default.nix`            | `github/github-mcp-server` releases      |
+| `mcp-server-gitlab`     | `packages/mcp/mcp-server-gitlab/default.nix`            | `zereight/gitlab-mcp` releases           |
+| `mcp-server-filesystem` | `packages/mcp/mcp-server-filesystem/default.nix`        | `modelcontextprotocol/servers` date tags |
+| `mcp-server-git`        | `packages/mcp/mcp-server-git/default.nix`               | `mcp-server-git` on PyPI                 |
+| `zsh-hist`              | `packages/zsh-hist/default.nix`                         | `marlonrichert/zsh-hist` default branch  |
+| `toasty`                | `home/modules/llm-assistants/shared/notify/default.nix` | `shanselman/toasty` releases             |
 
 `cloudreve` and `mcp-server-github` fetch per-platform release binaries, so each entry in their `sources` attrset carries its own hash and all of them change together.
 
 `mcp-server-filesystem` and `mcp-server-gitlab` are npm builds with a second hash (`npmDepsHash`) that tracks the lockfile.
+
+`acpx` uses `fetchPnpmDeps`, so its source hash and `pnpmDeps.hash` must both match the selected release.
+
+`toasty` is fetched into the Nix store with `fetchurl`. Its releases can omit binaries, so `check-pins.nu` compares against the newest release that includes `toasty-x64.exe`.
 
 `peertube` is not pinned here. It tracks `unstable` via the overlay, with three patches applied in `lib/overlays.nix`. The patches are the maintenance burden, since they break when upstream moves.
 
@@ -95,18 +110,9 @@ Major-tag pinning means patch and minor updates arrive automatically. Only major
 
 ### Runtime-installed packages
 
-Resolved when the service or script runs, so the store path does not change when upstream does.
+`piclist` is pinned in `modules/nixos/piclist/server/default.nix` and installed from npm at service start. The service compares `version` against the installed package in its state directory and reinstalls on mismatch, so bumping the literal triggers reinstall on the next start.
 
-| Pin       | Location                                        | Upstream                     |
-| --------- | ----------------------------------------------- | ---------------------------- |
-| `piclist` | `modules/nixos/piclist/server/default.nix`      | `piclist` on npm             |
-| `toasty`  | `home/modules/llm-assistants/shared/notify.nix` | `shanselman/toasty` releases |
-
-`piclist` compares its `version` against what is installed in the state directory and reinstalls on mismatch, so bumping the literal is enough to trigger reinstall on next start.
-
-`toasty` is a `fetchurl` of a release asset, so it needs a hash refresh like any custom package. Its upstream also publishes releases with no binaries attached, so the newest tag is not always a bumpable target. `check-pins.nu` reports the newest release that actually ships `toasty-x64.exe`.
-
-Unpinned by design: the `npx -y <package>` MCP wrappers in `home/modules/llm-assistants/shared/mcp/default.nix` and `uvx mcp-atlassian` always resolve latest. `ccusage@latest` in `statusline-command.nu` is the same. These have no pin to bump, which also means they can break without any change on our side.
+The npm and uv MCP wrappers in `home/modules/llm-assistants/shared/mcp/default.nix` leave package versions unspecified, including `mcp-atlassian` and `scrapling[ai]`. Their resolution and caches are managed by `npx` / `uvx`, so updates can arrive without a Nix configuration change. They have no version pin for this checker to compare.
 
 ### Drifting upstream data
 
@@ -114,7 +120,7 @@ Unpinned by design: the `npx -y <package>` MCP wrappers in `home/modules/llm-ass
 
 ### Versioned nixpkgs attributes
 
-`nodejs_24`, `postgresql_17`, and `python3` are chosen attribute names rather than pinned versions. They move only when someone deliberately renames them, and a `postgresql_17` bump in particular needs a database migration. Listed here so a version sweep does not mistake them for stale pins.
+`nodejs_24` and `postgresql_17` select major versions whose patch releases follow nixpkgs. Changing those majors requires choosing another attribute, and PostgreSQL needs a database migration. `python3` follows nixpkgs' default Python 3 version, so its minor version can change without renaming the attribute.
 
 ## Upgrade procedures
 
@@ -154,16 +160,14 @@ Renovate normally does this. Update by hand only when you need an input ahead of
 
    `--unpack` is required, since `fetchFromGitHub` hashes the extracted tree. Sanity-check the invocation by running it against the _current_ rev first and confirming it reproduces the hash already in the file.
 
-4. Validate the hash through the same fetcher the module uses, without waiting on the 4 GiB image:
+4. Validate each changed hash through the same fetcher the module uses:
 
    ```bash
    nix build --no-link --impure --expr 'let p = (builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.x86_64-linux;
      in p.fetchFromGitHub { owner = "<owner>"; repo = "<repo>"; rev = "<rev>"; hash = "<hash>"; }'
    ```
 
-   Then build `devvm-docker` once at the end to confirm the whole bundle assembles.
-
-5. On every host except `devvm`, Claude Code installs plugins itself at runtime and these pins are inert, so a bump changes nothing until the devvm image is rebuilt.
+   Then build `devvm-docker` once at the end to confirm its enabled plugin bundle assembles. This excludes online-only marketplaces under the current settings.
 
 ### A custom package
 
@@ -182,7 +186,7 @@ nix build --no-link --print-out-paths --impure --expr \
 
 1. Bump `version`.
 2. Replace each hash with a dummy (`sha256-AAAA...` padded to the right length), then build to read the real one from the mismatch error. Per-platform sources report only the building platform's hash, so fetch the others with `nix-prefetch-url` against their release assets.
-3. `npmDepsHash` surfaces as a second mismatch only after the source hash is right. It does not always change: a version bump whose lockfile is untouched keeps the same value.
+3. Dependency hashes (`npmDepsHash` or `pnpmDeps.hash`) surface as a second mismatch after the source hash is right. Rebuild to verify them even when the dependency lockfile is unchanged.
 4. Run the built binary. Not every tool has `--version`, so fall back to `--help`. This is what catches a moved entry point in `makeWrapper` or a broken `autoPatchelf`.
 
 ### A container image tag
@@ -197,7 +201,7 @@ Podman pulls the new tag on service restart. Check the upstream release notes fo
 
 ### A GitHub Actions major version
 
-Edit the `uses:` line. CI validates it on the next push, so no local verification is possible.
+Edit the `uses:` line and check the workflow syntax locally. GitHub Actions must execute the workflow to validate the action's runtime behavior. See [CI](../../../docs/reference/ci.md) for triggers.
 
 ### Cloudflare IP ranges
 
@@ -216,10 +220,10 @@ colmena apply
 
 Use the build and format commands in the `Verification` section of `AGENTS.md`. Which target matters depends on the pin class:
 
-| Bumped                            | Build                                  |
-| --------------------------------- | -------------------------------------- |
-| Container tag, service version    | the affected server, e.g. `us-4`       |
-| Custom package, MCP server        | the overlay invocation above, or `wsl` |
-| Plugin marketplace `rev` / `hash` | `devvm-docker` only                    |
+| Bumped                            | Build                                    |
+| --------------------------------- | ---------------------------------------- |
+| Container tag, service version    | the affected server, e.g. `us-4`         |
+| Custom package, MCP server        | the overlay invocation above, or `wsl`   |
+| Plugin marketplace `rev` / `hash` | direct source fetch, then `devvm-docker` |
 
-The devvm image is the only target that fetches the plugin marketplace sources, so a wrong `hash` in `plugins.nix` passes every other build. It is also a 4 GiB build, so expect it to be slow on a cold cache.
+The devvm image is the only bundled target, and it fetches only sources referenced by its enabled plugins. Direct fetcher builds are required to validate hashes outside that set. The full image build can be slow on a cold cache.

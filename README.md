@@ -18,14 +18,14 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 
 ## Applying a configuration
 
-`nixsw` applies the current host's configuration on every platform. The Home Manager zsh module ships a matching set of aliases:
+`nixsw` applies the current host's configuration on every platform. The Home Manager zsh module substitutes the configured flake output name for `<config>` in these aliases:
 
-| Alias     | NixOS                          | macOS                        | Generic Linux (System Manager)                        |
-| --------- | ------------------------------ | ---------------------------- | ----------------------------------------------------- |
-| `nixsw`   | `nh os switch .`               | `nh darwin switch .`         | `system-manager switch ...` + post-switch healthcheck |
-| `nixlist` | NixOS generation list          | `darwin-rebuild` generations | System Manager generation list                        |
-| `nixroll` | `nixos-rebuild` rollback       | `darwin-rebuild` rollback    | System Manager rollback + reactivate + healthcheck    |
-| `nixup`   | `nix flake update`             | same                         | same                                                  |
-| `nixgc`   | `nh clean all --keep-since 3d` | same                         | same                                                  |
+| Alias     | NixOS                          | macOS                           | Generic Linux (System Manager)                        |
+| --------- | ------------------------------ | ------------------------------- | ----------------------------------------------------- |
+| `nixsw`   | `nh os switch '.#<config>'`    | `nh darwin switch '.#<config>'` | `system-manager switch ...` + post-switch healthcheck |
+| `nixlist` | NixOS generation list          | `darwin-rebuild` generations    | System Manager generation list                        |
+| `nixroll` | `nixos-rebuild` rollback       | `darwin-rebuild` rollback       | System Manager rollback + reactivate + healthcheck    |
+| `nixup`   | `nix flake update`             | same                            | same                                                  |
+| `nixgc`   | `nh clean all --keep-since 3d` | same                            | same                                                  |
 
 A machine with no managed configuration yet needs the bootstrap steps first, which differ per platform.
