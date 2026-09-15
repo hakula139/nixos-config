@@ -9,6 +9,7 @@
 {
   pkgs,
   lib,
+  modelCatalog,
   repo,
   enableDevToolchains ? true,
 }:
@@ -62,6 +63,7 @@ let
         lib
         gateway
         mkNuHook
+        modelCatalog
         timeouts
         ;
     })
@@ -112,7 +114,12 @@ in
     completeness = import ./completeness;
 
     prosePolish = import ./prose-polish {
-      inherit mkNuHook modelCall timeouts;
+      inherit
+        mkNuHook
+        modelCall
+        modelCatalog
+        timeouts
+        ;
     };
 
     wakatime = import ./wakatime {

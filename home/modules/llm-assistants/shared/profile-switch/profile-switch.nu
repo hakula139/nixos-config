@@ -37,14 +37,22 @@ def list-profiles [config: record, active_link: string, --stderr]: nothing -> no
 }
 
 def write-config [config: record, profile: path] {
-  let settings = (open --raw $config.configFile | from toml
-    | reject --optional ...$config.resetKeys
-    | merge deep --strategy overwrite (open --raw $profile | from toml))
+  let current = if ($config.configFile | path exists) { open $config.configFile } else { {} }
+  let reset_paths = ($config.resetKeys | each { split row "." | into cell-path })
+  let settings = ($config.defaultSettings
+    | merge deep --strategy overwrite $current
+    | reject --optional ...$reset_paths
+    | merge deep --strategy overwrite (open $profile))
+  let serialized = match ($config.configFile | path parse | get extension) {
+    "toml" => { $settings | to toml }
+    "yml" | "yaml" => { $settings | to yaml }
+  }
   let directory = ($config.configFile | path dirname)
+  mkdir $directory
   let temporary = (^mktemp $"--tmpdir=($directory)" '.profile-config.XXXXXXXXXX' | str trim)
 
   try {
-    $settings | to toml | save --force $temporary
+    $serialized | save --force $temporary
     ^chmod 600 $temporary
     ^mv --force $temporary $config.configFile
   } catch {|error|

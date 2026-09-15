@@ -6,9 +6,11 @@
   config,
   pkgs,
   lib,
+  agents,
   hostType,
   mcpFlag,
   mkProfileSwitch,
+  modelCatalog,
   secretPath,
 }:
 
@@ -68,6 +70,15 @@ let
         '';
       };
 
+      modelFamily = lib.mkOption {
+        type = lib.types.enum [
+          "claude"
+          "gpt"
+        ];
+        default = "claude";
+        description = "Model family for profile-specific agent models and effort";
+      };
+
       modelOverrides = lib.mapAttrs (
         _: envVar:
         lib.mkOption {
@@ -112,6 +123,19 @@ let
     name: profile:
     let
       esc = lib.escapeShellArg;
+      familyModels = modelCatalog.defaults.${profile.modelFamily};
+      defaultModel = modelCatalog.models.${familyModels.flagship};
+      profileAgents = lib.optionalAttrs (profile.modelFamily != "claude") (
+        agents.mkProfileAgents profile.modelFamily
+      );
+      profileArgs = [
+        "--effort"
+        defaultModel.thinking.defaultLevel
+      ]
+      ++ lib.optionals (profileAgents != { }) [
+        "--agents"
+        (builtins.toJSON profileAgents)
+      ];
 
       tokenLines =
         if profile.type == "subscription" then
@@ -140,7 +164,11 @@ let
           k: secretName: "export ${k}=${esc (secretPath secretName)}"
         ) profile.extraSecretEnv;
     in
-    pkgs.writeShellScript "claude-profile-${name}" (lib.concatStringsSep "\n" (tokenLines ++ envLines));
+    pkgs.writeShellScript "claude-profile-${name}" (
+      lib.concatStringsSep "\n" (
+        tokenLines ++ envLines ++ [ "__claude_profile_args=(${lib.escapeShellArgs profileArgs})" ]
+      )
+    );
 
   profileScripts = lib.mapAttrs mkProfileScript cfg.auth.profiles;
 
@@ -259,14 +287,6 @@ let
       ];
     }
     {
-      field = "modelOverrides";
-      isSet = p: builtins.any (v: v != null) (builtins.attrValues p.modelOverrides);
-      forbidden = [
-        "oauth-token"
-        "subscription"
-      ];
-    }
-    {
       field = "extraSecretEnv";
       isSet = p: p.extraSecretEnv != { };
       forbidden = [ "subscription" ];
@@ -350,7 +370,10 @@ in
   # ----------------------------------------------------------------------------
   wrapArgs = lib.optionals hasProfiles [
     "--run"
-    "source ${profileLoader}"
+    ''
+      source ${profileLoader}
+      set -- "''${__claude_profile_args[@]}" "$@"
+    ''
   ];
 
   packages = lib.optionals hasProfiles [ claudeSwitch ];

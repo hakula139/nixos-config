@@ -10,26 +10,36 @@
 }:
 
 let
+  modelAliases = {
+    flagship = "opus";
+    standard = "sonnet";
+    mini = "haiku";
+  };
+
   renderIndentedLines =
     value: map (line: "  ${line}") (lib.filter (line: line != "") (lib.splitString "\n" value));
 
   renderField =
-    agent: fieldSpec:
-    let
-      field = if builtins.isString fieldSpec then { name = fieldSpec; } else fieldSpec;
-      format = field.format or toString;
-    in
-    lib.optional (agent.claude ? ${field.name}) "${field.name}: ${format agent.claude.${field.name}}";
+    settings: field: lib.optional (settings ? ${field}) "${field}: ${toString settings.${field}}";
+
+  mkSettings =
+    family: agent:
+    agent.claude
+    // lib.optionalAttrs (agent ? modelTier) {
+      model = modelAliases.${agent.modelTier};
+      effort = agent.effort.${family};
+    };
 
   renderFrontmatter =
     name: agent:
     let
+      settings = mkSettings "claude" agent;
       frontmatterLines = [
         "name: ${name}"
         "description: |"
       ]
       ++ renderIndentedLines agent.description
-      ++ lib.concatMap (renderField agent) [
+      ++ lib.concatMap (renderField settings) [
         "color"
         "model"
         "effort"
@@ -37,14 +47,9 @@ let
         "maxTurns"
         "memory"
         "isolation"
-        {
-          name = "background";
-          format = lib.boolToString;
-        }
       ]
-      ++ lib.optional (
-        (agent.claude.tools or [ ]) != [ ]
-      ) "tools: ${lib.concatStringsSep ", " agent.claude.tools}";
+      ++ lib.optional (settings ? background) "background: ${lib.boolToString settings.background}"
+      ++ lib.optional (settings ? tools) "tools: ${lib.concatStringsSep ", " settings.tools}";
     in
     lib.concatStringsSep "\n" ([ "---" ] ++ frontmatterLines ++ [ "---" ]);
 
@@ -57,7 +62,10 @@ let
   allAgents = lib.mapAttrs renderAgent sharedAgents // {
     codex-worker = builtins.readFile ./codex-worker.md;
     comment-gate = renderAgent "comment-gate" {
-      description = "Reviews comments and docstrings for useful rationale, clear contracts, and grounded prose issues. Use to review a file or diff against the shared comment guidance.";
+      description = ''
+        Reviews comments and docstrings for useful rationale, clear contracts, and grounded prose
+        issues. Use to review a file or diff against the shared comment guidance.
+      '';
       prompt = commentGate;
       claude = {
         color = "gray";
@@ -67,4 +75,16 @@ let
     };
   };
 in
-lib.filterAttrs (name: _: lib.elem name enabledAgents) allAgents
+{
+  files = lib.filterAttrs (name: _: lib.elem name enabledAgents) allAgents;
+
+  mkProfileAgents =
+    family:
+    lib.mapAttrs (
+      _: agent:
+      mkSettings family agent
+      // {
+        inherit (agent) description prompt;
+      }
+    ) (lib.filterAttrs (name: agent: lib.elem name enabledAgents && agent ? modelTier) sharedAgents);
+}

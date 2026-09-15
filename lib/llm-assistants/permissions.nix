@@ -177,7 +177,8 @@ let
           pattern = [${pattern}],
           decision = "${decision}",
           justification = "${entry.reason}",
-      )'';
+      )
+    '';
 
   # Each command gets a bare and a prefixed key so `rm` never matches `rmdir`.
   toOpencodeBash =
@@ -195,7 +196,7 @@ in
   claudeAsk = toClaude gates;
   claudeDeny = toClaude denies;
 
-  codexRules = lib.concatStringsSep "\n\n" (
+  codexRules = lib.concatStringsSep "\n" (
     map (toCodexRule "forbidden") denies ++ map (toCodexRule "prompt") gates
   );
 

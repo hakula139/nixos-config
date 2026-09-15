@@ -4,6 +4,7 @@
 
 {
   lib,
+  modelCatalog,
   enabledAgents,
   sharedAgents,
 }:
@@ -15,15 +16,17 @@ let
   renderFrontmatter =
     agent:
     let
-      oc = agent.opencode or { };
-      tools = oc.tools or { };
+      permission = agent.opencode.permission or { };
       frontmatterLines = [
         "description: |"
       ]
       ++ renderIndentedLines agent.description
       ++ [ "mode: subagent" ]
-      ++ lib.optionals (tools != { }) (
-        [ "tools:" ] ++ lib.mapAttrsToList (k: v: "  ${k}: ${lib.boolToString v}") tools
+      ++ lib.optional (agent ? modelTier) "model: openai/${modelCatalog.defaults.gpt.${agent.modelTier}}"
+      ++ lib.optional (agent ? effort) "variant: ${agent.effort.gpt}"
+      ++ lib.optionals (permission != { }) (
+        [ "permission:" ]
+        ++ lib.mapAttrsToList (name: value: "  ${name}: ${builtins.toJSON value}") permission
       );
     in
     lib.concatStringsSep "\n" ([ "---" ] ++ frontmatterLines ++ [ "---" ]);

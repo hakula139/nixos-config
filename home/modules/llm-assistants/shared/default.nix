@@ -7,6 +7,7 @@
   pkgs,
   lib,
   corpHosts,
+  modelCatalog,
   repo,
   repoLib,
   secretPath,
@@ -42,6 +43,7 @@
       inherit
         pkgs
         lib
+        modelCatalog
         repo
         enableDevToolchains
         ;

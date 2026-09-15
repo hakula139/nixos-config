@@ -7,6 +7,7 @@
   lib,
   gateway,
   mkNuHook,
+  modelCatalog,
   timeouts,
 }:
 
@@ -19,10 +20,10 @@
       # A bare name resolves the proxy-wrapped Codex the module puts on PATH,
       # where the unwrapped package would make its call without a proxy.
       codex = "codex";
-      codexModel = "gpt-5.6-luna";
+      codexModel = modelCatalog.defaults.gpt.mini;
       codexTimeout = timeouts.modelCall;
       curl = lib.getExe pkgs.curl;
-      gatewayModel = "openrouter/google/gemini-3.7-flash";
+      gatewayModel = modelCatalog.models.${modelCatalog.defaults.gemini.standard}.gatewayId.openrouter;
       gatewayTimeout = timeouts.modelCall;
       timeout = "${pkgs.coreutils}/bin/timeout";
     };
