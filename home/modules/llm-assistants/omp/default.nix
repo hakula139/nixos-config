@@ -103,13 +103,11 @@ in
           (repoLib.proxy.mkProxyScript cfg.proxy)
         ];
 
-      ompBin = pkgs.symlinkJoin {
+      ompBin = repoLib.wrapPackage {
+        inherit pkgs wrapArgs;
+        pkg = pkgs.omp;
         name = "omp-${pkgs.omp.version}";
-        paths = [ pkgs.omp ];
-        nativeBuildInputs = [ pkgs.makeWrapper ];
-        postBuild = ''
-          wrapProgram $out/bin/omp ${lib.escapeShellArgs wrapArgs}
-        '';
+        bin = "omp";
       };
     in
     lib.mkMerge [
