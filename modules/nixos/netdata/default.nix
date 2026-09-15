@@ -87,6 +87,14 @@ in
           "dbengine tier 1 page cache size MB" = 16;
           "dbengine tier 1 disk space MB" = 256;
         };
+        plugins = {
+          # These VMs have no IPMI interface or configured perf / ioping collectors.
+          "freeipmi" = "no";
+          "perf" = "no";
+          "ioping" = "no";
+          # Nixpkgs exposes a dangling wrapper for this unavailable plugin.
+          "logs-management" = "no";
+        };
         web = {
           "bind to" = "127.0.0.1:${toString cfg.port}";
           "enable gzip compression" = "yes";
