@@ -4,6 +4,7 @@
 
 {
   lib,
+  wrapPackage,
 }:
 
 let
@@ -79,14 +80,17 @@ let
       let
         proxyRunScript = pkgs.writeShellScript "${bin}-proxy-env" (mkProxyScript proxyCfg);
       in
-      pkgs.symlinkJoin {
-        inherit name;
-        paths = [ pkg ];
-        nativeBuildInputs = [ pkgs.makeWrapper ];
-        postBuild = ''
-          wrapProgram $out/bin/${bin} \
-            --run ${lib.escapeShellArg proxyRunScript}
-        '';
+      wrapPackage {
+        inherit
+          pkgs
+          pkg
+          name
+          bin
+          ;
+        wrapArgs = [
+          "--run"
+          "source ${proxyRunScript}"
+        ];
       };
 in
 {

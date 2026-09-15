@@ -48,6 +48,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   ├── ssh.nix                 # Builder and SSH configuration from server inventory
 │   ├── systemd.nix             # Shared systemd unit hardening defaults
 │   ├── tooling.nix             # Shared tool groups (nix, secrets, shell, all)
+│   ├── wrap-package.nix        # Package wrappers preserving upstream launcher identity
 │   ├── llm-assistants/         # Shared LLM-assistant helpers (mcpOptions, proxy, claude profile sets)
 │   └── wsl/                    # Windows interop helpers (windows-interop.nu)
 ├── modules/
