@@ -20,6 +20,11 @@
       if [[ -L "$target" && "$(readlink "$target")" == $homeFilePattern ]]; then
         run rm $VERBOSE_ARG "$target"
       fi
-    done < <(find "$newGenFiles" -mindepth 1 -type d -print0)
+    done < <(
+      find "$newGenFiles" \
+        -mindepth 1 \
+        -type d \
+        -print0
+    )
   '';
 }

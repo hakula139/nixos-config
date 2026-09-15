@@ -283,7 +283,16 @@ def main [server_key_file: string]: nothing -> nothing {
   # The endpoint is third-party and best-effort, so a failure here must not
   # leave a permanently failed unit that blocks a deploy.
   let sent = try {
-    ($"data=($post)" | ^curl -m 50 -k -s -d @- $GATEWAY | complete).exit_code
+    (
+      $"data=($post)"
+      | ^curl
+        -m 50
+        -k
+        -s
+        -d @-
+        $GATEWAY
+      | complete
+    ).exit_code
   } catch {
     1
   }

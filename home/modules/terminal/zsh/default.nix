@@ -180,6 +180,7 @@ in
       "....." = "cd ../../../..";
 
       # Nix aliases
+      nixdp = "colmena apply";
       nixup = "nix flake update";
       nixgc = "nh clean all --keep-since 3d";
       nixopt = "nix-store --optimise";

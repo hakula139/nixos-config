@@ -93,7 +93,7 @@ jobs:
           cachix_skip_push: ${{ !(github.ref == 'refs/heads/main' || github.actor == 'hakula139') }}
 
       - name: Check deployment derivation
-        if: matrix.config.deploy == true
+        if: matrix.config.deploy
         run: |
           set -euo pipefail
           ci_drv=$(nix eval --raw '${{ matrix.config.target }}.drvPath')

@@ -218,13 +218,24 @@ def "main transcode" [
   ]
 
   match $mode {
-    "remux" => { ^ffmpeg -i $source -an -c:v copy ...$hls_args $m3u8 }
+    "remux" => {
+      (
+        ^ffmpeg
+        -i $source
+        -an
+        -c:v copy
+        ...$hls_args $m3u8
+      )
+    }
     "re-encode" => {
       if ($fps | is-empty) {
         die "fps is required for re-encode mode"
       }
       (
-        ^ffmpeg -i $source -an -c:v libx264
+        ^ffmpeg
+        -i $source
+        -an
+        -c:v libx264
         -preset $X264_PRESET
         -profile:v $X264_PROFILE
         -crf $X264_CRF
@@ -321,8 +332,15 @@ def "main db-update-meta" [file_id: string, file_uuid: string, resolution: strin
   require-file $fmp4 "fmp4 not found"
 
   let metadata_file = $"($WORK_DIR)/metadata-($file_uuid)-($resolution).json"
-  ^ffprobe -v quiet -print_format json -show_format -show_streams $fmp4
-  | save --raw --force $metadata_file
+  (
+    ^ffprobe
+    -v quiet
+    -print_format json
+    -show_format
+    -show_streams
+    $fmp4
+    | save --raw --force $metadata_file
+  )
 
   print $"Updating videoFile id=($file_id) metadata..."
 
