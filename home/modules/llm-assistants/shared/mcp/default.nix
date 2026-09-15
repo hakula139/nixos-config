@@ -119,7 +119,7 @@ let
     name = "chrome-devtools";
     command = [
       "chrome-devtools-mcp"
-      "--executable-path=${lib.getExe' pkgs.browser-tools "chromium"}"
+      "--executable-path=${lib.getExe pkgs.browser-tools.chromium}"
       "--headless"
       "--isolated"
     ];
@@ -218,7 +218,7 @@ let
       "--from"
       "scrapling[ai]"
       "scrapling-mcp"
-      "--executable-path=${lib.getExe' pkgs.browser-tools "chromium"}"
+      "--executable-path=${lib.getExe pkgs.browser-tools.chromium}"
     ];
   };
 in
