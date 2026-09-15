@@ -31,4 +31,6 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 | `nixup`   | `nix flake update`             | same                         | same                                                  |
 | `nixgc`   | `nh clean all --keep-since 3d` | same                         | same                                                  |
 
+Deploy the five servers from the latest public `main` CI artifacts with `nix run .#deploy -- --reboot`. Use `--on us-4` for one server, or the printed `--revision <sha>` to resume a stopped rollout. The command checks cached outputs, protects the active Clash route, and checks services before each reboot. Private working-tree overrides are excluded. See [bootstrap](docs/guides/bootstrap.md#nixos-server) for prerequisites.
+
 A machine with no managed configuration yet needs the bootstrap steps first, which differ per platform.

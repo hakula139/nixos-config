@@ -340,24 +340,44 @@
       # ------------------------------------------------------------------------
       # Packages
       # ------------------------------------------------------------------------
-      packages = {
-        x86_64-linux.system-manager = (pkgsFor "x86_64-linux").system-manager;
+      packages =
+        nixpkgs.lib.recursiveUpdate
+          (forAllSystems (system: {
+            inherit (pkgsFor system) deploy;
+          }))
+          {
+            x86_64-linux.system-manager = (pkgsFor "x86_64-linux").system-manager;
 
-        x86_64-linux.devvm-docker = mkDocker {
-          flakeConfigName = null;
-          hostName = "devvm";
-          hostType = "work";
-          hostModule = ./hosts/images/devvm;
-          enableDevToolchains = true;
-          username = "root";
-        };
-      };
+            x86_64-linux.devvm-docker = mkDocker {
+              flakeConfigName = null;
+              hostName = "devvm";
+              hostType = "work";
+              hostModule = ./hosts/images/devvm;
+              enableDevToolchains = true;
+              username = "root";
+            };
+          };
 
       # ------------------------------------------------------------------------
       # Pre-commit Hooks (git-hooks.nix)
       # ------------------------------------------------------------------------
       checks = forAllSystems (system: {
         pre-commit = preCommitCheckFor system;
+        deploy =
+          let
+            pkgs = pkgsFor system;
+          in
+          pkgs.runCommand "deploy-tests"
+            {
+              nativeBuildInputs = [
+                pkgs.nushell
+                pkgs.python3
+              ];
+            }
+            ''
+              python3 ${./packages/deploy}/test-deploy.py
+              touch "$out"
+            '';
       });
 
       # ------------------------------------------------------------------------

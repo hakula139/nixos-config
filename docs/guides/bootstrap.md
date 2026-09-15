@@ -1,6 +1,6 @@
 # Bootstrap
 
-First-time setup per platform. Day-to-day applies use the [`nixsw` alias](../../README.md#applying-a-configuration) everywhere, so this page only covers the steps that precede a managed configuration.
+First-time setup per platform. Day-to-day local applies use the [`nixsw` alias](../../README.md#applying-a-configuration). Server fleet deployments use the CI-backed command below.
 
 ## NixOS server
 
@@ -10,15 +10,19 @@ NixOS servers partition their disks with [disko](https://github.com/nix-communit
 nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 ```
 
-Afterwards, enter `nix develop` on a workstation to use the pinned Colmena version, then deploy. `--on` takes a host name or a provider tag:
+Afterwards, authenticate `gh` and ensure SSH access to the inventory hosts. Deploy from a workstation:
 
 ```bash
-colmena apply
-colmena apply --on us-4
-colmena apply --on @cloudcone
+nix run .#deploy -- --reboot
+nix run .#deploy -- --on us-4
+nix run .#deploy -- --revision <full-commit-sha> --reboot
 ```
 
-Inventory and deployment metadata live in `data/servers.nix`. Every proxy node is also a deploy target, so check what is live before a fleet-wide apply.
+The command selects public `main` once, waits for the selected servers' CI artifacts, and fetches their runtime closures without building. It runs the configured restic backups before changing stateful hosts, then checks services, public endpoints, and proxy routes. Umami checks include public country / region collection with temporary test records. It stops on a cache miss, insufficient disk space, or failed health check. Resume with the printed revision after resolving the failure. It retains the previous system as a GC root until that host passes its checks, and does not delete generations or application data to make space.
+
+On macOS it reads Clash Verge's runtime controller settings and tests an alternate REALITY route before disrupting the selected proxy server. Pass `--clash-config <path>` for another runtime configuration, or `--without-clash` when the workstation does not use Clash. A failed rollout leaves the healthy alternate selected. A successful rollout restores the original selection after testing it.
+
+Local private overrides require a separate build and are excluded from this command. For manual deployment, enter `nix develop` to use the pinned Colmena CLI. Inventory and deployment metadata live in `data/servers.nix`.
 
 ## NixOS-WSL workstation
 
