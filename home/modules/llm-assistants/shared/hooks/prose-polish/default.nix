@@ -5,6 +5,7 @@
 {
   mkNuHook,
   modelCall,
+  modelCatalog,
   timeouts,
 }:
 
@@ -28,7 +29,7 @@ in
     script = ./prose-polish.nu;
     config = {
       inherit maxRepairs mcpProseFields modelCall;
-      model = "openrouter/google/gemini-3.7-flash";
+      model = modelCatalog.models.${modelCatalog.defaults.gemini.standard}.gatewayId.openrouter;
       phrasing = builtins.readFile ../../instructions/phrasing.md;
       prompt = builtins.readFile ./prompt.md;
       repairPrompt = builtins.readFile ./repair-prompt.md;

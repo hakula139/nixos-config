@@ -15,6 +15,7 @@
   stateDir,
   defaultProfile,
   configFile ? null,
+  defaultSettings ? { },
   resetKeys ? [ ],
 }:
 
@@ -29,6 +30,7 @@ let
       stateDir
       defaultProfile
       configFile
+      defaultSettings
       resetKeys
       ;
   };

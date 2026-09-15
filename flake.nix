@@ -191,15 +191,6 @@
       # ------------------------------------------------------------------------
       # Special args
       # ------------------------------------------------------------------------
-      caches = import ./data/caches.nix;
-      corpHosts = import ./data/corp-hosts.nix;
-      defaults = import ./data/defaults.nix;
-      keys = import ./secrets/keys.nix;
-      servers = import ./data/servers.nix;
-      systemManagerPaths = (import ./data/system-manager.nix).systemPaths;
-
-      repoLib = import ./lib { inherit (nixpkgs) lib; };
-
       repo = {
         root = ./.;
         modules = {
@@ -222,17 +213,29 @@
         };
       };
 
+      repoLib = import ./lib { inherit (nixpkgs) lib; };
+
+      caches = import ./data/caches.nix;
+      corpHosts = import ./data/corp-hosts.nix;
+      defaults = import ./data/defaults.nix;
+      modelCatalog = import ./data/llm-models.nix;
+      servers = import ./data/servers.nix;
+      systemManagerPaths = (import ./data/system-manager.nix).systemPaths;
+
+      keys = import ./secrets/keys.nix;
+
       commonSpecialArgs = {
         inherit
           inputs
+          repo
+          repoLib
           caches
           corpHosts
           defaults
-          keys
-          repo
-          repoLib
+          modelCatalog
           servers
           systemManagerPaths
+          keys
           ;
       };
 

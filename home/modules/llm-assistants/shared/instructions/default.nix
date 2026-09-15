@@ -43,6 +43,12 @@ in
     body = ./agents.md;
   };
 
+  omp = render {
+    title = "AGENTS.md";
+    intro = "Global instructions for OMP behavior across all projects.";
+    body = ./agents.md;
+  };
+
   opencode = render {
     title = "AGENTS.md";
     intro = "Global instructions for OpenCode behavior across all projects.";

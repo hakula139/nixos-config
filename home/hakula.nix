@@ -8,10 +8,11 @@
   lib,
   inputs,
   corpHosts,
+  modelCatalog,
   repoLib,
   username ? "hakula",
-  isNixOS ? false,
   isDesktop ? false,
+  isNixOS ? false,
   ...
 }:
 
@@ -81,7 +82,7 @@ in
     lib.mkIf (config.hakula.claude-code.auth.defaultProfile != null)
       (
         repoLib.llmAssistants.mkClaudeProfiles {
-          inherit lib corpHosts;
+          inherit lib corpHosts modelCatalog;
           inherit (config.hakula.claude-code.auth) enableCorpGateway;
         }
       );

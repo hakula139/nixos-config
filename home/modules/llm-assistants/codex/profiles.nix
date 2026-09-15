@@ -6,12 +6,14 @@
   config,
   pkgs,
   lib,
-  codexPkg,
+  configDir,
   corpHosts,
   hostType,
   mkProfileSwitch,
+  modelCatalog,
   secretPath,
-  configDir,
+  enabledAgents,
+  sharedAgents,
 }:
 
 let
@@ -22,14 +24,14 @@ let
   caFile = secretPath "llm-assistants/corp-cachain.crt";
 
   # ----------------------------------------------------------------------------
-  # Model catalog
+  # Gateway models
   # ----------------------------------------------------------------------------
   # The gateway's /models response is not a Codex model catalog.
-  modelCatalog =
+  corpModels =
     pkgs.runCommand "codex-corp-models.json"
       {
         nativeBuildInputs = [
-          codexPkg
+          pkgs.codex
           pkgs.jq
         ];
       }
@@ -45,19 +47,40 @@ let
       '';
 
   # ----------------------------------------------------------------------------
+  # Model roles
+  # ----------------------------------------------------------------------------
+  gptModels = modelCatalog.defaults.gpt;
+  defaultModel = modelCatalog.models.${gptModels.flagship};
+
+  mkAgents =
+    models:
+    (import ./agents.nix {
+      inherit
+        pkgs
+        lib
+        models
+        enabledAgents
+        sharedAgents
+        ;
+    }).settings;
+
+  # ----------------------------------------------------------------------------
   # Profile definitions
   # ----------------------------------------------------------------------------
   profiles = {
     official = {
-      model = "gpt-6-astra";
+      model = gptModels.flagship;
       model_provider = "openai";
+      model_auto_compact_token_limit = defaultModel.autoCompactTokens;
+      agents = mkAgents gptModels;
     };
 
     corp-gateway = {
-      model = "openai/gpt-6-astra";
+      model = defaultModel.gatewayId.openai;
       model_provider = "corp-gateway";
-      model_catalog_json = toString modelCatalog;
-      model_auto_compact_token_limit = 250000;
+      model_catalog_json = toString corpModels;
+      model_auto_compact_token_limit = defaultModel.autoCompactTokens;
+      agents = mkAgents (lib.mapAttrs (_: id: modelCatalog.models.${id}.gatewayId.openai) gptModels);
     };
   };
 
@@ -76,7 +99,11 @@ let
     profilesDir = "${stateDir}/profiles";
     extension = "config.toml";
     configFile = "${configDir}/config.toml";
-    resetKeys = lib.unique (lib.concatMap builtins.attrNames (builtins.attrValues profiles));
+    # Preserve user-defined agents while removing disabled managed roles.
+    resetKeys = [
+      "model_catalog_json"
+    ]
+    ++ map (name: "agents.${name}") (builtins.attrNames sharedAgents);
   };
 in
 {
@@ -104,9 +131,6 @@ in
   # Module config
   # ----------------------------------------------------------------------------
   config = {
-    # --------------------------------------------------------------------------
-    # Assertions
-    # --------------------------------------------------------------------------
     assertions = [
       {
         assertion = builtins.hasAttr cfg.defaultProfile enabledProfiles;

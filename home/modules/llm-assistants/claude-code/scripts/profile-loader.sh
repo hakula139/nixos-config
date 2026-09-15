@@ -4,7 +4,11 @@
 # Claude Code Auth Profile Loader
 # ==============================================================================
 
+set -euo pipefail
+
 @unsetVars@
+
+__claude_profile_args=()
 
 __claude_profile="@stateDir@/active-profile"
 if [[ -f "$__claude_profile" ]]; then

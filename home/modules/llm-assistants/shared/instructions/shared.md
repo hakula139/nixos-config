@@ -33,7 +33,7 @@ Aim for a simple, coherent design that meets current requirements.
 ### Workflow Discipline
 
 - **Think from first principles.** Before applying a familiar pattern, check whether the actual constraints still call for it. Cached intuitions are starting points only.
-- **Inspect conventions before editing.** Read the surrounding code and comparable files, using the closest existing counterpart for a new file. Match their structure, naming, comments, docstrings, and section banners where applicable.
+- **Inspect conventions before editing.** Read the surrounding code and comparable files, using the closest existing counterpart for a new file. Match their structure, naming, comments, docstrings, and section banners where applicable. Before finishing, compare the complete edited construct and affected callers with those references, including unchanged entries in the same group.
 - **Act within the task.** Fix defects relevant to the authorized work, including necessary changes to surrounding code. Report independent findings separately. For review-only requests, report findings without editing. Destructive or hard-to-reverse actions require authorization.
 - **Root cause before symptom.** When tests fail, coverage drops, or behavior breaks, investigate why before patching around. Temporary mitigations need an explicit ask.
 - **Inspect, then iterate.** When a fix does not work, look at real state (DOM, traces, logs, payloads) before guessing again. One inspection beats several blind retries.

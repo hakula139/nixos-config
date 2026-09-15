@@ -5,11 +5,25 @@
 {
   lib,
   corpHosts,
+  modelCatalog,
   enableCorpGateway ? false,
 }:
 
 let
   inherit (corpHosts) llmGatewayUrl;
+  inherit (modelCatalog) defaults models;
+
+  claudeModels = {
+    opus = defaults.claude.flagship;
+    sonnet = defaults.claude.standard;
+    haiku = defaults.claude.mini;
+  };
+
+  gptModels = {
+    opus = defaults.gpt.flagship;
+    sonnet = defaults.gpt.standard;
+    haiku = defaults.gpt.mini;
+  };
 
   corpGatewayCommon = {
     type = "api-key";
@@ -26,42 +40,39 @@ in
 {
   official = {
     type = "subscription";
+    modelOverrides = claudeModels;
   };
 
   official-token = {
     type = "oauth-token";
     tokenSecret = "llm-assistants/claude-oauth-token";
+    modelOverrides = claudeModels;
   };
 
   ikuncode = {
     type = "api-key";
     tokenSecret = "llm-assistants/ikuncode-api-key";
     baseUrl = "https://api.ikuncode.cc";
+    modelOverrides = claudeModels;
   };
 
   yescode = {
     type = "api-key";
     tokenSecret = "llm-assistants/yescode-api-key";
     baseUrl = "https://co.yes.vg";
+    modelOverrides = claudeModels;
   };
 }
 // lib.optionalAttrs enableCorpGateway {
   corp-gateway-bedrock = corpGatewayCommon // {
-    modelOverrides = {
-      opus = "bedrock/global.anthropic.claude-opus-5";
-      sonnet = "bedrock/global.anthropic.claude-sonnet-5";
-      haiku = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
-    };
+    modelOverrides = lib.mapAttrs (_: id: models.${id}.gatewayId.bedrock) claudeModels;
   };
 
   corp-gateway-openai = corpGatewayCommon // {
-    modelOverrides = {
-      opus = "openai/gpt-6-astra";
-      sonnet = "openai/gpt-5.6-terra";
-      haiku = "openai/gpt-5.6-luna";
-    };
+    modelFamily = "gpt";
+    modelOverrides = lib.mapAttrs (_: id: models.${id}.gatewayId.openai) gptModels;
     extraEnv = corpGatewayCommon.extraEnv // {
-      CLAUDE_CODE_AUTO_COMPACT_WINDOW = "250000";
+      CLAUDE_CODE_AUTO_COMPACT_WINDOW = toString models.${gptModels.opus}.autoCompactTokens;
     };
   };
 }
