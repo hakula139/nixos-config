@@ -4,7 +4,6 @@
 
 {
   lib,
-  modelCatalog,
   enabledAgents,
   sharedAgents,
 }:
@@ -22,7 +21,6 @@ let
       ]
       ++ renderIndentedLines agent.description
       ++ [ "mode: subagent" ]
-      ++ lib.optional (agent ? modelTier) "model: openai/${modelCatalog.defaults.gpt.${agent.modelTier}}"
       ++ lib.optional (agent ? effort) "variant: ${agent.effort.gpt}"
       ++ lib.optionals (permission != { }) (
         [ "permission:" ]
