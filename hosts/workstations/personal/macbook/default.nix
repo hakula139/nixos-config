@@ -49,7 +49,7 @@
       enableCorpGateway = true;
     };
     hakula.codex.auth.enableCorpGateway = true;
-    hakula.cursor.nixd.flakePath = "/Users/hakula/GitHub/nixos-config";
+    hakula.nix.configPath = "/Users/hakula/GitHub/nixos-config";
     services.listenbrainz-scrobbler.enable = true;
   };
 
