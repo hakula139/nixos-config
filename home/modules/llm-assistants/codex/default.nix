@@ -111,15 +111,17 @@ in
       proxyScript = pkgs.writeShellScript "codex-proxy-env" (repoLib.proxy.mkProxyScript cfg.proxy);
 
       # Home Manager uses the version in the name to select the config layout.
-      codexBin = pkgs.symlinkJoin {
+      codexBin = repoLib.wrapPackage {
+        inherit pkgs;
+        pkg = pkgs.codex;
         name = "codex-${pkgs.codex.version}";
-        paths = [ pkgs.codex ];
-        nativeBuildInputs = [ pkgs.makeWrapper ];
-        postBuild = ''
-          wrapProgram $out/bin/codex \
-            ${lib.escapeShellArgs profiles.wrapArgs} \
-            ${lib.optionalString cfg.proxy.enable "--run ${lib.escapeShellArg "source ${proxyScript}"}"}
-        '';
+        bin = "codex";
+        wrapArgs =
+          profiles.wrapArgs
+          ++ lib.optionals cfg.proxy.enable [
+            "--run"
+            "source ${proxyScript}"
+          ];
       };
 
       # ------------------------------------------------------------------------
