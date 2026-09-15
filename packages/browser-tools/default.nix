@@ -10,15 +10,14 @@
 let
   inherit (driver) browsers;
   driver = pkgs.playwright-driver;
+  chromium = pkgs.callPackage ./chromium.nix { };
 in
 pkgs.runCommand "browser-tools"
   {
     nativeBuildInputs = [
-      pkgs.nodejs_24
       pkgs.makeBinaryWrapper
     ];
-    PLAYWRIGHT_BROWSERS_PATH = browsers;
-    passthru = { inherit driver browsers; };
+    passthru = { inherit driver browsers chromium; };
     meta = {
       description = "Playwright CLI and its matching browsers";
       platforms = lib.platforms.unix;
@@ -28,8 +27,7 @@ pkgs.runCommand "browser-tools"
   ''
     mkdir -p "$out/bin" "$out/lib/node_modules"
     ln -s ${driver} "$out/lib/node_modules/playwright"
-    browserPath=$(node -p 'require("${driver}").chromium.executablePath()')
-    makeWrapper "$browserPath" "$out/bin/chromium"
+    ln -s ${lib.getExe chromium} "$out/bin/chromium"
     makeWrapper ${lib.getExe pkgs.nodejs_24} "$out/bin/playwright" \
       --add-flags ${driver}/cli.js \
       --set PLAYWRIGHT_BROWSERS_PATH ${browsers}
