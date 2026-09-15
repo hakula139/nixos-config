@@ -39,12 +39,6 @@ in
     };
 
     mcp = mcpOptions.mkMcpOptions { names = cursorMcpServers; };
-
-    nixd.flakePath = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "Absolute path to the nixos-config flake for nixd completions";
-    };
   };
 
   # ----------------------------------------------------------------------------
@@ -68,8 +62,8 @@ in
           isDarwin
           isNixOS
           ;
-        inherit (cfg.nixd) flakePath;
         inherit (config.home) profileDirectory;
+        flakePath = config.hakula.nix.configPath;
         windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
       };
 
