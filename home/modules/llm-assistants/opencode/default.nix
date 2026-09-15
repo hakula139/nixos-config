@@ -6,8 +6,11 @@
   config,
   pkgs,
   lib,
+  corpHosts,
+  hostType,
   modelCatalog,
   repoLib,
+  secretPath,
   enableDevToolchains ? false,
   ...
 }:
@@ -20,6 +23,21 @@ let
   inherit (repoLib.llmAssistants) mcpOptions;
 
   opencodeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
+
+  profiles = import ./profiles.nix {
+    inherit
+      config
+      pkgs
+      lib
+      corpHosts
+      hostType
+      modelCatalog
+      secretPath
+      ;
+    inherit (shared) mkProfileSwitch;
+    inherit (cfg.agents) enabledAgents;
+    sharedAgents = shared.agentRoles;
+  };
 in
 {
   # ----------------------------------------------------------------------------
@@ -27,6 +45,8 @@ in
   # ----------------------------------------------------------------------------
   options.hakula.opencode = {
     enable = lib.mkEnableOption "OpenCode";
+
+    auth = profiles.options;
 
     agents = {
       enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
@@ -56,16 +76,13 @@ in
     let
       inherit (pkgs) workmux;
 
-      gptModels = modelCatalog.defaults.gpt;
-      defaultModel = modelCatalog.models.${gptModels.flagship};
-
       json = pkgs.formats.json { };
 
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
       agents = import ./agents.nix {
-        inherit lib modelCatalog;
+        inherit lib;
         inherit (cfg.agents) enabledAgents;
         sharedAgents = shared.agentRoles;
       };
@@ -113,12 +130,19 @@ in
       # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
-      opencodeBin = repoLib.proxy.wrapWithProxy {
+      proxyScript = pkgs.writeShellScript "opencode-proxy-env" (repoLib.proxy.mkProxyScript cfg.proxy);
+
+      opencodeBin = repoLib.wrapPackage {
         inherit pkgs;
         pkg = pkgs.opencode;
-        proxyCfg = cfg.proxy;
         name = "opencode-${pkgs.opencode.version}";
         bin = "opencode";
+        wrapArgs =
+          profiles.wrapArgs
+          ++ lib.optionals cfg.proxy.enable [
+            "--run"
+            "source ${proxyScript}"
+          ];
       };
 
       # ------------------------------------------------------------------------
@@ -134,6 +158,8 @@ in
       };
     in
     lib.mkMerge [
+      profiles.config
+
       {
         # ----------------------------------------------------------------------
         # Program configuration
@@ -152,18 +178,6 @@ in
           # Settings
           # --------------------------------------------------------------------
           settings = {
-            # ------------------------------------------------------------------
-            # Models
-            # ------------------------------------------------------------------
-            model = "openai/${gptModels.flagship}";
-            small_model = "openai/${gptModels.mini}";
-            provider = {
-              openai.models.${gptModels.flagship}.options = {
-                reasoningEffort = defaultModel.thinking.defaultLevel;
-                textVerbosity = "low";
-              };
-            };
-
             # ------------------------------------------------------------------
             # Permissions
             # ------------------------------------------------------------------
