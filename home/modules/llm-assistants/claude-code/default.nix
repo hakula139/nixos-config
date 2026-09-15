@@ -190,7 +190,7 @@ in
           AGENT_BROWSER_EXECUTABLE_PATH = lib.getExe pkgs.browser-tools.chromium;
         };
 
-        home.packages = profiles.packages ++ [ pkgs.ccusage ];
+        home.packages = profiles.packages;
 
         programs.claude-code = {
           enable = true;
