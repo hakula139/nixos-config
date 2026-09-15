@@ -23,9 +23,12 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 | Alias     | NixOS                          | macOS                           | Generic Linux (System Manager)                        |
 | --------- | ------------------------------ | ------------------------------- | ----------------------------------------------------- |
 | `nixsw`   | `nh os switch '.#<config>'`    | `nh darwin switch '.#<config>'` | `system-manager switch ...` + post-switch healthcheck |
+| `nixdp`   | `colmena apply`                | same                            | same                                                  |
 | `nixlist` | NixOS generation list          | `darwin-rebuild` generations    | System Manager generation list                        |
 | `nixroll` | `nixos-rebuild` rollback       | `darwin-rebuild` rollback       | System Manager rollback + reactivate + healthcheck    |
 | `nixup`   | `nix flake update`             | same                            | same                                                  |
 | `nixgc`   | `nh clean all --keep-since 3d` | same                            | same                                                  |
+
+Deploy the servers by running `nixdp` from this repository, or target a single host with `nixdp --on us-4`. See [bootstrap](docs/guides/bootstrap.md#nixos-server) for prerequisites and host selection.
 
 A machine with no managed configuration yet needs the bootstrap steps first, which differ per platform.
