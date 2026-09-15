@@ -165,13 +165,11 @@ in
           mcpFlag
         ];
 
-      claudeCodeBin = pkgs.symlinkJoin {
+      claudeCodeBin = repoLib.wrapPackage {
+        inherit pkgs wrapArgs;
+        pkg = pkgs.claude-code;
         name = "claude-code-${pkgs.claude-code.version}";
-        paths = [ pkgs.claude-code ];
-        nativeBuildInputs = [ pkgs.makeWrapper ];
-        postBuild = ''
-          wrapProgram $out/bin/claude ${lib.escapeShellArgs wrapArgs}
-        '';
+        bin = "claude";
       };
 
       # ------------------------------------------------------------------------
