@@ -171,6 +171,18 @@ def action-pins [root: string]: nothing -> list<string> {
 def registry [root: string]: nothing -> list<record> {
   [
     {
+      title: "Versioned flake input refs"
+      pins: [
+        {
+          pin: "listenbrainz-scrobbler"
+          local: {||
+            nix-attr $root "flake.nix" 'github:hakula139/listenbrainz-scrobbler/(?<v>[^"]+)'
+          }
+          upstream: {|| gh-latest-release "hakula139/listenbrainz-scrobbler" }
+        }
+      ]
+    }
+    {
       title: "Claude Code plugin marketplaces (rev + hash)"
       pins: [
         {
@@ -198,8 +210,13 @@ def registry [root: string]: nothing -> list<record> {
       ]
     }
     {
-      title: "Custom packages (packages/)"
+      title: "Nix-built packages and helpers"
       pins: [
+        {
+          pin: "acpx"
+          local: {|| nix-version-v $root "packages/acpx/default.nix" }
+          upstream: {|| gh-latest-release "openclaw/acpx" }
+        }
         {
           pin: "cloudreve"
           local: {|| nix-version $root "packages/cloudreve/default.nix" }
@@ -230,6 +247,13 @@ def registry [root: string]: nothing -> list<record> {
           local: {|| abbrev (nix-attr $root "packages/zsh-hist/default.nix" 'rev = "(?<v>[0-9a-f]+)"') }
           upstream: {|| abbrev (gh-default-head "marlonrichert/zsh-hist") }
         }
+        {
+          pin: "toasty"
+          local: {||
+            nix-attr $root "home/modules/llm-assistants/shared/notify/default.nix" 'download/(?<v>v?[0-9.]+)'
+          }
+          upstream: {|| gh-latest-release-with-asset "shanselman/toasty" "toasty-x64.exe" }
+        }
       ]
     }
     {
@@ -259,13 +283,6 @@ def registry [root: string]: nothing -> list<record> {
           pin: "piclist"
           local: {|| nix-version $root "modules/nixos/piclist/server/default.nix" }
           upstream: {|| npm-latest "piclist" }
-        }
-        {
-          pin: "toasty"
-          local: {||
-            nix-attr $root "home/modules/llm-assistants/shared/notify.nix" 'download/(?<v>v?[0-9.]+)'
-          }
-          upstream: {|| gh-latest-release-with-asset "shanselman/toasty" "toasty-x64.exe" }
         }
       ]
     }
@@ -371,7 +388,7 @@ def cmd-list [] {
     print $"\n($group.title)"
     for pin in $group.pins { print $"  ($pin.pin)" }
   }
-  print "\nRenovate covers the 13 flake.lock inputs separately."
+  print "\nRenovate updates flake.lock separately within the configured input refs."
 }
 
 def cmd-check [] {
