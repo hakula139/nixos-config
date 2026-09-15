@@ -72,6 +72,7 @@ fchownat
 ffprobe
 findutils
 fmp4
+foldl
 fuclaude
 geoip
 gfm
@@ -243,6 +244,7 @@ showcmd
 signup
 sigsys
 slaac
+smol
 socat
 spack
 specialfs

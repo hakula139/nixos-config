@@ -9,6 +9,7 @@
   inputs,
   corpHosts,
   hostType,
+  modelCatalog,
   repoLib,
   secretPath,
   ...
@@ -18,29 +19,30 @@ let
   cfg = config.hakula.codex;
   shared = config.lib.llmAssistants;
 
-  inherit (shared) instructions agentRoleOptions;
+  inherit (shared) agentRoleOptions instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
-  codexPkg = pkgs.codex;
 
-  codexMcpServers = mcpOptions.commonServerNames ++ [ "context7" ];
   codexConfigDir =
     if config.home.preferXdgDirectories then
       "${config.xdg.configHome}/codex"
     else
       "${config.home.homeDirectory}/.codex";
+  codexMcpServers = mcpOptions.commonServerNames ++ [ "context7" ];
 
   profiles = import ./profiles.nix {
     inherit
       config
       pkgs
       lib
-      codexPkg
       corpHosts
       hostType
+      modelCatalog
       secretPath
       ;
     inherit (shared) mkProfileSwitch;
+    inherit (cfg.agents) enabledAgents;
     configDir = codexConfigDir;
+    sharedAgents = shared.agentRoles;
   };
 in
 {
@@ -68,13 +70,13 @@ in
   # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     let
+      inherit (shared) notify;
+
       json = pkgs.formats.json { };
 
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
-      inherit (shared) notify;
-
       hooks = import ./hooks.nix {
         inherit pkgs lib;
         inherit (shared) mkHooks;
@@ -103,12 +105,6 @@ in
         sharedSkills = shared.skills;
       };
 
-      agents = import ./agents.nix {
-        inherit pkgs lib;
-        inherit (cfg.agents) enabledAgents;
-        sharedAgents = shared.agentRoles;
-      };
-
       # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
@@ -116,8 +112,8 @@ in
 
       # Home Manager uses the version in the name to select the config layout.
       codexBin = pkgs.symlinkJoin {
-        name = "codex-${codexPkg.version}";
-        paths = [ codexPkg ];
+        name = "codex-${pkgs.codex.version}";
+        paths = [ pkgs.codex ];
         nativeBuildInputs = [ pkgs.makeWrapper ];
         postBuild = ''
           wrapProgram $out/bin/codex \
@@ -132,9 +128,9 @@ in
       codexSettings =
         (import ./settings.nix {
           inherit
-            agents
             hooks
             mcp
+            modelCatalog
             notify
             skills
             ;
@@ -179,20 +175,23 @@ in
         };
 
         # ----------------------------------------------------------------------
-        # Mutable config
+        # Configuration files
+        # ----------------------------------------------------------------------
+        home.file = skills.homeFile // {
+          codexRules = {
+            target = codexRulesTarget;
+            text = repoLib.llmAssistants.permissions.codexRules;
+          };
+        };
+
+        # ----------------------------------------------------------------------
+        # Activation
         # ----------------------------------------------------------------------
         home.activation.codexSkills = skills.activation;
 
         home.activation.codexMutableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           ${activateConfig}
         '';
-
-        home.file = skills.homeFile // {
-          codexRules = {
-            target = codexRulesTarget;
-            text = repoLib.llmAssistants.permissions.codexRules + "\n";
-          };
-        };
       }
     ]
   );

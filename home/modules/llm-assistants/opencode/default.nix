@@ -6,20 +6,17 @@
   config,
   pkgs,
   lib,
+  modelCatalog,
   repoLib,
   enableDevToolchains ? false,
   ...
 }:
 
 let
-  inherit (pkgs) workmux;
-
-  json = pkgs.formats.json { };
-
   cfg = config.hakula.opencode;
   shared = config.lib.llmAssistants;
 
-  inherit (shared) instructions agentRoleOptions;
+  inherit (shared) agentRoleOptions instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
 
   opencodeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
@@ -57,11 +54,18 @@ in
   # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     let
+      inherit (pkgs) workmux;
+
+      gptModels = modelCatalog.defaults.gpt;
+      defaultModel = modelCatalog.models.${gptModels.flagship};
+
+      json = pkgs.formats.json { };
+
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
       agents = import ./agents.nix {
-        inherit lib;
+        inherit lib modelCatalog;
         inherit (cfg.agents) enabledAgents;
         sharedAgents = shared.agentRoles;
       };
@@ -91,15 +95,8 @@ in
       };
 
       # ------------------------------------------------------------------------
-      # Package wrapper
+      # Formatters
       # ------------------------------------------------------------------------
-      opencodePkg = pkgs.opencode;
-
-      ruffFormatScript = pkgs.writeShellScript "opencode-ruff-format" ''
-        ${lib.getExe pkgs.ruff} format "$1"
-        ${lib.getExe pkgs.ruff} check --fix "$1" >/dev/null 2>&1 || true
-      '';
-
       goFormatScript = pkgs.writeShellScript "opencode-go-format" ''
         if command -v goimports >/dev/null 2>&1; then
           exec goimports -w "$1"
@@ -108,19 +105,26 @@ in
         exec ${lib.getExe' pkgs.go "gofmt"} -w "$1"
       '';
 
+      ruffFormatScript = pkgs.writeShellScript "opencode-ruff-format" ''
+        ${lib.getExe pkgs.ruff} format "$1"
+        ${lib.getExe pkgs.ruff} check --fix "$1" >/dev/null 2>&1 || true
+      '';
+
+      # ------------------------------------------------------------------------
+      # Package wrapper
+      # ------------------------------------------------------------------------
       opencodeBin = repoLib.proxy.wrapWithProxy {
         inherit pkgs;
-        pkg = opencodePkg;
+        pkg = pkgs.opencode;
         proxyCfg = cfg.proxy;
-        name = "opencode-${opencodePkg.version}";
+        name = "opencode-${pkgs.opencode.version}";
         bin = "opencode";
       };
 
       # ------------------------------------------------------------------------
       # oh-my-openagent
       # ------------------------------------------------------------------------
-      ohMyOpenCodePkg = pkgs.oh-my-opencode;
-      ohMyOpenCodeRoot = "${ohMyOpenCodePkg}/lib/oh-my-opencode";
+      ohMyOpenCodeRoot = "${pkgs.oh-my-opencode}/lib/oh-my-opencode";
 
       pluginConfigFile = json.generate "oh-my-openagent.json" {
         git_master = {
@@ -134,16 +138,6 @@ in
         # ----------------------------------------------------------------------
         # Program configuration
         # ----------------------------------------------------------------------
-        xdg.configFile = {
-          "opencode/package.json".source = "${workmux.src}/resources/opencode/package.json";
-          "opencode/plugins/workmux-status.ts".source =
-            "${workmux.src}/resources/opencode/plugins/workmux-status.ts";
-          "opencode/tui.json".source = tuiConfigFile;
-        }
-        // lib.optionalAttrs cfg.plugins.ohMyOpenCode {
-          "opencode/oh-my-openagent.json".source = pluginConfigFile;
-        };
-
         programs.opencode = {
           enable = true;
           package = opencodeBin;
@@ -161,11 +155,11 @@ in
             # ------------------------------------------------------------------
             # Models
             # ------------------------------------------------------------------
-            model = "openai/gpt-6-astra";
-            small_model = "openai/gpt-5.6-luna";
+            model = "openai/${gptModels.flagship}";
+            small_model = "openai/${gptModels.mini}";
             provider = {
-              openai.models."gpt-6-astra".options = {
-                reasoningEffort = "high";
+              openai.models.${gptModels.flagship}.options = {
+                reasoningEffort = defaultModel.thinking.defaultLevel;
                 textVerbosity = "low";
               };
             };
@@ -226,6 +220,19 @@ in
             autoupdate = false;
             autoshare = false;
           };
+        };
+
+        # ----------------------------------------------------------------------
+        # Configuration files
+        # ----------------------------------------------------------------------
+        xdg.configFile = {
+          "opencode/package.json".source = "${workmux.src}/resources/opencode/package.json";
+          "opencode/plugins/workmux-status.ts".source =
+            "${workmux.src}/resources/opencode/plugins/workmux-status.ts";
+          "opencode/tui.json".source = tuiConfigFile;
+        }
+        // lib.optionalAttrs cfg.plugins.ohMyOpenCode {
+          "opencode/oh-my-openagent.json".source = pluginConfigFile;
         };
       }
 

@@ -4,15 +4,20 @@
 
 {
   lib,
-  homeDir,
   bundlePlugins,
+  homeDir,
   hooks,
+  modelCatalog,
   permissions,
   plugins,
   profileSettings,
   timeouts,
 }:
 
+let
+  modelId = modelCatalog.defaults.claude.flagship;
+  defaultModel = modelCatalog.models.${modelId};
+in
 {
   inherit hooks permissions;
   inherit (plugins) enabledPlugins;
@@ -28,7 +33,7 @@
   # Model
   # ----------------------------------------------------------------------------
   model = "opus[1m]";
-  effortLevel = "xhigh";
+  effortLevel = defaultModel.thinking.defaultLevel;
 
   # ----------------------------------------------------------------------------
   # Project
@@ -67,7 +72,7 @@
     # Bun's 5-minute fetch idle timeout applies to non-first-party base URLs.
     API_FORCE_IDLE_TIMEOUT = "0";
     API_TIMEOUT_MS = "1800000";
-    CLAUDE_CODE_AUTO_COMPACT_WINDOW = "400000";
+    CLAUDE_CODE_AUTO_COMPACT_WINDOW = toString defaultModel.autoCompactTokens;
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
     CLAUDE_CODE_ENABLE_AUTO_MODE = "1";
     CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";

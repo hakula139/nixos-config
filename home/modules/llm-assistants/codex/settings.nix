@@ -3,19 +3,23 @@
 # ==============================================================================
 
 {
-  agents,
   hooks,
   mcp,
+  modelCatalog,
   notify,
   skills,
 }:
 
+let
+  modelId = modelCatalog.defaults.gpt.flagship;
+  defaultModel = modelCatalog.models.${modelId};
+in
 {
   # ----------------------------------------------------------------------------
   # Model
   # ----------------------------------------------------------------------------
-  model = "gpt-6-astra";
-  model_reasoning_effort = "medium";
+  model = modelId;
+  model_reasoning_effort = defaultModel.thinking.defaultLevel;
   model_verbosity = "low";
   personality = "pragmatic";
 
@@ -59,11 +63,6 @@
     update_plan.enabled = true;
     web_search.context_size = "high";
   };
-
-  # ----------------------------------------------------------------------------
-  # Agents
-  # ----------------------------------------------------------------------------
-  agents = agents.settings;
 
   # ----------------------------------------------------------------------------
   # Hooks

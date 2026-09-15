@@ -20,14 +20,6 @@ const NO_BLOCK = {
   daily_cost: 0.0
 }
 
-const MODEL_FAMILIES = [
-  [pattern, name];
-  ["opus", "Opus"]
-  ["sonnet", "Sonnet"]
-  ["haiku", "Haiku"]
-  ["gpt", "GPT"]
-]
-
 # ------------------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------------------
@@ -52,32 +44,29 @@ def usd [amount: float]: nothing -> string {
 # Model name
 # ------------------------------------------------------------------------------
 
-# Input may be a display name ("Opus 4.6 (1M context)"), a Bedrock raw ID
-# ("global.anthropic.claude-opus-4-6-v1[1m]"), or a corp-gateway override
-# ("openai/gpt-5.4-mini").
-def simplify-model-name [raw: string]: nothing -> string {
-  let lc = ($raw | str downcase)
-  let family = (
-    $MODEL_FAMILIES | where ($lc | str contains $it.pattern) | get -o 0.name
-  )
-  if $family == null {
-    return $raw
+def model-name [input: record, models: record]: nothing -> string {
+  let id = ($input.model?.id? | default "")
+  # Claude's model ID can carry a context-window suffix.
+  let model_id = ($id | str replace --regex '(?i)\[1m\]$' '')
+  let display_name = ($input.model?.display_name? | default $id | str trim)
+  let fallback = if $display_name == $id {
+    $model_id | split row '/' | last
+  } else {
+    $display_name | str replace '(1M context)' '(1M)'
+  }
+  let name = ($models | get -o $model_id | default $fallback)
+  if ($name | is-empty) {
+    return ""
   }
 
-  # Model family followed by a numeric version
-  let version = (
-    $lc
-    | parse --regex `(?:opus|sonnet|haiku|gpt)[- ](?<v>\d+(?:[-.]\d+)?)`
-    | get -o 0.v
-    | default ""
-    | str replace --all "-" "."
+  let large_context = (
+    ($input.context_window?.context_window_size? | default 0) >= 1000000
+    or ($id | str downcase | str ends-with "[1m]")
   )
-
   [
-    $family
-    $version
-    (if ($lc | str contains "mini") { "mini" })
-    (if ($lc | str contains "1m") { "(1M)" })
+    $name
+    (if $large_context and not ($name | str contains "(1M)") { "(1M)" })
+    $input.effort?.level?
   ]
   | compact --empty
   | str join " "
@@ -282,7 +271,8 @@ def format-ccusage-info [data: record]: nothing -> record<block: string, daily: 
 # Main
 # ------------------------------------------------------------------------------
 
-def main [] {
+def main [config_file: string] {
+  let config = (open $config_file)
   # `open /dev/stdin` re-opens fd 0 by path, which fails with ENXIO when the
   # caller passes a socket instead of a pipe, as Claude Code's spawn does.
   let input = (^cat | from json)
@@ -291,13 +281,13 @@ def main [] {
   let dir_name = if $cwd == $nu.home-dir { "~" } else { $cwd | path basename }
   let row1 = $"(paint $dir_name 'blue_bold')(format-git-info $cwd)"
 
-  let model = ($input.model?.display_name? | default "")
+  let model = (model-name $input $config.models)
   let claude = (format-claude-info $input)
   let ccusage = (format-ccusage-info (read-ccusage))
 
   let row2 = (
     [
-      (if ($model | is-not-empty) { paint (simplify-model-name $model) "cyan" })
+      (if ($model | is-not-empty) { paint $model "cyan" })
       $claude.ctx
       $claude.sess
       $ccusage.block

@@ -17,8 +17,20 @@ assert lib.assertOneOf "hostType" hostType [
 ];
 
 let
-  cfg = config.hakula.llm-assistants;
   inherit (config.lib.llmAssistants) mcpSecrets;
+  inherit (repoLib.llmAssistants) mcpOptions;
+
+  cfg = config.hakula.llm-assistants;
+
+  assistantNames = [
+    "claude-code"
+    "codex"
+    "cursor"
+    "omp"
+    "opencode"
+  ];
+  cliAssistantNames = lib.remove "cursor" assistantNames;
+  assistants = map (name: config.hakula.${name}) assistantNames;
 
   # Map each MCP server to the secret it needs at runtime. Servers absent
   # from this attrset do not require any decrypted file.
@@ -31,35 +43,13 @@ let
     gitlab = [ "gitlab-pat" ];
   };
 
-  inherit (repoLib.llmAssistants) mcpOptions;
-
-  assistants = with config.hakula; [
-    claude-code
-    codex
-    cursor
-    opencode
-  ];
-
   activeServers = lib.unique (
-    lib.concatMap (
-      a:
-      if (a.enable or false) then
-        lib.subtractLists (a.mcp.disabledServers or [ ]) (a.mcp.enabledServers or [ ])
-      else
-        [ ]
-    ) assistants
+    lib.concatMap (a: if a.enable then mcpOptions.computeEnabledServers a.mcp else [ ]) assistants
   );
 
   requiredMcpSecretKeys = lib.unique (lib.concatMap (s: mcpServerSecrets.${s} or [ ]) activeServers);
 
   requiredMcpSecrets = lib.getAttrs requiredMcpSecretKeys mcpSecrets;
-
-  anyAssistantEnabled =
-    cfg.enable
-    || config.hakula.claude-code.enable
-    || config.hakula.codex.enable
-    || config.hakula.cursor.enable
-    || config.hakula.opencode.enable;
 
   assistantProxy = {
     enable = lib.mkDefault true;
@@ -74,6 +64,7 @@ in
     ./claude-code
     ./codex
     ./cursor
+    ./omp
     ./opencode
     ./shared
     ./workmux
@@ -103,36 +94,26 @@ in
   # ----------------------------------------------------------------------------
   config = lib.mkMerge [
     {
-      hakula.llm-assistants.mcp.disabledServers = lib.mkDefault (
-        lib.optionals (hostType == "personal") mcpOptions.corpServerNames
-        ++ lib.optionals (!config.hakula.codex.enable) [ "codex" ]
-      );
-
       # Clients enabled independently of the bundle still inherit its MCP policy.
-      hakula.claude-code.mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-      hakula.codex.mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-      hakula.cursor.mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-      hakula.opencode.mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
+      hakula =
+        lib.genAttrs assistantNames (_: {
+          mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
+        })
+        // {
+          llm-assistants.mcp.disabledServers = lib.mkDefault (
+            lib.optionals (hostType == "personal") mcpOptions.corpServerNames
+            ++ lib.optionals (!config.hakula.codex.enable) [ "codex" ]
+          );
+
+          secrets.required = requiredMcpSecrets;
+        };
     }
 
-    (lib.mkIf anyAssistantEnabled {
-      hakula.secrets.required = requiredMcpSecrets;
+    (lib.mkIf cfg.enable {
+      hakula = lib.genAttrs cliAssistantNames (_: {
+        enable = lib.mkDefault true;
+        proxy = lib.mkIf cfg.proxy.enable assistantProxy;
+      });
     })
-
-    (lib.mkIf cfg.enable (
-      lib.mkMerge [
-        {
-          hakula.claude-code.enable = lib.mkDefault true;
-          hakula.codex.enable = lib.mkDefault true;
-          hakula.opencode.enable = lib.mkDefault true;
-        }
-
-        (lib.mkIf cfg.proxy.enable {
-          hakula.claude-code.proxy = assistantProxy;
-          hakula.codex.proxy = assistantProxy;
-          hakula.opencode.proxy = assistantProxy;
-        })
-      ]
-    ))
   ];
 }
