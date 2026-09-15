@@ -73,6 +73,7 @@ ffprobe
 findutils
 fmp4
 foldl
+freeipmi
 fuclaude
 geoip
 gfm
@@ -100,6 +101,7 @@ inetutils
 inodes
 inotify
 ints
+ioping
 ipcidr
 iputils
 isort
