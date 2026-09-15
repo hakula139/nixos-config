@@ -163,6 +163,7 @@ networkctl
 networkd
 niks3
 nixd
+nixdp
 nixfmt
 nixgc
 nixos

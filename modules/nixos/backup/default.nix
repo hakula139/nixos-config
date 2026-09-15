@@ -296,7 +296,10 @@ in
               pkgs.curl
             ];
             script = ''
-              curl -fsSL -X POST ${lib.escapeShellArg heartbeatUrl} >/dev/null || true
+              curl \
+                -fsSL \
+                -X POST \
+                ${lib.escapeShellArg heartbeatUrl} >/dev/null || true
             '';
           }
         )
@@ -328,7 +331,11 @@ in
                 journalctl -u ${lib.escapeShellArg resticUnit} -n 100 --no-pager 2>&1 \
                   | head -c 20000
               )"
-              curl -fsSL -X POST -d "$output" "$url" >/dev/null || true
+              curl \
+                -fsSL \
+                -X POST \
+                -d "$output" \
+                "$url" >/dev/null || true
             '';
           }
         )

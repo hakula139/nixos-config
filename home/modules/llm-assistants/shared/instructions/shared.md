@@ -109,6 +109,7 @@ Update existing documentation to correct claims or instructions made inaccurate 
 
 When writing documentation:
 
+- Describe current behavior and usage directly, keeping change summaries and comparisons with removed or rejected approaches in commit / PR descriptions unless needed for migration instructions.
 - Focus on "why" and "how to use". Code should already show "what".
 - Only reference implemented functionality. Never describe WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them.

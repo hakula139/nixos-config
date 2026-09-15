@@ -1,6 +1,6 @@
 # Bootstrap
 
-First-time setup per platform. Day-to-day applies use the [`nixsw` alias](../../README.md#applying-a-configuration) everywhere, so this page only covers the steps that precede a managed configuration.
+First-time setup is per platform. For day-to-day operations, use [`nixsw`](../../README.md#applying-a-configuration) for local applies and `nixdp` for server deployments.
 
 ## NixOS server
 
@@ -10,15 +10,17 @@ NixOS servers partition their disks with [disko](https://github.com/nix-communit
 nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 ```
 
-Afterwards, enter `nix develop` on a workstation to use the pinned Colmena version, then deploy. `--on` takes a host name or a provider tag:
+Next, verify SSH access to the inventory hosts and run these commands from the repository checkout on a managed workstation:
 
 ```bash
-colmena apply
-colmena apply --on us-4
-colmena apply --on @cloudcone
+nixdp
+nixdp --on us-4
+nixdp --on @cloudcone
 ```
 
-Inventory and deployment metadata live in `data/servers.nix`. Every proxy node is also a deploy target, so check what is live before a fleet-wide apply.
+`nixdp` is the shared Zsh alias for `colmena apply`, accepting Colmena flags to run deployments directly from the current checkout with normal Nix cache and build behavior. The pinned CLI is installed on managed hosts and accessible through `nix develop`.
+
+Inventory and deployment metadata live in `data/servers.nix`. Because every proxy node is also a deploy target, verify which route is in use before running a fleet-wide apply.
 
 ## NixOS-WSL workstation
 

@@ -65,11 +65,20 @@ let
     echo "decrypting ${lib.escapeShellArg secret.name} to $target"
     target_dir="$(dirname "$target")"
     if [[ ! -d "$target_dir" ]]; then
-      install -d -m 0700 -o ${lib.escapeShellArg secret.owner} -g ${lib.escapeShellArg secret.group} "$target_dir"
+      install \
+        -d \
+        -m 0700 \
+        -o ${lib.escapeShellArg secret.owner} \
+        -g ${lib.escapeShellArg secret.group} \
+        "$target_dir"
     fi
     rm -f "$tmp"
 
-    ${ageBin} --decrypt "''${identityArgs[@]}" -o "$tmp" ${lib.escapeShellArg secret.file}
+    ${ageBin} \
+      --decrypt \
+      "''${identityArgs[@]}" \
+      -o "$tmp" \
+      ${lib.escapeShellArg secret.file}
     chmod ${lib.escapeShellArg secret.mode} "$tmp"
     chown ${lib.escapeShellArg "${secret.owner}:${secret.group}"} "$tmp"
     mv -f "$tmp" "$target"
