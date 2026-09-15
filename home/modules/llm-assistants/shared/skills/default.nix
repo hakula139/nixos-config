@@ -13,6 +13,7 @@ let
 
   sources = {
     browser-debugging = ./browser-debugging;
+    environment-repair = ./environment-repair;
     git-workflow = ./git-workflow;
   }
   // lib.optionalAttrs acpCfg.enable {

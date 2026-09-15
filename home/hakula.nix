@@ -93,6 +93,7 @@ in
       enable = isDesktop;
       prune = true;
     };
-    nixd.flakePath = lib.mkDefault "${homeDir}/github/nixos-config";
   };
+
+  hakula.nix.configPath = lib.mkDefault "${homeDir}/github/nixos-config";
 }

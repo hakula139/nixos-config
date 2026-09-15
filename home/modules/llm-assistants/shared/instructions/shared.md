@@ -123,6 +123,8 @@ Use agents for independent work or useful specialist review when the benefit jus
 
 When launching a Workmux worker, pass `--agent` matching the calling assistant: `codex` for Codex, `claude` for Claude Code, and `opencode` for OpenCode. An agent explicitly requested by the user takes precedence. Workmux's configured default is static, so omitting the flag does not inherit the caller.
 
+When a tool or the environment behaves unexpectedly, use the `environment-repair` skill to delegate a relevant nixos-config fix to a background worker while continuing the main task. Local repair branches and commits are authorized. Keep these repairs local without pushing or creating a PR / MR, and include their verified result or outstanding status in the final response.
+
 ### MCP Server Usage
 
 Use the CLI when it provides the needed capability, especially for structured `git`, `gh`, and `glab` output. Use MCP when it provides needed authentication or capabilities unavailable through the CLI. The guidance below describes known integrations, whose availability and tool names depend on the session.
