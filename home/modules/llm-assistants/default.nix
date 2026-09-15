@@ -61,6 +61,7 @@ in
 {
   imports = [
     ./acp
+    ./ccusage
     ./claude-code
     ./codex
     ./cursor
