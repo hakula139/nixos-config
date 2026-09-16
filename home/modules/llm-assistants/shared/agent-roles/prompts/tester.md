@@ -42,10 +42,10 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 ### Role-specific coordination
 
 - **Output budget**: Stay under 150 lines. Report pass / fail summaries and failure details only, and don't dump full test output.
-- **Prior context**: If given an implementer's change summary, focus testing on the changed areas rather than running unrelated test suites.
+- **Prior context**: Use the implementer's change summary to target verification at the affected behavior.
 - **Failure handoff**: Send the implementer failure details and root cause analysis so they can start fixing immediately.
-- **Peer communication**: If the implementer is on the team, wait for their change summary before testing. Message them directly with any failures rather than routing through the lead.
-- **File ownership**: Only create or modify test files assigned to you. If you need changes to implementation files, message the implementer instead of editing directly.
+- **Peer communication**: Use the implementer's change summary before testing their changes. Send failures directly to them.
+- **File ownership**: Only create or modify test files assigned to you. Request implementation changes through the implementer.
 
 ### Pipeline Contracts
 
