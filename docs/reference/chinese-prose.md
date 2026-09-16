@@ -6,7 +6,7 @@ Why this repository rewrites outbound prose with a hook, and which Chinese-langu
 
 The assistant's default Chinese output was judged unusable by the owner, its sole consumer. Six rounds of blind human review, covering 78 samples across twelve models and five context frames, were used to locate the cause and test candidate fixes.
 
-Three findings drove the design. Model identity dominates: under an identical prompt and frame, the weakest model scored 3.70 out of 10 while six others clustered between 7.00 and 8.33, a gap of 3.3 to 4.6 points. Context isolation is real but secondary, worth 1.80 points. Every automated proxy for quality failed, including three LLM judges, which ranked samples in reverse.
+The largest measured difference was between models: under an identical prompt and frame, the weakest model scored 3.70 out of 10 while six others clustered between 7.00 and 8.33, a gap of 3.3 to 4.6 points. Removing coding history improved the repeat-sampled score by 1.80 points. Every automated quality proxy tested failed, including three LLM judges, which ranked samples in reverse.
 
 The resulting mechanism performs no quality classification and uses no banned-word list. It rewrites editable outbound prose under the same fidelity contract for Chinese and English. The measurements informed the original model selection. Current models follow the shared catalog and have not been evaluated in these experiments.
 
@@ -22,7 +22,7 @@ Samples were generated for a fixed set of Chinese writing tasks, shuffled, strip
 
 Six review rounds were run. Round 1 established a candidate pool across twelve models. Round 2 tested two-stage rewriting. Round 3 crossed five context frames against two models. Round 4 crossed six models against three tasks. Round 5 repeat-sampled the two frames whose difference the design depended on, five draws per arm. Round 6 compared seven rewriters on one shared draft.
 
-Two design choices are worth stating because they changed conclusions. Rounds 4 and 5 replicated or crossed their conditions, after round 3 showed that a single draw is unreliable: one condition re-sampled at 4.0 having scored 10.0 in round 1. Round 5 also carried a falsification threshold fixed in writing before the samples were read, so the result could not be rationalised after the fact.
+Rounds 4 and 5 replicated or crossed their conditions because round 3 showed that a single draw is unreliable: one condition re-sampled at 4.0 having scored 10.0 in round 1. Round 5 also carried a falsification threshold fixed in writing before the samples were read, so the result could not be rationalised after the fact.
 
 Absolute scores are comparable across rounds. The owner confirmed that a uniformly low-scoring round reflects uniformly worse text, since the reading does not tighten between rounds, and that is what makes the cross-round comparison in section 3.3 admissible.
 
@@ -61,7 +61,7 @@ Adding quotation-mark density lifted the in-sample correlation to -0.633, and th
 
 The quotation signal vanished entirely. The cause was a single sample that imitated the owner's own writing, a register that uses corner brackets heavily: it had the highest quote count in the round and the second-highest score. The signal was tracking register.
 
-Paragraph length, function-word density, adverb density, and information-item count all failed on held-out data as well. The strongest was paragraph length at $\rho = +0.100$, which is to say nothing.
+Paragraph length, function-word density, adverb density, and information-item count all failed on held-out data as well. The strongest correlation was paragraph length at $\rho = +0.100$, too weak to guide model selection.
 
 ### 3.3 Model identity dominates
 
@@ -111,24 +111,11 @@ Seven models rewrote one shared draft, itself real output scored 3.5 with the no
 
 Rewrite skill is close to unrelated to generation skill: across the earlier round the correlation between the two was $\rho = -0.103$. Two models that generate at 7.33 and 7.00 rewrite at 4.5, barely above the 4.0 a model scores rewriting its own output. The owner's summary of the low scorers: "A problem common to all of these is that they do not dare revise boldly, when the original phrasing is itself poor."
 
-Two prompt defects were identified before this round. An exhaustive item-by-item preservation checklist made the rewriters timid, while human sample paragraphs caused persona grafting. The operational hook still requires factual fidelity because it handles commits, documentation, and published text; its prompt states that constraint once and lets the model reorganise sentences within it.
+Two prompt defects were identified before this round. An exhaustive item-by-item preservation checklist made the rewriters timid, while human sample paragraphs caused persona grafting. The operational hook requires factual fidelity because it handles commits, documentation, and published text. Its prompt states that constraint once and lets the model reorganise sentences within it.
 
 One model was disqualified on a defect no score captures: DeepSeek V3.2 emitted Traditional Chinese, drawing "Why has this turned into Traditional Chinese? It is also too formal."
 
-## 4. Design
-
-Sections 3.1 and 3.2 rule out a quality gate: neither model judgment nor surface statistics separates good Chinese from bad at usable precision. A lexical blacklist has the same defect and encourages token substitution while leaving the underlying prose unchanged.
-
-`home/modules/llm-assistants/shared/hooks/prose-polish/` runs at `PreToolUse` before a tool call carries prose out of the session. It:
-
-1. Takes only fields whose tool schema defines as prose. AskUserQuestion targets the question and option descriptions, while file edits are limited to Markdown so source code is never rewritten around a comment.
-2. Uses language-aware length thresholds only to decide whether a model call is worthwhile: 120 Han characters or 240 Latin-script letters for a whole file, and 8 Han characters or 32 Latin-script letters for a span.
-3. Applies one positive prompt to Chinese and English. It asks for fidelity, natural flow, and less repetition without prescribing banned tokens.
-4. Checks each result for lost structure and edited literals, and returns a failing passage to the model with the refused attempt and the reason, up to three times. Passages using syntax the validator cannot parse safely are skipped.
-5. Keeps the original passage when the newest attempt still fails a structure or literal check, or when the model call fails.
-6. Returns the complete tool input through `updatedInput`. Any error leaves the original call untouched.
-
-The rewriter receives no coding conversation, which preserves the context-isolation gain from section 3.4. The assistant instructions and rewriter use the same phrasing fragment.
+### 3.6 Before-and-after examples
 
 Measured end to end on a Chinese sample the owner had scored low, the earlier language-specific hook completed in 12 seconds and removed the half-width punctuation the owner had flagged. It also rejoined clipped sentences: the sentence count fell while the mean sentence grew.
 
@@ -157,17 +144,31 @@ and after, with no half-width mark and a shortest sentence of 36:
 
 At 3.5 this draft sits mid-scale. The arm carrying coding history in section 3.4 averaged 1.90.
 
+## 4. Design
+
+The failures in sections 3.1 and 3.2 led to rewriting eligible prose directly, without first trying to classify its quality. The rewriter receives the shared phrasing instructions and the passages to edit, with no coding conversation. This follows the context-isolation result in section 3.4.
+
+`home/modules/llm-assistants/shared/hooks/prose-polish/` runs at `PreToolUse`:
+
+1. Selects supported prose fields. For Markdown writes and edits, it splits the new text into passages and excludes blocks already present on disk. Question fields and configured MCP fields are considered individually.
+2. Skips passages with fewer than 8 Han characters and fewer than 32 Latin-script letters. These thresholds limit model calls and do not measure writing quality.
+3. Sends eligible passages to the model with a fidelity contract that permits substantial rephrasing while preserving claims, voice, structure, and literal material.
+4. Checks each result for altered structure or literals, added lines, and newly introduced disallowed punctuation. Failed passages receive up to three repair attempts with the rejected text and validation feedback.
+5. Returns accepted rewrites through `updatedInput` and retains the original text for passages that still fail validation. Unsupported Markdown syntax and hook errors leave the original input unchanged.
+
 ## 5. Coverage and limits
 
-Coverage applies to text Claude Code sends through mutable tool inputs, including Markdown writes and edits, selected MCP publishing fields, commit bodies, and interactive questions. Source file comments and docstrings are covered separately by `hooks/comment-gate/`, which evaluates rather than rewrites them because safely rewriting source code around a comment cannot be delegated to a model. Ordinary conversational replies continue to rely on shared instructions because a Stop hook can only request a new response, not replace a completed one.
+Claude Code applies the rewrite hook to Markdown `Write` / `Edit` calls, `AskUserQuestion` questions and option descriptions, and the tool fields listed in [`mcp-fields.json`](../../home/modules/llm-assistants/shared/hooks/prose-polish/mcp-fields.json). That list includes MCP Git commit messages and publishing fields. Prose passed through shell commands and ordinary conversational replies relies on the shared instructions.
 
-Codex uses the shared writing instructions without automatic prose rewriting. Its comment review examines added source lines, and formatting follows rename destinations. OMP and OpenCode have no hook wiring.
+Source comments and docstrings receive feedback after writes through `hooks/comment-gate/`. Codex uses this comment review and the shared writing instructions without automatic prose rewriting. OMP and OpenCode do not use these shared hooks.
 
 Both hooks invoke the model through `hooks/lib/model-call/`, which calls the gateway over HTTP and falls back to `codex exec`. Claude supplies gateway credentials through its active profile environment. When the Codex corporate gateway is enabled, its hooks use the same configured endpoint, credential file, and CA even if the main session uses the official provider. Codex uses its own authentication for the fallback, so it can run when gateway variables are absent.
 
 `data/llm-models.nix` selects the gateway model through the Gemini `standard` default and the fallback through the GPT `mini` default, currently Gemini 3.8 Flash and GPT 5.6 Luna. Section 3.5 measured Gemini 3.7 Flash. It did not evaluate either current default, so its scores do not establish their rewrite quality.
 
-Statistical limits worth keeping in view. There is one reviewer, so the target is that reviewer's preference and nothing broader. The frame effect rests on five draws per arm at $p = 0.049$. The rewriter ranking rests on one Chinese draft per model, so the ordering below the top score is not resolved, a 9.0 from one draw should be expected to regress, and the selected model's English rewrite quality remains unmeasured. Sample counts per condition are between 1 and 5 throughout.
+### Measurement limits
+
+There is one reviewer, so the results describe that reviewer's preferences. The frame effect rests on five draws per arm at $p = 0.049$. The rewriter ranking rests on one Chinese draft per model, so the ordering below the top score is not resolved, a 9.0 from one draw should be expected to regress, and the selected model's English rewrite quality remains unmeasured. Sample counts per condition are between 1 and 5 throughout.
 
 ## 6. Ruled out
 

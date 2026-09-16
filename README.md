@@ -18,7 +18,7 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 
 ## Applying a configuration
 
-`nixsw` applies the current host's configuration on every platform. The Home Manager zsh module substitutes the configured flake output name for `<config>` in these aliases:
+`nixsw` applies the current server or workstation configuration. The Home Manager zsh module substitutes the configured flake output name for `<config>` in these aliases:
 
 | Alias     | NixOS                          | macOS                           | Generic Linux (System Manager)                        |
 | --------- | ------------------------------ | ------------------------------- | ----------------------------------------------------- |
@@ -31,4 +31,4 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 
 Deploy the servers by running `nixdp` from this repository, or target a single host with `nixdp --on us-4`. See [bootstrap](docs/guides/bootstrap.md#nixos-server) for prerequisites and host selection.
 
-A machine with no managed configuration yet needs the bootstrap steps first, which differ per platform.
+A machine with no managed configuration yet needs the bootstrap steps first, which differ per platform. The `devvm` container has no `nixsw` or `nixroll` alias. Apply its changes by [rebuilding the image](docs/guides/bootstrap.md#docker-image) and recreating the container.

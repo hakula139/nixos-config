@@ -2,29 +2,37 @@
 
 Read this before writing or editing a `.nu` file. Nushell is the default for new helper scripts, since most of them parse an external tool's JSON and reshape it. Substantial scripts live in adjacent `.nu` files loaded with `builtins.readFile`, same as [bash](shell.md).
 
+- **Script-relative resources**: bind `const SCRIPT_DIR = path self .` after the file header and imports, before application configuration. It resolves from the defining file at parse time, so sibling resources do not depend on the caller's working directory or runtime environment. When Nix copies the script into the store, those resources must be packaged alongside it.
 - **Entry point**: `def main` with typed parameters, so nushell checks arity and types for you.
+- **Help**: keep script headers to their purpose, operating constraints, and a `--help` pointer. Document commands and parameters at their definitions so generated help contains the usage details.
 - **Data**: records, since a delimited string has to be re-split at every use.
 - **Output**: the `table` renderer.
 - **Regexes**: precede each non-obvious regex with a short label for the construct it matches. Restating the decoded pattern improves readability here.
 
 ## Traps
 
-These either fail silently or raise an error that points somewhere other than the cause. For anything not listed here, the error message tells you.
+### Parsing and data
 
-- **`|| true` has no direct equivalent.** A failing external command aborts on its own, so a tolerated failure needs `try { ... }` or `| complete` plus an `.exit_code` read. `| complete` works on externals only, so a fallible builtin needs `try`.
-- **`unset` has no equivalent either.** `hide-env --ignore-errors` drops a var from `$env`, and the removal does reach an external child, which is what lets a fetch bypass an inherited proxy.
-- **`try` catches errors, `default` catches null, and `from json` does neither.** `open` on an empty file returns null without raising, and `from json` hands back non-JSON text unchanged, so a later cell path dies on a string with `incompatible_path_access`. Truncated JSON does raise, so plain text is the case that slips through. Check the shape (`$j | describe | str starts-with "record"`) before reading a field.
-- **A `from yaml` failure hides its detail.** `$e.msg` is always `Error while parsing as yaml` and `$e.help` is null. The line naming the offending key sits in `$e.rendered`, and you only get it at all when the file extension is `.yaml`, since a string piped to `from yaml` reports `Unsupported input` instead.
-- **A declared return type documents rather than coerces.** A `-> record` signature takes a `list<any>` silently whenever the mismatch is not statically visible, as when the value is bound to a variable first or comes back from an untyped helper. `get -o` on a list returns `[]`, so `| default 0` never fires and an `== 0` guard reads false: count with `where ... | length`.
-- **A `loop` body cannot carry one.** `loop` outputs `nothing`, so a `-> string` signature fails at parse time with `expected string, but command outputs nothing` blaming the loop, however every path out of it uses `return`. Either drop the annotation or express the search as a pipeline and take the first hit.
-- **A bare word is a string as an argument and a command call in a block.** `if $x { green }` runs `green`, so quote colour names. The silent half is the inverse: an untyped param receives `1min` as a `duration`, and a `: string` annotation coerces it back.
-- **Never build a regex by interpolation.** `(` opens an interpolation in both `$"..."` and `$'...'`, so `(?<name>...)` parses as a command call and the error blames the regex text. `\(` escapes it in `$"..."` only, and even there `\d` is rejected as an unrecognized escape, so a `$"..."` cannot hold a regex either way. Concatenate: `($label + ' (?<n>\d+)')`. Nor can `$"(...)"` nest another `$"..."`.
-- **A comma separates list elements even inside a bare word.** `[--sort=-pcpu,-pmem]` is two arguments, so `ps` receives a stray `-pmem` and quietly returns a different set of rows. Quote any element holding a comma.
-- **A long string has no line continuation.** A trailing `\` raises `unrecognized escape` in `"..."`, and `'...'` processes no escapes at all, so there the backslash and the newline both land in the value. Wrapping the literal across source lines is the other silent half: `"..."` and `r#'...'#` alike keep the newline and the block's indentation, so a wrapped prompt reaches the model with its leading spaces. Concatenate as above, or join a list.
-- **A rest param claims your caller's flags.** `...args` makes `--porcelain` a flag on your own command, and a `list<string>` param only helps a def called from nushell, since every CLI arg arrives quoted. Quote the flag at the call site. The same limit means a script cannot accept an undeclared flag at all.
-- **Argv safety ends at the shell boundary.** A list argument survives into `^command`, but `ssh` and `nix-shell --run` hand their argument to a remote shell, so quote by hand there.
-- **Reading stdin needs `^cat`.** Top-level `$in` in a script file fails with `Can't evaluate block in IR mode` whatever the flags, and `$in` inside `def main` silently reads `nothing`. `writeNu`'s shebang omits `--stdin`, and the kernel passes a shebang tail as one argv element, so no second flag is reachable. The other obvious route, `open /dev/stdin`, re-opens fd 0 by path and raises ENXIO once the caller passes a socket rather than a pipe, which is what Node's `spawn` does. A shell test passes either way, since a shell pipeline really is a pipe.
-- **`par-each --keep-order` is concurrent and ordered.** Never `print` inside the block, since threads interleave. Collect records and print after.
+- **`try` catches errors, `default` catches null.** `open` on an empty file returns null, and `from json` accepts some plain text as a string. Truncated JSON raises an error. Check the parsed shape (`$j | describe | str starts-with "record"`) before reading a field, since parsing alone does not establish that it is a record.
+- **YAML error summaries omit parser details.** Use `$e.rendered` in a catch block to retain the nested parse error. This works for both `open file.yaml` and strings piped to `from yaml`, while `$e.msg` alone can report only `Error while parsing as yaml`.
+- **Return annotations do not validate dynamically typed output.** A `-> record` function can still return a list from an untyped helper. `get -o` on a list returns `[]`, which `default` leaves unchanged. Count matching rows with `where ... | length` when the caller needs a count.
+- **`loop` is typed as `nothing`.** A function declared `-> string` cannot end in `loop`, even when every exit path returns a string. Drop the annotation or express the search as a pipeline.
+
+### Strings and arguments
+
+- **Bare words depend on context.** `if $x { green }` calls a command named `green`, so quote literal colour names in blocks. An untyped argument such as `1min` arrives as a duration, while a `: string` parameter coerces it to a string.
+- **Build dynamic regexes by concatenation.** Parentheses start interpolation in both `$"..."` and `$'...'`, and double-quoted strings interpret backslashes before the regex engine sees them. Keep the pattern in a single-quoted literal: `($label + ' (?<n>\d+)')`.
+- **Quote list elements containing commas.** `[--sort=-pcpu,-pmem]` passes two arguments, so `ps` receives a separate `-pmem` and selects different rows.
+- **String literals preserve source newlines and indentation.** Nushell has no backslash line continuation inside strings. Put prose in an adjacent Markdown file. For generated text, join explicit lines or fragments with the intended separator.
+- **Argument-forwarding functions need `def --wrapped`.** With a plain `def`, `...args` leaves `--porcelain` subject to the wrapper's own flag parser. `def --wrapped name [...args: string] { ^command ...$args }` accepts undeclared flags and forwards them as arguments.
+
+### External commands
+
+- **Handle tolerated failures explicitly.** A nonzero external exit aborts execution. Use `try { ... }` or `| complete` and inspect `.exit_code`. `complete` accepts external-command output, so use `try` for fallible builtins.
+- **Remove environment variables with `hide-env --ignore-errors`.** The removal reaches external children, allowing a fetch to bypass an inherited proxy.
+- **Quote again when crossing a shell boundary.** List arguments retain their boundaries in `^command`, but `ssh` and `nix-shell --run` pass command text to another shell.
+- **Read script stdin with `^cat`.** `$in` reads `nothing` under the generated shebang because `writeNu` does not add `--stdin`. Reopening `/dev/stdin` fails with ENXIO when the caller supplies a socket, as Node's `spawn` does, even though it works in a shell pipeline.
+- **Keep output outside `par-each --keep-order`.** The flag preserves result order, but a `print` inside the block still interleaves across threads. Collect records and print afterwards.
 
 ## In Nix
 
@@ -32,9 +40,9 @@ These either fail silently or raise an error that points somewhere other than th
 
 Keep checked-in Nushell valid on its own. Supply one or two scalar values as typed `main` arguments through `makeWrapperArgs` and `--add-flag`. For structured values, write one JSON config, inject its path the same way, and open it in `main`. Put ordinary executable dependencies on the wrapper's `PATH`.
 
-A paragraph of model-facing prose goes in an adjacent `prompt.md`, or `<role>-prompt.md` when a hook needs more than one, which the config reads with `builtins.readFile`. Inline it would be a source line hundreds of characters wide that no `.nu` string form can wrap without altering the value, and it would stay invisible to `prettier`, `markdownlint`, and Harper, which run on Markdown only. `MD013` is off, so the file keeps the paragraph on one line. Name the file for its role, since the directory already names the hook.
+Put model-facing prose in an adjacent `prompt.md`, or `<role>-prompt.md` when a hook needs more than one, and load it with `builtins.readFile`. Markdown formatting and prose checks can inspect these files but cannot inspect strings embedded in Nushell. `MD013` is off, so each paragraph stays on one line. Name the file for its role, since the directory already names the hook.
 
-Both writers prepend an absolute-store-path shebang, which demotes a script's own `#!/usr/bin/env nu` line to a comment. Keep that line anyway, since it makes the file runnable and LSP-checkable standalone. To spawn nushell from inside a generated script, read `$nu.current-exe` rather than substituting a store path.
+Both writers prepend an absolute-store-path shebang, which demotes a script's own `#!/usr/bin/env nu` line to a comment. Keep that line for standalone execution and LSP checks. For helpers invoked directly from the checkout, also commit the executable bit and call them by path. To spawn nushell from inside a generated script, read `$nu.current-exe` rather than substituting a store path.
 
 A parse-time `use` target must resolve in both the source tree and the store output. Expose a helper as an executable when no stable module path exists in both places.
 
@@ -46,10 +54,9 @@ Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for e
 
 ## What stays bash
 
-Nushell is the default, so what follows is the exception list, and every entry earns its place structurally. Interpreter startup alone does not justify an exception.
+Keep bash for scripts evaluated by another shell and for small process launchers:
 
 - **A `--run` or sourced script.** `profile-loader.sh` and `mkProxyScript` are injected through `makeWrapper --run`, so the wrapper's own shell evaluates them. `teammate-launcher.sh` sources `profile-loader.sh`.
-- **An argv-forwarding wrapper.** `nu script.nu --log-as-netdata` fails with `doesn't have flag`, and there is no argv escape hatch outside `def main` parameters, which rules out `systemd-cat-native`.
 - **`exec` wrappers.** Setting a variable and handing off to the real binary has no data to structure. This covers the MCP wrappers, `notify`, and most of the remaining `writeShellScript` sites.
 
-Every hook fails open, so a porting bug reads as a gate that quietly stopped firing. Diff the old script against the new over a battery of hook payloads before deleting the bash.
+Hook errors leave the underlying tool call running, so a porting bug can silently disable the hook. Compare the old and new scripts on representative hook payloads before deleting the bash implementation.

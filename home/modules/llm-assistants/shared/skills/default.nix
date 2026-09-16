@@ -13,8 +13,11 @@ let
 
   sources = {
     browser-debugging = ./browser-debugging;
+    clean-gone = ./clean-gone;
     environment-repair = ./environment-repair;
     git-workflow = ./git-workflow;
+    pr-review-toolkit = ./pr-review-toolkit;
+    read-pdfs = ./read-pdfs;
   }
   // lib.optionalAttrs acpCfg.enable {
     acp-delegate = ./acp-delegate;

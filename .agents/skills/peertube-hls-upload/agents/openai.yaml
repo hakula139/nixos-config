@@ -1,0 +1,4 @@
+interface:
+  display_name: "PeerTube HLS Repair"
+  short_description: "Repair existing PeerTube HLS renditions"
+  default_prompt: "Use $peertube-hls-upload to diagnose this HLS playback issue and prepare the necessary repair."

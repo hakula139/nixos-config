@@ -1,11 +1,14 @@
 ---
 name: read-pdfs
-description: Extract, inspect, summarize, or review local PDF files with Poppler text and rendering tools. Use when a user supplies a PDF, asks what a PDF contains, needs page-aware citations, or needs layout, table, image, font, or rendering verification. Handles searchable PDFs directly and image-only or garbled PDFs through rendered page inspection.
+description: >-
+  Read or review local PDFs with Poppler text extraction and page rendering. Use for PDF summaries, page citations, layout checks, or scanned and garbled documents that need visual inspection.
 ---
 
 # Read PDFs
 
-Read local PDFs with the Nix-managed Poppler tools. Keep source documents and extracted content local unless the user explicitly asks to share them.
+Read local PDFs with Poppler. Keep source documents and extracted content local unless the user explicitly asks to share them.
+
+Check that `pdfinfo`, `pdftotext`, and `pdftoppm` are available. This repository installs `poppler-utils` on development hosts. Elsewhere, prefix the commands below with `nix shell nixpkgs#poppler-utils -c` to run them without changing the host configuration.
 
 ## Workflow
 
@@ -13,10 +16,9 @@ Read local PDFs with the Nix-managed Poppler tools. Keep source documents and ex
 
    ```bash
    pdfinfo "$input_pdf"
-   pdffonts "$input_pdf"
    ```
 
-   Use `pdfinfo` for page count, page size, metadata, encryption, and PDF version. Use `pdffonts` when missing Unicode mappings or embedded fonts may affect extraction.
+   Use `pdfinfo` for page count, page size, metadata, encryption, and PDF version. Run `pdffonts "$input_pdf"` when missing Unicode mappings or embedded fonts may affect extraction.
 
 2. Extract text in reading order first.
 

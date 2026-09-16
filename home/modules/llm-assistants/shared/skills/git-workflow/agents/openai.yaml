@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Workflow"
+  short_description: "Prepare commits and pull or merge requests"
+  default_prompt: "Use $git-workflow to prepare the requested Git changes and verify their scope before publication."

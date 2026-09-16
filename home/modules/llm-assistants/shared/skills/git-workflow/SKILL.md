@@ -10,7 +10,7 @@ Read the repository's contribution instructions before changing Git state or pre
 ## Authorization
 
 - **Do not create refs unless asked.** Branches, tags, and backup refs outlive the task. Keep the assigned branch unless creating another ref is authorized. Tool permissions alone do not provide that authorization.
-- **Wait for explicit per-PR approval before merging.** Earlier blanket approvals do not extend to PRs opened later in the session. After publishing, report the URL and wait for `lgtm` or `merge` referencing that specific PR.
+- **Wait for explicit approval for each PR / MR before merging.** Earlier blanket approvals do not extend to requests opened later in the session. After publishing, report the URL and wait for `lgtm` or `merge` referencing that specific PR / MR.
 
 ## Commits
 
@@ -46,6 +46,6 @@ The discovered repository conventions govern the description's structure. Apply 
 - Before creating or updating a request, compare the complete draft title and body with the recorded conventions and selected examples. Correct differences in heading hierarchy, section order, and validation format before publishing. Reading examples alone does not complete this check.
 - Verify the base branch, diff, and commit count before pushing. When asked only to draft a title and body, return the text without publishing. A request to create a draft PR / MR authorizes publishing it in draft state.
 - When creating a PR / MR, set assignees and existing labels according to repository conventions. Use the hosting service's CLI when available.
-- Pass multiline bodies through a file or structured argument. Prefer `gh pr create --body-file <file>` and `gh pr edit --body-file <file>` to shell interpolation. Use native references such as `#N` for related issues and PRs in the same repository.
+- Pass multiline bodies through a file or structured argument. Prefer `gh pr create --body-file <file>` and `gh pr edit --body-file <file>` to shell interpolation. Use `#N` for same-repository issues and GitHub PRs, and `!N` for GitLab MRs.
 - Read back the created or updated request to verify its title, body, base, diff, assignees, and labels. Check that the published body preserves the reviewed structure and content. Correct omissions before reporting completion.
 - For an approved merge, check the current head and CI status, use the repository's merge method, and confirm the resulting remote state. For GitHub squash merges, use GitHub's default commit message without supplying a custom subject or body. Report queued auto-merge as pending until it has landed.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Review Toolkit"
+  short_description: "Review PRs, MRs, or local changes for blocking issues"
+  default_prompt: "Use $pr-review-toolkit to review these changes for correctness and regressions."

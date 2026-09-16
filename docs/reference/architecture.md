@@ -32,7 +32,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   └── images/                 # Buildable images (devvm — work)
 ├── data/                       # Static configuration and inventory
 │   ├── caches.nix              # Binary cache substituters and trusted public keys
-│   ├── corp-domain.nix         # Corp-internal domain placeholder (gitignored real value)
+│   ├── corp-domain.nix         # Corp-internal domain placeholder (real value stays local)
 │   ├── corp-hosts.nix          # Corp-internal hostnames and URLs
 │   ├── defaults.nix            # Cross-platform locale and Nix policy
 │   ├── llm-models.nix          # Shared model catalog and defaults
@@ -60,6 +60,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   └── modules/                # Home Manager modules (incl. `wsl.nix` workstation bundle)
 ├── packages/                   # Custom package definitions (callPackage targets in lib/overlays.nix)
 ├── secrets/                    # agenix-encrypted secrets and recipient rules
+├── secrets.nix                 # Root-level agenix entry point for recipient rules
 ├── docs/                       # This knowledge base
 └── .github/workflows/ci.yml    # CI pipeline
 ```

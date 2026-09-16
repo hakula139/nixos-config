@@ -30,7 +30,7 @@ acpx --timeout 120 claude -s auth-review 'Which test would expose the race?'
 acpx claude sessions close auth-review
 ```
 
-`sessions list` lists sessions for the target and directory. acpx cannot attach to an assistant session already open in a terminal or editor.
+`sessions list --local --filter-cwd .` lists local acpx session records for the target and selected working directory without starting an adapter. Omit `--filter-cwd .` to include other directories. Plain `sessions list` queries the agent's session list when supported. acpx cannot attach to an assistant session already open in a terminal or editor.
 
 ## Permissions and results
 

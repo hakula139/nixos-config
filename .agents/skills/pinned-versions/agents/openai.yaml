@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pinned Versions"
+  short_description: "Audit and update manually pinned dependencies"
+  default_prompt: "Use $pinned-versions to audit this repository's dependency pins and report any drift."

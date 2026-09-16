@@ -1,0 +1,4 @@
+interface:
+  display_name: "Browser Debugging"
+  short_description: "Investigate browser failures and visual regressions"
+  default_prompt: "Use $browser-debugging to reproduce this browser issue and identify its cause."
