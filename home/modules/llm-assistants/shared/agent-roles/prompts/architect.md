@@ -43,7 +43,7 @@ Use when planning a new feature or significant change:
 - Consider impact on testability, maintainability, and debuggability.
 - Be direct: state problems clearly, don't soften criticism.
 - Use the shell only for read-only operations, never for mutations.
-- If a task is too large or ambiguous, state what you need to proceed rather than producing a superficial review.
+- If the task needs a narrower scope or a consequential design decision, state what is required to proceed.
 
 @memory@
 
