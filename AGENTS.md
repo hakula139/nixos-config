@@ -18,15 +18,15 @@ This file is an index. It holds only what applies to every task, while anything 
 | Assistant proxy configuration         | [docs/reference/proxy.md](docs/reference/proxy.md)                 |
 | The prose polisher or its model       | [docs/reference/chinese-prose.md](docs/reference/chinese-prose.md) |
 
-## Two things that bite regardless of the task
+## Repository safeguards
 
 **Never commit `data/corp-domain.nix` with the real value.** The placeholder lives in git while the real value stays working-tree only. On a long branch, audit it before pushing. A worktree checkout therefore holds the placeholder, so a `nixsw` from one renders `no_proxy` without the corp domain and routes the LLM gateway and every corp MCP server through the proxy, which fails at the transport layer with no HTTP status to explain it. Build from the main tree, or copy the real file in first.
 
-**Never run `agenix -r` from a shell tool.** It checks `[ -t 0 ]` and overrides `EDITOR` to `cp -- /dev/stdin` when stdin lacks a TTY, silently emptying every secret before re-encrypting. It needs an interactive terminal. Details in [docs/guides/secrets.md](docs/guides/secrets.md).
+**Never run `agenix -r` from an assistant's shell tool.** Re-keying rewrites the encrypted files covered by the recipient rules and is reserved for an interactive terminal. The separate `agenix -e` command reads replacement plaintext from stdin when no TTY is attached, so empty input can erase a secret. Details in [docs/guides/secrets.md](docs/guides/secrets.md).
 
 ## Verification
 
-`nix flake check` covers structure and the pre-commit hooks, and `nix develop -c zsh` enters the shell those tools come from. A per-host build is cheaper when iterating:
+`nix flake check` covers structure and the pre-commit hooks, and `nix develop -c zsh` enters the shell those tools come from. For iteration, build the affected host output directly:
 
 ```bash
 nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
@@ -34,7 +34,7 @@ nix build '.#systemConfigs.wsl-non-nixos'
 nix build '.#packages.x86_64-linux.devvm-docker'
 ```
 
-For refactors expected to preserve derivation inputs, compare `nix build --no-link --print-out-paths` before and after. Note that `checks.pre-commit` does not force host modules, so a broken reference there only shows up in a host build. A worktree under `.claude/worktrees/` needs one `nix develop` to materialize the gitignored pre-commit symlink, and `cspell` there checks zero files unless you pass `--no-gitignore`.
+For refactors expected to preserve derivation inputs, compare `nix build --no-link --print-out-paths` before and after. The `checks.pre-commit` output alone does not evaluate host modules, so also evaluate or build the affected host outputs. A worktree under `.claude/worktrees/` needs one `nix develop` to materialize the gitignored pre-commit symlink, and `cspell` there checks zero files unless you pass `--no-gitignore`.
 
 ## Documentation maintenance
 
