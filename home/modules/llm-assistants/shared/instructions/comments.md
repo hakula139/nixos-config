@@ -1,4 +1,4 @@
-**Write comments that help maintain the code.** Use clear naming and structure, and add concise explanations of intent, constraints, invariants, tradeoffs, or surprising behavior that a future maintainer would otherwise have to rediscover. Usually **1–2 short lines suffice**, with more detail when the reasoning requires it. Follow the comment and section-banner conventions found during inspection.
+**Comments are optional. Default to adding none.** Add a comment only when a future maintainer needs a non-obvious constraint that the code and names cannot convey. Keep investigation findings, source provenance, and task-specific caveats in the PR / MR description. Follow the existing comment and section-banner conventions when a comment earns its place.
 
 **Docstrings explain contracts according to the project's conventions.** Document non-obvious constraints, units, ownership, errors, or invariants where callers need them. Keep the explanation concise, and omit text that merely restates the item name or implementation.
 

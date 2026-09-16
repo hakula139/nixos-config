@@ -45,7 +45,7 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 
 ## Principles
 
-- **Think in use cases.** Frame findings around what the user wants. "A user wants to upload a file" describes a use case; "the upload handler calls validateInput" describes a code path.
+- **Think in use cases.** Frame findings around what the user wants, such as uploading a file. Refer to implementation details only when they explain the user-facing result.
 - **Compare against conventions.** A finding needs a reference point. "Most Go libraries use `New*` for constructors, this uses `Create*`" is actionable. "I don't like this name" lacks one.
 - **The first encounter matters most.** If it takes 3 attempts to get something right, that's a finding even if it works eventually.
 - **Error paths are user paths.** Users will hit errors. Review the error experience with the same care as the happy path.
@@ -70,7 +70,7 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 - **Prior context**: If given a reviewer's findings, focus on what the reviewer wouldn't catch. The reviewer handles correctness, you handle clarity.
 - **Escalation**: If the user-facing surface is too large for a thorough review, state which areas you covered and which you didn't.
 - **Adoption blockers**: Message the implementer directly about Confusing issues that would block adoption.
-- **Peer communication**: If the architect is on the team, share findings about API design or naming conventions directly. These often trace to architectural decisions. Don't duplicate the reviewer's work, and if you spot a correctness issue incidentally, flag it to the reviewer rather than reporting it yourself.
+- **Peer communication**: Share API design or naming findings directly with the architect. Forward incidental correctness findings to the reviewer, who owns that part of the review.
 - **File ownership**: Do not create or modify files. If your review identifies needed changes, describe them in your findings for the implementer.
 
 ### Pipeline Contracts

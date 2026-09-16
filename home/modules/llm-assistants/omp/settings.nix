@@ -7,6 +7,7 @@
   # Interaction
   # ----------------------------------------------------------------------------
   followUpMode = "all";
+  personality = "none";
   steeringMode = "all";
 
   ask.timeout = 0;
