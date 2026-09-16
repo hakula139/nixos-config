@@ -3,13 +3,11 @@
 # ==============================================================================
 # Pinned Version Drift Check
 # ==============================================================================
-# Compare every manually pinned version in this repo against its upstream and
-# report which ones have drifted. Renovate-managed pins (flake.lock) are out of
-# scope. See SKILL.md for why.
+# Compare the registered manual pins against their upstream values and report
+# which ones have drifted. Renovate-managed pins (flake.lock) are out of
+# scope. See ../SKILL.md for why.
 #
-# Subcommands:
-#   check       Report drift for all pin groups (default)
-#   list        Print the pin registry without querying upstreams
+# Run with `--help` for usage.
 # ==============================================================================
 
 const PLUGINS_NIX = "home/modules/llm-assistants/claude-code/plugins.nix"
@@ -18,7 +16,7 @@ const CF_IPS_NIX = "modules/nixos/cloudflare/ips.nix"
 const CF_IPS_V4_URL = "https://www.cloudflare.com/ips-v4"
 const CF_IPS_V6_URL = "https://www.cloudflare.com/ips-v6"
 
-# Abbreviated commit length, matching the trailing comments in plugins.nix.
+# Commit prefix length used by the plugin bundle.
 const REV_ABBREV = 12
 
 # ------------------------------------------------------------------------------
@@ -33,11 +31,12 @@ def die [msg: string] {
 }
 
 def repo-root []: nothing -> string {
-  ^git rev-parse --show-toplevel | str trim
+  try { ^git rev-parse --show-toplevel | str trim } catch {
+    die "cannot find the repository root. Run inside the nixos-config checkout."
+  }
 }
 
-# Every upstream query funnels through here so a network failure degrades to an
-# empty string, which the caller reports as UNKNOWN rather than as drift.
+# A failed lookup leaves no comparable value, so the caller reports UNKNOWN.
 def query [closure: closure]: nothing -> string {
   try { do $closure | into string | str trim } catch { "" }
 }
@@ -47,11 +46,19 @@ def abbrev [rev: string]: nothing -> string {
 }
 
 def gh-api [path: string, jq: string]: nothing -> string {
-  query { ^gh api $path --jq $jq }
+  query { ^gh api --hostname github.com $path --jq $jq }
 }
 
 def gh-latest-release [repo: string]: nothing -> string {
   gh-api $"repos/($repo)/releases/latest" ".tag_name"
+}
+
+def gh-latest-release-head [repo: string]: nothing -> string {
+  let tag = (gh-latest-release $repo)
+  if ($tag | is-empty) {
+    return ""
+  }
+  gh-api $"repos/($repo)/commits/($tag)" ".sha"
 }
 
 # Upstream's newest release may ship no binaries, which is not a bumpable target.
@@ -69,11 +76,11 @@ def gh-default-head [repo: string]: nothing -> string {
 
 def gh-latest-semver-tag [repo: string]: nothing -> string {
   query {
-    ^gh api $"repos/($repo)/tags?per_page=100"
-    | from json
-    | get name
+    gh-api $"repos/($repo)/tags?per_page=100" ".[].name"
+    | lines
     | where {|t| $t =~ '^v?[0-9]+(\.[0-9]+)*$' }
-    | first
+    | sort-by {|tag| $tag | str replace -r '^v' '' | split row "." | each {|n| $n | into int } }
+    | last
   }
 }
 
@@ -114,15 +121,6 @@ def plugin-rev [root: string, name: string]: nothing -> string {
   | default ""
 }
 
-# The trailing comment after `rev` records the release tag this pin points at.
-def plugin-tag [root: string, name: string]: nothing -> string {
-  plugin-block $root $name
-  | str join "\n"
-  | parse --regex 'rev = "[0-9a-f]+"; # (?<tag>\S+)'
-  | get tag.0?
-  | default ""
-}
-
 def nix-attr [root: string, file: string, regex: string]: nothing -> string {
   open --raw ([$root $file] | path join) | parse --regex $regex | get v.0? | default ""
 }
@@ -152,13 +150,55 @@ def action-pins [root: string]: nothing -> list<string> {
   [".github/workflows" ".github/actions"]
   | each {|dir| glob ([$root $dir "**" "*"] | path join) }
   | flatten
-  | where {|p| ($p | path type) == "file" }
-  | each {|p| open --raw $p }
-  | str join "\n"
-  | parse --regex 'uses: (?<pin>[A-Za-z0-9._-]+/[A-Za-z0-9._-]+@v[0-9]+)'
-  | get pin
+  | where {|p|
+    ($p | path type) == "file" and ($p | path parse | get extension) in [yml yaml]
+  }
+  | each {|p|
+    let doc = (open $p)
+    let jobs = ($doc | get -o jobs | default {} | values)
+    [
+      ($jobs | get -o uses)
+      ($jobs | each {|job| $job | get -o steps | default [] | get -o uses } | flatten)
+      ($doc | get -o runs.steps | default [] | get -o uses)
+    ]
+    | flatten
+  }
+  | flatten
+  | compact
+  | where {|pin|
+    not ($pin | str starts-with "./") and not ($pin | str starts-with "docker://")
+  }
   | uniq
   | sort
+}
+
+# ------------------------------------------------------------------------------
+# Cloudflare comparison
+# ------------------------------------------------------------------------------
+
+# The IP list carries no version, so drift means the ranges themselves differ.
+def cloudflare-drift [root: string]: nothing -> string {
+  let pinned = (
+    open --raw ([$root $CF_IPS_NIX] | path join)
+    | parse --regex '"(?<v>[0-9a-f.:]+/[0-9]+)'
+    | get v
+    | sort
+  )
+  let fetched = (
+    [$CF_IPS_V4_URL $CF_IPS_V6_URL]
+    | each {|url| query { http get --raw $url } }
+  )
+
+  # An empty half would otherwise surface as drift against the half we did fetch.
+  if ($pinned | is-empty) or ($fetched | any {|r| $r | is-empty }) {
+    return ""
+  }
+
+  if $pinned == ($fetched | str join "\n" | lines | where $it != "" | sort) {
+    "same ranges"
+  } else {
+    "ranges differ"
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -187,13 +227,13 @@ def registry [root: string]: nothing -> list<record> {
       pins: [
         {
           pin: "agent-browser"
-          local: {|| plugin-tag $root "agent-browser" }
-          upstream: {|| gh-latest-release "vercel-labs/agent-browser" }
+          local: {|| abbrev (plugin-rev $root "agent-browser") }
+          upstream: {|| abbrev (gh-latest-release-head "vercel-labs/agent-browser") }
         }
         {
           pin: "openai-codex"
-          local: {|| plugin-tag $root "openai-codex" }
-          upstream: {|| gh-latest-release "openai/codex-plugin-cc" }
+          local: {|| abbrev (plugin-rev $root "openai-codex") }
+          upstream: {|| abbrev (gh-latest-release-head "openai/codex-plugin-cc") }
         }
         {
           pin: "claude-plugins-official"
@@ -210,7 +250,7 @@ def registry [root: string]: nothing -> list<record> {
       ]
     }
     {
-      title: "Nix-built packages and helpers"
+      title: "Nix-built overlay packages"
       pins: [
         {
           pin: "acpx"
@@ -223,16 +263,6 @@ def registry [root: string]: nothing -> list<record> {
           upstream: {|| gh-latest-release "cloudreve/cloudreve" }
         }
         {
-          pin: "mcp-server-github"
-          local: {|| nix-version-v $root "packages/mcp/mcp-server-github/default.nix" }
-          upstream: {|| gh-latest-release "github/github-mcp-server" }
-        }
-        {
-          pin: "mcp-server-gitlab"
-          local: {|| nix-version-v $root "packages/mcp/mcp-server-gitlab/default.nix" }
-          upstream: {|| gh-latest-release "zereight/gitlab-mcp" }
-        }
-        {
           pin: "mcp-server-filesystem"
           local: {|| nix-version $root "packages/mcp/mcp-server-filesystem/default.nix" }
           upstream: {|| gh-latest-semver-tag "modelcontextprotocol/servers" }
@@ -243,10 +273,25 @@ def registry [root: string]: nothing -> list<record> {
           upstream: {|| pypi-latest "mcp-server-git" }
         }
         {
+          pin: "mcp-server-github"
+          local: {|| nix-version-v $root "packages/mcp/mcp-server-github/default.nix" }
+          upstream: {|| gh-latest-release "github/github-mcp-server" }
+        }
+        {
+          pin: "mcp-server-gitlab"
+          local: {|| nix-version-v $root "packages/mcp/mcp-server-gitlab/default.nix" }
+          upstream: {|| gh-latest-release "zereight/gitlab-mcp" }
+        }
+        {
           pin: "zsh-hist"
           local: {|| abbrev (nix-attr $root "packages/zsh-hist/default.nix" 'rev = "(?<v>[0-9a-f]+)"') }
           upstream: {|| abbrev (gh-default-head "marlonrichert/zsh-hist") }
         }
+      ]
+    }
+    {
+      title: "Windows notification helper"
+      pins: [
         {
           pin: "toasty"
           local: {||
@@ -260,9 +305,9 @@ def registry [root: string]: nothing -> list<record> {
       title: "Container images (oci-containers image options)"
       pins: [
         {
-          pin: "umami"
-          local: {|| image-tag $root "modules/nixos/umami/default.nix" }
-          upstream: {|| gh-latest-release "umami-software/umami" | str replace -r '^v' '' }
+          pin: "clove"
+          local: {|| image-tag $root "modules/nixos/clove/default.nix" }
+          upstream: {|| dockerhub-latest-semver "mirrorange/clove" }
         }
         {
           pin: "fuclaude"
@@ -270,9 +315,9 @@ def registry [root: string]: nothing -> list<record> {
           upstream: {|| dockerhub-latest-semver "pengzhile/fuclaude" }
         }
         {
-          pin: "clove"
-          local: {|| image-tag $root "modules/nixos/clove/default.nix" }
-          upstream: {|| dockerhub-latest-semver "mirrorange/clove" }
+          pin: "umami"
+          local: {|| image-tag $root "modules/nixos/umami/default.nix" }
+          upstream: {|| gh-latest-release "umami-software/umami" | str replace -r '^v' '' }
         }
       ]
     }
@@ -288,15 +333,25 @@ def registry [root: string]: nothing -> list<record> {
     }
     {
       title: "GitHub Actions (Renovate github-actions manager is disabled)"
-      pins: (action-pins $root | each {|pin|
-        let repo = ($pin | split row "@" | first)
-        {
-          pin: $repo
-          local: {|| $pin | split row "@" | last }
-          # Actions are pinned to a major tag, so compare only the major component.
-          upstream: {|| gh-latest-release $repo | split row "." | first }
+      pins: (try {
+        action-pins $root | each {|pin|
+          # GitHub repository action or reusable workflow, with an optional subpath.
+          let target = ($pin | parse -r '^(?<repo>[^/]+/[^/@]+)(?:/[^@]+)?@(?<ref>[^@]+)$' | first)
+          {
+            pin: ($pin | split row "@" | first)
+            local: {|| $target.ref }
+            upstream: {||
+              if $target.ref =~ '^v[0-9]+$' {
+                gh-latest-release $target.repo | split row "." | first
+              } else if $target.ref =~ '^v[0-9]+\.[0-9]+\.[0-9]+$' {
+                gh-latest-release $target.repo
+              } else {
+                ""
+              }
+            }
+          }
         }
-      })
+      } catch { [] })
     }
     {
       title: "Drifting upstream data"
@@ -314,31 +369,6 @@ def registry [root: string]: nothing -> list<record> {
   ]
 }
 
-# The IP list carries no version, so drift means the ranges themselves differ.
-def cloudflare-drift [root: string]: nothing -> string {
-  let pinned = (
-    open --raw ([$root $CF_IPS_NIX] | path join)
-    | parse --regex '"(?<v>[0-9a-f.:]+/[0-9]+)'
-    | get v
-    | sort
-  )
-  let fetched = (
-    [$CF_IPS_V4_URL $CF_IPS_V6_URL]
-    | each {|url| query { http get --raw $url } }
-  )
-
-  # An empty half would otherwise surface as drift against the half we did fetch.
-  if ($pinned | is-empty) or ($fetched | any {|r| $r | is-empty }) {
-    return ""
-  }
-
-  if $pinned == ($fetched | str join "\n" | lines | where $it != "" | sort) {
-    "same ranges"
-  } else {
-    "ranges differ"
-  }
-}
-
 # ------------------------------------------------------------------------------
 # Reporting
 # ------------------------------------------------------------------------------
@@ -352,8 +382,8 @@ def resolve []: list<record> -> list<record> {
       return {pin: $row.pin, pinned: "flake.lock", upstream: "flake.lock", status: $row.delegated}
     }
 
-    let pinned = (do $row.local)
-    let upstream = (do $row.upstream)
+    let pinned = (query $row.local)
+    let upstream = (query $row.upstream)
     let status = if ($pinned | is-empty) or ($upstream | is-empty) {
       "UNKNOWN"
     } else if ($row.status? | is-not-empty) {
@@ -382,21 +412,13 @@ def section [title: string, rows: list<record>] {
 # Entry point
 # ------------------------------------------------------------------------------
 
-def cmd-list [] {
-  print "Manual pins tracked by this script:"
-  for group in (registry (repo-root)) {
-    print $"\n($group.title)"
-    for pin in $group.pins { print $"  ($pin.pin)" }
-  }
-  print "\nRenovate updates flake.lock separately within the configured input refs."
-}
-
-def cmd-check [] {
+# Compare registered manual pins with upstream versions.
+def "main check" [] {
   if (which gh | is-empty) {
-    die 'gh not found. Run inside "nix develop" or install it.'
+    die "gh not found. Install GitHub CLI and authenticate to github.com."
   }
-  if ((^gh auth status | complete).exit_code != 0) {
-    die 'gh is not authenticated. Run "gh auth login".'
+  if ((^gh auth status --hostname github.com | complete).exit_code != 0) {
+    die "GitHub authentication check failed. Check credentials and network access."
   }
 
   # Resolution finishes before anything prints, since `par-each` threads would
@@ -425,7 +447,7 @@ def cmd-check [] {
 
   print $"\n($stale) stale, ($unknown) unknown."
   if $unknown > 0 {
-    print "UNKNOWN means the upstream query failed. Re-check those by hand."
+    print "UNKNOWN means extraction or an upstream query failed. Re-check those by hand."
     exit 2
   }
   if $stale > 0 {
@@ -433,10 +455,17 @@ def cmd-check [] {
   }
 }
 
-def main [subcommand: string = "check"] {
-  match $subcommand {
-    "check" => { cmd-check }
-    "list" => { cmd-list }
-    _ => { die $"unknown subcommand: ($subcommand)" }
+# List the registered pins without querying upstream.
+def "main list" [] {
+  print "Manual pins tracked by this script:"
+  for group in (registry (repo-root)) {
+    print $"\n($group.title)"
+    for pin in $group.pins { print $"  ($pin.pin)" }
   }
+  print "\nRenovate updates flake.lock separately within the configured input refs."
+}
+
+# Check registered manual pins for upstream drift by default.
+def main [] {
+  main check
 }

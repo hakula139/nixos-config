@@ -1,6 +1,6 @@
 # Bootstrap
 
-First-time setup is per platform. For day-to-day operations, use [`nixsw`](../../README.md#applying-a-configuration) for local applies and `nixdp` for server deployments.
+Use these steps to install a managed configuration or build the `devvm` image. For subsequent updates, use [`nixsw`](../../README.md#applying-a-configuration) for local server and workstation configurations and `nixdp` for server deployments. Commands with a `.#...` flake reference run from the repository root.
 
 ## NixOS server
 
@@ -24,7 +24,7 @@ Inventory and deployment metadata live in `data/servers.nix`. Because every prox
 
 ## NixOS-WSL workstation
 
-`wsl` is a full NixOS workstation under WSL2 via [NixOS-WSL](https://github.com/nix-community/NixOS-WSL). Build the import tarball from any host with the flake checked out:
+`wsl` is a full NixOS workstation under WSL2 via [NixOS-WSL](https://github.com/nix-community/NixOS-WSL). Build and run the tarball builder on x86_64 Linux:
 
 ```bash
 nix build '.#nixosConfigurations.wsl.config.system.build.tarballBuilder'
@@ -79,7 +79,7 @@ sudo nix run nix-darwin/nix-darwin-26.05#darwin-rebuild -- switch --flake '.#mac
 
 ## Docker image
 
-`devvm` bakes a whole NixOS system closure into a Docker image, so every dependency ships inside it and the container comes up in an air-gapped environment.
+`devvm` packages its NixOS system closure as a Docker image for transfer to restricted networks. The [Compose file](../../hosts/images/devvm/docker-compose.yml) also requires host files and directories for credentials, workspace data, and the Docker socket. Runtime package downloads, including those started by `npx` and `uvx`, still need network access or a populated cache.
 
 Build the image with Nix, then load and start it with Docker:
 

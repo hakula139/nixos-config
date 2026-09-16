@@ -1,0 +1,4 @@
+interface:
+  display_name: "ACP Delegation"
+  short_description: "Delegate bounded tasks to Claude Code or Codex"
+  default_prompt: "Use $acp-delegate to ask a configured assistant for a focused review of this issue."

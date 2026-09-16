@@ -5,6 +5,8 @@
 # ==============================================================================
 # Remove local branches whose configured upstreams are gone, along with their
 # worktrees. Dry run by default.
+#
+# Run with `--help` for usage.
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -64,15 +66,9 @@ def resolve-base [remote: string, base_override: string]: nothing -> string {
     return $base_override
   }
 
-  let head = (git-out "symbolic-ref" "--quiet" "--short" $"refs/remotes/($remote)/HEAD")
+  let head = (git-out "symbolic-ref" "--quiet" $"refs/remotes/($remote)/HEAD")
   if ($head | is-not-empty) and (commit-exists $head) {
     return $head
-  }
-
-  for candidate in [$"($remote)/main" $"($remote)/master"] {
-    if (commit-exists $candidate) {
-      return $candidate
-    }
   }
 
   ""
@@ -82,22 +78,12 @@ def resolve-base [remote: string, base_override: string]: nothing -> string {
 # Integration check
 # ------------------------------------------------------------------------------
 
-# Three ways to count as integrated: ancestry, patch equivalence, or a
-# first-parent commit on the base matching content for the touched paths. Only
-# the last recognizes a squash merge.
+# Exact historical content matches recognize squash merges. git cherry cannot
+# prove integration because it ignores whitespace and merge-resolution changes.
 def branch-is-integrated [branch: string, base_ref: string]: nothing -> bool {
   let branch_ref = $"refs/heads/($branch)"
 
   if (git-succeeds "merge-base" "--is-ancestor" $branch_ref $base_ref) {
-    return true
-  }
-
-  let cherry = (^git cherry $base_ref $branch_ref | complete)
-  if $cherry.exit_code != 0 {
-    return false
-  }
-  let lines = ($cherry.stdout | lines | where $it != "")
-  if ($lines | is-not-empty) and ($lines | where {|l| $l | str starts-with "+" } | is-empty) {
     return true
   }
 
@@ -148,7 +134,8 @@ def main [
   let worktrees = (worktree-map)
 
   let gone = (
-    ^git for-each-ref --format='%(refname:short)%09%(upstream:track)%09%(upstream:remotename)' refs/heads/
+    ^git for-each-ref --format='%(refname:strip=2)%09%(upstream:track)%09%(upstream:remotename)' refs/heads/
+    | lines
     | parse "{branch}\t{tracking}\t{remote}"
     | where ($it.tracking | str contains "gone")
   )
@@ -171,12 +158,18 @@ def main [
       continue
     }
 
-    if ($worktree | is-not-empty) and (
-      (git-out "-C" $worktree "status" "--porcelain") | is-not-empty
-    ) {
-      print $"SKIP ($branch): worktree has uncommitted or untracked changes: ($worktree)"
-      $skipped += 1
-      continue
+    if ($worktree | is-not-empty) {
+      let status = (^git -C $worktree status --porcelain --ignored | complete)
+      if $status.exit_code != 0 {
+        print -e $"SKIP ($branch): failed to inspect worktree ($worktree)"
+        $skipped += 1
+        continue
+      }
+      if ($status.stdout | is-not-empty) {
+        print $"SKIP ($branch): worktree has uncommitted, untracked, or ignored files: ($worktree)"
+        $skipped += 1
+        continue
+      }
     }
 
     if ($row.remote | is-empty) or ($row.remote == ".") {

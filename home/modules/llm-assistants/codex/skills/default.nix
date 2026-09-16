@@ -27,11 +27,6 @@ let
     frontend-design = sources.anthropic + "/frontend-design";
     mcp-builder = sources.anthropic + "/mcp-builder";
     webapp-testing = sources.anthropic + "/webapp-testing";
-
-    # Local skills
-    clean-gone = ./clean-gone;
-    pr-review-toolkit = ./pr-review-toolkit;
-    read-pdfs = ./read-pdfs;
   };
 
   managedSkills = lib.filterAttrs (

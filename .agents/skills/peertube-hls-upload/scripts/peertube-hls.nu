@@ -6,30 +6,80 @@
 # Manually transcode a video to HLS fragmented MP4 and upload it to the
 # PeerTube B2 object storage bucket, bypassing the PeerTube runner workflow.
 #
-# Run with `--help` for the subcommand list.
+# Run with `--help` for usage.
 # ==============================================================================
+
+const SCRIPT_DIR = path self .
 
 # ------------------------------------------------------------------------------
 # Configuration
 # ------------------------------------------------------------------------------
 
-const B2_ENDPOINT = "https://s3.us-west-004.backblazeb2.com"
 const B2_BUCKET = "hakula-videos"
 const B2_CDN = "https://b2.hakula.xyz/hakula-videos"
-const PEERTUBE_HOST = "CloudCone-US-1"
+const B2_ENDPOINT = "https://s3.us-west-004.backblazeb2.com"
+
 const PEERTUBE_DOMAIN = "v.hakula.xyz"
+const PEERTUBE_HOST = "CloudCone-US-1"
+
 const WORK_DIR = "/tmp/peertube-hls"
 
 # HQ transcode parameters (must match packages/peertube/hq-transcode.patch)
 const X264_PRESET = "slow"
-const X264_PROFILE = "high"
 const X264_CRF = "20"
+const X264_PROFILE = "high"
 const X264_B_STRATEGY = "1"
 const X264_BF = "16"
 
-const CREDENTIAL_HINT = "B2 credentials not set. Run:
-  eval \"$(agenix -d peertube-env.age -i ~/.ssh/CloudCone/id_ed25519)\"
+const CREDENTIAL_HINT = "B2 credentials not set. Run in Bash from the repository root:
+  peertube_credentials=$(agenix -d secrets/peertube/env.age -i ~/.ssh/CloudCone/id_ed25519) || exit 1
+  eval \"$peertube_credentials\"
+  unset peertube_credentials
   export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY"
+
+# ------------------------------------------------------------------------------
+# Queries
+# ------------------------------------------------------------------------------
+
+const API_JQ_FILTER = r#'{
+  uuid, name, state,
+  files: [.files[] | {resolution: .resolution.id, size}],
+  streamingPlaylists: [.streamingPlaylists[] | {
+    type, playlistUrl,
+    files: [.files[] | {resolution: .resolution.id, size, fps}]
+  }]
+}'#
+
+const SQL_HLS_FILES = r#'
+SELECT vf.id, vf.resolution, vf.fps, vf.width, vf.height, vf.size, vf.filename, vf.storage
+FROM "videoFile" vf
+JOIN "videoStreamingPlaylist" vsp
+  ON vsp.id = vf."videoStreamingPlaylistId"
+JOIN video v
+  ON v.id = vsp."videoId"
+WHERE v.uuid = :'uuid'
+ORDER BY vf.resolution;
+'#
+
+const SQL_PLAYLIST_META = r#'
+SELECT vsp."playlistFilename", vsp."segmentsSha256Filename"
+FROM "videoStreamingPlaylist" vsp
+JOIN video v
+  ON v.id = vsp."videoId"
+WHERE v.uuid = :'uuid';
+'#
+
+const SQL_UPDATE_SIZE = r#'
+UPDATE "videoFile"
+SET size = :size
+WHERE id = :id;
+'#
+
+const SQL_UPDATE_META = r#'
+UPDATE "videoFile"
+SET metadata = :'metadata'
+WHERE id = :id;
+'#
 
 # ------------------------------------------------------------------------------
 # Helpers
@@ -118,48 +168,8 @@ def pt-psql [sql: string, params: record = {}] {
   let bindings = (
     $params | items {|k, v| ["-v" (sh-quote $"($k)=($v)")] } | flatten | str join " "
   )
-  $sql | ^ssh $PEERTUBE_HOST $"sudo -u peertube psql -d peertube ($bindings)"
+  $sql | ^ssh $PEERTUBE_HOST $"sudo -u peertube psql -v ON_ERROR_STOP=1 -d peertube ($bindings)"
 }
-
-const SQL_HLS_FILES = r#'
-SELECT vf.id, vf.resolution, vf.fps, vf.width, vf.height, vf.size, vf.filename, vf.storage
-FROM "videoFile" vf
-JOIN "videoStreamingPlaylist" vsp
-  ON vsp.id = vf."videoStreamingPlaylistId"
-JOIN video v
-  ON v.id = vsp."videoId"
-WHERE v.uuid = :'uuid'
-ORDER BY vf.resolution;
-'#
-
-const SQL_PLAYLIST_META = r#'
-SELECT vsp."playlistFilename", vsp."segmentsSha256Filename"
-FROM "videoStreamingPlaylist" vsp
-JOIN video v
-  ON v.id = vsp."videoId"
-WHERE v.uuid = :'uuid';
-'#
-
-const SQL_UPDATE_SIZE = r#'
-UPDATE "videoFile"
-SET size = :size
-WHERE id = :id;
-'#
-
-const SQL_UPDATE_META = r#'
-UPDATE "videoFile"
-SET metadata = :'metadata'
-WHERE id = :id;
-'#
-
-const API_JQ_FILTER = r#'{
-  uuid, name, state,
-  files: [.files[] | {resolution: .resolution.id, size}],
-  streamingPlaylists: [.streamingPlaylists[] | {
-    type, playlistUrl,
-    files: [.files[] | {resolution: .resolution.id, size, fps}]
-  }]
-}'#
 
 # ------------------------------------------------------------------------------
 # Subcommands
@@ -170,15 +180,13 @@ def "main identify" [video_uuid: string] {
   require-uuid $video_uuid
 
   print "=== API: Video details ==="
-  ^ssh $PEERTUBE_HOST (
-    [
-      "sudo -u peertube curl -s"
-      $"'http://127.0.0.1:9000/api/v1/videos/($video_uuid)'"
-      $"-H 'Host: ($PEERTUBE_DOMAIN)'"
-      $"| jq '($API_JQ_FILTER)'"
-    ]
-    | str join " "
-  )
+  let fetch = (sh-join [
+    curl --fail --show-error --silent
+    $"http://127.0.0.1:9000/api/v1/videos/($video_uuid)"
+    -H $"Host: ($PEERTUBE_DOMAIN)"
+  ])
+  let query = $fetch + " | " + (sh-join [jq $API_JQ_FILTER])
+  ^ssh $PEERTUBE_HOST (sh-join [sudo -u peertube bash -o pipefail -c $query])
 
   print "\n=== DB: HLS file details ==="
   pt-psql $SQL_HLS_FILES {uuid: $video_uuid}
@@ -268,43 +276,28 @@ def "main upload" [
   b2-upload $file $"(b2-prefix $video_uuid)/($name)"
 }
 
-# Regenerate the HLS segment SHA256 hashes after a file changed.
+# Regenerate hashes in an existing local manifest after a media file changed.
 def "main regen-sha256" [
-  video_uuid: string
-  sha256_filename: string
   file_uuid: string
   resolution: string
+  sha256_file: path
 ] {
-  require-uuid $video_uuid
   require-uuid $file_uuid
   require-int $resolution
 
-  mkdir $WORK_DIR
   let fmp4 = (fmp4-path $file_uuid $resolution)
   let m3u8 = (m3u8-path $file_uuid $resolution)
-  let sha256_local = $"($WORK_DIR)/segments-sha256.json"
 
   require-file $fmp4 "fmp4 not found"
   require-file $m3u8 "m3u8 not found"
+  require-file $sha256_file "SHA256 manifest not found"
 
-  print "Downloading current SHA256 JSON..."
   (
-    http get --raw --headers [Cache-Control no-cache]
-      $"(cdn-prefix $video_uuid)/($sha256_filename)"
-  )
-  | save --raw --force $sha256_local
-
-  print "Regenerating hashes..."
-  let script_dir = ($env.CURRENT_FILE | path dirname)
-  (
-    ^python3 ([$script_dir "regen-sha256.py"] | path join)
-      $fmp4 $m3u8 $sha256_local $"($file_uuid)-($resolution)-fragmented.mp4"
+    ^($SCRIPT_DIR | path join "regen-sha256.py")
+      $fmp4 $m3u8 $sha256_file $"($file_uuid)-($resolution)-fragmented.mp4"
   )
 
-  print $"SHA256 JSON saved to: ($sha256_local)"
-  print ""
-  print "Now upload it:"
-  print $"  peertube-hls.nu upload '($video_uuid)' '($sha256_local)' '($sha256_filename)'"
+  print $"SHA256 JSON saved to: ($sha256_file)"
 }
 
 # Update a videoFile row's size to match the local fmp4.
@@ -350,13 +343,17 @@ def "main db-update-meta" [file_id: string, file_uuid: string, resolution: strin
 
 # Print the x264 encoding parameters recorded in a local file or remote URL.
 def "main verify" [target: string] {
-  let output = if ($target | str starts-with "http") {
-    print "Fetching first 256 KB from remote..."
-    ^curl -s -r 0-262143 $target | ^strings | ^grep 'x264.*options:' | complete
-  } else {
-    require-file $target "file not found"
-    ^strings $target | ^grep 'x264.*options:' | complete
-  }
+  let output = (
+    if ($target =~ '^https?://') {
+      print "Fetching first 256 KB from remote..."
+      http get --raw --headers [Range bytes=0-262143] $target | ^strings
+    } else {
+      require-file $target "file not found"
+      ^strings -- $target
+    }
+    | ^grep 'x264.*options:'
+    | complete
+  )
 
   if $output.exit_code == 0 and ($output.stdout | is-not-empty) {
     print ($output.stdout | str trim)
@@ -384,9 +381,5 @@ def "main purge-urls" [video_uuid: string, ...filenames: string] {
 # Manual PeerTube HLS transcode and upload. AWS_ACCESS_KEY_ID and
 # AWS_SECRET_ACCESS_KEY are required by `upload`.
 def main [] {
-  print "Usage: peertube-hls.nu <command> [args...]"
-  print ""
-  print "Run `peertube-hls.nu --help` for the subcommand list, or"
-  print "`peertube-hls.nu <command> --help` for one command's parameters."
-  exit 1
+  die "subcommand required. Run with --help for usage."
 }

@@ -3,6 +3,8 @@ name: environment-repair
 description: Delegate a local nixos-config repair when an assistant encounters a concrete tool or environment malfunction, while its main task continues.
 ---
 
+# Environment Repair
+
 A tool startup failure, broken managed setting, or reproducible environment regression can justify a background repair. Capture the failing command or operation and its relevant error, without exposing credentials. The worker must determine whether nixos-config owns the cause before editing. A remote outage, unavailable account permission, or ordinary project defect does not by itself justify changing host configuration.
 
 ## Locate the checkout
