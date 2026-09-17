@@ -5,9 +5,9 @@
 {
   pkgs,
   lib,
-  models,
-  enabledAgents,
   sharedAgents,
+  enabledAgents,
+  models,
 }:
 
 let
@@ -19,11 +19,9 @@ let
       configFile = toml.generate "codex-agent-${name}" (
         {
           developer_instructions = agent.prompt;
-          model_reasoning_effort = agent.effort.gpt or agent.codex.reasoningEffort;
-          personality = "pragmatic";
-        }
-        // lib.optionalAttrs (agent ? modelTier) {
           model = models.${agent.modelTier};
+          model_reasoning_effort = agent.effort;
+          personality = "pragmatic";
         }
         // lib.optionalAttrs (agent.codex ? sandboxMode) {
           sandbox_mode = agent.codex.sandboxMode;

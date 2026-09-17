@@ -2,20 +2,12 @@
 # Shared Instruction Documents
 # ==============================================================================
 
+{
+  readPrompt,
+}:
+
 let
-  fragments = {
-    "@comments@" = ./comments.md;
-    "@phrasing@" = ./phrasing.md;
-    "@proseTics@" = ./prose-tics.md;
-  };
-
-  compose =
-    file:
-    builtins.replaceStrings (builtins.attrNames fragments) (map builtins.readFile (
-      builtins.attrValues fragments
-    )) (builtins.readFile file);
-
-  sharedBody = compose ./shared.md;
+  sharedBody = readPrompt ./shared.md;
 
   render =
     {
@@ -54,6 +46,4 @@ in
     intro = "Global instructions for OpenCode behavior across all projects.";
     body = ./agents.md;
   };
-
-  commentGate = compose ./comment-gate.md;
 }

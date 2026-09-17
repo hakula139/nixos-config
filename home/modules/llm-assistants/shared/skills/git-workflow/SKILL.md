@@ -40,6 +40,7 @@ The discovered repository conventions govern the description's structure. Apply 
 - Report relevant checks and their results, distinguishing verified behavior from untested limits. Match the repository's validation heading and use of prose, bullets, tables, or checklists.
 - Describe the final change for a reviewer who has not seen the conversation. Fold review fixes into that description, and omit implementation history, commit inventories, and abandoned approaches unless they explain a current tradeoff.
 - Skip boilerplate sections. Omit generated-by attributions and emojis unless requested. Keep local-only paths out of commits and published descriptions.
+- Never include internal information in PR / MR descriptions, including URLs and plain-text references.
 
 ### Publication
 

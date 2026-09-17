@@ -6,87 +6,73 @@
   config,
   pkgs,
   lib,
-  configDir,
-  corpHosts,
-  hostType,
-  mkProfileSwitch,
-  modelCatalog,
-  secretPath,
-  enabledAgents,
+  profileDefinitions,
   sharedAgents,
+  enabledAgents,
+  hostType,
+  secretPath,
+  configDir,
+  mkProfileSwitch,
 }:
 
 let
   cfg = config.hakula.codex.auth;
   toml = pkgs.formats.toml { };
   stateDir = "${config.xdg.stateHome}/codex";
-  tokenFile = secretPath "llm-assistants/bifrost-api-key";
-  caFile = secretPath "llm-assistants/corp-cachain.crt";
+
+  corpGateway = profileDefinitions.providers.corp-gateway;
+  tokenFile = secretPath corpGateway.tokenSecret;
+  caFile = secretPath corpGateway.caSecret;
+
+  mkModelCatalog = import ./models.nix {
+    inherit pkgs lib;
+  };
 
   # ----------------------------------------------------------------------------
-  # Gateway models
+  # Profile assembly
   # ----------------------------------------------------------------------------
-  # The gateway's /models response is not a Codex model catalog.
-  corpModels =
-    pkgs.runCommand "codex-corp-models.json"
-      {
-        nativeBuildInputs = [
-          pkgs.codex
-          pkgs.jq
-        ];
-      }
-      ''
-        codex debug models --bundled | jq -e '
-          .models |= map(
-            select(.supported_in_api)
-            | .slug |= "openai/" + .
-            | if .upgrade then .upgrade.model |= "openai/" + . else . end
-          )
-          | select(.models != [])
-        ' > "$out"
-      '';
-
-  # ----------------------------------------------------------------------------
-  # Model roles
-  # ----------------------------------------------------------------------------
-  gptModels = modelCatalog.defaults.gpt;
-  defaultModel = modelCatalog.models.${gptModels.flagship};
-
   mkAgents =
     models:
     (import ./agents.nix {
       inherit
         pkgs
         lib
-        models
-        enabledAgents
         sharedAgents
+        enabledAgents
+        models
         ;
     }).settings;
+
+  mkProfile =
+    _: profile:
+    {
+      model = profile.modelIds.flagship;
+      model_provider = if profile.gateway == null then "openai" else "corp-gateway";
+      model_reasoning_effort = profile.models.flagship.thinking.defaultLevel;
+      agents = mkAgents profile.modelIds;
+      web_search = if profile.nativeWebSearch then "live" else "disabled";
+    }
+    // lib.optionalAttrs (profile.gateway != null) {
+      model_catalog_json = toString (mkModelCatalog profile);
+    }
+    // lib.optionalAttrs (profile.family == "gpt") {
+      model_auto_compact_token_limit = profile.models.flagship.autoCompactTokens;
+    };
 
   # ----------------------------------------------------------------------------
   # Profile definitions
   # ----------------------------------------------------------------------------
-  profiles = {
-    official = {
-      model = gptModels.flagship;
-      model_provider = "openai";
-      model_auto_compact_token_limit = defaultModel.autoCompactTokens;
-      agents = mkAgents gptModels;
-    };
-
-    corp-gateway = {
-      model = defaultModel.gatewayId.openai;
-      model_provider = "corp-gateway";
-      model_catalog_json = toString corpModels;
-      model_auto_compact_token_limit = defaultModel.autoCompactTokens;
-      agents = mkAgents (lib.mapAttrs (_: id: modelCatalog.models.${id}.gatewayId.openai) gptModels);
-    };
-  };
-
-  enabledProfiles = lib.filterAttrs (
-    name: _: name != "corp-gateway" || cfg.enableCorpGateway
-  ) profiles;
+  profiles = lib.mapAttrs mkProfile (
+    profileDefinitions.mkProfiles {
+      inherit (cfg) enableCorpGateway;
+      nativeFamily = "gpt";
+      providers = [ "corp-gateway" ];
+      gateways = [
+        "openai"
+        "local"
+      ];
+    }
+  );
 
   # ----------------------------------------------------------------------------
   # Profile switcher
@@ -101,6 +87,7 @@ let
     configFile = "${configDir}/config.toml";
     # Preserve user-defined agents while removing disabled managed roles.
     resetKeys = [
+      "model_auto_compact_token_limit"
       "model_catalog_json"
     ]
     ++ map (name: "agents.${name}") (builtins.attrNames sharedAgents);
@@ -110,30 +97,21 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options = {
-    defaultProfile = lib.mkOption {
-      type = lib.types.enum [
-        "official"
-        "corp-gateway"
-      ];
-      default = "official";
-      description = "Fallback authentication profile when no installed profile is active";
-    };
-
-    enableCorpGateway = lib.mkOption {
-      type = lib.types.bool;
-      default = hostType == "work";
-      description = "Include the corporate gateway profile and provision its credentials";
-    };
+  options = profileDefinitions.mkOptions {
+    inherit hostType;
+    defaultProfile = "official";
   };
 
   # ----------------------------------------------------------------------------
   # Module config
   # ----------------------------------------------------------------------------
   config = {
+    # --------------------------------------------------------------------------
+    # Assertions
+    # --------------------------------------------------------------------------
     assertions = [
       {
-        assertion = builtins.hasAttr cfg.defaultProfile enabledProfiles;
+        assertion = builtins.hasAttr cfg.defaultProfile profiles;
         message = "hakula.codex.auth.defaultProfile requires its profile to be enabled";
       }
     ];
@@ -141,9 +119,9 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    hakula.secrets.required = lib.optionalAttrs cfg.enableCorpGateway {
-      "llm-assistants/bifrost-api-key" = { };
-      "llm-assistants/corp-cachain.crt" = { };
+    hakula.secrets.required = lib.mkIf cfg.enableCorpGateway {
+      ${corpGateway.tokenSecret} = { };
+      ${corpGateway.caSecret} = { };
     };
 
     # --------------------------------------------------------------------------
@@ -157,7 +135,7 @@ in
     home.file = lib.mapAttrs' (name: settings: {
       name = "${stateDir}/profiles/${name}.config.toml";
       value.source = toml.generate "codex-profile-${name}.toml" settings;
-    }) enabledProfiles;
+    }) profiles;
 
     # --------------------------------------------------------------------------
     # Activation
@@ -181,7 +159,7 @@ in
   settings = lib.optionalAttrs cfg.enableCorpGateway {
     model_providers.corp-gateway = {
       name = "Corporate gateway";
-      base_url = "${corpHosts.llmGatewayUrl}/v1";
+      base_url = corpGateway.apiUrls.openai-responses;
       wire_api = "responses";
 
       auth = {
@@ -191,9 +169,7 @@ in
     };
   };
 
-  wrapArgs = lib.optionals cfg.enableCorpGateway [
-    "--set"
-    "CODEX_CA_CERTIFICATE"
-    caFile
-  ];
+  envVars = lib.optionalAttrs cfg.enableCorpGateway {
+    CODEX_CA_CERTIFICATE = caFile;
+  };
 }

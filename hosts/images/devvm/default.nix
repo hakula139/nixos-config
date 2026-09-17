@@ -20,11 +20,6 @@ let
     "gitlab"
   ];
 
-  claudeMcpServers = [
-    "codex"
-  ]
-  ++ commonMcpServers;
-
   proxyUrlSecret = "devvm/proxy-url";
   proxyNoProxy = [ wildcardDomain ];
 in
@@ -65,7 +60,7 @@ in
       # ------------------------------------------------------------------------
       hakula.claude-code = {
         auth.defaultProfile = "corp-gateway-bedrock";
-        mcp.enabledServers = claudeMcpServers;
+        mcp.enabledServers = commonMcpServers;
         plugins.bundle = true;
       };
 

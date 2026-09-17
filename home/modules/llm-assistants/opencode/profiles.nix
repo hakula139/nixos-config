@@ -6,105 +6,152 @@
   config,
   pkgs,
   lib,
-  corpHosts,
-  hostType,
-  mkProfileSwitch,
-  modelCatalog,
-  secretPath,
-  enabledAgents,
+  profileDefinitions,
   sharedAgents,
+  enabledAgents,
+  hostType,
+  secretPath,
+  mkProfileSwitch,
 }:
 
 let
   cfg = config.hakula.opencode.auth;
   json = pkgs.formats.json { };
   stateDir = "${config.xdg.stateHome}/opencode";
-  tokenFile = secretPath "llm-assistants/bifrost-api-key";
-  caFile = secretPath "llm-assistants/corp-cachain.crt";
+  managedAgents = lib.filterAttrs (name: _: lib.elem name enabledAgents) sharedAgents;
+
+  corpGateway = profileDefinitions.providers.corp-gateway;
+  tokenFile = secretPath corpGateway.tokenSecret;
+  caFile = secretPath corpGateway.caSecret;
 
   # ----------------------------------------------------------------------------
-  # Model roles
+  # Model configuration
   # ----------------------------------------------------------------------------
-  gptModels = modelCatalog.defaults.gpt;
-  gptModelIds = lib.unique (builtins.attrValues gptModels);
-  managedAgents = lib.filterAttrs (
-    name: agent: lib.elem name enabledAgents && agent ? modelTier
-  ) sharedAgents;
+  mkReasoningOptions =
+    api: model: effort:
+    {
+      anthropic-messages = {
+        inherit effort;
+      }
+      // lib.optionalAttrs (model.thinking.mode == "anthropic-adaptive") {
+        thinking = {
+          type = "adaptive";
+        }
+        // lib.optionalAttrs model.thinking.supportsDisplay {
+          display = "summarized";
+        };
+      };
+      openai-responses.reasoningEffort = effort;
+    }
+    .${api};
 
   mkModels =
-    modelIds: corp:
-    lib.listToAttrs (
-      map (
-        id:
-        let
-          model = modelCatalog.models.${id};
-        in
+    api:
+    {
+      gateway,
+      models,
+      modelIds,
+      ...
+    }:
+    lib.mapAttrs' (tier: model: {
+      name = modelIds.${tier};
+      value = {
+        inherit (model) name;
+        limit = {
+          context = model.contextWindow;
+          output = model.maxTokens;
+        };
+        modalities = {
+          inherit (model) input;
+          output = [ "text" ];
+        };
+        inherit (model) reasoning;
+        options = mkReasoningOptions api model model.thinking.defaultLevel;
+        variants = lib.genAttrs model.thinking.efforts (mkReasoningOptions api model);
+      }
+      // lib.optionalAttrs (gateway != null) {
+        cost = {
+          inherit (model.gatewayCost.${gateway}) input output;
+          cache_read = model.gatewayCost.${gateway}.cacheRead;
+          cache_write = model.gatewayCost.${gateway}.cacheWrite;
+        };
+      };
+    }) models;
+
+  # ----------------------------------------------------------------------------
+  # Profile assembly
+  # ----------------------------------------------------------------------------
+  mkProfile =
+    name:
+    profile@{
+      family,
+      gateway,
+      models,
+      modelIds,
+      ...
+    }:
+    let
+      api = profileDefinitions.familyApis.${family};
+      sdk =
         {
-          name = modelIds.${id};
-          value = {
-            inherit (model) name reasoning;
-            modalities = {
-              input = [
-                "text"
-                "image"
-              ];
-              output = [ "text" ];
-            };
-            limit = {
-              context = model.contextWindow;
-              output = model.maxTokens;
-            };
-            options = {
-              reasoningEffort = model.thinking.defaultLevel;
-              textVerbosity = "low";
-            };
-            variants = lib.genAttrs model.thinking.efforts (effort: {
-              reasoningEffort = effort;
-            });
-          }
-          // lib.optionalAttrs corp {
-            cost = {
-              inherit (model.gatewayCost.openai) input output;
-              cache_read = model.gatewayCost.openai.cacheRead;
-              cache_write = model.gatewayCost.openai.cacheWrite;
-            };
+          anthropic-messages = {
+            name = "anthropic";
+            # The native Anthropic client appends /v1/messages.
+            # This SDK appends /messages, so its base URL must include /v1.
+            baseURL = corpGateway.apiUrls.anthropic-messages + "/v1";
+          };
+          openai-responses = {
+            name = "openai";
+            baseURL = corpGateway.apiUrls.openai-responses;
           };
         }
-      ) gptModelIds
-    );
+        .${api};
 
-  mkProfile = provider: modelIds: {
-    model = "${provider}/${modelIds.${gptModels.flagship}}";
-    small_model = "${provider}/${modelIds.${gptModels.mini}}";
-    agent = lib.mapAttrs (_: agent: {
-      model = "${provider}/${modelIds.${gptModels.${agent.modelTier}}}";
-    }) managedAgents;
-    provider.${provider}.models = mkModels modelIds (provider == "corp-gateway");
-  };
+      # Provider IDs persist in sessions independently of profile filenames.
+      provider =
+        if gateway == null then
+          sdk.name
+        else if gateway == "openai" then
+          "corp-gateway"
+        else
+          name;
+    in
+    {
+      model = "${provider}/${modelIds.flagship}";
+      small_model = "${provider}/${modelIds.mini}";
+
+      agent = lib.mapAttrs (_: agent: {
+        model = "${provider}/${modelIds.${agent.modelTier}}";
+        options = mkReasoningOptions api models.${agent.modelTier} agent.effort;
+      }) managedAgents;
+
+      provider.${provider} = {
+        models = mkModels api profile;
+      }
+      // lib.optionalAttrs (gateway != null) {
+        npm = "@ai-sdk/${sdk.name}";
+        options = {
+          inherit (sdk) baseURL;
+          apiKey = "{file:${tokenFile}}";
+        };
+      };
+    };
 
   # ----------------------------------------------------------------------------
   # Profile definitions
   # ----------------------------------------------------------------------------
-  profiles = {
-    official = mkProfile "openai" (lib.genAttrs gptModelIds (id: id));
-  }
-  // lib.optionalAttrs cfg.enableCorpGateway {
-    corp-gateway =
-      lib.recursiveUpdate
-        (mkProfile "corp-gateway" (
-          lib.genAttrs gptModelIds (id: modelCatalog.models.${id}.gatewayId.openai)
-        ))
-        {
-          provider.corp-gateway = {
-            name = "Corporate gateway";
-            npm = "@ai-sdk/openai";
-            options = {
-              baseURL = "${corpHosts.llmGatewayUrl}/v1";
-              apiKey = "{file:${tokenFile}}";
-            };
-          };
-        };
-  };
+  profiles = lib.mapAttrs mkProfile (
+    profileDefinitions.mkProfiles {
+      inherit (cfg) enableCorpGateway;
+      nativeFamily = "gpt";
+      providers = [ "corp-gateway" ];
+      gateways = [
+        "bedrock"
+        "openai"
+        "local"
+      ];
+    }
+  );
 
   # ----------------------------------------------------------------------------
   # Profile switcher
@@ -122,27 +169,18 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options = {
-    defaultProfile = lib.mkOption {
-      type = lib.types.enum [
-        "official"
-        "corp-gateway"
-      ];
-      default = if cfg.enableCorpGateway then "corp-gateway" else "official";
-      description = "Fallback authentication profile when no installed profile is active";
-    };
-
-    enableCorpGateway = lib.mkOption {
-      type = lib.types.bool;
-      default = hostType == "work";
-      description = "Include the corporate gateway profile and provision its credentials";
-    };
+  options = profileDefinitions.mkOptions {
+    inherit hostType;
+    defaultProfile = if cfg.enableCorpGateway then "corp-gateway-openai" else "official";
   };
 
   # ----------------------------------------------------------------------------
   # Module config
   # ----------------------------------------------------------------------------
   config = {
+    # --------------------------------------------------------------------------
+    # Assertions
+    # --------------------------------------------------------------------------
     assertions = [
       {
         assertion = builtins.hasAttr cfg.defaultProfile profiles;
@@ -153,9 +191,9 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    hakula.secrets.required = lib.optionalAttrs cfg.enableCorpGateway {
-      "llm-assistants/bifrost-api-key" = { };
-      "llm-assistants/corp-cachain.crt" = { };
+    hakula.secrets.required = lib.mkIf cfg.enableCorpGateway {
+      ${corpGateway.tokenSecret} = { };
+      ${corpGateway.caSecret} = { };
     };
 
     # --------------------------------------------------------------------------
@@ -182,14 +220,10 @@ in
   # ----------------------------------------------------------------------------
   # Exports
   # ----------------------------------------------------------------------------
-  wrapArgs = [
-    "--set"
-    "OPENCODE_CONFIG"
-    "${stateDir}/active-profile"
-  ]
-  ++ lib.optionals cfg.enableCorpGateway [
-    "--set"
-    "NODE_EXTRA_CA_CERTS"
-    caFile
-  ];
+  envVars = {
+    OPENCODE_CONFIG = "${stateDir}/active-profile";
+  }
+  // lib.optionalAttrs cfg.enableCorpGateway {
+    NODE_EXTRA_CA_CERTS = caFile;
+  };
 }

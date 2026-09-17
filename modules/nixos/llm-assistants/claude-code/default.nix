@@ -25,8 +25,8 @@ in
     };
 
     defaultProfile = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
+      type = lib.types.str;
+      default = "official";
       description = ''
         Default Claude Code auth profile to activate on first build. Bridges to
         `home-manager.users.<user>.hakula.claude-code.auth.defaultProfile` via

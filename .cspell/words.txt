@@ -112,6 +112,7 @@ kdelpf
 kdelrs
 keyclu
 khtml
+kimi
 kubeconfig
 kubectx
 lancidr

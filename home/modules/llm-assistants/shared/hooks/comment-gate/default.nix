@@ -5,8 +5,8 @@
 {
   mkNuHook,
   modelCall,
-  commentGate,
   patchInput,
+  readPrompt,
   timeouts,
 }:
 
@@ -21,7 +21,7 @@
     config = {
       inherit modelCall;
       patchInput = toString patchInput;
-      prompt = commentGate;
+      prompt = readPrompt ./prompt.md;
     };
   };
 }
