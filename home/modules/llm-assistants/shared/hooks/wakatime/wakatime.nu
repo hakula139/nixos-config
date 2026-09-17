@@ -40,7 +40,7 @@ def state-id [input: record]: nothing -> string {
 def throttled [file: string, now: int]: nothing -> bool {
   let last = (try { open $file | str trim } catch { "" })
   # Decimal timestamp
-  if ($last =~ '^[0-9]+$') == false {
+  if $last !~ '^[0-9]+$' {
     return false
   }
   ($now - ($last | into int)) < $BEAT_INTERVAL
@@ -54,7 +54,7 @@ def wakatime-home []: nothing -> string {
 def beat [config: record]: nothing -> nothing {
   let input = (payload)
   let probe = (^wakatime-cli --help | complete)
-  if ($probe.stdout | str contains "--sync-ai-activity") == false {
+  if not ($probe.stdout | str contains "--sync-ai-activity") {
     return
   }
   let home = (wakatime-home)

@@ -6,9 +6,7 @@
   config,
   pkgs,
   lib,
-  corpHosts,
   hostType,
-  modelCatalog,
   repoLib,
   secretPath,
   enableDevToolchains ? false,
@@ -22,19 +20,15 @@ let
   inherit (shared) agentRoleOptions instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
 
-  opencodeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
-
   profiles = import ./profiles.nix {
     inherit
       config
       pkgs
       lib
-      corpHosts
       hostType
-      modelCatalog
       secretPath
       ;
-    inherit (shared) mkProfileSwitch;
+    inherit (shared) profileDefinitions mkProfileSwitch;
     inherit (cfg.agents) enabledAgents;
     sharedAgents = shared.agentRoles;
   };
@@ -54,7 +48,7 @@ in
       };
     };
 
-    mcp = mcpOptions.mkMcpOptions { names = opencodeMcpServers; };
+    mcp = mcpOptions.mkMcpOptions { names = mcpOptions.commonServerNames; };
 
     plugins = {
       bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
@@ -130,19 +124,16 @@ in
       # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
-      proxyScript = pkgs.writeShellScript "opencode-proxy-env" (repoLib.proxy.mkProxyScript cfg.proxy);
-
       opencodeBin = repoLib.wrapPackage {
         inherit pkgs;
+        inherit (profiles) envVars;
         pkg = pkgs.opencode;
         name = "opencode-${pkgs.opencode.version}";
         bin = "opencode";
-        wrapArgs =
-          profiles.wrapArgs
-          ++ lib.optionals cfg.proxy.enable [
-            "--run"
-            "source ${proxyScript}"
-          ];
+        wrapArgs = lib.optionals cfg.proxy.enable [
+          "--run"
+          (repoLib.proxy.mkProxyScript cfg.proxy)
+        ];
       };
 
       # ------------------------------------------------------------------------

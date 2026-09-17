@@ -4,10 +4,11 @@
 
 {
   lib,
+  agentRoles,
 }:
 
 let
-  sharedAgentNames = builtins.attrNames (import ./default.nix);
+  sharedAgentNames = builtins.attrNames agentRoles;
 in
 {
   inherit sharedAgentNames;

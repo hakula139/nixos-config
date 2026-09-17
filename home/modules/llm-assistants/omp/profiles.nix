@@ -6,9 +6,10 @@
   config,
   pkgs,
   lib,
+  profileDefinitions,
   hostType,
+  secretPath,
   mkProfileSwitch,
-  modelCatalog,
 }:
 
 let
@@ -16,62 +17,65 @@ let
   yaml = pkgs.formats.yaml { };
   configDir = "${config.home.homeDirectory}/.omp/agent";
   stateDir = "${config.xdg.stateHome}/omp";
+  modelAliases = profileDefinitions.modelAliases.omp;
+
+  corpGateway = profileDefinitions.providers.corp-gateway;
+  caFile = secretPath corpGateway.caSecret;
 
   # ----------------------------------------------------------------------------
-  # Model roles
+  # Profile assembly
   # ----------------------------------------------------------------------------
-  claudeModels = modelCatalog.defaults.claude;
-  gptModels = modelCatalog.defaults.gpt;
-  claudeModel = modelCatalog.models.${claudeModels.flagship};
-  gptModel = modelCatalog.models.${gptModels.flagship};
-
-  claudeRoles = provider: models: {
-    default = "${provider}/${models.flagship}:${claudeModel.thinking.defaultLevel}";
-    plan = "${provider}/${models.flagship}:xhigh";
-    slow = "${provider}/${models.flagship}:max";
-    smol = "${provider}/${models.mini}:low";
-  };
-
-  gptRoles = provider: models: {
-    default = "${provider}/${models.flagship}:${gptModel.thinking.defaultLevel}";
-    plan = "${provider}/${models.flagship}:high";
-    slow = "${provider}/${models.flagship}:max";
-    smol = "${provider}/${models.mini}:medium";
-  };
-
-  # ----------------------------------------------------------------------------
-  # Compaction
-  # ----------------------------------------------------------------------------
-  mkCompaction = model: {
-    enabled = true;
-    thresholdTokens = model.autoCompactTokens;
-  };
-
-  claudeCompaction = mkCompaction claudeModel;
-  gptCompaction = mkCompaction gptModel;
+  mkProfile =
+    name:
+    {
+      gateway,
+      models,
+      modelIds,
+      ...
+    }:
+    let
+      provider = if gateway == null then "openai-codex" else name;
+      model = models.flagship;
+    in
+    {
+      modelRoles =
+        lib.mapAttrs' (
+          tier: alias:
+          lib.nameValuePair alias "${provider}/${modelIds.${tier}}:${models.${tier}.thinking.defaultLevel}"
+        ) modelAliases
+        // {
+          plan = "${provider}/${modelIds.flagship}:high";
+          slow = "${provider}/${modelIds.flagship}:max";
+        };
+      compaction = {
+        enabled = true;
+        thresholdTokens = model.autoCompactTokens;
+      };
+    };
 
   # ----------------------------------------------------------------------------
   # Profile definitions
   # ----------------------------------------------------------------------------
-  profiles = {
-    official = {
-      modelRoles = gptRoles "openai-codex" gptModels;
-      compaction = gptCompaction;
-    };
-  }
-  // lib.optionalAttrs cfg.enableCorpGateway {
-    corp-gateway-bedrock = {
-      modelRoles = claudeRoles "corp-gateway-bedrock" (
-        lib.mapAttrs (_: id: modelCatalog.models.${id}.gatewayId.bedrock) claudeModels
-      );
-      compaction = claudeCompaction;
-    };
-    corp-gateway-openai = {
-      modelRoles = gptRoles "corp-gateway-openai" (
-        lib.mapAttrs (_: id: modelCatalog.models.${id}.gatewayId.openai) gptModels
-      );
-      compaction = gptCompaction;
-    };
+  enabledProfiles = profileDefinitions.mkProfiles {
+    inherit (cfg) enableCorpGateway;
+    nativeFamily = "gpt";
+    providers = [ "corp-gateway" ];
+    gateways = [
+      "bedrock"
+      "openai"
+      "local"
+    ];
+  };
+  profiles = lib.mapAttrs mkProfile enabledProfiles;
+
+  models = import ./models.nix {
+    inherit
+      pkgs
+      lib
+      profileDefinitions
+      secretPath
+      ;
+    profiles = lib.filterAttrs (_: profile: profile.provider != null) enabledProfiles;
   };
 
   # ----------------------------------------------------------------------------
@@ -93,34 +97,32 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options = {
-    defaultProfile = lib.mkOption {
-      type = lib.types.enum [
-        "official"
-        "corp-gateway-bedrock"
-        "corp-gateway-openai"
-      ];
-      default = if cfg.enableCorpGateway then "corp-gateway-openai" else "official";
-      description = "Fallback authentication profile when no installed profile is active";
-    };
-
-    enableCorpGateway = lib.mkOption {
-      type = lib.types.bool;
-      default = hostType == "work";
-      description = "Include corporate gateway profiles and provision their credentials";
-    };
+  options = profileDefinitions.mkOptions {
+    inherit hostType;
+    defaultProfile = if cfg.enableCorpGateway then "corp-gateway-openai" else "official";
   };
 
   # ----------------------------------------------------------------------------
   # Module config
   # ----------------------------------------------------------------------------
   config = {
+    # --------------------------------------------------------------------------
+    # Assertions
+    # --------------------------------------------------------------------------
     assertions = [
       {
         assertion = builtins.hasAttr cfg.defaultProfile profiles;
         message = "hakula.omp.auth.defaultProfile requires its profile to be enabled";
       }
     ];
+
+    # --------------------------------------------------------------------------
+    # Secrets
+    # --------------------------------------------------------------------------
+    hakula.secrets.required = lib.mkIf cfg.enableCorpGateway {
+      ${corpGateway.tokenSecret} = { };
+      ${corpGateway.caSecret} = { };
+    };
 
     # --------------------------------------------------------------------------
     # Packages
@@ -130,7 +132,10 @@ in
     # --------------------------------------------------------------------------
     # Profile files
     # --------------------------------------------------------------------------
-    home.file = lib.mapAttrs' (name: settings: {
+    home.file = {
+      ".omp/agent/models.yml".source = yaml.generate "omp-models.yml" models;
+    }
+    // lib.mapAttrs' (name: settings: {
       name = "${stateDir}/profiles/${name}.config.yml";
       value.source = yaml.generate "omp-profile-${name}.yml" settings;
     }) profiles;
@@ -142,5 +147,12 @@ in
     home.activation.ompAuthProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
       ${switch}/bin/omp-switch --initialize
     '';
+  };
+
+  # ----------------------------------------------------------------------------
+  # Exports
+  # ----------------------------------------------------------------------------
+  envVars = lib.optionalAttrs cfg.enableCorpGateway {
+    NODE_EXTRA_CA_CERTS = caFile;
   };
 }

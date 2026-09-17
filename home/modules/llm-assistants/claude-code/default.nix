@@ -24,15 +24,13 @@ let
 
   claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [
     "codex-worker"
-    "comment-gate"
   ];
-  claudeMcpServers = mcpOptions.commonServerNames ++ [ "codex" ];
 
   agents = import ./agents {
     inherit lib;
-    inherit (instructions) commentGate;
     inherit (cfg.agents) enabledAgents;
     sharedAgents = shared.agentRoles;
+    modelAliases = shared.profileDefinitions.modelAliases.claude;
   };
 
   mcp = import ./mcp.nix {
@@ -51,13 +49,11 @@ let
       config
       pkgs
       lib
-      agents
       hostType
-      mcpFlag
-      modelCatalog
       secretPath
+      mcpFlag
       ;
-    inherit (shared) mkProfileSwitch;
+    inherit (shared) profileDefinitions mkProfileSwitch;
   };
 in
 {
@@ -72,12 +68,11 @@ in
     agents = {
       enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
         names = claudeAgentNames;
-        default = claudeAgentNames;
         description = "Custom agents to enable";
       };
     };
 
-    mcp = mcpOptions.mkMcpOptions { names = claudeMcpServers; };
+    mcp = mcpOptions.mkMcpOptions { names = mcpOptions.commonServerNames; };
 
     plugins = {
       bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
@@ -151,11 +146,6 @@ in
       # ------------------------------------------------------------------------
       wrapArgs =
         profiles.wrapArgs
-        ++ lib.optionals cfg.plugins.bundle [
-          "--set"
-          "CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL"
-          "1"
-        ]
         ++ lib.optionals cfg.proxy.enable [
           "--run"
           (repoLib.proxy.mkProxyScript cfg.proxy)
@@ -170,6 +160,9 @@ in
         pkg = pkgs.claude-code;
         name = "claude-code-${pkgs.claude-code.version}";
         bin = "claude";
+        envVars = lib.optionalAttrs cfg.plugins.bundle {
+          CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL = "1";
+        };
       };
 
       # ------------------------------------------------------------------------
@@ -188,8 +181,6 @@ in
           AGENT_BROWSER_EXECUTABLE_PATH = lib.getExe pkgs.browser-tools.chromium;
         };
 
-        home.packages = profiles.packages;
-
         programs.claude-code = {
           enable = true;
           package = claudeCodeBin;
@@ -198,9 +189,9 @@ in
           settings = import ./settings.nix {
             inherit
               lib
+              modelCatalog
               homeDir
               hooks
-              modelCatalog
               permissions
               plugins
               ;
@@ -219,13 +210,7 @@ in
             source = statusLineScript;
             executable = true;
           };
-        }
-        // profiles.homeFiles;
-
-        # ----------------------------------------------------------------------
-        # Activation
-        # ----------------------------------------------------------------------
-        home.activation.claudeCodeProfile = profiles.activation;
+        };
       }
 
       # ------------------------------------------------------------------------

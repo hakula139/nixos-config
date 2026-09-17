@@ -4,8 +4,8 @@
 
 {
   lib,
-  enabledAgents,
   sharedAgents,
+  enabledAgents,
 }:
 
 let
@@ -21,7 +21,6 @@ let
       ]
       ++ renderIndentedLines agent.description
       ++ [ "mode: subagent" ]
-      ++ lib.optional (agent ? effort) "variant: ${agent.effort.gpt}"
       ++ lib.optionals (permission != { }) (
         [ "permission:" ]
         ++ lib.mapAttrsToList (name: value: "  ${name}: ${builtins.toJSON value}") permission

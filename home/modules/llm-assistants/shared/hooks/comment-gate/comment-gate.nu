@@ -120,7 +120,7 @@ def reason [raw: string]: nothing -> string {
 def gate [config: record]: nothing -> any {
   let input = (^cat | from json)
   let found = (payload $input $config | where {|file|
-    (($file.path | str ends-with ".md") == false
+    ((not ($file.path | str ends-with ".md"))
       and ($file.text | str trim | str length --grapheme-clusters) >= $MIN_CHARS
       and (commentish $file.path $file.text))
   })
@@ -130,7 +130,7 @@ def gate [config: record]: nothing -> any {
   if ($raw | str trim | is-empty) {
     return null
   }
-  if ((verdict $raw) | get -o ok | default true) != false {
+  if ((verdict $raw) | get -o ok | default true) {
     return null
   }
   {

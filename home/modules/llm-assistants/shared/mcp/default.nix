@@ -14,6 +14,8 @@
 let
   inherit (corpHosts) gitlabUrl wikiUrl;
 
+  esc = lib.escapeShellArg;
+
   homeDir = config.home.homeDirectory;
 
   # ----------------------------------------------------------------------------
@@ -35,13 +37,13 @@ let
   '';
 
   exportFromFile = var: file: ''
-    if [ -f "${file}" ]; then
-      export ${var}="$(cat ${file})"
+    if [ -f ${esc file} ]; then
+      export ${var}="$(cat ${esc file})"
     fi
   '';
 
   exportLiteral = var: value: ''
-    export ${var}="${value}"
+    export ${var}=${esc value}
   '';
 
   # `envFiles` values are runtime paths read on start, keeping secrets out of the store path.
@@ -126,13 +128,6 @@ let
   };
 
   # ----------------------------------------------------------------------------
-  # Codex
-  # ----------------------------------------------------------------------------
-  codexBin = pkgs.writeShellScriptBin "codex-mcp" ''
-    exec "${config.home.profileDirectory}/bin/codex" mcp-server "$@"
-  '';
-
-  # ----------------------------------------------------------------------------
   # Context7
   # ----------------------------------------------------------------------------
   context7Bin = mkNpmServer {
@@ -157,7 +152,7 @@ let
   # Filesystem
   # ----------------------------------------------------------------------------
   filesystemBin = pkgs.writeShellScriptBin "filesystem-mcp" ''
-    exec ${pkgs.mcp-server-filesystem}/bin/mcp-server-filesystem "${homeDir}" "$@"
+    exec ${pkgs.mcp-server-filesystem}/bin/mcp-server-filesystem ${esc homeDir} "$@"
   '';
 
   # ----------------------------------------------------------------------------
@@ -173,10 +168,10 @@ let
   ghBin = "${config.home.profileDirectory}/bin/gh";
   githubPatFile = secretPath "github-pat";
   githubBin = pkgs.writeShellScriptBin "github-mcp" ''
-    if [[ -x "${ghBin}" ]] && token=$("${ghBin}" auth token 2>/dev/null); then
+    if [[ -x ${esc ghBin} ]] && token=$(${esc ghBin} auth token 2>/dev/null); then
       export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
-    elif [[ -f "${githubPatFile}" ]]; then
-      export GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${githubPatFile})"
+    elif [[ -f ${esc githubPatFile} ]]; then
+      export GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${esc githubPatFile})"
     fi
     exec ${pkgs.mcp-server-github}/bin/mcp-server-github stdio "$@"
   '';
@@ -196,16 +191,16 @@ let
     "repositories"
   ];
   gitlabBin = pkgs.writeShellScriptBin "gitlab-mcp" ''
-    if [[ -x "${glabBin}" ]] \
-      && host=$("${glabBin}" config get host 2>/dev/null) && [[ -n "$host" ]] \
-      && token=$("${glabBin}" config get token --host "$host" 2>/dev/null) && [[ -n "$token" ]]; then
+    if [[ -x ${esc glabBin} ]] \
+      && host=$(${esc glabBin} config get host 2>/dev/null) && [[ -n "$host" ]] \
+      && token=$(${esc glabBin} config get token --host "$host" 2>/dev/null) && [[ -n "$token" ]]; then
       export GITLAB_PERSONAL_ACCESS_TOKEN="$token"
       export GITLAB_API_URL="https://''${host}/api/v4"
-    elif [[ -f "${gitlabPatFile}" ]]; then
-      export GITLAB_PERSONAL_ACCESS_TOKEN="$(cat ${gitlabPatFile})"
-      export GITLAB_API_URL="${gitlabUrl}/api/v4"
+    elif [[ -f ${esc gitlabPatFile} ]]; then
+      export GITLAB_PERSONAL_ACCESS_TOKEN="$(cat ${esc gitlabPatFile})"
+      export GITLAB_API_URL=${esc "${gitlabUrl}/api/v4"}
     fi
-    export GITLAB_TOOLSETS="${gitlabToolsets}"
+    export GITLAB_TOOLSETS=${esc gitlabToolsets}
     exec ${pkgs.mcp-server-gitlab}/bin/mcp-server-gitlab "$@"
   '';
 
@@ -241,11 +236,6 @@ in
 
     chromeDevtools = {
       command = "${chromeDevtoolsBin}/bin/chrome-devtools-mcp";
-      type = "stdio";
-    };
-
-    codex = {
-      command = "${codexBin}/bin/codex-mcp";
       type = "stdio";
     };
 

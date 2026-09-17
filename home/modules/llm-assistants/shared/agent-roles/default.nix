@@ -2,19 +2,10 @@
 # Shared Agent Roles
 # ==============================================================================
 
-let
-  fragments = {
-    "@preamble@" = ./prompts/preamble.md;
-    "@memory@" = ./prompts/memory.md;
-    "@coordination@" = ./prompts/coordination.md;
-  };
+{
+  readPrompt,
+}:
 
-  readPrompt =
-    file:
-    builtins.replaceStrings (builtins.attrNames fragments) (map builtins.readFile (
-      builtins.attrValues fragments
-    )) (builtins.readFile file);
-in
 {
   architect = {
     description = ''
@@ -22,14 +13,15 @@ in
       patterns, dependency relationships, or feedback on an approach before implementation.
     '';
     prompt = readPrompt ./prompts/architect.md;
+    modelTier = "flagship";
+    effort = "high";
+
     claude = {
       color = "cyan";
-      effort = "xhigh";
       memory = "local";
       permissionMode = "plan";
     };
     codex = {
-      reasoningEffort = "high";
       sandboxMode = "read-only";
       nicknameCandidates = [
         "architect"
@@ -37,7 +29,6 @@ in
       ];
     };
     omp = {
-      model = "@plan";
       tools = [
         "ast_grep"
         "glob"
@@ -60,23 +51,22 @@ in
       unexpected behavior, or failure, especially when the cause is unclear.
     '';
     prompt = readPrompt ./prompts/debugger.md;
+    modelTier = "flagship";
+    effort = "high";
+
     claude = {
       color = "red";
-      effort = "xhigh";
       memory = "local";
     };
     codex = {
-      reasoningEffort = "high";
       nicknameCandidates = [
         "debugger"
         "debug"
       ];
     };
     omp = {
-      model = "@slow";
       spawns = "*";
     };
-    opencode = { };
   };
 
   implementer = {
@@ -86,23 +76,22 @@ in
       code.
     '';
     prompt = readPrompt ./prompts/implementer.md;
+    modelTier = "flagship";
+    effort = "high";
+
     claude = {
       color = "yellow";
-      effort = "high";
       memory = "local";
     };
     codex = {
-      reasoningEffort = "high";
       nicknameCandidates = [
         "implementer"
         "builder"
       ];
     };
     omp = {
-      model = "@default";
       spawns = "*";
     };
-    opencode = { };
   };
 
   researcher = {
@@ -112,10 +101,8 @@ in
     '';
     prompt = readPrompt ./prompts/researcher.md;
     modelTier = "mini";
-    effort = {
-      claude = "low";
-      gpt = "medium";
-    };
+    effort = "low";
+
     claude = {
       color = "blue";
       memory = "local";
@@ -130,7 +117,6 @@ in
       ];
     };
     omp = {
-      model = "@smol";
       tools = [
         "ast_grep"
         "glob"
@@ -153,14 +139,15 @@ in
       focused review of recent changes, or to audit existing code for issues.
     '';
     prompt = readPrompt ./prompts/reviewer.md;
+    modelTier = "flagship";
+    effort = "high";
+
     claude = {
       color = "green";
-      effort = "xhigh";
       memory = "local";
       permissionMode = "plan";
     };
     codex = {
-      reasoningEffort = "high";
       sandboxMode = "read-only";
       nicknameCandidates = [
         "reviewer"
@@ -168,7 +155,6 @@ in
       ];
     };
     omp = {
-      model = "@slow";
       tools = [
         "ast_grep"
         "glob"
@@ -191,24 +177,22 @@ in
       want to run existing tests, or need help diagnosing test failures.
     '';
     prompt = readPrompt ./prompts/tester.md;
+    modelTier = "standard";
+    effort = "high";
+
     claude = {
       color = "magenta";
-      model = "sonnet";
-      effort = "medium";
       memory = "local";
     };
     codex = {
-      reasoningEffort = "medium";
       nicknameCandidates = [
         "tester"
         "qa"
       ];
     };
     omp = {
-      model = "@default";
       spawns = "*";
     };
-    opencode = { };
   };
 
   usability-reviewer = {
@@ -218,14 +202,15 @@ in
       for intuitiveness and clarity.
     '';
     prompt = readPrompt ./prompts/usability-reviewer.md;
+    modelTier = "flagship";
+    effort = "high";
+
     claude = {
       color = "gray";
-      effort = "medium";
       memory = "local";
       permissionMode = "plan";
     };
     codex = {
-      reasoningEffort = "medium";
       sandboxMode = "read-only";
       nicknameCandidates = [
         "usability"
@@ -233,7 +218,6 @@ in
       ];
     };
     omp = {
-      model = "@plan";
       tools = [
         "ast_grep"
         "glob"

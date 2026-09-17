@@ -6,35 +6,97 @@
   config,
   pkgs,
   lib,
-  agents,
+  profileDefinitions,
   hostType,
-  mcpFlag,
-  mkProfileSwitch,
-  modelCatalog,
   secretPath,
+  mkProfileSwitch,
+  mcpFlag,
 }:
 
 let
+  inherit (profileDefinitions) modelAliases providers;
+
   cfg = config.hakula.claude-code;
   stateDir = "${config.xdg.stateHome}/claude-code";
-  hasProfiles = cfg.auth.profiles != { };
-
-  requiredSecretNames = lib.unique (
-    lib.concatMap (
-      p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
-    ) (builtins.attrValues cfg.auth.profiles)
-  );
-  requiredSecrets = lib.genAttrs requiredSecretNames (_: { });
-
-  modelEnvVars = {
-    opus = "ANTHROPIC_DEFAULT_OPUS_MODEL";
-    sonnet = "ANTHROPIC_DEFAULT_SONNET_MODEL";
-    haiku = "ANTHROPIC_DEFAULT_HAIKU_MODEL";
-  };
 
   authEnvByType = {
     oauth-token = "CLAUDE_CODE_OAUTH_TOKEN";
     api-key = "ANTHROPIC_AUTH_TOKEN";
+  };
+
+  # ----------------------------------------------------------------------------
+  # Profile assembly
+  # ----------------------------------------------------------------------------
+  mkProfile =
+    _: profile:
+    let
+      extraEnv =
+        lib.mapAttrs' (
+          tier: alias:
+          lib.nameValuePair "ANTHROPIC_DEFAULT_${lib.toUpper alias}_MODEL" (
+            profile.modelIds.${tier}
+            + lib.optionalString (profile.models.${tier}.contextWindow >= 1000000) "[1m]"
+          )
+        ) modelAliases.claude
+        // {
+          CLAUDE_CODE_AUTO_COMPACT_WINDOW = toString profile.models.flagship.autoCompactTokens;
+        };
+    in
+    {
+      inherit extraEnv;
+      inherit (profile) nativeWebSearch;
+    }
+    // (
+      if profile.provider == null then
+        { type = "subscription"; }
+      else
+        let
+          provider = providers.${profile.provider};
+        in
+        {
+          type = "api-key";
+          baseUrl = provider.apiUrls.anthropic-messages;
+          inherit (provider) tokenSecret;
+        }
+        // lib.optionalAttrs (profile.provider == "corp-gateway") {
+          extraEnv =
+            extraEnv
+            // {
+              CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
+            }
+            // lib.optionalAttrs (profile.family == "local") {
+              CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString profile.models.flagship.contextWindow;
+            };
+          extraSecretEnv.NODE_EXTRA_CA_CERTS = provider.caSecret;
+          nativeWebSearch = false;
+        }
+    );
+
+  # ----------------------------------------------------------------------------
+  # Profile definitions
+  # ----------------------------------------------------------------------------
+  profiles = lib.mapAttrs mkProfile (
+    profileDefinitions.mkProfiles {
+      inherit (cfg.auth) enableCorpGateway;
+      nativeFamily = "claude";
+      providers = [
+        "corp-gateway"
+        "ikuncode"
+        "yescode"
+      ];
+      gateways = [
+        "bedrock"
+        "openai"
+        "local"
+      ];
+    }
+  );
+
+  defaultProfiles = profiles // {
+    official-token = profiles.official // {
+      type = "oauth-token";
+      tokenSecret = "llm-assistants/claude-oauth-token";
+    };
   };
 
   # ----------------------------------------------------------------------------
@@ -52,15 +114,6 @@ let
         description = "Authentication type";
       };
 
-      tokenSecret = lib.mkOption {
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        description = ''
-          Name of the agenix secret containing the auth token (required for
-          `oauth-token` and `api-key`, forbidden for `subscription`).
-        '';
-      };
-
       baseUrl = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
@@ -70,23 +123,14 @@ let
         '';
       };
 
-      modelFamily = lib.mkOption {
-        type = lib.types.enum [
-          "claude"
-          "gpt"
-        ];
-        default = "claude";
-        description = "Model family for profile-specific agent models and effort";
+      tokenSecret = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = ''
+          Name of the agenix secret containing the auth token (required for
+          `oauth-token` and `api-key`, forbidden for `subscription`).
+        '';
       };
-
-      modelOverrides = lib.mapAttrs (
-        _: envVar:
-        lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-          description = "Override for ${envVar}";
-        }
-      ) modelEnvVars;
 
       extraEnv = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;
@@ -103,180 +147,21 @@ let
           secrets are auto-provisioned. Forbidden for `subscription`.
         '';
       };
+
+      nativeWebSearch = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Expose native WebSearch for this profile";
+      };
     };
+
+    config.extraEnv.CLAUDE_CODE_AUTO_COMPACT_WINDOW = lib.mkOptionDefault defaultProfiles.official.extraEnv.CLAUDE_CODE_AUTO_COMPACT_WINDOW;
   };
-
-  # ----------------------------------------------------------------------------
-  # Profile scripts
-  # ----------------------------------------------------------------------------
-  readSecretFn = ''
-    __read_secret() {
-      if [[ ! -s "$1" ]]; then
-        echo "claude: secret file missing or empty: $1" >&2
-        return 1
-      fi
-      cat "$1"
-    }
-  '';
-
-  mkProfileScript =
-    name: profile:
-    let
-      esc = lib.escapeShellArg;
-      familyModels = modelCatalog.defaults.${profile.modelFamily};
-      defaultModel = modelCatalog.models.${familyModels.flagship};
-      profileAgents = lib.optionalAttrs (profile.modelFamily != "claude") (
-        agents.mkProfileAgents profile.modelFamily
-      );
-      profileArgs = [
-        "--effort"
-        defaultModel.thinking.defaultLevel
-      ]
-      ++ lib.optionals (profileAgents != { }) [
-        "--agents"
-        (builtins.toJSON profileAgents)
-      ];
-
-      tokenLines =
-        if profile.type == "subscription" then
-          [ "# subscription mode: auth via interactive OAuth (.credentials.json)" ]
-        else
-          let
-            sf = lib.escapeShellArg (secretPath profile.tokenSecret);
-            envVar = authEnvByType.${profile.type};
-          in
-          [
-            readSecretFn
-            ''export ${envVar}="$(__read_secret ${sf})"''
-          ];
-
-      envLines =
-        lib.optional (profile.baseUrl != null) "export ANTHROPIC_BASE_URL=${esc profile.baseUrl}"
-        ++ lib.concatLists (
-          lib.mapAttrsToList (
-            k: envVar:
-            lib.optional (profile.modelOverrides.${k} != null)
-              "export ${envVar}=${esc profile.modelOverrides.${k}}"
-          ) modelEnvVars
-        )
-        ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv
-        ++ lib.mapAttrsToList (
-          k: secretName: "export ${k}=${esc (secretPath secretName)}"
-        ) profile.extraSecretEnv;
-    in
-    pkgs.writeShellScript "claude-profile-${name}" (
-      lib.concatStringsSep "\n" (
-        tokenLines ++ envLines ++ [ "__claude_profile_args=(${lib.escapeShellArgs profileArgs})" ]
-      )
-    );
-
-  profileScripts = lib.mapAttrs mkProfileScript cfg.auth.profiles;
-
-  # ----------------------------------------------------------------------------
-  # Auth env vars
-  # ----------------------------------------------------------------------------
-  # Clear inherited credentials, including ANTHROPIC_API_KEY, so they cannot
-  # bypass the active profile.
-  knownAuthEnvVars = lib.naturalSort (
-    builtins.attrValues authEnvByType
-    ++ [
-      "ANTHROPIC_API_KEY"
-      "ANTHROPIC_BASE_URL"
-    ]
-  );
-
-  allAuthEnvVars = lib.unique (
-    knownAuthEnvVars
-    ++ lib.concatMap (
-      profile:
-      let
-        modelVars = lib.concatLists (
-          lib.mapAttrsToList (
-            k: envVar: lib.optional (profile.modelOverrides.${k} != null) envVar
-          ) modelEnvVars
-        );
-        extraVars = builtins.attrNames profile.extraEnv ++ builtins.attrNames profile.extraSecretEnv;
-      in
-      modelVars ++ extraVars
-    ) (builtins.attrValues cfg.auth.profiles)
-  );
-
-  # ----------------------------------------------------------------------------
-  # Profile loader
-  # ----------------------------------------------------------------------------
-  profileLoader = pkgs.writeShellScript "claude-profile-loader" (
-    builtins.replaceStrings
-      [
-        "@unsetVars@"
-        "@stateDir@"
-      ]
-      [
-        (lib.concatMapStringsSep "\n" (v: "unset ${v}") allAuthEnvVars)
-        stateDir
-      ]
-      (builtins.readFile ./scripts/profile-loader.sh)
-  );
-
-  # ----------------------------------------------------------------------------
-  # Profile switcher
-  # ----------------------------------------------------------------------------
-  claudeSwitch = mkProfileSwitch {
-    inherit stateDir;
-    inherit (cfg.auth) defaultProfile;
-    name = "claude-switch";
-    assistant = "Claude Code";
-    profilesDir = "${stateDir}/profiles";
-    extension = "sh";
-  };
-
-  # ----------------------------------------------------------------------------
-  # Teammate launcher
-  # ----------------------------------------------------------------------------
-  teammateLauncher = pkgs.writeShellScript "claude-teammate-launcher" (
-    builtins.replaceStrings
-      [
-        "@profileLoader@"
-        "@mcpFlag@"
-      ]
-      [
-        "${profileLoader}"
-        mcpFlag
-      ]
-      (builtins.readFile ./scripts/teammate-launcher.sh)
-  );
-
-  # ----------------------------------------------------------------------------
-  # Home files
-  # ----------------------------------------------------------------------------
-  homeFiles = lib.mapAttrs' (name: script: {
-    name = "${stateDir}/profiles/${name}.sh";
-    value = {
-      source = script;
-    };
-  }) profileScripts;
-
-  # ----------------------------------------------------------------------------
-  # Activation
-  # ----------------------------------------------------------------------------
-  activation = lib.hm.dag.entryAfter [ "linkGeneration" ] (
-    lib.optionalString (hasProfiles && cfg.auth.defaultProfile != null) ''
-      ${claudeSwitch}/bin/claude-switch --initialize
-    ''
-  );
 
   # ----------------------------------------------------------------------------
   # Per-profile assertions
   # ----------------------------------------------------------------------------
   fieldConstraints = [
-    {
-      field = "tokenSecret";
-      isSet = p: p.tokenSecret != null;
-      required = [
-        "oauth-token"
-        "api-key"
-      ];
-      forbidden = [ "subscription" ];
-    }
     {
       field = "baseUrl";
       isSet = p: p.baseUrl != null;
@@ -285,6 +170,15 @@ let
         "oauth-token"
         "subscription"
       ];
+    }
+    {
+      field = "tokenSecret";
+      isSet = p: p.tokenSecret != null;
+      required = [
+        "oauth-token"
+        "api-key"
+      ];
+      forbidden = [ "subscription" ];
     }
     {
       field = "extraSecretEnv";
@@ -322,65 +216,209 @@ let
       (mkPosixNameAssertion "extraEnv" (builtins.attrNames profile.extraEnv))
       (mkPosixNameAssertion "extraSecretEnv" (builtins.attrNames profile.extraSecretEnv))
     ];
+
+  # ----------------------------------------------------------------------------
+  # Profile authentication
+  # ----------------------------------------------------------------------------
+  requiredSecretNames = lib.unique (
+    lib.concatMap (
+      p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
+    ) (builtins.attrValues cfg.auth.profiles)
+  );
+  requiredSecrets = lib.genAttrs requiredSecretNames (_: { });
+
+  # ----------------------------------------------------------------------------
+  # Profile scripts
+  # ----------------------------------------------------------------------------
+  readSecretFn = ''
+    __read_secret() {
+      if [[ ! -s "$1" ]]; then
+        echo "claude: secret file missing or empty: $1" >&2
+        return 1
+      fi
+      cat "$1"
+    }
+  '';
+
+  mkProfileScript =
+    name: profile:
+    let
+      esc = lib.escapeShellArg;
+
+      tokenLines =
+        if profile.type == "subscription" then
+          [ "# subscription mode: auth via interactive OAuth (.credentials.json)" ]
+        else
+          let
+            sf = esc (secretPath profile.tokenSecret);
+            envVar = authEnvByType.${profile.type};
+          in
+          [
+            readSecretFn
+            ''${envVar}="$(__read_secret ${sf})"''
+            "export ${envVar}"
+          ];
+
+      envLines =
+        lib.optional (profile.baseUrl != null) "export ANTHROPIC_BASE_URL=${esc profile.baseUrl}"
+        ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv
+        ++ lib.mapAttrsToList (
+          k: secretName: "export ${k}=${esc (secretPath secretName)}"
+        ) profile.extraSecretEnv;
+    in
+    pkgs.writeShellScript "claude-profile-${name}" (
+      lib.concatStringsSep "\n" (
+        tokenLines
+        ++ envLines
+        # Inline values preserve positional prompts and the caller's option delimiter.
+        ++ lib.optional (!profile.nativeWebSearch) ''set -- --disallowedTools=WebSearch "$@"''
+      )
+    );
+
+  profileScripts = lib.mapAttrs mkProfileScript cfg.auth.profiles;
+
+  # ----------------------------------------------------------------------------
+  # Profile loader
+  # ----------------------------------------------------------------------------
+  # Clear inherited credentials, including ANTHROPIC_API_KEY, so they cannot
+  # bypass the active profile.
+  knownAuthEnvVars = lib.naturalSort (
+    builtins.attrValues authEnvByType
+    ++ [
+      "ANTHROPIC_API_KEY"
+      "ANTHROPIC_BASE_URL"
+    ]
+  );
+
+  profileEnvVars = lib.unique (
+    knownAuthEnvVars
+    ++ lib.concatMap (
+      profile: builtins.attrNames profile.extraEnv ++ builtins.attrNames profile.extraSecretEnv
+    ) (builtins.attrValues cfg.auth.profiles)
+  );
+
+  profileLoader = pkgs.writeShellScript "claude-profile-loader" (
+    builtins.replaceStrings
+      [
+        "@unsetVars@"
+        "@stateDir@"
+      ]
+      [
+        (lib.concatMapStringsSep "\n" (v: "unset ${v}") profileEnvVars)
+        stateDir
+      ]
+      (builtins.readFile ./scripts/profile-loader.sh)
+  );
+
+  # ----------------------------------------------------------------------------
+  # Profile switcher
+  # ----------------------------------------------------------------------------
+  claudeSwitch = mkProfileSwitch {
+    inherit stateDir;
+    inherit (cfg.auth) defaultProfile;
+    name = "claude-switch";
+    assistant = "Claude Code";
+    profilesDir = "${stateDir}/profiles";
+    extension = "sh";
+  };
+
+  # ----------------------------------------------------------------------------
+  # Teammate launcher
+  # ----------------------------------------------------------------------------
+  teammateLauncher = pkgs.writeShellScript "claude-teammate-launcher" (
+    builtins.replaceStrings
+      [
+        "@profileLoader@"
+        "@mcpFlag@"
+      ]
+      [
+        "${profileLoader}"
+        mcpFlag
+      ]
+      (builtins.readFile ./scripts/teammate-launcher.sh)
+  );
 in
 {
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options = {
-    defaultProfile = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "Fallback authentication profile when no installed profile is active (null = no auth)";
-    };
+  options =
+    profileDefinitions.mkOptions {
+      inherit hostType;
+      defaultProfile = "official";
+    }
+    // {
 
-    profiles = lib.mkOption {
-      type = lib.types.attrsOf profileType;
-      default = { };
-      description = "Named authentication profiles for Claude Code";
+      profiles = lib.mkOption {
+        type = lib.types.attrsOf profileType;
+        default = { };
+        description = "Named authentication profiles for Claude Code";
+      };
     };
-
-    enableCorpGateway = lib.mkOption {
-      type = lib.types.bool;
-      default = hostType == "work";
-      description = "Include the `corp-gateway-*` profiles. Requires corp-scoped agenix access.";
-    };
-  };
 
   # ----------------------------------------------------------------------------
   # Module config
   # ----------------------------------------------------------------------------
   config = {
-    assertions =
-      lib.optional (hasProfiles && cfg.auth.defaultProfile == null) {
-        assertion = false;
-        message = "hakula.claude-code: auth.defaultProfile must be set when profiles are defined";
-      }
-      ++ lib.optional (hasProfiles && cfg.auth.defaultProfile != null) {
+    # --------------------------------------------------------------------------
+    # Assertions
+    # --------------------------------------------------------------------------
+    assertions = [
+      {
         assertion = lib.hasAttr cfg.auth.defaultProfile cfg.auth.profiles;
         message = "hakula.claude-code: auth.defaultProfile '${cfg.auth.defaultProfile}' is not in auth.profiles";
       }
-      ++ lib.concatLists (lib.mapAttrsToList mkProfileAssertions cfg.auth.profiles);
+    ]
+    ++ lib.concatLists (lib.mapAttrsToList mkProfileAssertions cfg.auth.profiles);
 
+    # --------------------------------------------------------------------------
+    # Profile defaults
+    # --------------------------------------------------------------------------
+    hakula.claude-code.auth.profiles = lib.mapAttrs (
+      _: profile:
+      profile
+      // {
+        extraEnv = lib.mapAttrs (_: lib.mkDefault) profile.extraEnv;
+      }
+    ) defaultProfiles;
+
+    # --------------------------------------------------------------------------
+    # Secrets
+    # --------------------------------------------------------------------------
     hakula.secrets.required = requiredSecrets;
+
+    # --------------------------------------------------------------------------
+    # Packages
+    # --------------------------------------------------------------------------
+    home.packages = [ claudeSwitch ];
+
+    # --------------------------------------------------------------------------
+    # Profile files
+    # --------------------------------------------------------------------------
+    home.file = lib.mapAttrs' (name: script: {
+      name = "${stateDir}/profiles/${name}.sh";
+      value = {
+        source = script;
+      };
+    }) profileScripts;
+
+    # --------------------------------------------------------------------------
+    # Activation
+    # --------------------------------------------------------------------------
+    home.activation.claudeCodeProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      ${claudeSwitch}/bin/claude-switch --initialize
+    '';
   };
 
   # ----------------------------------------------------------------------------
   # Exports
   # ----------------------------------------------------------------------------
-  wrapArgs = lib.optionals hasProfiles [
+  wrapArgs = [
     "--run"
-    ''
-      source ${profileLoader}
-      set -- "''${__claude_profile_args[@]}" "$@"
-    ''
+    "source ${profileLoader}"
   ];
 
-  packages = lib.optionals hasProfiles [ claudeSwitch ];
-
-  settings = lib.optionalAttrs hasProfiles {
+  settings = {
     processWrapper = "${teammateLauncher}";
   };
-
-  inherit homeFiles activation;
 }

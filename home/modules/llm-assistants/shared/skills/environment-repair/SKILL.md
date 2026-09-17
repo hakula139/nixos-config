@@ -19,7 +19,7 @@ This policy authorizes creating a local repair branch and isolated worktree, mak
 
 Use the current assistant's asynchronous subagent facility when it can run a bounded task in the specified repair worktree. Give it the full worktree path and require all edits and Git operations to use that directory. Native subagents may inherit the caller's working directory, so verify the worker's checkout before its first edit.
 
-When native delegation cannot provide background execution, use Workmux from the configured repository with an explicit base, `--background`, a prompt file, and `--agent` matching the caller (`codex`, `claude`, `omp`, or `opencode`). Pass `--parent-session` for the target repository when launching across projects. Inspect `workmux add --help` for the installed version and verify the returned handle with its status commands. Workmux creates the isolated worktree itself. If neither route is available, report the limitation and continue the main task without claiming a worker was started.
+When native delegation cannot provide background execution, use Workmux from the configured repository with an explicit base, `--background`, a prompt file, and `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), following the global assistant-selection policy. Pass `--parent-session` for the target repository when launching across projects. Inspect `workmux add --help` for the installed version and verify the returned handle with its status commands. Workmux creates the isolated worktree itself. If neither route is available, report the limitation and continue the main task without claiming a worker was started.
 
 The worker prompt must include:
 

@@ -103,7 +103,6 @@ in
         // {
           llm-assistants.mcp.disabledServers = lib.mkDefault (
             lib.optionals (hostType == "personal") mcpOptions.corpServerNames
-            ++ lib.optionals (!config.hakula.codex.enable) [ "codex" ]
           );
 
           secrets.required = requiredMcpSecrets;

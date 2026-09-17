@@ -13,7 +13,7 @@ in
 {
   inherit mcpOptions permissions;
 
-  mkClaudeProfiles = import ./claude-profiles.nix;
+  mkProfileDefinitions = import ./profiles.nix;
 
   mkOptions =
     {

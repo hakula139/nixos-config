@@ -25,7 +25,6 @@
     # Knowledge
     # --------------------------------------------------------------------------
     "mcp__Atlassian"
-    "mcp__Codex"
     "mcp__DeepWiki"
     "mcp__plugin_context7-plugin_context7"
 

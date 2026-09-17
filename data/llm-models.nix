@@ -4,9 +4,13 @@
 
 let
   claudeAdaptiveCommon = {
-    autoCompactTokens = 400000;
     contextWindow = 1000000;
     maxTokens = 128000;
+    autoCompactTokens = 400000;
+    input = [
+      "text"
+      "image"
+    ];
     reasoning = true;
     thinking = {
       mode = "anthropic-adaptive";
@@ -25,6 +29,10 @@ let
   geminiCommon = {
     contextWindow = 1048576;
     maxTokens = 65536;
+    input = [
+      "text"
+      "image"
+    ];
     reasoning = true;
     thinking = {
       mode = "effort";
@@ -39,9 +47,13 @@ let
   };
 
   gptCommon = {
-    autoCompactTokens = 250000;
     contextWindow = 1050000;
     maxTokens = 128000;
+    autoCompactTokens = 250000;
+    input = [
+      "text"
+      "image"
+    ];
     reasoning = true;
     thinking = {
       mode = "effort";
@@ -52,7 +64,27 @@ let
         "xhigh"
         "max"
       ];
-      defaultLevel = "medium";
+      defaultLevel = "high";
+    };
+  };
+
+  localCommon = {
+    reasoning = true;
+    thinking = {
+      mode = "effort";
+      efforts = [
+        "low"
+        "high"
+        "max"
+      ];
+      defaultLevel = "high";
+      requiresEffort = true;
+    };
+    gatewayCost.local = {
+      input = 0;
+      output = 0;
+      cacheRead = 0;
+      cacheWrite = 0;
     };
   };
 in
@@ -73,6 +105,11 @@ in
       standard = "gpt-5.6-terra";
       mini = "gpt-5.6-luna";
     };
+    local = {
+      flagship = "kimi-k3";
+      standard = "glm-5.3";
+      mini = "glm-5.3-flash";
+    };
   };
 
   # Gateway costs are USD per million tokens.
@@ -90,6 +127,9 @@ in
 
     "claude-sonnet-5" = claudeAdaptiveCommon // {
       name = "Claude Sonnet 5";
+      thinking = claudeAdaptiveCommon.thinking // {
+        defaultLevel = "low";
+      };
       gatewayId.bedrock = "bedrock/global.anthropic.claude-sonnet-5";
       gatewayCost.bedrock = {
         input = 2.0;
@@ -101,9 +141,13 @@ in
 
     "claude-haiku-4-5-20251001" = {
       name = "Claude Haiku 4.5";
-      autoCompactTokens = 160000;
       contextWindow = 200000;
       maxTokens = 64000;
+      autoCompactTokens = 160000;
+      input = [
+        "text"
+        "image"
+      ];
       reasoning = true;
       thinking = {
         mode = "budget";
@@ -171,6 +215,9 @@ in
 
     "gpt-5.6-luna" = gptCommon // {
       name = "GPT-5.6 Luna";
+      thinking = gptCommon.thinking // {
+        defaultLevel = "low";
+      };
       gatewayId.openai = "openai/gpt-5.6-luna";
       gatewayCost.openai = {
         input = 0.2;
@@ -178,6 +225,42 @@ in
         cacheRead = 0.02;
         cacheWrite = 0.25;
       };
+    };
+
+    "kimi-k3" = localCommon // {
+      name = "Kimi K3";
+      contextWindow = 400000;
+      maxTokens = 65536;
+      autoCompactTokens = 320000;
+      input = [
+        "text"
+        "image"
+      ];
+      gatewayId.local = "Kimi-K3";
+    };
+
+    "glm-5.3" = localCommon // {
+      name = "GLM-5.3";
+      contextWindow = 400000;
+      maxTokens = 131072;
+      autoCompactTokens = 320000;
+      input = [ "text" ];
+      gatewayId.local = "GLM-5.3";
+    };
+
+    "glm-5.3-flash" = localCommon // {
+      name = "GLM-5.3-Flash";
+      contextWindow = 1048576;
+      maxTokens = 131072;
+      autoCompactTokens = 400000;
+      input = [
+        "text"
+        "image"
+      ];
+      thinking = localCommon.thinking // {
+        defaultLevel = "low";
+      };
+      gatewayId.local = "GLM-5.3-Flash";
     };
   };
 }

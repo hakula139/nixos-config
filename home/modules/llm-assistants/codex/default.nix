@@ -7,9 +7,7 @@
   pkgs,
   lib,
   inputs,
-  corpHosts,
   hostType,
-  modelCatalog,
   repoLib,
   secretPath,
   ...
@@ -21,6 +19,8 @@ let
 
   inherit (shared) agentRoleOptions instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
+
+  corpGateway = shared.profileDefinitions.providers.corp-gateway;
 
   codexConfigDir =
     if config.home.preferXdgDirectories then
@@ -34,15 +34,13 @@ let
       config
       pkgs
       lib
-      corpHosts
       hostType
-      modelCatalog
       secretPath
       ;
-    inherit (shared) mkProfileSwitch;
+    inherit (shared) profileDefinitions mkProfileSwitch;
     inherit (cfg.agents) enabledAgents;
-    configDir = codexConfigDir;
     sharedAgents = shared.agentRoles;
+    configDir = codexConfigDir;
   };
 in
 {
@@ -81,9 +79,9 @@ in
         inherit pkgs lib;
         inherit (shared) mkHooks;
         gateway = lib.optionalAttrs cfg.auth.enableCorpGateway {
-          baseUrl = corpHosts.llmGatewayUrl;
-          tokenFile = secretPath "llm-assistants/bifrost-api-key";
-          caFile = secretPath "llm-assistants/corp-cachain.crt";
+          inherit (corpGateway) baseUrl;
+          tokenFile = secretPath corpGateway.tokenSecret;
+          caFile = secretPath corpGateway.caSecret;
         };
       };
 
@@ -108,20 +106,17 @@ in
       # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
-      proxyScript = pkgs.writeShellScript "codex-proxy-env" (repoLib.proxy.mkProxyScript cfg.proxy);
-
       # Home Manager uses the version in the name to select the config layout.
       codexBin = repoLib.wrapPackage {
         inherit pkgs;
+        inherit (profiles) envVars;
         pkg = pkgs.codex;
         name = "codex-${pkgs.codex.version}";
         bin = "codex";
-        wrapArgs =
-          profiles.wrapArgs
-          ++ lib.optionals cfg.proxy.enable [
-            "--run"
-            "source ${proxyScript}"
-          ];
+        wrapArgs = lib.optionals cfg.proxy.enable [
+          "--run"
+          (repoLib.proxy.mkProxyScript cfg.proxy)
+        ];
       };
 
       # ------------------------------------------------------------------------
@@ -132,7 +127,6 @@ in
           inherit
             hooks
             mcp
-            modelCatalog
             notify
             skills
             ;

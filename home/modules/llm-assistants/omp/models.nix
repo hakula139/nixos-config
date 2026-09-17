@@ -5,63 +5,46 @@
 {
   pkgs,
   lib,
-  corpHosts,
-  modelCatalog,
+  profileDefinitions,
+  profiles,
   secretPath,
-  enableCorpGateway,
 }:
 
 let
-  profiles = lib.optionalAttrs enableCorpGateway {
-    corp-gateway-bedrock = {
-      api = "anthropic-messages";
-      baseUrl = "${corpHosts.llmGatewayUrl}/anthropic";
-      gateway = "bedrock";
-      modelIds = builtins.attrValues modelCatalog.defaults.claude;
-    };
-    corp-gateway-openai = {
-      api = "openai-responses";
-      baseUrl = "${corpHosts.llmGatewayUrl}/v1";
-      gateway = "openai";
-      modelIds = builtins.attrValues modelCatalog.defaults.gpt;
-    };
+  inherit (profileDefinitions) familyApis providers;
+
+  mkModel = gateway: model: {
+    inherit (model)
+      name
+      contextWindow
+      maxTokens
+      input
+      reasoning
+      thinking
+      ;
+    id = model.gatewayId.${gateway};
+    cost = model.gatewayCost.${gateway};
   };
 
-  tokenSecret = "llm-assistants/bifrost-api-key";
-
-  mkModel =
-    gateway: modelId:
+  mkProvider =
+    _: profile:
     let
-      model = modelCatalog.models.${modelId};
-      id = model.gatewayId.${gateway};
+      api = familyApis.${profile.family};
+      provider = providers.${profile.provider};
     in
     {
-      inherit id;
-      inherit (model)
-        name
-        contextWindow
-        maxTokens
-        reasoning
-        thinking
-        ;
-      cost = model.gatewayCost.${gateway};
-      input = [
-        "text"
-        "image"
-      ];
+      inherit api;
+      baseUrl = provider.apiUrls.${api};
+      auth = "apiKey";
+      apiKey = "!${lib.getExe' pkgs.coreutils "cat"} ${lib.escapeShellArg (secretPath provider.tokenSecret)}";
+      authHeader = true;
+      models = map (mkModel profile.gateway) (lib.unique (builtins.attrValues profile.models));
+    }
+    // lib.optionalAttrs (api == "openai-responses") {
+      # Override unrelated bundled-provider compatibility inherited for custom models.
+      compat.supportsReasoningEffort = true;
     };
-
-  mkProvider = _: profile: {
-    inherit (profile) api baseUrl;
-    auth = "apiKey";
-    apiKey = "!${lib.getExe' pkgs.coreutils "cat"} ${lib.escapeShellArg (secretPath tokenSecret)}";
-    authHeader = true;
-    models = map (mkModel profile.gateway) (lib.unique profile.modelIds);
-  };
 in
 {
   providers = lib.mapAttrs mkProvider profiles;
-  requiredSecrets = lib.optionalAttrs enableCorpGateway (
-    lib.genAttrs [ tokenSecret "llm-assistants/corp-cachain.crt" ] (_: { })
-  );
 }

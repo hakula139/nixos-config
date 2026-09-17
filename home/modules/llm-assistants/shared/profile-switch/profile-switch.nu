@@ -73,7 +73,12 @@ def main [
 
   let profile = if $initialize {
     let current = (active-profile $config $active_link)
-    if $current in (profile-names $config) { $current } else { $config.defaultProfile }
+    let available = (profile-names $config)
+    if $current in $available {
+      $current
+    } else {
+      $config.defaultProfile
+    }
   } else { $profile }
 
   if $list or ($profile | is-empty) {

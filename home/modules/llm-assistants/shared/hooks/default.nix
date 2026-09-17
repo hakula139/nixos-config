@@ -10,6 +10,8 @@
   pkgs,
   lib,
   modelCatalog,
+  readPrompt,
+  phrasing,
   repo,
   enableDevToolchains ? true,
 }:
@@ -21,7 +23,6 @@
 
 let
   json = pkgs.formats.json { };
-  instructions = import ../instructions;
 
   # ----------------------------------------------------------------------------
   # Hook timeouts
@@ -106,9 +107,9 @@ in
         mkNuHook
         modelCall
         patchInput
+        readPrompt
         timeouts
         ;
-      inherit (instructions) commentGate;
     };
 
     completeness = import ./completeness;
@@ -118,6 +119,7 @@ in
         mkNuHook
         modelCall
         modelCatalog
+        phrasing
         timeouts
         ;
     };

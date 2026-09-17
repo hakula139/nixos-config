@@ -4,8 +4,9 @@
 
 {
   lib,
-  enabledAgents,
   sharedAgents,
+  enabledAgents,
+  modelAliases,
 }:
 
 let
@@ -15,7 +16,7 @@ let
       frontmatterLines = [
         "name: ${builtins.toJSON name}"
         "description: ${builtins.toJSON agent.description}"
-        "model: ${builtins.toJSON agent.omp.model}"
+        "model: ${builtins.toJSON "@${modelAliases.${agent.modelTier}}:${agent.effort}"}"
       ]
       ++ lib.optional (agent.omp ? spawns) "spawns: ${builtins.toJSON agent.omp.spawns}"
       ++ lib.optional (agent.omp ? tools) "tools: ${lib.concatStringsSep ", " agent.omp.tools}";

@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  repoLib,
   ...
 }:
 
@@ -19,13 +20,12 @@ let
   # ----------------------------------------------------------------------------
   # acpx excludes user settings by default, which would omit our Claude hooks,
   # permissions, and instructions.
-  acpxBin = pkgs.symlinkJoin {
+  acpxBin = repoLib.wrapPackage {
+    inherit pkgs;
+    pkg = pkgs.acpx;
     name = "acpx-${pkgs.acpx.version}";
-    paths = [ pkgs.acpx ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      wrapProgram $out/bin/acpx --set ACPX_CLAUDE_INCLUDE_USER_SETTINGS 1
-    '';
+    bin = "acpx";
+    envVars.ACPX_CLAUDE_INCLUDE_USER_SETTINGS = "1";
   };
 
   # ----------------------------------------------------------------------------
@@ -40,13 +40,10 @@ let
       executableVar,
       executable,
     }:
-    pkgs.symlinkJoin {
+    repoLib.wrapPackage {
+      inherit pkgs pkg bin;
       name = "${bin}-${pkg.version}";
-      paths = [ pkg ];
-      nativeBuildInputs = [ pkgs.makeWrapper ];
-      postBuild = ''
-        wrapProgram $out/bin/${bin} --set ${executableVar} ${lib.escapeShellArg executable}
-      '';
+      envVars.${executableVar} = executable;
     };
 
   claudeAdapter = mkAdapter {

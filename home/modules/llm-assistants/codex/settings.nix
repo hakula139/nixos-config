@@ -5,21 +5,14 @@
 {
   hooks,
   mcp,
-  modelCatalog,
   notify,
   skills,
 }:
 
-let
-  modelId = modelCatalog.defaults.gpt.flagship;
-  defaultModel = modelCatalog.models.${modelId};
-in
 {
   # ----------------------------------------------------------------------------
   # Model
   # ----------------------------------------------------------------------------
-  model = modelId;
-  model_reasoning_effort = defaultModel.thinking.defaultLevel;
   model_verbosity = "low";
   personality = "pragmatic";
 
@@ -58,7 +51,6 @@ in
   # ----------------------------------------------------------------------------
   # Tools / search
   # ----------------------------------------------------------------------------
-  web_search = "live";
   tools = {
     update_plan.enabled = true;
     web_search.context_size = "high";
