@@ -15,16 +15,26 @@
   ...
 }:
 
+let
+  promptFragments = import ./prompt-fragments;
+  agentRoles = import ./agent-roles { inherit (promptFragments) readPrompt; };
+in
 {
   imports = [
     ./skills
   ];
 
   lib.llmAssistants = {
-    instructions = import ./instructions;
-    agentRoles = import ./agent-roles;
-    agentRoleOptions = import ./agent-roles/options.nix { inherit lib; };
+    # --------------------------------------------------------------------------
+    # Instructions and agent roles
+    # --------------------------------------------------------------------------
+    inherit agentRoles;
+    instructions = import ./instructions { inherit (promptFragments) readPrompt; };
+    agentRoleOptions = import ./agent-roles/options.nix { inherit lib agentRoles; };
 
+    # --------------------------------------------------------------------------
+    # MCP servers
+    # --------------------------------------------------------------------------
     mcp = import ./mcp {
       inherit (repoLib.proxy) clearProxyEnv;
       inherit
@@ -37,8 +47,9 @@
     };
     mcpSecrets = import ./mcp/secrets.nix;
 
-    notify = import ./notify { inherit pkgs lib; };
-
+    # --------------------------------------------------------------------------
+    # Hooks and notifications
+    # --------------------------------------------------------------------------
     mkHooks = import ./hooks {
       inherit
         pkgs
@@ -47,6 +58,16 @@
         repo
         enableDevToolchains
         ;
+      inherit (promptFragments) readPrompt phrasing;
+    };
+
+    notify = import ./notify { inherit pkgs lib; };
+
+    # --------------------------------------------------------------------------
+    # Auth profiles
+    # --------------------------------------------------------------------------
+    profileDefinitions = repoLib.llmAssistants.mkProfileDefinitions {
+      inherit lib modelCatalog corpHosts;
     };
 
     mkProfileSwitch = import ./profile-switch { inherit pkgs lib; };

@@ -13,7 +13,10 @@
 
 set -euo pipefail
 
+claude_bin="$1"
+shift
+
 source @profileLoader@
 
 # Ahead of any subcommand, so the flag parses as a root-level global option.
-exec "$1" "${__claude_profile_args[@]}" @mcpFlag@ "${@:2}"
+exec "$claude_bin" @mcpFlag@ "$@"

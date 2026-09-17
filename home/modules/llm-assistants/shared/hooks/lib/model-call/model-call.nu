@@ -62,7 +62,7 @@ def gateway [request: record, config: record]: nothing -> string {
   }
 
   let response = ($run.stdout | from json)
-  if ($response | describe | str starts-with "record") == false {
+  if not ($response | describe | str starts-with "record") {
     return ""
   }
   if ($response | get -o choices.0.finish_reason | default "") != "stop" {
@@ -115,7 +115,7 @@ def reply [request: record, config: record]: nothing -> string {
 def main [config_file: string] {
   let config = (open $config_file)
   let request = (^cat | from json)
-  if ($request | describe | str starts-with "record") == false {
+  if not ($request | describe | str starts-with "record") {
     return
   }
   let out = (reply $request $config)

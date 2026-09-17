@@ -11,7 +11,6 @@ let
     atlassian = "Atlassian";
     braveSearch = "BraveSearch";
     chromeDevtools = "ChromeDevTools";
-    codex = "Codex";
     context7 = "Context7";
     deepwiki = "DeepWiki";
     exa = "Exa";

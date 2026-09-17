@@ -4,12 +4,12 @@
 
 {
   lib,
-  bundlePlugins,
+  modelCatalog,
   homeDir,
   hooks,
-  modelCatalog,
   permissions,
   plugins,
+  bundlePlugins,
   profileSettings,
   timeouts,
 }:
@@ -32,7 +32,7 @@ in
   # ----------------------------------------------------------------------------
   # Model
   # ----------------------------------------------------------------------------
-  model = "opus[1m]";
+  model = "opus";
   effortLevel = defaultModel.thinking.defaultLevel;
 
   # ----------------------------------------------------------------------------
@@ -72,7 +72,6 @@ in
     # Bun's 5-minute fetch idle timeout applies to non-first-party base URLs.
     API_FORCE_IDLE_TIMEOUT = "0";
     API_TIMEOUT_MS = "1800000";
-    CLAUDE_CODE_AUTO_COMPACT_WINDOW = toString defaultModel.autoCompactTokens;
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
     CLAUDE_CODE_ENABLE_AUTO_MODE = "1";
     CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";

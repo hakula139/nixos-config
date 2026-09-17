@@ -6,6 +6,7 @@
   mkNuHook,
   modelCall,
   modelCatalog,
+  phrasing,
   timeouts,
 }:
 
@@ -28,9 +29,13 @@ in
     slug = "prose-polish";
     script = ./prose-polish.nu;
     config = {
-      inherit maxRepairs mcpProseFields modelCall;
+      inherit
+        maxRepairs
+        mcpProseFields
+        modelCall
+        phrasing
+        ;
       model = modelCatalog.models.${modelCatalog.defaults.gemini.standard}.gatewayId.openrouter;
-      phrasing = builtins.readFile ../../instructions/phrasing.md;
       prompt = builtins.readFile ./prompt.md;
       repairPrompt = builtins.readFile ./repair-prompt.md;
     };

@@ -29,7 +29,7 @@ Check these concerns where the diff makes them relevant:
 - **Security and operations:** secret exposure, authorization boundaries, command execution, destructive behavior, deployment, and rollback.
 - **Platform and build behavior:** language or framework evaluation rules, host gating, dependency changes, and configuration activation.
 - **Validation:** missing scenarios, required checks, and tests that would still pass with a plausible bug.
-- **Maintainability and style:** naming, structure, formatting, wording, and consistency with established local patterns. Style findings belong in the review when they have a concrete readability or maintenance cost.
+- **Maintainability and style:** naming, structure, formatting, wording, and consistency with established local patterns. Judge parameter and field ordering by semantic relationships and project conventions, with alphabetical order as a fallback. Style findings belong in the review when they have a concrete readability or maintenance cost.
 
 Before reporting a finding, establish its trigger, affected behavior, and connection to the change. Check nearby guards and callers that might invalidate it. Separate pre-existing issues and unverified concerns from defects introduced by the diff.
 

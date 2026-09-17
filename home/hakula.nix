@@ -3,13 +3,9 @@
 # ==============================================================================
 
 {
-  config,
   pkgs,
   lib,
   inputs,
-  corpHosts,
-  modelCatalog,
-  repoLib,
   username ? "hakula",
   isDesktop ? false,
   isNixOS ? false,
@@ -75,18 +71,6 @@ in
   # ----------------------------------------------------------------------------
   # Custom Modules
   # ----------------------------------------------------------------------------
-  # Auto-import the shared profile library when a host opts in via `defaultProfile`.
-  # The corp-gateway profiles are gated on `enableCorpGateway` so servers (which
-  # can't decrypt their secrets) stay on the public subset.
-  hakula.claude-code.auth.profiles =
-    lib.mkIf (config.hakula.claude-code.auth.defaultProfile != null)
-      (
-        repoLib.llmAssistants.mkClaudeProfiles {
-          inherit lib corpHosts modelCatalog;
-          inherit (config.hakula.claude-code.auth) enableCorpGateway;
-        }
-      );
-
   hakula.cursor = {
     enable = true;
     extensions = {
