@@ -24,7 +24,6 @@ let
   };
 
   postEditHooks = with sharedHooks.hooks; [
-    wakatime
     (
       autoFormat
       // {

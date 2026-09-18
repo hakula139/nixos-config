@@ -187,7 +187,6 @@ in
         # Project Tools
         # ----------------------------------------------------------------------
         unstable.hugo
-        unstable.wakatime-cli
       ]
     );
 
