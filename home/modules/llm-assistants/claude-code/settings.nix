@@ -80,7 +80,6 @@ in
     DISABLE_INSTALLATION_CHECKS = "1";
     ENABLE_CLAUDEAI_MCP_SERVERS = "0";
     ENABLE_PROMPT_CACHING_1H = "1";
-    ENABLE_TOOL_SEARCH = "1";
     FORCE_AUTOUPDATE_PLUGINS = if bundlePlugins then "0" else "1";
     MCP_TIMEOUT = toString (timeouts.startup * 1000);
   };
