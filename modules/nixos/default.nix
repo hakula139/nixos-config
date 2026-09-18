@@ -181,7 +181,12 @@ in
     # --------------------------------------------------------------------------
     programs.zsh.enable = true;
     environment.shells = [ pkgs.zsh ];
-    environment.variables = defaults.localeSettings;
+    environment.variables =
+      defaults.localeSettings
+      // lib.optionalAttrs config.security.pki.installCACerts {
+        # uv's Python builds use upstream OpenSSL paths instead of the NixOS CA bundle.
+        SSL_CERT_FILE = lib.mkDefault "\${SSL_CERT_FILE-${config.security.pki.caBundle}}";
+      };
 
     # Nix-LD: Run unpatched Linux binaries
     programs.nix-ld = {
