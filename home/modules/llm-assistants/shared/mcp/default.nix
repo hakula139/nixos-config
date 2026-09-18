@@ -160,11 +160,7 @@ let
   githubPatFile = secretPath "github-pat";
   githubBin = pkgs.writeShellScriptBin "github-mcp" ''
     set -euo pipefail
-    if [[ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" \
-      && -z "''${GITHUB_APP_ID:-}" \
-      && -z "''${GITHUB_APP_INSTALLATION_ID:-}" \
-      && -z "''${GITHUB_APP_PRIVATE_KEY:-}" \
-      && -z "''${GITHUB_APP_PRIVATE_KEY_PATH:-}" ]]; then
+    if [[ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]]; then
       if [[ -x ${esc ghBin} ]] && token=$(${esc ghBin} auth token 2>/dev/null); then
         export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
       elif [[ -f ${esc githubPatFile} ]]; then
