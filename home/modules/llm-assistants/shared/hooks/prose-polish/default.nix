@@ -3,6 +3,7 @@
 # ==============================================================================
 
 {
+  lib,
   mkNuHook,
   modelCall,
   modelCatalog,
@@ -11,7 +12,7 @@
 }:
 
 let
-  mcpProseFields = builtins.fromJSON (builtins.readFile ./mcp-fields.json);
+  mcpProseFields = lib.importJSON ./mcp-fields.json;
   # Each round of feedback removes some of the faults but rarely all of them, so
   # a document dense with protected spans needs several to converge.
   maxRepairs = 3;
