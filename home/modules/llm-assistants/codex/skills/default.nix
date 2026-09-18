@@ -6,29 +6,11 @@
   config,
   pkgs,
   lib,
-  inputs,
   configDir,
   sharedSkills,
 }:
 
 let
-  sources = {
-    anthropic = inputs.anthropics-skills + "/skills";
-    openai = inputs.openai-skills + "/skills/.curated";
-  };
-
-  skills = {
-    # OpenAI Codex skills
-    gh-address-comments = sources.openai + "/gh-address-comments";
-    gh-fix-ci = sources.openai + "/gh-fix-ci";
-    security-best-practices = sources.openai + "/security-best-practices";
-
-    # Anthropic skills
-    frontend-design = sources.anthropic + "/frontend-design";
-    mcp-builder = sources.anthropic + "/mcp-builder";
-    webapp-testing = sources.anthropic + "/webapp-testing";
-  };
-
   managedSkills = lib.filterAttrs (
     _: file: file.enable && lib.hasPrefix ".agents/skills/" file.target
   ) config.home.file;
@@ -52,12 +34,4 @@ in
   settings = {
     bundled.enabled = true;
   };
-
-  homeFile = lib.mapAttrs' (
-    name: source:
-    lib.nameValuePair ".agents/skills/${name}" {
-      inherit source;
-      recursive = true;
-    }
-  ) skills;
 }

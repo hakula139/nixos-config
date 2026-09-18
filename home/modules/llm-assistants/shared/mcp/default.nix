@@ -128,15 +128,6 @@ let
   };
 
   # ----------------------------------------------------------------------------
-  # Context7
-  # ----------------------------------------------------------------------------
-  context7Bin = mkNpmServer {
-    name = "context7";
-    command = [ "@upstash/context7-mcp" ];
-    envFiles.CONTEXT7_API_KEY = secretPath "context7-api-key";
-  };
-
-  # ----------------------------------------------------------------------------
   # Exa
   # ----------------------------------------------------------------------------
   exaBin = mkNpmServer {
@@ -168,10 +159,17 @@ let
   ghBin = "${config.home.profileDirectory}/bin/gh";
   githubPatFile = secretPath "github-pat";
   githubBin = pkgs.writeShellScriptBin "github-mcp" ''
-    if [[ -x ${esc ghBin} ]] && token=$(${esc ghBin} auth token 2>/dev/null); then
-      export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
-    elif [[ -f ${esc githubPatFile} ]]; then
-      export GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${esc githubPatFile})"
+    set -euo pipefail
+    if [[ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" \
+      && -z "''${GITHUB_APP_ID:-}" \
+      && -z "''${GITHUB_APP_INSTALLATION_ID:-}" \
+      && -z "''${GITHUB_APP_PRIVATE_KEY:-}" \
+      && -z "''${GITHUB_APP_PRIVATE_KEY_PATH:-}" ]]; then
+      if [[ -x ${esc ghBin} ]] && token=$(${esc ghBin} auth token 2>/dev/null); then
+        export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
+      elif [[ -f ${esc githubPatFile} ]]; then
+        export GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${esc githubPatFile})"
+      fi
     fi
     exec ${pkgs.mcp-server-github}/bin/mcp-server-github stdio "$@"
   '';
@@ -236,11 +234,6 @@ in
 
     chromeDevtools = {
       command = "${chromeDevtoolsBin}/bin/chrome-devtools-mcp";
-      type = "stdio";
-    };
-
-    context7 = {
-      command = "${context7Bin}/bin/context7-mcp";
       type = "stdio";
     };
 

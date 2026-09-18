@@ -37,7 +37,6 @@ let
   mcpServerSecrets = {
     atlassian = [ "confluence-pat" ];
     braveSearch = [ "brave-api-key" ];
-    context7 = [ "context7-api-key" ];
     exa = [ "exa-api-key" ];
     github = [ "github-pat" ];
     gitlab = [ "gitlab-pat" ];
@@ -64,6 +63,7 @@ in
     ./ccusage
     ./claude-code
     ./codex
+    ./ctx7
     ./cursor
     ./omp
     ./opencode
@@ -101,6 +101,8 @@ in
           mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
         })
         // {
+          ctx7.enable = lib.mkDefault (lib.any (assistant: assistant.enable) assistants);
+
           llm-assistants.mcp.disabledServers = lib.mkDefault (
             lib.optionals (hostType == "personal") mcpOptions.corpServerNames
           );

@@ -9,7 +9,7 @@ description: Investigate web UI failures, visual regressions, and browser perfor
 
 Reuse available browser tooling before installing Playwright or downloading browser binaries.
 
-- For interactive navigation and page inspection, use agent-browser and follow its skill when available.
+- For interactive navigation and page inspection, use the assistant's native browser controls when available.
 - For performance traces, console errors, and network diagnostics, use Chrome DevTools MCP.
 - For reproducible scripts or Chromium / Firefox / WebKit comparisons, use Python Playwright in the shared browser profile.
 

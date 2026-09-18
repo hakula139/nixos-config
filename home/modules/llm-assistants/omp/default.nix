@@ -77,16 +77,26 @@ in
       # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
+      wrapArgs = [
+        "--prefix"
+        "PATH"
+        ":"
+        (lib.makeBinPath [ pkgs.poppler-utils ])
+      ]
+      ++ lib.optionals cfg.proxy.enable [
+        "--run"
+        (repoLib.proxy.mkProxyScript cfg.proxy)
+      ];
+
       ompBin = repoLib.wrapPackage {
-        inherit pkgs;
-        inherit (profiles) envVars;
+        inherit pkgs wrapArgs;
         pkg = pkgs.omp;
         name = "omp-${pkgs.omp.version}";
         bin = "omp";
-        wrapArgs = lib.optionals cfg.proxy.enable [
-          "--run"
-          (repoLib.proxy.mkProxyScript cfg.proxy)
-        ];
+        envVars = profiles.envVars // {
+          PUPPETEER_EXECUTABLE_PATH = lib.getExe' pkgs.browser-tools "chromium";
+        };
+        envFiles.EXA_API_KEY = secretPath "exa-api-key";
       };
     in
     lib.mkMerge [
@@ -97,6 +107,13 @@ in
         # Program configuration
         # ----------------------------------------------------------------------
         home.packages = [ ompBin ];
+
+        # ----------------------------------------------------------------------
+        # Secrets
+        # ----------------------------------------------------------------------
+        hakula.secrets.required = {
+          inherit (shared.mcpSecrets) exa-api-key;
+        };
 
         # ----------------------------------------------------------------------
         # Configuration files

@@ -3,9 +3,7 @@
 # ==============================================================================
 # WakaTime Heartbeat for AI-Generated Code
 # ==============================================================================
-# Asks wakatime-cli to parse the assistant's transcript and send file-level AI
-# heartbeats, mirroring the claude-code-wakatime plugin without letting the hook
-# download or install its own CLI binary.
+# Sends AI activity through the installed wakatime-cli's transcript scanner.
 # ==============================================================================
 
 const ID_FIELDS = [transcript_path, session_id, "thread-id", thread_id, cwd]
