@@ -40,9 +40,17 @@ let
       authHeader = true;
       models = map (mkModel profile.gateway) (lib.unique (builtins.attrValues profile.models));
     }
+    // lib.optionalAttrs (profile.family == "claude") {
+      compat.supportsLongCacheRetention = true;
+    }
     // lib.optionalAttrs (api == "openai-responses") {
-      # Override unrelated bundled-provider compatibility inherited for custom models.
-      compat.supportsReasoningEffort = true;
+      compat = {
+        # Override unrelated bundled-provider compatibility inherited for custom models.
+        supportsReasoningEffort = true;
+      }
+      // lib.optionalAttrs (profile.family == "gpt") {
+        supportsLongPromptCacheRetention = true;
+      };
     };
 in
 {

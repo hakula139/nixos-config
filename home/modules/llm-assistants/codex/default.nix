@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  inputs,
   hostType,
   repoLib,
   secretPath,
@@ -27,7 +26,6 @@ let
       "${config.xdg.configHome}/codex"
     else
       "${config.home.homeDirectory}/.codex";
-  codexMcpServers = mcpOptions.commonServerNames ++ [ "context7" ];
 
   profiles = import ./profiles.nix {
     inherit
@@ -58,7 +56,7 @@ in
       };
     };
 
-    mcp = mcpOptions.mkMcpOptions { names = codexMcpServers; };
+    mcp = mcpOptions.mkMcpOptions { names = mcpOptions.commonServerNames; };
 
     proxy = repoLib.proxy.mkProxyOptions "Codex";
   };
@@ -97,7 +95,6 @@ in
           config
           pkgs
           lib
-          inputs
           ;
         configDir = codexConfigDir;
         sharedSkills = shared.skills;
@@ -173,7 +170,7 @@ in
         # ----------------------------------------------------------------------
         # Configuration files
         # ----------------------------------------------------------------------
-        home.file = skills.homeFile // {
+        home.file = {
           codexRules = {
             target = codexRulesTarget;
             text = repoLib.llmAssistants.permissions.codexRules;

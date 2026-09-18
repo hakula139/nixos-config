@@ -120,6 +120,10 @@ When writing documentation:
 
 Use only tools and capabilities available in the current session, and follow their actual schemas and permission boundaries. Prefer installed skills that match the task, reusing their workflow and resources.
 
+### Library documentation
+
+Use the shared `find-docs` skill for Context7 documentation lookups. The managed `ctx7` command loads its API key at launch. Run `ctx7 library <name> <query>` and `ctx7 docs <libraryId> <query>` directly, replacing the upstream skill's `npx` examples. Do not reinstall the CLI or configure Context7 MCP.
+
 ### Delegation
 
 - Use agents for independent work or useful specialist review when the benefit justifies the coordination cost. Select roles and concurrency to fit the task within the current authorization. Inspect each role's available tools and permissions, which may differ from the parent's.

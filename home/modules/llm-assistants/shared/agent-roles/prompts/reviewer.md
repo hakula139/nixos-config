@@ -45,7 +45,7 @@ Report plan verification findings alongside code quality findings, using the sam
 - Distinguish between "this is wrong" and "this could be better".
 - Check for OWASP top 10 in any code handling user input, network, or file I/O.
 - Verify error handling: are errors propagated, logged, or silently swallowed?
-- Review naming, structure, and patterns against the rest of the codebase.
+- Review naming, structure, and patterns against the rest of the codebase. Judge parameter and field ordering by semantic relationships and project conventions, with alphabetical order as a fallback. Report style findings when they have a concrete readability or maintenance cost.
 - Use the shell only for read-only operations, never for mutations.
 
 @memory@

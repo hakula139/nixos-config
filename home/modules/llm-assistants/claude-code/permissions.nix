@@ -26,7 +26,6 @@
     # --------------------------------------------------------------------------
     "mcp__Atlassian"
     "mcp__DeepWiki"
-    "mcp__plugin_context7-plugin_context7"
 
     # --------------------------------------------------------------------------
     # Filesystem - Navigation
@@ -356,7 +355,6 @@
     # Development
     # --------------------------------------------------------------------------
     "Bash(acpx *)"
-    "Bash(agent-browser *)"
     "Bash(cargo *)"
     "Bash(cmake *)"
     "Bash(cspell *)"

@@ -48,14 +48,12 @@ Manual marketplace pins live in the `marketplaces` attrset in `home/modules/llm-
 
 | Marketplace               | Upstream                             | Revision selection                 |
 | ------------------------- | ------------------------------------ | ---------------------------------- |
-| `agent-browser`           | `vercel-labs/agent-browser`          | Release tag, recorded in a comment |
 | `openai-codex`            | `openai/codex-plugin-cc`             | Release tag, recorded in a comment |
 | `claude-plugins-official` | `anthropics/claude-plugins-official` | Default branch, dated comment      |
-| `context7-marketplace`    | `upstash/context7`                   | Default branch, dated comment      |
 
-Each row stores a commit `rev` and extracted-tree `hash`. The checker compares revision prefixes with the commit behind the latest release tag or default branch. It reads the pinned revision from code, so an inaccurate tag comment cannot make a stale source appear current. The other marketplaces use locked sources: `anthropic-agent-skills` uses `inputs.anthropics-skills`, and `workmux` uses `pkgs.workmux.src` from `llm-agents`.
+Each row stores a commit `rev` and extracted-tree `hash`. The checker compares revision prefixes with the commit behind the latest release tag or default branch. It reads the pinned revision from code, so an inaccurate tag comment cannot make a stale source appear current. The Workmux marketplace uses `pkgs.workmux.src` from the locked `llm-agents` input. Common skills use the separate `anthropics-skills` and `openai-skills` inputs.
 
-These revisions control the prebuilt cache when `hakula.claude-code.plugins.bundle` is enabled, currently in `devvm`. Bundling sets `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL`. Unbundled hosts fetch the configured marketplaces at runtime, so editing these hashes does not pin their runtime cache.
+These revisions control the prebuilt Claude Code cache when `hakula.claude-code.plugins.bundle` is enabled, currently in `devvm`. Bundling sets `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL`. Unbundled Claude Code fetches the configured marketplaces at runtime, so editing these hashes does not pin its runtime cache.
 
 To update a manual marketplace:
 
@@ -86,7 +84,7 @@ To update a manual marketplace:
    '
    ```
 
-4. Build `.#packages.x86_64-linux.devvm-docker` to check the assembled cache. The bundle defaults `plugins.online` to false, excluding `agent-browser` and `context7-marketplace`. Its build therefore cannot validate those two hashes, which is why the direct fetches matter.
+4. Build `.#packages.x86_64-linux.devvm-docker` to check the assembled Claude Code cache.
 
 ## Nix-built packages and fetched helpers
 

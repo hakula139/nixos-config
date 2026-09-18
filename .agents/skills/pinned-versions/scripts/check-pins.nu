@@ -226,11 +226,6 @@ def registry [root: string]: nothing -> list<record> {
       title: "Claude Code plugin marketplaces (rev + hash)"
       pins: [
         {
-          pin: "agent-browser"
-          local: {|| abbrev (plugin-rev $root "agent-browser") }
-          upstream: {|| abbrev (gh-latest-release-head "vercel-labs/agent-browser") }
-        }
-        {
           pin: "openai-codex"
           local: {|| abbrev (plugin-rev $root "openai-codex") }
           upstream: {|| abbrev (gh-latest-release-head "openai/codex-plugin-cc") }
@@ -240,12 +235,6 @@ def registry [root: string]: nothing -> list<record> {
           local: {|| abbrev (plugin-rev $root "claude-plugins-official") }
           upstream: {|| abbrev (gh-default-head "anthropics/claude-plugins-official") }
         }
-        {
-          pin: "context7-marketplace"
-          local: {|| abbrev (plugin-rev $root "context7-marketplace") }
-          upstream: {|| abbrev (gh-default-head "upstash/context7") }
-        }
-        {pin: "anthropic-agent-skills", delegated: "renovate"}
         {pin: "workmux", delegated: "renovate"}
       ]
     }

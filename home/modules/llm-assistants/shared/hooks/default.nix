@@ -48,6 +48,10 @@ let
         makeWrapperArgs = [
           "--add-flag"
           "${configFile}"
+          "--prefix"
+          "PATH"
+          ":"
+          (lib.makeBinPath [ pkgs.coreutils ])
         ];
       } (builtins.readFile script);
     in

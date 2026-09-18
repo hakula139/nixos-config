@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  inputs,
   hostType,
   modelCatalog,
   repoLib,
@@ -74,15 +73,7 @@ in
 
     mcp = mcpOptions.mkMcpOptions { names = mcpOptions.commonServerNames; };
 
-    plugins = {
-      bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
-
-      online = lib.mkOption {
-        type = lib.types.bool;
-        default = !cfg.plugins.bundle;
-        description = "Whether to enable plugins requiring internet access (context7, agent-browser)";
-      };
-    };
+    plugins.bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
 
     proxy = repoLib.proxy.mkProxyOptions "Claude Code";
   };
@@ -110,10 +101,8 @@ in
         inherit
           pkgs
           lib
-          inputs
           enableDevToolchains
           ;
-        inherit (cfg.plugins) online;
       };
 
       # ------------------------------------------------------------------------
@@ -177,10 +166,6 @@ in
         # ----------------------------------------------------------------------
         # Program configuration
         # ----------------------------------------------------------------------
-        home.sessionVariables = lib.mkIf cfg.plugins.online {
-          AGENT_BROWSER_EXECUTABLE_PATH = lib.getExe pkgs.browser-tools.chromium;
-        };
-
         programs.claude-code = {
           enable = true;
           package = claudeCodeBin;

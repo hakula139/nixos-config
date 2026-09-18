@@ -40,6 +40,9 @@ let
         ) modelAliases.claude
         // {
           CLAUDE_CODE_AUTO_COMPACT_WINDOW = toString profile.models.flagship.autoCompactTokens;
+        }
+        // lib.optionalAttrs (profile.family == "claude") {
+          PROSE_POLISH_ENABLED = "true";
         };
     in
     {

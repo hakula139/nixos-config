@@ -182,7 +182,7 @@ def question-targets [questions: list<record>]: nothing -> list<record> {
       $question.item.options
       | enumerate
       | each {|option|
-        target ($prefix | append options | append $option.index | append description) $option.item.description
+        target ($prefix | append options | append $option.index | append description) ($option.item | get -o description)
       }
       | flatten
     )
@@ -366,6 +366,9 @@ def --env polished [config: record]: nothing -> any {
   if ($found | is-empty) {
     return null
   }
+  if ($env | get -o PROSE_POLISH_ENABLED | default "false") != "true" {
+    return null
+  }
 
   let opening = (
     call-model ($found | enumerate | each {|slot| {id: $slot.index, text: $slot.item.before} }) [] $config
@@ -406,9 +409,10 @@ def --env polished [config: record]: nothing -> any {
   }
 
   let spliced = ($edits | where piece != null)
-  if not ($spliced | is-empty) {
-    let cell = ($spliced.0.path | into cell-path)
-    $args = ($args | update $cell (splice ($args | get $cell) $spliced))
+  for path in ($spliced | get path | uniq) {
+    let cell = ($path | into cell-path)
+    let edits = ($spliced | where {|edit| $edit.path == $path })
+    $args = ($args | update $cell (splice ($args | get $cell) $edits))
   }
 
   {

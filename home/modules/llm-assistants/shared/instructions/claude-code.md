@@ -16,7 +16,6 @@ Native `WebSearch` is available when the selected profile enables it. Otherwise,
 
 The shared MCP servers are documented in the shared instructions above. Claude Code adds these:
 
-- **Context7** (`mcp__plugin_context7-plugin_context7__*`): library and framework documentation lookups, provided by the context7 plugin when online. Always resolve the library ID first, then query the docs with a specific question.
 - **IDE** (`mcp__ide__*`): `getDiagnostics` for language server errors / warnings, `executeCode` for running Python in Jupyter kernels when working with notebooks.
 
 ### Agent Execution
