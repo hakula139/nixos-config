@@ -97,7 +97,6 @@ let
     "hookify@claude-plugins-official" = true;
     "learning-output-style@claude-plugins-official" = true;
     "mcp-server-dev@claude-plugins-official" = true;
-    "pr-review-toolkit@claude-plugins-official" = true;
     "ralph-loop@claude-plugins-official" = true;
     "skill-creator@claude-plugins-official" = true;
 

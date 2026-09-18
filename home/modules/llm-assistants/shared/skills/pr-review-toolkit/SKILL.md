@@ -1,12 +1,12 @@
 ---
 name: pr-review-toolkit
 description: >-
-  Review pull requests, merge requests, branches, commit ranges, or uncommitted changes for bugs, regressions, security risks, missing tests, and maintainability issues. Use for code review requests or checking changes before merge.
+  Review pull requests, merge requests, branches, commit ranges, or uncommitted changes for bugs, regressions, security risks, error-handling gaps, missing tests, and maintainability issues. Use for code review requests or checking changes before merge.
 ---
 
 # PR Review Toolkit
 
-Find issues a maintainer would reasonably ask to fix before merge. Keep findings concrete and tied to the reviewed changes. For a review-only request, report findings without editing.
+Find issues a maintainer would reasonably ask to fix before merge. Keep findings concrete and tied to the reviewed changes. Reviewing is read-only by default: report findings and fix directions without editing, unless the request explicitly includes fixing.
 
 ## Select the target
 
@@ -26,12 +26,19 @@ Read repository instructions, the diff, and enough surrounding code to trace eac
 Check these concerns where the diff makes them relevant:
 
 - **Correctness and regressions:** broken assumptions, null / empty cases, paths, permissions, data shapes, concurrency, and resource lifecycles.
+- **Error handling:** catch blocks that are empty or overly broad, errors swallowed or merely logged instead of propagated to a level that can act on them, fallbacks or default values that mask failures from callers, and missing or unhelpful user-facing error feedback.
+- **Types and invariants:** concrete invalid states the changed API lets a caller create, and public construction or mutation paths that fail to preserve invariants the type requires.
 - **Security and operations:** secret exposure, authorization boundaries, command execution, destructive behavior, deployment, and rollback.
 - **Platform and build behavior:** language or framework evaluation rules, host gating, dependency changes, and configuration activation.
-- **Validation:** missing scenarios, required checks, and tests that would still pass with a plausible bug.
-- **Maintainability and style:** naming, structure, formatting, wording, and consistency with established local patterns. Judge parameter and field ordering by semantic relationships and project conventions, with alphabetical order as a fallback. Style findings belong in the review when they have a concrete readability or maintenance cost.
+- **Validation:** missing behavioral coverage of new branches, edge cases, and error paths, tests pinned to implementation details rather than observable behavior, and required checks the change omits. Judge coverage against the changed behavior, not line counts, and do not demand exhaustive suites.
+- **Comments and documentation:** comments and docs, added or untouched, that the changed behavior makes inaccurate, that reference removed behavior, or that restate the obvious in a way that will rot.
+- **Maintainability and style:** naming, structure, formatting, wording, unnecessary complexity or redundant abstraction in the changed code, and consistency with established local patterns. Judge parameter and field ordering by semantic relationships and project conventions, with alphabetical order as a fallback. Style findings belong in the review when they have a concrete readability or maintenance cost.
 
 Before reporting a finding, establish its trigger, affected behavior, and connection to the change. Check nearby guards and callers that might invalidate it. Separate pre-existing issues and unverified concerns from defects introduced by the diff.
+
+## Split large reviews
+
+Apply each concern in a single pass by default. Split only when the diff is too large for one careful pass or the request names distinct aspects, and delegate only genuinely independent aspects as parallel passes over the same target. The reviewer who delegates aggregates the results, holds delegated findings to the same evidence bar, and drops duplicates.
 
 ## Report findings
 
