@@ -58,25 +58,10 @@ let
     ];
   };
 
-  mkWorkmuxHook = status: {
-    hooks = [
-      {
-        type = "command";
-        command = "${pkgs.workmux}/bin/workmux set-window-status ${status}";
-      }
-    ];
-  };
+  workmuxHooks =
+    (lib.importJSON "${pkgs.workmux.src}/resources/codex/hooks/workmux-status.json").hooks;
 in
-{
-  UserPromptSubmit = [ (mkWorkmuxHook "working") ];
-
-  PostToolUse = map mkEntry postEditHooks ++ [
-    (mkWorkmuxHook "working")
-  ];
-
-  SubagentStart = [ (mkWorkmuxHook "working") ];
-
-  SubagentStop = [ (mkWorkmuxHook "done") ];
-
-  Stop = [ (mkWorkmuxHook "done") ];
-}
+lib.zipAttrsWith (_: lib.concatLists) [
+  { PostToolUse = map mkEntry postEditHooks; }
+  workmuxHooks
+]

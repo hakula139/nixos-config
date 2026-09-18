@@ -3,6 +3,7 @@
 # ==============================================================================
 
 {
+  config,
   pkgs,
   lib,
   ...
@@ -44,9 +45,15 @@ in
   home.packages = [ workmux ];
 
   # ----------------------------------------------------------------------------
-  # Agent skills
+  # Agent resources
   # ----------------------------------------------------------------------------
-  home.file = workmuxSkillFiles;
+  home.file = lib.mkMerge [
+    workmuxSkillFiles
+    (lib.mkIf config.hakula.omp.enable {
+      ".omp/agent/extensions/workmux-status.ts".source =
+        "${workmux.src}/resources/omp/extensions/workmux-status.ts";
+    })
+  ];
 
   # ----------------------------------------------------------------------------
   # tmux integration
@@ -61,4 +68,8 @@ in
   # Program configuration
   # ----------------------------------------------------------------------------
   xdg.configFile."workmux/config.yaml".source = configFile;
+
+  xdg.configFile."opencode/plugins/workmux-status.ts" = lib.mkIf config.hakula.opencode.enable {
+    source = "${workmux.src}/resources/opencode/plugins/workmux-status.ts";
+  };
 }

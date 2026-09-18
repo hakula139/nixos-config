@@ -18,10 +18,8 @@ let
   whenDev = pkg: if enableDevToolchains then lib.getExe pkg else "";
   whenDevPath = path: if enableDevToolchains then "${path}" else "";
 
-  prettierConfig = builtins.fromJSON (
-    builtins.readFile (lib.path.append repo.root ".prettierrc.json")
-  );
-  ruffConfig = builtins.fromTOML (builtins.readFile (lib.path.append repo.root "ruff.toml"));
+  prettierConfig = lib.importJSON (lib.path.append repo.root ".prettierrc.json");
+  ruffConfig = lib.importTOML (lib.path.append repo.root "ruff.toml");
 
   preferredQuoteStyle = single: if single then "preferSingle" else "preferDouble";
 
