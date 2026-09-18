@@ -231,7 +231,6 @@ in
         # Configuration files
         # ----------------------------------------------------------------------
         xdg.configFile = {
-          "opencode/package.json".source = "${workmux.src}/resources/opencode/package.json";
           "opencode/plugins/workmux-status.ts".source =
             "${workmux.src}/resources/opencode/plugins/workmux-status.ts";
           "opencode/tui.json".source = tuiConfigFile;
