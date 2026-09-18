@@ -90,7 +90,12 @@ let
     extension = "config.yml";
     configFile = "${configDir}/config.yml";
     defaultSettings = import ./settings.nix;
-    resetKeys = [ "modelRoles" ];
+    resetKeys = [
+      "modelRoles"
+      "ask.notify"
+      "completion.notify"
+      "error.notify"
+    ];
   };
 in
 {

@@ -158,7 +158,7 @@ The failures in sections 3.1 and 3.2 led to rewriting eligible prose directly, w
 
 ## 5. Coverage and limits
 
-Claude Code applies the rewrite hook to Markdown `Write` / `Edit` calls, `AskUserQuestion` questions and option descriptions, and the tool fields listed in [`mcp-fields.json`](../../home/modules/llm-assistants/shared/hooks/prose-polish/mcp-fields.json). That list includes MCP Git commit messages and publishing fields. Prose passed through shell commands and ordinary conversational replies relies on the shared instructions.
+Claude Code's generated Claude-family profiles set `extraEnv.PROSE_POLISH_ENABLED` to `"true"`. GPT and local profiles leave it unset. Override this value per profile through `extraEnv`. Rewriting runs only when the flag is `true`. The hook applies to Markdown `Write` / `Edit` calls, `AskUserQuestion` questions and option descriptions, and the tool fields listed in [`mcp-fields.json`](../../home/modules/llm-assistants/shared/hooks/prose-polish/mcp-fields.json). That list includes MCP Git commit messages and publishing fields. Prose passed through shell commands and ordinary conversational replies relies on the shared instructions.
 
 Source comments and docstrings receive feedback after writes through `hooks/comment-gate/`. Codex uses this comment review and the shared writing instructions without automatic prose rewriting. OMP and OpenCode do not use these shared hooks.
 

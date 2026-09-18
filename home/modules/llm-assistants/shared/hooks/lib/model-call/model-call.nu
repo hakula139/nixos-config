@@ -32,6 +32,7 @@ def gateway [request: record, config: record]: nothing -> string {
     model: ($request | get -o model | default $config.gatewayModel)
     max_tokens: $request.maxTokens
     stream: false
+    tool_choice: "none"
     messages: [
       {role: "system", content: $request.system}
       {role: "user", content: $request.user}
