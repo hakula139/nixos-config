@@ -69,6 +69,10 @@ let
   };
 
   localCommon = {
+    input = [
+      "text"
+      "image"
+    ];
     reasoning = true;
     thinking = {
       mode = "effort";
@@ -107,7 +111,7 @@ in
     };
     local = {
       flagship = "kimi-k3";
-      standard = "glm-5.3";
+      standard = "kimi-k3";
       mini = "glm-5.3-flash";
     };
   };
@@ -232,10 +236,6 @@ in
       contextWindow = 400000;
       maxTokens = 65536;
       autoCompactTokens = 320000;
-      input = [
-        "text"
-        "image"
-      ];
       gatewayId.local = "Kimi-K3";
     };
 
@@ -253,10 +253,6 @@ in
       contextWindow = 1048576;
       maxTokens = 131072;
       autoCompactTokens = 400000;
-      input = [
-        "text"
-        "image"
-      ];
       thinking = localCommon.thinking // {
         defaultLevel = "low";
       };

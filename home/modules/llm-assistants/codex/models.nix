@@ -46,44 +46,42 @@ let
   localModelMetadata = {
     models =
       lib.imap0
+        (priority: model: {
+          inherit priority;
+          slug = model.gatewayId.${profile.gateway};
+          display_name = model.name;
+          description = "${model.name} via the corporate gateway";
+          default_reasoning_level = model.thinking.defaultLevel;
+          supported_reasoning_levels = map (effort: {
+            inherit effort;
+            description = "${effort} reasoning effort";
+          }) model.thinking.efforts;
+          shell_type = "unified_exec";
+          visibility = "list";
+          supported_in_api = true;
+          include_apps_usage_instructions = false;
+          supports_reasoning_summary_parameter = false;
+          default_reasoning_summary = "none";
+          support_verbosity = false;
+          truncation_policy = {
+            mode = "bytes";
+            limit = 10000;
+          };
+          context_window = model.contextWindow;
+          max_context_window = model.contextWindow;
+          auto_compact_token_limit = model.autoCompactTokens;
+          experimental_supported_tools = [ ];
+          input_modalities = model.input;
+        })
         (
-          priority: tier:
-          let
-            model = profile.models.${tier};
-          in
-          {
-            inherit priority;
-            slug = profile.modelIds.${tier};
-            display_name = model.name;
-            description = "${model.name} via the corporate gateway";
-            default_reasoning_level = model.thinking.defaultLevel;
-            supported_reasoning_levels = map (effort: {
-              inherit effort;
-              description = "${effort} reasoning effort";
-            }) model.thinking.efforts;
-            shell_type = "unified_exec";
-            visibility = "list";
-            supported_in_api = true;
-            include_apps_usage_instructions = false;
-            supports_reasoning_summary_parameter = false;
-            default_reasoning_summary = "none";
-            support_verbosity = false;
-            truncation_policy = {
-              mode = "bytes";
-              limit = 10000;
-            };
-            context_window = model.contextWindow;
-            max_context_window = model.contextWindow;
-            auto_compact_token_limit = model.autoCompactTokens;
-            experimental_supported_tools = [ ];
-            input_modalities = model.input;
-          }
-        )
-        [
-          "flagship"
-          "standard"
-          "mini"
-        ];
+          lib.unique (
+            map (tier: profile.models.${tier}) [
+              "flagship"
+              "standard"
+              "mini"
+            ]
+          )
+        );
   };
 
   # Read the upstream prompt at build time to avoid import-from-derivation.
