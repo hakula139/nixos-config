@@ -120,6 +120,10 @@ When writing documentation:
 
 Use only tools and capabilities available in the current session, and follow their actual schemas and permission boundaries. Prefer installed skills that match the task, reusing their workflow and resources.
 
+### Terminal sessions
+
+Once the task is clear, a top-level interactive agent should rename its otherwise default numeric tmux session to a short, hyphenated task-based name. Do so only when the session has exactly one window and one pane, has no known user-chosen name, and the current pane's window has no Workmux `@workmux_token`. Derive its stable session ID from `TMUX_PANE` and target that ID explicitly. Delegated, headless, or background runs must never rename parent sessions. Keep tmux window identities and native agent conversation or pane titles independent.
+
 ### Library documentation
 
 Use the shared `find-docs` skill for Context7 documentation lookups. The managed `ctx7` command loads its API key at launch. Run `ctx7 library <name> <query>` and `ctx7 docs <libraryId> <query>` directly, replacing the upstream skill's `npx` examples. Do not reinstall the CLI or configure Context7 MCP.

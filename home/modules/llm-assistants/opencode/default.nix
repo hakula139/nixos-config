@@ -68,8 +68,6 @@ in
   # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     let
-      inherit (pkgs) workmux;
-
       json = pkgs.formats.json { };
 
       # ------------------------------------------------------------------------
@@ -231,8 +229,6 @@ in
         # Configuration files
         # ----------------------------------------------------------------------
         xdg.configFile = {
-          "opencode/plugins/workmux-status.ts".source =
-            "${workmux.src}/resources/opencode/plugins/workmux-status.ts";
           "opencode/tui.json".source = tuiConfigFile;
         }
         // lib.optionalAttrs cfg.plugins.ohMyOpenCode {

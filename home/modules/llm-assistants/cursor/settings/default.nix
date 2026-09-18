@@ -4,6 +4,7 @@
 
 {
   pkgs,
+  lib,
   flakeConfigName,
   flakePath,
   isDarwin,
@@ -18,8 +19,8 @@ let
   # ----------------------------------------------------------------------------
   # Base settings
   # ----------------------------------------------------------------------------
-  settingsBase = builtins.fromJSON (builtins.readFile ./settings.json);
-  windowsSettings = builtins.fromJSON (builtins.readFile ./windows-settings.json);
+  settingsBase = lib.importJSON ./settings.json;
+  windowsSettings = lib.importJSON ./windows-settings.json;
 
   # ----------------------------------------------------------------------------
   # Terminal profiles

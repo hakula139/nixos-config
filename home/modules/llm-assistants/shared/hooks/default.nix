@@ -120,6 +120,7 @@ in
 
     prosePolish = import ./prose-polish {
       inherit
+        lib
         mkNuHook
         modelCall
         modelCatalog

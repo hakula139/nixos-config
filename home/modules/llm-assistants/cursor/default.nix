@@ -58,6 +58,7 @@ in
       settings = import ./settings {
         inherit
           pkgs
+          lib
           flakeConfigName
           isDarwin
           isNixOS
