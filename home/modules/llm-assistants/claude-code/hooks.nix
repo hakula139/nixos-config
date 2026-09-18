@@ -26,7 +26,6 @@ let
 
   enabledHooks = [
     "prosePolish"
-    "wakatime"
     "autoFormat"
     "commentGate"
     "completeness"

@@ -128,14 +128,5 @@ in
         timeouts
         ;
     };
-
-    wakatime = import ./wakatime {
-      inherit
-        pkgs
-        assistant
-        mkNuHook
-        timeouts
-        ;
-    };
   };
 }
