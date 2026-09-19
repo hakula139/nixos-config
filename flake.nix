@@ -122,11 +122,7 @@
         in
         git-hooks-nix.lib.${system}.run {
           src = ./.;
-          package =
-            if pkgs.stdenv.isDarwin then
-              pkgs.pre-commit.override { dotnet-sdk = pkgs.dotnetCorePackages.sdk_8_0-bin; }
-            else
-              pkgs.pre-commit;
+          package = pkgs.prek;
           hooks = {
             check-added-large-files.enable = true;
 
