@@ -2,12 +2,12 @@
 +++ b/server/core/controllers/api/runners/jobs-files.ts
 @@ -1,5 +1,6 @@
  import { FileStorage, RunnerJobState, VideoFileStream } from '@peertube/peertube-models'
- import { logger, loggerTagsFactory } from '@server/helpers/logger.js'
+ import { createLogger } from '@server/helpers/logger.js'
 +import { CONFIG } from '@server/initializers/config.js'
  import { proxifyHLS, proxifyWebVideoFile } from '@server/lib/object-storage/index.js'
  import { VideoPathManager } from '@server/lib/video-path-manager.js'
  import { getStudioTaskFilePath } from '@server/lib/video-studio.js'
-@@ -102,6 +103,10 @@
+@@ -94,6 +95,10 @@
    const { video, file, req, res } = options
  
    if (file.storage === FileStorage.OBJECT_STORAGE) {
@@ -18,9 +18,9 @@
      if (file.isHLS()) {
        return proxifyHLS({
          req,
-@@ -162,3 +167,32 @@
- 
-   return res.sendFile(getStudioTaskFilePath(filename))
+@@ -145,3 +150,32 @@
+     return res.sendFile(getStudioTaskFilePath(filename))
+   })
  }
 +
 +function canRedirectRunnerToCdn (options: {
@@ -47,7 +47,7 @@
 +
 +  const url = file.getObjectStorageUrl(video)
 +
-+  logger.debug('Redirecting runner to CDN URL %s for file %s.', url, file.filename, lTags())
++  logger.debug('Redirecting runner to CDN URL %s for file %s.', url, file.filename)
 +
 +  return res.redirect(303, url)
 +}
