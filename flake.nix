@@ -122,6 +122,7 @@
         in
         git-hooks-nix.lib.${system}.run {
           src = ./.;
+          package = pkgs.prek;
           hooks = {
             check-added-large-files.enable = true;
 
