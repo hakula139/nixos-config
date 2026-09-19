@@ -372,6 +372,7 @@
     "Bash(pnpm *)"
     "Bash(poetry *)"
     "Bash(pre-commit *)"
+    "Bash(prek *)"
     "Bash(pytest *)"
     "Bash(python *)"
     "Bash(python3 *)"
