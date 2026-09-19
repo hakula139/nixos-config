@@ -209,6 +209,7 @@ poppler
 posseg
 ppid
 precmd
+prek
 proxify
 psql
 pulumi
