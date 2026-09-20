@@ -32,7 +32,7 @@ let
     acp-delegate = ./acp-delegate;
   }
   // lib.optionalAttrs config.hakula.ctx7.enable {
-    find-docs = "${pkgs.unstable.ctx7}/skills/find-docs";
+    find-docs = "${pkgs.unstable.ctx7}/share/skills/ctx7/find-docs";
   };
 
   mkSkillFiles =
