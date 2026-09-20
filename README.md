@@ -1,3 +1,5 @@
+
+
 # Nix Configuration
 
 [![CI](https://github.com/hakula139/nixos-config/actions/workflows/ci.yml/badge.svg)](https://github.com/hakula139/nixos-config/actions/workflows/ci.yml)
@@ -29,6 +31,6 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 | `nixup`   | `nix flake update`             | same                            | same                                                  |
 | `nixgc`   | `nh clean all --keep-since 3d` | same                            | same                                                  |
 
-Deploy the servers by running `nixdp` from this repository, or target a single host with `nixdp --on us-4`. See [bootstrap](docs/guides/bootstrap.md#nixos-server) for prerequisites and host selection.
+Deploy the servers by running `nixdp` from this repository, or target a single host with `nixdp --on us-4`. Because every proxy node is also a deploy target, verify which route is in use before running a fleet-wide apply. See [bootstrap](docs/guides/bootstrap.md#nixos-server) for prerequisites and host selection.
 
 A machine with no managed configuration yet needs the bootstrap steps first, which differ per platform. The `devvm` container has no `nixsw` or `nixroll` alias. Apply its changes by [rebuilding the image](docs/guides/bootstrap.md#docker-image) and recreating the container.
