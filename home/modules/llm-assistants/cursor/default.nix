@@ -81,17 +81,26 @@ in
       };
 
       # ------------------------------------------------------------------------
-      # Desktop configuration
+      # Configuration files
       # ------------------------------------------------------------------------
+      configFiles = pkgs.runCommand "cursor-config" { } ''
+        set -euo pipefail
+        mkdir -p "$out"
+        cp ${lib.escapeShellArg settings.settingsJson} "$out/settings.json"
+        cp ${lib.escapeShellArg "${./keybindings.json}"} "$out/keybindings.json"
+        cp ${lib.escapeShellArg mcp.mcpJson} "$out/mcp.json"
+      '';
+
       darwinFiles = {
-        "Library/Application Support/Cursor/User/settings.json".source = settings.settingsJson;
-        "Library/Application Support/Cursor/User/keybindings.json".source = ./keybindings.json;
+        "Library/Application Support/Cursor/User/settings.json".source = "${configFiles}/settings.json";
+        "Library/Application Support/Cursor/User/keybindings.json".source =
+          "${configFiles}/keybindings.json";
         "Library/Application Support/Cursor/User/snippets".source = ./snippets;
       };
 
       linuxFiles = {
-        "Cursor/User/settings.json".source = settings.settingsJson;
-        "Cursor/User/keybindings.json".source = ./keybindings.json;
+        "Cursor/User/settings.json".source = "${configFiles}/settings.json";
+        "Cursor/User/keybindings.json".source = "${configFiles}/keybindings.json";
         "Cursor/User/snippets".source = ./snippets;
       };
     in
@@ -102,7 +111,7 @@ in
       home.packages = lib.optional cfg.windowsSync.enable settings.syncWindowsSettings;
 
       home.file = {
-        ".cursor/mcp.json".source = mcp.mcpJson;
+        ".cursor/mcp.json".source = "${configFiles}/mcp.json";
       }
       // lib.optionalAttrs (isDesktop && isDarwin) darwinFiles
       // lib.optionalAttrs isLinux remoteFiles;
