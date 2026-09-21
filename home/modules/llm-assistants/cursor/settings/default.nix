@@ -109,17 +109,17 @@ let
   # Machine settings
   # ----------------------------------------------------------------------------
   machineSettings = portableSettings // {
-    "bashIde.shellcheckPath" = "${pkgs.shellcheck}/bin/shellcheck";
-    "bashIde.shfmt.path" = "${pkgs.shfmt}/bin/shfmt";
-    "direnv.path.executable" = "${pkgs.direnv}/bin/direnv";
-    "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
+    "bashIde.shellcheckPath" = lib.getExe pkgs.shellcheck;
+    "bashIde.shfmt.path" = lib.getExe pkgs.shfmt;
+    "direnv.path.executable" = lib.getExe pkgs.direnv;
+    "nix.serverPath" = lib.getExe pkgs.nixd;
     "nix.serverSettings" = {
       "nixd" = {
-        formatting.command = [ "${pkgs.nixfmt}/bin/nixfmt" ];
+        formatting.command = [ (lib.getExe pkgs.nixfmt) ];
       }
       // nixdCompletions;
     };
-    "nushellLanguageServer.nushellExecutablePath" = "${pkgs.nushell}/bin/nu";
+    "nushellLanguageServer.nushellExecutablePath" = lib.getExe pkgs.nushell;
     "python.defaultInterpreterPath" = "${profileDirectory}/bin/python";
   };
 

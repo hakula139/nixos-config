@@ -5,6 +5,7 @@
 {
   config,
   pkgs,
+  lib,
   realitySniHost,
 }:
 
@@ -18,7 +19,7 @@ pkgs.writeShellScript "clash-generator" ''
 
   outputDir="''${STATE_DIRECTORY:-/var/lib/clash-generator}"
 
-  ${pythonEnv}/bin/python3 ${generator} \
+  ${lib.getExe' pythonEnv "python3"} ${generator} \
     -u "${config.age.secrets.clash-users.path}" \
     -t "${template}" \
     -s "${realitySniHost}" \

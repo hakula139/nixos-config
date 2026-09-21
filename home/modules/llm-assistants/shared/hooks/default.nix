@@ -55,7 +55,7 @@ let
         ];
       } (builtins.readFile script);
     in
-    "${package}/bin/${assistant}-${slug}";
+    lib.getExe package;
 
   patchInput = pkgs.writers.writeNu "patch-input" { } (
     builtins.readFile ./lib/patch-input/patch-input.nu

@@ -32,7 +32,7 @@ let
         command = toString (
           pkgs.writeShellScript "codex-format-feedback" ''
             set -euo pipefail
-            ${autoFormat.command} | ${pkgs.jq}/bin/jq -Rs '
+            ${autoFormat.command} | ${lib.getExe pkgs.jq} -Rs '
               select(length > 0)
               | {hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: .}}
             '

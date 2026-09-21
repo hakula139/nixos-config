@@ -65,7 +65,7 @@ in
       # Inject Umami tracking script into index.html
       indexFile="${staticsDir}/index.html"
       if [ -f "$indexFile" ] && ! grep -q "${trackingJSFilename}" "$indexFile"; then
-        ${pkgs.gnused}/bin/sed -i "s|</head>|  $(cat ${indexHTMLPatch})\n  </head>|" "$indexFile"
+        ${lib.getExe pkgs.gnused} -i "s|</head>|  $(cat ${indexHTMLPatch})\n  </head>|" "$indexFile"
       fi
       install -m 0644 ${trackingJS} "${staticsDir}/${trackingJSFilename}"
     '';

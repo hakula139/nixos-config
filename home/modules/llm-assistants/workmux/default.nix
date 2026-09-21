@@ -61,7 +61,7 @@ in
   programs.tmux.extraConfig = lib.mkBefore ''
     set -g @catppuccin_window_text " #T#{?@workmux_status, #{@workmux_status},}"
     set -g @catppuccin_window_current_text " #T#{?@workmux_status, #{@workmux_status},}"
-    bind g display-popup -E -w 90% -h 90% '${workmux}/bin/workmux dashboard'
+    bind g display-popup -E -w 90% -h 90% '${lib.getExe workmux} dashboard'
   '';
 
   # ----------------------------------------------------------------------------

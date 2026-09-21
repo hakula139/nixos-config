@@ -409,7 +409,7 @@ in
     # Activation
     # --------------------------------------------------------------------------
     home.activation.claudeCodeProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      ${claudeSwitch}/bin/claude-switch --initialize
+      ${lib.getExe claudeSwitch} --initialize
     '';
   };
 

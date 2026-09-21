@@ -68,7 +68,7 @@ in
     after = [ "multi-user.target" ];
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${pkgs.systemd}/bin/systemctl reset-failed user@1000.service";
+      ExecStart = "${lib.getExe' pkgs.systemd "systemctl"} reset-failed user@1000.service";
     };
   };
 

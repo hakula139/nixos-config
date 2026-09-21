@@ -49,7 +49,7 @@ let
       (lib.makeBinPath [ pkgs.curl ])
     ];
   } (builtins.readFile ./mihomo-update.nu);
-  updateScript = "${updatePackage}/bin/mihomo-update";
+  updateScript = lib.getExe updatePackage;
 
   startScript = pkgs.writeShellScript "mihomo-start" ''
     set -euo pipefail
@@ -58,7 +58,7 @@ let
     ${updateScript}
 
     echo "Starting mihomo..."
-    exec ${mihomo}/bin/mihomo -d ${configDir}
+    exec ${lib.getExe mihomo} -d ${configDir}
   '';
 in
 {

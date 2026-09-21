@@ -150,7 +150,7 @@ in
     # --------------------------------------------------------------------------
     # Keep config.yml writable for profile switching and OMP settings updates.
     home.activation.ompAuthProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      ${switch}/bin/omp-switch --initialize
+      ${lib.getExe switch} --initialize
     '';
   };
 

@@ -86,8 +86,8 @@ let
             type = "command";
             command = ''
               input="$(cat)"
-              session_id="$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.session_id // empty')"
-              teammate_name="$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.teammate_name // empty')"
+              session_id="$(printf '%s' "$input" | ${lib.getExe pkgs.jq} -r '.session_id // empty')"
+              teammate_name="$(printf '%s' "$input" | ${lib.getExe pkgs.jq} -r '.teammate_name // empty')"
               nudge_flag="/tmp/claude-team-nudged-''${session_id:-unknown}"
               if [ ! -f "$nudge_flag" ]; then
                 touch "$nudge_flag"

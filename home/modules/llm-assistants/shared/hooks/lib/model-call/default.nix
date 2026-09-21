@@ -25,7 +25,7 @@
       curl = lib.getExe pkgs.curl;
       gatewayModel = modelCatalog.models.${modelCatalog.defaults.gemini.standard}.gatewayId.openrouter;
       gatewayTimeout = timeouts.modelCall;
-      timeout = "${pkgs.coreutils}/bin/timeout";
+      timeout = lib.getExe' pkgs.coreutils "timeout";
     };
   };
 }
