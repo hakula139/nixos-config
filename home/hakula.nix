@@ -79,5 +79,5 @@ in
     };
   };
 
-  hakula.nix.configPath = lib.mkDefault "${homeDir}/github/nixos-config";
+  hakula.nix.configPath = lib.mkDefault "${homeDir}/gitlab/nixos-config";
 }
