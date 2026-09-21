@@ -4,6 +4,7 @@
 
 {
   pkgs,
+  lib,
   nodejs,
   configPath,
   tokenPath,
@@ -47,6 +48,6 @@ pkgs.writeShellApplication {
     nodejs
   ];
   text = ''
-    exec ${pkgs.bash}/bin/bash ${runScript}
+    exec ${lib.getExe pkgs.bash} ${runScript}
   '';
 }

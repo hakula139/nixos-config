@@ -147,7 +147,7 @@ in
           "linkGeneration"
         ]
         ''
-          ${switch}/bin/codex-switch --initialize
+          ${lib.getExe switch} --initialize
         '';
   };
 
@@ -163,7 +163,7 @@ in
       wire_api = "responses";
 
       auth = {
-        command = "${pkgs.coreutils}/bin/cat";
+        command = lib.getExe' pkgs.coreutils "cat";
         args = [ tokenFile ];
       };
     };

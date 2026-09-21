@@ -30,11 +30,11 @@
     extraInstallCommands = ''
       # Create symlinks to the current kernel / initrd in /boot.
       # This allows the static grub.conf to always find the latest build.
-      ${pkgs.coreutils}/bin/ln -sfn /nix/var/nix/profiles/system/kernel /boot/vmlinuz
-      ${pkgs.coreutils}/bin/ln -sfn /nix/var/nix/profiles/system/initrd /boot/initrd
+      ${lib.getExe' pkgs.coreutils "ln"} -sfn /nix/var/nix/profiles/system/kernel /boot/vmlinuz
+      ${lib.getExe' pkgs.coreutils "ln"} -sfn /nix/var/nix/profiles/system/initrd /boot/initrd
 
       # Create a static legacy grub.conf for CloudCone's external bootloader.
-      ${pkgs.coreutils}/bin/cat <<EOF >/boot/grub/grub.conf
+      ${lib.getExe' pkgs.coreutils "cat"} <<EOF >/boot/grub/grub.conf
       default=0
       timeout=1
       title NixOS

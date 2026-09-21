@@ -83,7 +83,7 @@ in
         set -euo pipefail
         source ${config.age.secrets.umami-env.path}
 
-        ${config.services.postgresql.package}/bin/psql \
+        ${lib.getExe' config.services.postgresql.package "psql"} \
           -p ${toString config.services.postgresql.settings.port} \
           -v ON_ERROR_STOP=1 \
           -c "ALTER ROLE ${serviceName} WITH PASSWORD '$DB_PASSWORD';"

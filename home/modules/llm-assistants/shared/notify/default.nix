@@ -35,9 +35,9 @@ let
     ${lib.optionalString isLinux ''
       # Check if running in WSL
       if grep -qi microsoft /proc/version 2>/dev/null; then
-        "${toasty}/bin/toasty.exe" "$body" -t "$title" 2>/dev/null || true
+        "${lib.getExe' toasty "toasty.exe"}" "$body" -t "$title" 2>/dev/null || true
       else
-        ${pkgs.libnotify}/bin/notify-send "$title" "$body" 2>/dev/null || true
+        ${lib.getExe pkgs.libnotify} "$title" "$body" 2>/dev/null || true
       fi
     ''}
     ${lib.optionalString isDarwin ''
@@ -51,7 +51,7 @@ let
       "${notifyScript}"
     ];
   } (builtins.readFile ./project-notify.nu);
-  mkProjectNotifyScript = "${projectNotifyPackage}/bin/project-notify";
+  mkProjectNotifyScript = lib.getExe projectNotifyPackage;
 in
 {
   inherit notifyScript mkProjectNotifyScript;
