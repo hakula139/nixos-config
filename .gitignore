@@ -20,6 +20,7 @@ __pycache__/
 # Editor / assistant local settings
 **/.agent/plans/
 **/.agents/plans/
+**/.agents/skills/*.local/
 **/.claude/agent-memory-local/
 **/.claude/plans
 **/.claude/settings.local.json
