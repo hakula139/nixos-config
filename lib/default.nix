@@ -19,5 +19,5 @@ in
   ssh = import ./ssh.nix { inherit lib; };
   systemd = import ./systemd.nix;
   toolingFor = pkgs: import ./tooling.nix { inherit pkgs; };
-  wsl = import ./wsl;
+  wsl = import ./wsl { inherit lib; };
 }

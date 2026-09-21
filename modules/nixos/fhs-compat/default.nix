@@ -14,59 +14,59 @@ let
 
   shims = {
     # Coreutils
-    basename = "${pkgs.coreutils}/bin/basename";
-    cat = "${pkgs.coreutils}/bin/cat";
-    chmod = "${pkgs.coreutils}/bin/chmod";
-    chown = "${pkgs.coreutils}/bin/chown";
-    cp = "${pkgs.coreutils}/bin/cp";
-    cut = "${pkgs.coreutils}/bin/cut";
-    date = "${pkgs.coreutils}/bin/date";
-    dirname = "${pkgs.coreutils}/bin/dirname";
-    echo = "${pkgs.coreutils}/bin/echo";
-    env = "${pkgs.coreutils}/bin/env";
-    head = "${pkgs.coreutils}/bin/head";
-    ln = "${pkgs.coreutils}/bin/ln";
-    ls = "${pkgs.coreutils}/bin/ls";
-    mkdir = "${pkgs.coreutils}/bin/mkdir";
-    mktemp = "${pkgs.coreutils}/bin/mktemp";
-    mv = "${pkgs.coreutils}/bin/mv";
-    printf = "${pkgs.coreutils}/bin/printf";
-    pwd = "${pkgs.coreutils}/bin/pwd";
-    readlink = "${pkgs.coreutils}/bin/readlink";
-    realpath = "${pkgs.coreutils}/bin/realpath";
-    rm = "${pkgs.coreutils}/bin/rm";
-    sleep = "${pkgs.coreutils}/bin/sleep";
-    sort = "${pkgs.coreutils}/bin/sort";
-    stat = "${pkgs.coreutils}/bin/stat";
-    tail = "${pkgs.coreutils}/bin/tail";
-    tee = "${pkgs.coreutils}/bin/tee";
-    touch = "${pkgs.coreutils}/bin/touch";
-    tr = "${pkgs.coreutils}/bin/tr";
-    uname = "${pkgs.coreutils}/bin/uname";
-    wc = "${pkgs.coreutils}/bin/wc";
+    basename = lib.getExe' pkgs.coreutils "basename";
+    cat = lib.getExe' pkgs.coreutils "cat";
+    chmod = lib.getExe' pkgs.coreutils "chmod";
+    chown = lib.getExe' pkgs.coreutils "chown";
+    cp = lib.getExe' pkgs.coreutils "cp";
+    cut = lib.getExe' pkgs.coreutils "cut";
+    date = lib.getExe' pkgs.coreutils "date";
+    dirname = lib.getExe' pkgs.coreutils "dirname";
+    echo = lib.getExe' pkgs.coreutils "echo";
+    env = lib.getExe' pkgs.coreutils "env";
+    head = lib.getExe' pkgs.coreutils "head";
+    ln = lib.getExe' pkgs.coreutils "ln";
+    ls = lib.getExe' pkgs.coreutils "ls";
+    mkdir = lib.getExe' pkgs.coreutils "mkdir";
+    mktemp = lib.getExe' pkgs.coreutils "mktemp";
+    mv = lib.getExe' pkgs.coreutils "mv";
+    printf = lib.getExe' pkgs.coreutils "printf";
+    pwd = lib.getExe' pkgs.coreutils "pwd";
+    readlink = lib.getExe' pkgs.coreutils "readlink";
+    realpath = lib.getExe' pkgs.coreutils "realpath";
+    rm = lib.getExe' pkgs.coreutils "rm";
+    sleep = lib.getExe' pkgs.coreutils "sleep";
+    sort = lib.getExe' pkgs.coreutils "sort";
+    stat = lib.getExe' pkgs.coreutils "stat";
+    tail = lib.getExe' pkgs.coreutils "tail";
+    tee = lib.getExe' pkgs.coreutils "tee";
+    touch = lib.getExe' pkgs.coreutils "touch";
+    tr = lib.getExe' pkgs.coreutils "tr";
+    uname = lib.getExe' pkgs.coreutils "uname";
+    wc = lib.getExe' pkgs.coreutils "wc";
 
     # Archive / compression
-    gunzip = "${pkgs.gzip}/bin/gunzip";
-    gzip = "${pkgs.gzip}/bin/gzip";
-    tar = "${pkgs.gnutar}/bin/tar";
-    xz = "${pkgs.xz}/bin/xz";
+    gunzip = lib.getExe' pkgs.gzip "gunzip";
+    gzip = lib.getExe pkgs.gzip;
+    tar = lib.getExe pkgs.gnutar;
+    xz = lib.getExe' pkgs.xz "xz";
 
     # Network
-    curl = "${pkgs.curl}/bin/curl";
-    wget = "${pkgs.wget}/bin/wget";
+    curl = lib.getExe pkgs.curl;
+    wget = lib.getExe pkgs.wget;
 
     # Process management
-    ps = "${pkgs.procps}/bin/ps";
+    ps = lib.getExe' pkgs.procps "ps";
 
     # Text processing
-    awk = "${pkgs.gawk}/bin/awk";
-    grep = "${pkgs.gnugrep}/bin/grep";
-    sed = "${pkgs.gnused}/bin/sed";
+    awk = lib.getExe' pkgs.gawk "awk";
+    grep = lib.getExe pkgs.gnugrep;
+    sed = lib.getExe pkgs.gnused;
 
     # Filesystem & misc
-    find = "${pkgs.findutils}/bin/find";
-    which = "${pkgs.which}/bin/which";
-    xargs = "${pkgs.findutils}/bin/xargs";
+    find = lib.getExe pkgs.findutils;
+    which = lib.getExe pkgs.which;
+    xargs = lib.getExe' pkgs.findutils "xargs";
   };
 in
 {
@@ -87,7 +87,7 @@ in
   config = lib.mkIf cfg.enable {
     system.activationScripts.fhsCompatShims.text = ''
       mkdir -p /bin /usr/bin
-      ln -sfn ${pkgs.bash}/bin/bash /bin/bash
+      ln -sfn ${lib.getExe pkgs.bash} /bin/bash
       ${lib.concatStringsSep "\n" (
         lib.mapAttrsToList (name: target: "ln -sfn ${target} /usr/bin/${name}") shims
       )}

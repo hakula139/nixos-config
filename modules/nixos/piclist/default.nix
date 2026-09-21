@@ -14,7 +14,7 @@ let
   cfg = config.hakula.services.piclist;
 
   piclistServer = import ./server {
-    inherit pkgs;
+    inherit pkgs lib;
     inherit (cfg) nodejs;
     configPath = config.age.secrets.piclist-config.path;
     tokenPath = config.age.secrets.piclist-token.path;

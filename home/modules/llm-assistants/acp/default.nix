@@ -50,14 +50,14 @@ let
     pkg = pkgs.claude-agent-acp;
     bin = "claude-agent-acp";
     executableVar = "CLAUDE_CODE_EXECUTABLE";
-    executable = "${config.programs.claude-code.package}/bin/claude";
+    executable = lib.getExe' config.programs.claude-code.package "claude";
   };
 
   codexAdapter = mkAdapter {
     pkg = pkgs.codex-acp;
     bin = "codex-acp";
     executableVar = "CODEX_PATH";
-    executable = "${config.programs.codex.package}/bin/codex";
+    executable = lib.getExe' config.programs.codex.package "codex";
   };
 
   # ----------------------------------------------------------------------------

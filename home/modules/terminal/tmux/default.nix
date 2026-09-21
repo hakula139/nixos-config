@@ -43,7 +43,7 @@ in
     keyMode = "vi";
     mouse = true;
     prefix = "C-a";
-    shell = "${pkgs.zsh}/bin/zsh";
+    shell = lib.getExe pkgs.zsh;
     terminal = "tmux-256color";
 
     # --------------------------------------------------------------------------

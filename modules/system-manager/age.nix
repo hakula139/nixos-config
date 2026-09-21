@@ -13,7 +13,7 @@ let
   cfg = config.age;
   serviceName = "agenix-install-secrets";
   secretsDir = "/run/agenix";
-  ageBin = "${pkgs.age}/bin/age";
+  ageBin = lib.getExe pkgs.age;
   managedPathsFile = "/var/lib/system-manager/agenix-managed-secrets";
 
   secretType = lib.types.submodule (

@@ -80,7 +80,7 @@ in
         wants = [ "network-online.target" ];
         serviceConfig = repoLib.systemd.hardening // {
           Type = "oneshot";
-          ExecStart = "${cloudconeAgent}/bin/cloudcone-agent";
+          ExecStart = lib.getExe cloudconeAgent;
           User = "ccagent";
           Group = "ccagent";
           AmbientCapabilities = [ "CAP_NET_RAW" ];

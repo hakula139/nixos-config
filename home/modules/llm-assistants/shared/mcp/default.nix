@@ -89,7 +89,7 @@ let
     mkServer (
       server
       // {
-        command = [ "${pkgs.uv}/bin/uvx" ] ++ server.command;
+        command = [ (lib.getExe' pkgs.uv "uvx") ] ++ server.command;
       }
     );
 
@@ -143,14 +143,14 @@ let
   # Filesystem
   # ----------------------------------------------------------------------------
   filesystemBin = pkgs.writeShellScriptBin "filesystem-mcp" ''
-    exec ${pkgs.mcp-server-filesystem}/bin/mcp-server-filesystem ${esc homeDir} "$@"
+    exec ${lib.getExe pkgs.mcp-server-filesystem} ${esc homeDir} "$@"
   '';
 
   # ----------------------------------------------------------------------------
   # Git
   # ----------------------------------------------------------------------------
   gitBin = pkgs.writeShellScriptBin "git-mcp" ''
-    exec ${pkgs.mcp-server-git}/bin/mcp-server-git "$@"
+    exec ${lib.getExe pkgs.mcp-server-git} "$@"
   '';
 
   # ----------------------------------------------------------------------------
@@ -167,7 +167,7 @@ let
         export GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${esc githubPatFile})"
       fi
     fi
-    exec ${pkgs.mcp-server-github}/bin/mcp-server-github stdio "$@"
+    exec ${lib.getExe pkgs.mcp-server-github} stdio "$@"
   '';
 
   # ----------------------------------------------------------------------------
@@ -195,7 +195,7 @@ let
       export GITLAB_API_URL=${esc "${gitlabUrl}/api/v4"}
     fi
     export GITLAB_TOOLSETS=${esc gitlabToolsets}
-    exec ${pkgs.mcp-server-gitlab}/bin/mcp-server-gitlab "$@"
+    exec ${lib.getExe pkgs.mcp-server-gitlab} "$@"
   '';
 
   # ----------------------------------------------------------------------------
@@ -219,17 +219,17 @@ in
   # ----------------------------------------------------------------------------
   servers = {
     atlassian = {
-      command = "${atlassianBin}/bin/atlassian-mcp";
+      command = lib.getExe atlassianBin;
       type = "stdio";
     };
 
     braveSearch = {
-      command = "${braveSearchBin}/bin/brave-search-mcp";
+      command = lib.getExe braveSearchBin;
       type = "stdio";
     };
 
     chromeDevtools = {
-      command = "${chromeDevtoolsBin}/bin/chrome-devtools-mcp";
+      command = lib.getExe chromeDevtoolsBin;
       type = "stdio";
     };
 
@@ -239,32 +239,32 @@ in
     };
 
     exa = {
-      command = "${exaBin}/bin/exa-mcp";
+      command = lib.getExe exaBin;
       type = "stdio";
     };
 
     filesystem = {
-      command = "${filesystemBin}/bin/filesystem-mcp";
+      command = lib.getExe filesystemBin;
       type = "stdio";
     };
 
     git = {
-      command = "${gitBin}/bin/git-mcp";
+      command = lib.getExe gitBin;
       type = "stdio";
     };
 
     github = {
-      command = "${githubBin}/bin/github-mcp";
+      command = lib.getExe githubBin;
       type = "stdio";
     };
 
     gitlab = {
-      command = "${gitlabBin}/bin/gitlab-mcp";
+      command = lib.getExe gitlabBin;
       type = "stdio";
     };
 
     scrapling = {
-      command = "${scraplingBin}/bin/scrapling-mcp";
+      command = lib.getExe scraplingBin;
       type = "stdio";
     };
   };

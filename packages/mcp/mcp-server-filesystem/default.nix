@@ -31,7 +31,7 @@ pkgs.buildNpmPackage rec {
   # npmConfigHook has run patchShebangs on node_modules.
   postUnpack = ''
     for pkg in source/src/*/package.json; do
-      ${pkgs.jq}/bin/jq 'del(.scripts.build, .scripts.prepare)' "$pkg" > tmp
+      ${lib.getExe pkgs.jq} 'del(.scripts.build, .scripts.prepare)' "$pkg" > tmp
       mv tmp "$pkg"
     done
   '';
@@ -47,7 +47,7 @@ pkgs.buildNpmPackage rec {
   # Copy them manually and create a wrapper pointing to the built entry point.
   postInstall = ''
     cp -r src "$out/lib/node_modules/@modelcontextprotocol/servers/src"
-    makeWrapper "${pkgs.nodejs_24}/bin/node" "$out/bin/mcp-server-filesystem" \
+    makeWrapper "${lib.getExe pkgs.nodejs_24}" "$out/bin/mcp-server-filesystem" \
       --add-flags "$out/lib/node_modules/@modelcontextprotocol/servers/src/filesystem/dist/index.js"
   '';
 

@@ -27,14 +27,14 @@ let
     done
 
     if [ -n "$tag" ]; then
-      exec ${pkgs.systemd}/bin/systemd-cat -t "$tag" "''${out[@]}"
+      exec ${lib.getExe' pkgs.systemd "systemd-cat"} -t "$tag" "''${out[@]}"
     else
-      exec ${pkgs.systemd}/bin/systemd-cat "''${out[@]}"
+      exec ${lib.getExe' pkgs.systemd "systemd-cat"} "''${out[@]}"
     fi
   '';
 
   sendmail = pkgs.writeShellScriptBin "sendmail" ''
-    exec ${pkgs.msmtp}/bin/msmtp "$@"
+    exec ${lib.getExe pkgs.msmtp} "$@"
   '';
 in
 {

@@ -128,7 +128,7 @@ in
           (lib.makeBinPath [ pkgs.ccusage ])
         ];
       } (builtins.readFile ./scripts/statusline-command.nu);
-      statusLineScript = "${statusLinePackage}/bin/statusline-command";
+      statusLineScript = lib.getExe statusLinePackage;
 
       # ------------------------------------------------------------------------
       # Package wrapper
