@@ -96,7 +96,6 @@ hookify
 horiz
 iface
 ikuncode
-indentexpr
 indoc
 inetutils
 inodes
