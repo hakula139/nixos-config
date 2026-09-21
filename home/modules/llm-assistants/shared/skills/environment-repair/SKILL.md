@@ -27,7 +27,7 @@ The worker prompt must include:
 - A bounded diagnosis and fix for the cause owned by nixos-config, following its `AGENTS.md` and affected conventions.
 - The shared-tree warning: other agents are working, so preserve their changes and edit only the assigned worktree and scope.
 - No push, PR / MR creation, merge, or activation. Do not call `nixsw`, restart services, or change deployed configuration under this repair policy.
-- Secret handling: never print or persist decrypted values. Preserve the main checkout's local `data/corp-domain.nix`. Inspect build requirements before copying that file into an isolated worktree, and never stage its real value.
+- Secret handling: never print or persist decrypted values.
 - Required evidence: reproduce the problem where safe, verify the fix with an appropriate command, inspect the final diff, and report the branch, worktree, commit, checks, and remaining blockers.
 
 Continue the original task while the worker runs, using a safe available workaround when appropriate. Check the worker through the delegation facility's real status and result mechanisms. Do not dispatch duplicate workers for the same failure or have a repair worker recursively launch another environment repair.
