@@ -78,6 +78,8 @@ let
     profiles = lib.filterAttrs (_: profile: profile.provider != null) enabledProfiles;
   };
 
+  modelsYaml = yaml.generate "omp-models.yml" models;
+
   # ----------------------------------------------------------------------------
   # Profile switcher
   # ----------------------------------------------------------------------------
@@ -137,10 +139,7 @@ in
     # --------------------------------------------------------------------------
     # Profile files
     # --------------------------------------------------------------------------
-    home.file = {
-      ".omp/agent/models.yml".source = yaml.generate "omp-models.yml" models;
-    }
-    // lib.mapAttrs' (name: settings: {
+    home.file = lib.mapAttrs' (name: settings: {
       name = "${stateDir}/profiles/${name}.config.yml";
       value.source = yaml.generate "omp-profile-${name}.yml" settings;
     }) profiles;
@@ -148,6 +147,14 @@ in
     # --------------------------------------------------------------------------
     # Activation
     # --------------------------------------------------------------------------
+    # OMP reloads its static model registry only when models.yml's stat mtime
+    # changes, and a home-manager store symlink keeps the store's epoch mtime
+    # forever, so catalog updates never reach long-running sessions. Install a
+    # regular file so activation bumps the mtime.
+    home.activation.ompModelsYaml = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      install -m 0600 ${modelsYaml} ${configDir}/models.yml
+    '';
+
     # Keep config.yml writable for profile switching and OMP settings updates.
     home.activation.ompAuthProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
       ${lib.getExe switch} --initialize
