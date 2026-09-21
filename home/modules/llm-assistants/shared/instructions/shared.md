@@ -25,6 +25,10 @@ When several agents share a working tree, `git stash`, `git checkout --`, `git r
 
 ## Working Approach
 
+### Memory
+
+Project memory holds durable preferences and context that no instruction file already carries. Before recording anything, check whether this file, a repo AGENTS.md, or a loaded skill already states it, and record only what is new. When an instruction file is the better home for a rule, propose moving it there instead of duplicating it in memory. Memory also follows the Writing rules below.
+
 ### Design and Maintenance
 
 Aim for a simple, coherent design that meets current requirements.
