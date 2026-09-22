@@ -67,6 +67,8 @@ jobs:
             name: wsl (x86_64-linux, NixOS-WSL)
             runner: ubuntu-latest
             target: .#nixosConfigurations.wsl.config.system.build.toplevel
+            cachix_pins:
+              wakatime-cli-x86_64-linux: .#nixosConfigurations.wsl.pkgs.wakatime-cli
           - id: wsl-non-nixos
             name: wsl-non-nixos (x86_64-linux, System Manager)
             runner: ubuntu-latest
@@ -75,6 +77,9 @@ jobs:
             name: macbook (aarch64-darwin, macOS)
             runner: macos-latest
             target: .#darwinConfigurations.macbook.system
+            cachix_pins:
+              peertube-runner-aarch64-darwin: .#darwinConfigurations.macbook.pkgs.peertube-runner
+              wakatime-cli-aarch64-darwin: .#darwinConfigurations.macbook.pkgs.wakatime-cli
           - id: docker
             name: devvm (x86_64-linux, Docker)
             runner: ubuntu-latest
@@ -109,12 +114,18 @@ jobs:
 
       - name: Pin critical store paths
         if: >-
-          matrix.config.id == 'macos' &&
+          matrix.config.cachix_pins &&
           (github.ref == 'refs/heads/main' || github.actor == 'hakula139')
+        env:
+          CACHIX_PINS: ${{ toJSON(matrix.config.cachix_pins) }}
         run: |
-          store_path=$(nix eval --raw '.#darwinConfigurations.macbook.pkgs.peertube-runner.outPath')
-          cachix push hakula "$store_path"
-          cachix pin hakula peertube-runner "$store_path" --keep-revisions 2
+          set -euo pipefail
+          jq -r 'to_entries[] | [.key, .value] | @tsv' <<< "$CACHIX_PINS" |
+            while IFS=$'\t' read -r pin_name package; do
+              store_path=$(nix eval --raw "${package}.outPath")
+              cachix push "$CACHIX_NAME" "$store_path"
+              cachix pin "$CACHIX_NAME" "$pin_name" "$store_path" --keep-revisions 2
+            done
 
       - name: Check system closure size
         run: |

@@ -13,7 +13,7 @@
 
 let
   inherit (pkgs.stdenv) isDarwin;
-  inherit (pkgs.unstable) wakatime-cli;
+  inherit (pkgs) wakatime-cli;
   homeDir = config.home.homeDirectory;
 
   wakatimeCli = lib.getExe wakatime-cli;

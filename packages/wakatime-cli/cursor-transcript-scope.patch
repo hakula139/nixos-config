@@ -1,0 +1,33 @@
+--- a/pkg/ai/cursor_agent.go
++++ b/pkg/ai/cursor_agent.go
+@@ -2,6 +2,7 @@
+ 
+ import (
+ 	"context"
++	"os"
+ 	"path/filepath"
+ )
+ 
+@@ -16,10 +17,21 @@
+ 	}
+ 
+ 	root := filepath.Join(home, ".cursor")
++	projectsDir := filepath.Join(root, "projects")
++	projects, err := os.ReadDir(projectsDir)
++	if err != nil && !os.IsNotExist(err) {
++		return nil, err
++	}
++
+ 	paths := genericAIPaths{
+-		roots:       []string{filepath.Join(root, "projects")},
++		roots:       make([]string, 0, len(projects)),
+ 		extensions:  []string{".jsonl", ".txt"},
+ 		sqliteRoots: []string{filepath.Join(root, "ai-tracking", "ai-code-tracking.db")},
++	}
++	for _, project := range projects {
++		if project.IsDir() {
++			paths.roots = append(paths.roots, filepath.Join(projectsDir, project.Name(), "agent-transcripts"))
++		}
+ 	}
+ 
+ 	return parseGenericProvider(ctx, g, ParserConfig(g), paths)
