@@ -9,7 +9,8 @@ Read the repository's contribution instructions before changing Git state or pre
 
 ## Authorization
 
-- **Do not create refs unless asked.** Branches, tags, and backup refs outlive the task. Keep the assigned branch unless creating another ref is authorized. Tool permissions alone do not provide that authorization.
+- **Publish completed changes by default.** For requested repository changes and incidental environment repairs, create an appropriate task branch when needed, commit verified changes, push, and create or update a PR / MR. Complete publication before reporting the work done. Reuse the task's existing branch and request when appropriate.
+- **Honor narrower authorization.** Review-only and draft-text-only requests do not authorize publication. Respect explicit instructions to keep work local, avoid pushing, or omit a PR / MR. Tags and backup refs require an explicit request.
 - **Wait for explicit approval for each PR / MR before merging.** Earlier blanket approvals do not extend to requests opened later in the session. After publishing, report the URL and wait for `lgtm` or `merge` referencing that specific PR / MR.
 
 ## Commits
