@@ -1,4 +1,4 @@
 interface:
   display_name: "Environment Repair"
   short_description: "Delegate fixes for local assistant environment failures"
-  default_prompt: "Use $environment-repair to delegate a local fix for this reproducible assistant environment failure."
+  default_prompt: "Use $environment-repair to delegate this reproducible environment fix, verify it, and publish its PR / MR within the task's authorization."
