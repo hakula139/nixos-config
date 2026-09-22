@@ -45,8 +45,16 @@ def abbrev [rev: string]: nothing -> string {
   if ($rev | str length) <= $REV_ABBREV { $rev } else { $rev | str substring 0..<$REV_ABBREV }
 }
 
+def version-key [version: string]: nothing -> list<int> {
+  $version | str replace -r '^v' '' | split row "." | into int
+}
+
+# ------------------------------------------------------------------------------
+# Upstream queries
+# ------------------------------------------------------------------------------
+
 def gh-api [path: string, jq: string]: nothing -> string {
-  query { ^gh api --hostname github.com $path --jq $jq }
+  ^gh api --hostname github.com $path --jq $jq | str trim
 }
 
 def gh-latest-release [repo: string]: nothing -> string {
@@ -55,51 +63,45 @@ def gh-latest-release [repo: string]: nothing -> string {
 
 def gh-latest-release-head [repo: string]: nothing -> string {
   let tag = (gh-latest-release $repo)
-  if ($tag | is-empty) {
-    return ""
-  }
   gh-api $"repos/($repo)/commits/($tag)" ".sha"
 }
 
 # Upstream's newest release may ship no binaries, which is not a bumpable target.
 def gh-latest-release-with-asset [repo: string, asset: string]: nothing -> string {
-  gh-api $"repos/($repo)/releases?per_page=100" $"[.[] | select\(.assets | any\(.name == \"($asset)\"\)\)] | first | .tag_name // empty"
+  gh-api $"repos/($repo)/releases?per_page=100" "."
+  | from json
+  | where {|release| $release.assets | any {|entry| $entry.name == $asset } }
+  | first
+  | get tag_name
 }
 
 def gh-default-head [repo: string]: nothing -> string {
-  let branch = (gh-api $"repos/($repo)" ".default_branch")
-  if ($branch | is-empty) {
-    return ""
-  }
-  gh-api $"repos/($repo)/commits/($branch)" ".sha"
+  gh-api $"repos/($repo)/commits?per_page=1" ".[0].sha"
 }
 
-def gh-latest-semver-tag [repo: string]: nothing -> string {
-  query {
-    gh-api $"repos/($repo)/tags?per_page=100" ".[].name"
-    | lines
-    | where {|t| $t =~ '^v?[0-9]+(\.[0-9]+)*$' }
-    | sort-by {|tag| $tag | str replace -r '^v' '' | split row "." | each {|n| $n | into int } }
-    | last
-  }
+def gh-latest-semver-tag [repo: string, field: cell-path]: nothing -> string {
+  gh-api $"repos/($repo)/tags?per_page=100" "."
+  | from json
+  | where {|tag| $tag.name =~ '^v?[0-9]+(\.[0-9]+)*$' }
+  | sort-by {|tag| version-key $tag.name }
+  | last
+  | get $field
 }
 
 def dockerhub-latest-semver [repo: string]: nothing -> string {
-  query {
-    http get $"https://hub.docker.com/v2/repositories/($repo)/tags?page_size=100"
-    | get results.name
-    | where {|n| $n =~ '^[0-9]+\.[0-9]+\.[0-9]+$' }
-    | sort-by {|n| $n | split row "." | each {|p| $p | into int } }
-    | last
-  }
+  http get $"https://hub.docker.com/v2/repositories/($repo)/tags?page_size=100"
+  | get results.name
+  | where {|name| $name =~ '^[0-9]+\.[0-9]+\.[0-9]+$' }
+  | sort-by {|name| version-key $name }
+  | last
 }
 
 def npm-latest [pkg: string]: nothing -> string {
-  query { http get $"https://registry.npmjs.org/($pkg)/latest" | get version }
+  http get $"https://registry.npmjs.org/($pkg)/latest" | get version
 }
 
 def pypi-latest [pkg: string]: nothing -> string {
-  query { http get $"https://pypi.org/pypi/($pkg)/json" | get info.version }
+  http get $"https://pypi.org/pypi/($pkg)/json" | get info.version
 }
 
 # ------------------------------------------------------------------------------
@@ -117,22 +119,19 @@ def plugin-rev [root: string, name: string]: nothing -> string {
   plugin-block $root $name
   | str join "\n"
   | parse --regex 'rev = "(?<rev>[0-9a-f]+)"'
-  | get rev.0?
-  | default ""
+  | get rev.0
 }
 
 def nix-attr [root: string, file: string, regex: string]: nothing -> string {
-  open --raw ([$root $file] | path join) | parse --regex $regex | get v.0? | default ""
+  open --raw ([$root $file] | path join) | parse --regex $regex | get v.0
 }
 
 def nix-version [root: string, file: string]: nothing -> string {
   nix-attr $root $file '(?m)^\s*version = "(?<v>[^"]+)"'
 }
 
-# Stays empty on extraction failure, so a broken pattern reports UNKNOWN.
 def nix-version-v [root: string, file: string]: nothing -> string {
-  let v = (nix-version $root $file)
-  if ($v | is-empty) { "" } else { $"v($v)" }
+  $"v(nix-version $root $file)"
 }
 
 def image-tag [root: string, file: string]: nothing -> string {
@@ -142,8 +141,7 @@ def image-tag [root: string, file: string]: nothing -> string {
   | take until {|l| $l =~ '^\s*};\s*$' }
   | str join "\n"
   | parse --regex 'default = "[^"]*:(?<v>[^"]+)"'
-  | get v.0?
-  | default ""
+  | get v.0
 }
 
 def action-pins [root: string]: nothing -> list<string> {
@@ -186,12 +184,12 @@ def cloudflare-drift [root: string]: nothing -> string {
   )
   let fetched = (
     [$CF_IPS_V4_URL $CF_IPS_V6_URL]
-    | each {|url| query { http get --raw $url } }
+    | each {|url| http get --raw $url | str trim }
   )
 
   # An empty half would otherwise surface as drift against the half we did fetch.
   if ($pinned | is-empty) or ($fetched | any {|r| $r | is-empty }) {
-    return ""
+    error make {msg: "Cloudflare IP ranges are incomplete"}
   }
 
   if $pinned == ($fetched | str join "\n" | lines | where $it != "" | sort) {
@@ -204,6 +202,24 @@ def cloudflare-drift [root: string]: nothing -> string {
 # ------------------------------------------------------------------------------
 # Pin registry
 # ------------------------------------------------------------------------------
+
+def action-pin [pin: string]: nothing -> record {
+  # GitHub repository action or reusable workflow, with an optional subpath.
+  let target = ($pin | parse -r '^(?<repo>[^/]+/[^/@]+)(?:/[^@]+)?@(?<ref>[^@]+)$' | first)
+  {
+    pin: ($pin | split row "@" | first)
+    local: {|| $target.ref }
+    upstream: {||
+      if $target.ref =~ '^v[0-9]+$' {
+        gh-latest-release $target.repo | split row "." | first
+      } else if $target.ref =~ '^v[0-9]+\.[0-9]+\.[0-9]+$' {
+        gh-latest-release $target.repo
+      } else {
+        error make {msg: $"Unsupported action reference: ($target.ref)"}
+      }
+    }
+  }
+}
 
 # Each row pairs a pin name with closures that read the local value and the
 # upstream value. Both stay lazy so `list` can print the registry without
@@ -239,6 +255,18 @@ def registry [root: string]: nothing -> list<record> {
       ]
     }
     {
+      title: "OMP extensions (rev + hash)"
+      pins: [
+        {
+          pin: "omp-telegram"
+          local: {||
+            abbrev (nix-attr $root "home/modules/llm-assistants/omp/extensions.nix" 'rev = "(?<v>[0-9a-f]+)"')
+          }
+          upstream: {|| abbrev (gh-latest-semver-tag "TerrifiedBug/omp-telegram" commit.sha) }
+        }
+      ]
+    }
+    {
       title: "Nix-built overlay packages"
       pins: [
         {
@@ -254,7 +282,7 @@ def registry [root: string]: nothing -> list<record> {
         {
           pin: "mcp-server-filesystem"
           local: {|| nix-version $root "packages/mcp/mcp-server-filesystem/default.nix" }
-          upstream: {|| gh-latest-semver-tag "modelcontextprotocol/servers" }
+          upstream: {|| gh-latest-semver-tag "modelcontextprotocol/servers" name }
         }
         {
           pin: "mcp-server-git"
@@ -322,25 +350,7 @@ def registry [root: string]: nothing -> list<record> {
     }
     {
       title: "GitHub Actions (Renovate github-actions manager is disabled)"
-      pins: (try {
-        action-pins $root | each {|pin|
-          # GitHub repository action or reusable workflow, with an optional subpath.
-          let target = ($pin | parse -r '^(?<repo>[^/]+/[^/@]+)(?:/[^@]+)?@(?<ref>[^@]+)$' | first)
-          {
-            pin: ($pin | split row "@" | first)
-            local: {|| $target.ref }
-            upstream: {||
-              if $target.ref =~ '^v[0-9]+$' {
-                gh-latest-release $target.repo | split row "." | first
-              } else if $target.ref =~ '^v[0-9]+\.[0-9]+\.[0-9]+$' {
-                gh-latest-release $target.repo
-              } else {
-                ""
-              }
-            }
-          }
-        }
-      } catch { [] })
+      pins: (try { action-pins $root | each {|pin| action-pin $pin } } catch { [] })
     }
     {
       title: "Drifting upstream data"
@@ -364,7 +374,6 @@ def registry [root: string]: nothing -> list<record> {
 
 # A pin delegated to Renovate reports its own status, since comparing the two
 # `flake.lock` placeholders would otherwise mark it a current manual pin.
-# Every pin is an independent network round trip, so they resolve concurrently.
 def resolve []: list<record> -> list<record> {
   par-each --keep-order {|row|
     if ($row.delegated? | is-not-empty) {
@@ -385,16 +394,22 @@ def resolve []: list<record> -> list<record> {
 
     {
       pin: $row.pin
-      pinned: (if ($pinned | is-empty) { "?" } else { $pinned })
-      upstream: (if ($upstream | is-empty) { "?" } else { $upstream })
+      pinned: ($pinned | default --empty "?")
+      upstream: ($upstream | default --empty "?")
       status: $status
     }
   }
 }
 
-def section [title: string, rows: list<record>] {
-  print $"\n($title)"
-  print ($rows | table)
+def resolve-group [group: record]: nothing -> record {
+  let rows = if ($group.pins | is-empty) {
+    # An empty group would print as a clean sweep, which is indistinguishable
+    # from every pin being current.
+    [{pin: $group.title, pinned: "?", upstream: "?", status: "UNKNOWN"}]
+  } else {
+    $group.pins | resolve
+  }
+  {title: $group.title, rows: $rows}
 }
 
 # ------------------------------------------------------------------------------
@@ -414,25 +429,17 @@ def "main check" [] {
   # otherwise interleave their sections.
   let groups = (
     registry (repo-root)
-    | par-each --keep-order {|group|
-      let rows = if ($group.pins | is-empty) {
-        # An empty group would print as a clean sweep, which is indistinguishable
-        # from every pin being current.
-        [{pin: $group.title, pinned: "?", upstream: "?", status: "UNKNOWN"}]
-      } else {
-        $group.pins | resolve
-      }
-      {title: $group.title, rows: $rows}
-    }
+    | par-each --keep-order {|group| resolve-group $group }
   )
 
   for group in $groups {
-    section $group.title $group.rows
+    print $"\n($group.title)"
+    print ($group.rows | table)
   }
-  let all = ($groups | get rows | flatten)
+  let rows = ($groups | get rows | flatten)
 
-  let stale = ($all | where status == "STALE" | length)
-  let unknown = ($all | where status == "UNKNOWN" | length)
+  let stale = ($rows | where status == "STALE" | length)
+  let unknown = ($rows | where status == "UNKNOWN" | length)
 
   print $"\n($stale) stale, ($unknown) unknown."
   if $unknown > 0 {

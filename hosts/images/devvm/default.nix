@@ -85,7 +85,7 @@ in
       # ------------------------------------------------------------------------
       hakula.secrets.required = {
         ${proxyUrlSecret} = { };
-        github-pat.name = lib.mkForce "github/pat-work";
+        "github/pat".name = lib.mkForce "github/pat-work";
       };
 
       # ------------------------------------------------------------------------

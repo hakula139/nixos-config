@@ -67,6 +67,8 @@ in
         modelAliases = shared.profileDefinitions.modelAliases.omp;
       };
 
+      extensions = import ./extensions.nix { inherit pkgs; };
+
       mcp = import ./mcp.nix {
         inherit lib mcpOptions;
         inherit (shared.mcp) timeouts;
@@ -81,7 +83,10 @@ in
         "--prefix"
         "PATH"
         ":"
-        (lib.makeBinPath [ pkgs.poppler-utils ])
+        (lib.makeBinPath [
+          pkgs.bun
+          pkgs.poppler-utils
+        ])
       ]
       ++ lib.optionals cfg.proxy.enable [
         "--run"
@@ -96,7 +101,10 @@ in
         envVars = profiles.envVars // {
           PUPPETEER_EXECUTABLE_PATH = lib.getExe' pkgs.browser-tools "chromium";
         };
-        envFiles.EXA_API_KEY = secretPath "exa-api-key";
+        envFiles = {
+          EXA_API_KEY = secretPath "llm-assistants/mcp/exa-api-key";
+          TELEGRAM_BOT_TOKEN = secretPath "llm-assistants/telegram-bot-token";
+        };
       };
     in
     lib.mkMerge [
@@ -112,7 +120,8 @@ in
         # Secrets
         # ----------------------------------------------------------------------
         hakula.secrets.required = {
-          inherit (shared.mcpSecrets) exa-api-key;
+          inherit (shared.mcpSecrets) "llm-assistants/mcp/exa-api-key";
+          "llm-assistants/telegram-bot-token" = { };
         };
 
         # ----------------------------------------------------------------------
@@ -120,6 +129,7 @@ in
         # ----------------------------------------------------------------------
         home.file = {
           ".omp/agent/AGENTS.md".text = instructions.omp;
+          ".omp/agent/extensions/omp-telegram".source = extensions.telegram;
           ".omp/agent/mcp.json".source = json.generate "omp-mcp.json" { mcpServers = mcp.serversConfig; };
         }
         // agents.homeFiles;

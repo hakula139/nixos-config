@@ -35,13 +35,14 @@ in
   "github/pat-work.age".publicKeys = allKeys;
   "gitlab/pat-work.age".publicKeys = allKeys;
 
-  "devvm/proxy-url.age".publicKeys = allWorkstations ++ [ devvm ];
-
   "llm-assistants/claude-oauth-token.age".publicKeys = allKeys;
   "llm-assistants/ikuncode-api-key.age".publicKeys = allKeys;
   "llm-assistants/yescode-api-key.age".publicKeys = allKeys;
+
   "llm-assistants/bifrost-api-key.age".publicKeys = allWorkstations ++ [ devvm ];
   "llm-assistants/corp-cachain.crt.age".publicKeys = allWorkstations ++ [ devvm ];
+
+  "llm-assistants/telegram-bot-token.age".publicKeys = allKeys;
 
   "llm-assistants/mcp/brave-api-key.age".publicKeys = allKeys;
   "llm-assistants/mcp/confluence-pat.age".publicKeys = allKeys;
@@ -53,6 +54,7 @@ in
   # ----------------------------------------------------------------------------
   "builders/ssh-key.age".publicKeys = allServersAndMacbook;
   "cachix/auth-token.age".publicKeys = allKeys;
+  "devvm/proxy-url.age".publicKeys = allWorkstations ++ [ devvm ];
 
   # ----------------------------------------------------------------------------
   # All-server secrets

@@ -26,13 +26,13 @@ in
   # Module config
   # ----------------------------------------------------------------------------
   config = lib.mkIf cfg.enable {
-    hakula.secrets.required.context7-api-key.name = "llm-assistants/mcp/context7-api-key";
+    hakula.secrets.required."llm-assistants/mcp/context7-api-key" = { };
 
     home.packages = [
       (repoLib.wrapPackage {
         inherit pkgs;
         pkg = pkgs.unstable.ctx7;
-        envFiles.CONTEXT7_API_KEY = secretPath "context7-api-key";
+        envFiles.CONTEXT7_API_KEY = secretPath "llm-assistants/mcp/context7-api-key";
       })
     ];
   };

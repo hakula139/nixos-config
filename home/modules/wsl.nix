@@ -52,6 +52,6 @@ in
     # --------------------------------------------------------------------------
     # Secrets
     # --------------------------------------------------------------------------
-    hakula.secrets.required.github-pat.name = lib.mkForce "github/pat-work";
+    hakula.secrets.required."github/pat".name = lib.mkForce "github/pat-work";
   };
 }
