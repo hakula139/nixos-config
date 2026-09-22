@@ -50,6 +50,12 @@
       };
     });
 
+    wakatime-cli = final.unstable.wakatime-cli.overrideAttrs (old: {
+      patches = (old.patches or [ ]) ++ [
+        ../packages/wakatime-cli/cursor-transcript-scope.patch
+      ];
+    });
+
     # --------------------------------------------------------------------------
     # Toolchains
     # --------------------------------------------------------------------------
