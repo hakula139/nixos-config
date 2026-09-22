@@ -128,6 +128,10 @@ Use only tools and capabilities available in the current session, and follow the
 
 Once the task is clear, a top-level interactive agent should rename its otherwise default numeric tmux session to a short, hyphenated task-based name. Do so only when the session has exactly one window and one pane, has no known user-chosen name, and the current pane's window has no Workmux `@workmux_token`. Derive its stable session ID from `TMUX_PANE` and target that ID explicitly. Delegated, headless, or background runs must never rename parent sessions. Keep tmux window identities and native agent conversation or pane titles independent.
 
+Use the current agent's terminal / shell tool for inspection and renaming (OMP: `bash`, not an Eval subprocess). Eval kernels may lack the interactive agent's tmux environment. Require both `TMUX` and `TMUX_PANE` in the shell tool, then inspect with `tmux display-message -p -t "$TMUX_PANE" '#{session_id}|#{session_name}|#{session_windows}|#{window_panes}|#{@workmux_token}'`. If either variable is missing or the lookup fails, leave sessions untouched. Never fall back to an active or recently attached session.
+
+After the guards pass, call `tmux rename-session -t '<session_id>' '<task-name>'` with the observed stable ID and chosen name. Quote the ID so its `$` is literal, then inspect the same pane again to confirm.
+
 ### Library documentation
 
 Use the shared `find-docs` skill for Context7 documentation lookups. The managed `ctx7` command loads its API key at launch. Run `ctx7 library <name> <query>` and `ctx7 docs <libraryId> <query>` directly, replacing the upstream skill's `npx` examples. Do not reinstall the CLI or configure Context7 MCP.
