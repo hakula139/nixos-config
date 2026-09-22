@@ -35,11 +35,11 @@ let
   # Map each MCP server to the secret it needs at runtime. Servers absent
   # from this attrset do not require any decrypted file.
   mcpServerSecrets = {
-    atlassian = [ "confluence-pat" ];
-    braveSearch = [ "brave-api-key" ];
-    exa = [ "exa-api-key" ];
-    github = [ "github-pat" ];
-    gitlab = [ "gitlab-pat" ];
+    atlassian = [ "llm-assistants/mcp/confluence-pat" ];
+    braveSearch = [ "llm-assistants/mcp/brave-api-key" ];
+    exa = [ "llm-assistants/mcp/exa-api-key" ];
+    github = [ "github/pat" ];
+    gitlab = [ "gitlab/pat" ];
   };
 
   activeServers = lib.unique (

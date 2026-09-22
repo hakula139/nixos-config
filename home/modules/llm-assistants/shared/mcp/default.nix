@@ -99,7 +99,7 @@ let
   atlassianBin = mkUvServer {
     name = "atlassian";
     command = [ "mcp-atlassian" ];
-    envFiles.CONFLUENCE_PERSONAL_TOKEN = secretPath "confluence-pat";
+    envFiles.CONFLUENCE_PERSONAL_TOKEN = secretPath "llm-assistants/mcp/confluence-pat";
     envVars.CONFLUENCE_URL = wikiUrl;
     # mcp-atlassian honours HTTP_PROXY but ignores NO_PROXY, so unset proxies for internal Confluence.
     setup = clearProxyEnv;
@@ -111,7 +111,7 @@ let
   braveSearchBin = mkNpmServer {
     name = "brave-search";
     command = [ "@brave/brave-search-mcp-server" ];
-    envFiles.BRAVE_API_KEY = secretPath "brave-api-key";
+    envFiles.BRAVE_API_KEY = secretPath "llm-assistants/mcp/brave-api-key";
   };
 
   # ----------------------------------------------------------------------------
@@ -133,7 +133,7 @@ let
   exaBin = mkNpmServer {
     name = "exa";
     command = [ "exa-mcp-server" ];
-    envFiles.EXA_API_KEY = secretPath "exa-api-key";
+    envFiles.EXA_API_KEY = secretPath "llm-assistants/mcp/exa-api-key";
     # Exa's eight other tools are deprecated aliases of these four. crawling_exa in
     # particular registers the same handler as web_fetch_exa under a second name.
     envVars.ENABLED_TOOLS = "web_search_exa,web_fetch_exa,web_search_advanced_exa,agent_run";
@@ -157,7 +157,7 @@ let
   # GitHub
   # ----------------------------------------------------------------------------
   ghBin = "${config.home.profileDirectory}/bin/gh";
-  githubPatFile = secretPath "github-pat";
+  githubPatFile = secretPath "github/pat";
   githubBin = pkgs.writeShellScriptBin "github-mcp" ''
     set -euo pipefail
     if [[ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]]; then
@@ -174,7 +174,7 @@ let
   # GitLab
   # ----------------------------------------------------------------------------
   glabBin = "${config.home.profileDirectory}/bin/glab";
-  gitlabPatFile = secretPath "gitlab-pat";
+  gitlabPatFile = secretPath "gitlab/pat";
   gitlabToolsets = lib.concatStringsSep "," [
     "branches"
     "issues"

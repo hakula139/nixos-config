@@ -1,21 +1,13 @@
 {
-  brave-api-key = {
-    name = "llm-assistants/mcp/brave-api-key";
-  };
+  "llm-assistants/mcp/brave-api-key" = { };
+  "llm-assistants/mcp/confluence-pat" = { };
+  "llm-assistants/mcp/exa-api-key" = { };
 
-  confluence-pat = {
-    name = "llm-assistants/mcp/confluence-pat";
-  };
-
-  exa-api-key = {
-    name = "llm-assistants/mcp/exa-api-key";
-  };
-
-  github-pat = {
+  "github/pat" = {
     name = "github/pat-personal";
   };
 
-  gitlab-pat = {
+  "gitlab/pat" = {
     name = "gitlab/pat-work";
   };
 }
