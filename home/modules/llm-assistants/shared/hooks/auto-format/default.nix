@@ -68,6 +68,7 @@ let
 in
 {
   event = "PostToolUse";
+  type = "command";
   tools = [ "fileWrite" ];
   command = mkNuHook {
     slug = "auto-format";

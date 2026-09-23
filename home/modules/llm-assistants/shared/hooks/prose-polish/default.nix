@@ -19,6 +19,7 @@ let
 in
 {
   event = "PreToolUse";
+  type = "command";
   tools = [
     "askQuestion"
     "fileWrite"

@@ -31,17 +31,15 @@ let
     "completeness"
   ];
 
-  mkCommand =
+  mkHandler =
     hook:
-    if hook ? command then
+    if hook.type == "command" then
       {
-        type = "command";
-        inherit (hook) command;
+        inherit (hook) type command;
       }
     else
       {
-        type = "prompt";
-        inherit (hook) prompt;
+        inherit (hook) type prompt;
       };
 
   mkEntry =
@@ -52,9 +50,9 @@ let
     // {
       hooks = [
         (
-          mkCommand hook
-          // lib.optionalAttrs (hook ? statusMessage) { inherit (hook) statusMessage; }
+          mkHandler hook
           // lib.optionalAttrs (hook ? timeout) { inherit (hook) timeout; }
+          // lib.optionalAttrs (hook ? statusMessage) { inherit (hook) statusMessage; }
           // lib.optionalAttrs (hook ? async) { inherit (hook) async; }
         )
       ];
