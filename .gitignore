@@ -18,7 +18,6 @@ __pycache__/
 .env
 
 # Editor / assistant local settings
-**/.agent/plans/
 **/.agents/plans/
 **/.agents/skills/*.local/
 **/.claude/agent-memory-local/
