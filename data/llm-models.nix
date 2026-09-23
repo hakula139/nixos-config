@@ -95,8 +95,8 @@ in
 {
   defaults = {
     claude = {
-      flagship = "claude-opus-5";
-      standard = "claude-opus-5";
+      flagship = "claude-opus-5-5";
+      standard = "claude-opus-5-5";
       # Use Sonnet for lightweight coding tasks because Haiku falls below our quality baseline.
       mini = "claude-sonnet-5";
     };
@@ -106,8 +106,8 @@ in
     };
     gpt = {
       flagship = "gpt-6-astra";
-      standard = "gpt-5.6-terra";
-      mini = "gpt-5.6-luna";
+      standard = "gpt-6-sol";
+      mini = "gpt-6-luna";
     };
     local = {
       flagship = "kimi-k3";
@@ -118,14 +118,18 @@ in
 
   # Gateway costs are USD per million tokens.
   models = {
-    "claude-opus-5" = claudeAdaptiveCommon // {
-      name = "Claude Opus 5";
-      gatewayId.bedrock = "bedrock/global.anthropic.claude-opus-5";
+    "claude-opus-5-5" = claudeAdaptiveCommon // {
+      name = "Claude Opus 5.5";
+      thinking = claudeAdaptiveCommon.thinking // {
+        defaultLevel = "medium";
+        requiresEffort = true;
+      };
+      gatewayId.bedrock = "bedrock/anthropic.claude-opus-5-5";
       gatewayCost.bedrock = {
-        input = 5.0;
-        output = 25.0;
-        cacheRead = 0.5;
-        cacheWrite = 6.25;
+        input = 4.0;
+        output = 20.0;
+        cacheRead = 0.2;
+        cacheWrite = 5.0;
       };
     };
 
@@ -206,28 +210,28 @@ in
       };
     };
 
-    "gpt-5.6-terra" = gptCommon // {
-      name = "GPT-5.6 Terra";
-      gatewayId.openai = "openai/gpt-5.6-terra";
+    "gpt-6-sol" = gptCommon // {
+      name = "GPT-6 Sol";
+      gatewayId.openai = "openai/gpt-6-sol";
       gatewayCost.openai = {
         input = 2.0;
-        output = 12.0;
+        output = 10.0;
         cacheRead = 0.2;
         cacheWrite = 2.5;
       };
     };
 
-    "gpt-5.6-luna" = gptCommon // {
-      name = "GPT-5.6 Luna";
+    "gpt-6-luna" = gptCommon // {
+      name = "GPT-6 Luna";
       thinking = gptCommon.thinking // {
         defaultLevel = "low";
       };
-      gatewayId.openai = "openai/gpt-5.6-luna";
+      gatewayId.openai = "openai/gpt-6-luna";
       gatewayCost.openai = {
-        input = 0.2;
-        output = 1.2;
-        cacheRead = 0.02;
-        cacheWrite = 0.25;
+        input = 0.1;
+        output = 0.5;
+        cacheRead = 0.01;
+        cacheWrite = 0.125;
       };
     };
 
