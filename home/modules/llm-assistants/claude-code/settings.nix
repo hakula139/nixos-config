@@ -4,7 +4,6 @@
 
 {
   lib,
-  modelCatalog,
   homeDir,
   hooks,
   permissions,
@@ -14,10 +13,6 @@
   timeouts,
 }:
 
-let
-  modelId = modelCatalog.defaults.claude.flagship;
-  defaultModel = modelCatalog.models.${modelId};
-in
 {
   inherit hooks permissions;
   inherit (plugins) enabledPlugins;
@@ -29,12 +24,6 @@ in
   inherit (plugins) extraKnownMarketplaces;
 }
 // {
-  # ----------------------------------------------------------------------------
-  # Model
-  # ----------------------------------------------------------------------------
-  model = "opus";
-  effortLevel = defaultModel.thinking.defaultLevel;
-
   # ----------------------------------------------------------------------------
   # Project
   # ----------------------------------------------------------------------------

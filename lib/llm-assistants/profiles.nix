@@ -9,6 +9,30 @@
 }:
 
 let
+  # ----------------------------------------------------------------------------
+  # Workload policy
+  # ----------------------------------------------------------------------------
+  workloadPolicy = {
+    claude = {
+      standard = "medium";
+      flagship = "xhigh";
+      mini = "low";
+    };
+    gpt = {
+      standard = "medium";
+      flagship = "high";
+      mini = "low";
+    };
+    local = {
+      standard = "high";
+      flagship = "max";
+      mini = "low";
+    };
+  };
+
+  # ----------------------------------------------------------------------------
+  # Provider profiles
+  # ----------------------------------------------------------------------------
   providerProfiles = {
     corp-gateway-bedrock = {
       provider = "corp-gateway";
@@ -45,8 +69,43 @@ let
       nativeWebSearch = false;
     };
   };
+
+  # ----------------------------------------------------------------------------
+  # Profile resolution
+  # ----------------------------------------------------------------------------
+  resolveProfile =
+    _: profile:
+    let
+      modelKeys = modelCatalog.defaults.${profile.family};
+      models = lib.mapAttrs (_: id: modelCatalog.models.${id}) modelKeys;
+      modelIds = lib.mapAttrs (
+        tier: id: if profile.gateway == null then id else models.${tier}.gatewayId.${profile.gateway}
+      ) modelKeys;
+      resolveWorkload = tier: effort: {
+        modelTier = tier;
+        model = models.${tier};
+        modelId = modelIds.${tier};
+        inherit effort;
+      };
+      workloads = lib.mapAttrs resolveWorkload workloadPolicy.${profile.family};
+    in
+    profile
+    // {
+      inherit modelIds models workloads;
+      roles = {
+        default = workloads.standard;
+        plan = workloads.flagship;
+        task = workloads.standard;
+        small = workloads.mini;
+      };
+    };
 in
 {
+  inherit workloadPolicy;
+
+  # ----------------------------------------------------------------------------
+  # Provider configuration
+  # ----------------------------------------------------------------------------
   providers.corp-gateway =
     let
       baseUrl = corpHosts.llmGatewayUrl;
@@ -73,6 +132,9 @@ in
     tokenSecret = "llm-assistants/yescode-api-key";
   };
 
+  # ----------------------------------------------------------------------------
+  # Model mappings
+  # ----------------------------------------------------------------------------
   familyApis = {
     claude = "anthropic-messages";
     gpt = "openai-responses";
@@ -85,13 +147,11 @@ in
       standard = "sonnet";
       mini = "haiku";
     };
-    omp = {
-      flagship = "default";
-      standard = "standard";
-      mini = "smol";
-    };
   };
 
+  # ----------------------------------------------------------------------------
+  # Profile construction and options
+  # ----------------------------------------------------------------------------
   mkProfiles =
     {
       nativeFamily ? null,
@@ -99,38 +159,23 @@ in
       gateways,
       enableCorpGateway,
     }:
-    lib.mapAttrs
-      (
+    let
+      officialProfiles = lib.optionalAttrs (nativeFamily != null) {
+        official = {
+          provider = null;
+          gateway = null;
+          family = nativeFamily;
+          nativeWebSearch = true;
+        };
+      };
+      enabledProviderProfiles = lib.filterAttrs (
         _: profile:
-        let
-          modelIds = modelCatalog.defaults.${profile.family};
-          models = lib.mapAttrs (_: id: modelCatalog.models.${id}) modelIds;
-        in
-        profile
-        // {
-          modelIds = lib.mapAttrs (
-            _: id:
-            if profile.gateway == null then id else modelCatalog.models.${id}.gatewayId.${profile.gateway}
-          ) modelIds;
-          inherit models;
-        }
-      )
-      (
-        lib.optionalAttrs (nativeFamily != null) {
-          official = {
-            provider = null;
-            gateway = null;
-            family = nativeFamily;
-            nativeWebSearch = true;
-          };
-        }
-        // lib.filterAttrs (
-          _: profile:
-          lib.elem profile.provider providers
-          && (profile.gateway == null || lib.elem profile.gateway gateways)
-          && (profile.provider != "corp-gateway" || enableCorpGateway)
-        ) providerProfiles
-      );
+        lib.elem profile.provider providers
+        && (profile.gateway == null || lib.elem profile.gateway gateways)
+        && (profile.provider != "corp-gateway" || enableCorpGateway)
+      ) providerProfiles;
+    in
+    lib.mapAttrs resolveProfile (officialProfiles // enabledProviderProfiles);
 
   mkOptions =
     {

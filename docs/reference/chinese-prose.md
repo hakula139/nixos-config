@@ -8,7 +8,7 @@ The assistant's default Chinese output was judged unusable by the owner, its sol
 
 The largest measured difference was between models: under an identical prompt and frame, the weakest model scored 3.70 out of 10 while six others clustered between 7.00 and 8.33, a gap of 3.3 to 4.6 points. Removing coding history improved the repeat-sampled score by 1.80 points. Every automated quality proxy tested failed, including three LLM judges, which ranked samples in reverse.
 
-The resulting mechanism performs no quality classification and uses no banned-word list. It rewrites editable outbound prose under the same fidelity contract for Chinese and English. The measurements informed the original model selection. Current models follow the shared catalog and have not been evaluated in these experiments.
+The resulting mechanism performs no quality classification and uses no banned-word list. It rewrites editable outbound prose under the same fidelity contract for Chinese and English. The measurements informed the original model selection. Model selection follows the shared catalog.
 
 ## 1. Problem
 
@@ -164,7 +164,7 @@ Source comments and docstrings receive feedback after writes through `hooks/comm
 
 Both hooks invoke the model through `hooks/lib/model-call/`, which calls the gateway over HTTP and falls back to `codex exec`. Claude supplies gateway credentials through its active profile environment. When the Codex corporate gateway is enabled, its hooks use the same configured endpoint, credential file, and CA even if the main session uses the official provider. Codex uses its own authentication for the fallback, so it can run when gateway variables are absent.
 
-`data/llm-models.nix` selects the gateway model through the Gemini `standard` default and the fallback through the GPT `mini` default, currently Gemini 3.8 Flash and GPT 5.6 Luna. Section 3.5 measured Gemini 3.7 Flash. It did not evaluate either current default, so its scores do not establish their rewrite quality.
+The gateway model and Codex fallback follow the Gemini `standard` and GPT `mini` defaults in [`data/llm-models.nix`](../../data/llm-models.nix). The results in section 3.5 apply to the measured models and configurations.
 
 ### Measurement limits
 

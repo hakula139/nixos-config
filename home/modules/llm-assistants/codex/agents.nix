@@ -7,7 +7,7 @@
   lib,
   sharedAgents,
   enabledAgents,
-  models,
+  workloads,
 }:
 
 let
@@ -19,8 +19,8 @@ let
       configFile = toml.generate "codex-agent-${name}" (
         {
           developer_instructions = agent.prompt;
-          model = models.${agent.modelTier};
-          model_reasoning_effort = agent.effort;
+          model = workloads.${agent.workload}.modelId;
+          model_reasoning_effort = workloads.${agent.workload}.effort;
           personality = "pragmatic";
         }
         // lib.optionalAttrs (agent.codex ? sandboxMode) {

@@ -96,7 +96,7 @@ in
   defaults = {
     claude = {
       flagship = "claude-opus-5";
-      standard = "claude-sonnet-5";
+      standard = "claude-opus-5";
       # Use Sonnet for lightweight coding tasks because Haiku falls below our quality baseline.
       mini = "claude-sonnet-5";
     };

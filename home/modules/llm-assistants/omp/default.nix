@@ -28,6 +28,7 @@ let
       secretPath
       ;
     inherit (shared) profileDefinitions mkProfileSwitch;
+    sharedAgents = shared.agentRoles;
   };
 in
 {
@@ -64,7 +65,6 @@ in
         inherit lib;
         inherit (cfg.agents) enabledAgents;
         sharedAgents = shared.agentRoles;
-        modelAliases = shared.profileDefinitions.modelAliases.omp;
       };
 
       extensions = import ./extensions.nix { inherit pkgs; };
@@ -129,6 +129,7 @@ in
         # ----------------------------------------------------------------------
         home.file = {
           ".omp/agent/AGENTS.md".text = instructions.omp;
+          ".omp/agent/WATCHDOG.md".text = builtins.readFile ./watchdog.md;
           ".omp/agent/extensions/omp-telegram".source = extensions.telegram;
           ".omp/agent/mcp.json".source = json.generate "omp-mcp.json" { mcpServers = mcp.serversConfig; };
         }
