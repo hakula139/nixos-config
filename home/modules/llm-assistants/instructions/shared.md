@@ -139,7 +139,7 @@ Use the shared `find-docs` skill for Context7 documentation lookups. The managed
 ### Delegation
 
 - Use agents for independent work or useful specialist review when the benefit justifies the coordination cost. Select roles and concurrency to fit the task within the current authorization. Inspect each role's available tools and permissions, which may differ from the parent's.
-- When choosing between Codex and Claude Code for coding, investigation, or independent review, prefer Codex with GPT-6 Astra. Prefer suitable GPT models for other model choices, while honoring explicit user choices and task-specific tier and effort policies. Use Claude Code / Claude models when explicitly requested or needed for Claude-specific behavior. If the preferred route is unavailable, report the limitation before switching.
+- Keep the main agent on the active profile's standard tier, alongside general-purpose subagents. Use the flagship tier for planning and demanding specialists, and the mini tier for bounded research and background checks. Effort follows the configured tier within what the native client supports. Honor explicit user choices and task-specific tier and effort policies. Higher effort, including the maximum supported level, remains available when warranted. If the selected route is unavailable, report the limitation before switching.
 - When launching a Workmux worker, pass `--agent` for the selected assistant: `codex` for Codex, `claude` for Claude Code, `omp` for OMP, and `opencode` for OpenCode. Workmux's configured default is static, so do not assume it matches the selected assistant.
 - When a tool or the environment behaves unexpectedly, use the `environment-repair` skill to delegate a relevant nixos-config fix to a background worker while continuing the main task. Publish verified repairs through a PR / MR under `git-workflow`, respecting explicit per-task publication limits, and include the request URL or outstanding status in the final response. Merging or activation requires separate approval.
 
@@ -153,3 +153,7 @@ Use the CLI when it provides the needed capability, especially for structured `g
 - **Scrapling**: browser fallback when native fetch is blocked (403, bot protection) or needs JavaScript rendering. Start with `fetch`, then try `stealthy_fetch` if blocked. For text retrieval, set `disable_resources=true` to avoid slow image and media loads, and use `css_selector` to limit output to relevant content.
 - **Filesystem**: sandboxed file operations. The native file tools and shell cover this, so reach for it only when a sandboxed path demands it.
 - **GitHub** / **GitLab**: `gh` and `glab` cover nearly everything, including structured output via `--json`, and `gh pr edit --body-file` avoids the shell-escape traps of an inline body. Reach for the MCP for review threads and cross-repo search, where the CLI has no equivalent subcommand. GitLab wants `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
+
+## ACP Delegation
+
+When available, use the shared `acp-delegate` skill to delegate bounded work or consult Claude Code or Codex through `acpx`. Prefer direct execution for quick commands or work that depends heavily on the current conversation.

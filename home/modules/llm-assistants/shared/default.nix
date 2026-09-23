@@ -29,7 +29,7 @@ in
     # Instructions and agent roles
     # --------------------------------------------------------------------------
     inherit agentRoles;
-    instructions = import ./instructions { inherit (promptFragments) readPrompt; };
+    instructions = import ../instructions { inherit (promptFragments) readPrompt; };
     agentRoleOptions = import ./agent-roles/options.nix { inherit lib agentRoles; };
 
     # --------------------------------------------------------------------------

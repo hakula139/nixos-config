@@ -7,6 +7,8 @@
   pkgs,
   lib,
   profileDefinitions,
+  sharedAgents,
+  enabledAgents,
   hostType,
   secretPath,
   mkProfileSwitch,
@@ -14,9 +16,10 @@
 }:
 
 let
-  inherit (profileDefinitions) modelAliases providers;
+  inherit (profileDefinitions) modelAliases providers workloadPolicy;
 
   cfg = config.hakula.claude-code;
+  json = pkgs.formats.json { };
   stateDir = "${config.xdg.stateHome}/claude-code";
 
   authEnvByType = {
@@ -39,7 +42,7 @@ let
           )
         ) modelAliases.claude
         // {
-          CLAUDE_CODE_AUTO_COMPACT_WINDOW = toString profile.models.flagship.autoCompactTokens;
+          CLAUDE_CODE_AUTO_COMPACT_WINDOW = toString profile.roles.default.model.autoCompactTokens;
         }
         // lib.optionalAttrs (profile.family == "claude") {
           PROSE_POLISH_ENABLED = "true";
@@ -47,7 +50,7 @@ let
     in
     {
       inherit extraEnv;
-      inherit (profile) nativeWebSearch;
+      inherit (profile) family nativeWebSearch;
     }
     // (
       if profile.provider == null then
@@ -68,7 +71,7 @@ let
               CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
             }
             // lib.optionalAttrs (profile.family == "local") {
-              CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString profile.models.flagship.contextWindow;
+              CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString profile.roles.default.model.contextWindow;
             };
           extraSecretEnv.NODE_EXTRA_CA_CERTS = provider.caSecret;
           nativeWebSearch = false;
@@ -115,6 +118,12 @@ let
         ];
         default = "api-key";
         description = "Authentication type";
+      };
+
+      family = lib.mkOption {
+        type = lib.types.enum (builtins.attrNames workloadPolicy);
+        default = "claude";
+        description = "Model family for session and agent effort";
       };
 
       baseUrl = lib.mkOption {
@@ -231,6 +240,31 @@ let
   requiredSecrets = lib.genAttrs requiredSecretNames (_: { });
 
   # ----------------------------------------------------------------------------
+  # Family configuration
+  # ----------------------------------------------------------------------------
+  familyConfigs = lib.mapAttrs (
+    family: policy:
+    let
+      agents = import ./agents {
+        inherit lib sharedAgents enabledAgents;
+        modelAliases = modelAliases.claude;
+        workloadPolicy = policy;
+      };
+    in
+    {
+      agentsDir = pkgs.linkFarm "claude-code-agents-${family}" (
+        lib.mapAttrsToList (name: text: {
+          name = ".claude/agents/${name}.md";
+          path = pkgs.writeText "claude-code-agent-${family}-${name}.md" text;
+        }) agents.files
+      );
+      settings = json.generate "claude-code-settings-${family}.json" {
+        effortLevel = policy.standard;
+      };
+    }
+  ) workloadPolicy;
+
+  # ----------------------------------------------------------------------------
   # Profile scripts
   # ----------------------------------------------------------------------------
   readSecretFn = ''
@@ -247,6 +281,7 @@ let
     name: profile:
     let
       esc = lib.escapeShellArg;
+      familyConfig = familyConfigs.${profile.family};
 
       tokenLines =
         if profile.type == "subscription" then
@@ -273,8 +308,16 @@ let
       lib.concatStringsSep "\n" (
         tokenLines
         ++ envLines
-        # Inline values preserve positional prompts and the caller's option delimiter.
+        # Inline values keep variadic flags from consuming the caller's prompt.
         ++ lib.optional (!profile.nativeWebSearch) ''set -- --disallowedTools=WebSearch "$@"''
+        ++ [
+          ''
+            set -- \
+              --add-dir=${esc "${familyConfig.agentsDir}"} \
+              --settings=${esc "${familyConfig.settings}"} \
+              "$@"
+          ''
+        ]
       )
     );
 
@@ -422,6 +465,7 @@ in
   ];
 
   settings = {
+    model = modelAliases.claude.standard;
     processWrapper = "${teammateLauncher}";
   };
 }
