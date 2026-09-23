@@ -7,6 +7,7 @@
   pkgs,
   lib,
   profileDefinitions,
+  sharedAgents,
   hostType,
   secretPath,
   mkProfileSwitch,
@@ -17,7 +18,6 @@ let
   yaml = pkgs.formats.yaml { };
   configDir = "${config.home.homeDirectory}/.omp/agent";
   stateDir = "${config.xdg.stateHome}/omp";
-  modelAliases = profileDefinitions.modelAliases.omp;
 
   corpGateway = profileDefinitions.providers.corp-gateway;
   caFile = secretPath corpGateway.caSecret;
@@ -29,27 +29,27 @@ let
     name:
     {
       gateway,
-      models,
-      modelIds,
+      roles,
+      workloads,
       ...
     }:
     let
       provider = if gateway == null then "openai-codex" else name;
-      model = models.flagship;
+      mkRole = workload: "${provider}/${workload.modelId}:${workload.effort}";
     in
     {
-      modelRoles =
-        lib.mapAttrs' (
-          tier: alias:
-          lib.nameValuePair alias "${provider}/${modelIds.${tier}}:${models.${tier}.thinking.defaultLevel}"
-        ) modelAliases
-        // {
-          plan = "${provider}/${modelIds.flagship}:high";
-          slow = "${provider}/${modelIds.flagship}:max";
-        };
+      modelRoles = lib.mapAttrs (_: mkRole) workloads // {
+        default = "@standard";
+        plan = "@flagship";
+        task = "@standard";
+        slow = "@flagship";
+        smol = "@mini";
+        tiny = "@mini";
+        advisor = "@tiny";
+      };
       compaction = {
         enabled = true;
-        thresholdTokens = model.autoCompactTokens;
+        thresholdTokens = roles.default.model.autoCompactTokens;
       };
     };
 
@@ -91,7 +91,9 @@ let
     profilesDir = "${stateDir}/profiles";
     extension = "config.yml";
     configFile = "${configDir}/config.yml";
-    defaultSettings = import ./settings.nix;
+    defaultSettings = import ./settings.nix {
+      inherit sharedAgents;
+    };
     resetKeys = [
       "modelRoles"
       "ask.notify"

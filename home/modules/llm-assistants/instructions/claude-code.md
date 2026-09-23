@@ -20,7 +20,7 @@ The shared MCP servers are documented in the shared instructions above. Claude C
 
 ### Agent Execution
 
-Use subagents for independent tasks and Agent Teams when peers need shared task state or direct messaging. The `codex-worker` role delegates bounded work through `acpx` using the shared `acp-delegate` skill, then verifies Codex's output. Isolate parallel writers with `Agent({ isolation: "worktree" })`.
+Use subagents for independent tasks and Agent Teams when peers need shared task state or direct messaging. Isolate parallel writers with `Agent({ isolation: "worktree" })`.
 
 ### Context Compaction Guidance
 

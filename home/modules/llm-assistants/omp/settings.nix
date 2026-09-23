@@ -3,6 +3,10 @@
 # ==============================================================================
 
 {
+  sharedAgents,
+}:
+
+{
   # ----------------------------------------------------------------------------
   # Appearance
   # ----------------------------------------------------------------------------
@@ -74,7 +78,20 @@
   # ----------------------------------------------------------------------------
   # Agents
   # ----------------------------------------------------------------------------
+  advisor = {
+    enabled = true;
+    maxNotesPerUpdate = 2;
+    syncBacklog = "3";
+  };
+
   task = {
+    agentModelOverrides = {
+      scout = "@${sharedAgents.researcher.workload}";
+      security-reviewer = "@${sharedAgents.reviewer.workload}";
+      sonic = "@mini";
+      task = "@task";
+    };
+
     eager = "preferred";
     enableEffort = true;
     enableLsp = true;

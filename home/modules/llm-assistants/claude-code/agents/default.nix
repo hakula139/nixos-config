@@ -7,6 +7,7 @@
   sharedAgents,
   enabledAgents,
   modelAliases,
+  workloadPolicy,
 }:
 
 let
@@ -20,8 +21,8 @@ let
     name: agent:
     let
       settings = agent.claude // {
-        model = modelAliases.${agent.modelTier};
-        inherit (agent) effort;
+        model = modelAliases.${agent.workload};
+        effort = workloadPolicy.${agent.workload};
       };
       frontmatterLines = [
         "name: ${name}"
@@ -48,9 +49,7 @@ let
     ${agent.prompt}
   '';
 
-  allAgents = lib.mapAttrs renderAgent sharedAgents // {
-    codex-worker = builtins.readFile ./codex-worker.md;
-  };
+  allAgents = lib.mapAttrs renderAgent sharedAgents;
 in
 {
   files = lib.filterAttrs (name: _: lib.elem name enabledAgents) allAgents;

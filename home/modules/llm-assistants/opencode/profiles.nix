@@ -86,8 +86,8 @@ let
     profile@{
       family,
       gateway,
-      models,
-      modelIds,
+      roles,
+      workloads,
       ...
     }:
     let
@@ -115,15 +115,23 @@ let
           "corp-gateway"
         else
           name;
+
+      mkAgent = workload: {
+        model = "${provider}/${workload.modelId}";
+        options = mkReasoningOptions api workload.model workload.effort;
+      };
+
     in
     {
-      model = "${provider}/${modelIds.flagship}";
-      small_model = "${provider}/${modelIds.mini}";
+      model = "${provider}/${roles.default.modelId}";
+      small_model = "${provider}/${roles.small.modelId}";
 
-      agent = lib.mapAttrs (_: agent: {
-        model = "${provider}/${modelIds.${agent.modelTier}}";
-        options = mkReasoningOptions api models.${agent.modelTier} agent.effort;
-      }) managedAgents;
+      agent = {
+        build = mkAgent roles.default;
+        plan = mkAgent roles.plan;
+        general = mkAgent roles.task;
+      }
+      // lib.mapAttrs (_: agent: mkAgent workloads.${agent.workload}) managedAgents;
 
       provider.${provider} = {
         models = mkModels api profile;

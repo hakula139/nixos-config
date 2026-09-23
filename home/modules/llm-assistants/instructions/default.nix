@@ -1,5 +1,5 @@
 # ==============================================================================
-# Shared Instruction Documents
+# Assistant Instruction Documents
 # ==============================================================================
 
 {
@@ -13,14 +13,16 @@ let
     {
       title,
       intro,
-      body,
+      body ? null,
     }:
-    builtins.concatStringsSep "\n\n" [
-      "# ${title}"
-      intro
-      sharedBody
-      (builtins.readFile body)
-    ];
+    builtins.concatStringsSep "\n\n" (
+      [
+        "# ${title}"
+        intro
+        sharedBody
+      ]
+      ++ (if body == null then [ ] else [ (builtins.readFile body) ])
+    );
 in
 {
   claudeCode = render {
@@ -32,18 +34,15 @@ in
   codex = render {
     title = "AGENTS.md";
     intro = "Global instructions for Codex behavior across all projects.";
-    body = ./agents.md;
   };
 
   omp = render {
     title = "AGENTS.md";
     intro = "Global instructions for OMP behavior across all projects.";
-    body = ./agents.md;
   };
 
   opencode = render {
     title = "AGENTS.md";
     intro = "Global instructions for OpenCode behavior across all projects.";
-    body = ./agents.md;
   };
 }

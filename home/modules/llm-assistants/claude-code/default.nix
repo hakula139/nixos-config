@@ -21,17 +21,6 @@ let
   inherit (shared) agentRoleOptions instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
 
-  claudeAgentNames = agentRoleOptions.sharedAgentNames ++ [
-    "codex-worker"
-  ];
-
-  agents = import ./agents {
-    inherit lib;
-    inherit (cfg.agents) enabledAgents;
-    sharedAgents = shared.agentRoles;
-    modelAliases = shared.profileDefinitions.modelAliases.claude;
-  };
-
   mcp = import ./mcp.nix {
     inherit pkgs mcpOptions;
     enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
@@ -53,6 +42,8 @@ let
       mcpFlag
       ;
     inherit (shared) profileDefinitions mkProfileSwitch;
+    inherit (cfg.agents) enabledAgents;
+    sharedAgents = shared.agentRoles;
   };
 in
 {
@@ -66,7 +57,6 @@ in
 
     agents = {
       enabledAgents = agentRoleOptions.mkEnabledAgentsOption {
-        names = claudeAgentNames;
         description = "Custom agents to enable";
       };
     };
@@ -169,12 +159,10 @@ in
         programs.claude-code = {
           enable = true;
           package = claudeCodeBin;
-          agents = agents.files;
 
           settings = import ./settings.nix {
             inherit
               lib
-              modelCatalog
               homeDir
               hooks
               permissions

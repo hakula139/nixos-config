@@ -32,31 +32,36 @@ let
   # Profile assembly
   # ----------------------------------------------------------------------------
   mkAgents =
-    models:
+    workloads:
     (import ./agents.nix {
       inherit
         pkgs
         lib
         sharedAgents
         enabledAgents
-        models
+        workloads
         ;
     }).settings;
 
   mkProfile =
     _: profile:
     {
-      model = profile.modelIds.flagship;
+      model = profile.roles.default.modelId;
       model_provider = if profile.gateway == null then "openai" else "corp-gateway";
-      model_reasoning_effort = profile.models.flagship.thinking.defaultLevel;
-      agents = mkAgents profile.modelIds;
+      model_reasoning_effort = profile.roles.default.effort;
+      plan_mode_reasoning_effort = profile.roles.plan.effort;
+      agents = {
+        default_subagent_model = profile.roles.task.modelId;
+        default_subagent_reasoning_effort = profile.roles.task.effort;
+      }
+      // mkAgents profile.workloads;
       web_search = if profile.nativeWebSearch then "live" else "disabled";
     }
     // lib.optionalAttrs (profile.gateway != null) {
       model_catalog_json = toString (mkModelCatalog profile);
     }
     // lib.optionalAttrs (profile.family == "gpt") {
-      model_auto_compact_token_limit = profile.models.flagship.autoCompactTokens;
+      model_auto_compact_token_limit = profile.roles.default.model.autoCompactTokens;
     };
 
   # ----------------------------------------------------------------------------

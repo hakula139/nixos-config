@@ -13,8 +13,7 @@
       patterns, dependency relationships, or feedback on an approach before implementation.
     '';
     prompt = readPrompt ./prompts/architect.md;
-    modelTier = "flagship";
-    effort = "high";
+    workload = "flagship";
 
     claude = {
       color = "cyan";
@@ -51,8 +50,7 @@
       unexpected behavior, or failure, especially when the cause is unclear.
     '';
     prompt = readPrompt ./prompts/debugger.md;
-    modelTier = "flagship";
-    effort = "high";
+    workload = "flagship";
 
     claude = {
       color = "red";
@@ -76,8 +74,7 @@
       code.
     '';
     prompt = readPrompt ./prompts/implementer.md;
-    modelTier = "flagship";
-    effort = "high";
+    workload = "flagship";
 
     claude = {
       color = "yellow";
@@ -100,8 +97,7 @@
       multiple files, search for patterns, or look up external documentation.
     '';
     prompt = readPrompt ./prompts/researcher.md;
-    modelTier = "mini";
-    effort = "low";
+    workload = "mini";
 
     claude = {
       color = "blue";
@@ -139,8 +135,7 @@
       focused review of recent changes, or to audit existing code for issues.
     '';
     prompt = readPrompt ./prompts/reviewer.md;
-    modelTier = "flagship";
-    effort = "high";
+    workload = "flagship";
 
     claude = {
       color = "green";
@@ -177,8 +172,7 @@
       want to run existing tests, or need help diagnosing test failures.
     '';
     prompt = readPrompt ./prompts/tester.md;
-    modelTier = "standard";
-    effort = "high";
+    workload = "standard";
 
     claude = {
       color = "magenta";
@@ -202,8 +196,7 @@
       for intuitiveness and clarity.
     '';
     prompt = readPrompt ./prompts/usability-reviewer.md;
-    modelTier = "flagship";
-    effort = "high";
+    workload = "flagship";
 
     claude = {
       color = "gray";
