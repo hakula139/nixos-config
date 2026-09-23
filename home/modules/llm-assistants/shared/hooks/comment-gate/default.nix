@@ -12,6 +12,7 @@
 
 {
   event = "PostToolUse";
+  type = "command";
   tools = [ "fileWrite" ];
   timeout = 2 * timeouts.modelCall;
   statusMessage = "Checking comments";
