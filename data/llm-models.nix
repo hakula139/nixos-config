@@ -49,7 +49,7 @@ let
   gptCommon = {
     contextWindow = 1050000;
     maxTokens = 128000;
-    autoCompactTokens = 250000;
+    autoCompactTokens = 272000;
     input = [
       "text"
       "image"
