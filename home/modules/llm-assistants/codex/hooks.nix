@@ -48,8 +48,7 @@ let
     hooks = [
       (
         {
-          type = "command";
-          inherit (hook) command;
+          inherit (hook) type command;
         }
         // lib.optionalAttrs (hook ? timeout) { inherit (hook) timeout; }
         // lib.optionalAttrs (hook ? statusMessage) { inherit (hook) statusMessage; }
