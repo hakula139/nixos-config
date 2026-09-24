@@ -154,7 +154,7 @@ let
       nativeFamily = "gpt";
       providers = [ "corp-gateway" ];
       gateways = [
-        "bedrock"
+        "anthropic"
         "openai"
         "local"
       ];

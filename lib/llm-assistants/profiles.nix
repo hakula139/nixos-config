@@ -34,9 +34,9 @@ let
   # Provider profiles
   # ----------------------------------------------------------------------------
   providerProfiles = {
-    corp-gateway-bedrock = {
+    corp-gateway-anthropic = {
       provider = "corp-gateway";
-      gateway = "bedrock";
+      gateway = "anthropic";
       family = "claude";
       nativeWebSearch = false;
     };
