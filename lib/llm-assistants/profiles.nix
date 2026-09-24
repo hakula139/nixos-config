@@ -91,7 +91,12 @@ let
     in
     profile
     // {
-      inherit modelIds models workloads;
+      inherit
+        modelKeys
+        modelIds
+        models
+        workloads
+        ;
       roles = {
         default = workloads.standard;
         plan = workloads.flagship;
