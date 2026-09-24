@@ -111,7 +111,7 @@ in
           exec goimports -w "$1"
         fi
 
-        exec ${lib.getExe' pkgs.go "gofmt"} -w "$1"
+        exec ${lib.getExe' pkgs.unstable.go_latest "gofmt"} -w "$1"
       '';
 
       ruffFormatScript = pkgs.writeShellScript "opencode-ruff-format" ''
