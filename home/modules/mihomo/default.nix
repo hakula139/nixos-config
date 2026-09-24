@@ -199,7 +199,7 @@ in
     # Directory management
     # --------------------------------------------------------------------------
     home.activation.mihomoSetup = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      install -d -m 0700 "${configDir}"
+      run install -d -m 0700 "${configDir}"
     '';
   };
 }
