@@ -59,7 +59,7 @@ in
       # Assistant Tooling
       # ------------------------------------------------------------------------
       hakula.claude-code = {
-        auth.defaultProfile = "corp-gateway-bedrock";
+        auth.defaultProfile = "corp-gateway-anthropic";
         mcp.enabledServers = commonMcpServers;
         plugins.bundle = true;
       };
