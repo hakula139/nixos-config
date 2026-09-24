@@ -33,12 +33,12 @@ let
   mkProfile =
     _: profile:
     let
+      aliasModelIds = if profile.gateway == "anthropic" then profile.modelKeys else profile.modelIds;
       extraEnv =
         lib.mapAttrs' (
           tier: alias:
           lib.nameValuePair "ANTHROPIC_DEFAULT_${lib.toUpper alias}_MODEL" (
-            profile.modelIds.${tier}
-            + lib.optionalString (profile.models.${tier}.contextWindow >= 1000000) "[1m]"
+            aliasModelIds.${tier} + lib.optionalString (profile.models.${tier}.contextWindow >= 1000000) "[1m]"
           )
         ) modelAliases.claude
         // {
@@ -51,6 +51,9 @@ let
     {
       inherit extraEnv;
       inherit (profile) family nativeWebSearch;
+      modelOverrides = lib.optionalAttrs (profile.gateway == "anthropic") (
+        lib.mapAttrs' (tier: id: lib.nameValuePair profile.modelKeys.${tier} id) profile.modelIds
+      );
     }
     // (
       if profile.provider == null then
@@ -108,66 +111,10 @@ let
   # ----------------------------------------------------------------------------
   # Profile submodule
   # ----------------------------------------------------------------------------
-  profileType = lib.types.submodule {
-    options = {
-      type = lib.mkOption {
-        type = lib.types.enum [
-          "subscription"
-          "oauth-token"
-          "api-key"
-        ];
-        default = "api-key";
-        description = "Authentication type";
-      };
-
-      family = lib.mkOption {
-        type = lib.types.enum (builtins.attrNames workloadPolicy);
-        default = "claude";
-        description = "Model family for session and agent effort";
-      };
-
-      baseUrl = lib.mkOption {
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        description = ''
-          API base URL (required for `api-key`, forbidden for `oauth-token` and
-          `subscription`).
-        '';
-      };
-
-      tokenSecret = lib.mkOption {
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        description = ''
-          Name of the agenix secret containing the auth token (required for
-          `oauth-token` and `api-key`, forbidden for `subscription`).
-        '';
-      };
-
-      extraEnv = lib.mkOption {
-        type = lib.types.attrsOf lib.types.str;
-        default = { };
-        description = "Additional environment variables for this profile";
-      };
-
-      extraSecretEnv = lib.mkOption {
-        type = lib.types.attrsOf lib.types.str;
-        default = { };
-        description = ''
-          Environment variables whose values are absolute paths to provisioned
-          secrets. Keys are env var names, values are secret names; referenced
-          secrets are auto-provisioned. Forbidden for `subscription`.
-        '';
-      };
-
-      nativeWebSearch = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = "Expose native WebSearch for this profile";
-      };
-    };
-
-    config.extraEnv.CLAUDE_CODE_AUTO_COMPACT_WINDOW = lib.mkOptionDefault defaultProfiles.official.extraEnv.CLAUDE_CODE_AUTO_COMPACT_WINDOW;
+  profileType = import ./profile-module.nix {
+    inherit lib;
+    families = builtins.attrNames workloadPolicy;
+    defaultCompactWindow = defaultProfiles.official.extraEnv.CLAUDE_CODE_AUTO_COMPACT_WINDOW;
   };
 
   # ----------------------------------------------------------------------------
@@ -258,7 +205,7 @@ let
           path = pkgs.writeText "claude-code-agent-${family}-${name}.md" text;
         }) agents.files
       );
-      settings = json.generate "claude-code-settings-${family}.json" {
+      settings = {
         effortLevel = policy.standard;
       };
     }
@@ -282,6 +229,13 @@ let
     let
       esc = lib.escapeShellArg;
       familyConfig = familyConfigs.${profile.family};
+      settingsName = if profile.modelOverrides == { } then profile.family else name;
+      settings = json.generate "claude-code-settings-${settingsName}.json" (
+        familyConfig.settings
+        // lib.optionalAttrs (profile.modelOverrides != { }) {
+          inherit (profile) modelOverrides;
+        }
+      );
 
       tokenLines =
         if profile.type == "subscription" then
@@ -314,7 +268,7 @@ let
           ''
             set -- \
               --add-dir=${esc "${familyConfig.agentsDir}"} \
-              --settings=${esc "${familyConfig.settings}"} \
+              --settings=${esc "${settings}"} \
               "$@"
           ''
         ]
