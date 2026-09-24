@@ -91,7 +91,7 @@ let
         "yescode"
       ];
       gateways = [
-        "bedrock"
+        "anthropic"
         "openai"
         "local"
       ];

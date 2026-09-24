@@ -124,8 +124,8 @@ in
         defaultLevel = "medium";
         requiresEffort = true;
       };
-      gatewayId.bedrock = "bedrock/anthropic.claude-opus-5-5";
-      gatewayCost.bedrock = {
+      gatewayId.anthropic = "openrouter/anthropic/claude-opus-5.5";
+      gatewayCost.anthropic = {
         input = 4.0;
         output = 20.0;
         cacheRead = 0.2;
@@ -138,8 +138,8 @@ in
       thinking = claudeAdaptiveCommon.thinking // {
         defaultLevel = "low";
       };
-      gatewayId.bedrock = "bedrock/global.anthropic.claude-sonnet-5";
-      gatewayCost.bedrock = {
+      gatewayId.anthropic = "bedrock/global.anthropic.claude-sonnet-5";
+      gatewayCost.anthropic = {
         input = 2.0;
         output = 10.0;
         cacheRead = 0.2;
@@ -168,8 +168,8 @@ in
         ];
         defaultLevel = "high";
       };
-      gatewayId.bedrock = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
-      gatewayCost.bedrock = {
+      gatewayId.anthropic = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
+      gatewayCost.anthropic = {
         input = 1.0;
         output = 5.0;
         cacheRead = 0.1;
