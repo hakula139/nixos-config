@@ -97,13 +97,13 @@ in
           ...
         }:
         ''
-          install -d -m 0700 "${syncDir}"
+          run install -d -m 0700 "${syncDir}"
 
           for file in ${toString files}; do
             if [[ ! -e "${homeDir}/$file" ]]; then
-              mkdir -p "$(dirname "${syncDir}/$file")"
-              mkdir -p "$(dirname "${homeDir}/$file")"
-              ln -sfn "${syncDir}/$file" "${homeDir}/$file"
+              run mkdir -p "$(dirname "${syncDir}/$file")"
+              run mkdir -p "$(dirname "${homeDir}/$file")"
+              run ln -sfn "${syncDir}/$file" "${homeDir}/$file"
             fi
           done
         '';

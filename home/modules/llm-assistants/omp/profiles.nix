@@ -159,7 +159,7 @@ in
 
     # Keep config.yml writable for profile switching and OMP settings updates.
     home.activation.ompAuthProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      ${lib.getExe switch} --initialize
+      run ${lib.getExe switch} --initialize
     '';
   };
 

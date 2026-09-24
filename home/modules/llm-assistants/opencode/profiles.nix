@@ -221,7 +221,7 @@ in
     # Activation
     # --------------------------------------------------------------------------
     home.activation.opencodeAuthProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      ${lib.getExe switch} --initialize
+      run ${lib.getExe switch} --initialize
     '';
   };
 
