@@ -10,9 +10,8 @@
 }:
 
 let
-  # Cursor's remote server starts with a clean environment and skips
-  # zsh startup scripts, so prepend system-manager and Home Manager
-  # paths here. Sourced before the server launches the extension host.
+  # Cursor's remote server skips shell startup scripts, so set up its
+  # environment here before it launches the extension host.
   serverEnvSetup = pkgs.writeText "cursor-server-env-setup" ''
     [ -r /etc/set-environment ] && . /etc/set-environment
 
@@ -25,6 +24,8 @@ let
       esac
     done
     export PATH
+
+    export TMUX_TMPDIR="''${XDG_RUNTIME_DIR:-"/run/user/$(id -u)"}"
   '';
 in
 {
