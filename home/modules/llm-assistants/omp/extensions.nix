@@ -10,7 +10,7 @@
   telegram = pkgs.fetchFromGitHub {
     owner = "TerrifiedBug";
     repo = "omp-telegram";
-    rev = "0ce609d7e019f32a7ea734b35aa87dbb1190f990"; # v0.13.0
-    hash = "sha256-N7Fv/ZA2C5hjXgXqoAWWePFFoKgPnD5MxgFfzmep4gg=";
+    rev = "03f5907ffef0d3698fb897cc769570082bd8d1e0"; # v0.14.0
+    hash = "sha256-bbxBvpMGhivrTvwHwEQJASann828NomY4N/0uwa1cqs=";
   };
 }

@@ -262,7 +262,7 @@ def registry [root: string]: nothing -> list<record> {
           local: {||
             abbrev (nix-attr $root "home/modules/llm-assistants/omp/extensions.nix" 'rev = "(?<v>[0-9a-f]+)"')
           }
-          upstream: {|| abbrev (gh-latest-semver-tag "TerrifiedBug/omp-telegram" commit.sha) }
+          upstream: {|| abbrev (gh-latest-release-head "TerrifiedBug/omp-telegram") }
         }
       ]
     }
