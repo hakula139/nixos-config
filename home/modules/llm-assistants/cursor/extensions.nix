@@ -187,7 +187,7 @@ let
     while IFS= read -r ext; do
       [ -z "$ext" ] && continue
       printf '%s\n' "$installed_ids" | grep -iqFx "$ext" && continue
-      cursor --install-extension "$ext" || true
+      run cursor --install-extension "$ext" || true
     done < <(printf '%s\n' "$expected")
 
     # Prune non-provisioned extensions
@@ -195,7 +195,7 @@ let
       while IFS= read -r ext; do
         [ -z "$ext" ] && continue
         printf '%s\n' "$expected" | grep -iqFx "$ext" && continue
-        cursor --uninstall-extension "$ext" 2>/dev/null || true
+        run cursor --uninstall-extension "$ext" 2>/dev/null || true
       done < <(get_installed_ids)
     fi
   '';

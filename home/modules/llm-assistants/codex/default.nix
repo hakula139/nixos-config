@@ -183,7 +183,7 @@ in
         home.activation.codexSkills = skills.activation;
 
         home.activation.codexMutableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          ${activateConfig}
+          run ${activateConfig}
         '';
       }
     ]

@@ -152,7 +152,7 @@ in
           "linkGeneration"
         ]
         ''
-          ${lib.getExe switch} --initialize
+          run ${lib.getExe switch} --initialize
         '';
   };
 
