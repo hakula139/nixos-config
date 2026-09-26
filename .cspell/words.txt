@@ -15,6 +15,7 @@ bnext
 bprevious
 bradlc
 btop
+bwrap
 busctl
 cachain
 cachix
