@@ -54,12 +54,9 @@
       (final.unstable.wakatime-cli.override { buildGoModule = final.unstable.buildGoLatestModule; })
       .overrideAttrs
         (old: {
-          version = "2.26.6";
-          src = old.src.override { hash = "sha256-H8ZfulbHUsq1s9bh+9iW7W/yp1DJsEOaoPe5uFQKKYc="; };
-          vendorHash = "sha256-ZoQ7fTzig5mPNAqWZDb8eeVh0OoJm4U5yq3hRyqedLU=";
-          patches = (old.patches or [ ]) ++ [
-            ../packages/wakatime-cli/html-dependency-raw-text.patch
-          ];
+          version = "2.26.11";
+          src = old.src.override { hash = "sha256-3OB2oyObnkbterceYcAokCGZTDPv0SfIjgFoQcUyWPI="; };
+          vendorHash = "sha256-MpE3Q/YK7SliqxF4aM1fyUWe70SNI7qlex7mUQk1W6g=";
         });
 
     # --------------------------------------------------------------------------
