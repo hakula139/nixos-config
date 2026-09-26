@@ -167,9 +167,11 @@ let
 
   toClaude = entries: map (e: "Bash(${joined e} *)") entries;
 
-  toClaudeSoftDeny =
-    entry:
-    "Gated `${joined entry}` [named+specifics — **must name:** the action this command performs]: ${entry.reason} Covers `${joined entry}` in any form, including with global options or through a wrapper or script. Clears only when the user's own message in this conversation asked for this action. No allow exception clears it.";
+  # The built-in `Git Push Destination` allow exception would otherwise clear
+  # the `git push` gate for pushes to the session's own repo.
+  softDenyClearance = "Blocked unless the user explicitly asked for it. No allow exception clears it.";
+
+  toClaudeSoftDeny = entry: "`${joined entry}`: ${entry.reason} ${softDenyClearance}";
 
   toCodexRule =
     decision: entry:
@@ -198,7 +200,9 @@ in
   inherit gates denies;
 
   claudeDeny = toClaude denies;
-  claudeSoftDeny = map toClaudeSoftDeny gates;
+  claudeSoftDeny = map toClaudeSoftDeny gates ++ [
+    "GitHub / GitLab MCP writes: any `mcp__GitHub__*` or `mcp__GitLab__*` call that changes remote state. ${softDenyClearance}"
+  ];
 
   codexRules = lib.concatStringsSep "\n" (
     map (toCodexRule "forbidden") denies ++ map (toCodexRule "prompt") gates
