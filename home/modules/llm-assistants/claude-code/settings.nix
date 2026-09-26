@@ -7,6 +7,7 @@
   homeDir,
   hooks,
   permissions,
+  sharedPermissions,
   plugins,
   bundlePlugins,
   profileSettings,
@@ -51,6 +52,13 @@
     environment = [
       "$defaults"
       "Source control: github.com/hakula139 and all repos under it"
+    ];
+    soft_deny = [
+      "$defaults"
+    ]
+    ++ sharedPermissions.claudeSoftDeny
+    ++ [
+      "GitHub / GitLab MCP writes [named+specifics — **must name:** the action and its target]: Any `mcp__GitHub__*` or `mcp__GitLab__*` tool call that changes remote state, including publishing (branches, files, commits, repositories, forks, issues, pull / merge requests, labels, commit statuses), merging, commenting or reacting, reviewing or approving, requesting reviews or assigning Copilot, changing project or branch-protection settings, remote deletion, and pipeline control (creating, retrying, cancelling, or playing pipelines and jobs). Clears only when the user's own message in this conversation asked for this action. No allow exception clears it."
     ];
   };
 

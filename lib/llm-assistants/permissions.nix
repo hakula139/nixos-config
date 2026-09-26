@@ -167,6 +167,10 @@ let
 
   toClaude = entries: map (e: "Bash(${joined e} *)") entries;
 
+  toClaudeSoftDeny =
+    entry:
+    "Gated `${joined entry}` [named+specifics — **must name:** the action this command performs]: ${entry.reason} Covers `${joined entry}` in any form, including with global options or through a wrapper or script. Clears only when the user's own message in this conversation asked for this action. No allow exception clears it.";
+
   toCodexRule =
     decision: entry:
     let
@@ -193,8 +197,8 @@ in
 {
   inherit gates denies;
 
-  claudeAsk = toClaude gates;
   claudeDeny = toClaude denies;
+  claudeSoftDeny = map toClaudeSoftDeny gates;
 
   codexRules = lib.concatStringsSep "\n" (
     map (toCodexRule "forbidden") denies ++ map (toCodexRule "prompt") gates
