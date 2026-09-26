@@ -28,6 +28,7 @@
       ccusage
       claude-agent-acp
       claude-code
+      codex
       codex-acp
       oh-my-opencode
       omp
@@ -78,9 +79,6 @@
     acpx = final.callPackage ../packages/acpx { };
     browser-tools = final.callPackage ../packages/browser-tools { };
     cloudreve = final.callPackage ../packages/cloudreve { };
-    codex = final.callPackage ../packages/codex {
-      upstream = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.codex;
-    };
     mcp-server-filesystem = final.callPackage ../packages/mcp/mcp-server-filesystem { };
     mcp-server-git = final.callPackage ../packages/mcp/mcp-server-git { };
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };
