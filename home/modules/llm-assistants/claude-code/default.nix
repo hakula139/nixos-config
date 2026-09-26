@@ -75,6 +75,8 @@ in
     let
       homeDir = config.home.homeDirectory;
 
+      json = pkgs.formats.json { };
+
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
@@ -98,7 +100,7 @@ in
       # ------------------------------------------------------------------------
       # Status line
       # ------------------------------------------------------------------------
-      statusLineConfig = (pkgs.formats.json { }).generate "claude-statusline.json" {
+      statusLineConfig = json.generate "claude-statusline.json" {
         models = lib.listToAttrs (
           lib.concatLists (
             lib.mapAttrsToList (
@@ -145,6 +147,35 @@ in
       };
 
       # ------------------------------------------------------------------------
+      # Configuration files
+      # ------------------------------------------------------------------------
+      settingsJson = json.generate "claude-code-settings.json" (
+        import ./settings.nix {
+          inherit
+            lib
+            homeDir
+            hooks
+            permissions
+            plugins
+            ;
+          inherit (shared.mcp) timeouts;
+          bundlePlugins = cfg.plugins.bundle;
+          profileSettings = profiles.settings;
+        }
+        // {
+          "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+        }
+      );
+
+      # Editor file watchers resolve symlinks and watch the parent directory,
+      # which must not be /nix/store itself.
+      configFiles = pkgs.runCommand "claude-code-config" { } ''
+        set -euo pipefail
+        mkdir -p "$out"
+        cp ${lib.escapeShellArg settingsJson} "$out/settings.json"
+      '';
+
+      # ------------------------------------------------------------------------
       # Plugin bundling
       # ------------------------------------------------------------------------
       pluginBundle = plugins.mkPluginBundle homeDir;
@@ -159,19 +190,6 @@ in
         programs.claude-code = {
           enable = true;
           package = claudeCodeBin;
-
-          settings = import ./settings.nix {
-            inherit
-              lib
-              homeDir
-              hooks
-              permissions
-              plugins
-              ;
-            inherit (shared.mcp) timeouts;
-            bundlePlugins = cfg.plugins.bundle;
-            profileSettings = profiles.settings;
-          };
         };
 
         # ----------------------------------------------------------------------
@@ -179,6 +197,7 @@ in
         # ----------------------------------------------------------------------
         home.file = {
           ".claude/CLAUDE.md".text = instructions.claudeCode;
+          ".claude/settings.json".source = "${configFiles}/settings.json";
           ".claude/statusline-command" = {
             source = statusLineScript;
             executable = true;
