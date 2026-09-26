@@ -38,49 +38,6 @@
     # --------------------------------------------------------------------------
     # Upstream overrides
     # --------------------------------------------------------------------------
-    # The daemon copies package files and rejects links outside the package root.
-    codex =
-      let
-        upstream = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.codex;
-        upstreamBin =
-          if final.stdenv.hostPlatform.isLinux then "${upstream}/libexec/codex/bin" else "${upstream}/bin";
-        manifest = final.writeText "codex-package.json" (
-          builtins.toJSON {
-            layoutVersion = 1;
-            # Build metadata prevents the daemon from updating outside Nix.
-            version = "${upstream.version}+nix";
-            target = final.stdenv.hostPlatform.rust.rustcTarget;
-            entrypoint = "bin/codex";
-          }
-        );
-      in
-      final.runCommand "codex-${upstream.version}"
-        {
-          inherit (upstream)
-            meta
-            passthru
-            src
-            version
-            ;
-          pname = "codex";
-        }
-        ''
-          set -euo pipefail
-
-          mkdir -p "$out/bin" "$out/codex-path"
-          install -m 755 ${upstreamBin}/codex "$out/bin/codex"
-          install -m 755 ${upstreamBin}/codex-code-mode-host "$out/bin/codex-code-mode-host"
-          install -m 755 ${upstreamBin}/logs_client "$out/bin/logs_client"
-          install -m 755 ${final.lib.getExe final.ripgrep} "$out/codex-path/rg"
-          install -m 644 ${manifest} "$out/codex-package.json"
-          cp -R ${upstream}/share "$out/share"
-
-          ${final.lib.optionalString final.stdenv.hostPlatform.isLinux ''
-            mkdir -p "$out/codex-resources"
-            install -m 755 ${final.lib.getExe final.bubblewrap} "$out/codex-resources/bwrap"
-          ''}
-        '';
-
     peertube = final.unstable.peertube.overrideAttrs (old: {
       patches = (old.patches or [ ]) ++ [
         ../packages/peertube/cdn-redirect-runner.patch
@@ -121,6 +78,9 @@
     acpx = final.callPackage ../packages/acpx { };
     browser-tools = final.callPackage ../packages/browser-tools { };
     cloudreve = final.callPackage ../packages/cloudreve { };
+    codex = final.callPackage ../packages/codex {
+      upstream = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.codex;
+    };
     mcp-server-filesystem = final.callPackage ../packages/mcp/mcp-server-filesystem { };
     mcp-server-git = final.callPackage ../packages/mcp/mcp-server-git { };
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };
