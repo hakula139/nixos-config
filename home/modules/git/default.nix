@@ -78,12 +78,18 @@
       ".LSOverride"
       "._*"
 
-      # IDEs
-      ".claude/plans"
-      ".cursor/plans"
+      # Editor swap / backup files
       "*.swp"
       "*.swo"
       "*~"
+
+      # Editor / assistant local settings
+      ".agents/plans"
+      ".claude/agent-memory-local"
+      ".claude/plans"
+      ".claude/settings.local.json"
+      ".claude/worktrees"
+      ".cursor/plans"
     ];
   };
 
