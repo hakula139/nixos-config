@@ -1,0 +1,79 @@
+diff --git a/crates/ccusage-core/src/cost.rs b/crates/ccusage-core/src/cost.rs
+index 52a2c55..ca206bc 100644
+--- a/crates/ccusage-core/src/cost.rs
++++ b/crates/ccusage-core/src/cost.rs
+@@ -116,15 +116,7 @@ fn calculate_cost_from_tokens(
+ }
+ 
+ pub fn calculate_cost_from_pricing(usage: crate::TokenUsageRaw, pricing: Pricing) -> f64 {
+-    let (cache_create_5m_tokens, cache_create_1h_tokens) =
+-        if let Some(breakdown) = usage.cache_creation {
+-            (
+-                breakdown.ephemeral_5m_input_tokens,
+-                breakdown.ephemeral_1h_input_tokens,
+-            )
+-        } else {
+-            (usage.cache_creation_input_tokens, 0)
+-        };
++    let (cache_create_5m_tokens, cache_create_1h_tokens) = usage.cache_creation_split();
+     let cache_create_1h_cost = pricing.input * CACHE_CREATE_1H_INPUT_MULTIPLIER;
+     let cache_create_1h_cost_above_200k = pricing
+         .input_above_200k
+@@ -355,6 +347,26 @@ mod tests {
+         assert!((cost - 12.5).abs() < f64::EPSILON);
+     }
+ 
++    #[test]
++    fn falls_back_to_flat_cache_creation_rate_with_zero_breakdown() {
++        let usage = TokenUsageRaw {
++            cache_creation_input_tokens: 10,
++            cache_creation: Some(CacheCreationRaw::default()),
++            ..TokenUsageRaw::default()
++        };
++
++        assert_eq!(usage.cache_creation_token_count(), 10);
++        let cost = calculate_cost_for_usage(
++            Some("test-model"),
++            usage,
++            None,
++            CostMode::Calculate,
++            Some(&pricing()),
++        );
++
++        assert!((cost - 12.5).abs() < f64::EPSILON);
++    }
++
+     #[test]
+     fn prices_two_stage_model_as_whole_request_at_long_context_rates() {
+         let mut pricing = PricingMap::default();
+diff --git a/crates/ccusage-core/src/types.rs b/crates/ccusage-core/src/types.rs
+index be2f907..bd1b7f4 100644
+--- a/crates/ccusage-core/src/types.rs
++++ b/crates/ccusage-core/src/types.rs
+@@ -40,11 +40,21 @@ pub struct TokenUsageRaw {
+ 
+ impl TokenUsageRaw {
+     pub fn cache_creation_token_count(&self) -> u64 {
+-        if let Some(b) = &self.cache_creation {
+-            b.ephemeral_5m_input_tokens
+-                .saturating_add(b.ephemeral_1h_input_tokens)
+-        } else {
+-            self.cache_creation_input_tokens
++        let (cache_create_5m_tokens, cache_create_1h_tokens) = self.cache_creation_split();
++        cache_create_5m_tokens.saturating_add(cache_create_1h_tokens)
++    }
++
++    /// Returns cache writes as `(5m, 1h)` TTL buckets.
++    ///
++    /// An all-zero breakdown next to a nonzero `cache_creation_input_tokens`
++    /// carries no TTL information, as some gateways report it, so the flat
++    /// total is billed at the 5m rate like a missing breakdown.
++    pub fn cache_creation_split(&self) -> (u64, u64) {
++        match self.cache_creation {
++            Some(b) if b.ephemeral_5m_input_tokens != 0 || b.ephemeral_1h_input_tokens != 0 => {
++                (b.ephemeral_5m_input_tokens, b.ephemeral_1h_input_tokens)
++            }
++            _ => (self.cache_creation_input_tokens, 0),
+         }
+     }
+ }
