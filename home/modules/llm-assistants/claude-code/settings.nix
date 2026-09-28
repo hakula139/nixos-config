@@ -6,8 +6,7 @@
   lib,
   homeDir,
   hooks,
-  permissions,
-  sharedPermissions,
+  permissionSettings,
   plugins,
   bundlePlugins,
   profileSettings,
@@ -15,9 +14,10 @@
 }:
 
 {
-  inherit hooks permissions;
+  inherit hooks;
   inherit (plugins) enabledPlugins;
 }
+// permissionSettings
 // profileSettings
 // lib.optionalAttrs (!bundlePlugins) {
   # With bundling, known_marketplaces.json drives discovery, and leaving
@@ -48,19 +48,6 @@
   showThinkingSummaries = true;
 
   wheelScrollAccelerationEnabled = false;
-
-  # ----------------------------------------------------------------------------
-  # Permission modes
-  # ----------------------------------------------------------------------------
-  skipDangerousModePermissionPrompt = true;
-  autoMode = {
-    classifyAllShell = true;
-    environment = [
-      "$defaults"
-      "Source control: github.com/hakula139 and all repos under it"
-    ];
-    soft_deny = [ "$defaults" ] ++ sharedPermissions.claudeSoftDeny;
-  };
 
   # ----------------------------------------------------------------------------
   # Environment

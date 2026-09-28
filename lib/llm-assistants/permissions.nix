@@ -3,10 +3,6 @@
 # ==============================================================================
 
 {
-  lib,
-}:
-
-let
   # ----------------------------------------------------------------------------
   # Gates
   # ----------------------------------------------------------------------------
@@ -143,13 +139,9 @@ let
     }
   ];
 
-  softDenies = [
-    {
-      name = "GitHub / GitLab writes";
-      reason = "Any operation that changes remote state, including Git pushes, CLI commands, MCP tools, and direct API requests.";
-    }
-  ];
-
+  # ----------------------------------------------------------------------------
+  # Denies
+  # ----------------------------------------------------------------------------
   denies = [
     {
       argv = [
@@ -168,65 +160,12 @@ let
   ];
 
   # ----------------------------------------------------------------------------
-  # Renderers
+  # Soft denies
   # ----------------------------------------------------------------------------
-  joined = entry: lib.concatStringsSep " " entry.argv;
-
-  toClaude = entries: map (e: "Bash(${joined e} *)") entries;
-
-  # The built-in `Git Push Destination` allow exception would otherwise clear
-  # the `git push` gate for pushes to the session's own repo.
-  softDenyClearance = "Blocked unless the user explicitly asked for it. No allow exception clears it.";
-
-  toClaudeSoftDeny = entry: "${entry.name}: ${entry.reason} ${softDenyClearance}";
-
-  toCodexRule =
-    decision: entry:
-    let
-      pattern = lib.concatStringsSep ", " (map (a: ''"${a}"'') entry.argv);
-    in
-    ''
-      prefix_rule(
-          pattern = [${pattern}],
-          decision = "${decision}",
-          justification = "${entry.reason}",
-      )
-    '';
-
-  # Each command gets a bare and a prefixed key so `rm` never matches `rmdir`.
-  toOpencodeBash =
-    action: entries:
-    lib.listToAttrs (
-      lib.concatMap (e: [
-        (lib.nameValuePair (joined e) action)
-        (lib.nameValuePair "${joined e} *" action)
-      ]) entries
-    );
-in
-{
-  inherit gates denies;
-
-  claudeDeny = toClaude denies;
-  claudeSoftDeny = map toClaudeSoftDeny (
-    map (entry: {
-      inherit (entry) reason;
-      name = "`${joined entry}`";
-    }) gates
-    ++ softDenies
-  );
-
-  codexRules = lib.concatStringsSep "\n" (
-    map (toCodexRule "forbidden") denies ++ map (toCodexRule "prompt") gates
-  );
-
-  # OpenCode resolves permission.bash last-match-wins with no deny precedence,
-  # and Nix serializes keys alphabetically (attrsets are unordered:
-  # nix-community/home-manager#2519). Denies win today only because each is more
-  # specific than its ask, so it sorts later (`agenix -r` after `agenix *`). A
-  # broad deny with a narrower ask carve-out would silently degrade to a prompt.
-  opencodeBash = {
-    "*" = "allow";
-  }
-  // toOpencodeBash "ask" gates
-  // toOpencodeBash "deny" denies;
+  softDenies = [
+    {
+      name = "GitHub / GitLab writes";
+      reason = "Any operation that changes remote state, including Git pushes, CLI commands, MCP tools, and direct API requests.";
+    }
+  ];
 }
