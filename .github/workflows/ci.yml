@@ -79,6 +79,7 @@ jobs:
             target: .#darwinConfigurations.macbook.system
             cachix_pins:
               peertube-runner-aarch64-darwin: .#darwinConfigurations.macbook.pkgs.peertube-runner
+              thaw-aarch64-darwin: .#darwinConfigurations.macbook.pkgs.thaw
               wakatime-cli-aarch64-darwin: .#darwinConfigurations.macbook.pkgs.wakatime-cli
           - id: docker
             name: devvm (x86_64-linux, Docker)
