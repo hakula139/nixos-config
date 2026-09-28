@@ -143,6 +143,13 @@ let
     }
   ];
 
+  softDenies = [
+    {
+      name = "GitHub / GitLab writes";
+      reason = "Any operation that changes remote state, including Git pushes, CLI commands, MCP tools, and direct API requests.";
+    }
+  ];
+
   denies = [
     {
       argv = [
@@ -205,12 +212,7 @@ in
       inherit (entry) reason;
       name = "`${joined entry}`";
     }) gates
-    ++ [
-      {
-        name = "GitHub / GitLab writes";
-        reason = "Any operation that changes remote state, including Git pushes, CLI commands, MCP tools, and direct API requests.";
-      }
-    ]
+    ++ softDenies
   );
 
   codexRules = lib.concatStringsSep "\n" (
