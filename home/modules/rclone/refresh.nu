@@ -1,7 +1,16 @@
 #!/usr/bin/env nu
 
+# ==============================================================================
+# Rclone Metadata Refresh
+# ==============================================================================
+# Run with --help for usage.
+# ==============================================================================
+
 # Refresh remote directory metadata without downloading file contents.
-def main [socket: string] {
+# A missing socket is skipped while the mount is stopped.
+def main [
+  socket: string # Unix socket for the mount's rclone remote-control API
+] {
   if not ($socket | path exists) {
     return
   }
