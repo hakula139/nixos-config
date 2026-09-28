@@ -50,6 +50,15 @@
     };
     hakula.codex.auth.enableCorpGateway = true;
     hakula.nix.configPath = "/Users/hakula/GitHub/nixos-config";
+    hakula.rclone.mounts = {
+      B2 = {
+        remote = "b2:hakula";
+        cacheMode = "full";
+      };
+      BMS.remote = "bms:";
+      Hakula-Cloud.remote = "hakula_cloud:";
+      Images.remote = "images:";
+    };
     services.listenbrainz-scrobbler.enable = true;
   };
 
