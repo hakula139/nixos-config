@@ -171,7 +171,7 @@ let
   # the `git push` gate for pushes to the session's own repo.
   softDenyClearance = "Blocked unless the user explicitly asked for it. No allow exception clears it.";
 
-  toClaudeSoftDeny = entry: "`${joined entry}`: ${entry.reason} ${softDenyClearance}";
+  toClaudeSoftDeny = entry: "${entry.name}: ${entry.reason} ${softDenyClearance}";
 
   toCodexRule =
     decision: entry:
@@ -200,9 +200,18 @@ in
   inherit gates denies;
 
   claudeDeny = toClaude denies;
-  claudeSoftDeny = map toClaudeSoftDeny gates ++ [
-    "GitHub / GitLab writes: any operation that changes remote state, including Git pushes, CLI commands, MCP tools, and direct API requests. ${softDenyClearance}"
-  ];
+  claudeSoftDeny = map toClaudeSoftDeny (
+    map (entry: {
+      inherit (entry) reason;
+      name = "`${joined entry}`";
+    }) gates
+    ++ [
+      {
+        name = "GitHub / GitLab writes";
+        reason = "Any operation that changes remote state, including Git pushes, CLI commands, MCP tools, and direct API requests.";
+      }
+    ]
+  );
 
   codexRules = lib.concatStringsSep "\n" (
     map (toCodexRule "forbidden") denies ++ map (toCodexRule "prompt") gates

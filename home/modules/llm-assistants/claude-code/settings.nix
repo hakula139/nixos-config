@@ -37,18 +37,19 @@
   # ----------------------------------------------------------------------------
   # Interface
   # ----------------------------------------------------------------------------
-  skipDangerousModePermissionPrompt = true;
   theme = "dark";
   tui = "fullscreen";
-  wheelScrollAccelerationEnabled = false;
   statusLine = {
     type = "command";
     command = "${homeDir}/.claude/statusline-command";
   };
 
+  wheelScrollAccelerationEnabled = false;
+
   # ----------------------------------------------------------------------------
-  # Auto mode
+  # Permission modes
   # ----------------------------------------------------------------------------
+  skipDangerousModePermissionPrompt = true;
   autoMode = {
     classifyAllShell = true;
     environment = [
