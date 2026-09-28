@@ -85,8 +85,9 @@ in
         inherit (shared) mkHooks notify;
       };
 
-      permissions = import ./permissions.nix {
-        sharedPermissions = repoLib.llmAssistants.permissions;
+      permissionSettings = import ./permissions {
+        inherit lib;
+        policy = repoLib.llmAssistants.permissions;
       };
 
       plugins = import ./plugins.nix {
@@ -155,7 +156,7 @@ in
             lib
             homeDir
             hooks
-            permissions
+            permissionSettings
             plugins
             ;
           inherit (shared.mcp) timeouts;

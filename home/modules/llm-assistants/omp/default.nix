@@ -57,6 +57,7 @@ in
   config = lib.mkIf cfg.enable (
     let
       json = pkgs.formats.json { };
+      yaml = pkgs.formats.yaml { };
 
       # ------------------------------------------------------------------------
       # Module imports
@@ -76,10 +77,19 @@ in
         mcpServers = shared.mcp.servers;
       };
 
+      permissionConfigFile = yaml.generate "omp-permissions.yml" (
+        import ./permissions.nix {
+          inherit lib;
+          policy = repoLib.llmAssistants.permissions;
+        }
+      );
+
       # ------------------------------------------------------------------------
       # Package wrapper
       # ------------------------------------------------------------------------
       wrapArgs = [
+        "--add-flags"
+        "--config ${permissionConfigFile}"
         "--prefix"
         "PATH"
         ":"
