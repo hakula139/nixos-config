@@ -86,6 +86,11 @@ in
         mcpServers = shared.mcp.servers;
       };
 
+      permissions = import ./permissions.nix {
+        inherit lib;
+        policy = repoLib.llmAssistants.permissions;
+      };
+
       # ------------------------------------------------------------------------
       # TUI config
       # ------------------------------------------------------------------------
@@ -170,7 +175,7 @@ in
             # ------------------------------------------------------------------
             # Permissions
             # ------------------------------------------------------------------
-            permission.bash = repoLib.llmAssistants.permissions.opencodeBash;
+            permission = permissions;
 
             # ------------------------------------------------------------------
             # MCP servers

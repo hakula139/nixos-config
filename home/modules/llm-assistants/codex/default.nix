@@ -90,6 +90,11 @@ in
         mcpServers = shared.mcp.servers;
       };
 
+      permissionRules = import ./permissions.nix {
+        inherit lib;
+        policy = repoLib.llmAssistants.permissions;
+      };
+
       skills = import ./skills {
         inherit
           config
@@ -173,7 +178,7 @@ in
         home.file = {
           codexRules = {
             target = codexRulesTarget;
-            text = repoLib.llmAssistants.permissions.codexRules;
+            text = permissionRules;
           };
         };
 

@@ -8,7 +8,7 @@
 
 let
   mcpOptions = import ./mcp-options.nix { inherit lib; };
-  permissions = import ./permissions.nix { inherit lib; };
+  permissions = import ./permissions.nix;
 in
 {
   inherit mcpOptions permissions;
