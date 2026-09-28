@@ -16,16 +16,20 @@ pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
     hash = "sha256-dANNgipCGnQwQgzb3Ir6LUPhQZ7jZLZO42h9DBqNDfE=";
   };
 
-  nativeBuildInputs = [ pkgs.unzip ];
   sourceRoot = ".";
+
+  nativeBuildInputs = [ pkgs.unzip ];
+
   dontConfigure = true;
   dontBuild = true;
   dontFixup = true;
 
   installPhase = ''
     runHook preInstall
+
     mkdir -p "$out/Applications"
     cp -R Thaw.app "$out/Applications/"
+
     runHook postInstall
   '';
 
