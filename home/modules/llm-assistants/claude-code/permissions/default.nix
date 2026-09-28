@@ -12,19 +12,19 @@ let
 
   toBashRules = entries: map (entry: "Bash(${commandText entry} *)") entries;
 
-  # The built-in `Git Push Destination` allow exception would otherwise clear
-  # the `git push` gate for pushes to the session's own repo.
-  softDenyClearance = "Blocked unless the user explicitly asked for it. No allow exception clears it.";
+  softDenyClearance = "Blocked unless the user explicitly approved the action. No allow exception clears it.";
 
-  toSoftDenyRules =
+  toProseRules =
     entries:
     map (
       entry:
       let
         name = entry.name or "`${commandText entry}`";
       in
-      "${name}: ${entry.reason} ${softDenyClearance}"
+      "${name}: ${entry.reason}"
     ) entries;
+
+  toSoftDenyRules = entries: map (rule: "${rule} ${softDenyClearance}") (toProseRules entries);
 in
 {
   permissions = {
@@ -43,6 +43,7 @@ in
       "$defaults"
       "Source control: github.com/hakula139 and all repos under it"
     ];
+    allow = [ "$defaults" ] ++ toProseRules policy.allows;
     soft_deny = [ "$defaults" ] ++ toSoftDenyRules (policy.gates ++ policy.softDenies);
   };
 }

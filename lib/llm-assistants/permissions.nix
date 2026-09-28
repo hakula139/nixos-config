@@ -32,31 +32,8 @@
     }
 
     # --------------------------------------------------------------------------
-    # Shared remote
+    # Pull / merge requests
     # --------------------------------------------------------------------------
-    {
-      argv = [
-        "git"
-        "push"
-      ];
-      reason = "Publishes commits to a remote.";
-    }
-    {
-      argv = [
-        "gh"
-        "issue"
-        "create"
-      ];
-      reason = "Opens an issue under our identity.";
-    }
-    {
-      argv = [
-        "gh"
-        "pr"
-        "create"
-      ];
-      reason = "Opens a pull request under our identity.";
-    }
     {
       argv = [
         "gh"
@@ -67,75 +44,11 @@
     }
     {
       argv = [
-        "gh"
-        "pr"
-        "review"
-      ];
-      reason = "Records a review verdict under our identity.";
-    }
-    {
-      argv = [
-        "gh"
-        "repo"
-        "create"
-      ];
-      reason = "Creates a repository under our identity.";
-    }
-    {
-      argv = [
-        "gh"
-        "repo"
-        "fork"
-      ];
-      reason = "Forks a repository under our identity.";
-    }
-    {
-      argv = [
-        "glab"
-        "issue"
-        "create"
-      ];
-      reason = "Opens an issue under our identity.";
-    }
-    {
-      argv = [
-        "glab"
-        "mr"
-        "create"
-      ];
-      reason = "Opens a merge request under our identity.";
-    }
-    {
-      argv = [
         "glab"
         "mr"
         "merge"
       ];
       reason = "Integrates a merge request into a shared branch.";
-    }
-    {
-      argv = [
-        "glab"
-        "mr"
-        "approve"
-      ];
-      reason = "Records an approval under our identity.";
-    }
-    {
-      argv = [
-        "glab"
-        "repo"
-        "create"
-      ];
-      reason = "Creates a repository under our identity.";
-    }
-    {
-      argv = [
-        "glab"
-        "repo"
-        "fork"
-      ];
-      reason = "Forks a repository under our identity.";
     }
   ];
 
@@ -160,12 +73,22 @@
   ];
 
   # ----------------------------------------------------------------------------
+  # Allows
+  # ----------------------------------------------------------------------------
+  allows = [
+    {
+      name = "GitHub / GitLab remote changes";
+      reason = "Remote changes are allowed without separate user approval, including pushing commits and creating or updating pull requests. Merging PRs or MRs, including automatic or queued merging, still requires explicit user approval.";
+    }
+  ];
+
+  # ----------------------------------------------------------------------------
   # Soft denies
   # ----------------------------------------------------------------------------
   softDenies = [
     {
-      name = "GitHub / GitLab writes";
-      reason = "Any operation that changes remote state, including Git pushes, CLI commands, MCP tools, and direct API requests.";
+      name = "PR / MR merges";
+      reason = "Merging GitHub pull requests or GitLab merge requests through any tool or API, including enabling automatic or queued merging.";
     }
   ];
 }
