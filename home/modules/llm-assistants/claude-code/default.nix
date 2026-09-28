@@ -85,7 +85,7 @@ in
         inherit (shared) mkHooks notify;
       };
 
-      permissionSettings = import ./permissions.nix {
+      permissionSettings = import ./permissions {
         inherit lib;
         policy = repoLib.llmAssistants.permissions;
       };
