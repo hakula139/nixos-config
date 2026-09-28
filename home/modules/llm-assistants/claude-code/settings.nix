@@ -37,6 +37,7 @@
   # ----------------------------------------------------------------------------
   # Interface
   # ----------------------------------------------------------------------------
+  skipDangerousModePermissionPrompt = true;
   theme = "dark";
   tui = "fullscreen";
   wheelScrollAccelerationEnabled = false;
