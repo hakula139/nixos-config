@@ -78,7 +78,12 @@
   allows = [
     {
       name = "GitHub / GitLab remote changes";
-      reason = "Remote changes are allowed without separate user approval, including pushing commits and creating or updating pull requests. Merging PRs or MRs, including automatic or queued merging, still requires explicit user approval.";
+      reason = ''
+        Remote changes are allowed without separate user approval, including pushing commits
+        and creating or updating pull requests.
+        Merging PRs or MRs, including automatic or queued merging, still requires
+        explicit user approval.
+      '';
     }
   ];
 
@@ -88,7 +93,10 @@
   softDenies = [
     {
       name = "PR / MR merges";
-      reason = "Merging GitHub pull requests or GitLab merge requests through any tool or API, including enabling automatic or queued merging.";
+      reason = ''
+        Merging GitHub pull requests or GitLab merge requests through any tool or API,
+        including enabling automatic or queued merging.
+      '';
     }
   ];
 }

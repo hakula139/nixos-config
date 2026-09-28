@@ -12,7 +12,10 @@ let
 
   toBashRules = entries: map (entry: "Bash(${commandText entry} *)") entries;
 
-  softDenyClearance = "Blocked unless the user explicitly approved the action. No allow exception clears it.";
+  softDenyClearance = ''
+    Allow when the user explicitly approves the action, including approval already given in
+    the conversation. Otherwise, block it even if an allow rule would permit it.
+  '';
 
   toProseRules =
     entries:
@@ -21,10 +24,11 @@ let
       let
         name = entry.name or "`${commandText entry}`";
       in
-      "${name}: ${entry.reason}"
+      "${name}: ${lib.trim entry.reason}"
     ) entries;
 
-  toSoftDenyRules = entries: map (rule: "${rule} ${softDenyClearance}") (toProseRules entries);
+  toSoftDenyRules =
+    entries: map (rule: "${rule} ${lib.trim softDenyClearance}") (toProseRules entries);
 in
 {
   permissions = {
