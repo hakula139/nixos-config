@@ -200,11 +200,11 @@ in
           autohide = true;
           show-recents = true;
 
-          # Mission Control
+          # Desktop & Dock → Mission Control
           mru-spaces = false;
           expose-group-apps = true;
 
-          # Hot Corners
+          # Desktop & Dock → Hot Corners
           wvous-tl-corner = 1;
           wvous-tr-corner = 2;
           wvous-bl-corner = 11;
