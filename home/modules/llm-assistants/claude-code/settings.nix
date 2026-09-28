@@ -29,6 +29,8 @@
   # Project
   # ----------------------------------------------------------------------------
   plansDirectory = "./.agents/plans";
+
+  includeGitInstructions = false;
   attribution = {
     commit = "";
     pr = "";
@@ -43,6 +45,7 @@
     type = "command";
     command = "${homeDir}/.claude/statusline-command";
   };
+  showThinkingSummaries = true;
 
   wheelScrollAccelerationEnabled = false;
 
