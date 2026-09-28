@@ -6,7 +6,7 @@
   lib,
   homeDir,
   hooks,
-  permissions,
+  permissionSettings,
   plugins,
   bundlePlugins,
   profileSettings,
@@ -14,9 +14,10 @@
 }:
 
 {
-  inherit hooks permissions;
+  inherit hooks;
   inherit (plugins) enabledPlugins;
 }
+// permissionSettings
 // profileSettings
 // lib.optionalAttrs (!bundlePlugins) {
   # With bundling, known_marketplaces.json drives discovery, and leaving
@@ -28,6 +29,8 @@
   # Project
   # ----------------------------------------------------------------------------
   plansDirectory = "./.agents/plans";
+
+  includeGitInstructions = false;
   attribution = {
     commit = "";
     pr = "";
@@ -38,21 +41,13 @@
   # ----------------------------------------------------------------------------
   theme = "dark";
   tui = "fullscreen";
-  wheelScrollAccelerationEnabled = false;
   statusLine = {
     type = "command";
     command = "${homeDir}/.claude/statusline-command";
   };
+  showThinkingSummaries = true;
 
-  # ----------------------------------------------------------------------------
-  # Auto mode
-  # ----------------------------------------------------------------------------
-  autoMode = {
-    environment = [
-      "$defaults"
-      "Source control: github.com/hakula139 and all repos under it"
-    ];
-  };
+  wheelScrollAccelerationEnabled = false;
 
   # ----------------------------------------------------------------------------
   # Environment
