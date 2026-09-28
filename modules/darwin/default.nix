@@ -139,8 +139,22 @@ in
         # NSGlobalDomain (system-wide preferences)
         # ----------------------------------------------------------------------
         NSGlobalDomain = {
-          # Appearance → Show scroll bars
+          # Appearance
+          AppleInterfaceStyle = "Dark";
           AppleShowScrollBars = "WhenScrolling";
+
+          # Desktop & Dock → Windows
+          AppleWindowTabbingMode = "always";
+          NSDocumentSaveNewDocumentsToCloud = false;
+
+          # Desktop & Dock → Mission Control
+          AppleSpacesSwitchOnActivate = true;
+
+          # General → Language & Region
+          AppleICUForce24HourTime = true;
+          AppleMeasurementUnits = "Centimeters";
+          AppleMetricUnits = 1;
+          AppleTemperatureUnit = "Celsius";
 
           # Keyboard → Key repeat
           ApplePressAndHoldEnabled = false;
@@ -162,6 +176,9 @@ in
 
           # Trackpad → Scroll & Zoom → Natural scrolling
           "com.apple.swipescrolldirection" = true;
+
+          # Trackpad → More Gestures → Swipe between pages
+          AppleEnableSwipeNavigateWithScrolls = false;
 
           # Save / Print dialogs (Internal)
           NSNavPanelExpandedStateForSaveMode = true;
@@ -185,6 +202,13 @@ in
 
           # Mission Control
           mru-spaces = true;
+          expose-group-apps = true;
+
+          # Hot Corners (1: disabled, 2: Mission Control, 3: app windows, 11: Apps)
+          wvous-tl-corner = 1;
+          wvous-tr-corner = 2;
+          wvous-bl-corner = 11;
+          wvous-br-corner = 3;
         };
 
         WindowManager = {
@@ -241,6 +265,22 @@ in
         };
 
         # ----------------------------------------------------------------------
+        # Screenshots
+        # ----------------------------------------------------------------------
+        screencapture = {
+          location = "~/Pictures";
+          target = "file";
+          type = "png";
+        };
+
+        # ----------------------------------------------------------------------
+        # Login Window
+        # ----------------------------------------------------------------------
+        loginwindow = {
+          GuestEnabled = false;
+        };
+
+        # ----------------------------------------------------------------------
         # Activity Monitor
         # ----------------------------------------------------------------------
         ActivityMonitor = {
@@ -262,6 +302,7 @@ in
           # Advanced
           AppleShowAllExtensions = true;
           FXEnableExtensionChangeWarning = false;
+          FXRemoveOldTrashItems = true;
           _FXSortFoldersFirst = true;
           _FXSortFoldersFirstOnDesktop = false;
           FXDefaultSearchScope = "SCcf";
@@ -313,7 +354,17 @@ in
 
     system.primaryUser = "hakula";
 
-    security.pam.services.sudo_local.touchIdAuth = true;
+    security.pam.services.sudo_local = {
+      touchIdAuth = true;
+      reattach = true;
+    };
+
+    networking.applicationFirewall = {
+      enable = true;
+      enableStealthMode = true;
+      allowSigned = false;
+      allowSignedApp = false;
+    };
 
     # --------------------------------------------------------------------------
     # SSH Configuration (system-wide)
