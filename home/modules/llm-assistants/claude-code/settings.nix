@@ -49,6 +49,7 @@
   # Auto mode
   # ----------------------------------------------------------------------------
   autoMode = {
+    classifyAllShell = true;
     environment = [
       "$defaults"
       "Source control: github.com/hakula139 and all repos under it"

@@ -201,7 +201,7 @@ in
 
   claudeDeny = toClaude denies;
   claudeSoftDeny = map toClaudeSoftDeny gates ++ [
-    "GitHub / GitLab MCP writes: any `mcp__GitHub__*` or `mcp__GitLab__*` call that changes remote state. ${softDenyClearance}"
+    "GitHub / GitLab writes: any operation that changes remote state, including Git pushes, CLI commands, MCP tools, and direct API requests. ${softDenyClearance}"
   ];
 
   codexRules = lib.concatStringsSep "\n" (
