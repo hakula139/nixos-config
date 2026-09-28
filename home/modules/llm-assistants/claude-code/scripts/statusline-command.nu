@@ -11,16 +11,6 @@ const CCUSAGE_CACHE = $nu.cache-dir | path join "claude-code" "statusline-usage.
 const CCUSAGE_TTL = 30sec
 const CCUSAGE_FIELDS = [date, has_block, has_daily, block_cost, remaining_minutes, burn_rate, daily_cost]
 
-# Cached like any result, so a failed lookup does not respawn ccusage every render.
-const NO_USAGE = {
-  has_block: false
-  has_daily: false
-  block_cost: 0.0
-  remaining_minutes: 0
-  burn_rate: 0.0
-  daily_cost: 0.0
-}
-
 # ------------------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------------------
@@ -214,7 +204,7 @@ def current-usage []: nothing -> record {
   let daily = (ccusage-json [daily --since $today --until $today])
   let daily_cost = $daily.totals?.totalCost?
 
-  $NO_USAGE | merge {
+  {
     date: $today
     has_block: ($active != null)
     has_daily: ($daily_cost != null)
