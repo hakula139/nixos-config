@@ -201,10 +201,10 @@ in
           show-recents = true;
 
           # Mission Control
-          mru-spaces = true;
+          mru-spaces = false;
           expose-group-apps = true;
 
-          # Hot Corners (1: disabled, 2: Mission Control, 3: app windows, 11: Apps)
+          # Hot Corners
           wvous-tl-corner = 1;
           wvous-tr-corner = 2;
           wvous-bl-corner = 11;
@@ -384,7 +384,7 @@ in
     # Fonts & Packages
     # --------------------------------------------------------------------------
     fonts.packages = packages.fonts;
-    environment.systemPackages = packages.base;
+    environment.systemPackages = packages.base ++ [ pkgs.thaw ];
 
     # --------------------------------------------------------------------------
     # Homebrew
