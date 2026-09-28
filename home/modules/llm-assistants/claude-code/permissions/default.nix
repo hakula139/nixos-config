@@ -34,9 +34,6 @@ in
   };
   skipDangerousModePermissionPrompt = true;
 
-  # ----------------------------------------------------------------------------
-  # Auto mode
-  # ----------------------------------------------------------------------------
   autoMode = {
     classifyAllShell = true;
     environment = [
