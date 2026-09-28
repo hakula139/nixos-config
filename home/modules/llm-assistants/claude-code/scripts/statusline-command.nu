@@ -7,13 +7,14 @@
 # Row 2: Model | Ctx: X% (XXk/200k) | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
 # ==============================================================================
 
-const CCUSAGE_CACHE = "/tmp/ccusage-statusline.json"
+const CCUSAGE_CACHE = $nu.cache-dir | path join "claude-code" "statusline-usage.json"
 const CCUSAGE_TTL = 30sec
-const CCUSAGE_FIELDS = [has_data, block_cost, remaining_minutes, burn_rate, daily_cost]
+const CCUSAGE_FIELDS = [date, has_block, has_daily, block_cost, remaining_minutes, burn_rate, daily_cost]
 
 # Cached like any result, so a failed lookup does not respawn ccusage every render.
-const NO_BLOCK = {
-  has_data: false
+const NO_USAGE = {
+  has_block: false
+  has_daily: false
   block_cost: 0.0
   remaining_minutes: 0
   burn_rate: 0.0
@@ -37,7 +38,7 @@ def labeled [label: string, value: string, color: string = "green"]: nothing -> 
 }
 
 def usd [amount: float]: nothing -> string {
-  $"$($amount | into string --decimals 2)"
+  if $amount == 0 { "$0.00" } else { $"$($amount | into string --decimals 2)" }
 }
 
 # ------------------------------------------------------------------------------
@@ -191,39 +192,36 @@ def read-cache []: nothing -> record {
   let cached = (try { open $CCUSAGE_CACHE | default {} } catch { {} })
   if ($cached | describe | str starts-with "record") and (
     $CCUSAGE_FIELDS | all {|field| $field in $cached }
-  ) {
+  ) and ($cached.date == (date now | format date "%Y%m%d")) {
     $cached
   } else {
     {}
   }
 }
 
-def active-block []: nothing -> record {
-  let result = (^ccusage blocks --json --offline | complete)
+def ccusage-json [args: list<string>]: nothing -> record {
+  let result = (^ccusage claude ...$args --json --offline | complete)
   if $result.exit_code != 0 {
-    return $NO_BLOCK
+    return {}
   }
+  try { $result.stdout | from json } catch { {} }
+}
 
-  let blocks = (try { $result.stdout | from json | get -o blocks | default [] } catch { [] })
-  let active = ($blocks | where ($it.isActive? | default false) | get -o 0)
-  if $active == null {
-    return $NO_BLOCK
-  }
+def current-usage []: nothing -> record {
+  let today = (date now | format date "%Y%m%d")
+  let blocks = (ccusage-json [blocks --active])
+  let active = ($blocks.blocks? | default [] | where ($it.isActive? | default false) | get -o 0)
+  let daily = (ccusage-json [daily --since $today --until $today])
+  let daily_cost = $daily.totals?.totalCost?
 
-  # ccusage stamps `startTime` in UTC.
-  let today = (date now | date to-timezone UTC | format date "%Y-%m-%d")
-  {
-    has_data: true
+  $NO_USAGE | merge {
+    date: $today
+    has_block: ($active != null)
+    has_daily: ($daily_cost != null)
     block_cost: ($active.costUSD? | default 0 | into float)
     remaining_minutes: ($active.projection?.remainingMinutes? | default 0 | math floor)
     burn_rate: ($active.burnRate?.costPerHour? | default 0 | into float)
-    daily_cost: (
-      $blocks
-      | where ($it.startTime? | default "" | str starts-with $today)
-      | each { get costUSD? | default 0 | into float }
-      | append 0.0
-      | math sum
-    )
+    daily_cost: ($daily_cost | default 0 | into float)
   }
 }
 
@@ -233,8 +231,11 @@ def read-ccusage []: nothing -> record {
     return $cached
   }
 
-  let data = (active-block)
-  try { $data | save --force $CCUSAGE_CACHE }
+  let data = (current-usage)
+  try {
+    mkdir ($CCUSAGE_CACHE | path dirname)
+    $data | save --force $CCUSAGE_CACHE
+  }
   $data
 }
 
@@ -247,10 +248,6 @@ def format-remaining [minutes: int]: nothing -> string {
 }
 
 def format-ccusage-info [data: record]: nothing -> record<block: string, daily: string> {
-  if not ($data.has_data? | default false) {
-    return { block: "", daily: "" }
-  }
-
   let details = (
     [
       (format-remaining $data.remaining_minutes)
@@ -262,8 +259,8 @@ def format-ccusage-info [data: record]: nothing -> record<block: string, daily: 
   let suffix = if ($details | is-empty) { "" } else { " " + (paint $"\(($details)\)" "yellow") }
 
   {
-    block: $"(labeled 'Block' (usd $data.block_cost) 'cyan')($suffix)"
-    daily: (labeled "Today" (usd $data.daily_cost) "cyan")
+    block: (if $data.has_block { $"(labeled 'Block' (usd $data.block_cost) 'cyan')($suffix)" } else { "" })
+    daily: (if $data.has_daily { labeled "Today" (usd $data.daily_cost) "cyan" } else { "" })
   }
 }
 

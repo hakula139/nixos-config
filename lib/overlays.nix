@@ -25,6 +25,7 @@
     colmena = inputs.colmena.packages.${final.stdenv.hostPlatform.system}.colmena;
     system-manager = inputs.system-manager.packages.${final.stdenv.hostPlatform.system}.default;
     inherit (inputs.llm-agents.packages.${final.stdenv.hostPlatform.system})
+      ccusage
       claude-agent-acp
       claude-code
       codex
@@ -38,12 +39,6 @@
     # --------------------------------------------------------------------------
     # Upstream overrides
     # --------------------------------------------------------------------------
-    ccusage =
-      inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.ccusage.overrideAttrs
-        (old: {
-          patches = (old.patches or [ ]) ++ [ ../packages/ccusage/zero-cache-creation-breakdown.patch ];
-        });
-
     peertube = final.unstable.peertube.overrideAttrs (old: {
       patches = (old.patches or [ ]) ++ [
         ../packages/peertube/cdn-redirect-runner.patch
