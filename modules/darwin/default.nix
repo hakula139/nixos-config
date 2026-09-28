@@ -145,7 +145,6 @@ in
 
           # Desktop & Dock → Windows
           AppleWindowTabbingMode = "always";
-          NSDocumentSaveNewDocumentsToCloud = false;
 
           # Desktop & Dock → Mission Control
           AppleSpacesSwitchOnActivate = true;
@@ -156,10 +155,9 @@ in
           AppleMetricUnits = 1;
           AppleTemperatureUnit = "Celsius";
 
-          # Keyboard → Key repeat
-          ApplePressAndHoldEnabled = false;
-          InitialKeyRepeat = 15;
+          # Keyboard → Key repeat rate / Delay until repeat
           KeyRepeat = 2;
+          InitialKeyRepeat = 15;
 
           # Keyboard → Keyboard navigation
           AppleKeyboardUIMode = 3;
@@ -167,7 +165,7 @@ in
           # Keyboard → Keyboard Shortcuts → Function Keys
           "com.apple.keyboard.fnState" = true;
 
-          # Keyboard → Text Input
+          # Keyboard → Text Input → Edit
           NSAutomaticCapitalizationEnabled = false;
           NSAutomaticDashSubstitutionEnabled = false;
           NSAutomaticPeriodSubstitutionEnabled = false;
@@ -180,7 +178,11 @@ in
           # Trackpad → More Gestures → Swipe between pages
           AppleEnableSwipeNavigateWithScrolls = false;
 
+          # Keyboard press-and-hold accent menu (Internal)
+          ApplePressAndHoldEnabled = false;
+
           # Save / Print dialogs (Internal)
+          NSDocumentSaveNewDocumentsToCloud = false;
           NSNavPanelExpandedStateForSaveMode = true;
           NSNavPanelExpandedStateForSaveMode2 = true;
           PMPrintingExpandedStateForPrint = true;
@@ -191,7 +193,7 @@ in
         # Desktop & Dock
         # ----------------------------------------------------------------------
         dock = {
-          # Dock
+          # Desktop & Dock → Dock
           tilesize = 55;
           magnification = true;
           largesize = 82;
@@ -212,51 +214,49 @@ in
         };
 
         WindowManager = {
-          # Desktop
-          EnableStandardClickToShowDesktop = false;
+          # Desktop & Dock → Desktop & Stage Manager
           HideDesktop = false;
-
-          # Stage Manager
+          EnableStandardClickToShowDesktop = false;
           GloballyEnabled = false;
           AutoHide = false;
           AppWindowGroupingBehavior = true;
 
-          # Widgets
+          # Desktop & Dock → Widgets
           StandardHideWidgets = false;
           StageManagerHideWidgets = false;
 
-          # Windows
+          # Desktop & Dock → Windows
           EnableTopTilingByEdgeDrag = true;
           EnableTiledWindowMargins = false;
-        };
-
-        # ----------------------------------------------------------------------
-        # Menu Bar
-        # ----------------------------------------------------------------------
-        menuExtraClock = {
-          # Clock Options
-          ShowDate = 1;
-          ShowDayOfMonth = true;
-          ShowDayOfWeek = true;
-          IsAnalog = false;
-          FlashDateSeparators = false;
-          ShowSeconds = false;
-          Show24Hour = true;
         };
 
         # ----------------------------------------------------------------------
         # Keyboard
         # ----------------------------------------------------------------------
         hitoolbox = {
-          # Press Fn key to
+          # Keyboard → Press Fn key to
           AppleFnUsageType = "Change Input Source";
+        };
+
+        # ----------------------------------------------------------------------
+        # Menu Bar
+        # ----------------------------------------------------------------------
+        menuExtraClock = {
+          # Menu Bar → Menu Bar Controls → Clock Options
+          ShowDate = 1;
+          ShowDayOfMonth = true;
+          ShowDayOfWeek = true;
+          IsAnalog = false;
+          Show24Hour = true;
+          FlashDateSeparators = false;
+          ShowSeconds = false;
         };
 
         # ----------------------------------------------------------------------
         # Trackpad
         # ----------------------------------------------------------------------
         trackpad = {
-          # Point & Click
+          # Trackpad → Point & Click
           TrackpadRightClick = true;
           Clicking = true;
 
@@ -265,18 +265,10 @@ in
         };
 
         # ----------------------------------------------------------------------
-        # Screenshots
-        # ----------------------------------------------------------------------
-        screencapture = {
-          location = "~/Pictures";
-          target = "file";
-          type = "png";
-        };
-
-        # ----------------------------------------------------------------------
-        # Login Window
+        # Users & Groups
         # ----------------------------------------------------------------------
         loginwindow = {
+          # Users & Groups → Guest User
           GuestEnabled = false;
         };
 
@@ -284,22 +276,36 @@ in
         # Activity Monitor
         # ----------------------------------------------------------------------
         ActivityMonitor = {
-          OpenMainWindow = true;
+          # Activity Monitor → View → All Processes, Hierarchically
           ShowCategory = 101;
+
+          # Activity Monitor startup window (Internal)
+          OpenMainWindow = true;
+        };
+
+        # ----------------------------------------------------------------------
+        # Calendar
+        # ----------------------------------------------------------------------
+        iCal = {
+          # Calendar → Settings → General → Start week on
+          "first day of week" = "Monday";
+
+          # Calendar → Settings → Advanced → Turn on time zone support
+          "TimeZone support enabled" = true;
         };
 
         # ----------------------------------------------------------------------
         # Finder
         # ----------------------------------------------------------------------
         finder = {
-          # General
+          # Finder → Settings → General
           ShowHardDrivesOnDesktop = false;
           ShowExternalHardDrivesOnDesktop = false;
           ShowRemovableMediaOnDesktop = false;
           ShowMountedServersOnDesktop = false;
           NewWindowTarget = "Home";
 
-          # Advanced
+          # Finder → Settings → Advanced
           AppleShowAllExtensions = true;
           FXEnableExtensionChangeWarning = false;
           FXRemoveOldTrashItems = true;
@@ -307,20 +313,26 @@ in
           _FXSortFoldersFirstOnDesktop = false;
           FXDefaultSearchScope = "SCcf";
 
-          # Internal
-          QuitMenuItem = true;
-          AppleShowAllFiles = false;
+          # Finder → View
+          FXPreferredViewStyle = "Nlsv";
           ShowPathbar = true;
           ShowStatusBar = false;
-          FXPreferredViewStyle = "Nlsv";
+
+          # Finder hidden files / Quit menu item (Internal)
+          AppleShowAllFiles = false;
+          QuitMenuItem = true;
         };
 
         # ----------------------------------------------------------------------
-        # Calendar
+        # Screenshots
         # ----------------------------------------------------------------------
-        iCal = {
-          "first day of week" = "Monday";
-          "TimeZone support enabled" = true;
+        screencapture = {
+          # Screenshot → Options → Save to
+          location = "~/Pictures";
+          target = "file";
+
+          # Screenshot file format (Internal)
+          type = "png";
         };
 
         # ----------------------------------------------------------------------
@@ -359,6 +371,7 @@ in
       reattach = true;
     };
 
+    # Network → Firewall
     networking.applicationFirewall = {
       enable = true;
       enableStealthMode = true;
