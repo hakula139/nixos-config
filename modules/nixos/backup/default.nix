@@ -41,7 +41,6 @@ in
   imports = [
     ./targets/cloudreve.nix
     ./targets/peertube.nix
-    ./targets/twikoo.nix
     ./targets/umami.nix
   ];
 
