@@ -300,6 +300,16 @@ def registry [root: string]: nothing -> list<record> {
           upstream: {|| gh-latest-release "zereight/gitlab-mcp" }
         }
         {
+          pin: "peertube"
+          local: {|| nix-version-v $root "packages/peertube/default.nix" }
+          upstream: {|| gh-latest-release "Chocobozzz/PeerTube" }
+        }
+        {
+          pin: "wakatime-cli"
+          local: {|| nix-version-v $root "packages/wakatime-cli/default.nix" }
+          upstream: {|| gh-latest-release "wakatime/wakatime-cli" }
+        }
+        {
           pin: "zsh-hist"
           local: {|| abbrev (nix-attr $root "packages/zsh-hist/default.nix" 'rev = "(?<v>[0-9a-f]+)"') }
           upstream: {|| abbrev (gh-default-head "marlonrichert/zsh-hist") }
