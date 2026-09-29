@@ -100,7 +100,6 @@ in
         object_storage = {
           enabled = true;
           inherit endpoint;
-          # B2 uses path-style S3 URLs; required for CDN base_url to include bucket in path
           force_path_style = true;
           # B2 doesn't support ACL headers; bucket is private, served via Cloudflare Worker CDN
           upload_acl = {
