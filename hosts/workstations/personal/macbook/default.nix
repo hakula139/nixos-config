@@ -53,13 +53,13 @@
     hakula.rclone = {
       enable = true;
       mounts = {
+        Hakula-Cloud.remote = "hakula_cloud:";
+        BMS.remote = "bms:";
+        Images.remote = "images:";
         B2 = {
           remote = "b2:hakula";
           cacheMode = "full";
         };
-        BMS.remote = "bms:";
-        Hakula-Cloud.remote = "hakula_cloud:";
-        Images.remote = "images:";
       };
     };
     services.listenbrainz-scrobbler.enable = true;
