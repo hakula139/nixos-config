@@ -36,6 +36,7 @@ in
     ./modules/llm-assistants
     ./modules/mihomo
     ./modules/nix
+    ./modules/rclone
     ./modules/secrets
     ./modules/ssh
     ./modules/syncthing

@@ -89,5 +89,6 @@ in
   # ----------------------------------------------------------------------------
   "mihomo/secret.age".publicKeys = allWorkstations;
   "mihomo/subscription-url.age".publicKeys = allWorkstations;
+  "rclone/config.age".publicKeys = [ macbook ];
   "wakatime/config.age".publicKeys = allWorkstations;
 }
