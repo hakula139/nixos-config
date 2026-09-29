@@ -123,7 +123,7 @@ def plugin-rev [root: string, name: string]: nothing -> string {
 }
 
 def nix-attr [root: string, file: string, regex: string]: nothing -> string {
-  open --raw ([$root $file] | path join) | parse --regex $regex | get v.0
+  open --raw ([$root $file] | path join) | collect | parse --regex $regex | get v.0
 }
 
 def nix-version [root: string, file: string]: nothing -> string {
@@ -302,13 +302,8 @@ def registry [root: string]: nothing -> list<record> {
         {
           pin: "peertube"
           local: {||
-            open --raw ([$root "lib/overlays.nix"] | path join)
-            | lines
-            | skip until {|line| $line =~ 'peertube = ' }
-            | skip 1
-            | first
-            | parse --regex 'version = "(?<v>[^"]+)"'
-            | get v.0
+            # Version in the PeerTube override's opening attribute block.
+            nix-attr $root "lib/overlays.nix" '(?ms)^\s*peertube = [^}]*?^\s*version = "(?<v>[^"]+)"'
           }
           upstream: {|| gh-latest-release "Chocobozzz/PeerTube" | str replace -r '^v' '' }
         }
