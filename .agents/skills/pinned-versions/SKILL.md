@@ -8,6 +8,8 @@ description: >-
 
 Locate pins, compare upstream versions, and update the relevant source and hashes. Run commands from the repository root. A version audit requires no changes. When upgrading, keep unrelated pins and lockfile inputs outside the change, and deploy only when the requested scope includes activation.
 
+Before bumping a pin, check whether upstream has made local overrides or patches unnecessary. Remove patches whose fixes are included upstream and drop version / hash overrides once the locked dependency supplies the required release. Keep any remaining behavior overrides and update the checker registry and affected instructions to match.
+
 ## Check for drift
 
 ```bash
@@ -40,7 +42,7 @@ Update a selected input with `nix flake update <input>`. An explicit tag or rele
 
 Package attributes such as `nodejs_24` and `postgresql_17` select majors within nixpkgs. Their patch versions follow the lockfile. Changing PostgreSQL's major requires a database migration. `python3` follows nixpkgs' default Python version. These choices require review separately from the checker's version comparisons.
 
-`peertube` and `peertube-runner` use the version, source hash, and pnpm dependency hash pinned in `packages/peertube/default.nix`, with the package definition from `nixpkgs-unstable`. When upgrading, validate the three local PeerTube patches and the runner override in `packages/peertube/runner.nix`. The manually started `peertube-migrate.service` runs the upstream 8.1 and 8.3 migrations after the upgraded server is ready. Review release-specific migration requirements before changing the pin or migration scripts.
+`peertube` and `peertube-runner` use the version, source hash, and pnpm dependency hash pinned in `packages/peertube/default.nix`, with the package definition from `nixpkgs-unstable`. When upgrading, validate the three local PeerTube patches and the runner override in `packages/peertube/runner.nix`. Review release-specific migration requirements before changing the pin. Run required manual migrations during deployment and verify their results. Keep one-time migration services out of the persistent configuration.
 
 ## Claude Code plugin marketplaces
 

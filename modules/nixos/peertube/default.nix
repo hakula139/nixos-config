@@ -140,38 +140,6 @@ in
     # --------------------------------------------------------------------------
     # Systemd service
     # --------------------------------------------------------------------------
-    systemd.services.peertube-migrate = {
-      description = "Run PeerTube 8.1 and 8.3 manual migrations";
-      requires = [ "peertube.service" ];
-      after = [ "peertube.service" ];
-
-      environment = removeAttrs config.systemd.services.peertube.environment [ "PATH" ];
-      path = [
-        config.services.peertube.package.nodejs
-        pkgs.curl
-        pkgs.jq
-      ];
-
-      script = ''
-        set -euo pipefail
-
-        curl --fail --silent --show-error --max-time 10 \
-          http://127.0.0.1:${toString cfg.port}/api/v1/config \
-          | jq --exit-status '.serverVersion == "${config.services.peertube.package.version}"' >/dev/null
-
-        node dist/scripts/migrations/peertube-8.1.js
-        node dist/scripts/migrations/peertube-8.3.js
-      '';
-
-      serviceConfig = {
-        Type = "oneshot";
-        User = config.services.peertube.user;
-        Group = config.services.peertube.group;
-        WorkingDirectory = config.services.peertube.package;
-        EnvironmentFile = config.services.peertube.serviceEnvironmentFile;
-      };
-    };
-
     systemd.services.peertube = {
       # The upstream NixOS module sets HOME to the read-only Nix store package
       # path, which breaks pnpm (it tries to create $HOME/.local/ for its store).
