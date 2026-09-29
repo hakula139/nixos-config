@@ -300,6 +300,19 @@ def registry [root: string]: nothing -> list<record> {
           upstream: {|| gh-latest-release "zereight/gitlab-mcp" }
         }
         {
+          pin: "peertube"
+          local: {||
+            open --raw ([$root "lib/overlays.nix"] | path join)
+            | lines
+            | skip until {|line| $line =~ 'peertube = ' }
+            | skip 1
+            | first
+            | parse --regex 'version = "(?<v>[^"]+)"'
+            | get v.0
+          }
+          upstream: {|| gh-latest-release "Chocobozzz/PeerTube" | str replace -r '^v' '' }
+        }
+        {
           pin: "zsh-hist"
           local: {|| abbrev (nix-attr $root "packages/zsh-hist/default.nix" 'rev = "(?<v>[0-9a-f]+)"') }
           upstream: {|| abbrev (gh-default-head "marlonrichert/zsh-hist") }

@@ -40,7 +40,7 @@ Update a selected input with `nix flake update <input>`. An explicit tag or rele
 
 Package attributes such as `nodejs_24` and `postgresql_17` select majors within nixpkgs. Their patch versions follow the lockfile. Changing PostgreSQL's major requires a database migration. `python3` follows nixpkgs' default Python version. These choices require review separately from the checker's version comparisons.
 
-`peertube` and `peertube-runner` inherit their upstream version from `nixpkgs-unstable`. When refreshing that input, validate the three local PeerTube patches listed in `lib/overlays.nix` and the runner override in `packages/peertube/runner.nix`.
+`peertube` and `peertube-runner` use the version, source hash, and pnpm dependency hash pinned in `lib/overlays.nix`, with the package definition from `nixpkgs-unstable`. When upgrading, validate the three local PeerTube patches and the runner override in `packages/peertube/runner.nix`. The manually started `peertube-migrate.service` runs the upstream 8.1 and 8.3 migrations after the upgraded server is ready. Review release-specific migration requirements before changing the pin or migration scripts.
 
 ## Claude Code plugin marketplaces
 
