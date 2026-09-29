@@ -40,7 +40,7 @@ Update a selected input with `nix flake update <input>`. An explicit tag or rele
 
 Package attributes such as `nodejs_24` and `postgresql_17` select majors within nixpkgs. Their patch versions follow the lockfile. Changing PostgreSQL's major requires a database migration. `python3` follows nixpkgs' default Python version. These choices require review separately from the checker's version comparisons.
 
-`peertube` and `peertube-runner` use the version, source hash, and pnpm dependency hash pinned in `lib/overlays.nix`, with the package definition from `nixpkgs-unstable`. When upgrading, validate the three local PeerTube patches and the runner override in `packages/peertube/runner.nix`. The manually started `peertube-migrate.service` runs the upstream 8.1 and 8.3 migrations after the upgraded server is ready. Review release-specific migration requirements before changing the pin or migration scripts.
+`peertube` and `peertube-runner` use the version, source hash, and pnpm dependency hash pinned in `packages/peertube/default.nix`, with the package definition from `nixpkgs-unstable`. When upgrading, validate the three local PeerTube patches and the runner override in `packages/peertube/runner.nix`. The manually started `peertube-migrate.service` runs the upstream 8.1 and 8.3 migrations after the upgraded server is ready. Review release-specific migration requirements before changing the pin or migration scripts.
 
 ## Claude Code plugin marketplaces
 
@@ -100,6 +100,8 @@ These packages are registered in `lib/overlays.nix`. The MCP packages are groupe
 | `mcp-server-git`        | `packages/mcp/mcp-server-git/default.nix`        | `mcp-server-git` on PyPI                 |
 | `mcp-server-github`     | `packages/mcp/mcp-server-github/default.nix`     | `github/github-mcp-server` releases      |
 | `mcp-server-gitlab`     | `packages/mcp/mcp-server-gitlab/default.nix`     | `zereight/gitlab-mcp` releases           |
+| `peertube`              | `packages/peertube/default.nix`                  | `Chocobozzz/PeerTube` releases           |
+| `wakatime-cli`          | `packages/wakatime-cli/default.nix`              | `wakatime/wakatime-cli` releases         |
 | `zsh-hist`              | `packages/zsh-hist/default.nix`                  | `marlonrichert/zsh-hist` default branch  |
 
 Update the package's `version` and source hash, preserving its upstream tag convention. `zsh-hist` uses a commit pin, so update `src.rev`, `src.hash`, and the date in its `0-unstable-YYYY-MM-DD` version together.
@@ -107,6 +109,7 @@ Update the package's `version` and source hash, preserving its upstream tag conv
 Hash requirements depend on the fetcher:
 
 - `acpx` needs both the GitHub source hash and `pnpmDeps.hash` from `fetchPnpmDeps`.
+- `wakatime-cli` needs both the GitHub source hash and `vendorHash`.
 - `mcp-server-filesystem` and `mcp-server-gitlab` need the GitHub source hash and `npmDepsHash`. Rebuild to validate dependency hashes even when the upstream lockfile appears unchanged.
 - `mcp-server-git` fetches a PyPI source distribution. Check that its declared nixpkgs Python dependencies still satisfy the new release. The package disables upstream tests because its source distribution contains none.
 - `cloudreve` and `mcp-server-github` use `fetchurl` for release archives. Update every entry in `sources`, including platforms unavailable locally. Prefetch their archive bytes without `--unpack`. Cloudreve currently supports `x86_64-linux`. The GitHub server also supports `aarch64-darwin`.

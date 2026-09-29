@@ -37,36 +37,6 @@
       ;
 
     # --------------------------------------------------------------------------
-    # Upstream overrides
-    # --------------------------------------------------------------------------
-    peertube = final.unstable.peertube.overrideAttrs (old: {
-      version = "8.3.1";
-      src = old.src.override {
-        hash = "sha256-9Arq6gvMZV+0WcHWGwFnMjtnZzW+hWPPsHkJDwMFZCM=";
-      };
-      pnpmDeps = old.pnpmDeps.override {
-        hash = "sha256-HbscF8sjgFCICJnpWopW5VWcD67XdzKOONWn+RHZThI=";
-      };
-      patches = (old.patches or [ ]) ++ [
-        ../packages/peertube/cdn-redirect-runner.patch
-        ../packages/peertube/hq-transcode.patch
-        ../packages/peertube/runner-download-timeout.patch
-      ];
-      meta = old.meta // {
-        platforms = old.meta.platforms ++ [ "aarch64-darwin" ];
-      };
-    });
-
-    wakatime-cli =
-      (final.unstable.wakatime-cli.override { buildGoModule = final.unstable.buildGoLatestModule; })
-      .overrideAttrs
-        (old: {
-          version = "2.26.11";
-          src = old.src.override { hash = "sha256-3OB2oyObnkbterceYcAokCGZTDPv0SfIjgFoQcUyWPI="; };
-          vendorHash = "sha256-MpE3Q/YK7SliqxF4aM1fyUWe70SNI7qlex7mUQk1W6g=";
-        });
-
-    # --------------------------------------------------------------------------
     # Toolchains
     # --------------------------------------------------------------------------
     rustToolchain = final.rust-bin.stable.latest.default.override {
@@ -88,8 +58,10 @@
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };
     mcp-server-gitlab = final.callPackage ../packages/mcp/mcp-server-gitlab { };
     nu-check = final.callPackage ../packages/nu-check { };
+    peertube = final.callPackage ../packages/peertube { };
     peertube-runner = final.callPackage ../packages/peertube/runner.nix { };
     thaw = final.callPackage ../packages/thaw { };
+    wakatime-cli = final.callPackage ../packages/wakatime-cli { };
     zsh-hist = final.callPackage ../packages/zsh-hist { };
   })
 ]

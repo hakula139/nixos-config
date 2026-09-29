@@ -123,7 +123,7 @@ def plugin-rev [root: string, name: string]: nothing -> string {
 }
 
 def nix-attr [root: string, file: string, regex: string]: nothing -> string {
-  open --raw ([$root $file] | path join) | collect | parse --regex $regex | get v.0
+  open --raw ([$root $file] | path join) | parse --regex $regex | get v.0
 }
 
 def nix-version [root: string, file: string]: nothing -> string {
@@ -301,11 +301,13 @@ def registry [root: string]: nothing -> list<record> {
         }
         {
           pin: "peertube"
-          local: {||
-            # Version in the PeerTube override's opening attribute block.
-            nix-attr $root "lib/overlays.nix" '(?ms)^\s*peertube = [^}]*?^\s*version = "(?<v>[^"]+)"'
-          }
-          upstream: {|| gh-latest-release "Chocobozzz/PeerTube" | str replace -r '^v' '' }
+          local: {|| nix-version-v $root "packages/peertube/default.nix" }
+          upstream: {|| gh-latest-release "Chocobozzz/PeerTube" }
+        }
+        {
+          pin: "wakatime-cli"
+          local: {|| nix-version-v $root "packages/wakatime-cli/default.nix" }
+          upstream: {|| gh-latest-release "wakatime/wakatime-cli" }
         }
         {
           pin: "zsh-hist"
