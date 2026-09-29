@@ -1,4 +1,5 @@
 acpx
+actimeo
 aipopup
 algif
 alnum
@@ -223,6 +224,7 @@ pytest
 qdisc
 qwen
 raku
+rclone
 recents
 regen
 regenerable
