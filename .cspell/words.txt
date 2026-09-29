@@ -277,7 +277,6 @@ tomlq
 toolsai
 tsdown
 tulanp
-twikoo
 ulimits
 unapprove
 undici
