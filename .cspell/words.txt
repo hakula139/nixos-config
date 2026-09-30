@@ -110,6 +110,7 @@ isort
 jieba
 jnoortheen
 journalctl
+karabiner
 kdelpf
 kdelrs
 keka
