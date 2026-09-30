@@ -4,7 +4,7 @@
 
 {
   desktop = {
-    "agent-usage-reset-enabled" = true;
+    agent-usage-reset-enabled = true;
     appearanceDarkChromeTheme = {
       accent = "#0169cc";
       accentSource = "custom";
@@ -22,12 +22,12 @@
       surface = "#111111";
     };
     appearanceDarkCodeThemeId = "codex";
-    "avatar-overlay-pet-visible" = false;
-    "browser-show-full-url" = true;
+    avatar-overlay-pet-visible = false;
+    browser-show-full-url = true;
     codeFontSize = 14;
     composerEnterBehavior = "cmdIfMultiline";
-    "dock-icon-preference" = "codex-system";
-    "enabled-reasoning-efforts" = [
+    dock-icon-preference = "codex-system";
+    enabled-reasoning-efforts = [
       "low"
       "medium"
       "high"
@@ -36,8 +36,8 @@
       "persistent"
       "max"
     ];
-    "external-agent-import-sync-enabled" = true;
-    "external-agent-import-sync-item-types" = {
+    external-agent-import-sync-enabled = true;
+    external-agent-import-sync-item-types = {
       CONFIG = "original";
       HOOKS = "original";
       MCP_SERVER_CONFIG = "original";
@@ -47,12 +47,12 @@
     };
     followUpQueueMode = "steer";
     keepRemoteControlAwakeWhilePluggedIn = true;
-    "notifications-sound" = "default";
-    "open-link-in-target-preference" = "in-app-browser";
+    notifications-sound = "default";
+    open-link-in-target-preference = "in-app-browser";
     preventSleepWhileRunning = true;
     sansFontSize = 14;
-    "selected-avatar-id" = "codex";
-    "show-context-window-usage" = true;
+    selected-avatar-id = "codex";
+    show-context-window-usage = true;
     usePointerCursors = true;
   };
   plugins = {
