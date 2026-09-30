@@ -1,0 +1,3 @@
+[mcp_servers.NixOS]
+command = "uvx"
+args = ["mcp-nixos"]
