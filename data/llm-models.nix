@@ -98,7 +98,7 @@ in
       flagship = "claude-opus-5-5";
       standard = "claude-opus-5-5";
       # Use Sonnet for lightweight coding tasks because Haiku falls below our quality baseline.
-      mini = "claude-sonnet-5";
+      mini = "claude-sonnet-5-5";
     };
     gemini = {
       flagship = "gemini-3.1-pro-preview";
@@ -106,7 +106,7 @@ in
     };
     gpt = {
       flagship = "gpt-6-astra";
-      standard = "gpt-6-sol";
+      standard = "gpt-6.1-sol";
       mini = "gpt-6-luna";
     };
     local = {
@@ -133,12 +133,12 @@ in
       };
     };
 
-    "claude-sonnet-5" = claudeAdaptiveCommon // {
-      name = "Claude Sonnet 5";
+    "claude-sonnet-5-5" = claudeAdaptiveCommon // {
+      name = "Claude Sonnet 5.5";
       thinking = claudeAdaptiveCommon.thinking // {
         defaultLevel = "low";
       };
-      gatewayId.anthropic = "bedrock/global.anthropic.claude-sonnet-5";
+      gatewayId.anthropic = "bedrock/global.anthropic.claude-sonnet-5-5";
       gatewayCost.anthropic = {
         input = 2.0;
         output = 10.0;
@@ -210,13 +210,13 @@ in
       };
     };
 
-    "gpt-6-sol" = gptCommon // {
-      name = "GPT-6 Sol";
-      gatewayId.openai = "openai/gpt-6-sol";
+    "gpt-6.1-sol" = gptCommon // {
+      name = "GPT-6.1 Sol";
+      gatewayId.openai = "openai/gpt-6.1-sol";
       gatewayCost.openai = {
         input = 2.0;
         output = 10.0;
-        cacheRead = 0.2;
+        cacheRead = 0.1;
         cacheWrite = 2.5;
       };
     };
