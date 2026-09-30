@@ -413,6 +413,7 @@ in
       taps = [ ];
       brews = [ ];
       casks = [
+        "keka"
         "keyclu"
         "mos"
         "onedrive"
