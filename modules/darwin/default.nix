@@ -28,6 +28,7 @@ in
 {
   imports = [
     ./corp-tunnel
+    ./keka
     ./llm-assistants
     ./ssh
     ./tailscale
@@ -346,20 +347,6 @@ in
             # Menu Bar → Show menu bar background
             SLSMenuBarUseBlurredAppearance = true;
           };
-
-          # --------------------------------------------------------------------
-          # Keka
-          # --------------------------------------------------------------------
-          "${userConfig.home}/Library/Containers/com.aone.keka/Data/Library/Preferences/com.aone.keka" = {
-            DefaultFormat = "7Z";
-            DefaultMethod = 3;
-            FinderAfterCompression = false;
-            FinderAfterExtraction = false;
-            SolidArchive = false;
-            UseDefaultPasswordOnAdvancedWindow = true;
-            UseDefaultPasswordOnCompressions = true;
-            UseDefaultPasswordOnExtractions = true;
-          };
         };
       };
 
@@ -427,7 +414,6 @@ in
       taps = [ ];
       brews = [ ];
       casks = [
-        "keka"
         "keyclu"
         "mos"
         "onedrive"
