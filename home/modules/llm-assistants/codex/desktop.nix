@@ -46,6 +46,7 @@
       SKILLS = "original";
     };
     followUpQueueMode = "steer";
+    git-pull-request-merge-method = "squash";
     keepRemoteControlAwakeWhilePluggedIn = true;
     notifications-sound = "default";
     open-link-in-target-preference = "in-app-browser";
@@ -54,9 +55,16 @@
     selected-avatar-id = "codex";
     show-context-window-usage = true;
     usePointerCursors = true;
+    worktree-upstream-refresh-mode = "best-effort";
+  };
+  features = {
+    chronicle = true;
   };
   plugins = {
     "browser@openai-bundled" = {
+      enabled = true;
+    };
+    "chrome@openai-bundled" = {
       enabled = true;
     };
     "code-review@openai-bundled" = {

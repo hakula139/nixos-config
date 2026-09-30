@@ -103,7 +103,6 @@
   # ----------------------------------------------------------------------------
   notice = {
     fast_default_opt_out = true;
-    hide_rate_limit_model_nudge = true;
   };
 
   # ----------------------------------------------------------------------------
@@ -115,6 +114,7 @@
     default_mode_request_user_input = true;
     goals = true;
     hooks = true;
+    local_thread_store_compression = true;
     memories = true;
     prevent_idle_sleep = true;
     terminal_resize_reflow = true;

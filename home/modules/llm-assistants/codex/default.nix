@@ -124,7 +124,7 @@ in
       # ------------------------------------------------------------------------
       # Config activation
       # ------------------------------------------------------------------------
-      codexSettings =
+      codexSettings = lib.recursiveUpdate (
         (import ./settings.nix {
           inherit
             hooks
@@ -134,7 +134,7 @@ in
             ;
         })
         // profiles.settings
-        // lib.optionalAttrs pkgs.stdenv.isDarwin (import ./desktop.nix);
+      ) (lib.optionalAttrs pkgs.stdenv.isDarwin (import ./desktop.nix));
 
       activationConfig = json.generate "codex-config-activation.json" {
         configDir = codexConfigDir;
