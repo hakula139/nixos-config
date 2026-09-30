@@ -32,9 +32,9 @@
       "medium"
       "high"
       "xhigh"
+      "max"
       "ultra"
       "persistent"
-      "max"
     ];
     external-agent-import-sync-enabled = true;
     external-agent-import-sync-item-types = {
