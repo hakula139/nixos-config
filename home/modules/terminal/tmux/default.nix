@@ -10,13 +10,6 @@
 }:
 
 let
-  clipboardConfig = import ./clipboard.nix { inherit config pkgs lib; };
-
-  nushellConfig = ''
-    bind C-n split-window -h -c "#{pane_current_path}" "${lib.getExe pkgs.nushell}"
-    bind N new-window -c "#{pane_current_path}" "${lib.getExe pkgs.nushell}"
-  '';
-
   # The plugin wrapper starts nested tmux clients, which deadlock in the config
   # queue when synchronous and can be interrupted midway when backgrounded.
   catppuccinPluginDir = "${pkgs.tmuxPlugins.catppuccin}/share/tmux-plugins/catppuccin";
@@ -26,6 +19,19 @@ let
     set -g @catppuccin_date_time_text " %H:%M"
     source-file ${catppuccinPluginDir}/catppuccin_options_tmux.conf
     source-file ${catppuccinPluginDir}/catppuccin_tmux.conf
+  '';
+
+  clipboardConfig = import ./clipboard.nix { inherit config pkgs lib; };
+
+  darwinConfig = lib.optionalString pkgs.stdenv.isDarwin ''
+    # SDK paths inherited from Nix dev shells may be garbage-collected.
+    set-environment -gu DEVELOPER_DIR
+    set-environment -gu SDKROOT
+  '';
+
+  nushellConfig = ''
+    bind C-n split-window -h -c "#{pane_current_path}" "${lib.getExe pkgs.nushell}"
+    bind N new-window -c "#{pane_current_path}" "${lib.getExe pkgs.nushell}"
   '';
 in
 {
@@ -71,11 +77,7 @@ in
     # --------------------------------------------------------------------------
     extraConfig = lib.concatStringsSep "\n" [
       (lib.fileContents ./tmux.conf)
-      (lib.optionalString pkgs.stdenv.isDarwin ''
-        # SDK paths inherited from Nix dev shells may be garbage-collected.
-        set-environment -gu DEVELOPER_DIR
-        set-environment -gu SDKROOT
-      '')
+      darwinConfig
       clipboardConfig
       nushellConfig
       catppuccinConfig
