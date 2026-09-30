@@ -111,6 +111,7 @@ jnoortheen
 journalctl
 kdelpf
 kdelrs
+keka
 keyclu
 khtml
 kimi
