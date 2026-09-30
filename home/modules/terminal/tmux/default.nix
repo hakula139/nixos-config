@@ -71,6 +71,11 @@ in
     # --------------------------------------------------------------------------
     extraConfig = lib.concatStringsSep "\n" [
       (lib.fileContents ./tmux.conf)
+      (lib.optionalString pkgs.stdenv.isDarwin ''
+        # SDK paths inherited from Nix dev shells may be garbage-collected.
+        set-environment -gu DEVELOPER_DIR
+        set-environment -gu SDKROOT
+      '')
       clipboardConfig
       nushellConfig
       catppuccinConfig
