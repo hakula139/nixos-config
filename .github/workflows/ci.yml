@@ -43,11 +43,15 @@ jobs:
             name: us-1 (x86_64-linux, CloudCone SC2)
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-1.config.system.build.toplevel
+            cachix_pins:
+              peertube-x86_64-linux: .#nixosConfigurations.us-1.pkgs.peertube
           - id: us-2
             deploy: true
             name: us-2 (x86_64-linux, CloudCone VPS)
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-2.config.system.build.toplevel
+            cachix_pins:
+              netdata-cloud-x86_64-linux: .#nixosConfigurations.us-2.pkgs.netdataCloud
           - id: us-3
             deploy: true
             name: us-3 (x86_64-linux, CloudCone SC2)
