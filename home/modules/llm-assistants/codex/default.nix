@@ -133,12 +133,19 @@ in
             skills
             ;
         })
-        // profiles.settings;
+        // profiles.settings
+        // lib.optionalAttrs pkgs.stdenv.isDarwin (import ./desktop.nix);
 
       activationConfig = json.generate "codex-config-activation.json" {
         configDir = codexConfigDir;
         activeProfile = "${profiles.stateDir}/active-profile";
         settings = codexSettings;
+        keybindings = lib.optionals pkgs.stdenv.isDarwin [
+          {
+            command = "hotkeyWindow";
+            key = "Command+Shift+Space";
+          }
+        ];
       };
 
       activateConfig = pkgs.writers.writeNu "activate-codex-config" {
