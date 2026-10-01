@@ -16,13 +16,14 @@ in
 
   system.defaults.CustomUserPreferences = {
     "${homeDir}/Library/Containers/com.aone.keka/Data/Library/Preferences/com.aone.keka" = {
-      DefaultFormat = "7Z";
+      DefaultFormat = "XZ";
       DefaultMethod = 3;
       FinderAfterCompression = false;
       FinderAfterExtraction = false;
       SolidArchive = false;
-      UseDefaultPasswordOnAdvancedWindow = true;
-      UseDefaultPasswordOnCompressions = true;
+      TarballSupport = true;
+      UseDefaultPasswordOnAdvancedWindow = false;
+      UseDefaultPasswordOnCompressions = false;
       UseDefaultPasswordOnExtractions = true;
     };
   };
