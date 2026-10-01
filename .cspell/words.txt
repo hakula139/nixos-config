@@ -5,6 +5,7 @@ algif
 alnum
 alsa
 anthropics
+aone
 attrsets
 autocd
 autocmd

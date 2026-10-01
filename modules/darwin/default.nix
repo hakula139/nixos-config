@@ -28,6 +28,7 @@ in
 {
   imports = [
     ./corp-tunnel
+    ./keka
     ./llm-assistants
     ./ssh
     ./tailscale
@@ -413,7 +414,6 @@ in
       taps = [ ];
       brews = [ ];
       casks = [
-        "keka"
         "keyclu"
         "mos"
         "onedrive"
