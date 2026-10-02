@@ -7,19 +7,18 @@
     enable = true;
     onActivation = {
       autoUpdate = true;
-      cleanup = "none";
+      cleanup = "uninstall";
+      extraFlags = [ "--force-cleanup" ];
       upgrade = true;
     };
     taps = [ ];
     brews = [ ];
     casks = [
       "altserver"
-      "betterdisplay"
       "chatgpt"
       "clash-verge-rev"
       "cursor"
       "docker-desktop"
-      "drivedx"
       "free-download-manager"
       "google-chrome"
       "karabiner-elements"
@@ -29,7 +28,6 @@
       "notion"
       "obs"
       "onedrive"
-      "onyx"
       "qq"
       "rectangle"
       "steam"
@@ -38,8 +36,6 @@
       "tencent-meeting"
       "tor-browser"
       "warp"
-      "wechat"
-      "windows-app"
     ];
     masApps = {
       "AdGuard for Safari" = 1440147259;
@@ -50,6 +46,8 @@
       Pages = 409201541;
       "Steam Link" = 1246969117;
       Userscripts = 1463298887;
+      WeChat = 836500024;
+      "Windows App" = 1295203466;
       Xcode = 497799835;
     };
   };

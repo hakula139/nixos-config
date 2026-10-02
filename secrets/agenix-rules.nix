@@ -86,6 +86,8 @@ in
   # ----------------------------------------------------------------------------
   # Workstation-only secrets
   # ----------------------------------------------------------------------------
+  "betterdisplay/license.age".publicKeys = [ macbook ];
+  "drivedx/license.age".publicKeys = [ macbook ];
   "mihomo/secret.age".publicKeys = allWorkstations;
   "mihomo/subscription-url.age".publicKeys = allWorkstations;
   "wakatime/config.age".publicKeys = allWorkstations;

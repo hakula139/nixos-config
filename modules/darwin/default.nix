@@ -30,7 +30,9 @@ in
     ./homebrew.nix
     ./system.nix
 
+    ./betterdisplay
     ./corp-tunnel
+    ./drivedx
     ./keka
     ./llm-assistants
     ./ssh
