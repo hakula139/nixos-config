@@ -42,6 +42,7 @@
     masApps = {
       "AdGuard for Safari" = 1440147259;
       Bitwarden = 1352778147;
+      "Dark Reader for Safari" = 1438243180;
       Keynote = 409183694;
       Numbers = 409203825;
       Pages = 409201541;
