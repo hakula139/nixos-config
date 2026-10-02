@@ -30,10 +30,12 @@ def main [
   }
 
   let license = open --raw $license_file | from json
-  let result = (^$app manageLicense -activate
-    $"-email=($license.email)"
-    $"-key=($license.key)"
-    | complete)
+  let result = (
+    ^$app manageLicense -activate
+      $"-email=($license.email)"
+      $"-key=($license.key)"
+    | complete
+  )
   if $result.exit_code != 0 or not (is-activated $app) {
     error make {msg: "BetterDisplay license activation failed"}
   }
