@@ -35,11 +35,11 @@ Reuse one logical key per encrypted source. Destination paths must also be uniqu
 
 Use an interactive terminal for manual edits and re-keying. With non-interactive stdin, `agenix -e` reads replacement plaintext from stdin, so empty input can erase a secret's contents. Re-keying is also restricted to interactive use by repository policy: never invoke `agenix -r` from a script or an assistant's shell tool.
 
-Run from the repository root:
+Use the repository's development shell (`nix develop`) so the CLI matches the pinned agenix version. Run from the repository root:
 
 ```bash
 agenix -e secrets/<service>/<name>.age -i ~/.ssh/<private-key>
 agenix -r -i ~/.ssh/<private-key>  # re-key after a recipient change
 ```
 
-Filenames must match the recipient-rule keys. The root `secrets.nix` prefixes those keys with `secrets/`, so commands run from the repository root need that prefix. From inside `secrets/`, use `<service>/<name>.age`. This matching also applies to `agenix -d`, which reads the recipient rules before decrypting.
+Filenames must match the recipient-rule keys. Agenix discovers `agenix-rules.nix` in the current directory or a parent. Secret paths are relative to the selected rules file. The root `agenix-rules.nix` prefixes rule keys with `secrets/`, so commands from the repository root need that prefix. From inside `secrets/`, its own `agenix-rules.nix` uses `<service>/<name>.age`. For an explicit rules file, set `AGENIX_RULES` to its path. This matching also applies to `agenix -d`, which reads the recipient rules before decrypting.

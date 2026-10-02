@@ -60,7 +60,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   └── modules/                # Home Manager modules (incl. `wsl.nix` workstation bundle)
 ├── packages/                   # Custom package definitions (callPackage targets in lib/overlays.nix)
 ├── secrets/                    # agenix-encrypted secrets and recipient rules
-├── secrets.nix                 # Root-level agenix entry point for recipient rules
+├── agenix-rules.nix            # Root-level agenix entry point for recipient rules
 ├── docs/                       # This knowledge base
 └── .github/workflows/ci.yml    # CI pipeline
 ```
