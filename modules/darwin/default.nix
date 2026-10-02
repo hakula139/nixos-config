@@ -70,10 +70,8 @@ in
     age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
 
     age.secrets = {
-      builder-ssh-key = repoLib.secrets.mkSecret {
+      builder-ssh-key = repoLib.secrets.mkDarwinUserSecret userName {
         name = "builders/ssh-key";
-        owner = userName;
-        group = "staff";
       };
     }
     // repoLib.secrets.mkRequiredUserSecrets {

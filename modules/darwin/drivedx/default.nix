@@ -19,10 +19,8 @@ in
   homebrew.casks = [ "drivedx" ];
 
   age.secrets.drivedx-license =
-    repoLib.secrets.mkSecret {
+    repoLib.secrets.mkDarwinUserSecret userName {
       name = "drivedx/license";
-      owner = userName;
-      group = "staff";
       mode = "0600";
       path = licensePath;
     }

@@ -26,10 +26,8 @@ in
 {
   homebrew.casks = [ "betterdisplay" ];
 
-  age.secrets.betterdisplay-license = repoLib.secrets.mkSecret {
+  age.secrets.betterdisplay-license = repoLib.secrets.mkDarwinUserSecret userName {
     name = "betterdisplay/license";
-    owner = userName;
-    group = "staff";
   };
 
   home-manager.users.${userName}.launchd.agents.betterdisplay-license = {
