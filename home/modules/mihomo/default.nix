@@ -41,12 +41,13 @@ let
   };
   updatePackage = pkgs.writers.writeNuBin "mihomo-update" {
     makeWrapperArgs = [
-      "--add-flag"
-      "${updateConfig}"
       "--prefix"
       "PATH"
       ":"
       (lib.makeBinPath [ pkgs.curl ])
+
+      "--add-flag"
+      "${updateConfig}"
     ];
   } (builtins.readFile ./mihomo-update.nu);
   updateScript = lib.getExe updatePackage;

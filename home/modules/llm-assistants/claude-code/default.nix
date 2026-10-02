@@ -113,12 +113,13 @@ in
       };
       statusLinePackage = pkgs.writers.writeNuBin "statusline-command" {
         makeWrapperArgs = [
-          "--add-flag"
-          "${statusLineConfig}"
           "--prefix"
           "PATH"
           ":"
           (lib.makeBinPath [ pkgs.ccusage ])
+
+          "--add-flag"
+          "${statusLineConfig}"
         ];
       } (builtins.readFile ./scripts/statusline-command.nu);
       statusLineScript = lib.getExe statusLinePackage;
