@@ -95,6 +95,10 @@ in
         policy = repoLib.llmAssistants.permissions;
       };
 
+      plugins = import ./plugins.nix {
+        inherit pkgs lib;
+      };
+
       skills = import ./skills {
         inherit
           config
@@ -124,7 +128,7 @@ in
       # ------------------------------------------------------------------------
       # Config activation
       # ------------------------------------------------------------------------
-      codexSettings =
+      codexSettings = lib.recursiveUpdate (
         (import ./settings.nix {
           inherit
             hooks
@@ -133,12 +137,20 @@ in
             skills
             ;
         })
-        // profiles.settings;
+        // profiles.settings
+        // plugins.settings
+      ) (lib.optionalAttrs pkgs.stdenv.isDarwin (import ./desktop.nix));
 
       activationConfig = json.generate "codex-config-activation.json" {
         configDir = codexConfigDir;
         activeProfile = "${profiles.stateDir}/active-profile";
         settings = codexSettings;
+        keybindings = lib.optionals pkgs.stdenv.isDarwin [
+          {
+            command = "hotkeyWindow";
+            key = "Command+Shift+Space";
+          }
+        ];
       };
 
       activateConfig = pkgs.writers.writeNu "activate-codex-config" {
