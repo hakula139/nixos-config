@@ -37,6 +37,16 @@ in
     mkSecret
     ;
 
+  mkDarwinUserSecret =
+    userName: args:
+    mkSecret (
+      {
+        owner = userName;
+        group = "staff";
+      }
+      // args
+    );
+
   mkRequiredUserSecrets =
     {
       homeConfig,

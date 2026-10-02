@@ -90,5 +90,7 @@ in
   "mihomo/subscription-url.age".publicKeys = allWorkstations;
   "wakatime/config.age".publicKeys = allWorkstations;
 
+  "betterdisplay/license.age".publicKeys = [ macbook ];
+  "drivedx/license.age".publicKeys = [ macbook ];
   "rclone/config.age".publicKeys = [ macbook ];
 }
