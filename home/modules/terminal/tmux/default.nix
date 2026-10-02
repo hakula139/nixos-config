@@ -23,6 +23,13 @@ let
 
   clipboardConfig = import ./clipboard.nix { inherit config pkgs lib; };
 
+  # Continuum must inject its save command after the final status-right assignment.
+  continuumConfig = ''
+    set -g @continuum-restore 'on'
+    set -g @continuum-save-interval '10'
+    run-shell ${pkgs.tmuxPlugins.continuum.rtp}
+  '';
+
   darwinConfig = lib.optionalString pkgs.stdenv.isDarwin ''
     # SDK paths inherited from Nix dev shells may be garbage-collected.
     set-environment -gu DEVELOPER_DIR
@@ -62,14 +69,6 @@ in
           set -g @resurrect-capture-pane-contents 'on'
         '';
       }
-
-      {
-        plugin = continuum;
-        extraConfig = ''
-          set -g @continuum-restore 'on'
-          set -g @continuum-save-interval '10'
-        '';
-      }
     ];
 
     # --------------------------------------------------------------------------
@@ -81,6 +80,7 @@ in
       clipboardConfig
       nushellConfig
       catppuccinConfig
+      continuumConfig
     ];
   };
 }
