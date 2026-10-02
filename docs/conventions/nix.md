@@ -27,6 +27,7 @@ A caller's set lifts its `inherit` entries into a leading block, then follows th
 - **Multiline text**: use Nix indented strings for inline text, with literal line breaks and contents aligned with the surrounding code. Nix strips the common leading indentation while preserving relative indentation within the text. Keep longer prompts and prose in adjacent text files.
 - **`with pkgs;`**: use in package lists for brevity.
 - **`inherit` placement**: top of `let` blocks, like imports. Combine bindings from the same source: `inherit (pkgs.stdenv) isDarwin isLinux;`. Inside a set that supplies declared options or returns data, keep `inherit` in its logical position (e.g., `group` between `owner` and `path`).
+- **Wrapper arguments**: keep each wrapper option and its operands together, separating options in Nix lists with a blank line. Put environment setup before fixed command arguments. Preserve the order of environment transformations and pass fixed arguments in the callee's order.
 - **Ordering**: group related fields, then choose an order within each group that makes their relationships clear. Use alphabetical order when no stronger semantic order applies. Order a `let` block so a binding follows what it depends on.
 
 ## Section banners

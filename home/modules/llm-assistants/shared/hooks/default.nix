@@ -46,12 +46,13 @@ let
       configFile = json.generate "${assistant}-${slug}.json" config;
       package = pkgs.writers.writeNuBin "${assistant}-${slug}" {
         makeWrapperArgs = [
-          "--add-flag"
-          "${configFile}"
           "--prefix"
           "PATH"
           ":"
           (lib.makeBinPath [ pkgs.coreutils ])
+
+          "--add-flag"
+          "${configFile}"
         ];
       } (builtins.readFile script);
     in

@@ -155,12 +155,13 @@ in
 
       activateConfig = pkgs.writers.writeNu "activate-codex-config" {
         makeWrapperArgs = [
-          "--add-flag"
-          "${activationConfig}"
           "--prefix"
           "PATH"
           ":"
           (lib.makeBinPath [ pkgs.coreutils ])
+
+          "--add-flag"
+          "${activationConfig}"
         ];
       } (builtins.readFile ./scripts/activate-config.nu);
 
