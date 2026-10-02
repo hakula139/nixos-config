@@ -32,7 +32,7 @@ let
     map (name: {
       name = ".agents/skills/${name}";
       value = {
-        source = "${workmux}/share/workmux/skills/${name}";
+        source = "${workmux}/share/skills/workmux/${name}";
         recursive = true;
       };
     }) workmuxSkills
