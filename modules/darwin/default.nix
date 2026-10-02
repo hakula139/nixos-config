@@ -27,12 +27,13 @@ let
 in
 {
   imports = [
-    ./corp-tunnel
     ./homebrew.nix
+    ./system.nix
+
+    ./corp-tunnel
     ./keka
     ./llm-assistants
     ./ssh
-    ./system.nix
     ./tailscale
   ];
 
