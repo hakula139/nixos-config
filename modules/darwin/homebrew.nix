@@ -14,10 +14,12 @@
     brews = [ ];
     casks = [
       "altserver"
+      "betterdisplay"
       "chatgpt"
       "clash-verge-rev"
       "cursor"
       "docker-desktop"
+      "drivedx"
       "free-download-manager"
       "google-chrome"
       "karabiner-elements"

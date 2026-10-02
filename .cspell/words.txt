@@ -55,6 +55,7 @@ dmit
 dont
 drblury
 dreamin
+drivedx
 dropdb
 dscacheutil
 duckdb
