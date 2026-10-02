@@ -23,6 +23,7 @@
       "google-chrome"
       "karabiner-elements"
       "keyclu"
+      "latest"
       "mongodb-compass"
       "mos"
       "notion"
