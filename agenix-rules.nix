@@ -3,9 +3,9 @@
 # ==============================================================================
 
 let
-  rules = import ./secrets/secrets.nix;
+  rules = import ./secrets/agenix-rules.nix;
 in
-# Agenix matches rule keys to filenames relative to the working directory.
+# Agenix resolves secret paths relative to the selected rules file.
 builtins.listToAttrs (
   map (name: {
     name = "secrets/${name}";
