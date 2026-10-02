@@ -11,7 +11,7 @@
       extraFlags = [ "--force-cleanup" ];
       upgrade = true;
     };
-    taps = [ ];
+    taps = [ "whatpulse/whatpulse" ];
     brews = [ ];
     casks = [
       "altserver"
@@ -36,6 +36,7 @@
       "tencent-meeting"
       "tor-browser"
       "warp"
+      "whatpulse/whatpulse/whatpulse"
     ];
     masApps = {
       "AdGuard for Safari" = 1440147259;

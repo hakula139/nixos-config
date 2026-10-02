@@ -298,6 +298,7 @@ vlang
 vless
 waka
 wakatime
+whatpulse
 whereis
 wimpysworld
 wslpath
