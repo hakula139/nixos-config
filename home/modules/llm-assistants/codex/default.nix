@@ -95,7 +95,7 @@ in
         policy = repoLib.llmAssistants.permissions;
       };
 
-      pluginSettings = import ./plugins.nix {
+      plugins = import ./plugins.nix {
         inherit pkgs lib;
       };
 
@@ -138,7 +138,7 @@ in
             ;
         })
         // profiles.settings
-        // pluginSettings
+        // plugins.settings
       ) (lib.optionalAttrs pkgs.stdenv.isDarwin (import ./desktop.nix));
 
       activationConfig = json.generate "codex-config-activation.json" {
