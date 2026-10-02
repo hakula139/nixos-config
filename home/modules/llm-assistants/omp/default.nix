@@ -88,8 +88,6 @@ in
       # Package wrapper
       # ------------------------------------------------------------------------
       wrapArgs = [
-        "--add-flags"
-        "--config ${permissionConfigFile}"
         "--prefix"
         "PATH"
         ":"
@@ -101,6 +99,10 @@ in
       ++ lib.optionals cfg.proxy.enable [
         "--run"
         (repoLib.proxy.mkProxyScript cfg.proxy)
+      ]
+      ++ [
+        "--add-flags"
+        "--config ${permissionConfigFile}"
       ];
 
       ompBin = repoLib.wrapPackage {

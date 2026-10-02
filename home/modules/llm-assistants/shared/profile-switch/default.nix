@@ -37,11 +37,12 @@ let
 in
 pkgs.writers.writeNuBin name {
   makeWrapperArgs = [
-    "--add-flag"
-    "${switchConfig}"
     "--prefix"
     "PATH"
     ":"
     (lib.makeBinPath [ pkgs.coreutils ])
+
+    "--add-flag"
+    "${switchConfig}"
   ];
 } (builtins.readFile ./profile-switch.nu)
