@@ -1,5 +1,13 @@
+#!/usr/bin/env nu
+
+# ==============================================================================
+# BetterDisplay License Activation
+# ==============================================================================
+# Run with --help for usage.
+# ==============================================================================
+
 # Check activation without printing the licensing output.
-def is-activated [app: path] {
+def is-activated [app: path]: nothing -> bool {
   let status = (^$app manageLicense -status | complete)
   if $status.exit_code != 0 {
     error make {msg: "Could not read BetterDisplay activation status"}
@@ -10,7 +18,11 @@ def is-activated [app: path] {
 }
 
 # Activate BetterDisplay from an agenix license without logging credentials.
-def main [license_file: path, app: path] {
+# Missing prerequisites are skipped until the launch agent runs again.
+def main [
+  license_file: path # JSON file containing the purchase email and license key
+  app: path # BetterDisplay executable
+] {
   if not ($license_file | path exists) or not ($app | path exists) {
     return
   }

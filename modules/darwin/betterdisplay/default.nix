@@ -5,7 +5,6 @@
 {
   config,
   pkgs,
-  lib,
   repoLib,
   ...
 }:
@@ -13,9 +12,16 @@
 let
   userName = config.hakula.user.name;
   app = "/Applications/BetterDisplay.app/Contents/MacOS/BetterDisplay";
-  activateLicense = pkgs.writeText "betterdisplay-activate-license.nu" (
-    builtins.readFile ./activate-license.nu
-  );
+  licenseFile = config.age.secrets.betterdisplay-license.path;
+
+  activateLicense = pkgs.writers.writeNu "betterdisplay-activate-license" {
+    makeWrapperArgs = [
+      "--add-flag"
+      licenseFile
+      "--add-flag"
+      app
+    ];
+  } (builtins.readFile ./activate-license.nu);
 in
 {
   homebrew.casks = [ "betterdisplay" ];
@@ -29,16 +35,10 @@ in
   home-manager.users.${userName}.launchd.agents.betterdisplay-license = {
     enable = true;
     config = {
-      ProgramArguments = [
-        (lib.getExe pkgs.nushell)
-        "--no-config-file"
-        "${activateLicense}"
-        config.age.secrets.betterdisplay-license.path
-        app
-      ];
+      ProgramArguments = [ "${activateLicense}" ];
       RunAtLoad = true;
       WatchPaths = [
-        config.age.secrets.betterdisplay-license.path
+        licenseFile
         "/Applications/BetterDisplay.app"
       ];
       ProcessType = "Background";
