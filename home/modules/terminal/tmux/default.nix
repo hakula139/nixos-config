@@ -25,8 +25,8 @@ let
 
   # Continuum must inject its save command after the final status-right assignment.
   continuumConfig = ''
-    set -g @continuum-restore 'on'
-    set -g @continuum-save-interval '10'
+    set -g @continuum-restore "on"
+    set -g @continuum-save-interval "10"
     run-shell ${pkgs.tmuxPlugins.continuum.rtp}
   '';
 
@@ -66,7 +66,7 @@ in
       {
         plugin = resurrect;
         extraConfig = ''
-          set -g @resurrect-capture-pane-contents 'on'
+          set -g @resurrect-capture-pane-contents "on"
         '';
       }
     ];
