@@ -24,12 +24,21 @@ let
   } (builtins.readFile ./activate-license.nu);
 in
 {
+  # ----------------------------------------------------------------------------
+  # Packages
+  # ----------------------------------------------------------------------------
   homebrew.casks = [ "betterdisplay" ];
 
+  # ----------------------------------------------------------------------------
+  # Secrets
+  # ----------------------------------------------------------------------------
   age.secrets.betterdisplay-license = repoLib.secrets.mkDarwinUserSecret userName {
     name = "betterdisplay/license";
   };
 
+  # ----------------------------------------------------------------------------
+  # Launchd agents (macOS)
+  # ----------------------------------------------------------------------------
   home-manager.users.${userName}.launchd.agents.betterdisplay-license = {
     enable = true;
     config = {
