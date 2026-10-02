@@ -3,8 +3,6 @@
 # ==============================================================================
 # Rclone Metadata Refresh
 # ==============================================================================
-# Run with --help for usage.
-# ==============================================================================
 
 # Refresh remote directory metadata without downloading file contents.
 # A missing socket is skipped while the mount is stopped.

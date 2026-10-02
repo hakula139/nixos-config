@@ -3,8 +3,6 @@
 # ==============================================================================
 # BetterDisplay License Activation
 # ==============================================================================
-# Run with --help for usage.
-# ==============================================================================
 
 # Check activation without printing the licensing output.
 def is-activated [app: path]: nothing -> bool {

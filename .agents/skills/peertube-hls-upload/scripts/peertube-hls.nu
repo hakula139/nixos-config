@@ -6,7 +6,7 @@
 # Manually transcode a video to HLS fragmented MP4 and upload it to the
 # PeerTube B2 object storage bucket, bypassing the PeerTube runner workflow.
 #
-# Run with `--help` for usage.
+# Run with --help for usage.
 # ==============================================================================
 
 const SCRIPT_DIR = path self .
