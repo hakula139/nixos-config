@@ -4,7 +4,7 @@ Read this before writing or editing a `.nu` file. Nushell is the default for new
 
 - **Script-relative resources**: bind `const SCRIPT_DIR = path self .` after the file header and imports, before application configuration. It resolves from the defining file at parse time, so sibling resources do not depend on the caller's working directory or runtime environment. When Nix copies the script into the store, those resources must be packaged alongside it.
 - **Entry point**: `def main` with typed parameters, so nushell checks arity and types for you.
-- **Help**: keep script headers to their purpose, operating constraints, and a `--help` pointer. Document commands and parameters at their definitions so generated help contains the usage details.
+- **Help**: keep script headers to their purpose and operating constraints. If a description includes a usage pointer, write `Run with --help for usage.`. Omit descriptions containing only that sentence. Document commands and parameters at their definitions so generated help contains the usage details.
 - **Data**: records, since a delimited string has to be re-split at every use.
 - **Output**: the `table` renderer.
 - **Regexes**: precede each non-obvious regex with a short label for the construct it matches. Restating the decoded pattern improves readability here.

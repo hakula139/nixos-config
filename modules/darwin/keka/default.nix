@@ -12,8 +12,14 @@ let
   homeDir = config.users.users.${userName}.home;
 in
 {
+  # ----------------------------------------------------------------------------
+  # Packages
+  # ----------------------------------------------------------------------------
   homebrew.casks = [ "keka" ];
 
+  # ----------------------------------------------------------------------------
+  # Preferences
+  # ----------------------------------------------------------------------------
   system.defaults.CustomUserPreferences = {
     "${homeDir}/Library/Containers/com.aone.keka/Data/Library/Preferences/com.aone.keka" = {
       AlwaysAskCompressionPassword = false;

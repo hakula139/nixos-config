@@ -7,7 +7,7 @@
 # which ones have drifted. Renovate-managed pins (flake.lock) are out of
 # scope. See ../SKILL.md for why.
 #
-# Run with `--help` for usage.
+# Run with --help for usage.
 # ==============================================================================
 
 const PLUGINS_NIX = "home/modules/llm-assistants/claude-code/plugins.nix"

@@ -6,7 +6,7 @@
 # Remove local branches whose configured upstreams are gone, along with their
 # worktrees. Dry run by default.
 #
-# Run with `--help` for usage.
+# Run with --help for usage.
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
