@@ -55,6 +55,7 @@ dmit
 dont
 drblury
 dreamin
+drivedx
 dropdb
 dscacheutil
 duckdb
@@ -110,6 +111,7 @@ isort
 jieba
 jnoortheen
 journalctl
+karabiner
 kdelpf
 kdelrs
 keka
@@ -296,6 +298,7 @@ vlang
 vless
 waka
 wakatime
+whatpulse
 whereis
 wimpysworld
 wslpath

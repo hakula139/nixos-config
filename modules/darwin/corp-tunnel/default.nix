@@ -53,6 +53,9 @@ in
     # Rewrite unconditionally: disabling the module must stop resolving the
     # gateway to a loopback port that no longer forwards.
     {
+      # ------------------------------------------------------------------------
+      # Hosts file
+      # ------------------------------------------------------------------------
       system.activationScripts.postActivation.text = lib.mkAfter ''
         hostsTmp=$(mktemp)
         grep -vF ${lib.escapeShellArg "${gatewayHost} ${hostsOwner}"} /etc/hosts >"$hostsTmp" || true
@@ -65,6 +68,9 @@ in
     }
 
     (lib.mkIf cfg.enable {
+      # ------------------------------------------------------------------------
+      # Launchd daemons (macOS)
+      # ------------------------------------------------------------------------
       launchd.daemons.corp-tunnel.serviceConfig = {
         ProgramArguments = [
           (lib.getExe pkgs.socat)
@@ -80,8 +86,14 @@ in
       };
 
       home-manager.users.${userName} = {
+        # ----------------------------------------------------------------------
+        # Proxy configuration
+        # ----------------------------------------------------------------------
         hakula.llm-assistants.proxy.noProxy = [ gatewayHost ];
 
+        # ----------------------------------------------------------------------
+        # Launchd agents (macOS)
+        # ----------------------------------------------------------------------
         launchd.agents.corp-tunnel = {
           enable = true;
           config = {
