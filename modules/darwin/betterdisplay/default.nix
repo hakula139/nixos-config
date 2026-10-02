@@ -18,6 +18,7 @@ let
     makeWrapperArgs = [
       "--add-flag"
       app
+
       "--add-flag"
       licenseFile
     ];
