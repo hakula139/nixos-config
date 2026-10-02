@@ -17,9 +17,9 @@ let
   activateLicense = pkgs.writers.writeNu "betterdisplay-activate-license" {
     makeWrapperArgs = [
       "--add-flag"
-      licenseFile
-      "--add-flag"
       app
+      "--add-flag"
+      licenseFile
     ];
   } (builtins.readFile ./activate-license.nu);
 in
@@ -38,8 +38,8 @@ in
       ProgramArguments = [ "${activateLicense}" ];
       RunAtLoad = true;
       WatchPaths = [
-        licenseFile
         "/Applications/BetterDisplay.app"
+        licenseFile
       ];
       ProcessType = "Background";
     };

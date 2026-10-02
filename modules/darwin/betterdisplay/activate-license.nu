@@ -18,10 +18,10 @@ def is-activated [app: path]: nothing -> bool {
 # Activate BetterDisplay from an agenix license.
 # Missing prerequisites are skipped until the launch agent runs again.
 def main [
-  license_file: path # JSON file containing the purchase email and license key
   app: path # BetterDisplay executable
+  license_file: path # JSON file containing the purchase email and license key
 ] {
-  if not ($license_file | path exists) or not ($app | path exists) {
+  if not ($app | path exists) or not ($license_file | path exists) {
     return
   }
 
