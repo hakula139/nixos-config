@@ -172,6 +172,5 @@ in
     # --------------------------------------------------------------------------
     fonts.packages = packages.fonts;
     environment.systemPackages = packages.base ++ [ pkgs.thaw ];
-
   };
 }
