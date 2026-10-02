@@ -15,7 +15,7 @@ def is-activated [app: path]: nothing -> bool {
   $status.stdout | lines | parse -r '^Activation Status:\s*Activated\s*$' | is-not-empty
 }
 
-# Activate BetterDisplay from an agenix license without logging credentials.
+# Activate BetterDisplay from an agenix license.
 # Missing prerequisites are skipped until the launch agent runs again.
 def main [
   license_file: path # JSON file containing the purchase email and license key
@@ -29,16 +29,7 @@ def main [
     return
   }
 
-  # Isolate parsing because JSON diagnostics can include credential contents.
-  let parsed = with-env {BETTERDISPLAY_LICENSE_PATH: $license_file} {
-    (^$nu.current-exe --no-config-file --commands
-      'open --raw $env.BETTERDISPLAY_LICENSE_PATH | from json | select email key | to json'
-      | complete)
-  }
-  if $parsed.exit_code != 0 {
-    error make {msg: "Could not read BetterDisplay license credentials"}
-  }
-  let license = $parsed.stdout | from json
+  let license = open --raw $license_file | from json
   let result = (^$app manageLicense -activate
     $"-email=($license.email)"
     $"-key=($license.key)"
