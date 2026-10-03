@@ -9,7 +9,6 @@
   profileDefinitions,
   sharedAgents,
   enabledAgents,
-  hostType,
   secretPath,
   configDir,
   mkProfileSwitch,
@@ -103,8 +102,8 @@ in
   # Module options
   # ----------------------------------------------------------------------------
   options = profileDefinitions.mkOptions {
-    inherit hostType;
     defaultProfile = "official";
+    enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
   };
 
   # ----------------------------------------------------------------------------

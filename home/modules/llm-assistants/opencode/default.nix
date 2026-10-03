@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  hostType,
   repoLib,
   secretPath,
   enableDevToolchains ? false,
@@ -25,7 +24,6 @@ let
       config
       pkgs
       lib
-      hostType
       secretPath
       ;
     inherit (shared) profileDefinitions mkProfileSwitch;

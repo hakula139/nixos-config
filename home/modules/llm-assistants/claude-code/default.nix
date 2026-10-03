@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  hostType,
   modelCatalog,
   repoLib,
   secretPath,
@@ -37,7 +36,6 @@ let
       config
       pkgs
       lib
-      hostType
       secretPath
       mcpFlag
       ;

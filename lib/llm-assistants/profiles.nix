@@ -198,7 +198,7 @@ in
   mkOptions =
     {
       defaultProfile,
-      hostType,
+      enableCorpGateway,
     }:
     {
       defaultProfile = lib.mkOption {
@@ -209,7 +209,7 @@ in
 
       enableCorpGateway = lib.mkOption {
         type = lib.types.bool;
-        default = hostType == "work";
+        default = enableCorpGateway;
         description = "Include corporate gateway profiles and provision their credentials";
       };
     };
