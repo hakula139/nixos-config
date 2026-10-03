@@ -74,7 +74,7 @@ in
 
   "cloudcone/server-key-us-3.age".publicKeys = us3Only;
 
-  "aria2/rpc-secret-us-4.age".publicKeys = us4Only;
+  "aria2/rpc-secret-cloudreve.age".publicKeys = us4Only;
   "clash/users.json.age".publicKeys = us4Only;
   "clove/env.age".publicKeys = us4Only;
   "dockerhub/token.age".publicKeys = us4Only;
