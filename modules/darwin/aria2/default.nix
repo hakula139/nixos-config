@@ -16,6 +16,8 @@ let
   cfg = config.hakula.services.aria2;
   userName = config.hakula.user.name;
   homeConfig = config.home-manager.users.${userName};
+  stateDir = "${homeConfig.xdg.stateHome}/aria2";
+  sessionFile = "${stateDir}/session";
   rpcConfig = config.age.secrets.aria2-rpc-config.path;
 
   arguments = lib.mapAttrsToList (
@@ -24,14 +26,22 @@ let
 
   startScript = pkgs.writeShellScript "aria2-rpc" ''
     set -euo pipefail
+    umask 077
 
     # aria2 ignores unreadable config files and would start RPC without its token.
     [[ -r ${esc rpcConfig} && -s ${esc rpcConfig} ]]
+
+    ${pkgs.coreutils}/bin/install -d -m 0700 ${esc stateDir}
+    ${pkgs.coreutils}/bin/touch ${esc sessionFile}
+    ${pkgs.coreutils}/bin/chmod 0600 ${esc sessionFile}
 
     exec ${lib.getExe homeConfig.programs.aria2.package} \
       --conf-path=${esc rpcConfig} \
       --enable-rpc \
       --rpc-allow-origin-all=true \
+      --input-file=${esc sessionFile} \
+      --save-session=${esc sessionFile} \
+      --save-session-interval=60 \
       ${lib.escapeShellArgs arguments}
   '';
 in
