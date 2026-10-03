@@ -33,8 +33,10 @@
   # ----------------------------------------------------------------------------
   # Services
   # ----------------------------------------------------------------------------
-  hakula.services.aria2.enable = true;
-  hakula.services.ariang.enable = true;
+  hakula.services.aria2 = {
+    enable = true;
+    webUi.enable = true;
+  };
   hakula.services.corpTunnel.enable = true;
   hakula.services.openssh.enable = true;
   hakula.services.tailscale = {

@@ -10,7 +10,7 @@
 }:
 
 let
-  cfg = config.hakula.services.ariang;
+  cfg = config.hakula.services.aria2;
   userName = config.hakula.user.name;
   port = 6801;
   url = "http://127.0.0.1:${toString port}/";
@@ -23,12 +23,12 @@ in
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
-  options.hakula.services.ariang.enable = lib.mkEnableOption "AriaNg web interface";
+  options.hakula.services.aria2.webUi.enable = lib.mkEnableOption "AriaNg web interface for aria2";
 
   # ----------------------------------------------------------------------------
   # Module config
   # ----------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf (cfg.enable && cfg.webUi.enable) {
     home-manager.users.${userName} = {
       # ------------------------------------------------------------------------
       # Packages
