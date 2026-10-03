@@ -28,7 +28,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.aria2-rpc-secret = repoLib.secrets.mkSecret {
-      name = "cloudreve/aria2-rpc-secret";
+      name = "aria2/rpc-secret-us-4";
       owner = "aria2";
       group = "aria2";
     };

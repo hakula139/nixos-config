@@ -50,7 +50,7 @@ in
     # --------------------------------------------------------------------------
     age.secrets = lib.mkIf cfg.enable {
       aria2-rpc-config = repoLib.secrets.mkDarwinUserSecret userName {
-        name = "aria2/rpc-config";
+        name = "aria2/rpc-config-macbook";
       };
     };
 

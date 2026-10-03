@@ -74,8 +74,8 @@ in
 
   "cloudcone/server-key-us-3.age".publicKeys = us3Only;
 
+  "aria2/rpc-secret-us-4.age".publicKeys = us4Only;
   "clash/users.json.age".publicKeys = us4Only;
-  "cloudreve/aria2-rpc-secret.age".publicKeys = us4Only;
   "clove/env.age".publicKeys = us4Only;
   "dockerhub/token.age".publicKeys = us4Only;
   "fuclaude/env.age".publicKeys = us4Only;
@@ -90,7 +90,7 @@ in
   "mihomo/subscription-url.age".publicKeys = allWorkstations;
   "wakatime/config.age".publicKeys = allWorkstations;
 
-  "aria2/rpc-config.age".publicKeys = [ macbook ];
+  "aria2/rpc-config-macbook.age".publicKeys = [ macbook ];
   "betterdisplay/license.age".publicKeys = [ macbook ];
   "drivedx/license.age".publicKeys = [ macbook ];
   "rclone/config.age".publicKeys = [ macbook ];
