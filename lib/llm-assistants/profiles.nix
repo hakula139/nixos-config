@@ -18,12 +18,12 @@ let
       flagship = "xhigh";
       mini = "low";
     };
-    gemini = {
+    gpt = {
       standard = "medium";
       flagship = "high";
       mini = "low";
     };
-    gpt = {
+    gemini = {
       standard = "medium";
       flagship = "high";
       mini = "low";
@@ -53,17 +53,17 @@ let
       nativeWebSearch = true;
     };
 
+    corp-gateway-gemini = {
+      provider = "corp-gateway";
+      gateway = "gemini";
+      family = "gemini";
+      nativeWebSearch = false;
+    };
+
     corp-gateway-local = {
       provider = "corp-gateway";
       gateway = "local";
       family = "local";
-      nativeWebSearch = false;
-    };
-
-    corp-gateway-gemini = {
-      provider = "corp-gateway";
-      gateway = "openrouter";
-      family = "gemini";
       nativeWebSearch = false;
     };
 
@@ -154,8 +154,8 @@ in
   # ----------------------------------------------------------------------------
   familyApis = {
     claude = "anthropic-messages";
-    gemini = "openai-responses";
     gpt = "openai-responses";
+    gemini = "openai-responses";
     local = "openai-responses";
   };
 

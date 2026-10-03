@@ -156,8 +156,8 @@ let
       gateways = [
         "anthropic"
         "openai"
+        "gemini"
         "local"
-        "openrouter"
       ];
     }
   );

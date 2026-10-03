@@ -63,8 +63,8 @@ let
     gateways = [
       "anthropic"
       "openai"
+      "gemini"
       "local"
-      "openrouter"
     ];
   };
   profiles = lib.mapAttrs mkProfile enabledProfiles;

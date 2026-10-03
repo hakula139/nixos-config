@@ -164,7 +164,7 @@ Source comments and docstrings receive feedback after writes through `hooks/comm
 
 Both hooks invoke the model through `hooks/lib/model-call/`, which calls the gateway over HTTP and falls back to `codex exec`. Claude supplies gateway credentials through its active profile environment. When the Codex corporate gateway is enabled, its hooks use the same configured endpoint, credential file, and CA even if the main session uses the official provider. Codex uses its own authentication for the fallback, so it can run when gateway variables are absent.
 
-The gateway model and Codex fallback follow the Gemini `standard` and GPT `mini` defaults in [`data/llm-models.nix`](../../data/llm-models.nix). The results in section 3.5 apply to the measured models and configurations.
+Comment review uses the Gemini `mini` default, prose polishing uses Gemini `standard`, and the Codex fallback uses GPT `mini` from [`data/llm-models.nix`](../../data/llm-models.nix). The results in section 3.5 apply to the measured models and configurations.
 
 ### Measurement limits
 

@@ -26,27 +26,6 @@ let
     };
   };
 
-  geminiCommon = {
-    contextWindow = 1048576;
-    maxTokens = 65536;
-    autoCompactTokens = 400000;
-    input = [
-      "text"
-      "image"
-    ];
-    reasoning = true;
-    thinking = {
-      mode = "effort";
-      efforts = [
-        "low"
-        "medium"
-        "high"
-      ];
-      defaultLevel = "medium";
-      requiresEffort = true;
-    };
-  };
-
   gptCommon = {
     contextWindow = 1050000;
     maxTokens = 128000;
@@ -66,6 +45,27 @@ let
         "max"
       ];
       defaultLevel = "high";
+    };
+  };
+
+  geminiCommon = {
+    contextWindow = 1048576;
+    maxTokens = 65536;
+    autoCompactTokens = 400000;
+    input = [
+      "text"
+      "image"
+    ];
+    reasoning = true;
+    thinking = {
+      mode = "effort";
+      efforts = [
+        "low"
+        "medium"
+        "high"
+      ];
+      defaultLevel = "medium";
+      requiresEffort = true;
     };
   };
 
@@ -101,15 +101,15 @@ in
       # Use Sonnet for lightweight coding tasks because Haiku falls below our quality baseline.
       mini = "claude-sonnet-5-5";
     };
-    gemini = {
-      flagship = "gemini-3.1-pro-preview";
-      standard = "gemini-3.8-flash";
-      mini = "gemini-3.8-flash";
-    };
     gpt = {
       flagship = "gpt-6-astra";
       standard = "gpt-6.1-sol";
       mini = "gpt-6-luna";
+    };
+    gemini = {
+      flagship = "gemini-4-argon";
+      standard = "gemini-4-argon";
+      mini = "gemini-3.8-flash";
     };
     local = {
       flagship = "kimi-k3";
@@ -179,28 +179,6 @@ in
       };
     };
 
-    "gemini-3.1-pro-preview" = geminiCommon // {
-      name = "Gemini 3.1 Pro Preview";
-      gatewayId.openrouter = "openrouter/google/gemini-3.1-pro-preview";
-      gatewayCost.openrouter = {
-        input = 2.0;
-        output = 12.0;
-        cacheRead = 0.2;
-        cacheWrite = 0.375;
-      };
-    };
-
-    "gemini-3.8-flash" = geminiCommon // {
-      name = "Gemini 3.8 Flash";
-      gatewayId.openrouter = "openrouter/google/gemini-3.8-flash";
-      gatewayCost.openrouter = {
-        input = 0.75;
-        output = 3.75;
-        cacheRead = 0.075;
-        cacheWrite = 0.0416666666666667;
-      };
-    };
-
     "gpt-6-astra" = gptCommon // {
       name = "GPT-6 Astra";
       gatewayId.openai = "openai/gpt-6-astra";
@@ -234,6 +212,30 @@ in
         output = 0.5;
         cacheRead = 0.01;
         cacheWrite = 0.125;
+      };
+    };
+
+    "gemini-4-argon" = geminiCommon // {
+      name = "Gemini 4 Argon";
+      maxTokens = 1000000;
+      # Argon's routing ID, reasoning levels and cache-write cost await OpenRouter metadata.
+      gatewayId.gemini = "openrouter/google/gemini-4-argon";
+      gatewayCost.gemini = {
+        input = 2.0;
+        output = 10.0;
+        cacheRead = 0.1;
+        cacheWrite = 0;
+      };
+    };
+
+    "gemini-3.8-flash" = geminiCommon // {
+      name = "Gemini 3.8 Flash";
+      gatewayId.gemini = "openrouter/google/gemini-3.8-flash";
+      gatewayCost.gemini = {
+        input = 0.75;
+        output = 3.75;
+        cacheRead = 0.075;
+        cacheWrite = 0.0416666666666667;
       };
     };
 
