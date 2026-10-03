@@ -16,9 +16,10 @@ let
   cfg = config.hakula.services.aria2;
   userName = config.hakula.user.name;
   homeConfig = config.home-manager.users.${userName};
+  rpcConfig = config.age.secrets.aria2-rpc-config.path;
+
   stateDir = "${homeConfig.xdg.stateHome}/aria2";
   sessionFile = "${stateDir}/session";
-  rpcConfig = config.age.secrets.aria2-rpc-config.path;
 
   arguments = lib.mapAttrsToList (
     name: value: "--${name}=${if lib.isBool value then lib.boolToString value else toString value}"
@@ -26,14 +27,13 @@ let
 
   startScript = pkgs.writeShellScript "aria2-rpc" ''
     set -euo pipefail
-    umask 077
 
     # aria2 ignores unreadable config files and would start RPC without its token.
     [[ -r ${esc rpcConfig} && -s ${esc rpcConfig} ]]
 
-    ${pkgs.coreutils}/bin/install -d -m 0700 ${esc stateDir}
-    ${pkgs.coreutils}/bin/touch ${esc sessionFile}
-    ${pkgs.coreutils}/bin/chmod 0600 ${esc sessionFile}
+    install -d -m 0700 ${esc stateDir}
+    touch ${esc sessionFile}
+    chmod 0600 ${esc sessionFile}
 
     exec ${lib.getExe homeConfig.programs.aria2.package} \
       --conf-path=${esc rpcConfig} \
@@ -89,6 +89,7 @@ in
           enable = true;
           config = {
             ProgramArguments = [ "${startScript}" ];
+            EnvironmentVariables.PATH = lib.makeBinPath [ pkgs.coreutils ];
             RunAtLoad = true;
             KeepAlive.SuccessfulExit = false;
             ProcessType = "Background";
