@@ -5,7 +5,6 @@
 {
   mkNuHook,
   modelCall,
-  modelCatalog,
   patchInput,
   readPrompt,
   timeouts,
@@ -22,7 +21,6 @@
     script = ./comment-gate.nu;
     config = {
       inherit modelCall;
-      model = modelCatalog.models.${modelCatalog.defaults.gemini.mini}.gatewayId.gemini;
       patchInput = toString patchInput;
       prompt = readPrompt ./prompt.md;
     };

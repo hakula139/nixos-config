@@ -83,7 +83,6 @@ def commentish [path: string, text: string]: nothing -> bool {
 def judge [text: string, config: record]: nothing -> string {
   let caller = $config.modelCall
   let request = {
-    model: $config.model
     system: $config.prompt
     user: $text
     maxTokens: $MAX_TOKENS

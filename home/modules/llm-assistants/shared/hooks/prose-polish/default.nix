@@ -37,7 +37,7 @@ in
         modelCall
         phrasing
         ;
-      model = modelCatalog.models.${modelCatalog.defaults.gemini.standard}.gatewayId.gemini;
+      model = modelCatalog.models.${modelCatalog.defaults.gemini.mini}.gatewayId.gemini;
       prompt = builtins.readFile ./prompt.md;
       repairPrompt = builtins.readFile ./repair-prompt.md;
     };

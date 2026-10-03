@@ -111,7 +111,6 @@ in
       inherit
         mkNuHook
         modelCall
-        modelCatalog
         patchInput
         readPrompt
         timeouts
