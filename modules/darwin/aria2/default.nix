@@ -11,6 +11,8 @@
 }:
 
 let
+  esc = lib.escapeShellArg;
+
   cfg = config.hakula.services.aria2;
   userName = config.hakula.user.name;
   homeConfig = config.home-manager.users.${userName};
@@ -24,10 +26,10 @@ let
     set -euo pipefail
 
     # aria2 ignores unreadable config files and would start RPC without its token.
-    [[ -r ${lib.escapeShellArg rpcConfig} && -s ${lib.escapeShellArg rpcConfig} ]]
+    [[ -r ${esc rpcConfig} && -s ${esc rpcConfig} ]]
 
     exec ${lib.getExe homeConfig.programs.aria2.package} \
-      --conf-path=${lib.escapeShellArg rpcConfig} \
+      --conf-path=${esc rpcConfig} \
       --enable-rpc \
       --rpc-listen-all=false \
       --rpc-allow-origin-all=true \
