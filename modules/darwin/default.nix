@@ -30,6 +30,7 @@ in
     ./homebrew.nix
     ./system.nix
 
+    ./aria2
     ./betterdisplay
     ./corp-tunnel
     ./drivedx
