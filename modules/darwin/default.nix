@@ -31,6 +31,7 @@ in
     ./system.nix
 
     ./aria2
+    ./ariang
     ./betterdisplay
     ./corp-tunnel
     ./drivedx

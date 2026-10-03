@@ -6,6 +6,7 @@ alnum
 alsa
 anthropics
 aone
+ariang
 attrsets
 autocd
 autocmd
@@ -42,6 +43,7 @@ createdb
 csum
 ctest
 cursor
+darkhttpd
 davidanson
 dbaeumer
 dbengine
