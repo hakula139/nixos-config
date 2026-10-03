@@ -24,6 +24,7 @@ catppuccin
 ccache
 ccagent
 chgrp
+chmodbpf
 chocobozzz
 cidr
 clangd
