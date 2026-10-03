@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  repoLib,
   ...
 }:
 
@@ -14,6 +15,20 @@ let
   userName = config.hakula.user.name;
   port = 6801;
   url = "http://127.0.0.1:${toString port}/";
+
+  assets = pkgs.runCommand "ariang-provisioned" { } ''
+    cp -R ${pkgs.ariang}/share/ariang "$out"
+    chmod -R u+w "$out"
+    cp ${./ariang-config.js} "$out/js/ariang-config.js"
+    substituteInPlace "$out/index.html" \
+      --replace-fail '</body>' '<script src="js/ariang-config.js"></script></body>'
+  '';
+  serverConfig = (pkgs.formats.json { }).generate "ariang-server.json" {
+    inherit assets port;
+    rpcPort = repoLib.aria2.rpcSettings.rpc-listen-port;
+    rpcConfig = config.age.secrets.aria2-rpc-config.path;
+  };
+  server = pkgs.writers.writePython3 "ariang-server" { } (builtins.readFile ./ariang-server.py);
 
   openUi = pkgs.writeShellScriptBin "ariang" ''
     exec /usr/bin/open ${lib.escapeShellArg url}
@@ -42,13 +57,8 @@ in
         enable = true;
         config = {
           ProgramArguments = [
-            (lib.getExe pkgs.darkhttpd)
-            "${pkgs.ariang}/share/ariang"
-            "--addr"
-            "127.0.0.1"
-            "--port"
-            (toString port)
-            "--no-listing"
+            "${server}"
+            "${serverConfig}"
           ];
           RunAtLoad = true;
           KeepAlive.SuccessfulExit = false;
