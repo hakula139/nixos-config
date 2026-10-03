@@ -18,6 +18,20 @@ let
 
   wakatimeCli = lib.getExe wakatime-cli;
 
+  editorCli = pkgs.writeShellScriptBin "wakatime-cli" ''
+    set -euo pipefail
+
+    for arg in "$@"; do
+      case "$arg" in
+        --entity|--entity=*)
+          exec ${wakatimeCli} --sync-ai-disabled "$@"
+          ;;
+      esac
+    done
+
+    exec ${wakatimeCli} "$@"
+  '';
+
   syncScript = pkgs.writeShellScript "wakatime-sync-ai-activity" ''
     set -euo pipefail
     status=0
@@ -46,7 +60,7 @@ in
       # ------------------------------------------------------------------------
       # Packages
       # ------------------------------------------------------------------------
-      home.packages = [ wakatime-cli ];
+      home.packages = [ (if isDesktop then editorCli else wakatime-cli) ];
     })
 
     (lib.mkIf (isDesktop && !isDarwin) {
