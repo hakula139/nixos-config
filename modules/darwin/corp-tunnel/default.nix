@@ -87,9 +87,12 @@ in
 
       home-manager.users.${userName} = {
         # ----------------------------------------------------------------------
-        # Proxy configuration
+        # Assistant configuration
         # ----------------------------------------------------------------------
-        hakula.llm-assistants.proxy.noProxy = [ gatewayHost ];
+        hakula.llm-assistants = {
+          auth.enableCorpGateway = lib.mkDefault true;
+          proxy.noProxy = [ gatewayHost ];
+        };
 
         # ----------------------------------------------------------------------
         # Launchd agents (macOS)

@@ -23,6 +23,11 @@ let
       flagship = "high";
       mini = "low";
     };
+    gemini = {
+      standard = "medium";
+      flagship = "high";
+      mini = "low";
+    };
     local = {
       standard = "high";
       flagship = "max";
@@ -36,35 +41,42 @@ let
   providerProfiles = {
     corp-gateway-anthropic = {
       provider = "corp-gateway";
-      gateway = "anthropic";
+      channel = "anthropic";
       family = "claude";
       nativeWebSearch = false;
     };
 
     corp-gateway-openai = {
       provider = "corp-gateway";
-      gateway = "openai";
+      channel = "openai";
       family = "gpt";
       nativeWebSearch = true;
     };
 
+    corp-gateway-google = {
+      provider = "corp-gateway";
+      channel = "google";
+      family = "gemini";
+      nativeWebSearch = false;
+    };
+
     corp-gateway-local = {
       provider = "corp-gateway";
-      gateway = "local";
+      channel = "local";
       family = "local";
       nativeWebSearch = false;
     };
 
     ikuncode = {
       provider = "ikuncode";
-      gateway = null;
+      channel = null;
       family = "claude";
       nativeWebSearch = false;
     };
 
     yescode = {
       provider = "yescode";
-      gateway = null;
+      channel = null;
       family = "claude";
       nativeWebSearch = false;
     };
@@ -79,7 +91,7 @@ let
       modelKeys = modelCatalog.defaults.${profile.family};
       models = lib.mapAttrs (_: id: modelCatalog.models.${id}) modelKeys;
       modelIds = lib.mapAttrs (
-        tier: id: if profile.gateway == null then id else models.${tier}.gatewayId.${profile.gateway}
+        tier: id: if profile.channel == null then id else models.${tier}.channelId.${profile.channel}
       ) modelKeys;
       resolveWorkload = tier: effort: {
         modelTier = tier;
@@ -143,6 +155,7 @@ in
   familyApis = {
     claude = "anthropic-messages";
     gpt = "openai-responses";
+    gemini = "openai-responses";
     local = "openai-responses";
   };
 
@@ -161,14 +174,14 @@ in
     {
       nativeFamily ? null,
       providers,
-      gateways,
+      channels,
       enableCorpGateway,
     }:
     let
       officialProfiles = lib.optionalAttrs (nativeFamily != null) {
         official = {
           provider = null;
-          gateway = null;
+          channel = null;
           family = nativeFamily;
           nativeWebSearch = true;
         };
@@ -176,7 +189,7 @@ in
       enabledProviderProfiles = lib.filterAttrs (
         _: profile:
         lib.elem profile.provider providers
-        && (profile.gateway == null || lib.elem profile.gateway gateways)
+        && (profile.channel == null || lib.elem profile.channel channels)
         && (profile.provider != "corp-gateway" || enableCorpGateway)
       ) providerProfiles;
     in
@@ -185,7 +198,7 @@ in
   mkOptions =
     {
       defaultProfile,
-      hostType,
+      enableCorpGateway,
     }:
     {
       defaultProfile = lib.mkOption {
@@ -196,7 +209,7 @@ in
 
       enableCorpGateway = lib.mkOption {
         type = lib.types.bool;
-        default = hostType == "work";
+        default = enableCorpGateway;
         description = "Include corporate gateway profiles and provision their credentials";
       };
     };

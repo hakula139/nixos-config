@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  hostType,
   modelCatalog,
   repoLib,
   secretPath,
@@ -37,7 +36,6 @@ let
       config
       pkgs
       lib
-      hostType
       secretPath
       mcpFlag
       ;
@@ -106,7 +104,7 @@ in
           lib.concatLists (
             lib.mapAttrsToList (
               id: model:
-              map (name: lib.nameValuePair name model.name) ([ id ] ++ builtins.attrValues model.gatewayId)
+              map (name: lib.nameValuePair name model.name) ([ id ] ++ builtins.attrValues model.channelId)
             ) modelCatalog.models
           )
         );

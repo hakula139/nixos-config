@@ -158,17 +158,11 @@ The failures in sections 3.1 and 3.2 led to rewriting eligible prose directly, w
 
 ## 5. Coverage and limits
 
-Claude Code's generated Claude-family profiles set `extraEnv.PROSE_POLISH_ENABLED` to `"true"`. GPT and local profiles leave it unset. Override this value per profile through `extraEnv`. Rewriting runs only when the flag is `true`. The hook applies to Markdown `Write` / `Edit` calls, `AskUserQuestion` questions and option descriptions, and the tool fields listed in [`mcp-fields.json`](../../home/modules/llm-assistants/shared/hooks/prose-polish/mcp-fields.json). That list includes MCP Git commit messages and publishing fields. Prose passed through shell commands and ordinary conversational replies relies on the shared instructions.
+The hook can rewrite prose exposed through supported tool inputs. Ordinary conversational replies and prose embedded in shell commands rely on the shared writing instructions. Passing the fidelity checks in section 4 does not establish writing quality.
 
-Source comments and docstrings receive feedback after writes through `hooks/comment-gate/`. Codex uses this comment review and the shared writing instructions without automatic prose rewriting. OMP and OpenCode do not use these shared hooks.
+The measurements reflect one reviewer's preferences on the sampled Chinese tasks. Each condition has between one and five samples. The frame comparison used five draws per arm and reached $p = 0.049$. The rewrite comparison used one shared draft, so its ranking provides limited evidence about performance on other texts, and the top score should be expected to regress on repeated sampling.
 
-Both hooks invoke the model through `hooks/lib/model-call/`, which calls the gateway over HTTP and falls back to `codex exec`. Claude supplies gateway credentials through its active profile environment. When the Codex corporate gateway is enabled, its hooks use the same configured endpoint, credential file, and CA even if the main session uses the official provider. Codex uses its own authentication for the fallback, so it can run when gateway variables are absent.
-
-The gateway model and Codex fallback follow the Gemini `standard` and GPT `mini` defaults in [`data/llm-models.nix`](../../data/llm-models.nix). The results in section 3.5 apply to the measured models and configurations.
-
-### Measurement limits
-
-There is one reviewer, so the results describe that reviewer's preferences. The frame effect rests on five draws per arm at $p = 0.049$. The rewriter ranking rests on one Chinese draft per model, so the ordering below the top score is not resolved, a 9.0 from one draw should be expected to regress, and the selected model's English rewrite quality remains unmeasured. Sample counts per condition are between 1 and 5 throughout.
+These results apply to the tested models, prompts, and context frames. Later model or hook changes require fresh evaluation to establish their effect on quality. English rewrite quality was not measured.
 
 ## 6. Ruled out
 

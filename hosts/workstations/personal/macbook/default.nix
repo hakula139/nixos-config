@@ -48,11 +48,7 @@
   # Home Manager Overrides
   # ----------------------------------------------------------------------------
   home-manager.users.hakula = {
-    hakula.claude-code.auth = {
-      defaultProfile = "official";
-      enableCorpGateway = true;
-    };
-    hakula.codex.auth.enableCorpGateway = true;
+    hakula.claude-code.auth.defaultProfile = "official";
     hakula.nix.configPath = "/Users/hakula/GitHub/nixos-config";
     hakula.rclone = {
       enable = true;

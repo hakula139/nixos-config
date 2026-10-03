@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  hostType,
   repoLib,
   secretPath,
   ...
@@ -24,7 +23,6 @@ let
       config
       pkgs
       lib
-      hostType
       secretPath
       ;
     inherit (shared) profileDefinitions mkProfileSwitch;

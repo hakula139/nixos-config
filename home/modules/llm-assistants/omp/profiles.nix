@@ -8,7 +8,6 @@
   lib,
   profileDefinitions,
   sharedAgents,
-  hostType,
   secretPath,
   mkProfileSwitch,
 }:
@@ -28,13 +27,13 @@ let
   mkProfile =
     name:
     {
-      gateway,
+      channel,
       roles,
       workloads,
       ...
     }:
     let
-      provider = if gateway == null then "openai-codex" else name;
+      provider = if channel == null then "openai-codex" else name;
       mkRole = workload: "${provider}/${workload.modelId}:${workload.effort}";
     in
     {
@@ -60,9 +59,10 @@ let
     inherit (cfg) enableCorpGateway;
     nativeFamily = "gpt";
     providers = [ "corp-gateway" ];
-    gateways = [
+    channels = [
       "anthropic"
       "openai"
+      "google"
       "local"
     ];
   };
@@ -107,8 +107,8 @@ in
   # Module options
   # ----------------------------------------------------------------------------
   options = profileDefinitions.mkOptions {
-    inherit hostType;
-    defaultProfile = if cfg.enableCorpGateway then "corp-gateway-openai" else "official";
+    defaultProfile = if cfg.enableCorpGateway then "corp-gateway-anthropic" else "official";
+    enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
   };
 
   # ----------------------------------------------------------------------------

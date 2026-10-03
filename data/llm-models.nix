@@ -26,26 +26,6 @@ let
     };
   };
 
-  geminiCommon = {
-    contextWindow = 1048576;
-    maxTokens = 65536;
-    input = [
-      "text"
-      "image"
-    ];
-    reasoning = true;
-    thinking = {
-      mode = "effort";
-      efforts = [
-        "low"
-        "medium"
-        "high"
-      ];
-      defaultLevel = "medium";
-      requiresEffort = true;
-    };
-  };
-
   gptCommon = {
     contextWindow = 1050000;
     maxTokens = 128000;
@@ -68,6 +48,27 @@ let
     };
   };
 
+  geminiCommon = {
+    contextWindow = 1048576;
+    maxTokens = 65536;
+    autoCompactTokens = 400000;
+    input = [
+      "text"
+      "image"
+    ];
+    reasoning = true;
+    thinking = {
+      mode = "effort";
+      efforts = [
+        "low"
+        "medium"
+        "high"
+      ];
+      defaultLevel = "medium";
+      requiresEffort = true;
+    };
+  };
+
   localCommon = {
     input = [
       "text"
@@ -84,7 +85,7 @@ let
       defaultLevel = "high";
       requiresEffort = true;
     };
-    gatewayCost.local = {
+    channelCost.local = {
       input = 0;
       output = 0;
       cacheRead = 0;
@@ -100,14 +101,15 @@ in
       # Use Sonnet for lightweight coding tasks because Haiku falls below our quality baseline.
       mini = "claude-sonnet-5-5";
     };
-    gemini = {
-      flagship = "gemini-3.1-pro-preview";
-      standard = "gemini-3.8-flash";
-    };
     gpt = {
       flagship = "gpt-6-astra";
       standard = "gpt-6.1-sol";
       mini = "gpt-6-luna";
+    };
+    gemini = {
+      flagship = "gemini-4-argon";
+      standard = "gemini-4-argon";
+      mini = "gemini-3.8-flash";
     };
     local = {
       flagship = "kimi-k3";
@@ -124,8 +126,8 @@ in
         defaultLevel = "medium";
         requiresEffort = true;
       };
-      gatewayId.anthropic = "openrouter/anthropic/claude-opus-5.5";
-      gatewayCost.anthropic = {
+      channelId.anthropic = "openrouter/anthropic/claude-opus-5.5";
+      channelCost.anthropic = {
         input = 4.0;
         output = 20.0;
         cacheRead = 0.2;
@@ -138,8 +140,8 @@ in
       thinking = claudeAdaptiveCommon.thinking // {
         defaultLevel = "low";
       };
-      gatewayId.anthropic = "bedrock/global.anthropic.claude-sonnet-5-5";
-      gatewayCost.anthropic = {
+      channelId.anthropic = "bedrock/global.anthropic.claude-sonnet-5-5";
+      channelCost.anthropic = {
         input = 2.0;
         output = 10.0;
         cacheRead = 0.2;
@@ -168,8 +170,8 @@ in
         ];
         defaultLevel = "high";
       };
-      gatewayId.anthropic = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
-      gatewayCost.anthropic = {
+      channelId.anthropic = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
+      channelCost.anthropic = {
         input = 1.0;
         output = 5.0;
         cacheRead = 0.1;
@@ -177,32 +179,10 @@ in
       };
     };
 
-    "gemini-3.1-pro-preview" = geminiCommon // {
-      name = "Gemini 3.1 Pro Preview";
-      gatewayId.openrouter = "openrouter/google/gemini-3.1-pro-preview";
-      gatewayCost.openrouter = {
-        input = 2.0;
-        output = 12.0;
-        cacheRead = 0.2;
-        cacheWrite = 0.375;
-      };
-    };
-
-    "gemini-3.8-flash" = geminiCommon // {
-      name = "Gemini 3.8 Flash";
-      gatewayId.openrouter = "openrouter/google/gemini-3.8-flash";
-      gatewayCost.openrouter = {
-        input = 0.75;
-        output = 3.75;
-        cacheRead = 0.075;
-        cacheWrite = 0.0416666666666667;
-      };
-    };
-
     "gpt-6-astra" = gptCommon // {
       name = "GPT-6 Astra";
-      gatewayId.openai = "openai/gpt-6-astra";
-      gatewayCost.openai = {
+      channelId.openai = "openai/gpt-6-astra";
+      channelCost.openai = {
         input = 10.0;
         output = 50.0;
         cacheRead = 1.0;
@@ -212,8 +192,8 @@ in
 
     "gpt-6.1-sol" = gptCommon // {
       name = "GPT-6.1 Sol";
-      gatewayId.openai = "openai/gpt-6.1-sol";
-      gatewayCost.openai = {
+      channelId.openai = "openai/gpt-6.1-sol";
+      channelCost.openai = {
         input = 2.0;
         output = 10.0;
         cacheRead = 0.1;
@@ -226,12 +206,36 @@ in
       thinking = gptCommon.thinking // {
         defaultLevel = "low";
       };
-      gatewayId.openai = "openai/gpt-6-luna";
-      gatewayCost.openai = {
+      channelId.openai = "openai/gpt-6-luna";
+      channelCost.openai = {
         input = 0.1;
         output = 0.5;
         cacheRead = 0.01;
         cacheWrite = 0.125;
+      };
+    };
+
+    "gemini-4-argon" = geminiCommon // {
+      name = "Gemini 4 Argon";
+      maxTokens = 1000000;
+      # Argon's routing ID, reasoning levels and cache-write cost await OpenRouter metadata.
+      channelId.google = "openrouter/google/gemini-4-argon";
+      channelCost.google = {
+        input = 2.0;
+        output = 10.0;
+        cacheRead = 0.1;
+        cacheWrite = 0;
+      };
+    };
+
+    "gemini-3.8-flash" = geminiCommon // {
+      name = "Gemini 3.8 Flash";
+      channelId.google = "openrouter/google/gemini-3.8-flash";
+      channelCost.google = {
+        input = 0.75;
+        output = 3.75;
+        cacheRead = 0.075;
+        cacheWrite = 0.0416666666666667;
       };
     };
 
@@ -240,7 +244,7 @@ in
       contextWindow = 400000;
       maxTokens = 65536;
       autoCompactTokens = 320000;
-      gatewayId.local = "Kimi-K3";
+      channelId.local = "Kimi-K3";
     };
 
     "glm-5.3" = localCommon // {
@@ -249,7 +253,7 @@ in
       maxTokens = 131072;
       autoCompactTokens = 320000;
       input = [ "text" ];
-      gatewayId.local = "GLM-5.3";
+      channelId.local = "GLM-5.3";
     };
 
     "glm-5.3-flash" = localCommon // {
@@ -260,7 +264,7 @@ in
       thinking = localCommon.thinking // {
         defaultLevel = "low";
       };
-      gatewayId.local = "GLM-5.3-Flash";
+      channelId.local = "GLM-5.3-Flash";
     };
   };
 }

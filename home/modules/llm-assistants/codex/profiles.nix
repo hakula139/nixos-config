@@ -9,7 +9,6 @@
   profileDefinitions,
   sharedAgents,
   enabledAgents,
-  hostType,
   secretPath,
   configDir,
   mkProfileSwitch,
@@ -47,7 +46,7 @@ let
     _: profile:
     {
       model = profile.roles.default.modelId;
-      model_provider = if profile.gateway == null then "openai" else "corp-gateway";
+      model_provider = if profile.channel == null then "openai" else "corp-gateway";
       model_reasoning_effort = profile.roles.default.effort;
       plan_mode_reasoning_effort = profile.roles.plan.effort;
       agents = {
@@ -57,7 +56,7 @@ let
       // mkAgents profile.workloads;
       web_search = if profile.nativeWebSearch then "live" else "disabled";
     }
-    // lib.optionalAttrs (profile.gateway != null) {
+    // lib.optionalAttrs (profile.channel != null) {
       model_catalog_json = toString (mkModelCatalog profile);
     }
     // lib.optionalAttrs (profile.family == "gpt") {
@@ -72,7 +71,7 @@ let
       inherit (cfg) enableCorpGateway;
       nativeFamily = "gpt";
       providers = [ "corp-gateway" ];
-      gateways = [
+      channels = [
         "openai"
         "local"
       ];
@@ -103,8 +102,8 @@ in
   # Module options
   # ----------------------------------------------------------------------------
   options = profileDefinitions.mkOptions {
-    inherit hostType;
     defaultProfile = "official";
+    enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
   };
 
   # ----------------------------------------------------------------------------
