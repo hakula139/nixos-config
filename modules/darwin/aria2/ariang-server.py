@@ -74,6 +74,11 @@ class Handler(SimpleHTTPRequestHandler):
         if self.allowed_host():
             super().do_HEAD()
 
+    def send_head(self):
+        # Nix store timestamps do not distinguish rebuilt frontend assets.
+        del self.headers['If-Modified-Since']
+        return super().send_head()
+
     def translate_path(self, path):
         relative = unquote(urlsplit(path).path).lstrip('/')
         target = (Path(self.directory) / relative).resolve()
