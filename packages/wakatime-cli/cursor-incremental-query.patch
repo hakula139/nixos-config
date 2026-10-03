@@ -1,0 +1,78 @@
+From 06c182d2ac125796633593265b99ad4f9f055fc7 Mon Sep 17 00:00:00 2001
+From: Hakula Chen <i@hakula.xyz>
+Date: Sat, 3 Oct 2026 17:28:26 +0800
+Subject: [PATCH] fix(cursor): project historical rows before loading activity
+
+Keep recent activity intact and retain only the historical fields needed for project, model, and token context. Exclude old tool results before joining file contents. Materialize the projection to avoid repeating JSON work for each selected field.
+
+Upstream issue: https://github.com/wakatime/wakatime-cli/issues/1610
+
+Remove this patch when the pinned upstream release includes the fix.
+---
+ pkg/ai/cursor.go | 30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
+
+diff --git a/pkg/ai/cursor.go b/pkg/ai/cursor.go
+index 019afa7..b5c2327 100644
+--- a/pkg/ai/cursor.go
++++ b/pkg/ai/cursor.go
+@@ -358,7 +358,7 @@ func (Cursor) openDB(dbPath string) (*sql.DB, error) {
+ 	return db, nil
+ }
+ 
+-func (Cursor) queryRows(ctx context.Context, db *sql.DB, dbPath string) ([]cursorLogRow, error) {
++func (g Cursor) queryRows(ctx context.Context, db *sql.DB, dbPath string) ([]cursorLogRow, error) {
+ 	rows, err := db.QueryContext(ctx, `
+ WITH recentCursorRows AS (
+ 	SELECT key, CAST(value AS TEXT) AS value
+@@ -367,6 +367,30 @@ WITH recentCursorRows AS (
+ 	ORDER BY rowid DESC
+ 	LIMIT ?
+ ),
++contextCursorRows AS MATERIALIZED (
++	SELECT key,
++		CASE
++			WHEN unixepoch(json_extract(value, '$.createdAt')) >= ? THEN value
++			ELSE (
++				SELECT json_group_object(key, CASE
++					WHEN key = 'text' THEN ''
++					WHEN key = 'toolFormerData' AND type = 'object' THEN json_object(
++						'name', json_extract(value, '$.name'),
++						'status', json_extract(value, '$.status'),
++						'params', json_extract(value, '$.params'),
++						'rawArgs', json_extract(value, '$.rawArgs')
++					)
++					WHEN type IN ('array', 'object') THEN json(value)
++					ELSE value
++				END)
++				FROM json_each(recentCursorRows.value)
++				WHERE lower(key) LIKE '%model%'
++				   OR key IN ('createdAt', 'text', 'tokenCount', 'usage', 'toolFormerData', 'codeBlocks')
++			)
++		END AS value
++	FROM recentCursorRows
++	WHERE json_valid(value)
++),
+ filteredCursorRows AS (
+ 	SELECT
+ 		key,
+@@ -385,7 +409,7 @@ filteredCursorRows AS (
+ 				'$.afterContentId'
+ 			)
+ 		END AS afterContentId
+-	FROM recentCursorRows
++	FROM contextCursorRows
+ 	WHERE json_valid(value)
+ 	  AND (
+ 	    (
+@@ -419,7 +443,7 @@ FROM filteredCursorRows AS row
+ LEFT JOIN cursorDiskKV AS beforeContent ON beforeContent.key = row.beforeContentId
+ LEFT JOIN cursorDiskKV AS afterContent ON afterContent.key = row.afterContentId
+ ORDER BY json_extract(row.value, '$.createdAt') ASC;
+-`, cursorRecentBubbleRowLimit)
++`, cursorRecentBubbleRowLimit, g.bufferedCutoff().Unix())
+ 	if err != nil {
+ 		return nil, fmt.Errorf("failed querying cursor sqlite db %q: %s", dbPath, err)
+ 	}
+-- 
+2.54.0
