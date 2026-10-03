@@ -45,6 +45,7 @@
       "tencent-meeting"
       "tor-browser"
       "warp"
+      "whatpulse/whatpulse/whatpulse_chmodbpf"
       "whatpulse/whatpulse/whatpulse"
     ];
 
