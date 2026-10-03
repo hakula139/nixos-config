@@ -28,7 +28,7 @@ in
     # Secrets
     # --------------------------------------------------------------------------
     age.secrets.aria2-rpc-secret = repoLib.secrets.mkSecret {
-      name = "cloudreve/aria2-rpc-secret";
+      name = "aria2/rpc-secret-cloudreve";
       owner = "aria2";
       group = "aria2";
     };
@@ -40,6 +40,9 @@ in
       enable = true;
       rpcSecretFile = config.age.secrets.aria2-rpc-secret.path;
       serviceUMask = "0002";
+      settings = lib.mapAttrs (_: lib.mkDefault) (
+        repoLib.aria2.downloadSettings // repoLib.aria2.rpcSettings
+      );
     };
   };
 }
