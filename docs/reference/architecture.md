@@ -40,6 +40,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   └── system-manager.nix      # Runtime PATH entries provisioned by system-manager activation
 ├── lib/                        # Pure helpers and framework code
 │   ├── default.nix             # Repository helper namespace exposed as repoLib
+│   ├── aria2.nix               # Shared aria2 download and RPC settings
 │   ├── builders.nix            # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL
 │   ├── overlays.nix            # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, custom packages)
 │   ├── packages.nix            # Base and font package groups for each package set
