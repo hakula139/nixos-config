@@ -1,0 +1,52 @@
+From 37f987a2340874696105598f937c09ada3ee0eff Mon Sep 17 00:00:00 2001
+From: Hakula Chen <i@hakula.xyz>
+Date: Sat, 3 Oct 2026 17:33:59 +0800
+Subject: [PATCH] fix(codex): scan all requested transcript activity
+
+Upstream issue: https://github.com/wakatime/wakatime-cli/issues/1609
+
+Remove this patch when the pinned upstream release includes the fix.
+---
+ pkg/ai/codex.go | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
+
+diff --git a/pkg/ai/codex.go b/pkg/ai/codex.go
+index 791f1ca..bb61f57 100644
+--- a/pkg/ai/codex.go
++++ b/pkg/ai/codex.go
+@@ -332,25 +332,21 @@ func codexScanner(fh *os.File, transcript string) (*bufio.Scanner, error) {
+ 		return nil, fmt.Errorf("failed to stat codex transcript %q: %s", transcript, err)
+ 	}
+ 
+-	skipFirstLine := false
+-
+-	if info.Size() > maxTranscriptLineSize {
+-		if _, err := fh.Seek(info.Size()-maxTranscriptLineSize, 0); err != nil {
+-			return nil, fmt.Errorf("failed to seek codex transcript %q: %s", transcript, err)
+-		}
+-
+-		skipFirstLine = true
+-	}
+-
+ 	scanner := bufio.NewScanner(fh)
+ 	scanner.Buffer(make([]byte, 0, 64*1024), maxTranscriptLineSize)
+ 
+-	if skipFirstLine {
++	if info.Size() > maxTranscriptLineSize {
+ 		scanner.Scan()
+-
+ 		if err := scanner.Err(); err != nil {
+ 			return nil, fmt.Errorf("failed to read codex transcript %q: %s", transcript, err)
+ 		}
++
++		if _, err := fh.Seek(0, 0); err != nil {
++			return nil, fmt.Errorf("failed to rewind codex transcript %q: %s", transcript, err)
++		}
++
++		scanner = bufio.NewScanner(fh)
++		scanner.Buffer(make([]byte, 0, 64*1024), maxTranscriptLineSize)
+ 	}
+ 
+ 	return scanner, nil
+-- 
+2.54.0
