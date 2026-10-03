@@ -1,0 +1,55 @@
+From f721a50dc660ddbce390a0f9aafcf1b10c8531e4 Mon Sep 17 00:00:00 2001
+From: Hakula Chen <i@hakula.xyz>
+Date: Sat, 3 Oct 2026 17:26:47 +0800
+Subject: [PATCH] fix(codex): follow working directory changes between turns
+
+Use each turn context working directory for subsequent relative patch paths and project attribution.
+
+Upstream issue: https://github.com/wakatime/wakatime-cli/issues/1608
+
+Remove this patch once the upstream fix is included.
+---
+ pkg/ai/codex.go | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/pkg/ai/codex.go b/pkg/ai/codex.go
+index f372997..80e7aac 100644
+--- a/pkg/ai/codex.go
++++ b/pkg/ai/codex.go
+@@ -311,7 +311,7 @@ func (g Codex) parseTranscript(ctx context.Context, transcript string) (Heartbea
+ 			return nil, ctx.Err()
+ 		}
+ 
+-		g.handleTranscriptLine(logger, transcript, scanner.Bytes(), session, &state)
++		g.handleTranscriptLine(logger, transcript, scanner.Bytes(), &session, &state)
+ 	}
+ 
+ 	if err := scanner.Err(); err != nil {
+@@ -386,7 +386,7 @@ func (g Codex) handleTranscriptLine(
+ 	logger *log.Logger,
+ 	transcript string,
+ 	line []byte,
+-	session codexSessionState,
++	session *codexSessionState,
+ 	state *codexParseState,
+ ) {
+ 	if len(line) == 0 {
+@@ -413,11 +413,15 @@ func (g Codex) handleTranscriptLine(
+ 		return
+ 	}
+ 
++	if logLine.Type == "turn_context" && logLine.Payload != nil && logLine.Payload.Cwd != nil {
++		session.cwd = *logLine.Payload.Cwd
++	}
++
+ 	state.trackSubscriptionPlan(logLine)
+ 	state.trackModel(logLine)
+ 	state.trackUserMessage(logLine)
+ 
+-	if patchHeartbeats, handled := g.handlePendingPatch(logLine, session, state); handled {
++	if patchHeartbeats, handled := g.handlePendingPatch(logLine, *session, state); handled {
+ 		if !logLine.Timestamp.IsZero() && timestampAtOrAfterCutoff(logLine.Timestamp, g.After) {
+ 			state.heartbeats = append(state.heartbeats, patchHeartbeats...)
+ 		}
+-- 
+2.54.0

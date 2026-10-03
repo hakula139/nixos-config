@@ -1,0 +1,144 @@
+From bad6327f7574ace72b6e7c90d64334d78bde4bf4 Mon Sep 17 00:00:00 2001
+From: Hakula Chen <i@hakula.xyz>
+Date: Sat, 3 Oct 2026 17:26:29 +0800
+Subject: [PATCH] fix(codex): exclude guardians and inherit parent editor
+ metadata
+
+Track parent session metadata to identify spawned workers and exclude automated guardian reviews.
+
+Upstream issue: https://github.com/wakatime/wakatime-cli/issues/1607
+
+Remove this patch once the upstream fix is included.
+---
+ pkg/ai/codex.go | 42 +++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 35 insertions(+), 7 deletions(-)
+
+diff --git a/pkg/ai/codex.go b/pkg/ai/codex.go
+index 791f1ca..f372997 100644
+--- a/pkg/ai/codex.go
++++ b/pkg/ai/codex.go
+@@ -28,6 +28,7 @@ type (
+ 		version  string
+ 		parentID string
+ 		created  time.Time
++		guardian bool
+ 	}
+ 
+ 	codexParseState struct {
+@@ -60,11 +61,12 @@ type (
+ 		Type      string    `json:"type"`
+ 		Timestamp time.Time `json:"timestamp"`
+ 		Payload   *struct {
+-			ID           *string         `json:"id"`
+-			Cwd          *string         `json:"cwd"`
+-			Source       json.RawMessage `json:"source"`
+-			ForkedFromID string          `json:"forked_from_id"`
+-			Version      *string         `json:"cli_version"`
++			ID             *string         `json:"id"`
++			Cwd            *string         `json:"cwd"`
++			Source         json.RawMessage `json:"source"`
++			ForkedFromID   string          `json:"forked_from_id"`
++			ParentThreadID string          `json:"parent_thread_id"`
++			Version        *string         `json:"cli_version"`
+ 		} `json:"payload"`
+ 	}
+ 
+@@ -124,10 +126,12 @@ type (
+ )
+ 
+ type codexSeenUsageKey struct{}
++type codexSessionsKey struct{}
+ 
+ // Parse parses the Codex JSONL session transcript logs for ai heartbeats.
+ func (g Codex) Parse(ctx context.Context) (Heartbeats, error) {
+ 	ctx = context.WithValue(ctx, codexSeenUsageKey{}, make(map[string]bool))
++	ctx = context.WithValue(ctx, codexSessionsKey{}, make(map[string]codexSessionState))
+ 	logger := log.Extract(ctx)
+ 
+ 	transcripts, err := g.transcriptPaths(ctx)
+@@ -184,6 +188,7 @@ func (g Codex) transcriptPaths(ctx context.Context) ([]string, error) {
+ 	var paths []string
+ 
+ 	seen := make(map[string]bool)
++	sessions, _ := ctx.Value(codexSessionsKey{}).(map[string]codexSessionState)
+ 
+ 	for _, root := range roots {
+ 		for _, dir := range []string{"sessions", "archived_sessions"} {
+@@ -202,7 +207,7 @@ func (g Codex) transcriptPaths(ctx context.Context) ([]string, error) {
+ 				}
+ 
+ 				info, err := entry.Info()
+-				if err != nil || !timestampAtOrAfterCutoff(info.ModTime(), g.After) {
++				if err != nil {
+ 					return nil
+ 				}
+ 
+@@ -210,6 +215,10 @@ func (g Codex) transcriptPaths(ctx context.Context) ([]string, error) {
+ 
+ 				file, err := os.Open(filepath.Clean(path)) // nolint:gosec
+ 				if err != nil {
++					if !timestampAtOrAfterCutoff(info.ModTime(), g.After) {
++						return nil
++					}
++
+ 					return err
+ 				}
+ 
+@@ -218,6 +227,13 @@ func (g Codex) transcriptPaths(ctx context.Context) ([]string, error) {
+ 
+ 				if err == nil && meta.id != "" {
+ 					id = meta.id
++					if sessions != nil {
++						sessions[id] = meta
++					}
++				}
++
++				if meta.guardian || !timestampAtOrAfterCutoff(info.ModTime(), g.After) {
++					return nil
+ 				}
+ 
+ 				if !seen[id] {
+@@ -270,6 +286,16 @@ func (g Codex) parseTranscript(ctx context.Context, transcript string) (Heartbea
+ 		return nil, err
+ 	}
+ 
++	sessions, _ := ctx.Value(codexSessionsKey{}).(map[string]codexSessionState)
++	visited := map[string]bool{session.id: true}
++	for parentID := session.parentID; parentID != "" && !visited[parentID]; {
++		visited[parentID] = true
++		parent := sessions[parentID]
++		session.source = firstNonEmptyString(session.source, parent.source)
++		session.version = firstNonEmptyString(session.version, parent.version)
++		parentID = parent.parentID
++	}
++
+ 	scanner, err := codexScanner(fh, transcript)
+ 	if err != nil {
+ 		return nil, err
+@@ -651,7 +677,7 @@ func (Codex) updateSessionInfo(state *codexSessionState, sessionMeta *codexSessi
+ 		state.version = *sessionMeta.Payload.Version
+ 	}
+ 
+-	state.parentID = sessionMeta.Payload.ForkedFromID
++	state.parentID = firstNonEmptyString(sessionMeta.Payload.ForkedFromID, sessionMeta.Payload.ParentThreadID)
+ 	state.created = sessionMeta.Timestamp
+ 
+ 	var source string
+@@ -660,6 +686,7 @@ func (Codex) updateSessionInfo(state *codexSessionState, sessionMeta *codexSessi
+ 	} else {
+ 		var nested struct {
+ 			Subagent struct {
++				Other       string `json:"other"`
+ 				ThreadSpawn struct {
+ 					ParentThreadID string `json:"parent_thread_id"`
+ 				} `json:"thread_spawn"`
+@@ -667,6 +694,7 @@ func (Codex) updateSessionInfo(state *codexSessionState, sessionMeta *codexSessi
+ 		}
+ 		if json.Unmarshal(sessionMeta.Payload.Source, &nested) == nil {
+ 			state.parentID = firstNonEmptyString(state.parentID, nested.Subagent.ThreadSpawn.ParentThreadID)
++			state.guardian = nested.Subagent.Other == "guardian"
+ 		}
+ 	}
+ }
+-- 
+2.54.0
