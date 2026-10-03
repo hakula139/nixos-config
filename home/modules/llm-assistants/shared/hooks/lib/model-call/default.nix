@@ -23,7 +23,7 @@
       codexModel = modelCatalog.defaults.gpt.mini;
       codexTimeout = timeouts.modelCall;
       curl = lib.getExe pkgs.curl;
-      gatewayModel = modelCatalog.models.${modelCatalog.defaults.gemini.mini}.gatewayId.gemini;
+      gatewayModel = modelCatalog.models.${modelCatalog.defaults.gemini.mini}.channelId.google;
       gatewayTimeout = timeouts.modelCall;
       timeout = lib.getExe' pkgs.coreutils "timeout";
     };

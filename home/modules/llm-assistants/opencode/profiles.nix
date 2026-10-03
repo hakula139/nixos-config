@@ -48,7 +48,7 @@ let
   mkModels =
     api:
     {
-      gateway,
+      channel,
       models,
       modelIds,
       ...
@@ -69,11 +69,11 @@ let
         options = mkReasoningOptions api model model.thinking.defaultLevel;
         variants = lib.genAttrs model.thinking.efforts (mkReasoningOptions api model);
       }
-      // lib.optionalAttrs (gateway != null) {
+      // lib.optionalAttrs (channel != null) {
         cost = {
-          inherit (model.gatewayCost.${gateway}) input output;
-          cache_read = model.gatewayCost.${gateway}.cacheRead;
-          cache_write = model.gatewayCost.${gateway}.cacheWrite;
+          inherit (model.channelCost.${channel}) input output;
+          cache_read = model.channelCost.${channel}.cacheRead;
+          cache_write = model.channelCost.${channel}.cacheWrite;
         };
       };
     }) models;
@@ -85,7 +85,7 @@ let
     name:
     profile@{
       family,
-      gateway,
+      channel,
       roles,
       workloads,
       ...
@@ -109,9 +109,9 @@ let
 
       # Provider IDs persist in sessions independently of profile filenames.
       provider =
-        if gateway == null then
+        if channel == null then
           sdk.name
-        else if gateway == "openai" then
+        else if channel == "openai" then
           "corp-gateway"
         else
           name;
@@ -136,7 +136,7 @@ let
       provider.${provider} = {
         models = mkModels api profile;
       }
-      // lib.optionalAttrs (gateway != null) {
+      // lib.optionalAttrs (channel != null) {
         npm = "@ai-sdk/${sdk.name}";
         options = {
           inherit (sdk) baseURL;
@@ -153,10 +153,10 @@ let
       inherit (cfg) enableCorpGateway;
       nativeFamily = "gpt";
       providers = [ "corp-gateway" ];
-      gateways = [
+      channels = [
         "anthropic"
         "openai"
-        "gemini"
+        "google"
         "local"
       ];
     }

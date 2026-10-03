@@ -13,7 +13,7 @@
 let
   inherit (profileDefinitions) familyApis providers;
 
-  mkModel = gateway: model: {
+  mkModel = channel: model: {
     inherit (model)
       name
       contextWindow
@@ -22,8 +22,8 @@ let
       reasoning
       thinking
       ;
-    id = model.gatewayId.${gateway};
-    cost = model.gatewayCost.${gateway};
+    id = model.channelId.${channel};
+    cost = model.channelCost.${channel};
   };
 
   mkProvider =
@@ -38,12 +38,12 @@ let
       auth = "apiKey";
       apiKey = "!${lib.getExe' pkgs.coreutils "cat"} ${lib.escapeShellArg (secretPath provider.tokenSecret)}";
       authHeader = true;
-      models = map (mkModel profile.gateway) (lib.unique (builtins.attrValues profile.models));
+      models = map (mkModel profile.channel) (lib.unique (builtins.attrValues profile.models));
     }
     // lib.optionalAttrs (profile.family == "claude") {
       compat.supportsLongCacheRetention = true;
     }
-    // lib.optionalAttrs (profile.gateway == "local") {
+    // lib.optionalAttrs (profile.channel == "local") {
       modelOverrides."Kimi-K3".compat.supportsImageDetailOriginal = false;
     }
     // lib.optionalAttrs (api == "openai-responses") {
