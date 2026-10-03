@@ -40,6 +40,9 @@ in
       enable = true;
       rpcSecretFile = config.age.secrets.aria2-rpc-secret.path;
       serviceUMask = "0002";
+      settings = lib.mapAttrs (_: lib.mkDefault) (
+        repoLib.aria2.downloadSettings // repoLib.aria2.rpcSettings
+      );
     };
   };
 }

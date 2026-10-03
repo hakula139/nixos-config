@@ -18,9 +18,9 @@ let
   homeConfig = config.home-manager.users.${userName};
   rpcConfig = config.age.secrets.aria2-rpc-config.path;
 
-  downloadArguments = lib.mapAttrsToList (
+  arguments = lib.mapAttrsToList (
     name: value: "--${name}=${if lib.isBool value then lib.boolToString value else toString value}"
-  ) homeConfig.programs.aria2.settings;
+  ) (homeConfig.programs.aria2.settings // repoLib.aria2.rpcSettings);
 
   startScript = pkgs.writeShellScript "aria2-rpc" ''
     set -euo pipefail
@@ -31,9 +31,8 @@ let
     exec ${lib.getExe homeConfig.programs.aria2.package} \
       --conf-path=${esc rpcConfig} \
       --enable-rpc \
-      --rpc-listen-all=false \
       --rpc-allow-origin-all=true \
-      ${lib.escapeShellArgs downloadArguments}
+      ${lib.escapeShellArgs arguments}
   '';
 in
 {
@@ -63,12 +62,9 @@ in
         # ----------------------------------------------------------------------
         programs.aria2 = {
           enable = true;
-          settings = {
-            continue = true;
+          settings = lib.mapAttrs (_: lib.mkDefault) repoLib.aria2.downloadSettings // {
             dir = "${config.home.homeDirectory}/Downloads";
             file-allocation = "none";
-            max-connection-per-server = 4;
-            split = 4;
           };
         };
 
