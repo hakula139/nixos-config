@@ -8,7 +8,7 @@ Track parent session metadata to identify spawned workers and exclude automated 
 
 Upstream issue: https://github.com/wakatime/wakatime-cli/issues/1607
 
-Remove this patch once the upstream fix is included.
+Remove this patch when the pinned upstream release includes the fix.
 ---
  pkg/ai/codex.go | 42 +++++++++++++++++++++++++++++++++++-------
  1 file changed, 35 insertions(+), 7 deletions(-)

@@ -5,7 +5,7 @@ Subject: [PATCH] fix(codex): scan all requested transcript activity
 
 Upstream issue: https://github.com/wakatime/wakatime-cli/issues/1609
 
-Remove this patch when the pinned upstream release scans all requested activity without truncating the transcript to its final 10 MiB.
+Remove this patch when the pinned upstream release includes the fix.
 ---
  pkg/ai/codex.go | 20 ++++++++------------
  1 file changed, 8 insertions(+), 12 deletions(-)

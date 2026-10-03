@@ -7,7 +7,7 @@ Keep recent activity intact and retain only the historical fields needed for pro
 
 Upstream issue: https://github.com/wakatime/wakatime-cli/issues/1610
 
-Drop this patch when the pinned upstream release filters historical payloads before applying the SQLite byte budget.
+Remove this patch when the pinned upstream release includes the fix.
 ---
  pkg/ai/cursor.go | 30 +++++++++++++++++++++++++++---
  1 file changed, 27 insertions(+), 3 deletions(-)

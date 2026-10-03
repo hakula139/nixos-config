@@ -7,7 +7,7 @@ Use each turn context working directory for subsequent relative patch paths and 
 
 Upstream issue: https://github.com/wakatime/wakatime-cli/issues/1608
 
-Remove this patch once the upstream fix is included.
+Remove this patch when the pinned upstream release includes the fix.
 ---
  pkg/ai/codex.go | 10 +++++++---
  1 file changed, 7 insertions(+), 3 deletions(-)
