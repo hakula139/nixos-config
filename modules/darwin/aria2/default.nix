@@ -18,6 +18,9 @@ let
   homeConfig = config.home-manager.users.${userName};
   rpcConfig = config.age.secrets.aria2-rpc-config.path;
 
+  stateDir = "${homeConfig.xdg.stateHome}/aria2";
+  sessionFile = "${stateDir}/session";
+
   arguments = lib.mapAttrsToList (
     name: value: "--${name}=${if lib.isBool value then lib.boolToString value else toString value}"
   ) (homeConfig.programs.aria2.settings // repoLib.aria2.rpcSettings);
@@ -28,14 +31,25 @@ let
     # aria2 ignores unreadable config files and would start RPC without its token.
     [[ -r ${esc rpcConfig} && -s ${esc rpcConfig} ]]
 
+    install -d -m 0700 ${esc stateDir}
+    touch ${esc sessionFile}
+    chmod 0600 ${esc sessionFile}
+
     exec ${lib.getExe homeConfig.programs.aria2.package} \
       --conf-path=${esc rpcConfig} \
       --enable-rpc \
       --rpc-allow-origin-all=true \
+      --input-file=${esc sessionFile} \
+      --save-session=${esc sessionFile} \
+      --save-session-interval=60 \
       ${lib.escapeShellArgs arguments}
   '';
 in
 {
+  imports = [
+    ./ariang.nix
+  ];
+
   # ----------------------------------------------------------------------------
   # Module options
   # ----------------------------------------------------------------------------
@@ -75,6 +89,7 @@ in
           enable = true;
           config = {
             ProgramArguments = [ "${startScript}" ];
+            EnvironmentVariables.PATH = lib.makeBinPath [ pkgs.coreutils ];
             RunAtLoad = true;
             KeepAlive.SuccessfulExit = false;
             ProcessType = "Background";
