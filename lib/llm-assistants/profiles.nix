@@ -18,6 +18,11 @@ let
       flagship = "xhigh";
       mini = "low";
     };
+    gemini = {
+      standard = "medium";
+      flagship = "high";
+      mini = "low";
+    };
     gpt = {
       standard = "medium";
       flagship = "high";
@@ -52,6 +57,13 @@ let
       provider = "corp-gateway";
       gateway = "local";
       family = "local";
+      nativeWebSearch = false;
+    };
+
+    corp-gateway-gemini = {
+      provider = "corp-gateway";
+      gateway = "openrouter";
+      family = "gemini";
       nativeWebSearch = false;
     };
 
@@ -142,6 +154,7 @@ in
   # ----------------------------------------------------------------------------
   familyApis = {
     claude = "anthropic-messages";
+    gemini = "openai-responses";
     gpt = "openai-responses";
     local = "openai-responses";
   };

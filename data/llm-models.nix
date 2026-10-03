@@ -29,6 +29,7 @@ let
   geminiCommon = {
     contextWindow = 1048576;
     maxTokens = 65536;
+    autoCompactTokens = 400000;
     input = [
       "text"
       "image"
@@ -103,6 +104,7 @@ in
     gemini = {
       flagship = "gemini-3.1-pro-preview";
       standard = "gemini-3.8-flash";
+      mini = "gemini-3.8-flash";
     };
     gpt = {
       flagship = "gpt-6-astra";

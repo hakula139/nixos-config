@@ -157,6 +157,7 @@ let
         "anthropic"
         "openai"
         "local"
+        "openrouter"
       ];
     }
   );
@@ -179,7 +180,7 @@ in
   # ----------------------------------------------------------------------------
   options = profileDefinitions.mkOptions {
     inherit hostType;
-    defaultProfile = if cfg.enableCorpGateway then "corp-gateway-openai" else "official";
+    defaultProfile = if cfg.enableCorpGateway then "corp-gateway-anthropic" else "official";
   };
 
   # ----------------------------------------------------------------------------
