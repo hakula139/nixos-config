@@ -186,7 +186,16 @@ in
       nixopt = "nix-store --optimise";
 
       # Git extras
-      gls = "git pull --recurse-submodules && git submodule foreach git lfs pull";
+      gls = ''
+        git pull --no-recurse-submodules &&
+        git submodule sync &&
+        git submodule update --init --checkout &&
+        git submodule foreach --recursive '
+          git submodule sync &&
+          git submodule update --init --checkout &&
+          git lfs pull
+        '
+      '';
 
       # Podman Compose
       pcup = "podman-compose up";
