@@ -81,6 +81,12 @@ in
       description = "Whether to install the LLM assistants and their defaults";
     };
 
+    auth.enableCorpGateway = lib.mkOption {
+      type = lib.types.bool;
+      default = hostType == "work";
+      description = "Include corporate gateway profiles and provision their credentials";
+    };
+
     mcp = {
       disabledServers = mcpOptions.mkDisabledServersOption {
         description = "MCP servers to disable across all LLM assistants";

@@ -9,7 +9,6 @@
   profileDefinitions,
   sharedAgents,
   enabledAgents,
-  hostType,
   secretPath,
   mkProfileSwitch,
   mcpFlag,
@@ -33,7 +32,7 @@ let
   mkProfile =
     _: profile:
     let
-      aliasModelIds = if profile.gateway == "anthropic" then profile.modelKeys else profile.modelIds;
+      aliasModelIds = if profile.channel == "anthropic" then profile.modelKeys else profile.modelIds;
       extraEnv =
         lib.mapAttrs' (
           tier: alias:
@@ -51,7 +50,7 @@ let
     {
       inherit extraEnv;
       inherit (profile) family nativeWebSearch;
-      modelOverrides = lib.optionalAttrs (profile.gateway == "anthropic") (
+      modelOverrides = lib.optionalAttrs (profile.channel == "anthropic") (
         lib.mapAttrs' (tier: id: lib.nameValuePair profile.modelKeys.${tier} id) profile.modelIds
       );
     }
@@ -93,7 +92,7 @@ let
         "ikuncode"
         "yescode"
       ];
-      gateways = [
+      channels = [
         "anthropic"
         "openai"
         "local"
@@ -344,8 +343,8 @@ in
   # ----------------------------------------------------------------------------
   options =
     profileDefinitions.mkOptions {
-      inherit hostType;
       defaultProfile = "official";
+      enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
     }
     // {
 

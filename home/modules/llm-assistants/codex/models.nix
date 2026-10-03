@@ -48,7 +48,7 @@ let
       lib.imap0
         (priority: model: {
           inherit priority;
-          slug = model.gatewayId.${profile.gateway};
+          slug = model.channelId.${profile.channel};
           display_name = model.name;
           description = "${model.name} via the corporate gateway";
           default_reasoning_level = model.thinking.defaultLevel;
