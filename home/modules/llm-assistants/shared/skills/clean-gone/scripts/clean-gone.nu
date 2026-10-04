@@ -53,7 +53,9 @@ def worktree-map []: nothing -> record {
   }
   | where {|wt| "branch" in $wt }
   | reduce --fold {} {|wt, acc|
-    $acc | insert ($wt.branch | str replace "refs/heads/" "") $wt.worktree
+    let branch = ($wt.branch | str replace "refs/heads/" "")
+    let paths = ($acc | get -o $branch | default [] | append $wt.worktree)
+    $acc | upsert $branch $paths
   }
 }
 
@@ -150,7 +152,15 @@ def main [
 
   for row in $gone {
     let branch = $row.branch
-    let worktree = ($worktrees | get -o $branch | default "")
+    let paths = ($worktrees | get -o $branch | default [])
+
+    if ($paths | length) > 1 {
+      print $"SKIP ($branch): branch is registered in multiple worktrees"
+      $skipped += 1
+      continue
+    }
+
+    let worktree = ($paths | first | default "")
 
     if $worktree == $repo_root {
       print $"SKIP ($branch): branch is active in the current worktree"
