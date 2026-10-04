@@ -51,7 +51,7 @@ jobs:
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-2.config.system.build.toplevel
             cachix_pins:
-              netdata-cloud-x86_64-linux: .#nixosConfigurations.us-2.pkgs.netdataCloud
+              netdata-cloud-x86_64-linux: .#nixosConfigurations.us-2.config.services.netdata.package
           - id: us-3
             deploy: true
             name: us-3 (x86_64-linux, CloudCone SC2)
