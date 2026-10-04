@@ -13,7 +13,7 @@
 let
   cfg = config.hakula.services.netdata;
 
-  netdataPkg = pkgs.netdataCloud; # with Cloud UI bundled
+  netdataPkg = pkgs.unstable.netdataCloud; # with Cloud UI bundled
 
   systemdCatNative = pkgs.writeShellScriptBin "systemd-cat-native" ''
     tag=""
