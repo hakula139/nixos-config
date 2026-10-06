@@ -76,6 +76,7 @@ in
     config = {
       patchInput = toString patchInput;
       cspell = whenDev pkgs.cspell;
+      direnv = whenDev pkgs.direnv;
       dprint = whenDev pkgs.dprint;
       dprintConfig = whenDevPath dprintConfig;
       markdownlint = whenDev pkgs.markdownlint-cli2;
