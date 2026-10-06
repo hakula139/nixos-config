@@ -138,6 +138,25 @@ def collect-files [input: record, config: record]: nothing -> list<string> {
 def --env format-edited [config: record] {
   let input = (^cat | from json)
   cd $input.cwd
+  if ($config.direnv | is-not-empty) {
+    let exported = (^$config.direnv export json | complete)
+    if $exported.exit_code != 0 {
+      print --no-newline $exported.stderr
+      return
+    }
+    if ($exported.stdout | is-not-empty) {
+      let changes = ($exported.stdout | from json)
+      for name in ($changes | columns) {
+        let value = ($changes | get $name)
+        if $value == null {
+          hide-env --ignore-errors $name
+        } else {
+          load-env { $name: $value }
+        }
+      }
+    }
+  }
+
   for path in (collect-files $input $config) {
     format-file $path $config
   }
