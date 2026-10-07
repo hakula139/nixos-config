@@ -52,7 +52,7 @@ Keep required upstream misspellings in a separate dictionary such as `.cspell/ty
   "dictionaries": ["project-words"],
   "overrides": [
     {
-      "filename": "docs/reference/artifacts/android-1.7.0.json",
+      "filename": "docs/reference/vendor-symbols.json",
       "dictionaries": ["upstream-typos"]
     }
   ]
