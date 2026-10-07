@@ -1,4 +1,4 @@
 interface:
   display_name: "CSpell"
-  short_description: "Review vocabulary and scope upstream typo exceptions"
-  default_prompt: "Use $cspell to diagnose spelling failures and review dictionary additions and upstream typo exceptions."
+  short_description: "Review vocabulary and scope known typo exceptions"
+  default_prompt: "Use $cspell to diagnose spelling failures and review dictionary additions and known typo exceptions."
