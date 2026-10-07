@@ -1,7 +1,8 @@
 ---
 name: read-pdfs
 description: >-
-  Read or review local PDFs with Poppler text extraction and page rendering. Use for PDF summaries, page citations, layout checks, or scanned and garbled documents that need visual inspection.
+  Read or review local PDFs with Poppler text extraction and page rendering. Use for PDF summaries,
+  page citations, layout checks, or scanned and garbled documents that need visual inspection.
 ---
 
 # Read PDFs
@@ -60,7 +61,7 @@ Check that `pdfinfo`, `pdftotext`, and `pdftoppm` are available. This repository
 ## Failure handling
 
 - If `pdftotext` reports an encryption error, ask the user for the password. Do not attempt to bypass document security.
-- If fonts lack usable mappings, use rendered pages. `pdffonts` may show `uni` as `no`; this does not always prevent Poppler from recovering text.
+- If fonts lack usable mappings, use rendered pages. `pdffonts` may show `uni` as `no`. This does not always prevent Poppler from recovering text.
 - If a document is scanned, inspect rendered pages directly. Do not install OCR packages or mutate the environment unless the user asks for OCR support.
 - If only part of a long document is relevant, use `-f` and `-l` with both `pdftotext` and `pdftoppm`.
 - Keep rendered pages and extracted text in a task-specific temporary directory. Remove temporary artifacts after the task when they are no longer useful.

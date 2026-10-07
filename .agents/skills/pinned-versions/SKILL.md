@@ -1,7 +1,9 @@
 ---
 name: pinned-versions
 description: >-
-  Audit or upgrade manually pinned dependencies in nixos-config, including plugin revisions, custom packages, flake release tags, container images, GitHub Actions, runtime packages, and Cloudflare IP ranges. Use for stale dependency sweeps or hash mismatches after version bumps.
+  Audit or upgrade manually pinned dependencies in nixos-config, including plugin revisions, custom
+  packages, flake release tags, container images, GitHub Actions, runtime packages, and Cloudflare
+  IP ranges. Use for stale dependency sweeps or hash mismatches after version bumps.
 ---
 
 # Pinned Versions
