@@ -34,6 +34,7 @@ Project memory holds durable preferences and context that no instruction file al
 Aim for a simple, coherent design that meets current requirements.
 
 - Think from first principles: check the actual constraints before applying a familiar pattern, and treat cached intuitions as starting points.
+- When a requirement is difficult to satisfy cleanly, discuss whether to narrow or revise it before adding complexity.
 - Refactor or extract when doing so clarifies responsibilities, simplifies control flow, or removes duplication. An extraction can be useful before a second caller exists.
 - Build for current needs. Give abstractions concrete responsibilities, and avoid speculative features, configurability, and extension points for hypothetical future uses.
 - Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle failures required by the actual contract. Add guards, retries, or fallbacks only for concrete failure modes, and preserve errors that expose broken assumptions.
