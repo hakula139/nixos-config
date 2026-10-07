@@ -3,32 +3,21 @@
 [![CI](https://github.com/hakula139/nixos-config/actions/workflows/ci.yml/badge.svg)](https://github.com/hakula139/nixos-config/actions/workflows/ci.yml)
 ![WakaTime coding time for nixos-config](https://wakatime.com/badge/user/f4a35a1f-0e29-4093-a647-e66aad164737/project/7afcb821-4d64-4db6-ab32-b0e0ee8a29cb.svg)
 
-Flake-based Nix configuration for Hakula's servers, workstations, and development containers.
-
-One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-NixOS WSL through System Manager, and macOS through nix-darwin), and a NixOS Docker image for dev containers. It covers system configuration, Home Manager, custom packages, and agenix-encrypted secrets.
-
-## Where to look
-
-| Looking for                           | Read                                           |
-| ------------------------------------- | ---------------------------------------------- |
-| Supported hosts and repository layout | [Architecture](docs/reference/architecture.md) |
-| First-time setup                      | [Bootstrap](docs/guides/bootstrap.md)          |
-| Managing secrets                      | [Secrets](docs/guides/secrets.md)              |
-| Changing the configuration            | [Contributor instructions](AGENTS.md)          |
+Personal Nix configuration for NixOS servers, WSL workstations, macOS, and development containers. A shared flake manages system configuration, Home Manager, custom packages, and agenix-encrypted secrets.
 
 ## Applying a configuration
 
-`nixsw` applies the current server or workstation configuration. The Home Manager zsh module substitutes the configured flake output name for `<config>` in these aliases:
+After initial setup, use `nixsw` to apply the local server or workstation configuration. Run it from the repository root in the managed Zsh environment.
 
-| Alias     | NixOS                          | macOS                                                  | Generic Linux (System Manager)                        |
-| --------- | ------------------------------ | ------------------------------------------------------ | ----------------------------------------------------- |
-| `nixsw`   | `nh os switch '.#<config>'`    | `nh darwin switch --show-activation-logs '.#<config>'` | `system-manager switch ...` + post-switch healthcheck |
-| `nixdp`   | `colmena apply`                | same                                                   | same                                                  |
-| `nixlist` | NixOS generation list          | `darwin-rebuild` generations                           | System Manager generation list                        |
-| `nixroll` | `nixos-rebuild` rollback       | `darwin-rebuild` rollback                              | System Manager rollback + reactivate + healthcheck    |
-| `nixup`   | `nix flake update`             | same                                                   | same                                                  |
-| `nixgc`   | `nh clean all --keep-since 3d` | same                                                   | same                                                  |
+Deploy all servers with `nixdp`, or select a host:
 
-Deploy the servers by running `nixdp` from this repository, or target a single host with `nixdp --on us-4`. See [bootstrap](docs/guides/bootstrap.md#nixos-server) for prerequisites and host selection.
+```bash
+nixdp --on us-4
+```
 
-A machine with no managed configuration yet needs the bootstrap steps first, which differ per platform. The `devvm` container has no `nixsw` or `nixroll` alias. Apply its changes by [rebuilding the image](docs/guides/bootstrap.md#docker-image) and recreating the container.
+## Documentation
+
+- [Bootstrap](docs/guides/bootstrap.md): First-time installation and Docker image builds.
+- [Architecture](docs/reference/architecture.md): Supported hosts and repository layout.
+- [Secrets](docs/guides/secrets.md): Managing encrypted credentials.
+- [Contributor instructions](AGENTS.md): Conventions and verification for configuration changes.
