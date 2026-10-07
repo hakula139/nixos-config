@@ -1,6 +1,7 @@
 ---
 name: cspell
-description: Diagnose spelling failures and maintain CSpell dictionaries and scoped exceptions. Use when adding accepted words, preserving upstream misspellings, or reviewing spelling configuration.
+description: >-
+  Diagnose spelling failures and maintain CSpell dictionaries and scoped exceptions. Use when adding accepted words, preserving upstream misspellings, or reviewing spelling configuration.
 ---
 
 # CSpell
