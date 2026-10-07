@@ -1,7 +1,7 @@
 ---
 name: cspell
 description: >-
-  Diagnose spelling failures and maintain CSpell dictionaries and scoped exceptions. Use when adding accepted words, preserving required misspellings, or reviewing spelling configuration.
+  Diagnose spelling failures and maintain CSpell dictionaries and local exceptions. Use when adding accepted words, preserving required misspellings, or reviewing spelling configuration.
 ---
 
 # CSpell
@@ -35,7 +35,7 @@ Review the complete dictionary diff. Each addition should have a known meaning a
 
 ## Known typo exceptions
 
-Keep required known misspellings in `.cspell/typos.txt`. Define it alongside the accepted-word dictionary, then enable it only for the smallest set of files that needs those literals:
+Keep required known misspellings used across files in `.cspell/typos.txt`. Enable it alongside the accepted-word dictionary so shared contracts do not need a list of per-file overrides. A typo confined to one file can use a local exception directly.
 
 ```json
 {
@@ -50,40 +50,42 @@ Keep required known misspellings in `.cspell/typos.txt`. Define it alongside the
       "path": "./.cspell/typos.txt"
     }
   ],
-  "dictionaries": ["project-words"],
-  "overrides": [
-    {
-      "filename": "docs/reference/vendor-symbols.json",
-      "dictionaries": ["known-typos"]
-    }
-  ]
+  "dictionaries": ["project-words", "known-typos"]
 }
 ```
 
-Adapt the filename to the actual evidence owner. Dictionary paths are relative to the configuration file. Leave `addWords` off the typo dictionary so editor additions continue to target accepted vocabulary. Apply the same sorting and duplicate rules to typo entries.
+Dictionary paths are relative to the configuration file. Leave `addWords` off the typo dictionary so editor additions continue to target accepted vocabulary. Apply the same sorting and duplicate rules to typo entries.
 
-A filename override permits those tokens throughout each matching file. Keep the filename set narrow and review prose in each matched file for accidental uses of the same typo. A typo's origin does not determine whether it belongs in this dictionary. The contract requiring preservation does.
+Prefer the full preserved identifier or path token to its misspelled fragments. Verify the actual occurrence with CSpell because recognition and splitting depend on the token and configuration.
+
+For example, use `legacyrecievevalue` to preserve `legacyRecieveValue` as a whole identifier. Adding only `recieve` would also accept that typo in ordinary prose. <!-- cspell:disable-line -->
+
+If a required cross-file contract is itself a misspelled ordinary word, globally accepting it weakens detection of the same mistake in new prose. Use local exceptions when the word remains confined to one file. Otherwise, preserve the contract and review authored prose for accidental uses. A typo's origin does not determine whether it belongs in this dictionary. The contract and where it is used do.
 
 ## Local exceptions
 
-Choose the smallest scope that covers the actual use. Keep the reason beside an exception when the literal's purpose is otherwise unclear.
+For a literal confined to one file, use a local rule directly. Keep the reason beside an exception when the literal's purpose is otherwise unclear.
 
 - For one line containing an intentional spelling or opaque literal, `cspell:disable-line` suppresses that entire line. Inspect other words on the line before using it. In Markdown, an inline HTML comment keeps the directive out of rendered prose.
-- `cspell:disable-next-line` suppresses the next content line. CSpell 9.7.0 also skips an intervening blank line. Keep the directive adjacent to its target for readability, and verify behavior with the project's pinned version.
+- `cspell:disable-next-line` suppresses the next content line. CSpell 9.7.0 also skips an intervening blank line. Keep the target association clear and preserve blank lines required by the Markdown formatter. Verify behavior with the project's pinned version.
 - `cspell:ignore` permits the listed tokens throughout the file. Use it when those exact tokens need file-wide acceptance and surrounding words should remain checked. A filename override with `ignoreWords` provides the same intended file-level scope through configuration when repeated literals justify central ownership.
-- For repeated known typos in a small set of contract or evidence files, use the separate typo dictionary and narrow overrides above. For recurring legitimate vocabulary across the project, use the accepted-word dictionary.
+- For known typos required across files, use `.cspell/typos.txt` globally. For recurring legitimate vocabulary across the project, use the accepted-word dictionary.
 
 ```markdown
 ### recieve <!-- cspell:disable-line -->
+
+<!-- cspell:disable-next-line -->
+
+`legacyRecieveValue`
 ```
 
 The spelling in this example is intentionally preserved. A line directive also suppresses unrelated mistakes on that line, so prefer a token-level file exception or an exact literal pattern when nearby authored prose still needs checking. A file-level exception allows the same token elsewhere in that file, which also needs review.
 
-Language dictionaries can cover real foreign-language text. Exclusions for generated files, code samples, mathematics, or markup require an ownership reason. Source identifiers under investigation often need spelling checks even inside code spans. Avoid blanket code or comment exclusions, broad directory overrides, whole-document disabling, and patterns that suppress arbitrary identifiers.
+Language dictionaries can cover real foreign-language text. Exclusions for generated files, code samples, mathematics, or markup require an ownership reason. Source identifiers under investigation often need spelling checks even inside code spans. Check which content the spelling check owns before copying broad code or comment exclusions. Keep exclusions tied to that ownership and avoid patterns that suppress arbitrary identifiers.
 
 ## Verify the boundary
 
-Run the affected checks after editing. For a new exception, use disposable fixtures to prove that the required preserved literal passes in its intended scope and the same typo still fails in ordinary authored prose. Also check that a different misspelling still fails inside the exception's scope. Require a nonzero checked-file count for each control.
+Run the affected checks after editing. For a new full-identifier dictionary entry, use disposable fixtures to prove that the preserved identifier passes across files while its misspelled fragment and an unrelated typo still fail in ordinary prose. For a local exception, verify its intended scope and check that unrelated words remain checked. If a globally accepted entry is a misspelled ordinary word, report that it also passes in new prose and review those occurrences manually. Require a nonzero checked-file count for each control.
 
 Review dictionary entries, override matches, and surrounding prose together. A successful check does not validate the meaning of newly accepted words.
 
