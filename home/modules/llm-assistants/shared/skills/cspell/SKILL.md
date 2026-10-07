@@ -35,7 +35,7 @@ Review the complete dictionary diff. Each addition should have a known meaning a
 
 ## Known typo exceptions
 
-Keep required known misspellings in a separate dictionary such as `.cspell/typos.txt`. Define it alongside the accepted-word dictionary, then enable it only for the smallest set of files that needs those literals:
+Keep required known misspellings in `.cspell/typos.txt`. Define it alongside the accepted-word dictionary, then enable it only for the smallest set of files that needs those literals:
 
 ```json
 {
