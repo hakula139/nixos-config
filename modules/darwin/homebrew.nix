@@ -88,11 +88,11 @@ in
     if [ -f ${esc "${config.homebrew.prefix}/bin/brew"} ]; then
       if ! PATH=${esc "${config.homebrew.prefix}/bin:${lib.makeBinPath [ pkgs.mas ]}"}:"$PATH" \
         sudo \
-        --preserve-env=PATH \
-        --user=${esc config.homebrew.user} \
-        --set-home \
-        env \
-        ${config.homebrew.onActivation.brewBundleCmd}; then
+          --preserve-env=PATH \
+          --user=${esc config.homebrew.user} \
+          --set-home \
+          env \
+          ${config.homebrew.onActivation.brewBundleCmd}; then
         printf >&2 '%s\n' \
           'warning: Homebrew bundle failed. Continuing system activation with incomplete Homebrew package changes.'
       fi
