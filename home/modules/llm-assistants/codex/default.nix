@@ -71,6 +71,10 @@ in
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
+      desktop = import ./desktop.nix {
+        homeDir = config.home.homeDirectory;
+      };
+
       hooks = import ./hooks.nix {
         inherit pkgs lib;
         inherit (shared) mkHooks;
@@ -126,27 +130,18 @@ in
       # ------------------------------------------------------------------------
       # Config activation
       # ------------------------------------------------------------------------
-      codexSettings =
-        lib.recursiveUpdate
-          (
-            (import ./settings.nix {
-              inherit
-                hooks
-                mcp
-                notify
-                skills
-                ;
-            })
-            // profiles.settings
-            // plugins.settings
-          )
-          (
-            lib.optionalAttrs pkgs.stdenv.isDarwin (
-              import ./desktop.nix {
-                homeDirectory = config.home.homeDirectory;
-              }
-            )
-          );
+      codexSettings = lib.recursiveUpdate (
+        (import ./settings.nix {
+          inherit
+            hooks
+            mcp
+            notify
+            skills
+            ;
+        })
+        // profiles.settings
+        // plugins.settings
+      ) (lib.optionalAttrs pkgs.stdenv.isDarwin desktop);
 
       activationConfig = json.generate "codex-config-activation.json" {
         configDir = codexConfigDir;
