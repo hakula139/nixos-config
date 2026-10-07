@@ -257,7 +257,7 @@ in
     }
     // lib.optionalAttrs isDarwin {
       # Nix aliases
-      nixsw = "nh darwin switch '.#${flakeConfigName}'";
+      nixsw = "nh darwin switch --show-activation-logs '.#${flakeConfigName}'";
       nixlist = "sudo darwin-rebuild --list-generations";
       nixroll = "sudo darwin-rebuild switch --rollback";
 

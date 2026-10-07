@@ -20,14 +20,14 @@ One flake manages five NixOS servers, three workstations (NixOS under WSL2, non-
 
 `nixsw` applies the current server or workstation configuration. The Home Manager zsh module substitutes the configured flake output name for `<config>` in these aliases:
 
-| Alias     | NixOS                          | macOS                           | Generic Linux (System Manager)                        |
-| --------- | ------------------------------ | ------------------------------- | ----------------------------------------------------- |
-| `nixsw`   | `nh os switch '.#<config>'`    | `nh darwin switch '.#<config>'` | `system-manager switch ...` + post-switch healthcheck |
-| `nixdp`   | `colmena apply`                | same                            | same                                                  |
-| `nixlist` | NixOS generation list          | `darwin-rebuild` generations    | System Manager generation list                        |
-| `nixroll` | `nixos-rebuild` rollback       | `darwin-rebuild` rollback       | System Manager rollback + reactivate + healthcheck    |
-| `nixup`   | `nix flake update`             | same                            | same                                                  |
-| `nixgc`   | `nh clean all --keep-since 3d` | same                            | same                                                  |
+| Alias     | NixOS                          | macOS                                                  | Generic Linux (System Manager)                        |
+| --------- | ------------------------------ | ------------------------------------------------------ | ----------------------------------------------------- |
+| `nixsw`   | `nh os switch '.#<config>'`    | `nh darwin switch --show-activation-logs '.#<config>'` | `system-manager switch ...` + post-switch healthcheck |
+| `nixdp`   | `colmena apply`                | same                                                   | same                                                  |
+| `nixlist` | NixOS generation list          | `darwin-rebuild` generations                           | System Manager generation list                        |
+| `nixroll` | `nixos-rebuild` rollback       | `darwin-rebuild` rollback                              | System Manager rollback + reactivate + healthcheck    |
+| `nixup`   | `nix flake update`             | same                                                   | same                                                  |
+| `nixgc`   | `nh clean all --keep-since 3d` | same                                                   | same                                                  |
 
 Deploy the servers by running `nixdp` from this repository, or target a single host with `nixdp --on us-4`. See [bootstrap](docs/guides/bootstrap.md#nixos-server) for prerequisites and host selection.
 
