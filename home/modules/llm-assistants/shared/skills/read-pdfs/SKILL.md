@@ -1,7 +1,8 @@
 ---
 name: read-pdfs
 description: >-
-  Read or review local PDFs with Poppler text extraction and page rendering. Use for PDF summaries, page citations, layout checks, or scanned and garbled documents that need visual inspection.
+  Read or review local PDFs with Poppler text extraction and page rendering. Use for PDF summaries,
+  page citations, layout checks, or scanned and garbled documents that need visual inspection.
 ---
 
 # Read PDFs

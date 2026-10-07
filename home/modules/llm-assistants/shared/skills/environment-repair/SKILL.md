@@ -1,7 +1,8 @@
 ---
 name: environment-repair
 description: >-
-  Delegate a nixos-config repair when an assistant encounters a concrete tool or environment malfunction, then publish the verified fix through a PR / MR while the main task continues.
+  Delegate a nixos-config repair when an assistant encounters a concrete tool or environment
+  malfunction, then publish the verified fix through a PR / MR while the main task continues.
 ---
 
 # Environment Repair

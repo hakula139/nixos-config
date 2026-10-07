@@ -1,7 +1,9 @@
 ---
 name: pr-review-toolkit
 description: >-
-  Review pull requests, merge requests, branches, commit ranges, or uncommitted changes for bugs, regressions, security risks, error-handling gaps, missing tests, and maintainability issues. Use for code review requests or checking changes before merge.
+  Review pull requests, merge requests, branches, commit ranges, or uncommitted changes for bugs,
+  regressions, security risks, error-handling gaps, missing tests, and maintainability issues. Use
+  for code review requests or checking changes before merge.
 ---
 
 # PR Review Toolkit

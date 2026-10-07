@@ -1,7 +1,9 @@
 ---
 name: peertube-hls-upload
 description: >-
-  Repair existing PeerTube HLS renditions in this repository by transcoding or uploading B2 files, updating playlists and segment hashes, and identifying CDN cache purges. Use when a registered rendition has missing media, failed transcodes, or broken playback.
+  Repair existing PeerTube HLS renditions in this repository by transcoding or uploading B2 files,
+  updating playlists and segment hashes, and identifying CDN cache purges. Use when a registered
+  rendition has missing media, failed transcodes, or broken playback.
 ---
 
 # PeerTube HLS Repair

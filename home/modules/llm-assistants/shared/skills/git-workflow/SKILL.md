@@ -1,7 +1,10 @@
 ---
 name: git-workflow
 description: >-
-  Prepare commits, draft or create and update pull requests or merge requests, push branches, and merge approved requests. Use when completing a logical implementation chunk or performing Git ref creation and publication tasks, including PR titles and descriptions. Skip read-only Git inspection and code review.
+  Prepare commits, draft or create and update pull requests or merge requests, push branches, and
+  merge approved requests. Use when completing a logical implementation chunk or performing Git ref
+  creation and publication tasks, including PR titles and descriptions. Skip read-only Git
+  inspection and code review.
 ---
 
 # Git Workflow
