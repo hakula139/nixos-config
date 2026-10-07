@@ -1,6 +1,7 @@
 ---
 name: browser-debugging
-description: Investigate web UI failures, visual regressions, and browser performance. Use for browser testing, Playwright scripts, screenshots, console or network inspection, and cross-browser reproduction.
+description: >-
+  Investigate web UI failures, visual regressions, and browser performance. Use for browser testing, Playwright scripts, screenshots, console or network inspection, and cross-browser reproduction.
 ---
 
 # Browser Debugging

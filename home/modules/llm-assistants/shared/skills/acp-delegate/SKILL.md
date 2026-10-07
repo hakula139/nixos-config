@@ -1,6 +1,7 @@
 ---
 name: acp-delegate
-description: Delegate a bounded task or consult Claude Code or Codex through ACP, including work in another repository.
+description: >-
+  Delegate a bounded task or consult Claude Code or Codex through ACP, including work in another repository.
 ---
 
 # ACP Delegation
