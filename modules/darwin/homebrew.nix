@@ -3,6 +3,19 @@
 # ==============================================================================
 
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+
+let
+  esc = lib.escapeShellArg;
+in
+{
+  # ----------------------------------------------------------------------------
+  # Homebrew configuration
+  # ----------------------------------------------------------------------------
   homebrew = {
     enable = true;
 
@@ -66,4 +79,30 @@
       Xcode = 497799835;
     };
   };
+
+  # ----------------------------------------------------------------------------
+  # Activation
+  # ----------------------------------------------------------------------------
+  system.activationScripts.homebrew.text = lib.mkForce ''
+    run_homebrew_bundle() {
+      PATH=${esc "${config.homebrew.prefix}/bin:${lib.makeBinPath [ pkgs.mas ]}"}:"$PATH" \
+        sudo \
+          --preserve-env=PATH \
+          --user=${esc config.homebrew.user} \
+          --set-home \
+          env \
+          ${config.homebrew.onActivation.brewBundleCmd}
+    }
+
+    echo >&2 "Homebrew bundle..."
+    if [ -f ${esc "${config.homebrew.prefix}/bin/brew"} ]; then
+      if ! run_homebrew_bundle; then
+        printf >&2 '%s\n' \
+          'warning: Homebrew bundle failed. Continuing system activation with incomplete Homebrew package changes.'
+      fi
+    else
+      printf >&2 '%s\n' \
+        'warning: Homebrew is not installed. Skipping Homebrew package changes.'
+    fi
+  '';
 }
