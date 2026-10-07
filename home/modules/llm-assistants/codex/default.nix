@@ -126,18 +126,27 @@ in
       # ------------------------------------------------------------------------
       # Config activation
       # ------------------------------------------------------------------------
-      codexSettings = lib.recursiveUpdate (
-        (import ./settings.nix {
-          inherit
-            hooks
-            mcp
-            notify
-            skills
-            ;
-        })
-        // profiles.settings
-        // plugins.settings
-      ) (lib.optionalAttrs pkgs.stdenv.isDarwin (import ./desktop.nix));
+      codexSettings =
+        lib.recursiveUpdate
+          (
+            (import ./settings.nix {
+              inherit
+                hooks
+                mcp
+                notify
+                skills
+                ;
+            })
+            // profiles.settings
+            // plugins.settings
+          )
+          (
+            lib.optionalAttrs pkgs.stdenv.isDarwin (
+              import ./desktop.nix {
+                homeDirectory = config.home.homeDirectory;
+              }
+            )
+          );
 
       activationConfig = json.generate "codex-config-activation.json" {
         configDir = codexConfigDir;
