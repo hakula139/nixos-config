@@ -1,7 +1,9 @@
 ---
 name: clean-gone
 description: >-
-  Remove local Git branches with deleted upstreams and integrated commits, including stale linked worktrees. Use when asked to clean up merged branches or worktrees, or when git branch reports gone upstreams. Preserve active, dirty, and unmerged work.
+  Remove local Git branches with deleted upstreams and integrated commits, including stale linked
+  worktrees. Use when asked to clean up merged branches or worktrees, or when git branch reports
+  gone upstreams. Preserve active, dirty, and unmerged work.
 ---
 
 # Clean Gone Branches

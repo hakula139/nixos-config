@@ -1,7 +1,8 @@
 ---
 name: cspell
 description: >-
-  Diagnose spelling failures and maintain CSpell dictionaries and local exceptions. Use when adding accepted words, preserving required misspellings, or reviewing spelling configuration.
+  Diagnose spelling failures and maintain CSpell dictionaries and local exceptions. Use when adding
+  accepted words, preserving required misspellings, or reviewing spelling configuration.
 ---
 
 # CSpell
