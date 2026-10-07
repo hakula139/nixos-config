@@ -25,7 +25,7 @@
     avatar-overlay-pet-visible = false;
     browser-show-full-url = true;
     codeFontSize = 14;
-    composerEnterBehavior = "cmdIfMultiline";
+    composerEnterBehavior = "cmdAlways";
     dock-icon-preference = "codex-system";
     enabled-reasoning-efforts = [
       "low"
@@ -47,6 +47,7 @@
     };
     followUpQueueMode = "steer";
     git-pull-request-merge-method = "squash";
+    hotkey-window-projectless-default-enabled = true;
     keepRemoteControlAwakeWhilePluggedIn = true;
     notifications-sound = "default";
     open-link-in-target-preference = "in-app-browser";
