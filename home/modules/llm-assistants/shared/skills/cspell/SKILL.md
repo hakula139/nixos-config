@@ -6,6 +6,8 @@ description: >-
 
 # CSpell
 
+<!-- cspell:ignore legacyrecievevalue recieve -->
+
 Classify each reported token before changing spelling configuration. A passing check should still catch mistakes in authored prose.
 
 ## Diagnose before accepting a word
@@ -58,7 +60,7 @@ Dictionary paths are relative to the configuration file. Leave `addWords` off th
 
 Prefer the full preserved identifier or path token to its misspelled fragments. Verify the actual occurrence with CSpell because recognition and splitting depend on the token and configuration.
 
-For example, use `legacyrecievevalue` to preserve `legacyRecieveValue` as a whole identifier. Adding only `recieve` would also accept that typo in ordinary prose. <!-- cspell:disable-line -->
+For example, use `legacyrecievevalue` to preserve `legacyRecieveValue` as a whole identifier. Adding only `recieve` would also accept that typo in ordinary prose.
 
 If a required cross-file contract is itself a misspelled ordinary word, globally accepting it weakens detection of the same mistake in new prose. Use local exceptions when the word remains confined to one file. Otherwise, preserve the contract and review authored prose for accidental uses. A typo's origin does not determine whether it belongs in this dictionary. The contract and where it is used do.
 
