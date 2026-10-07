@@ -71,6 +71,10 @@ in
       # ------------------------------------------------------------------------
       # Module imports
       # ------------------------------------------------------------------------
+      desktop = import ./desktop.nix {
+        homeDir = config.home.homeDirectory;
+      };
+
       hooks = import ./hooks.nix {
         inherit pkgs lib;
         inherit (shared) mkHooks;
@@ -137,7 +141,7 @@ in
         })
         // profiles.settings
         // plugins.settings
-      ) (lib.optionalAttrs pkgs.stdenv.isDarwin (import ./desktop.nix));
+      ) (lib.optionalAttrs pkgs.stdenv.isDarwin desktop);
 
       activationConfig = json.generate "codex-config-activation.json" {
         configDir = codexConfigDir;

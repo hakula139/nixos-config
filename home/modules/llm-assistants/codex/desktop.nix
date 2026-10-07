@@ -3,6 +3,10 @@
 # ==============================================================================
 
 {
+  homeDir,
+}:
+
+{
   desktop = {
     agent-usage-reset-enabled = true;
     appearanceDarkChromeTheme = {
@@ -52,6 +56,7 @@
     notifications-sound = "default";
     open-link-in-target-preference = "in-app-browser";
     preventSleepWhileRunning = true;
+    projectlessWorkspaceRoot = "${homeDir}/Codex";
     sansFontSize = 14;
     selected-avatar-id = "codex";
     show-context-window-usage = true;
