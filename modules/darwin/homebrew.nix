@@ -9,6 +9,9 @@
   ...
 }:
 
+let
+  esc = lib.escapeShellArg;
+in
 {
   # ----------------------------------------------------------------------------
   # Homebrew configuration
@@ -82,11 +85,11 @@
   # ----------------------------------------------------------------------------
   system.activationScripts.homebrew.text = lib.mkForce ''
     echo >&2 "Homebrew bundle..."
-    if [ -f ${lib.escapeShellArg "${config.homebrew.prefix}/bin/brew"} ]; then
-      if ! PATH=${lib.escapeShellArg "${config.homebrew.prefix}/bin:${lib.makeBinPath [ pkgs.mas ]}"}:"$PATH" \
+    if [ -f ${esc "${config.homebrew.prefix}/bin/brew"} ]; then
+      if ! PATH=${esc "${config.homebrew.prefix}/bin:${lib.makeBinPath [ pkgs.mas ]}"}:"$PATH" \
         sudo \
         --preserve-env=PATH \
-        --user=${lib.escapeShellArg config.homebrew.user} \
+        --user=${esc config.homebrew.user} \
         --set-home \
         env \
         ${config.homebrew.onActivation.brewBundleCmd}; then
