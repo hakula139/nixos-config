@@ -126,7 +126,7 @@ in
         defaultLevel = "medium";
         requiresEffort = true;
       };
-      channelId.anthropic = "openrouter/anthropic/claude-opus-5.5";
+      channelId.anthropic = "bedrock/global.anthropic.claude-opus-5-5";
       channelCost.anthropic = {
         input = 4.0;
         output = 20.0;
