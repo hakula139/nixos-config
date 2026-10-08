@@ -37,7 +37,10 @@
 
       # Rebase on pull
       pull.rebase = true;
-      rebase.autostash = true;
+      rebase = {
+        autostash = true;
+        updateRefs = true;
+      };
 
       # Ignore submodule changes in diff
       diff.ignoreSubmodules = "dirty";
