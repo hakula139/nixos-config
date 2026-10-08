@@ -4,7 +4,7 @@
 
 {
   event = "Stop";
-  type = "agent";
+  type = "prompt";
   statusMessage = "Checking completeness";
   prompt = builtins.readFile ./prompt.md;
 }
