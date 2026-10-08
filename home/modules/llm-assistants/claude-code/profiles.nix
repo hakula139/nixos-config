@@ -71,6 +71,10 @@ let
             extraEnv
             // {
               CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
+              # The gateway mistranslates `output_config.format`: Bedrock streams
+              # drop every content block, and OpenAI strict mode rejects optional
+              # properties. Prompt hooks then fail open and allow every stop.
+              CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS = "1";
             }
             // lib.optionalAttrs (profile.family == "local") {
               CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString profile.roles.default.model.contextWindow;
