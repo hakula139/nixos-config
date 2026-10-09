@@ -149,6 +149,18 @@ in
       };
     };
 
+    # Claude Code's auto-mode classifier requests this model regardless of the tier aliases.
+    "claude-sonnet-5" = claudeAdaptiveCommon // {
+      name = "Claude Sonnet 5";
+      channelId.anthropic = "bedrock/global.anthropic.claude-sonnet-5";
+      channelCost.anthropic = {
+        input = 2.0;
+        output = 10.0;
+        cacheRead = 0.2;
+        cacheWrite = 2.5;
+      };
+    };
+
     "claude-haiku-4-5-20251001" = {
       name = "Claude Haiku 4.5";
       contextWindow = 200000;

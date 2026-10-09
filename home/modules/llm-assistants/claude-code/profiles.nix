@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  modelCatalog,
   profileDefinitions,
   sharedAgents,
   enabledAgents,
@@ -29,6 +30,8 @@ let
   # ----------------------------------------------------------------------------
   # Profile assembly
   # ----------------------------------------------------------------------------
+  anthropicModels = lib.filterAttrs (_: model: model.channelId ? anthropic) modelCatalog.models;
+
   mkProfile =
     _: profile:
     let
@@ -51,7 +54,7 @@ let
       inherit extraEnv;
       inherit (profile) family nativeWebSearch;
       modelOverrides = lib.optionalAttrs (profile.channel == "anthropic") (
-        lib.mapAttrs' (tier: id: lib.nameValuePair profile.modelKeys.${tier} id) profile.modelIds
+        lib.mapAttrs (_: model: model.channelId.anthropic) anthropicModels
       );
     }
     // (
