@@ -214,7 +214,7 @@ let
         }) agents.files
       );
       settings = {
-        effortLevel = policy.standard;
+        effortLevel = modelCatalog.models.${modelCatalog.defaults.${family}.standard}.thinking.defaultLevel;
       };
     }
   ) workloadPolicy;
