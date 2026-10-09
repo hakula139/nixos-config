@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # OpenCode Permissions
-# ==============================================================================
+# ==================================================================================================
 
 {
   lib,
@@ -25,11 +25,10 @@ let
     );
 in
 {
-  # OpenCode resolves permission.bash last-match-wins with no deny precedence,
-  # and Nix serializes keys alphabetically (attrsets are unordered:
-  # nix-community/home-manager#2519). Denies win today only because each is more
-  # specific than its ask, so it sorts later (`agenix -r` after `agenix *`). A
-  # broad deny with a narrower ask carve-out would silently degrade to a prompt.
+  # OpenCode resolves permission.bash last-match-wins with no deny precedence, and Nix serializes
+  # keys alphabetically (attrsets are unordered: nix-community/home-manager#2519). Denies win today
+  # only because each is more specific than its ask, so it sorts later (`agenix -r` after
+  # `agenix *`). A broad deny with a narrower ask carve-out would silently degrade to a prompt.
   bash = {
     "*" = "allow";
   }

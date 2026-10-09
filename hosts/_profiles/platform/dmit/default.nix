@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # DMIT Hardware Profile
-# ==============================================================================
+# ==================================================================================================
 
 {
   modulesPath,
@@ -16,9 +16,9 @@
     ../disk-config.nix
   ];
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Boot Loader & Hardware
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   boot.loader.grub = {
     enable = true;
     devices = lib.mkForce [ "/dev/vda" ];
@@ -34,12 +34,11 @@
 
   services.qemuGuest.enable = true;
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Networking
-  # ----------------------------------------------------------------------------
-  # DMIT assigns /32 IPv4 with an off-subnet gateway using proxy ARP.
-  # dhcpcd misinterprets this as an ARP conflict, causing an infinite
-  # lease-drop-reacquire loop. systemd-networkd handles this correctly.
+  # ------------------------------------------------------------------------------------------------
+  # DMIT assigns /32 IPv4 with an off-subnet gateway using proxy ARP. dhcpcd misinterprets this as
+  # an ARP conflict and loops on dropping and reacquiring the lease, which systemd-networkd avoids.
   networking.useDHCP = false;
 
   systemd.network.enable = true;

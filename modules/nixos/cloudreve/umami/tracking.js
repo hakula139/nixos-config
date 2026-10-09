@@ -3,9 +3,8 @@
 (() => {
   'use strict';
 
-  // Cloudflare Worker host for B2 downloads - will be substituted by Nix
+  // Cloudflare Worker host for B2 downloads, substituted by Nix.
   const WORKER_HOST = '__WORKER_HOST__';
-  // Cloudreve API endpoint for signed download URLs
   const FILE_URL_API = '/api/v4/file/url';
 
   const getPathname = (url) => {
@@ -30,7 +29,6 @@
     }
   };
 
-  // Only append logical_path when the download URL points to our Worker host.
   const appendLogicalPath = (downloadUrl, logicalPath) => {
     if (!downloadUrl || !logicalPath) {
       return downloadUrl;
@@ -92,7 +90,6 @@
             return;
           }
 
-          // Patch each download URL in the response with its corresponding logical path.
           let changed = false;
           json.data.urls.forEach((item, index) => {
             if (!item?.url || !this._cloudreve_uris[index]) {
@@ -114,7 +111,6 @@
             }
           });
 
-          // Return a patched response by overriding the response / responseText getters.
           if (changed) {
             Object.defineProperty(this, 'response', {
               configurable: true,

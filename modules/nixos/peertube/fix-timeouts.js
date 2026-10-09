@@ -1,9 +1,8 @@
 // Node.js --require preload: bump headersTimeout to match requestTimeout.
 //
-// PeerTube sets server.requestTimeout from its config (e.g. 2 hours) but
-// never adjusts headersTimeout, which defaults to 60s. For slow uploads
-// (large transcoded files from remote runners), the 60s headersTimeout
-// can fire before headers finish arriving, producing spurious 408s.
+// PeerTube sets server.requestTimeout from its config (e.g. 2 hours) but never adjusts
+// headersTimeout, which defaults to 60s. A slow upload, such as a large transcoded file from a
+// remote runner, can hit that timeout before its headers finish arriving and draw a spurious 408.
 (() => {
   'use strict';
 

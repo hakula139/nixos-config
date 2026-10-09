@@ -1,7 +1,7 @@
-# ==============================================================================
+# ==================================================================================================
 # Agenix Secrets Configuration
 # This file defines which public keys can decrypt which secrets.
-# ==============================================================================
+# ==================================================================================================
 
 let
   keys = import ./keys.nix;
@@ -28,9 +28,9 @@ let
   us4Only = allUsers ++ [ us-4 ];
 in
 {
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Dev tool secrets
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   "github/pat-personal.age".publicKeys = allKeys;
   "github/pat-work.age".publicKeys = allKeys;
   "gitlab/pat-work.age".publicKeys = allKeys;
@@ -49,25 +49,25 @@ in
   "llm-assistants/mcp/context7-api-key.age".publicKeys = allKeys;
   "llm-assistants/mcp/exa-api-key.age".publicKeys = allKeys;
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Infrastructure secrets
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   "builders/ssh-key.age".publicKeys = allServersAndMacbook;
   "cachix/auth-token.age".publicKeys = allKeys;
   "devvm/proxy-url.age".publicKeys = allWorkstations ++ [ devvm ];
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # All-server secrets
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   "backup/env.age".publicKeys = allServers;
   "backup/restic-password.age".publicKeys = allServers;
   "cloudflare/credentials.age".publicKeys = allServers;
   "netdata/qq-smtp-authcode.age".publicKeys = allServers;
   "xray/config.json.age".publicKeys = allServers;
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Host-specific secrets (grouped by host scope)
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   "cloudcone/server-key-us-1.age".publicKeys = us1Only;
   "peertube/env.age".publicKeys = us1Only;
   "peertube/secret.age".publicKeys = us1Only;
@@ -83,9 +83,9 @@ in
   "piclist/token.age".publicKeys = us4Only;
   "umami/env.age".publicKeys = us4Only;
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Workstation-only secrets
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   "mihomo/secret.age".publicKeys = allWorkstations;
   "mihomo/subscription-url.age".publicKeys = allWorkstations;
   "wakatime/config.age".publicKeys = allWorkstations;

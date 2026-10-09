@@ -23,7 +23,7 @@ A caller's set lifts its `inherit` entries into a leading block, then follows th
 
 - **Formatter**: `nixfmt` (enforced by pre-commit).
 - **Linting**: `statix`, `deadnix` (CI). `statix.toml` suppresses W20 `repeated_keys` because the flat-key style is intentional.
-- **Line width**: 100 chars (nixfmt default).
+- **Line width**: 100 columns for code and comments alike, counting the indent, in every language except Python, which follows ruff's 88. nixfmt does not reflow comments, so wrap them by hand.
 - **Multiline text**: use Nix indented strings for inline text, with literal line breaks and contents aligned with the surrounding code. Nix strips the common leading indentation while preserving relative indentation within the text. Keep longer prompts and prose in adjacent text files.
 - **`with pkgs;`**: use in package lists for brevity.
 - **`inherit` placement**: top of `let` blocks, like imports. Combine bindings from the same source: `inherit (pkgs.stdenv) isDarwin isLinux;`. Inside a set that supplies declared options or returns data, keep `inherit` in its logical position (e.g., `group` between `owner` and `path`).
@@ -32,16 +32,16 @@ A caller's set lifts its `inherit` entries into a leading block, then follows th
 
 ## Section banners
 
-Banners end at column 80, counting the indent. Use equals signs at the file header (no indent), dashes for inner subsections (indented to match surrounding code):
+Banners end at column 100, counting the indent. Use equals signs at the file header (no indent), dashes for inner subsections (indented to match surrounding code):
 
 ```nix
-# ==============================================================================
+# ==================================================================================================
 # Module Name
-# ==============================================================================
+# ==================================================================================================
 
-      # ------------------------------------------------------------------------
+      # --------------------------------------------------------------------------------------------
       # Subsection
-      # ------------------------------------------------------------------------
+      # --------------------------------------------------------------------------------------------
 ```
 
 Option-bearing modules use `Module options` and `Module config` banners before the top-level `options` and `config` assignments.

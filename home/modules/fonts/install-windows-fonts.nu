@@ -1,11 +1,11 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Windows Font Install (WSL only)
-# ==============================================================================
-# Copy font files from the Nix store into the Windows per-user font directory
-# and register them in the HKCU registry.
-# ==============================================================================
+# ==================================================================================================
+# Copy font files from the Nix store into the Windows per-user font directory, then register each
+# one under the HKCU Fonts registry key.
+# ==================================================================================================
 
 const FONT_EXTENSIONS = [ttf otf ttc otc]
 

@@ -1,19 +1,19 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Claude Code Status Line Command
-# ==============================================================================
+# ==================================================================================================
 # Row 1: <directory> <git>
 # Row 2: Model | Ctx: X% (XXk/200k) | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
-# ==============================================================================
+# ==================================================================================================
 
 const CCUSAGE_CACHE = $nu.cache-dir | path join "claude-code" "statusline-usage.json"
 const CCUSAGE_TTL = 30sec
 const CCUSAGE_FIELDS = [date, has_block, has_daily, block_cost, remaining_minutes, burn_rate, daily_cost]
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Helpers
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def dim [text: string]: nothing -> string {
   $"(ansi white_dimmed)($text)(ansi reset)"
@@ -31,9 +31,9 @@ def usd [amount: float]: nothing -> string {
   if $amount == 0 { "$0.00" } else { $"$($amount | into string --decimals 2)" }
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Model name
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def model-name [input: record, models: record]: nothing -> string {
   let id = ($input.model?.id? | default "")
@@ -63,9 +63,9 @@ def model-name [input: record, models: record]: nothing -> string {
   | str join " "
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Git info
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 const NO_BRANCH = {branch: "", ahead: 0, behind: 0}
 
@@ -79,13 +79,11 @@ def git-status [cwd: string]: nothing -> list<string> {
 }
 
 def track-count [track: string, label: string]: nothing -> int {
-  # Tracking label followed by its count
   $track | parse --regex ($label + ' (?<n>\d+)') | get -o 0.n | default "0" | into int
 }
 
-# `## <branch>...<upstream> [ahead N, behind M]`, where everything after the
-# branch is optional. A detached HEAD reads `## HEAD (no branch)` and an unborn
-# one `## No commits yet on <branch>`.
+# `## <branch>...<upstream> [ahead N, behind M]`, where everything after the branch is optional. A
+# detached HEAD reads `## HEAD (no branch)` and an unborn one `## No commits yet on <branch>`.
 def parse-branch [header: string]: nothing -> record<branch: string, ahead: int, behind: int> {
   if $header == "## HEAD (no branch)" {
     return $NO_BRANCH
@@ -141,9 +139,9 @@ def format-git-info [cwd: string]: nothing -> string {
   $" (paint $branch.branch "green")(paint $marks "yellow") "
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Context and session (from Claude Code JSON)
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def format-claude-info [input: record]: nothing -> record<ctx: string, sess: string> {
   let usage = ($input.context_window?.current_usage? | default {})
@@ -166,9 +164,9 @@ def format-claude-info [input: record]: nothing -> record<ctx: string, sess: str
   }
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # ccusage integration
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def cache-is-fresh []: nothing -> bool {
   try { (date now) - (ls $CCUSAGE_CACHE | get 0.modified) < $CCUSAGE_TTL } catch { false }
@@ -254,14 +252,14 @@ def format-ccusage-info [data: record]: nothing -> record<block: string, daily: 
   }
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Main
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def main [config_file: string] {
   let config = (open $config_file)
-  # `open /dev/stdin` re-opens fd 0 by path, which fails with ENXIO when the
-  # caller passes a socket instead of a pipe, as Claude Code's spawn does.
+  # `open /dev/stdin` re-opens fd 0 by path, which fails with ENXIO when the caller passes a socket
+  # instead of a pipe, as Claude Code's spawn does.
   let input = (^cat | from json)
   let cwd = $input.workspace.current_dir
 

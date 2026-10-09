@@ -1,19 +1,19 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # PeerTube HLS Manual Transcode & Upload
-# ==============================================================================
-# Manually transcode a video to HLS fragmented MP4 and upload it to the
-# PeerTube B2 object storage bucket, bypassing the PeerTube runner workflow.
+# ==================================================================================================
+# Manually transcode a video to HLS fragmented MP4 and upload it to the PeerTube B2 object storage
+# bucket, bypassing the PeerTube runner workflow.
 #
 # Run with --help for usage.
-# ==============================================================================
+# ==================================================================================================
 
 const SCRIPT_DIR = path self .
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Configuration
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 const B2_BUCKET = "hakula-videos"
 const B2_CDN = "https://b2.hakula.xyz/hakula-videos"
@@ -37,9 +37,9 @@ const CREDENTIAL_HINT = "B2 credentials not set. Run in Bash from the repository
   unset peertube_credentials
   export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY"
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Queries
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 const API_JQ_FILTER = r#'{
   uuid, name, state,
@@ -81,9 +81,9 @@ SET metadata = :'metadata'
 WHERE id = :id;
 '#
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Helpers
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def die [msg: string] {
   print -e $"error: ($msg)"
@@ -134,9 +134,8 @@ def file-size [path: string]: nothing -> int {
   ls -l $path | get size.0 | into int
 }
 
-# `nix-shell --run` and `ssh` both hand their command to a shell, so every
-# interpolated value needs POSIX quoting. A literal `'` closes the quote, emits
-# an escaped one, and reopens.
+# `nix-shell --run` and `ssh` both hand their command to a shell, so every interpolated value needs
+# POSIX quoting. A literal `'` closes the quote, emits an escaped one, and reopens.
 def sh-quote [value: string]: nothing -> string {
   "'" + ($value | str replace --all "'" "'\\''") + "'"
 }
@@ -161,9 +160,8 @@ def b2-upload [src: string, dst: string] {
   )
 }
 
-# Values bind through psql's `-v`, so nothing is escaped into the statement
-# itself. The quoting here is for the remote shell, which would otherwise split
-# and expand a JSON payload.
+# Values bind through psql's `-v`, so nothing is escaped into the statement itself. The quoting here
+# is for the remote shell, which would otherwise split and expand a JSON payload.
 def pt-psql [sql: string, params: record = {}] {
   let bindings = (
     $params | items {|k, v| ["-v" (sh-quote $"($k)=($v)")] } | flatten | str join " "
@@ -171,9 +169,9 @@ def pt-psql [sql: string, params: record = {}] {
   $sql | ^ssh $PEERTUBE_HOST $"sudo -u peertube psql -v ON_ERROR_STOP=1 -d peertube ($bindings)"
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Subcommands
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 # Query the PeerTube API and database for a video's file details.
 def "main identify" [video_uuid: string] {
@@ -195,8 +193,7 @@ def "main identify" [video_uuid: string] {
   pt-psql $SQL_PLAYLIST_META {uuid: $video_uuid}
 }
 
-# Transcode a source video to HLS fragmented MP4. `fps` is required for
-# re-encode mode.
+# Transcode a source video to HLS fragmented MP4. `fps` is required for re-encode mode.
 def "main transcode" [
   mode: string # remux or re-encode
   source: string # absolute path to the source video
@@ -374,12 +371,12 @@ def "main purge-urls" [video_uuid: string, ...filenames: string] {
   for filename in $filenames { print $"  ($prefix)/($filename)" }
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Entry point
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
-# Manual PeerTube HLS transcode and upload. AWS_ACCESS_KEY_ID and
-# AWS_SECRET_ACCESS_KEY are required by `upload`.
+# Manual PeerTube HLS transcode and upload. AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required
+# by `upload`.
 def main [] {
   die "subcommand required. Run with --help for usage."
 }

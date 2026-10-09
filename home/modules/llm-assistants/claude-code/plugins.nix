@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # Claude Code Plugins
-# ==============================================================================
+# ==================================================================================================
 
 {
   pkgs,
@@ -11,9 +11,9 @@
 let
   json = pkgs.formats.json { };
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Marketplace Definitions
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   marketplaces = {
     claude-plugins-official = {
       github = {
@@ -54,9 +54,9 @@ let
     })
   ) marketplaces;
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Enabled Plugins
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   enabledPlugins = {
     # Official plugins
     "skill-creator@claude-plugins-official" = true;
@@ -77,9 +77,9 @@ let
     "rust-analyzer-lsp@claude-plugins-official" = true;
   };
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Helpers
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   mkGithubSource = m: {
     source = "github";
     repo = "${m.github.owner}/${m.github.repo}";
@@ -95,20 +95,19 @@ let
       marketplace = builtins.elemAt parts 1;
     };
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Derived Settings
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   extraKnownMarketplaces = lib.mapAttrs (_: m: {
     source = mkGithubSource m;
   }) marketplaces;
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Plugin Bundling
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   mkPluginBundle =
     homeDir:
     let
-      # Unique marketplace names referenced by enabled plugins
       usedMarketplaceNames = lib.unique (
         map (id: (parsePluginId id).marketplace) (builtins.attrNames enabledPlugins)
       );
@@ -119,7 +118,6 @@ let
           inherit (parsePluginId id) plugin marketplace;
           m = marketplaces.${marketplace};
           src = marketplaceSources.${marketplace};
-          # 12-char commit prefix used as plugin version
           version = m.version or (builtins.substring 0 12 m.rev);
           pluginSrc = if m.pluginsDir == null then src else "${src}/${m.pluginsDir}/${plugin}";
           cachePath = "cache/${marketplace}/${plugin}/${version}";
@@ -153,8 +151,8 @@ let
         );
       };
 
-      # Registry that maps marketplace names to their install locations;
-      # Claude Code reads this to discover which marketplaces are available.
+      # Registry mapping marketplace names to their install locations, which Claude Code reads to
+      # discover the available marketplaces.
       knownMarketplaces = lib.genAttrs usedMarketplaceNames (name: {
         source = mkGithubSource marketplaces.${name};
         installLocation = "${homeDir}/.claude/plugins/marketplaces/${name}";

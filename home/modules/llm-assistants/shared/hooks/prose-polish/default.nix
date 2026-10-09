@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # Prose Polish Hook
-# ==============================================================================
+# ==================================================================================================
 
 {
   lib,
@@ -13,8 +13,8 @@
 
 let
   mcpProseFields = lib.importJSON ./mcp-fields.json;
-  # Each round of feedback removes some of the faults but rarely all of them, so
-  # a document dense with protected spans needs several to converge.
+  # Each round of feedback removes some of the faults but rarely all of them, so a document dense
+  # with protected spans needs several to converge.
   maxRepairs = 3;
 in
 {

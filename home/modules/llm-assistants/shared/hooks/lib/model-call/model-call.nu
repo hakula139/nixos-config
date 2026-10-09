@@ -1,12 +1,11 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Shared Model Call
-# ==============================================================================
-# Two legs: the profile's gateway, then Codex. Codex carries its own
-# credentials, so it is the only leg that survives a subscription profile,
-# where the gateway variables are absent.
-# ==============================================================================
+# ==================================================================================================
+# Two legs: the profile's gateway, then Codex. Codex carries its own credentials, so it is the only
+# leg that survives a subscription profile, where the gateway variables are absent.
+# ==================================================================================================
 
 def gateway [request: record, config: record]: nothing -> string {
   # Codex authenticates its provider with a command, so hooks do not inherit a token.
@@ -85,9 +84,9 @@ def codex [request: record, config: record]: nothing -> string {
   } else {
     ""
   }
-  # `--ignore-user-config` skips the MCP servers a normal Codex session loads,
-  # which is what keeps this leg near the gateway's latency. `codex exec` takes
-  # no deadline of its own, so the bound comes from outside.
+  # `--ignore-user-config` skips the MCP servers a normal Codex session loads, which is what keeps
+  # this leg near the gateway's latency. `codex exec` takes no deadline of its own, so the bound
+  # comes from outside.
   let run = (
     [$request.system $instruction "" $request.user]
     | where ($it | is-not-empty)

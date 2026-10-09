@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # PeerTube (Video Streaming Platform)
-# ==============================================================================
+# ==================================================================================================
 
 {
   config,
@@ -33,9 +33,9 @@ let
   };
 in
 {
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Module options
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   options.hakula.services.peertube = {
     enable = lib.mkEnableOption "PeerTube video streaming platform";
 
@@ -59,13 +59,13 @@ in
     };
   };
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Module config
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   config = lib.mkIf cfg.enable {
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # Secrets
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     age.secrets.peertube-env = repoLib.secrets.mkSecret {
       name = "peertube/env";
       owner = "peertube";
@@ -78,9 +78,9 @@ in
       group = "peertube";
     };
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # PeerTube service
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     services.peertube = {
       enable = true;
 
@@ -101,7 +101,8 @@ in
           enabled = true;
           inherit endpoint;
           force_path_style = true;
-          # B2 doesn't support ACL headers; bucket is private, served via Cloudflare Worker CDN
+          # B2 doesn't support ACL headers. The bucket stays private and is served via the
+          # Cloudflare Worker CDN.
           upload_acl = {
             public = null;
             private = null;
@@ -114,8 +115,8 @@ in
           web_videos = mkBucket "web-videos";
         };
 
-        # Offloaded to MacBook via remote runner (connects via direct HTTPS,
-        # bypassing Cloudflare to avoid upload size limits and timeouts):
+        # Offloaded to MacBook via remote runner (connects via direct HTTPS, bypassing Cloudflare to
+        # avoid upload size limits and timeouts):
         #
         #   peertube-runner server
         #   peertube-runner register \
@@ -137,25 +138,24 @@ in
       };
     };
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # Systemd service
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     systemd.services.peertube = {
-      # The upstream NixOS module sets HOME to the read-only Nix store package
-      # path, which breaks pnpm (it tries to create $HOME/.local/ for its store).
+      # The upstream NixOS module sets HOME to the read-only Nix store package path, which breaks
+      # pnpm (it tries to create $HOME/.local/ for its store).
       environment.HOME = lib.mkForce "/var/lib/peertube";
 
       # Preload script to fix Node.js headersTimeout (see fix-timeouts.js)
       environment.NODE_OPTIONS = "--require ${fixTimeoutsScript}";
 
-      # PeerTube uses pnpm to install plugins, but the NixOS module only
-      # includes yarn in the service PATH.
+      # PeerTube uses pnpm to install plugins, but the NixOS module only includes yarn in the
+      # service PATH.
       path = [ pkgs.pnpm ];
 
-      # pnpm's libuv worker calls chown / fchownat when extracting packages.
-      # The upstream module blocks these via SystemCallFilter, killing the
-      # process with SIGSYS. Safe to allow: the non-root service user can
-      # only chown files it already owns.
+      # pnpm's libuv worker calls chown / fchownat when extracting packages. The upstream module
+      # blocks these via SystemCallFilter, killing the process with SIGSYS. Safe to allow: the
+      # non-root service user can only chown files it already owns.
       serviceConfig.SystemCallFilter = [
         "chown"
         "chown32"

@@ -1,14 +1,13 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Windows Cursor Settings Sync (WSL only)
-# ==============================================================================
+# ==================================================================================================
 # Merge the Nix-managed Cursor settings into the Windows-side settings.json.
-# ==============================================================================
+# ==================================================================================================
 
-# Cursor grows remote.SSH.remotePlatform (a host -> OS map) at runtime as new
-# Remote-SSH hosts are added on Windows. Those entries are preserved, with Nix
-# winning on shared keys.
+# Cursor grows remote.SSH.remotePlatform (a host -> OS map) at runtime as new Remote-SSH hosts are
+# added on Windows. Those entries are preserved, with Nix winning on shared keys.
 const MERGE_KEY = "remote.SSH.remotePlatform"
 
 def main [config_file: string] {
