@@ -68,15 +68,17 @@ let
           type = "api-key";
           baseUrl = provider.apiUrls.anthropic-messages;
           inherit (provider) tokenSecret;
+          extraHeaders = provider.extraHeaders or { };
         }
         // lib.optionalAttrs (profile.provider == "corp-gateway") {
           extraEnv =
             extraEnv
             // {
               CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
-              # The gateway mistranslates `output_config.format`: Bedrock streams
-              # drop every content block, and OpenAI strict mode rejects optional
-              # properties. Prompt hooks then fail open and allow every stop.
+              # The gateway mistranslates `output_config.format`: Bedrock
+              # streams drop every content block, and OpenAI strict mode
+              # rejects optional properties, so prompt hooks fail open and
+              # allow every stop.
               CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS = "1";
             }
             // lib.optionalAttrs (profile.family == "local") {
@@ -258,7 +260,13 @@ let
           ];
 
       envLines =
+        let
+          customHeaders = lib.concatStringsSep "\n" (
+            lib.mapAttrsToList (name: value: "${name}: ${value}") profile.extraHeaders
+          );
+        in
         lib.optional (profile.baseUrl != null) "export ANTHROPIC_BASE_URL=${esc profile.baseUrl}"
+        ++ lib.optional (customHeaders != "") "export ANTHROPIC_CUSTOM_HEADERS=${esc customHeaders}"
         ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv
         ++ lib.mapAttrsToList (
           k: secretName: "export ${k}=${esc (secretPath secretName)}"
@@ -293,6 +301,7 @@ let
     ++ [
       "ANTHROPIC_API_KEY"
       "ANTHROPIC_BASE_URL"
+      "ANTHROPIC_CUSTOM_HEADERS"
     ]
   );
 
