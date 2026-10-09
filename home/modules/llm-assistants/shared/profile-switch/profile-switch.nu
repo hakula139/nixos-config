@@ -1,8 +1,8 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Auth Profile Switcher
-# ==============================================================================
+# ==================================================================================================
 
 # `glob` rather than `ls`, which raises when no profile has been written yet.
 def profile-names [config: record]: nothing -> list<string> {
@@ -64,7 +64,7 @@ def write-config [config: record, profile: path] {
 # Switch the active auth profile, or list the available ones.
 def main [
   config_file: string
-  profile?: string # profile to activate; omit to list
+  profile?: string # profile to activate, or omit to list
   --list (-l) # list profiles without switching
   --initialize # retain an installed profile or select the configured default
 ] {

@@ -1,8 +1,8 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # BetterDisplay License Activation
-# ==============================================================================
+# ==================================================================================================
 
 # Check activation without printing the licensing output.
 def is-activated [app: path]: nothing -> bool {
@@ -15,8 +15,8 @@ def is-activated [app: path]: nothing -> bool {
   $status.stdout | lines | parse -r '^Activation Status:\s*Activated\s*$' | is-not-empty
 }
 
-# Activate BetterDisplay from an agenix license.
-# Missing prerequisites are skipped until the launch agent runs again.
+# Activate BetterDisplay from an agenix license. Missing prerequisites are skipped until the launch
+# agent runs again.
 def main [
   app: path # BetterDisplay executable
   license_file: path # JSON file containing the purchase email and license key

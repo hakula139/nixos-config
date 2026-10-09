@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # Zsh Shell
-# ==============================================================================
+# ==================================================================================================
 
 {
   config,
@@ -15,9 +15,9 @@
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Post-switch sync
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Re-sync side effects that depend on WSL interop. Empty on hosts without it.
   postSwitchCommands = lib.concatStringsSep "\n" (
     lib.optional config.hakula.fonts.windowsSync.enable "install-windows-fonts"
@@ -25,14 +25,14 @@ let
   );
   hasPostSwitchCommands = postSwitchCommands != "";
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # NixOS switch commands
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   nixosNixswCommand = "nh os switch '.#${flakeConfigName}'";
   nixosNixrollCommand = "sudo nixos-rebuild switch --rollback --flake '.#${flakeConfigName}'";
 
-  # nixsw / nixroll run in the user's interactive shell so post-switch
-  # commands have a live WSL_INTEROP socket.
+  # nixsw / nixroll run in the user's interactive shell so post-switch commands have a live
+  # WSL_INTEROP socket.
   nixosNixswScript = pkgs.writeShellScript "nixsw" ''
     set -euo pipefail
     ${nixosNixswCommand}
@@ -45,9 +45,9 @@ let
     ${postSwitchCommands}
   '';
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # System Manager switch commands
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   systemManagerProfile = "/nix/var/nix/profiles/system-manager-profiles";
   systemManagerHealthCheck = "system-manager-health-check agenix-install-secrets.service home-manager-${username}.service";
 
@@ -74,9 +74,9 @@ in
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # History settings
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     history = {
       size = 100000;
       save = 50000;
@@ -92,9 +92,9 @@ in
     historySubstringSearch.enable = true;
     autocd = true;
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # Oh My Zsh
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     oh-my-zsh = {
       enable = true;
       plugins = [
@@ -135,9 +135,9 @@ in
       ];
     };
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # Plugins
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     plugins = [
       {
         name = "zsh-hist";
@@ -151,9 +151,9 @@ in
       }
     ];
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # Shell aliases
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     shellAliases = {
       # Trailing space enables alias expansion after sudo
       sudo = "sudo ";
@@ -242,8 +242,8 @@ in
       nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
     }
     // lib.optionalAttrs (isNixOS && flakeConfigName != null) {
-      # Aliases that target a flake attribute. Skipped on images like devvm
-      # that have no nixosConfigurations entry to switch to.
+      # Aliases that target a flake attribute. Skipped on images like devvm that have no
+      # nixosConfigurations entry to switch to.
       nixsw = if hasPostSwitchCommands then "${nixosNixswScript}" else "${nixosNixswCommand}";
       nixtest = "nh os test '.#${flakeConfigName}'";
       nixboot = "nh os boot '.#${flakeConfigName}'";
@@ -272,9 +272,9 @@ in
       flushdns = "sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder";
     };
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # Additional configuration
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     initContent = lib.fileContents ./init.zsh;
   };
 }

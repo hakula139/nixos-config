@@ -1,11 +1,11 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # System Manager Health Check
-# ==============================================================================
-# Verify that the named systemd units are running, or that a oneshot unit
-# completed successfully. Missing units are reported and skipped.
-# ==============================================================================
+# ==================================================================================================
+# Verify that the named systemd units are running, or that a oneshot unit completed successfully.
+# Missing units are reported and skipped.
+# ==================================================================================================
 
 const PROPERTIES = [
   ActiveState
@@ -16,8 +16,8 @@ const PROPERTIES = [
   Type
 ]
 
-# A unit name systemd cannot parse makes systemctl print nothing, and the
-# callers below all read fields off the result.
+# A unit name systemd cannot parse makes systemctl print nothing, and the callers below all read
+# fields off the result.
 def unit-state [service: string]: nothing -> record {
   ^systemctl show ...($PROPERTIES | each {|p| $"--property=($p)" }) $service
   | lines
@@ -30,8 +30,8 @@ def is-installed [unit: record]: nothing -> bool {
   ($state | is-not-empty) and ($state != "not-found")
 }
 
-# A oneshot that already ran and exited 0 is healthy even though it is inactive.
-# The monotonic start timestamp is 0 until the unit has actually run.
+# A oneshot that already ran and exited 0 is healthy even though it is inactive. The monotonic start
+# timestamp is 0 until the unit has actually run.
 def ran-successfully [unit: record]: nothing -> bool {
   (
     ($unit.Type? == "oneshot") and
@@ -61,8 +61,8 @@ def main [...services: string] {
     }
 
     print -e $"service '($service)' is not active"
-    # `systemctl status` exits non-zero for an inactive unit, which would
-    # otherwise abort the loop before the remaining services are checked.
+    # `systemctl status` exits non-zero for an inactive unit, which would otherwise abort the loop
+    # before the remaining services are checked.
     ^systemctl status --no-pager $service | complete | get stdout | str trim | print -e
     $failed = true
   }

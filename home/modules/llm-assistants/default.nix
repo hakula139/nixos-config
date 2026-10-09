@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # LLM Assistants
-# ==============================================================================
+# ==================================================================================================
 
 {
   config,
@@ -32,8 +32,8 @@ let
   cliAssistantNames = lib.remove "cursor" assistantNames;
   assistants = map (name: config.hakula.${name}) assistantNames;
 
-  # Map each MCP server to the secret it needs at runtime. Servers absent
-  # from this attrset do not require any decrypted file.
+  # Map each MCP server to the secret it needs at runtime. Servers absent from this attrset do not
+  # require any decrypted file.
   mcpServerSecrets = {
     atlassian = [ "llm-assistants/mcp/confluence-pat" ];
     bifrost = [
@@ -75,9 +75,9 @@ in
     ./workmux
   ];
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Module options
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   options.hakula.llm-assistants = {
     enable = lib.mkOption {
       type = lib.types.bool;
@@ -100,9 +100,9 @@ in
     proxy = repoLib.proxy.mkProxyOptions "LLM assistants";
   };
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Module config
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   config = lib.mkMerge [
     {
       # Clients enabled apart from the bundle still inherit its MCP policy.

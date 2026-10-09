@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # Agent Client Protocol (ACP)
-# ==============================================================================
+# ==================================================================================================
 
 {
   config,
@@ -15,11 +15,10 @@ let
 
   json = pkgs.formats.json { };
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Client package
-  # ----------------------------------------------------------------------------
-  # acpx excludes user settings by default, which would omit our Claude hooks,
-  # permissions, and instructions.
+  # ------------------------------------------------------------------------------------------------
+  # acpx skips user settings by default, dropping our Claude hooks, permissions, and instructions.
   acpxBin = repoLib.wrapPackage {
     inherit pkgs;
     pkg = pkgs.acpx;
@@ -28,11 +27,11 @@ let
     envVars.ACPX_CLAUDE_INCLUDE_USER_SETTINGS = "1";
   };
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Agent adapters
-  # ----------------------------------------------------------------------------
-  # Adapters export their resolved binary to child agents. Override inherited
-  # values so nested delegation also uses our auth and proxy wrappers.
+  # ------------------------------------------------------------------------------------------------
+  # Adapters export their resolved binary to child agents. Override inherited values so nested
+  # delegation also uses our auth and proxy wrappers.
   mkAdapter =
     {
       pkg,
@@ -60,11 +59,11 @@ let
     executable = lib.getExe' config.programs.codex.package "codex";
   };
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Agent targets
-  # ----------------------------------------------------------------------------
-  # Session identity includes argv. Keep paths stable across rebuilds and
-  # upstream basenames intact for adapter detection.
+  # ------------------------------------------------------------------------------------------------
+  # Session identity includes argv. Keep paths stable across rebuilds and upstream basenames intact
+  # for adapter detection.
   profileBin = name: "${config.home.profileDirectory}/bin/${name}";
 
   managedAgents = {
@@ -85,9 +84,9 @@ let
 
   enabledAgents = lib.filterAttrs (_: agent: agent.enable) managedAgents;
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Client configuration
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Missing entries fall back to acpx's unmanaged launch commands.
   mkUnavailable =
     name: agent:
@@ -105,18 +104,18 @@ let
   configFile = json.generate "acpx-config.json" { inherit agents defaultAgent; };
 in
 {
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Module options
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   options.hakula.llm-assistants.acp.enable = lib.mkOption {
     type = lib.types.bool;
     default = config.hakula.llm-assistants.enable && enabledAgents != { };
     description = "Whether to install the acpx client for the enabled Claude Code and Codex assistants";
   };
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Module config
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   config = lib.mkIf cfg.enable {
     assertions = [
       {

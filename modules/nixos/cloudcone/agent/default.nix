@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # CloudCone Agent Builder
-# ==============================================================================
+# ==================================================================================================
 
 {
   pkgs,
@@ -11,8 +11,8 @@
 let
   inherit (pkgs) lib;
 
-  # `inetutils` is deliberately absent: it ships a `ping` that rejects `-B`, and
-  # on PATH it would shadow the one from `iputils`.
+  # `inetutils` is deliberately absent: it ships a `ping` that rejects `-B`, and on PATH it would
+  # shadow the one from `iputils`.
   runtimeInputs = with pkgs; [
     coreutils
     curl
