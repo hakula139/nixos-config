@@ -1,11 +1,11 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Nushell Diagnostic Check
-# ==============================================================================
-# Wraps `nu --ide-check`, which reports diagnostics as JSON on stdout but always
-# exits 0. Indentation is the `editorconfig-checker` hook's job.
-# ==============================================================================
+# ==================================================================================================
+# Wraps `nu --ide-check`, which reports diagnostics as JSON on stdout but always exits 0.
+# Indentation is the `editorconfig-checker` hook's job.
+# ==================================================================================================
 
 const MAX_ERRORS = 100
 
@@ -28,8 +28,8 @@ def main [...files: string] {
       continue
     }
 
-    # `open --raw` yields a byte stream, and the `-> string` signature below
-    # rejects invalid UTF-8 with a trace naming this script instead of the file.
+    # `open --raw` yields a byte stream, and the `-> string` signature below rejects invalid UTF-8
+    # with a trace naming this script instead of the file.
     let text = (try { open --raw $file | into string } catch { null })
     if $text == null {
       print -e $"($file): not valid UTF-8"

@@ -1,14 +1,14 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Prose Polish
-# ==============================================================================
+# ==================================================================================================
 
-# Match complete triple-backtick blocks because Rust regexes cannot pair arbitrary
-# delimiters. Either delimiter takes the three leading spaces CommonMark allows.
+# Match complete triple-backtick blocks because Rust regexes cannot pair arbitrary delimiters.
+# Either delimiter takes the three leading spaces CommonMark allows.
 const FENCE = '(?ms)^(?<m> {0,3}```[^\n]*\n.*?^ {0,3}```\s*$)'
-# Fence delimiters, for tracking which pieces sit inside one. Only whitespace may
-# follow a closing delimiter, so a line carrying an info string never closes a fence.
+# Fence delimiters, for tracking which pieces sit inside one. Only whitespace may follow a closing
+# delimiter, so a line carrying an info string never closes a fence.
 const OPENER = '\A {0,3}```'
 const CLOSER = '\A {0,3}```\s*\z'
 # YAML or TOML front matter
@@ -21,8 +21,8 @@ const LATIN = '(?<c>\p{Latin})'
 const MIN_HAN = 8
 const MIN_LATIN = 32
 
-# Compared by count, so a passage keeps whatever it arrived with and only the
-# rewriter is held to the ban. Chinese prose takes the fullwidth `；`.
+# Compared by count, so a passage keeps whatever it arrived with and only the rewriter is held to
+# the ban. Chinese prose takes the fullwidth `；`.
 const BANNED_MARKS = ['—' '--' '…' ';']
 
 def prose [text: string]: nothing -> string {
@@ -67,9 +67,8 @@ def structure [text: string]: nothing -> list {
   ]
 }
 
-# Literal spans are compared as a multiset, because merging or reordering two
-# sentences that each carry a quotation must stay allowed while losing or
-# editing one must not.
+# Literal spans are compared as a multiset, because merging or reordering two sentences that each
+# carry a quotation must stay allowed while losing or editing one must not.
 def literals [text: string]: nothing -> list {
   [
     # Inline code
@@ -92,8 +91,8 @@ def literals [text: string]: nothing -> list {
   | each {|spans| $spans | get -o m | sort }
 }
 
-# Line endings are formatting, so comparisons run on one form and a rewrite takes
-# back whichever form its own piece arrived in.
+# Line endings are formatting, so comparisons run on one form and a rewrite takes back whichever
+# form its own piece arrived in.
 def unix [text: string]: nothing -> string {
   $text | str replace --all "\r\n" "\n"
 }
@@ -118,8 +117,8 @@ def reframe [before: string, after: string]: nothing -> string {
   ($edges | get 0) + ($after | str trim) + ($edges | get 1)
 }
 
-# Blank-line-separated pieces, each carrying the separator that follows it, so a
-# rewrite goes back by position and every piece left alone stays byte-identical.
+# Blank-line-separated pieces, each carrying the separator that follows it, so a rewrite goes back
+# by position and every piece left alone stays byte-identical.
 def pieces [text: string]: nothing -> list<record> {
   # Front matter goes in whole and never counts as prose, whatever blank lines it holds.
   let front = ($text | parse --regex $FRONT | get -o 0.m | default "")
@@ -146,8 +145,8 @@ def blocks [text: string]: nothing -> list<string> {
   pieces $text | where prose | each {|slot| unix $slot.block | str trim }
 }
 
-# A rewrite goes back by piece position, since the same text can occur elsewhere in
-# the field. Separators come back untouched, so a piece nobody edited stays byte-identical.
+# A rewrite goes back by piece position, since the same text can occur elsewhere in the field.
+# Separators come back untouched, so a piece nobody edited stays byte-identical.
 def splice [text: string, edits: list<record>]: nothing -> string {
   pieces $text
   | enumerate
@@ -191,17 +190,17 @@ def question-targets [questions: list<record>]: nothing -> list<record> {
   | flatten
 }
 
-# Blocks the document already holds, or null when the file resists reading or parsing.
-# Held blocks are one side of an equality test, so a short list would mark prose the
-# write never touched as newly introduced. They are compared as a set, so a paragraph
-# the document already holds stays untouched even when the write adds another copy.
+# Blocks the document already holds, or null when the file resists reading or parsing. Held blocks
+# are one side of an equality test, so a short list would mark prose the write never touched as
+# newly introduced. They are compared as a set, so a paragraph the document already holds stays
+# untouched even when the write adds another copy.
 def held-blocks [path: string]: nothing -> any {
   let disk = (try { open --raw $path } catch { null })
   if ($disk | describe) == "string" {
     return (if (supported-markdown $disk) { blocks $disk } else { null })
   }
-  # A read fails both for a file that is absent and for one that cannot be reached,
-  # and only absence means every block is new. Listing the parent tells them apart.
+  # A read fails both for a file that is absent and for one that cannot be reached, and only absence
+  # means every block is new. Listing the parent tells them apart.
   let siblings = (
     try { ls --all ($path | path dirname) | get name | each {|name| $name | path basename } } catch { null }
   )
@@ -221,8 +220,8 @@ def file-targets [args: record, key: string]: nothing -> list<record> {
   if ($text | describe) != "string" or (not (supported-markdown $text)) {
     return []
   }
-  # Only the blocks a write introduces are the agent's own prose. An `Edit` carries
-  # context lines the document already holds, and those are not the agent's to rewrite.
+  # Only the blocks a write introduces are the agent's own prose. An `Edit` carries context lines
+  # the document already holds, and those are not the agent's to rewrite.
   let held = (held-blocks ($args.file_path | path expand))
   if $held == null {
     return []
@@ -293,8 +292,8 @@ def call-model [passages: list<record>, notes: list<string>, config: record]: no
   if (not ($parsed | describe | str starts-with "record")) {
     return []
   }
-  # An id mismatch also catches a short, long, or id-less reply, and a rewrite
-  # landing in another passage's slot would corrupt both.
+  # An id mismatch also catches a short, long, or id-less reply, and a rewrite landing in another
+  # passage's slot would corrupt both.
   let rewritten = ($parsed | get -o passages | default [])
   if ($rewritten | get -o id) != ($passages | get id) {
     return []
@@ -307,8 +306,7 @@ def call-model [passages: list<record>, notes: list<string>, config: record]: no
   }
 }
 
-# The rewriter cannot see why a passage was refused, so hand the refused attempt
-# back beside the reason.
+# The rewriter cannot see why a passage was refused, so return the refused attempt with the reason.
 def repair [pending: list<record>, config: record]: nothing -> list<string> {
   let passages = (
     $pending
@@ -343,8 +341,8 @@ def violations [before: string, after: string]: nothing -> list<string> {
   if (literals $after) != (literals $before) {
     $found = ($found | append "a code span, link, URL, number, or quoted span was dropped or edited")
   }
-  # A rewrite may merge lines, since rejoining clipped sentences is the point,
-  # but gaining one means a paragraph was cut into pieces.
+  # A rewrite may merge lines, since rejoining clipped sentences is the point, but gaining one means
+  # a paragraph was cut into pieces.
   if ($after | lines | length) > ($before | lines | length) {
     $found = ($found | append "the rewrite holds more lines than the input, so a paragraph was split")
   }
@@ -379,8 +377,7 @@ def --env polished [config: record]: nothing -> any {
 
   mut graded = ($found | zip $opening | each {|pair| grade $pair.0 $pair.1 })
 
-  # A fault drives the next round rather than vetoing the result outright, since the
-  # rewriter usually repairs it once told what broke.
+  # A fault earns a repair round before any veto, since the rewriter usually fixes it once told why.
   for _ in 0..<$config.maxRepairs {
     let pending = ($graded | enumerate | where item.problem != "")
     if ($pending | is-empty) {
@@ -395,9 +392,9 @@ def --env polished [config: record]: nothing -> any {
     }
   }
 
-  # A passage that still trips a check keeps the agent's own text. Better prose is not
-  # worth a dropped code span, and the checks only fire on something already lost.
-  # A row condition reads a bare word as a string, so a column-to-column test needs a closure.
+  # A passage that still trips a check keeps the agent's own text. Better prose is not worth a
+  # dropped code span, and the checks only fire on something already lost. A row condition reads a
+  # bare word as a string, so a column-to-column test needs a closure.
   let edits = ($graded | where {|row| $row.problem == "" and $row.after != $row.before })
   if ($edits | is-empty) {
     return null

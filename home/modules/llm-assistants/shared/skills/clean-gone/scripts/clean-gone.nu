@@ -1,17 +1,16 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Clean Gone Branches
-# ==============================================================================
-# Remove local branches whose configured upstreams are gone, along with their
-# worktrees. Dry run by default.
+# ==================================================================================================
+# Remove local branches whose configured upstream is gone, with their worktrees. Dry run by default.
 #
 # Run with --help for usage.
-# ==============================================================================
+# ==================================================================================================
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Git helpers
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 # Exit code alone, for the git plumbing commands used as predicates.
 def git-succeeds [...args: string]: nothing -> bool {
@@ -36,12 +35,12 @@ def die [msg: string] {
   exit 2
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Worktrees
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
-# A blank field terminates each worktree's block, so the split into blocks has
-# to happen before empty fields are dropped.
+# A blank field terminates each worktree's block, so the split into blocks has to happen before
+# empty fields are dropped.
 def worktree-map []: nothing -> record {
   ^git worktree list --porcelain -z
   | split row (char nul)
@@ -59,9 +58,9 @@ def worktree-map []: nothing -> record {
   }
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Base resolution
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def resolve-base [remote: string, base_override: string]: nothing -> string {
   if ($base_override | is-not-empty) {
@@ -76,12 +75,12 @@ def resolve-base [remote: string, base_override: string]: nothing -> string {
   ""
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Integration check
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
-# Exact historical content matches recognize squash merges. git cherry cannot
-# prove integration because it ignores whitespace and merge-resolution changes.
+# Exact historical content matches recognize squash merges. git cherry cannot prove integration
+# because it ignores whitespace and merge-resolution changes.
 def branch-is-integrated [branch: string, base_ref: string]: nothing -> bool {
   let branch_ref = $"refs/heads/($branch)"
 
@@ -115,9 +114,9 @@ def branch-is-integrated [branch: string, base_ref: string]: nothing -> bool {
   false
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Entry point
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 # Safely remove local branches whose configured upstreams are gone.
 def main [

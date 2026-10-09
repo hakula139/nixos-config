@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # Cursor Remote Server
-# ==============================================================================
+# ==================================================================================================
 
 {
   pkgs,
@@ -10,8 +10,8 @@
 }:
 
 let
-  # Cursor's remote server skips shell startup scripts, so set up its
-  # environment here before it launches the extension host.
+  # Cursor's remote server skips shell startup scripts, so set up its environment here before it
+  # launches the extension host.
   serverEnvSetup = pkgs.writeText "cursor-server-env-setup" ''
     [ -r /etc/set-environment ] && . /etc/set-environment
 

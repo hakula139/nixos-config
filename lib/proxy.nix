@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # Proxy Helper Library
-# ==============================================================================
+# ==================================================================================================
 
 {
   lib,
@@ -101,10 +101,9 @@ in
     wrapWithProxy
     ;
 
-  # Shell snippet that clears proxy env vars. Use in scripts that must reach
-  # the network bypassing any inherited HTTP(S) proxy (e.g., mihomo's own
-  # subscription fetch, or MCP servers talking to internal endpoints that
-  # do not honour NO_PROXY). Nushell callers take `proxyVars` and `hide-env`
+  # Shell snippet that clears proxy env vars. Use in scripts that must reach the network bypassing
+  # any inherited HTTP(S) proxy (e.g., mihomo's own subscription fetch, or MCP servers talking to
+  # internal endpoints that do not honour NO_PROXY). Nushell callers take `proxyVars` and `hide-env`
   # instead, since `unset` has no equivalent.
   clearProxyEnv = "unset ${lib.concatStringsSep " " proxyVars}";
 

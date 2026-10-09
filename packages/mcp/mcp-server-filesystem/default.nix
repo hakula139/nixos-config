@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # MCP Server – Filesystem
-# ==============================================================================
+# ==================================================================================================
 
 {
   pkgs,
@@ -20,15 +20,13 @@ pkgs.buildNpmPackage rec {
 
   npmDepsHash = "sha256-KhlTXcS+VDSPGnEus9fA0xhIxfTGwX1Cr5hbxFvdc2k=";
 
-  # Monorepo: build the filesystem workspace
   npmWorkspace = "src/filesystem";
 
   nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
 
-  # Workaround: npm v11 fires workspace build/prepare scripts during `npm ci`
-  # despite --ignore-scripts, and their tsc shebangs fail in the sandbox.
-  # Strip them before install, then build the target workspace manually after
-  # npmConfigHook has run patchShebangs on node_modules.
+  # Workaround: npm v11 fires workspace build/prepare scripts during `npm ci` despite
+  # --ignore-scripts, and their tsc shebangs fail in the sandbox. Strip them before install, then
+  # build the target workspace manually after npmConfigHook has run patchShebangs on node_modules.
   postUnpack = ''
     for pkg in source/src/*/package.json; do
       ${lib.getExe pkgs.jq} 'del(.scripts.build, .scripts.prepare)' "$pkg" > tmp
@@ -43,8 +41,8 @@ pkgs.buildNpmPackage rec {
     node_modules/.bin/tsc -p src/filesystem
   '';
 
-  # npmInstallHook copies `npm pack` output which excludes workspace sources.
-  # Copy them manually and create a wrapper pointing to the built entry point.
+  # npmInstallHook copies `npm pack` output which excludes workspace sources. Copy them manually and
+  # create a wrapper pointing to the built entry point.
   postInstall = ''
     cp -r src "$out/lib/node_modules/@modelcontextprotocol/servers/src"
     makeWrapper "${lib.getExe pkgs.nodejs_24}" "$out/bin/mcp-server-filesystem" \

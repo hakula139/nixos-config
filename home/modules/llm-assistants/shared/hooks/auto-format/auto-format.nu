@@ -1,8 +1,8 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Auto-Format and Lint
-# ==============================================================================
+# ==================================================================================================
 
 const MAX_LINES = 20
 
@@ -28,8 +28,7 @@ def capped [tool: string, args: list<string>] {
   )
 }
 
-# Node's own resolution order, since eslint only works with the config and the
-# plugins its project installed.
+# Node's own resolution order, since eslint only works with its own project's config and plugins.
 def project-bin [path: string, tool: string]: nothing -> string {
   let parts = ($path | path expand | path dirname | path split)
   for n in (($parts | length)..1) {
@@ -75,8 +74,7 @@ def format-file [path: string, config: record] {
         capped $config.pyright [$path]
       }
     }
-    # Rust and Go stay unpinned, since either toolchain would add GiBs to every
-    # host's closure.
+    # Rust and Go stay unpinned, since either toolchain would add GiBs to every host's closure.
     "rs" => {
       if (have cargo) {
         quiet cargo ["fmt" "--all" "--quiet"]
@@ -102,8 +100,8 @@ def format-file [path: string, config: record] {
       if (have $formatter) {
         quiet $formatter ["--log-level" "warn" "--write" $path]
       }
-      # `--fix` reports whatever it could not fix, so one call covers both. A
-      # file the project ignores is not this hook's business.
+      # `--fix` reports whatever it could not fix, so one call covers both. A file the project
+      # ignores is not this hook's business.
       let eslint = (project-bin $path "eslint")
       if ($eslint | is-not-empty) {
         capped $eslint ["--fix" "--no-warn-ignored" $path]
