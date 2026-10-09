@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  corpGateway,
   corpHosts,
   clearProxyEnv,
   secretPath,
@@ -46,8 +47,8 @@ let
     export ${var}=${esc value}
   '';
 
-  # `envFiles` values are runtime paths read on start, keeping secrets out of the store path.
-  # `envVars` values land in the store path verbatim, so never pass a secret there.
+  # `envFiles` maps variables to runtime paths read on start, keeping secrets
+  # out of the store. `envVars` values land in the store verbatim.
   mkServer =
     {
       name,
@@ -101,8 +102,24 @@ let
     command = [ "mcp-atlassian" ];
     envFiles.CONFLUENCE_PERSONAL_TOKEN = secretPath "llm-assistants/mcp/confluence-pat";
     envVars.CONFLUENCE_URL = wikiUrl;
-    # mcp-atlassian honours HTTP_PROXY but ignores NO_PROXY, so unset proxies for internal Confluence.
+    # mcp-atlassian ignores NO_PROXY, so unset proxies for internal Confluence.
     setup = clearProxyEnv;
+  };
+
+  # ----------------------------------------------------------------------------
+  # Bifrost
+  # ----------------------------------------------------------------------------
+  # mcp-proxy sends API_ACCESS_TOKEN as a bearer token, which the gateway
+  # accepts in place of x-bf-vk, keeping the key out of argv.
+  bifrostBin = mkServer {
+    name = "bifrost";
+    command = [
+      (lib.getExe pkgs.mcp-proxy)
+      "--transport=streamablehttp"
+      "--verify-ssl=${secretPath corpGateway.caSecret}"
+      "${corpGateway.baseUrl}/mcp"
+    ];
+    envFiles.API_ACCESS_TOKEN = secretPath corpGateway.tokenSecret;
   };
 
   # ----------------------------------------------------------------------------
@@ -134,8 +151,6 @@ let
     name = "exa";
     command = [ "exa-mcp-server" ];
     envFiles.EXA_API_KEY = secretPath "llm-assistants/mcp/exa-api-key";
-    # Exa's eight other tools are deprecated aliases of these four. crawling_exa in
-    # particular registers the same handler as web_fetch_exa under a second name.
     envVars.ENABLED_TOOLS = "web_search_exa,web_fetch_exa,web_search_advanced_exa,agent_run";
   };
 
@@ -220,6 +235,11 @@ in
   servers = {
     atlassian = {
       command = lib.getExe atlassianBin;
+      type = "stdio";
+    };
+
+    bifrost = {
+      command = lib.getExe bifrostBin;
       type = "stdio";
     };
 

@@ -9,6 +9,7 @@
 let
   serverDisplayNames = {
     atlassian = "Atlassian";
+    bifrost = "Bifrost";
     braveSearch = "BraveSearch";
     chromeDevtools = "ChromeDevTools";
     deepwiki = "DeepWiki";
@@ -24,6 +25,7 @@ let
 
   commonServerNames = [
     "atlassian"
+    "bifrost"
     "chromeDevtools"
     "deepwiki"
     "exa"
@@ -36,6 +38,7 @@ let
 
   corpServerNames = [
     "atlassian"
+    "bifrost"
     "gitlab"
   ];
 

@@ -1,4 +1,6 @@
 {
+  "llm-assistants/bifrost-api-key" = { };
+  "llm-assistants/corp-cachain.crt" = { };
   "llm-assistants/mcp/brave-api-key" = { };
   "llm-assistants/mcp/confluence-pat" = { };
   "llm-assistants/mcp/exa-api-key" = { };

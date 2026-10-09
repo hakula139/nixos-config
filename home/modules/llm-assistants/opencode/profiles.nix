@@ -140,6 +140,7 @@ let
         options = {
           inherit (sdk) baseURL;
           apiKey = "{file:${tokenFile}}";
+          headers = corpGateway.extraHeaders;
         };
       };
     };

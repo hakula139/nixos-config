@@ -38,6 +38,7 @@ let
       auth = "apiKey";
       apiKey = "!${lib.getExe' pkgs.coreutils "cat"} ${lib.escapeShellArg (secretPath provider.tokenSecret)}";
       authHeader = true;
+      headers = provider.extraHeaders or { };
       models = map (mkModel profile.channel) (lib.unique (builtins.attrValues profile.models));
     }
     // lib.optionalAttrs (profile.family == "claude") {
@@ -48,7 +49,7 @@ let
     }
     // lib.optionalAttrs (api == "openai-responses") {
       compat = {
-        # Override unrelated bundled-provider compatibility inherited for custom models.
+        # Override unrelated bundled-provider compat inherited by custom models.
         supportsReasoningEffort = true;
       }
       // lib.optionalAttrs (profile.family == "gpt") {

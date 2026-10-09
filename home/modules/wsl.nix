@@ -29,6 +29,11 @@ in
     # --------------------------------------------------------------------------
     # Home Manager Overrides
     # --------------------------------------------------------------------------
+    hakula.llm-assistants = {
+      enable = lib.mkDefault true;
+      proxy.noProxy = lib.mkDefault [ wildcardDomain ];
+    };
+
     hakula.claude-code.auth.defaultProfile = "corp-gateway-anthropic";
 
     hakula.cursor = {
@@ -37,11 +42,6 @@ in
     };
 
     hakula.fonts.windowsSync.enable = lib.mkDefault true;
-
-    hakula.llm-assistants = {
-      enable = lib.mkDefault true;
-      proxy.noProxy = lib.mkDefault [ wildcardDomain ];
-    };
 
     hakula.mihomo = {
       enable = lib.mkDefault false;

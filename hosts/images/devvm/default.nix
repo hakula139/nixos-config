@@ -15,6 +15,7 @@ let
 
   commonMcpServers = [
     "atlassian"
+    "bifrost"
     "filesystem"
     "git"
     "gitlab"
@@ -58,14 +59,6 @@ in
       # ------------------------------------------------------------------------
       # Assistant Tooling
       # ------------------------------------------------------------------------
-      hakula.claude-code = {
-        auth.defaultProfile = "corp-gateway-anthropic";
-        mcp.enabledServers = commonMcpServers;
-        plugins.bundle = true;
-      };
-
-      hakula.codex.mcp.enabledServers = commonMcpServers;
-
       hakula.llm-assistants = {
         enable = lib.mkDefault true;
         proxy = {
@@ -74,6 +67,16 @@ in
           noProxy = proxyNoProxy;
         };
       };
+
+      hakula.claude-code = {
+        auth.defaultProfile = "corp-gateway-anthropic";
+        mcp.enabledServers = commonMcpServers;
+        plugins.bundle = true;
+      };
+
+      hakula.codex.mcp.enabledServers = commonMcpServers;
+
+      hakula.omp.mcp.enabledServers = commonMcpServers;
 
       hakula.opencode = {
         mcp.enabledServers = commonMcpServers;
