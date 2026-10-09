@@ -21,7 +21,7 @@ let
         "xhigh"
         "max"
       ];
-      defaultLevel = "high";
+      defaultLevel = "medium";
       supportsDisplay = true;
     };
   };
@@ -98,8 +98,7 @@ in
     claude = {
       flagship = "claude-opus-5-5";
       standard = "claude-opus-5-5";
-      # Use Sonnet for lightweight coding tasks because Haiku falls below our quality baseline.
-      mini = "claude-sonnet-5-5";
+      mini = "claude-haiku-5-5";
     };
     gpt = {
       flagship = "gpt-6-astra";
@@ -123,7 +122,7 @@ in
     "claude-opus-5-5" = claudeAdaptiveCommon // {
       name = "Claude Opus 5.5";
       thinking = claudeAdaptiveCommon.thinking // {
-        defaultLevel = "medium";
+        defaultLevel = "high";
         requiresEffort = true;
       };
       channelId.anthropic = "bedrock/global.anthropic.claude-opus-5-5";
@@ -137,9 +136,6 @@ in
 
     "claude-sonnet-5-5" = claudeAdaptiveCommon // {
       name = "Claude Sonnet 5.5";
-      thinking = claudeAdaptiveCommon.thinking // {
-        defaultLevel = "low";
-      };
       channelId.anthropic = "bedrock/global.anthropic.claude-sonnet-5-5";
       channelCost.anthropic = {
         input = 2.2;
@@ -158,6 +154,18 @@ in
         output = 10.0;
         cacheRead = 0.2;
         cacheWrite = 2.5;
+      };
+    };
+
+    # Prompts over 100k tokens cost 5x these base rates.
+    "claude-haiku-5-5" = claudeAdaptiveCommon // {
+      name = "Claude Haiku 5.5";
+      channelId.anthropic = "bedrock/global.anthropic.claude-haiku-5-5";
+      channelCost.anthropic = {
+        input = 0.1;
+        output = 0.5;
+        cacheRead = 0.01;
+        cacheWrite = 0.125;
       };
     };
 
