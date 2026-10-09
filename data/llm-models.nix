@@ -142,10 +142,10 @@ in
       };
       channelId.anthropic = "bedrock/global.anthropic.claude-sonnet-5-5";
       channelCost.anthropic = {
-        input = 2.0;
-        output = 10.0;
-        cacheRead = 0.2;
-        cacheWrite = 2.5;
+        input = 2.2;
+        output = 11.0;
+        cacheRead = 0.22;
+        cacheWrite = 2.75;
       };
     };
 
