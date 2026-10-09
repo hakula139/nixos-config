@@ -36,6 +36,10 @@ let
   # from this attrset do not require any decrypted file.
   mcpServerSecrets = {
     atlassian = [ "llm-assistants/mcp/confluence-pat" ];
+    bifrost = [
+      "llm-assistants/bifrost-api-key"
+      "llm-assistants/corp-cachain.crt"
+    ];
     braveSearch = [ "llm-assistants/mcp/brave-api-key" ];
     exa = [ "llm-assistants/mcp/exa-api-key" ];
     github = [ "github/pat" ];
@@ -101,7 +105,7 @@ in
   # ----------------------------------------------------------------------------
   config = lib.mkMerge [
     {
-      # Clients enabled independently of the bundle still inherit its MCP policy.
+      # Clients enabled apart from the bundle still inherit its MCP policy.
       hakula =
         lib.genAttrs assistantNames (_: {
           mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;

@@ -251,6 +251,7 @@ ryantm
 sarasa
 scrobbler
 sdist
+searxng
 sess
 sgid
 shanselman
