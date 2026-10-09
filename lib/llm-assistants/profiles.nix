@@ -137,6 +137,11 @@ in
 
       tokenSecret = "llm-assistants/bifrost-api-key";
       caSecret = "llm-assistants/corp-cachain.crt";
+
+      # The gateway injects its MCP tools into every model request unless this
+      # header names the clients to keep. Naming none keeps the tools on the
+      # MCP server, and OMP drops empty header values, so it cannot be blank.
+      extraHeaders.x-bf-mcp-include-clients = "none";
     };
 
   providers.ikuncode = {

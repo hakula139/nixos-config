@@ -18,6 +18,10 @@
 let
   promptFragments = import ./prompt-fragments;
   agentRoles = import ./agent-roles { inherit (promptFragments) readPrompt; };
+
+  profileDefinitions = repoLib.llmAssistants.mkProfileDefinitions {
+    inherit lib modelCatalog corpHosts;
+  };
 in
 {
   imports = [
@@ -44,6 +48,7 @@ in
         corpHosts
         secretPath
         ;
+      corpGateway = profileDefinitions.providers.corp-gateway;
     };
     mcpSecrets = import ./mcp/secrets.nix;
 
@@ -66,9 +71,7 @@ in
     # --------------------------------------------------------------------------
     # Auth profiles
     # --------------------------------------------------------------------------
-    profileDefinitions = repoLib.llmAssistants.mkProfileDefinitions {
-      inherit lib modelCatalog corpHosts;
-    };
+    inherit profileDefinitions;
 
     mkProfileSwitch = import ./profile-switch { inherit pkgs lib; };
   };

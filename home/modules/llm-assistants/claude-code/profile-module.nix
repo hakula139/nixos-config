@@ -44,6 +44,12 @@ lib.types.submodule {
       '';
     };
 
+    extraHeaders = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      description = "Additional HTTP headers for this profile's API requests";
+    };
+
     extraEnv = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       default = { };

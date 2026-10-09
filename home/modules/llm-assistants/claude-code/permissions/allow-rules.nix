@@ -168,6 +168,7 @@
   "Bash(httpie *)"
   "Bash(https *)"
   "Bash(wget *)"
+  "mcp__Bifrost"
   "mcp__Exa"
   "mcp__Scrapling__bulk_fetch"
   "mcp__Scrapling__bulk_stealthy_fetch"

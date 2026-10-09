@@ -165,6 +165,7 @@ in
       name = "Corporate gateway";
       base_url = corpGateway.apiUrls.openai-responses;
       wire_api = "responses";
+      http_headers = corpGateway.extraHeaders;
 
       auth = {
         command = lib.getExe' pkgs.coreutils "cat";
