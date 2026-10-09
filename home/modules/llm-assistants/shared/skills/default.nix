@@ -19,6 +19,7 @@ let
     browser-debugging = ./browser-debugging;
     clean-gone = ./clean-gone;
     cspell = ./cspell;
+    dream = ./dream;
     environment-repair = ./environment-repair;
     frontend-design = anthropic + "/frontend-design";
     gh-address-comments = openai + "/gh-address-comments";
