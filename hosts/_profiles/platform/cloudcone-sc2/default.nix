@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # CloudCone SC2 Hardware Profile
-# ==============================================================================
+# ==================================================================================================
 
 {
   modulesPath,
@@ -17,24 +17,21 @@
     ./disk-config.nix
   ];
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Boot Loader & Hardware
-  # ----------------------------------------------------------------------------
-  # CloudCone's VPS uses a legacy external bootloader that expects a standard
-  # MBR partition table and a legacy grub.conf.
-  # We shim this by creating a static grub.conf that points to our NixOS kernel.
+  # ------------------------------------------------------------------------------------------------
+  # CloudCone's VPS uses a legacy external bootloader that expects a standard MBR partition table
+  # and a legacy grub.conf. We shim this with a static grub.conf pointing to our NixOS kernel.
   boot.loader.grub = {
     enable = true;
     devices = lib.mkForce [ "/dev/vda" ];
     configurationLimit = 5;
 
     extraInstallCommands = ''
-      # Create symlinks to the current kernel / initrd in /boot.
-      # This allows the static grub.conf to always find the latest build.
+      # Stable /boot symlinks let the static grub.conf always find the latest build.
       ${lib.getExe' pkgs.coreutils "ln"} -sfn /nix/var/nix/profiles/system/kernel /boot/vmlinuz
       ${lib.getExe' pkgs.coreutils "ln"} -sfn /nix/var/nix/profiles/system/initrd /boot/initrd
 
-      # Create a static legacy grub.conf for CloudCone's external bootloader.
       ${lib.getExe' pkgs.coreutils "cat"} <<EOF >/boot/grub/grub.conf
       default=0
       timeout=1
@@ -55,9 +52,9 @@
 
   services.qemuGuest.enable = true;
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Networking
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   networking.useDHCP = false;
   networking.nameservers = [
     "8.8.8.8"

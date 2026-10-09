@@ -1,14 +1,13 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Pinned Version Drift Check
-# ==============================================================================
-# Compare the registered manual pins against their upstream values and report
-# which ones have drifted. Renovate-managed pins (flake.lock) are out of
-# scope. See ../SKILL.md for why.
+# ==================================================================================================
+# Compare the registered manual pins against their upstream values and report which ones have
+# drifted. Renovate-managed pins (flake.lock) are out of scope. See ../SKILL.md for why.
 #
 # Run with --help for usage.
-# ==============================================================================
+# ==================================================================================================
 
 const PLUGINS_NIX = "home/modules/llm-assistants/claude-code/plugins.nix"
 const CF_IPS_NIX = "modules/nixos/cloudflare/ips.nix"
@@ -19,12 +18,11 @@ const CF_IPS_V6_URL = "https://www.cloudflare.com/ips-v6"
 # Commit prefix length used by the plugin bundle.
 const REV_ABBREV = 12
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Helpers
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
-# A missing prerequisite leaves the run incomplete, so it shares exit 2 with a
-# failed upstream query.
+# A missing prerequisite leaves the run incomplete, so it shares exit 2 with a failed query.
 def die [msg: string] {
   print -e $"error: ($msg)"
   exit 2
@@ -49,9 +47,9 @@ def version-key [version: string]: nothing -> list<int> {
   $version | str replace -r '^v' '' | split row "." | into int
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Upstream queries
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def gh-api [path: string, jq: string]: nothing -> string {
   ^gh api --hostname github.com $path --jq $jq | str trim
@@ -104,9 +102,9 @@ def pypi-latest [pkg: string]: nothing -> string {
   http get $"https://pypi.org/pypi/($pkg)/json" | get info.version
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Pin extraction
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def plugin-block [root: string, name: string]: nothing -> list<string> {
   open --raw ([$root $PLUGINS_NIX] | path join)
@@ -170,9 +168,9 @@ def action-pins [root: string]: nothing -> list<string> {
   | sort
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Cloudflare comparison
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 # The IP list carries no version, so drift means the ranges themselves differ.
 def cloudflare-drift [root: string]: nothing -> string {
@@ -199,9 +197,9 @@ def cloudflare-drift [root: string]: nothing -> string {
   }
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Pin registry
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def action-pin [pin: string]: nothing -> record {
   # GitHub repository action or reusable workflow, with an optional subpath.
@@ -221,9 +219,8 @@ def action-pin [pin: string]: nothing -> record {
   }
 }
 
-# Each row pairs a pin name with closures that read the local value and the
-# upstream value. Both stay lazy so `list` can print the registry without
-# touching the network.
+# Each row pairs a pin name with closures that read the local value and the upstream value. Both
+# stay lazy so `list` can print the registry without touching the network.
 def registry [root: string]: nothing -> list<record> {
   [
     {
@@ -369,8 +366,7 @@ def registry [root: string]: nothing -> list<record> {
           pin: "cloudflare-ips"
           local: {|| nix-attr $root $CF_IPS_NIX 'Last updated: (?<v>\S+)' }
           upstream: {|| cloudflare-drift $root }
-          # The pinned column is a date and the upstream column a verdict, so
-          # the two are not comparable.
+          # The pinned column is a date and the upstream one a verdict, so they are not comparable.
           status: {|upstream| match $upstream { "same ranges" => "ok", _ => "STALE" } }
         }
       ]
@@ -378,12 +374,12 @@ def registry [root: string]: nothing -> list<record> {
   ]
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Reporting
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
-# A pin delegated to Renovate reports its own status, since comparing the two
-# `flake.lock` placeholders would otherwise mark it a current manual pin.
+# A pin delegated to Renovate reports its own status, since comparing the two `flake.lock`
+# placeholders would otherwise mark it a current manual pin.
 def resolve []: list<record> -> list<record> {
   par-each --keep-order {|row|
     if ($row.delegated? | is-not-empty) {
@@ -413,8 +409,7 @@ def resolve []: list<record> -> list<record> {
 
 def resolve-group [group: record]: nothing -> record {
   let rows = if ($group.pins | is-empty) {
-    # An empty group would print as a clean sweep, which is indistinguishable
-    # from every pin being current.
+    # An empty group would print as a clean sweep, indistinguishable from every pin being current.
     [{pin: $group.title, pinned: "?", upstream: "?", status: "UNKNOWN"}]
   } else {
     $group.pins | resolve
@@ -422,9 +417,9 @@ def resolve-group [group: record]: nothing -> record {
   {title: $group.title, rows: $rows}
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Entry point
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 # Compare registered manual pins with upstream versions.
 def "main check" [] {
@@ -435,8 +430,8 @@ def "main check" [] {
     die "GitHub authentication check failed. Check credentials and network access."
   }
 
-  # Resolution finishes before anything prints, since `par-each` threads would
-  # otherwise interleave their sections.
+  # Resolution finishes before anything prints, since `par-each` threads would otherwise interleave
+  # their sections.
   let groups = (
     registry (repo-root)
     | par-each --keep-order {|group| resolve-group $group }

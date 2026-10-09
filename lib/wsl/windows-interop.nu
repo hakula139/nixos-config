@@ -1,11 +1,11 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Windows Interop Helpers (WSL only)
-# ==============================================================================
+# ==================================================================================================
 
-# `--env` is required on both defs: a plain `def` discards the PATH mutation
-# when it returns, so cmd.exe would stay unreachable.
+# `--env` is required on both defs: a plain `def` discards the PATH mutation when it returns, so
+# cmd.exe would stay unreachable.
 def --env interop-init [] {
   let win_sys32 = "/mnt/c/Windows/System32"
   if ($win_sys32 | path exists) and ($win_sys32 not-in $env.PATH) {

@@ -1,20 +1,20 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # CloudCone Monitoring Agent
 # Modified from https://github.com/Cloudcone/cloud-view/blob/master/agent.sh
-# ==============================================================================
+# ==================================================================================================
 
 const AGENT_VERSION = '1.0'
 const GATEWAY = 'http://watch.cloudc.one/agent'
 const PING_TARGET = '1.1.1.1'
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Utility Functions
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
-# Every probe is best-effort, and a failing external command would otherwise
-# abort the script, so each one goes through `complete`.
+# Every probe is best-effort, and a failing external command would otherwise abort the script, so
+# each one goes through `complete`.
 def sh [cmd: string, args: list<string> = []]: nothing -> string {
   try { (^$cmd ...$args | complete).stdout } catch { "" }
 }
@@ -153,8 +153,8 @@ def collect-addresses [family: string]: nothing -> string {
   | str join ""
 }
 
-# The gateway parses this payload on `,` and `;`, so those characters plus `%`
-# are percent-escaped inside the command line.
+# The gateway parses this payload on `,` and `;`, so those characters plus `%` are percent-escaped
+# inside the command line.
 def escape-cmd [cmd: string]: nothing -> string {
   $cmd
   # ASCII control whitespace
@@ -167,8 +167,8 @@ def escape-cmd [cmd: string]: nothing -> string {
 }
 
 def collect-processes []: nothing -> string {
-  # A comma in a bare list element splits it in two, so both of these are
-  # quoted: `--sort=-pcpu,-pmem` would reach `ps` as a stray `-pmem`.
+  # A comma in a bare list element splits it in two, so both of these are quoted:
+  # `--sort=-pcpu,-pmem` would reach `ps` as a stray `-pmem`.
   let ps_args = [
     -e
     -o
@@ -186,13 +186,13 @@ def collect-processes []: nothing -> string {
   | str join ""
 }
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 # Main Collection
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def main [server_key_file: string]: nothing -> nothing {
   let key_file = ($env.CLOUDCONE_SERVER_KEY_FILE? | default $server_key_file)
-  # If set to 1, do not send to gateway; print the payload to stdout instead.
+  # If set to 1, print the payload to stdout without sending it to the gateway.
   let dry_run = ($env.CLOUDCONE_DRY_RUN? | default "0")
   # If set to 1, redact the server key from output. Defaults to the dry-run value.
   let redact = ($env.CLOUDCONE_REDACT_SERVERKEY? | default $dry_run)
@@ -280,8 +280,8 @@ def main [server_key_file: string]: nothing -> nothing {
     return
   }
 
-  # The endpoint is third-party and best-effort, so a failure here must not
-  # leave a permanently failed unit that blocks a deploy.
+  # The endpoint is third-party and best-effort, so a failure here must not leave a permanently
+  # failed unit that blocks a deploy.
   let sent = try {
     (
       $"data=($post)"

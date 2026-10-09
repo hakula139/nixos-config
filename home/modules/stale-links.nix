@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # Stale Link Pruning
-# ==============================================================================
+# ==================================================================================================
 
 {
   lib,
@@ -8,9 +8,9 @@
 }:
 
 {
-  # Home Manager's cleanup keeps paths present in both generations without
-  # comparing types, stranding the old symlink when a managed leaf becomes a
-  # directory. Linking then mkdir's through it into the read-only store.
+  # Home Manager's cleanup keeps paths present in both generations without comparing types,
+  # stranding the old symlink when a managed leaf becomes a directory. Linking then mkdir's through
+  # it into the read-only store.
   home.activation.pruneStaleLinks = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
     homeFilePattern="$(readlink -e ${lib.escapeShellArg builtins.storeDir})/*-home-manager-files/*"
     newGenFiles="$(readlink -e "$newGenPath/home-files")"

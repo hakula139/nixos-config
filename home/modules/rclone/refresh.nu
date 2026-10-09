@@ -1,11 +1,11 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Rclone Metadata Refresh
-# ==============================================================================
+# ==================================================================================================
 
-# Refresh remote directory metadata without downloading file contents.
-# A missing socket is skipped while the mount is stopped.
+# Refresh remote directory metadata without downloading file contents. A missing socket is skipped
+# while the mount is stopped.
 def main [
   socket: string # Unix socket for the mount's rclone remote-control API
 ] {

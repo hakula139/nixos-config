@@ -11,18 +11,16 @@
   // Unordered list indentation: 2 spaces per level.
   "MD007": { "indent": 2 },
 
-  // Hard tabs: allowed inside a fence, where a tab is content that a Go or
-  // Makefile sample needs.
+  // Hard tabs: allowed inside a fence, where a tab is content that a Go or Makefile sample needs.
   "MD010": { "code_blocks": false },
 
-  // Line length: off, since prose is soft-wrapped one sentence per line.
+  // Line length: off, since prose is soft-wrapped one paragraph per line.
   "MD013": false,
 
   // Multiple headings with the same content: allowed under different parents.
   "MD024": { "siblings_only": true },
 
-  // Trailing punctuation in a heading: flag only these four, so a heading can
-  // still ask something.
+  // Trailing punctuation in a heading: flag only these four, so a heading can still ask something.
   "MD026": { "punctuation": ".,;:" },
 
   // Ordered list item prefix: increment (1. 2. 3.).
@@ -34,8 +32,8 @@
   // Bare URL: a link with no `<>` or `[]()` around it passes.
   "MD034": false,
 
-  // First line should be a top-level heading: off, since a skill or an agent
-  // file opens with YAML front matter and a prompt file opens with prose.
+  // First line should be a top-level heading: off, since a skill or an agent file opens with YAML
+  // front matter and a prompt file opens with prose.
   "MD041": false,
 
   // Code block style: fenced, never indented.

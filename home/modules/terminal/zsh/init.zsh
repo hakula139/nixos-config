@@ -1,6 +1,6 @@
-# ==============================================================================
-# Zsh init — sourced from programs.zsh.initContent
-# ==============================================================================
+# ==================================================================================================
+# Zsh init, sourced from programs.zsh.initContent
+# ==================================================================================================
 
 # Globbing options
 setopt GLOB_DOTS
@@ -28,15 +28,14 @@ zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border --bind=one:
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
 
-# Create directory and cd into it
 mkcd() { mkdir -p "$1" && cd "$1"; }
 
 # Refresh tmux env per prompt so reattaches see new tokens and sockets.
 if [[ -n "$TMUX" ]]; then
   _refresh_tmux_env() {
     eval "$(tmux show-environment -s 2>/dev/null | grep -E '(VSCODE_|GIT_ASKPASS|CLAUDE_CODE_SSE_PORT)')"
-    # WSL_INTEROP from tmux state can point at a dead socket, causing slow
-    # interop and Crashpad errors. Always use the newest socket on disk.
+    # WSL_INTEROP from tmux state can point at a dead socket, causing slow interop and Crashpad
+    # errors. Always use the newest socket on disk.
     if [[ -d /run/WSL ]]; then
       local newest
       newest=$(find /run/WSL -maxdepth 1 -name '*_interop' -type s -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
@@ -46,7 +45,6 @@ if [[ -n "$TMUX" ]]; then
   precmd_functions+=(_refresh_tmux_env)
 fi
 
-# Set EDITOR based on available editors (cursor > code > nvim > vim)
 if command -v cursor &>/dev/null; then
   export EDITOR="cursor editor --wait"
 elif command -v code &>/dev/null; then

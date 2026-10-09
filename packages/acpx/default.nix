@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # ACPX - ACP Client
-# ==============================================================================
+# ==================================================================================================
 
 {
   pkgs,
@@ -42,8 +42,8 @@ pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
     mkdir -p "$out/lib/acpx"
     cp -r dist node_modules package.json skills "$out/lib/acpx"
 
-    # Built-in adapters need npx. The resolved node binary lives in nodejs-slim,
-    # so acpx cannot find npm beside process.execPath.
+    # Built-in adapters need npx. The resolved node binary lives in nodejs-slim, so acpx cannot find
+    # npm beside process.execPath.
     makeWrapper ${lib.getExe pkgs.nodejs_24} "$out/bin/acpx" \
       --suffix PATH : "${lib.makeBinPath [ pkgs.nodejs_24 ]}" \
       --add-flags "$out/lib/acpx/dist/cli.js"

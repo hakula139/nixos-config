@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # PostgreSQL (Database Server)
-# ==============================================================================
+# ==================================================================================================
 
 {
   config,
@@ -13,9 +13,9 @@ let
   cfg = config.hakula.services.postgresql;
 in
 {
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Module options
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   options.hakula.services.postgresql = {
     enable = lib.mkEnableOption "PostgreSQL database server";
 
@@ -32,39 +32,39 @@ in
     };
   };
 
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   # Module config
-  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
   config = lib.mkIf cfg.enable {
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # PostgreSQL service
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     services.postgresql = {
       enable = true;
       inherit (cfg) package;
       settings = {
-        # Bind to all interfaces; the podman bridge (10.88.0.1) may not exist
-        # yet at PostgreSQL startup, causing it to silently skip the address.
-        # Access is restricted by the firewall (podman0 only) and pg_hba.conf.
+        # Bind to all interfaces, since PostgreSQL silently skips the podman bridge address
+        # (10.88.0.1) when the bridge does not exist yet at startup. The firewall (podman0 only) and
+        # pg_hba.conf restrict access.
         listen_addresses = lib.mkForce "*";
         inherit (cfg) port;
         password_encryption = "scram-sha-256";
       };
     };
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # Crash-loop resilience
-    # --------------------------------------------------------------------------
-    # The stock 100ms RestartSec burns the 5-restart budget in under a second,
-    # latching start-limit-hit permanently even once the fault clears.
+    # ----------------------------------------------------------------------------------------------
+    # The stock 100ms RestartSec burns the 5-restart budget in under a second, latching
+    # start-limit-hit permanently even once the fault clears.
     systemd.services.postgresql = {
       serviceConfig.RestartSec = "5s";
       unitConfig.StartLimitBurst = lib.mkForce 0;
     };
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # Firewall
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # Allow podman containers to reach PostgreSQL via the podman bridge.
     networking.firewall.interfaces.${config.hakula.podman.network.interface}.allowedTCPPorts = [
       cfg.port

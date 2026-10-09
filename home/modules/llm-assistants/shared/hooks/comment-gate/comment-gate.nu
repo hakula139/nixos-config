@@ -1,14 +1,14 @@
 #!/usr/bin/env nu
 
-# ==============================================================================
+# ==================================================================================================
 # Comment Gate
-# ==============================================================================
+# ==================================================================================================
 
 const MIN_CHARS = 12
 const MAX_TOKENS = 2048
 
-# Line comment openers by file extension. A payload carrying none of its
-# language's openers cannot carry a comment, which is the whole prefilter.
+# Line comment openers by file extension. A payload carrying none of its language's openers cannot
+# carry a comment, which is the whole prefilter.
 const OPENERS = {
   c: ["//" "/*"]
   cc: ["//" "/*"]
@@ -51,8 +51,8 @@ const OPENERS = {
   zsh: ["#"]
 }
 
-# A whole line of nothing but a comment opener and four or more rule characters.
-# That frames a banner, so it never justifies a judge call on its own.
+# A whole line of nothing but a comment opener and four or more rule characters. That frames a
+# banner, so it never justifies a judge call on its own.
 const BANNER_RULE = '(?m)^\s*(?://|#|--|;)\s*[=*_-]{4,}\s*$'
 
 def payload [input: record, config: record]: nothing -> list<record> {
@@ -91,9 +91,9 @@ def judge [text: string, config: record]: nothing -> string {
   if $run.exit_code != 0 { "" } else { $run.stdout }
 }
 
-# The verdict sits at the end of the reply, after findings that quote the text
-# under judgement. Reading from the last line backwards is what keeps a brace
-# or an `ok:` inside a quoted span from being mistaken for the verdict.
+# The verdict sits at the end of the reply, after findings that quote the text under judgement.
+# Reading from the last line backwards is what keeps a brace or an `ok:` inside a quoted span from
+# being mistaken for the verdict.
 def verdict [raw: string]: nothing -> record {
   let lines = ($raw | lines | reverse)
   for line in $lines {

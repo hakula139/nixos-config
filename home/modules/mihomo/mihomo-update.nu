@@ -14,14 +14,14 @@ def main [config_file: string] {
   let config = (open $config_file)
   let target_file = ($config.configDir | path join "config.yaml")
 
-  # `open` only parses YAML when the extension says so, and the named
-  # duplicate-key error is worth more than a generic one.
+  # `open` only parses YAML when the extension says so, and the named duplicate-key error is worth
+  # more than a generic one.
   let staging_file = ($config.configDir | path join "config.staging.yaml")
 
   mkdir $config.configDir
 
-  # The subscription fetch must not loop through mihomo itself, which is
-  # either down during initial start or about to be replaced.
+  # The subscription fetch must not loop through mihomo itself, which is either down during initial
+  # start or about to be replaced.
   hide-env --ignore-errors ...$config.proxyVars
 
   print "Fetching mihomo subscription"
@@ -36,9 +36,9 @@ def main [config_file: string] {
     exit 1
   }
 
-  # `str replace` is literal in both pattern and replacement, so `|`, `&`,
-  # `\` and `'` survive. The base config holds the secret in a single-quoted
-  # scalar, so a literal `'` still has to be doubled for YAML itself.
+  # `str replace` is literal in both pattern and replacement, so `|`, `&`, `\` and `'` survive. The
+  # base config holds the secret in a single-quoted scalar, so a literal `'` still has to be doubled
+  # for YAML itself.
   print "Preparing base configuration with secrets"
   let secret = (
     open --raw $config.secretFile

@@ -1,6 +1,6 @@
-# ==============================================================================
+# ==================================================================================================
 # Auto-format Hook
-# ==============================================================================
+# ==================================================================================================
 
 {
   pkgs,
@@ -20,6 +20,7 @@ let
 
   prettierConfig = lib.importJSON (lib.path.append repo.root ".prettierrc.json");
   ruffConfig = lib.importTOML (lib.path.append repo.root "ruff.toml");
+  taploConfig = lib.importTOML (lib.path.append repo.root ".taplo.toml");
 
   preferredQuoteStyle = single: if single then "preferSingle" else "preferDouble";
 
@@ -52,7 +53,7 @@ let
       quoteStyle = ruffConfig.format.quote-style;
       skipMagicTrailingComma = ruffConfig.format.skip-magic-trailing-comma;
     };
-    toml.lineWidth = 80;
+    toml.lineWidth = taploConfig.formatting.column_width;
     typescript = {
       inherit (prettierConfig) quoteProps;
       "jsx.quoteStyle" = preferredQuoteStyle prettierConfig.jsxSingleQuote;
