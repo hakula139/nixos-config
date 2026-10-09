@@ -36,6 +36,7 @@ let
       config
       pkgs
       lib
+      modelCatalog
       secretPath
       mcpFlag
       ;
