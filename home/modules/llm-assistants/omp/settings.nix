@@ -57,12 +57,16 @@
     setupWizard = false;
   };
 
-  followUpMode = "all";
   personality = "none";
+
+  followUpMode = "all";
   steeringMode = "all";
 
   ask.timeout = preferences.askTimeout;
 
+  # ------------------------------------------------------------------------------------------------
+  # Providers
+  # ------------------------------------------------------------------------------------------------
   providers = {
     cacheRetention = "long";
     streamFirstEventTimeoutSeconds = 1800;
