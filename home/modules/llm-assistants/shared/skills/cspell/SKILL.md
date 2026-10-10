@@ -30,7 +30,7 @@ Trace searches dictionaries. It does not reproduce filename overrides or identif
 
 ## Verified vocabulary
 
-Put verified vocabulary that belongs across the project in the existing accepted-word dictionary, usually `.cspell/words.txt`. A rare literal confined to one location can use a local exception. Keep one entry per line, sorted alphabetically without regard to case, and remove case-equivalent duplicates within the edited group.
+Put verified, reusable vocabulary in the existing accepted-word dictionary, usually `.cspell/words.txt`. This includes standard command names, library names, and technical terms, even when they currently appear only once. Classify the token by its meaning before choosing its scope. Keep one entry per line, sorted alphabetically without regard to case, and remove case-equivalent duplicates within the edited group.
 
 Use lowercase entries for the normal case-insensitive configuration. For example, `hakula` covers `Hakula` and `HAKULA`, so separate entries are unnecessary. Preserve explicit case-sensitive dictionary requirements when a project has them. Do not rewrite source names to match dictionary casing.
 
@@ -67,12 +67,12 @@ If a required cross-file contract is itself a misspelled ordinary word, globally
 
 ## Local exceptions
 
-For a literal confined to one file, put the local directive in that file. Use a filename override with `ignoreWords` only when the format cannot carry comments without changing the data, or a concrete configuration constraint requires it. Keep the reason beside an exception when the literal's purpose is otherwise unclear.
+Use local exceptions for file-specific opaque literals, compatibility spellings, and required known misspellings confined to one file. Put the local directive in that file. Use a filename override with `ignoreWords` only when the format cannot carry comments without changing the data, or a concrete configuration constraint requires it. Keep the reason beside an exception when the literal's purpose is otherwise unclear.
 
 - For one line containing an intentional spelling or opaque literal, `cspell:disable-line` suppresses that entire line. Inspect other words on the line before using it. In Markdown, an inline HTML comment keeps the directive out of rendered prose.
 - `cspell:disable-next-line` suppresses the next content line. Place the directive immediately above its target, with no intervening blank line by default. Preserve a blank line when the formatter requires one. CSpell 9.7.0 supports this layout, but verify behavior with the project's pinned version.
 - `cspell:ignore` permits the listed tokens throughout the file. Use it when those exact tokens need file-wide acceptance and surrounding words should remain checked.
-- For known typos required across files, use `.cspell/typos.txt` globally. For recurring legitimate vocabulary across the project, use the accepted-word dictionary.
+- For known typos required across files, use `.cspell/typos.txt` globally. For verified, reusable vocabulary, use the accepted-word dictionary regardless of its current occurrence count.
 
 ```markdown
 ### recieve <!-- cspell:disable-line -->
