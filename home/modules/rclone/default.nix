@@ -19,7 +19,7 @@ let
   logDir = "${config.home.homeDirectory}/Library/Logs/rclone";
   socketPath = name: "${stateDir}/${name}.sock";
 
-  mountLauncher = pkgs.writeShellScript "rclone-mount" (builtins.readFile ./mount.sh);
+  mountLauncher = pkgs.writers.writeNu "rclone-mount" { } (builtins.readFile ./mount.nu);
 
   refresh = pkgs.writers.writeNuBin "rclone-refresh" {
     makeWrapperArgs = [
