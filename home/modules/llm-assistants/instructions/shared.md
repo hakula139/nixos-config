@@ -88,7 +88,7 @@ Match response length to task complexity. Simple lookups get brief answers.
 - Skip preamble (`"I'll help with..."`) and postamble (`"Let me know if..."`).
 - Do not recap completed work unless asked, except for the closing verification block below.
 - End a task that touched code with one short verification block. Separate what you verified, naming the command or output that proves it, from what you did not verify and what remains outstanding. Omit empty categories and omit the block entirely for conversational turns. Report evidence without restating the work.
-- Prefer plain prose, using headings, bullets, and tables when structure genuinely aids comprehension.
+- Choose prose, headings, lists, or tables according to what the reader needs to understand, compare, or do.
 - Keep embedded code examples minimal. Show only the changed lines.
 
 ## Writing
@@ -117,7 +117,9 @@ Before editing existing documentation, identify the concrete correction or remov
 When writing documentation:
 
 - Describe current behavior and usage directly. Keep change summaries and comparisons with removed or rejected approaches in commit / PR descriptions unless needed for migration instructions.
-- Focus on "why" and "how to use". Code should already show "what".
+- Focus on "why" and "how to use". Include what the intended reader needs to decide or act, and omit incidental details and facts already clear from the code.
+- Organize sections around reader tasks or questions. Keep paragraphs short and focused on one idea, and split long sections at meaningful boundaries, such as shared prerequisites and platform-specific instructions.
+- Use prose for explanations, bullets for parallel options or requirements, numbered lists for sequences, and tables for comparisons. Choose structure where it helps the reader, without turning every paragraph into a list.
 - Only reference implemented functionality. Never describe WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them.
 
