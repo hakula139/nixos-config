@@ -159,6 +159,7 @@ in
             permissionSettings
             plugins
             ;
+          inherit (shared) preferences;
           inherit (shared.mcp) timeouts;
           bundlePlugins = cfg.plugins.bundle;
           profileSettings = profiles.settings;

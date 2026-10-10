@@ -4,6 +4,7 @@
 
 {
   sharedAgents,
+  preferences,
 }:
 
 {
@@ -60,7 +61,7 @@
   personality = "none";
   steeringMode = "all";
 
-  ask.timeout = 0;
+  ask.timeout = preferences.askTimeout;
 
   providers = {
     cacheRetention = "long";
@@ -71,7 +72,7 @@
   # ------------------------------------------------------------------------------------------------
   # Plan
   # ------------------------------------------------------------------------------------------------
-  plan.autosaveDir = ".agents/plans";
+  plan.autosaveDir = preferences.plansDir;
 
   # ------------------------------------------------------------------------------------------------
   # Memory

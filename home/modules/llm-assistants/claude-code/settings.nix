@@ -10,6 +10,7 @@
   plugins,
   bundlePlugins,
   profileSettings,
+  preferences,
   timeouts,
 }:
 
@@ -28,7 +29,7 @@
   # ------------------------------------------------------------------------------------------------
   # Project
   # ------------------------------------------------------------------------------------------------
-  plansDirectory = "./.agents/plans";
+  plansDirectory = "./${preferences.plansDir}";
 
   includeGitInstructions = false;
   attribution = {
@@ -46,8 +47,20 @@
     command = "${homeDir}/.claude/statusline-command";
   };
   showThinkingSummaries = true;
+  spinnerTipsEnabled = false;
 
   wheelScrollAccelerationEnabled = false;
+
+  # ------------------------------------------------------------------------------------------------
+  # Interaction
+  # ------------------------------------------------------------------------------------------------
+  askUserQuestionTimeout =
+    {
+      "60" = "60s";
+      "300" = "5m";
+      "600" = "10m";
+    }
+    .${toString preferences.askTimeout};
 
   # ------------------------------------------------------------------------------------------------
   # Environment

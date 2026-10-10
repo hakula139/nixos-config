@@ -25,7 +25,7 @@ let
       lib
       secretPath
       ;
-    inherit (shared) profileDefinitions mkProfileSwitch;
+    inherit (shared) profileDefinitions preferences mkProfileSwitch;
     sharedAgents = shared.agentRoles;
   };
 in
