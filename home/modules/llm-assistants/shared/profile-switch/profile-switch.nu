@@ -39,8 +39,7 @@ def list-profiles [config: record, active_link: string, --stderr]: nothing -> no
 def write-config [config: record, profile: path] {
   let current = if ($config.configFile | path exists) { open $config.configFile } else { {} }
   let reset_paths = ($config.resetKeys | each { split row "." | into cell-path })
-  let settings = ($config.defaultSettings
-    | merge deep --strategy overwrite $current
+  let settings = ($current
     | reject --optional ...$reset_paths
     | merge deep --strategy overwrite (open $profile))
   let serialized = match ($config.configFile | path parse | get extension) {
