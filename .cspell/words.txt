@@ -54,6 +54,7 @@ dhcpcd
 dhparams
 direnv
 disko
+diskutil
 dmit
 dont
 drblury
