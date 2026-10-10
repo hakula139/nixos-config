@@ -40,8 +40,8 @@ let
       secretPath
       mcpFlag
       ;
-    inherit (shared) profileDefinitions mkProfileSwitch;
     inherit (cfg.agents) enabledAgents;
+    inherit (shared) profileDefinitions mkProfileSwitch;
     sharedAgents = shared.agentRoles;
   };
 in
