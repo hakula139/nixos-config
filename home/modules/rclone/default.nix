@@ -19,6 +19,8 @@ let
   logDir = "${config.home.homeDirectory}/Library/Logs/rclone";
   socketPath = name: "${stateDir}/${name}.sock";
 
+  mountLauncher = pkgs.writeShellScript "rclone-mount" (builtins.readFile ./mount.sh);
+
   refresh = pkgs.writers.writeNuBin "rclone-refresh" {
     makeWrapperArgs = [
       "--prefix"
@@ -33,6 +35,9 @@ let
       enable = true;
       config = {
         ProgramArguments = [
+          "${mountLauncher}"
+          (socketPath name)
+          "${mountRoot}/${name}"
           rclone
           "nfsmount"
           mount.remote
