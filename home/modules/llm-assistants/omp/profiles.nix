@@ -98,6 +98,7 @@ let
     resetKeys = [
       "modelRoles"
       "ask.notify"
+      "ask.timeout"
       "completion.notify"
       "error.notify"
     ];
