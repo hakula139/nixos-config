@@ -25,8 +25,7 @@ let
       lib
       secretPath
       ;
-    inherit (shared) preferences profileDefinitions mkProfileSwitch;
-    sharedAgents = shared.agentRoles;
+    inherit (shared) profileDefinitions mkProfileSwitch;
   };
 in
 {
@@ -75,6 +74,13 @@ in
         mcpServers = shared.mcp.servers;
       };
 
+      settingsConfigFile = yaml.generate "omp-settings.yml" (
+        import ./settings.nix {
+          inherit (shared) preferences;
+          sharedAgents = shared.agentRoles;
+        }
+      );
+
       permissionConfigFile = yaml.generate "omp-permissions.yml" (
         import ./permissions.nix {
           inherit lib;
@@ -99,6 +105,9 @@ in
         (repoLib.proxy.mkProxyScript cfg.proxy)
       ]
       ++ [
+        "--add-flags"
+        "--config ${settingsConfigFile}"
+
         "--add-flags"
         "--config ${permissionConfigFile}"
       ];
