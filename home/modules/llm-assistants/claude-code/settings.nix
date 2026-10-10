@@ -47,7 +47,6 @@
     command = "${homeDir}/.claude/statusline-command";
   };
   showThinkingSummaries = true;
-  spinnerTipsEnabled = false;
 
   wheelScrollAccelerationEnabled = false;
 
