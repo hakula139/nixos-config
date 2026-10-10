@@ -40,8 +40,8 @@ let
       secretPath
       mcpFlag
       ;
-    inherit (shared) profileDefinitions mkProfileSwitch;
     inherit (cfg.agents) enabledAgents;
+    inherit (shared) profileDefinitions mkProfileSwitch;
     sharedAgents = shared.agentRoles;
   };
 in
@@ -159,6 +159,7 @@ in
             permissionSettings
             plugins
             ;
+          inherit (shared) preferences;
           inherit (shared.mcp) timeouts;
           bundlePlugins = cfg.plugins.bundle;
           profileSettings = profiles.settings;

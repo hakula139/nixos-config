@@ -6,8 +6,9 @@
   config,
   pkgs,
   lib,
-  profileDefinitions,
+  preferences,
   sharedAgents,
+  profileDefinitions,
   secretPath,
   mkProfileSwitch,
 }:
@@ -92,7 +93,7 @@ let
     extension = "config.yml";
     configFile = "${configDir}/config.yml";
     defaultSettings = import ./settings.nix {
-      inherit sharedAgents;
+      inherit preferences sharedAgents;
     };
     resetKeys = [
       "modelRoles"
