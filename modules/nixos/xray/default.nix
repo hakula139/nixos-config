@@ -45,18 +45,21 @@ in
   config = lib.mkIf cfg.enable (
     let
       json = pkgs.formats.json { };
+
       configFile = "/run/xray-config/config.json";
 
       # Clients, short IDs, and the private key are filled in at runtime from the secrets.
       renderConfig = json.generate "xray-render.json" {
         settings = {
           log.loglevel = "warning";
+
           inbounds = [
             {
               tag = "vless-reality";
               listen = "127.0.0.1";
               inherit (cfg.reality) port;
               protocol = "vless";
+
               settings.decryption = "none";
               streamSettings = {
                 network = "tcp";
@@ -73,20 +76,25 @@ in
             listen = "127.0.0.1";
             inherit (cfg.ws) port;
             protocol = "vless";
+
             settings.decryption = "none";
             streamSettings = {
               network = "ws";
               wsSettings.path = "/ws";
             };
           };
+
           outbounds = [ { protocol = "freedom"; } ];
         };
+
         clientFlows.vless-reality = "xtls-rprx-vision";
         minLevel = servers.${hostName}.proxyLevel;
+
         usersFile = config.age.secrets.xray-users.path;
         privateKeyFile = config.age.secrets.xray-reality-private-key.path;
         outputFile = configFile;
       };
+
       renderScript = pkgs.writers.writeNu "xray-render-config" {
         makeWrapperArgs = [
           "--add-flag"
@@ -101,6 +109,7 @@ in
       age.secrets.xray-users = repoLib.secrets.mkSecret {
         name = "xray/users.json";
       };
+
       age.secrets.xray-reality-private-key = repoLib.secrets.mkSecret {
         name = "xray/reality-private-key";
       };
@@ -122,6 +131,7 @@ in
         after = [ "agenix.service" ];
         before = [ "xray.service" ];
         requiredBy = [ "xray.service" ];
+
         serviceConfig = repoLib.systemd.hardening // {
           Type = "oneshot";
           ExecStart = renderScript;
@@ -129,6 +139,7 @@ in
           RuntimeDirectory = "xray-config";
           RuntimeDirectoryMode = "0700";
         };
+
         restartTriggers = [
           config.age.secrets.xray-users.file
           config.age.secrets.xray-reality-private-key.file

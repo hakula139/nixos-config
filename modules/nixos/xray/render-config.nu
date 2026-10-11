@@ -9,6 +9,7 @@ def main [config_file: string] {
   if $config.minLevel not-in $LEVELS {
     error make { msg: $"Unknown minimum level: ($config.minLevel)" }
   }
+
   let allowed_levels = ($LEVELS | skip until { |level| $level == $config.minLevel })
 
   let users = (
@@ -44,5 +45,6 @@ def main [config_file: string] {
   | to json
   | save --force $config.outputFile
   ^chmod 600 $config.outputFile
+
   print $"Rendered Xray config for ($users | length) users at level ($config.minLevel) or above"
 }
