@@ -63,7 +63,8 @@ in
   "backup/restic-password.age".publicKeys = allServers;
   "cloudflare/credentials.age".publicKeys = allServers;
   "netdata/qq-smtp-authcode.age".publicKeys = allServers;
-  "xray/config.json.age".publicKeys = allServers;
+  "xray/reality-private-key.age".publicKeys = allServers;
+  "xray/users.json.age".publicKeys = allServers;
 
   # ------------------------------------------------------------------------------------------------
   # Host-specific secrets (grouped by host scope)
@@ -75,7 +76,6 @@ in
   "cloudcone/server-key-us-3.age".publicKeys = us3Only;
 
   "aria2/rpc-secret-cloudreve.age".publicKeys = us4Only;
-  "clash/users.json.age".publicKeys = us4Only;
   "clove/env.age".publicKeys = us4Only;
   "dockerhub/token.age".publicKeys = us4Only;
   "fuclaude/env.age".publicKeys = us4Only;

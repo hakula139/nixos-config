@@ -14,8 +14,8 @@
 let
   inherit (pkgs) mihomo;
   inherit (pkgs.stdenv) isDarwin;
-  json = pkgs.formats.json { };
   cfg = config.hakula.mihomo;
+  json = pkgs.formats.json { };
 
   homeDir = config.home.homeDirectory;
   configDir = "${homeDir}/.config/mihomo";

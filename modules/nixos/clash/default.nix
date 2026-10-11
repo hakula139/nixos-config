@@ -7,6 +7,7 @@
   pkgs,
   lib,
   repoLib,
+  servers,
   ...
 }:
 
@@ -27,7 +28,12 @@ in
   config = lib.mkIf cfg.enable (
     let
       clashGenerator = import ./generator {
-        inherit config pkgs lib;
+        inherit
+          config
+          pkgs
+          lib
+          servers
+          ;
         inherit (config.hakula.network) realitySniHost;
       };
     in
@@ -45,7 +51,7 @@ in
       # Secrets
       # --------------------------------------------------------------------------------------------
       age.secrets.clash-users = repoLib.secrets.mkSecret {
-        name = "clash/users.json";
+        name = "xray/users.json";
         owner = "clashgen";
         group = "clashgen";
       };
