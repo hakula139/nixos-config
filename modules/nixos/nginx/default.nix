@@ -32,6 +32,7 @@ let
   peertubeUpstream = "http://127.0.0.1:${toString config.hakula.services.peertube.port}";
   piclistUpstream = "http://127.0.0.1:${toString config.hakula.services.piclist.port}";
   umamiUpstream = "http://127.0.0.1:${toString config.hakula.services.umami.port}";
+  xrayRealityUpstream = "127.0.0.1:${toString config.hakula.services.xray.reality.port}";
   xrayWsUpstream = "http://127.0.0.1:${toString config.hakula.services.xray.ws.port}";
 
   # ------------------------------------------------------------------------------------------------
@@ -166,11 +167,11 @@ in
       '';
 
       # Route by TLS Server Name Indication (SNI):
-      # - REALITY → Xray (port 8444)
+      # - REALITY → Xray
       # - Everything else → nginx HTTPS (port 8443)
       streamConfig = ''
         map $ssl_preread_server_name $backend {
-          ${realitySniHost} 127.0.0.1:8444;
+          ${realitySniHost} ${xrayRealityUpstream};
           default 127.0.0.1:8443;
         }
 

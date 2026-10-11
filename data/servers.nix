@@ -13,6 +13,7 @@ in
     displayName = "CloudCone-US-1";
     provider = "CloudCone";
     hostKey = keys.hosts.us-1;
+    proxyLevel = "user";
     isBuilder = false;
   };
 
@@ -23,6 +24,7 @@ in
     displayName = "CloudCone-US-2";
     provider = "CloudCone";
     hostKey = keys.hosts.us-2;
+    proxyLevel = "user";
     isBuilder = false;
   };
 
@@ -33,6 +35,7 @@ in
     displayName = "CloudCone-US-3";
     provider = "CloudCone";
     hostKey = keys.hosts.us-3;
+    proxyLevel = "user";
     isBuilder = false;
   };
 
@@ -43,6 +46,7 @@ in
     displayName = "DMIT-US-4";
     provider = "DMIT";
     hostKey = keys.hosts.us-4;
+    proxyLevel = "admin";
     isBuilder = true;
     maxJobs = 3;
     speedFactor = 6;
@@ -55,6 +59,7 @@ in
     displayName = "Tencent-SG-1";
     provider = "Tencent";
     hostKey = keys.hosts.sg-1;
+    proxyLevel = "user";
     isBuilder = false;
   };
 }
