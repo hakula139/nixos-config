@@ -11,10 +11,12 @@
 }:
 
 let
+  json = pkgs.formats.json { };
+
   pythonEnv = pkgs.python3.withPackages (ps: [ ps.jinja2 ]);
   generator = pkgs.copyPathToStore ./generator.py;
   template = pkgs.copyPathToStore ./template.yaml.j2;
-  serversFile = (pkgs.formats.json { }).generate "clash-servers.json" (
+  serversFile = json.generate "clash-servers.json" (
     map (server: {
       id = server.name;
       level = server.proxyLevel;
