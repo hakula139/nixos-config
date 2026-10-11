@@ -261,7 +261,6 @@ shfmt
 showcmd
 signup
 sigsys
-slaac
 smol
 socat
 spack
