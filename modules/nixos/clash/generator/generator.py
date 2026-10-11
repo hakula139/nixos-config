@@ -46,9 +46,12 @@ REGION_FLAGS: dict[str, str] = {
 }
 
 
+def region_of(server_id: str) -> str:
+    return server_id.rsplit('-', 1)[0]
+
+
 def build_server_config(server_id: str, min_level: UserLevel) -> ServerConfig:
-    region = server_id.rsplit('-', 1)[0]
-    flag = REGION_FLAGS.get(region, '🏳️')
+    flag = REGION_FLAGS.get(region_of(server_id), '🏳️')
 
     return {
         'id': server_id,
@@ -57,22 +60,34 @@ def build_server_config(server_id: str, min_level: UserLevel) -> ServerConfig:
     }
 
 
-SERVERS: list[ServerConfig] = [
-    build_server_config('us-1', UserLevel.USER),
-    build_server_config('us-2', UserLevel.USER),
-    build_server_config('us-3', UserLevel.USER),
-    build_server_config('us-4', UserLevel.ADMIN),
-    build_server_config('sg-1', UserLevel.USER),
-]
+def load_servers(path: Path) -> list[ServerConfig]:
+    with open(path) as f:
+        data = cast(list[dict[str, str]], json.load(f))
+
+    servers = [
+        build_server_config(server['id'], UserLevel[server['level'].upper()])
+        for server in data
+    ]
+    regions = list(REGION_FLAGS)
+
+    def sort_key(server: ServerConfig) -> tuple[int, str]:
+        region = region_of(server['id'])
+        rank = regions.index(region) if region in regions else len(regions)
+        return rank, server['id']
+
+    return sorted(servers, key=sort_key)
 
 
-def servers_for_level(level: UserLevel) -> list[ServerConfig]:
-    return [s for s in SERVERS if level >= s['min_level']]
+def servers_for_level(
+    servers: list[ServerConfig], level: UserLevel
+) -> list[ServerConfig]:
+    return [s for s in servers if level >= s['min_level']]
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--users-path', type=Path, required=True)
+    parser.add_argument('-S', '--servers-path', type=Path, required=True)
     parser.add_argument('-t', '--template-path', type=Path, required=True)
     parser.add_argument('-s', '--sni-host', type=str, required=True)
     parser.add_argument('-o', '--output-dir', type=Path, required=True)
@@ -176,6 +191,8 @@ def main() -> int:
     if not users:
         return 1
 
+    servers = load_servers(args.servers_path)
+
     template = load_template(args.template_path)
     if template is None:
         return 1
@@ -184,7 +201,7 @@ def main() -> int:
     failure_count = 0
 
     for name, user in users.items():
-        user_servers = servers_for_level(user['level'])
+        user_servers = servers_for_level(servers, user['level'])
         try:
             config = template.render(
                 servers=user_servers,
