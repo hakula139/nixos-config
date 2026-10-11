@@ -151,6 +151,24 @@ def load_template(path: Path) -> Template | None:
     return None
 
 
+def remove_stale_configs(output_dir: Path, users: dict[str, UserConfig]) -> int:
+    current = {f'{user["uuid"]}.yaml' for user in users.values()}
+    failure_count = 0
+
+    for path in output_dir.glob('*.yaml'):
+        if path.name in current:
+            continue
+        try:
+            path.unlink()
+        except OSError as e:
+            logging.error('Failed to remove stale config %s: %s', path.name, str(e))
+            failure_count += 1
+            continue
+        logging.info('Removed stale Clash subscription %s', path.name)
+
+    return failure_count
+
+
 def main() -> int:
     args = parse_args()
 
@@ -195,6 +213,8 @@ def main() -> int:
             len(user_servers),
         )
         success_count += 1
+
+    failure_count += remove_stale_configs(args.output_dir, users)
 
     if failure_count:
         logging.error(
