@@ -16,6 +16,7 @@ __pycache__/
 
 # Secrets
 .env
+.env.local
 
 # Editor / assistant local settings
 **/.agents/plans

@@ -57,6 +57,7 @@ disko
 diskutil
 dmit
 dont
+dotenv
 drblury
 dreamin
 drivedx
