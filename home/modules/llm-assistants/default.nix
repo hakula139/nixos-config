@@ -30,7 +30,10 @@ let
     "opencode"
   ];
   cliAssistantNames = lib.remove "cursor" assistantNames;
-  assistants = map (name: config.hakula.${name}) assistantNames;
+
+  # Cursor's IDE settings apply to every host, so it acts as an assistant only within the bundle.
+  assistants =
+    map (name: config.hakula.${name}) cliAssistantNames ++ lib.optional cfg.enable config.hakula.cursor;
 
   # Map each MCP server to the secret it needs at runtime. Servers absent from this attrset do not
   # require any decrypted file.
@@ -111,8 +114,6 @@ in
           mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
         })
         // {
-          ctx7.enable = lib.mkDefault (lib.any (assistant: assistant.enable) assistants);
-
           llm-assistants.mcp.disabledServers = lib.mkDefault (
             lib.optionals (hostType == "personal") mcpOptions.corpServerNames
           );
@@ -122,10 +123,14 @@ in
     }
 
     (lib.mkIf cfg.enable {
-      hakula = lib.genAttrs cliAssistantNames (_: {
-        enable = lib.mkDefault true;
-        proxy = lib.mkIf cfg.proxy.enable assistantProxy;
-      });
+      hakula =
+        lib.genAttrs cliAssistantNames (_: {
+          enable = lib.mkDefault true;
+          proxy = lib.mkIf cfg.proxy.enable assistantProxy;
+        })
+        // lib.genAttrs [ "ccusage" "ctx7" "workmux" ] (_: {
+          enable = lib.mkDefault true;
+        });
     })
   ];
 }
