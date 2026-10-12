@@ -24,4 +24,4 @@ let
       ''
     ) entries;
 in
-lib.concatStringsSep "\n" (toRules "forbidden" policy.denies ++ toRules "prompt" policy.gates)
+lib.concatStringsSep "\n" (toRules "prompt" policy.gates)
