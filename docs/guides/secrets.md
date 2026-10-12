@@ -2,7 +2,7 @@
 
 Secrets are encrypted with [agenix](https://github.com/ryantm/agenix). `lib/secrets.nix` provides the helpers used by system services and Home Manager.
 
-Never print a decrypted value. Test presence with `[[ -s <path> ]]` or pipe straight into the consuming command.
+Never print a decrypted value. Check for its presence with `[[ -s <path> ]]`, or pipe it directly into the consuming command. Consumers read the decrypted path at runtime because values read during evaluation end up in the world-readable Nix store.
 
 ## System modules
 
