@@ -33,13 +33,16 @@ Reuse one logical key per encrypted source. Destination paths must also be uniqu
 
 ## Editing and re-keying
 
-Use an interactive terminal for manual edits and re-keying. With non-interactive stdin, `agenix -e` reads replacement plaintext from stdin, so empty input can erase a secret's contents. Re-keying is also restricted to interactive use by repository policy: never invoke `agenix -r` from a script or an assistant's shell tool.
+Use an interactive terminal for manual edits. Without a TTY on stdin, `agenix -e` skips decryption and the editor, then encrypts stdin as the new plaintext. An empty pipe therefore erases the secret. Pipe into `agenix -e` only when you deliberately want to replace a secret.
+
+Re-keying works without a TTY, so scripts and assistants can run it. The pinned `agenix -r` ignores stdin. It decrypts each file named in the recipient rules with the given identity, then re-encrypts the same plaintext for that rule's recipients, changing every listed `.age` file. If the identity cannot decrypt a file, the run stops and that file remains unchanged, while files processed before it retain their new encryption. Rules without a file are skipped. Afterwards, run `agenix -c` to confirm that each file's recipients match its rule.
 
 Use the repository's development shell (`nix develop`) so the CLI matches the pinned agenix version. Run from the repository root:
 
 ```bash
 agenix -e secrets/<service>/<name>.age -i ~/.ssh/<private-key>
 agenix -r -i ~/.ssh/<private-key>  # re-key after a recipient change
+agenix -c                          # check recipients against the rules
 ```
 
 Filenames must match the recipient-rule keys. Agenix discovers `agenix-rules.nix` in the current directory or a parent. Secret paths are relative to the selected rules file. The root `agenix-rules.nix` prefixes rule keys with `secrets/`, so commands from the repository root need that prefix. From inside `secrets/`, its own `agenix-rules.nix` uses `<service>/<name>.age`. For an explicit rules file, set `AGENIX_RULES` to its path. This matching also applies to `agenix -d`, which reads the recipient rules before decrypting.
