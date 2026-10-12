@@ -10,7 +10,7 @@
     "automerge": true,
     "schedule": ["* 4-8 * * 1"]
   },
-  "prConcurrentLimit": 1,
+  "prConcurrentLimit": 3,
   "dependencyDashboard": false,
   "dependencyDashboardApproval": false,
   "assignees": ["hakula139"],
