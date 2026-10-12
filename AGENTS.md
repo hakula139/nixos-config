@@ -20,7 +20,7 @@ This file is an index. It holds only what applies to every task, while anything 
 
 ## Repository safeguards
 
-**Never run `agenix -r` from an assistant's shell tool.** Re-keying rewrites the encrypted files covered by the recipient rules and is reserved for an interactive terminal. The separate `agenix -e` command reads replacement plaintext from stdin when no TTY is attached, so empty input can erase a secret. Details in [docs/guides/secrets.md](docs/guides/secrets.md).
+**Never let an agenix command overwrite a secret with empty or unintended plaintext.** Without a TTY, `agenix -e` replaces the secret with stdin's contents, so an empty pipe erases it. Re-keying with `agenix -r` preserves each secret's plaintext and is allowed after approval. Follow the procedure and checks in [docs/guides/secrets.md](docs/guides/secrets.md).
 
 ## Verification
 

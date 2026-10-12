@@ -10,8 +10,6 @@
 let
   commandText = entry: lib.concatStringsSep " " entry.argv;
 
-  toBashRules = entries: map (entry: "Bash(${commandText entry} *)") entries;
-
   softDenyClearance = ''
     Allow when the user explicitly approves the action, including approval already given in
     the conversation. Otherwise, block it even if an allow rule would permit it.
@@ -34,7 +32,6 @@ in
   permissions = {
     defaultMode = "auto";
     allow = import ./allow-rules.nix;
-    deny = toBashRules policy.denies;
   };
   skipDangerousModePermissionPrompt = true;
 
