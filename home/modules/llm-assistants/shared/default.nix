@@ -68,6 +68,7 @@ in
         repo
         enableDevToolchains
         ;
+      inherit (config.xdg) dataHome;
       inherit (promptFragments) readPrompt phrasing;
     };
 
