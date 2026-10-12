@@ -83,7 +83,6 @@ fmp4
 foldl
 forgejo
 freeipmi
-fuclaude
 geoip
 gfm
 ghcup
@@ -162,7 +161,6 @@ mechatroner
 meslo
 metacubex
 mihomo
-mirrorange
 mkcd
 mkhl
 msdos
@@ -206,7 +204,6 @@ pcupd
 pcupdb
 pdftoppm
 peertube
-pengzhile
 pgrep
 phoityne
 picgo
