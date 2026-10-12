@@ -15,7 +15,7 @@
 }:
 
 {
-  inherit hooks;
+  hooks = hooks.events;
   inherit (plugins) enabledPlugins;
 }
 // permissionSettings

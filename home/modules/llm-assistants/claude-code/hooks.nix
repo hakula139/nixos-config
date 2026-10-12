@@ -58,7 +58,8 @@ let
       ];
     };
 
-  sharedEvents = lib.mapAttrs (_: map mkEntry) (lib.groupBy (hook: hook.event) enabledHooks);
+  installed = sharedHooks.install enabledHooks;
+  sharedEvents = lib.mapAttrs (_: map mkEntry) (lib.groupBy (hook: hook.event) installed.hooks);
 
   ownEvents = {
     PermissionRequest = [
@@ -110,7 +111,11 @@ let
     ];
   };
 in
-lib.zipAttrsWith (_: lib.concatLists) [
-  sharedEvents
-  ownEvents
-]
+{
+  events = lib.zipAttrsWith (_: lib.concatLists) [
+    sharedEvents
+    ownEvents
+  ];
+
+  inherit (installed) dataFiles;
+}

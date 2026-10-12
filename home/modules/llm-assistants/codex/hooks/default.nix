@@ -46,12 +46,17 @@ let
     ];
   };
 
-  enabledEvents = lib.mapAttrs (_: map mkEntry) (lib.groupBy (hook: hook.event) enabledHooks);
+  installed = sharedHooks.install enabledHooks;
+  enabledEvents = lib.mapAttrs (_: map mkEntry) (lib.groupBy (hook: hook.event) installed.hooks);
 
   workmuxHooks =
     (lib.importJSON "${pkgs.workmux.src}/resources/codex/hooks/workmux-status.json").hooks;
 in
-lib.zipAttrsWith (_: lib.concatLists) [
-  enabledEvents
-  workmuxHooks
-]
+{
+  events = lib.zipAttrsWith (_: lib.concatLists) [
+    enabledEvents
+    workmuxHooks
+  ];
+
+  inherit (installed) dataFiles;
+}
