@@ -9,26 +9,19 @@
 
 {
   settings = lib.optionalAttrs pkgs.stdenv.isDarwin {
-    plugins =
-      lib.genAttrs
-        [
-          "browser@openai-bundled"
-          "chrome@openai-bundled"
-          "codex-app-tools@openai-bundled"
-          "computer-history@openai-bundled"
-          "computer-use@openai-bundled"
-          "documents@openai-primary-runtime"
-          "pdf@openai-primary-runtime"
-          "presentations@openai-primary-runtime"
-          "spreadsheets@openai-primary-runtime"
-          "template-creator@openai-primary-runtime"
-          "visualize@openai-bundled"
-        ]
-        (_: {
-          enabled = true;
-        })
-      // {
-        "code-review@openai-bundled".enabled = false;
-      };
+    plugins = {
+      "browser@openai-bundled".enabled = true;
+      "chrome@openai-bundled".enabled = true;
+      "code-review@openai-bundled".enabled = false;
+      "codex-app-tools@openai-bundled".enabled = true;
+      "computer-history@openai-bundled".enabled = true;
+      "computer-use@openai-bundled".enabled = true;
+      "documents@openai-primary-runtime".enabled = true;
+      "pdf@openai-primary-runtime".enabled = true;
+      "presentations@openai-primary-runtime".enabled = true;
+      "spreadsheets@openai-primary-runtime".enabled = true;
+      "template-creator@openai-primary-runtime".enabled = true;
+      "visualize@openai-bundled".enabled = true;
+    };
   };
 }
