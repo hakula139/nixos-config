@@ -72,9 +72,6 @@ in
   "peertube/secret.age".publicKeys = us1Only;
 
   "aria2/rpc-secret-cloudreve.age".publicKeys = us4Only;
-  "clove/env.age".publicKeys = us4Only;
-  "dockerhub/token.age".publicKeys = us4Only;
-  "fuclaude/env.age".publicKeys = us4Only;
   "piclist/config.json.age".publicKeys = us4Only;
   "piclist/token.age".publicKeys = us4Only;
   "umami/env.age".publicKeys = us4Only;

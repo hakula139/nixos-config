@@ -153,13 +153,11 @@ This helper is not exported as an overlay attribute. Build a Linux host that ena
 
 The default `image` options contain the tags checked by the script:
 
-| Service    | Location                             | Upstream                           |
-| ---------- | ------------------------------------ | ---------------------------------- |
-| `clove`    | `modules/nixos/clove/default.nix`    | `mirrorange/clove` on Docker Hub   |
-| `fuclaude` | `modules/nixos/fuclaude/default.nix` | `pengzhile/fuclaude` on Docker Hub |
-| `umami`    | `modules/nixos/umami/default.nix`    | `umami-software/umami` releases    |
+| Service | Location                          | Upstream                        |
+| ------- | --------------------------------- | ------------------------------- |
+| `umami` | `modules/nixos/umami/default.nix` | `umami-software/umami` releases |
 
-Only Umami is enabled in the current host definitions, on `us-4`. The other two modules are dormant. Inspect host overrides before changing a default, since the checker does not evaluate effective host image options.
+Umami is enabled on `us-4`. Inspect host overrides before changing a default, since the checker does not evaluate effective host image options.
 
 Review release notes for application and database migrations, then edit the tag and build the affected host. Nix builds validate the service configuration but do not fetch these container images or test their runtime. When deployment is requested, `colmena apply --on us-4` applies an Umami update. Podman resolves the configured image when starting the container.
 

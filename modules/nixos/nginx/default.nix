@@ -26,8 +26,6 @@ let
   # Upstreams
   # ------------------------------------------------------------------------------------------------
   cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
-  cloveUpstream = "http://127.0.0.1:${toString config.hakula.services.clove.port}";
-  fuclaudeUpstream = "http://127.0.0.1:${toString config.hakula.services.fuclaude.port}";
   netdataUpstream = "http://127.0.0.1:${toString config.hakula.services.netdata.port}";
   peertubeUpstream = "http://127.0.0.1:${toString config.hakula.services.peertube.port}";
   piclistUpstream = "http://127.0.0.1:${toString config.hakula.services.piclist.port}";
@@ -220,37 +218,6 @@ in
           };
           locations."= /" = {
             return = "404";
-          };
-        }
-      );
-
-      # Clove (Claude API reverse proxy)
-      virtualHosts."claude-api.hakula.xyz" = lib.mkIf config.hakula.services.clove.enable (
-        cloudflareVhostConfig
-        // {
-          locations."/" = {
-            proxyPass = cloveUpstream;
-            proxyWebsockets = true;
-            extraConfig = noBufferingExtraConfig;
-          };
-        }
-      );
-
-      # Fuclaude (Claude mirror)
-      virtualHosts."claude.hakula.xyz" = lib.mkIf config.hakula.services.fuclaude.enable (
-        cloudflareVhostConfig
-        // {
-          extraConfig = cloudflareVhostConfig.extraConfig + longTimeoutExtraConfig;
-          locations."/" = {
-            proxyPass = fuclaudeUpstream;
-            proxyWebsockets = true;
-            extraConfig = ''
-              ${noBufferingExtraConfig}
-              # Claude's OAuth callbacks send large Set-Cookie headers
-              proxy_buffer_size 128k;
-              proxy_buffers 4 256k;
-              proxy_busy_buffers_size 256k;
-            '';
           };
         }
       );
