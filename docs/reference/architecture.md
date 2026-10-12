@@ -7,10 +7,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 | Output                               | Platform         | Role                                                |
 | ------------------------------------ | ---------------- | --------------------------------------------------- |
 | `nixosConfigurations.us-1`           | `x86_64-linux`   | NixOS server, CloudCone SC2                         |
-| `nixosConfigurations.us-2`           | `x86_64-linux`   | NixOS server, CloudCone VPS                         |
-| `nixosConfigurations.us-3`           | `x86_64-linux`   | NixOS server, CloudCone SC2                         |
 | `nixosConfigurations.us-4`           | `x86_64-linux`   | NixOS server, DMIT                                  |
-| `nixosConfigurations.sg-1`           | `x86_64-linux`   | NixOS server, Tencent Lighthouse                    |
 | `nixosConfigurations.wsl`            | `x86_64-linux`   | NixOS-WSL workstation                               |
 | `systemConfigs.wsl-non-nixos`        | `x86_64-linux`   | Non-NixOS WSL workstation managed by System Manager |
 | `darwinConfigurations.macbook`       | `aarch64-darwin` | macOS workstation with nix-darwin                   |
@@ -25,7 +22,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   ├── _profiles/
 │   │   ├── platform/           # Hardware / runtime shape (cloudcone-sc2, container, wsl, ...)
 │   │   └── role/               # System role (server, workstation)
-│   ├── servers/                # NixOS servers (us-1..us-4, sg-1) — all personal
+│   ├── servers/                # NixOS servers (us-1, us-4) — all personal
 │   ├── workstations/
 │   │   ├── personal/           # macbook (Darwin)
 │   │   └── work/               # wsl (NixOS-WSL), wsl-non-nixos (System Manager)

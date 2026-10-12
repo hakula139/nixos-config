@@ -44,29 +44,13 @@ jobs:
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-1.config.system.build.toplevel
             cachix_pins:
+              netdata-cloud-x86_64-linux: .#nixosConfigurations.us-1.config.services.netdata.package
               peertube-x86_64-linux: .#nixosConfigurations.us-1.pkgs.peertube
-          - id: us-2
-            deploy: true
-            name: us-2 (x86_64-linux, CloudCone VPS)
-            runner: ubuntu-latest
-            target: .#nixosConfigurations.us-2.config.system.build.toplevel
-            cachix_pins:
-              netdata-cloud-x86_64-linux: .#nixosConfigurations.us-2.config.services.netdata.package
-          - id: us-3
-            deploy: true
-            name: us-3 (x86_64-linux, CloudCone SC2)
-            runner: ubuntu-latest
-            target: .#nixosConfigurations.us-3.config.system.build.toplevel
           - id: us-4
             deploy: true
             name: us-4 (x86_64-linux, DMIT)
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-4.config.system.build.toplevel
-          - id: sg-1
-            deploy: true
-            name: sg-1 (x86_64-linux, Tencent Lighthouse)
-            runner: ubuntu-latest
-            target: .#nixosConfigurations.sg-1.config.system.build.toplevel
           - id: wsl
             name: wsl (x86_64-linux, NixOS-WSL)
             runner: ubuntu-latest
