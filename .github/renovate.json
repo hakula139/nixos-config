@@ -1,8 +1,5 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>hakula139/nixos-config//.github/renovate-preset"],
-  "enabledManagers": ["nix"],
-  "lockFileMaintenance": {
-    "schedule": ["* 4-8 * * *"]
-  }
+  "enabledManagers": ["nix"]
 }

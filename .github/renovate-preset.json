@@ -8,7 +8,7 @@
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true,
-    "schedule": ["* 4-8 * * 1"]
+    "schedule": ["* 4-8 * * *"]
   },
   "prConcurrentLimit": 3,
   "dependencyDashboard": false,
