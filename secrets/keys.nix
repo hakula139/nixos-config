@@ -10,16 +10,12 @@
   users = {
     cloudcone = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPqd9HS6uF0h0mXMbIwCv9yrkvvdl3o1wUgQWVkjKuiJ cloudcone";
     dmit = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDniOpCdWc/0ne5my9fUKmxkWH7IrAGALzbdc6T83rQi dmit";
-    tencent = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICc3XQ37RuIqVgQYED0HDU3RVSACPHmr/JoE7w/cvJzu tencent";
   };
 
   # Server SSH host keys (/etc/ssh/ssh_host_ed25519_key.pub)
   hosts = {
     us-1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM7sPLIoCS4frp1la++4Iv2ws/3L0dRcRSnD5CNCP5s3";
-    us-2 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJvBx1sVDyWIYcne9QBvBvFK9VKDLPnHSsyE8PVN7BCu";
-    us-3 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEnjZoYN+khNCCzTJhTxFd0ncGwlLoh+45HWe1slXGOV";
     us-4 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDJCY6UGyWXNDi+JXSXzsiVLOqMOQRnyfF3ZGRR9lGq4";
-    sg-1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7u+0CKIQHDMQNF9L90xoMe9lhruFqYDG48Da7zlM8G";
     devvm = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMgylLKYgQj+SAzLNQSsJYWv4dabX33FmvvG/C2GcUxZ";
   };
 

@@ -17,28 +17,6 @@ in
     isBuilder = false;
   };
 
-  us-2 = {
-    ip = "117.55.232.113";
-    port = 35060;
-    name = "us-2";
-    displayName = "CloudCone-US-2";
-    provider = "CloudCone";
-    hostKey = keys.hosts.us-2;
-    proxyLevel = "user";
-    isBuilder = false;
-  };
-
-  us-3 = {
-    ip = "148.135.122.201";
-    port = 35060;
-    name = "us-3";
-    displayName = "CloudCone-US-3";
-    provider = "CloudCone";
-    hostKey = keys.hosts.us-3;
-    proxyLevel = "user";
-    isBuilder = false;
-  };
-
   us-4 = {
     ip = "64.186.235.130";
     port = 35060;
@@ -50,16 +28,5 @@ in
     isBuilder = true;
     maxJobs = 3;
     speedFactor = 6;
-  };
-
-  sg-1 = {
-    ip = "43.134.225.50";
-    port = 35060;
-    name = "sg-1";
-    displayName = "Tencent-SG-1";
-    provider = "Tencent";
-    hostKey = keys.hosts.sg-1;
-    proxyLevel = "user";
-    isBuilder = false;
   };
 }

@@ -57,6 +57,7 @@ disko
 diskutil
 dmit
 dont
+dotenv
 drblury
 dreamin
 drivedx
@@ -261,7 +262,6 @@ shfmt
 showcmd
 signup
 sigsys
-slaac
 smol
 socat
 spack

@@ -15,7 +15,6 @@ let
   # Per-host shortcuts
   inherit (keys.hosts)
     us-1
-    us-3
     us-4
     devvm
     ;
@@ -24,7 +23,6 @@ let
   # Common groupings
   allServersAndMacbook = allServers ++ [ macbook ];
   us1Only = allUsers ++ [ us-1 ];
-  us3Only = allUsers ++ [ us-3 ];
   us4Only = allUsers ++ [ us-4 ];
 in
 {
@@ -72,8 +70,6 @@ in
   "cloudcone/server-key-us-1.age".publicKeys = us1Only;
   "peertube/env.age".publicKeys = us1Only;
   "peertube/secret.age".publicKeys = us1Only;
-
-  "cloudcone/server-key-us-3.age".publicKeys = us3Only;
 
   "aria2/rpc-secret-cloudreve.age".publicKeys = us4Only;
   "clove/env.age".publicKeys = us4Only;
