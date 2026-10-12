@@ -15,7 +15,7 @@ Read the repository's contribution instructions before changing Git state or pre
 
 - **Publish completed changes by default.** For requested repository changes and incidental environment repairs, create an appropriate task branch when needed, commit verified changes, push, and create or update a PR / MR. Complete publication before reporting the work done. Reuse the task's existing branch and request when appropriate.
 - **Honor narrower authorization.** Review-only and draft-text-only requests do not authorize publication. Respect explicit instructions to keep work local, avoid pushing, or omit a PR / MR. Tags and backup refs require an explicit request.
-- **Wait for explicit approval for each PR / MR before merging.** Earlier blanket approvals do not extend to requests opened later in the session. After publishing, report the URL and wait for `lgtm` or `merge` referencing that specific PR / MR.
+- **Wait for explicit approval before merging each PR / MR.** Earlier blanket approvals do not cover requests opened later in the session. After publishing, share the URL and wait for `lgtm` or `merge` referring to that specific PR / MR. A request to review and merge approves each PR / MR covered by the review, including any opened for its fixes, once the review reports no remaining findings.
 
 ## Commits
 
@@ -54,4 +54,4 @@ The discovered repository conventions govern the description's structure. Apply 
 - When creating a PR / MR, set assignees and existing labels according to repository conventions. Use the hosting service's CLI when available.
 - Pass multiline bodies through a file or structured argument. Prefer `gh pr create --body-file <file>` and `gh pr edit --body-file <file>` to shell interpolation. Use `#N` for same-repository issues and GitHub PRs, and `!N` for GitLab MRs.
 - Read back the created or updated request to verify its title, body, base, diff, assignees, and labels. Check that the published body preserves the reviewed structure and content. Correct omissions before reporting completion.
-- For an approved merge, check the current head and CI status, use the repository's merge method, and confirm the resulting remote state. For GitHub squash merges, use GitHub's default commit message without supplying a custom subject or body. Report queued auto-merge as pending until it has landed.
+- For an approved merge, confirm that CI passes on the current head and the host reports the branch as mergeable. Use the repository's merge method, then verify the resulting remote state. Rebase only if the branch has conflicts or the host requires it to be up to date. CI on the target branch checks the combined result, so confirm it passes after the merge. For GitHub squash merges, use GitHub's default commit message without supplying a custom subject or body. Report queued auto-merge as pending until it has landed.
