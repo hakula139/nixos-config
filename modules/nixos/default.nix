@@ -31,10 +31,7 @@ in
     ./clash
     ./cloudcone
     ./cloudreve
-    ./clove
-    ./dockerhub
     ./fhs-compat
-    ./fuclaude
     ./llm-assistants
     ./netdata
     ./nginx

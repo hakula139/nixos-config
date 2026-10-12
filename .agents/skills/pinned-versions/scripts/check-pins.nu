@@ -86,14 +86,6 @@ def gh-latest-semver-tag [repo: string, field: cell-path]: nothing -> string {
   | get $field
 }
 
-def dockerhub-latest-semver [repo: string]: nothing -> string {
-  http get $"https://hub.docker.com/v2/repositories/($repo)/tags?page_size=100"
-  | get results.name
-  | where {|name| $name =~ '^[0-9]+\.[0-9]+\.[0-9]+$' }
-  | sort-by {|name| version-key $name }
-  | last
-}
-
 def npm-latest [pkg: string]: nothing -> string {
   http get $"https://registry.npmjs.org/($pkg)/latest" | get version
 }
@@ -328,16 +320,6 @@ def registry [root: string]: nothing -> list<record> {
     {
       title: "Container images (oci-containers image options)"
       pins: [
-        {
-          pin: "clove"
-          local: {|| image-tag $root "modules/nixos/clove/default.nix" }
-          upstream: {|| dockerhub-latest-semver "mirrorange/clove" }
-        }
-        {
-          pin: "fuclaude"
-          local: {|| image-tag $root "modules/nixos/fuclaude/default.nix" }
-          upstream: {|| dockerhub-latest-semver "pengzhile/fuclaude" }
-        }
         {
           pin: "umami"
           local: {|| image-tag $root "modules/nixos/umami/default.nix" }
