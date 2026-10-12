@@ -32,5 +32,5 @@ in
     };
   };
 
-  bash.patterns = toBashRules "deny" policy.denies ++ toBashRules "prompt" policy.gates;
+  bash.patterns = toBashRules "prompt" policy.gates;
 }
