@@ -14,7 +14,6 @@
         [
           "browser@openai-bundled"
           "chrome@openai-bundled"
-          "code-review@openai-bundled"
           "codex-app-tools@openai-bundled"
           "computer-history@openai-bundled"
           "computer-use@openai-bundled"
@@ -27,6 +26,9 @@
         ]
         (_: {
           enabled = true;
-        });
+        })
+      // {
+        "code-review@openai-bundled".enabled = false;
+      };
   };
 }

@@ -30,11 +30,12 @@ in
 
   lib.llmAssistants = {
     # ----------------------------------------------------------------------------------------------
-    # Instructions and agent roles
+    # Instructions, agent roles, and commands
     # ----------------------------------------------------------------------------------------------
     inherit agentRoles;
     instructions = import ../instructions { inherit (promptFragments) readPrompt; };
     agentRoleOptions = import ./agent-roles/options.nix { inherit lib agentRoles; };
+    commands = import ./commands;
 
     # ----------------------------------------------------------------------------------------------
     # Preferences

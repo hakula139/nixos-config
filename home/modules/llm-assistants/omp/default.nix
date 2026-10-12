@@ -65,6 +65,11 @@ in
         sharedAgents = shared.agentRoles;
       };
 
+      commands = import ./commands.nix {
+        inherit pkgs lib;
+        sharedCommands = shared.commands;
+      };
+
       extensions = import ./extensions.nix { inherit pkgs; };
 
       mcp = import ./mcp.nix {
@@ -152,7 +157,8 @@ in
           ".omp/agent/extensions/omp-telegram".source = extensions.telegram;
           ".omp/agent/mcp.json".source = json.generate "omp-mcp.json" { mcpServers = mcp.serversConfig; };
         }
-        // agents.homeFiles;
+        // agents.homeFiles
+        // commands.homeFiles;
       }
     ]
   );
