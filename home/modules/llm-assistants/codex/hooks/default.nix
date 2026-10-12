@@ -15,6 +15,10 @@ let
     assistant = "codex";
   };
 
+  compactContext = import ./compact-context {
+    inherit (sharedHooks) mkNuHook timeouts;
+  };
+
   toolClasses = {
     fileWrite = [
       "Edit"
@@ -23,19 +27,14 @@ let
     ];
   };
 
-  postEditHooks = with sharedHooks.hooks; [
-    (
-      autoFormat
-      // {
-        timeout = sharedHooks.timeouts.postEdit;
-        statusMessage = "Formatting edited files";
-      }
-    )
+  enabledHooks = with sharedHooks.hooks; [
+    compactContext
+    autoFormat
     commentGate
   ];
 
   mkEntry = hook: {
-    matcher = sharedHooks.mkMatcher toolClasses [ hook ];
+    matcher = hook.matcher or (sharedHooks.mkMatcher toolClasses [ hook ]);
     hooks = [
       (
         {
@@ -47,10 +46,12 @@ let
     ];
   };
 
+  enabledEvents = lib.mapAttrs (_: map mkEntry) (lib.groupBy (hook: hook.event) enabledHooks);
+
   workmuxHooks =
     (lib.importJSON "${pkgs.workmux.src}/resources/codex/hooks/workmux-status.json").hooks;
 in
 lib.zipAttrsWith (_: lib.concatLists) [
-  { PostToolUse = map mkEntry postEditHooks; }
+  enabledEvents
   workmuxHooks
 ]

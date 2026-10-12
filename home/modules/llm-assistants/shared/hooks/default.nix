@@ -26,10 +26,11 @@ let
   # ------------------------------------------------------------------------------------------------
   # Hook timeouts
   # ------------------------------------------------------------------------------------------------
-  timeouts = rec {
+  timeouts = {
     modelCall = 90;
     tool = 10;
-    postEdit = 3 * tool;
+    # Auto-format runs `cargo clippy`, which may rebuild the crate after an edit.
+    postEdit = 120;
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -92,7 +93,7 @@ let
     );
 in
 {
-  inherit mkMatcher timeouts;
+  inherit mkMatcher mkNuHook timeouts;
 
   hooks = {
     autoFormat = import ./auto-format {
@@ -103,6 +104,7 @@ in
         mkNuHook
         patchInput
         repo
+        timeouts
         ;
     };
 
