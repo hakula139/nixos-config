@@ -1,30 +1,5 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
-  "enabledManagers": ["nix"],
-  "timezone": "Asia/Shanghai",
-  "nix": {
-    "enabled": true
-  },
-  "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": ["* 4-8 * * *"]
-  },
-  "prConcurrentLimit": 1,
-  "dependencyDashboard": false,
-  "assignAutomerge": true,
-  "semanticCommits": "enabled",
-  "packageRules": [
-    {
-      "matchManagers": ["nix"],
-      "dependencyDashboardApproval": false,
-      "groupName": "flake inputs",
-      "labels": ["ci"],
-      "assignees": ["hakula139"],
-      "automerge": true,
-      "automergeStrategy": "squash",
-      "semanticCommitType": "chore",
-      "semanticCommitScope": "flake"
-    }
-  ]
+  "extends": ["github>hakula139/nixos-config//.github/renovate-preset"],
+  "enabledManagers": ["nix"]
 }
