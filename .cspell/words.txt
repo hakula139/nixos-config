@@ -255,6 +255,7 @@ scrobbler
 sdist
 searxng
 sess
+sgconfig
 sgid
 shanselman
 shellenv
