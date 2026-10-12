@@ -8,6 +8,7 @@
 {
   pkgs,
   lib,
+  dataHome,
   modelCatalog,
   readPrompt,
   phrasing,
@@ -77,6 +78,27 @@ let
     ;
 
   # ------------------------------------------------------------------------------------------------
+  # Hook installation
+  # ------------------------------------------------------------------------------------------------
+  # Codex trusts a hook by hashing its command, so a store path would need review after every
+  # rebuild. Commands therefore name stable links, which each activation repoints.
+  install =
+    hooks:
+    let
+      commandHooks = lib.filter (hook: hook.type == "command") hooks;
+      link = hook: "llm-assistants/hooks/${lib.unsafeDiscardStringContext (baseNameOf hook.command)}";
+    in
+    {
+      hooks = map (
+        hook: if hook.type == "command" then hook // { command = "${dataHome}/${link hook}"; } else hook
+      ) hooks;
+
+      dataFiles = lib.listToAttrs (
+        map (hook: lib.nameValuePair (link hook) { source = hook.command; }) commandHooks
+      );
+    };
+
+  # ------------------------------------------------------------------------------------------------
   # Tool matchers
   # ------------------------------------------------------------------------------------------------
   mkMatcher =
@@ -93,7 +115,12 @@ let
     );
 in
 {
-  inherit mkMatcher mkNuHook timeouts;
+  inherit
+    install
+    mkMatcher
+    mkNuHook
+    timeouts
+    ;
 
   hooks = {
     autoFormat = import ./auto-format {
