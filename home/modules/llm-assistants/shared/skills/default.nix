@@ -27,8 +27,8 @@ let
     gh-fix-ci = openai + "/gh-fix-ci";
     git-workflow = ./git-workflow;
     mcp-builder = anthropic + "/mcp-builder";
-    pr-review-toolkit = ./pr-review-toolkit;
     read-pdfs = ./read-pdfs;
+    review = ./review;
     security-best-practices = openai + "/security-best-practices";
   }
   // lib.optionalAttrs acpCfg.enable {
