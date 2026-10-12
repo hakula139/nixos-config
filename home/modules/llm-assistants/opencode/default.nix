@@ -77,6 +77,8 @@ in
         sharedAgents = shared.agentRoles;
       };
 
+      commands = import ./commands;
+
       mcp = import ./mcp.nix {
         inherit mcpOptions;
         inherit (shared.mcp) timeouts;
@@ -169,7 +171,7 @@ in
           # ----------------------------------------------------------------------------------------
           # Commands
           # ----------------------------------------------------------------------------------------
-          commands.review = ./commands/review.md;
+          inherit commands;
 
           # ----------------------------------------------------------------------------------------
           # Settings
