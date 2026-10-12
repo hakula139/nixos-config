@@ -11,6 +11,7 @@
 
 let
   inherit (pkgs) workmux;
+  cfg = config.hakula.workmux;
 
   yaml = pkgs.formats.yaml { };
 
@@ -40,36 +41,48 @@ let
 in
 {
   # ------------------------------------------------------------------------------------------------
-  # Packages
+  # Module options
   # ------------------------------------------------------------------------------------------------
-  home.packages = [ workmux ];
+  options.hakula.workmux = {
+    enable = lib.mkEnableOption "Workmux and its agent integrations";
+  };
 
   # ------------------------------------------------------------------------------------------------
-  # Agent resources
+  # Module config
   # ------------------------------------------------------------------------------------------------
-  home.file = lib.mkMerge [
-    workmuxSkillFiles
-    (lib.mkIf config.hakula.omp.enable {
-      ".omp/agent/extensions/workmux-status.ts".source =
-        "${workmux.src}/resources/omp/extensions/workmux-status.ts";
-    })
-  ];
+  config = lib.mkIf cfg.enable {
+    # ----------------------------------------------------------------------------------------------
+    # Packages
+    # ----------------------------------------------------------------------------------------------
+    home.packages = [ workmux ];
 
-  # ------------------------------------------------------------------------------------------------
-  # tmux integration
-  # ------------------------------------------------------------------------------------------------
-  programs.tmux.extraConfig = lib.mkBefore ''
-    set -g @catppuccin_window_text " #T#{?@workmux_status, #{@workmux_status},}"
-    set -g @catppuccin_window_current_text " #T#{?@workmux_status, #{@workmux_status},}"
-    bind g display-popup -E -w 90% -h 90% '${lib.getExe workmux} dashboard'
-  '';
+    # ----------------------------------------------------------------------------------------------
+    # Agent resources
+    # ----------------------------------------------------------------------------------------------
+    home.file = lib.mkMerge [
+      workmuxSkillFiles
+      (lib.mkIf config.hakula.omp.enable {
+        ".omp/agent/extensions/workmux-status.ts".source =
+          "${workmux.src}/resources/omp/extensions/workmux-status.ts";
+      })
+    ];
 
-  # ------------------------------------------------------------------------------------------------
-  # Program configuration
-  # ------------------------------------------------------------------------------------------------
-  xdg.configFile."workmux/config.yaml".source = configFile;
+    # ----------------------------------------------------------------------------------------------
+    # tmux integration
+    # ----------------------------------------------------------------------------------------------
+    programs.tmux.extraConfig = lib.mkBefore ''
+      set -g @catppuccin_window_text " #T#{?@workmux_status, #{@workmux_status},}"
+      set -g @catppuccin_window_current_text " #T#{?@workmux_status, #{@workmux_status},}"
+      bind g display-popup -E -w 90% -h 90% '${lib.getExe workmux} dashboard'
+    '';
 
-  xdg.configFile."opencode/plugins/workmux-status.ts" = lib.mkIf config.hakula.opencode.enable {
-    source = "${workmux.src}/resources/opencode/plugins/workmux-status.ts";
+    # ----------------------------------------------------------------------------------------------
+    # Program configuration
+    # ----------------------------------------------------------------------------------------------
+    xdg.configFile."workmux/config.yaml".source = configFile;
+
+    xdg.configFile."opencode/plugins/workmux-status.ts" = lib.mkIf config.hakula.opencode.enable {
+      source = "${workmux.src}/resources/opencode/plugins/workmux-status.ts";
+    };
   };
 }

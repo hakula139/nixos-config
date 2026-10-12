@@ -19,11 +19,7 @@ in
   # Module options
   # ------------------------------------------------------------------------------------------------
   options.hakula.ccusage = {
-    enable = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Whether to install ccusage and configure its usage stores";
-    };
+    enable = lib.mkEnableOption "ccusage and its usage store configuration";
   };
 
   # ------------------------------------------------------------------------------------------------

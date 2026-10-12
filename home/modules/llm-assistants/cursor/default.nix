@@ -110,11 +110,12 @@ in
       # --------------------------------------------------------------------------------------------
       home.packages = lib.optional cfg.windowsSync.enable settings.syncWindowsSettings;
 
-      home.file = {
-        ".cursor/mcp.json".source = "${configFiles}/mcp.json";
-      }
-      // lib.optionalAttrs (isDesktop && isDarwin) darwinFiles
-      // lib.optionalAttrs isLinux remoteFiles;
+      home.file =
+        lib.optionalAttrs config.hakula.llm-assistants.enable {
+          ".cursor/mcp.json".source = "${configFiles}/mcp.json";
+        }
+        // lib.optionalAttrs (isDesktop && isDarwin) darwinFiles
+        // lib.optionalAttrs isLinux remoteFiles;
 
       xdg.configFile = lib.optionalAttrs (isDesktop && !isDarwin) linuxFiles;
 

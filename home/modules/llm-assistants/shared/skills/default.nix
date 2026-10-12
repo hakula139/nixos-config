@@ -53,9 +53,7 @@ in
 
   home.file = lib.mkMerge [
     # Cursor and OpenCode discover Claude's directory, so install shared skills once.
-    (lib.mkIf (
-      config.hakula.claude-code.enable || config.hakula.cursor.enable || config.hakula.opencode.enable
-    ) (mkSkillFiles ".claude/skills"))
+    (lib.mkIf config.hakula.llm-assistants.enable (mkSkillFiles ".claude/skills"))
     (lib.mkIf config.hakula.omp.enable (mkSkillFiles ".omp/agent/skills"))
   ];
 }
