@@ -31,6 +31,7 @@ in
     ./modules/darwin.nix
     ./modules/wsl.nix
     ./modules/stale-links.nix
+    ./modules/corp-mirrors
     ./modules/fonts
     ./modules/git
     ./modules/llm-assistants
@@ -41,7 +42,6 @@ in
     ./modules/ssh
     ./modules/terminal
     ./modules/wakatime
-    ./modules/corp-mirrors
   ];
 
   # ------------------------------------------------------------------------------------------------

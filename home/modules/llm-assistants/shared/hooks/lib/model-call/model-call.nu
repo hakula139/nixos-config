@@ -84,15 +84,14 @@ def codex [request: record, config: record]: nothing -> string {
   } else {
     ""
   }
-  # `--ignore-user-config` skips the MCP servers a normal Codex session loads, which is what keeps
-  # this leg near the gateway's latency. `codex exec` takes no deadline of its own, so the bound
-  # comes from outside.
   let run = (
     [$request.system $instruction "" $request.user]
     | where ($it | is-not-empty)
     | str join "\n"
+    # `codex exec` takes no deadline of its own.
     | ^$timeout $config.codexTimeout $codex_bin exec
       --ephemeral
+      # Skips the MCP servers a normal session loads, keeping this leg near the gateway's latency.
       --ignore-user-config
       --skip-git-repo-check
       --color never
