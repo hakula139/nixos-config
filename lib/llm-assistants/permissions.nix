@@ -77,6 +77,15 @@
   # ------------------------------------------------------------------------------------------------
   allows = [
     {
+      name = "Repository Git configuration";
+      reason = ''
+        Changing repository-local Git configuration in repositories under github.com/hakula139
+        is allowed without separate user approval, including repairing settings that a tool or
+        test corrupted.
+        Changing global or system Git configuration still requires explicit user approval.
+      '';
+    }
+    {
       name = "GitHub / GitLab remote changes";
       reason = ''
         Remote changes are allowed without separate user approval, including pushing commits
