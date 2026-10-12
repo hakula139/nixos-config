@@ -75,7 +75,7 @@ in
         homeDir = config.home.homeDirectory;
       };
 
-      hooks = import ./hooks.nix {
+      hooks = import ./hooks {
         inherit pkgs lib;
         inherit (shared) mkHooks;
         gateway = lib.optionalAttrs cfg.auth.enableCorpGateway {

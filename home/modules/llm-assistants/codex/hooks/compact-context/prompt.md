@@ -1,0 +1,1 @@
+Earlier context in this session was compacted, so the summary above may omit details. The full transcript is the Codex rollout at `@transcriptPath@`, with one JSON record per line. When you need an exact command, output, path, or earlier user instruction that the summary lacks, search that file with `rg` or `jq` before guessing or asking.
