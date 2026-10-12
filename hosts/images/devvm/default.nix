@@ -98,7 +98,6 @@ in
       programs.ssh.enable = lib.mkForce false;
 
       services.ssh-agent.enable = lib.mkForce false;
-      services.syncthing.enable = lib.mkForce false;
     };
 
   # ------------------------------------------------------------------------------------------------
