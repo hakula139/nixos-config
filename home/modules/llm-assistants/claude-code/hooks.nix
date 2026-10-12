@@ -24,11 +24,11 @@ let
     ];
   };
 
-  enabledHooks = [
-    "prosePolish"
-    "autoFormat"
-    "commentGate"
-    "completeness"
+  enabledHooks = with sharedHooks.hooks; [
+    prosePolish
+    autoFormat
+    commentGate
+    completeness
   ];
 
   mkHandler =
@@ -58,9 +58,7 @@ let
       ];
     };
 
-  sharedEvents = lib.mapAttrs (_: names: map (name: mkEntry sharedHooks.hooks.${name}) names) (
-    lib.groupBy (name: sharedHooks.hooks.${name}.event) enabledHooks
-  );
+  sharedEvents = lib.mapAttrs (_: map mkEntry) (lib.groupBy (hook: hook.event) enabledHooks);
 
   ownEvents = {
     PermissionRequest = [
