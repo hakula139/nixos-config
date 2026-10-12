@@ -1,0 +1,45 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "Asia/Shanghai",
+  "nix": {
+    "enabled": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "schedule": ["* 4-8 * * *"]
+  },
+  "prConcurrentLimit": 3,
+  "dependencyDashboard": false,
+  "dependencyDashboardApproval": false,
+  "assignees": ["hakula139"],
+  "assignAutomerge": true,
+  "automergeStrategy": "squash",
+  "labels": ["dependencies"],
+  "semanticCommits": "enabled",
+  "packageRules": [
+    {
+      "matchManagers": ["cargo"],
+      "matchIsBreaking": false,
+      "groupName": "Rust dependencies",
+      "automerge": true
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchIsBreaking": false,
+      "groupName": "Node dependencies",
+      "automerge": true
+    },
+    {
+      "matchManagers": ["nix"],
+      "groupName": "flake inputs",
+      "semanticCommitScope": "flake",
+      "automerge": true
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    }
+  ]
+}
