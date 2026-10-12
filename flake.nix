@@ -200,10 +200,8 @@
         profiles = {
           platform = {
             cloudcone-sc2 = ./hosts/_profiles/platform/cloudcone-sc2;
-            cloudcone-vps = ./hosts/_profiles/platform/cloudcone-vps;
             container = ./hosts/_profiles/platform/container;
             dmit = ./hosts/_profiles/platform/dmit;
-            tencent-lighthouse = ./hosts/_profiles/platform/tencent-lighthouse;
             wsl = ./hosts/_profiles/platform/wsl;
           };
           role = {
