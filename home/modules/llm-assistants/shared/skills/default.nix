@@ -16,6 +16,7 @@ let
   openai = inputs.openai-skills + "/skills/.curated";
 
   sources = {
+    ast-grep = ./ast-grep;
     browser-debugging = ./browser-debugging;
     clean-gone = ./clean-gone;
     cspell = ./cspell;
