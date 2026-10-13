@@ -26,9 +26,7 @@ let
     mcpServers = shared.mcp.servers;
   };
 
-  # `--mcp-config` is variadic, so the `=` form is required: the space-separated form swallows the
-  # prompt and any subcommand. Shared with the teammate launcher, which repeats it for the agents
-  # Claude Code spawns itself.
+  # `--mcp-config` is variadic, so only the `=` form keeps it from swallowing the prompt.
   mcpFlag = "--mcp-config=${mcp.configFile}";
 
   profiles = import ./profiles.nix {
@@ -131,10 +129,6 @@ in
         ++ lib.optionals cfg.proxy.enable [
           "--run"
           (repoLib.proxy.mkProxyScript cfg.proxy)
-        ]
-        ++ [
-          "--add-flags"
-          mcpFlag
         ];
 
       claudeCodeBin = repoLib.wrapPackage {
