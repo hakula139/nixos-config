@@ -242,6 +242,9 @@ let
         // lib.optionalAttrs (profile.modelOverrides != { }) {
           inherit (profile) modelOverrides;
         }
+        // lib.optionalAttrs (!profile.nativeWebSearch) {
+          permissions.deny = [ "WebSearch" ];
+        }
       );
 
       tokenLines =
@@ -270,21 +273,16 @@ let
         ++ lib.mapAttrsToList (
           k: secretName: "export ${k}=${esc (secretPath secretName)}"
         ) profile.extraSecretEnv;
+
+      # Inline values keep variadic flags from consuming the caller's prompt.
+      sessionArgs = [
+        "--add-dir=${familyConfig.agentsDir}"
+        "--settings=${settings}"
+      ];
     in
     pkgs.writeShellScript "claude-profile-${name}" (
       lib.concatStringsSep "\n" (
-        tokenLines
-        ++ envLines
-        # Inline values keep variadic flags from consuming the caller's prompt.
-        ++ lib.optional (!profile.nativeWebSearch) ''set -- --disallowedTools=WebSearch "$@"''
-        ++ [
-          ''
-            set -- \
-              --add-dir=${esc "${familyConfig.agentsDir}"} \
-              --settings=${esc "${settings}"} \
-              "$@"
-          ''
-        ]
+        tokenLines ++ envLines ++ [ "__claude_session_args+=(${lib.escapeShellArgs sessionArgs})" ]
       )
     );
 
@@ -310,18 +308,18 @@ let
     ) (builtins.attrValues cfg.auth.profiles)
   );
 
-  profileLoader = pkgs.writeShellScript "claude-profile-loader" (
-    builtins.replaceStrings
-      [
-        "@unsetVars@"
-        "@stateDir@"
-      ]
-      [
-        (lib.concatMapStringsSep "\n" (v: "unset ${v}") profileEnvVars)
-        stateDir
-      ]
-      (builtins.readFile ./scripts/profile-loader.sh)
-  );
+  listUtilityCommands = pkgs.writers.writeNu "claude-list-utility-commands" {
+    makeWrapperArgs = [
+      "--add-flag"
+      (lib.getExe pkgs.claude-code)
+    ];
+  } (builtins.readFile ./scripts/utility-commands.nu);
+  utilityCommands = pkgs.runCommand "claude-utility-commands" { } "${listUtilityCommands} >$out";
+
+  profileLoader = pkgs.replaceVars ./scripts/profile-loader.sh {
+    profileEnvVars = toString profileEnvVars;
+    inherit stateDir utilityCommands mcpFlag;
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Profile switcher
@@ -339,16 +337,9 @@ let
   # Teammate launcher
   # ------------------------------------------------------------------------------------------------
   teammateLauncher = pkgs.writeShellScript "claude-teammate-launcher" (
-    builtins.replaceStrings
-      [
-        "@profileLoader@"
-        "@mcpFlag@"
-      ]
-      [
-        "${profileLoader}"
-        mcpFlag
-      ]
-      (builtins.readFile ./scripts/teammate-launcher.sh)
+    builtins.replaceStrings [ "@profileLoader@" ] [ "${profileLoader}" ] (
+      builtins.readFile ./scripts/teammate-launcher.sh
+    )
   );
 in
 {
