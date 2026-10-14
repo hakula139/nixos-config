@@ -6,60 +6,40 @@
   pkgs,
   lib,
   mkHooks,
+  modelAliases,
   notify,
 }:
 
 let
   sharedHooks = mkHooks {
     assistant = "claude-code";
+    toolClasses = {
+      askQuestion = [ "AskUserQuestion" ];
+      fileWrite = [
+        "Edit"
+        "Write"
+      ];
+    };
   };
 
   projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
 
-  toolClasses = {
-    askQuestion = [ "AskUserQuestion" ];
-    fileWrite = [
-      "Edit"
-      "Write"
-    ];
+  autoDream = import ./auto-dream {
+    inherit pkgs lib;
+    inherit (sharedHooks) mkNuHook timeouts;
+    model = modelAliases.mini;
   };
 
-  enabledHooks = with sharedHooks.hooks; [
-    prosePolish
-    autoFormat
-    commentGate
-    completeness
-  ];
-
-  mkHandler =
-    hook:
-    if hook.type == "command" then
-      {
-        inherit (hook) type command;
-      }
-    else
-      {
-        inherit (hook) type prompt;
-      };
-
-  mkEntry =
-    hook:
-    lib.optionalAttrs (hook ? tools) {
-      matcher = sharedHooks.mkMatcher toolClasses [ hook ];
-    }
-    // {
-      hooks = [
-        (
-          mkHandler hook
-          // lib.optionalAttrs (hook ? timeout) { inherit (hook) timeout; }
-          // lib.optionalAttrs (hook ? statusMessage) { inherit (hook) statusMessage; }
-          // lib.optionalAttrs (hook ? async) { inherit (hook) async; }
-        )
-      ];
-    };
-
-  installed = sharedHooks.install enabledHooks;
-  sharedEvents = lib.mapAttrs (_: map mkEntry) (lib.groupBy (hook: hook.event) installed.hooks);
+  installed = sharedHooks.install (
+    with sharedHooks.hooks;
+    [
+      autoDream
+      prosePolish
+      autoFormat
+      commentGate
+      completeness
+    ]
+  );
 
   ownEvents = {
     PermissionRequest = [
@@ -113,7 +93,7 @@ let
 in
 {
   events = lib.zipAttrsWith (_: lib.concatLists) [
-    sharedEvents
+    installed.events
     ownEvents
   ];
 
