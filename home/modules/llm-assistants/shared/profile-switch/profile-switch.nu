@@ -98,7 +98,7 @@ def main [
     write-config $config $target
   }
   mkdir $config.stateDir
-  ln -sf $target $active_link
+  ^ln -sfn $target $active_link
   if not $initialize {
     print $"Switched to profile: ($profile)"
     print $"Restart ($config.assistant) for changes to take effect."
