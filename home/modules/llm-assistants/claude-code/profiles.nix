@@ -207,10 +207,10 @@ let
     in
     {
       agentsDir = pkgs.linkFarm "claude-code-agents-${family}" (
-        lib.mapAttrsToList (name: text: {
-          name = ".claude/agents/${name}.md";
-          path = pkgs.writeText "claude-code-agent-${family}-${name}.md" text;
-        }) agents.files
+        lib.mapAttrs' (
+          name: text:
+          lib.nameValuePair "${name}.md" (pkgs.writeText "claude-code-agent-${family}-${name}.md" text)
+        ) agents.files
       );
       settings = {
         effortLevel = modelCatalog.models.${modelCatalog.defaults.${family}.standard}.thinking.defaultLevel;
@@ -219,7 +219,7 @@ let
   ) workloadPolicy;
 
   # ------------------------------------------------------------------------------------------------
-  # Profile scripts
+  # Profile bundles
   # ------------------------------------------------------------------------------------------------
   readSecretFn = ''
     __read_secret() {
@@ -231,7 +231,7 @@ let
     }
   '';
 
-  mkProfileScript =
+  mkProfileBundle =
     name: profile:
     let
       esc = lib.escapeShellArg;
@@ -274,19 +274,16 @@ let
           k: secretName: "export ${k}=${esc (secretPath secretName)}"
         ) profile.extraSecretEnv;
 
-      # Inline values keep variadic flags from consuming the caller's prompt.
-      sessionArgs = [
-        "--add-dir=${familyConfig.agentsDir}"
-        "--settings=${settings}"
-      ];
+      envScript = pkgs.writeShellScript "claude-profile-${name}" (
+        lib.concatStringsSep "\n" (tokenLines ++ envLines ++ [ "__claude_settings=${esc settings}" ])
+      );
     in
-    pkgs.writeShellScript "claude-profile-${name}" (
-      lib.concatStringsSep "\n" (
-        tokenLines ++ envLines ++ [ "__claude_session_args+=(${lib.escapeShellArgs sessionArgs})" ]
-      )
-    );
+    pkgs.linkFarm "claude-profile-${name}" {
+      "env.sh" = envScript;
+      agents = familyConfig.agentsDir;
+    };
 
-  profileScripts = lib.mapAttrs mkProfileScript cfg.auth.profiles;
+  profileBundles = lib.mapAttrs mkProfileBundle cfg.auth.profiles;
 
   # ------------------------------------------------------------------------------------------------
   # Profile loader
@@ -308,18 +305,12 @@ let
     ) (builtins.attrValues cfg.auth.profiles)
   );
 
-  listUtilityCommands = pkgs.writers.writeNu "claude-list-utility-commands" {
-    makeWrapperArgs = [
-      "--add-flag"
-      (lib.getExe pkgs.claude-code)
-    ];
-  } (builtins.readFile ./scripts/utility-commands.nu);
-  utilityCommands = pkgs.runCommand "claude-utility-commands" { } "${listUtilityCommands} >$out";
-
   profileLoader = pkgs.replaceVars ./scripts/profile-loader.sh {
     profileEnvVars = toString profileEnvVars;
-    inherit stateDir utilityCommands mcpFlag;
+    inherit stateDir;
   };
+
+  sessionArgs = pkgs.replaceVars ./scripts/session-args.sh { inherit mcpFlag; };
 
   # ------------------------------------------------------------------------------------------------
   # Profile switcher
@@ -330,15 +321,15 @@ let
     name = "claude-switch";
     assistant = "Claude Code";
     profilesDir = "${stateDir}/profiles";
-    extension = "sh";
+    extension = "d";
   };
 
   # ------------------------------------------------------------------------------------------------
-  # Teammate launcher
+  # Process wrapper
   # ------------------------------------------------------------------------------------------------
-  teammateLauncher = pkgs.writeShellScript "claude-teammate-launcher" (
+  processWrapper = pkgs.writeShellScript "claude-process-wrapper" (
     builtins.replaceStrings [ "@profileLoader@" ] [ "${profileLoader}" ] (
-      builtins.readFile ./scripts/teammate-launcher.sh
+      builtins.readFile ./scripts/process-wrapper.sh
     )
   );
 in
@@ -399,12 +390,16 @@ in
     # ----------------------------------------------------------------------------------------------
     # Profile files
     # ----------------------------------------------------------------------------------------------
-    home.file = lib.mapAttrs' (name: script: {
-      name = "${stateDir}/profiles/${name}.sh";
-      value = {
-        source = script;
+    home.file =
+      lib.mapAttrs' (name: bundle: {
+        name = "${stateDir}/profiles/${name}.d";
+        value = {
+          source = bundle;
+        };
+      }) profileBundles
+      // {
+        ".claude/agents".source = config.lib.file.mkOutOfStoreSymlink "${stateDir}/active-profile/agents";
       };
-    }) profileScripts;
 
     # ----------------------------------------------------------------------------------------------
     # Activation
@@ -420,10 +415,13 @@ in
   wrapArgs = [
     "--run"
     "source ${profileLoader}"
+
+    "--run"
+    "source ${sessionArgs}"
   ];
 
   settings = {
     model = modelAliases.claude.standard;
-    processWrapper = "${teammateLauncher}";
+    processWrapper = "${processWrapper}";
   };
 }

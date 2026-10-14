@@ -56,7 +56,7 @@ Indentation belongs to `editorconfig-checker`, which reads `.editorconfig` for e
 
 Keep bash for scripts evaluated by another shell and for small process launchers:
 
-- **A `--run` or sourced script.** `profile-loader.sh` and `mkProxyScript` are injected through `makeWrapper --run`, so the wrapper's own shell evaluates them. `teammate-launcher.sh` sources `profile-loader.sh`.
-- **`exec` wrappers.** Setting a variable and handing off to the real binary has no data to structure. This covers the MCP wrappers, `notify`, and most of the remaining `writeShellScript` sites.
+- **A `--run` or sourced script.** A script injected through `makeWrapper --run` or sourced by another script is evaluated by that shell, so it has to share its language.
+- **`exec` wrappers.** Setting a variable and handing off to the real binary has no data to structure.
 
 Hook errors leave the underlying tool call running, so a porting bug can silently disable the hook. Compare the old and new scripts on representative hook payloads before deleting the bash implementation.
