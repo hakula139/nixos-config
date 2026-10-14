@@ -21,7 +21,20 @@ in
   # ------------------------------------------------------------------------------------------------
   # Nix registry
   # ------------------------------------------------------------------------------------------------
-  nix.registry.nixos-config.flake = inputs.self;
+  # Home Manager's `flake` option also copies `revCount`, which only a full clone reports, so a
+  # local checkout would evaluate to different derivations than CI and miss its binary cache.
+  nix.registry.nixos-config.to = {
+    type = "path";
+    path = inputs.self.outPath;
+  }
+  // lib.filterAttrs (
+    name: _:
+    lib.elem name [
+      "lastModified"
+      "narHash"
+      "rev"
+    ]
+  ) inputs.self;
 
   # ------------------------------------------------------------------------------------------------
   # Services (shared)

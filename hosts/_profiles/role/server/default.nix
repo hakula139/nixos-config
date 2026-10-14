@@ -3,6 +3,7 @@
 # ==================================================================================================
 
 {
+  config,
   lib,
   keys,
   ...
@@ -23,6 +24,13 @@
   # Credentials
   # ------------------------------------------------------------------------------------------------
   hakula.cachix.enable = true;
+
+  # ------------------------------------------------------------------------------------------------
+  # Deployment
+  # ------------------------------------------------------------------------------------------------
+  # Building on the target would otherwise rebuild every `allowSubstitutes = false` derivation
+  # there, fetching its build inputs, even when CI already pushed the output.
+  nix.settings.always-allow-substitutes = config.deployment.buildOnTarget;
 
   # ------------------------------------------------------------------------------------------------
   # Services
