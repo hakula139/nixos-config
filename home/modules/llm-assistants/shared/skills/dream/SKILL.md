@@ -56,7 +56,7 @@ Search only for things you already suspect matter, such as user corrections, app
 Decide for each candidate whether it adds a memory, updates one, deletes one, or changes nothing.
 
 - Merge new signal into the existing file that covers the topic.
-- Convert relative dates such as "yesterday" or "last week" to absolute dates.
+- Resolve relative dates such as "yesterday" or "next Thursday" against when the memory was written, taken from its text or else the file's modification time. Once that date has passed, check whether the expected event or work has happened, and delete the memory when it is done or no longer applies. Otherwise rewrite it with the absolute date.
 - Delete or correct a memory that the current repository or a later session contradicts.
 - Save only what the host's memory rules admit. Facts already recorded by instruction files, code, or git history stay out.
 - When a merge or rename retires a memory name, update every `[[name]]` link that pointed at it.
