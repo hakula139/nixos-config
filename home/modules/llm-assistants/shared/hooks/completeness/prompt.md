@@ -28,4 +28,4 @@ Bias toward allowing the stop, as many turns are legitimately complete or are in
 
 ## Output
 
-Return `ok: true` if it is safe to stop. Return `ok: false` with a reason naming the specific incomplete or misreported item.
+Return `ok: true` if it is safe to stop, or `ok: false` with a reason naming the specific incomplete or misreported item. When that item cannot be finished in this session, such as when a required service, credential, or capability is unavailable and the assistant has reported that, add `impossible: true` so the stop is allowed instead of repeating the same request.
