@@ -7,15 +7,15 @@ Review this PR by applying the review skill in `home/modules/llm-assistants/shar
 
 ## Posting the review
 
-You MUST post your review to the PR using GitHub tools. Do not just output text.
+Post the review to the PR with the GitHub tools below. Text left in the final response never reaches the PR.
 
 ### Inline review comments
 
-For line-specific issues, use `mcp__github_inline_comment__create_inline_comment`. Each inline comment MUST include a severity prefix (**Critical** / **Warning** / **Suggestion**) matching the skill's severity definitions.
+For line-specific issues, use `mcp__github_inline_comment__create_inline_comment`. Start each inline comment with a severity prefix (**Critical** / **Warning** / **Suggestion**) matching the skill's severity definitions.
 
 ### Top-level summary comment
 
-The summary comment MUST start with the HTML marker `<!-- claude-review -->` on its own line, followed by this structure.
+Start the summary comment with the HTML marker `<!-- claude-review -->` on its own line, which lets a later run find and update it, followed by this structure.
 
 If there are findings, use (omit empty severity sections):
 
