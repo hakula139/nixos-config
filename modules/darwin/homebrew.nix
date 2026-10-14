@@ -11,6 +11,15 @@
 
 let
   esc = lib.escapeShellArg;
+
+  # Homebrew bundle upgrades every app `mas outdated` lists through a forced `sudo mas update`,
+  # which can hang activation on an App Store dialog. The App Store updates these apps itself.
+  masInstallOnly = pkgs.writeShellScriptBin "mas" ''
+    if [ "''${1-}" = "outdated" ]; then
+      exit 0
+    fi
+    exec ${lib.getExe pkgs.mas} "$@"
+  '';
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -85,7 +94,7 @@ in
   # ------------------------------------------------------------------------------------------------
   system.activationScripts.homebrew.text = lib.mkForce ''
     run_homebrew_bundle() {
-      PATH=${esc "${config.homebrew.prefix}/bin:${lib.makeBinPath [ pkgs.mas ]}"}:"$PATH" \
+      PATH=${esc "${config.homebrew.prefix}/bin:${lib.makeBinPath [ masInstallOnly ]}"}:"$PATH" \
         sudo \
           --preserve-env=PATH \
           --user=${esc config.homebrew.user} \
