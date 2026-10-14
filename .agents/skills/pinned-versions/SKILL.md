@@ -31,7 +31,7 @@ Listing the registry requires Nushell and Git. Upstream comparisons also require
 
 ## Locked inputs and release selectors
 
-`.github/renovate.json` enables only the `nix` manager, with grouped `chore(flake)` PRs and automerge. It configures daily lockfile maintenance in Asia/Shanghai time. GitHub Actions and the manual pins below are outside that manager.
+`.github/renovate.json` enables only the `nix` manager and extends the shared `.github/renovate-preset.json`, which groups flake inputs into automerged `chore(flake)` PRs and schedules daily lockfile maintenance in Asia/Shanghai time. GitHub Actions and the manual pins below are outside that manager.
 
 Update a selected input with `nix flake update <input>`. An explicit tag or release branch in `flake.nix` constrains what a lockfile refresh can select:
 
