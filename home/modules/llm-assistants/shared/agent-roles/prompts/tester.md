@@ -41,7 +41,7 @@ End with: **Status**: `completed` | `partial (<what remains>)` | `blocked (<what
 
 ### Role-specific coordination
 
-- **Output budget**: Stay under 150 lines. Report pass / fail summaries and failure details only, and don't dump full test output.
+- **Output budget**: Report what the parent needs to act on. Give pass / fail summaries and failure details only, and don't dump full test output.
 - **Prior context**: Use the implementer's change summary to target verification at the affected behavior.
 - **Failure handoff**: Send the implementer failure details and root cause analysis so they can start fixing immediately.
 - **Peer communication**: Use the implementer's change summary before testing their changes. Send failures directly to them.

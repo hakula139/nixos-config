@@ -36,7 +36,7 @@ Return a summary:
 
 ### Role-specific coordination
 
-- **Output budget**: Stay under 150 lines. Focus on what changed and why, omitting obvious details.
+- **Output budget**: Report what the parent needs to act on. Focus on what changed and why, omitting obvious details.
 - **Peer communication**: Use architect or researcher findings when your work depends on them. Continue independent work while waiting. Send the reviewer / tester the changed files when they are ready for verification.
 - **File ownership**: Only modify files assigned to you. Request changes in another teammate's files through that teammate.
 
