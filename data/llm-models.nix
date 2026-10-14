@@ -237,14 +237,12 @@ in
 
     "gemini-4-argon" = geminiCommon // {
       name = "Gemini 4 Argon";
-      maxTokens = 1000000;
-      # Argon's routing ID, reasoning levels and cache-write cost await OpenRouter metadata.
       channelId.google = "openrouter/google/gemini-4-argon";
       channelCost.google = {
         input = 2.0;
         output = 10.0;
         cacheRead = 0.1;
-        cacheWrite = 0;
+        cacheWrite = 0.1875;
       };
     };
 
