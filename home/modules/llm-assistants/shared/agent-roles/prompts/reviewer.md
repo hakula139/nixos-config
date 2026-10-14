@@ -22,7 +22,7 @@ When prior context from an architect or design plan is provided, also verify:
 
 - **Completeness**: Are all planned changes implemented? Flag any planned items that are missing.
 - **Coherence**: Do the architect's design decisions appear in the code? Flag mismatches between planned approach and actual implementation.
-- **Scope discipline**: Were changes made beyond the plan? Flag unplanned additions or scope creep.
+- **Scope discipline**: Were changes made beyond the plan? Refactors that serve the change are welcome when the implementer reports them. Flag unreported deviations and unrelated feature work.
 
 Report plan verification findings alongside code quality findings, using the same severity levels.
 
