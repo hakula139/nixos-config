@@ -1,17 +1,15 @@
 #!/usr/bin/env bash
 
 # ==================================================================================================
-# Claude Code Teammate Launcher
+# Claude Code Process Wrapper
 # ==================================================================================================
-# Agent-team teammates exec Claude Code through the `processWrapper` setting, bypassing the wrapper.
-# Its env allowlist drops the auth token and no session flags are added, so load the profile here.
+# Background sessions, their workers, and agent-team teammates start through the `processWrapper`
+# setting, bypassing the wrapper, and Claude Code's env allowlist drops the auth token, so load the
+# profile here. Claude Code forwards the session flags itself and rejects them on internal commands.
 # ==================================================================================================
 
 set -euo pipefail
 
-claude_bin="$1"
-shift
-
 source @profileLoader@
 
-exec "$claude_bin" "$@"
+exec "$@"
