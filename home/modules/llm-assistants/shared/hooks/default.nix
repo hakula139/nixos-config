@@ -2,7 +2,7 @@
 # Shared Hooks
 # ==================================================================================================
 # Claude Code and Codex name their events alike, so a hook states its own event and only its tool
-# classes need translating. Each adapter owns that map and hands it to `mkMatcher`.
+# classes need translating. Each adapter owns that map and hands it to `mkHooks`.
 # ==================================================================================================
 
 {
@@ -18,6 +18,7 @@
 
 {
   assistant,
+  toolClasses,
   gateway ? { },
 }:
 
@@ -78,6 +79,34 @@ let
     ;
 
   # ------------------------------------------------------------------------------------------------
+  # Hook entries
+  # ------------------------------------------------------------------------------------------------
+  mkMatcher =
+    tools:
+    lib.concatStringsSep "|" (
+      lib.unique (
+        lib.concatMap (tool: if lib.hasPrefix "mcp__" tool then [ tool ] else toolClasses.${tool}) tools
+      )
+    );
+
+  handlerFields = [
+    "type"
+    "command"
+    "prompt"
+    "timeout"
+    "statusMessage"
+    "async"
+  ];
+
+  mkEntry =
+    hook:
+    lib.optionalAttrs (hook ? matcher) { inherit (hook) matcher; }
+    // lib.optionalAttrs (hook ? tools) { matcher = mkMatcher hook.tools; }
+    // {
+      hooks = [ (lib.filterAttrs (name: _: lib.elem name handlerFields) hook) ];
+    };
+
+  # ------------------------------------------------------------------------------------------------
   # Hook installation
   # ------------------------------------------------------------------------------------------------
   # Codex trusts a hook by hashing its command, so a store path would need review after every
@@ -87,37 +116,21 @@ let
     let
       commandHooks = lib.filter (hook: hook.type == "command") hooks;
       link = hook: "llm-assistants/hooks/${lib.unsafeDiscardStringContext (baseNameOf hook.command)}";
-    in
-    {
-      hooks = map (
+      linked = map (
         hook: if hook.type == "command" then hook // { command = "${dataHome}/${link hook}"; } else hook
       ) hooks;
+    in
+    {
+      events = lib.mapAttrs (_: map mkEntry) (lib.groupBy (hook: hook.event) linked);
 
       dataFiles = lib.listToAttrs (
         map (hook: lib.nameValuePair (link hook) { source = hook.command; }) commandHooks
       );
     };
-
-  # ------------------------------------------------------------------------------------------------
-  # Tool matchers
-  # ------------------------------------------------------------------------------------------------
-  mkMatcher =
-    toolClasses: hooks:
-    lib.concatStringsSep "|" (
-      lib.unique (
-        lib.concatMap (
-          hook:
-          lib.concatMap (tool: if lib.hasPrefix "mcp__" tool then [ tool ] else toolClasses.${tool}) (
-            hook.tools or [ ]
-          )
-        ) hooks
-      )
-    );
 in
 {
   inherit
     install
-    mkMatcher
     mkNuHook
     timeouts
     ;

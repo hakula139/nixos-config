@@ -77,9 +77,10 @@ in
       # --------------------------------------------------------------------------------------------
       # Module imports
       # --------------------------------------------------------------------------------------------
-      hooks = import ./hooks.nix {
+      hooks = import ./hooks {
         inherit pkgs lib;
         inherit (shared) mkHooks notify;
+        modelAliases = shared.profileDefinitions.modelAliases.claude;
       };
 
       permissionSettings = import ./permissions {
