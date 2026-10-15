@@ -46,4 +46,5 @@ pkgs.symlinkJoin {
     makeWrapper ${esc (lib.getExe' pkg bin)} "$out/bin/"${esc bin} \
       ${lib.escapeShellArgs (wrapArgs ++ envVarArgs ++ envFileArgs)}
   '';
+  meta.mainProgram = bin;
 }

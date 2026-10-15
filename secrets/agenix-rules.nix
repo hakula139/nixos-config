@@ -30,9 +30,8 @@ in
   # ------------------------------------------------------------------------------------------------
   # Dev tool secrets
   # ------------------------------------------------------------------------------------------------
-  "github/pat-personal.age".publicKeys = allKeys;
-  "github/pat-work.age".publicKeys = allKeys;
-  "gitlab/pat-work.age".publicKeys = allKeys;
+  "github/pat.age".publicKeys = allKeys;
+  "gitlab/pat.age".publicKeys = allKeys;
 
   "llm-assistants/claude-oauth-token.age".publicKeys = allKeys;
   "llm-assistants/ikuncode-api-key.age".publicKeys = allKeys;
