@@ -6,7 +6,7 @@ let
   claudeAdaptiveCommon = {
     contextWindow = 1000000;
     maxTokens = 128000;
-    autoCompactTokens = 400000;
+    autoCompactTokens = 500000;
     input = [
       "text"
       "image"
@@ -122,7 +122,6 @@ in
     "claude-opus-5-5" = claudeAdaptiveCommon // {
       name = "Claude Opus 5.5";
       thinking = claudeAdaptiveCommon.thinking // {
-        defaultLevel = "high";
         requiresEffort = true;
       };
       channelId.anthropic = "bedrock/global.anthropic.claude-opus-5-5";
