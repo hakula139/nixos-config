@@ -119,7 +119,7 @@ let
       "--verify-ssl=${secretPath corpGateway.caSecret}"
       "${corpGateway.baseUrl}/mcp"
     ];
-    envFiles.API_ACCESS_TOKEN = secretPath corpGateway.tokenSecret;
+    envFiles.API_ACCESS_TOKEN = secretPath (corpGateway.tokenSecretFor "claude-code");
   };
 
   # ------------------------------------------------------------------------------------------------
