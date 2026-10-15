@@ -157,38 +157,44 @@ let
   # ------------------------------------------------------------------------------------------------
   # Filesystem
   # ------------------------------------------------------------------------------------------------
-  filesystemBin = pkgs.writeShellScriptBin "filesystem-mcp" ''
-    exec ${lib.getExe pkgs.mcp-server-filesystem} ${esc homeDir} "$@"
-  '';
+  filesystemBin = mkServer {
+    name = "filesystem";
+    command = [
+      (lib.getExe pkgs.mcp-server-filesystem)
+      homeDir
+    ];
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Git
   # ------------------------------------------------------------------------------------------------
-  gitBin = pkgs.writeShellScriptBin "git-mcp" ''
-    exec ${lib.getExe pkgs.mcp-server-git} "$@"
-  '';
+  gitBin = mkServer {
+    name = "git";
+    command = [ (lib.getExe pkgs.mcp-server-git) ];
+  };
 
   # ------------------------------------------------------------------------------------------------
   # GitHub
   # ------------------------------------------------------------------------------------------------
-  ghBin = "${config.home.profileDirectory}/bin/gh";
-  githubPatFile = secretPath "github/pat";
-  githubBin = pkgs.writeShellScriptBin "github-mcp" ''
-    set -euo pipefail
-    if [[ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]]; then
-      if [[ -x ${esc ghBin} ]] && token=$(${esc ghBin} auth token 2>/dev/null); then
+  ghBin = lib.getExe config.programs.gh.package;
+  githubBin = mkServer {
+    name = "github";
+    command = [
+      (lib.getExe pkgs.mcp-server-github)
+      "stdio"
+    ];
+    setup = ''
+      if [[ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]] \
+        && token=$(${esc ghBin} auth token 2>/dev/null); then
         export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
-      elif [[ -f ${esc githubPatFile} ]]; then
-        export GITHUB_PERSONAL_ACCESS_TOKEN="$(cat ${esc githubPatFile})"
       fi
-    fi
-    exec ${lib.getExe pkgs.mcp-server-github} stdio "$@"
-  '';
+    '';
+  };
 
   # ------------------------------------------------------------------------------------------------
   # GitLab
   # ------------------------------------------------------------------------------------------------
-  glabBin = "${config.home.profileDirectory}/bin/glab";
+  glabBin = lib.getExe pkgs.glab;
   gitlabPatFile = secretPath "gitlab/pat";
   gitlabToolsets = lib.concatStringsSep "," [
     "branches"
@@ -199,19 +205,22 @@ let
     "projects"
     "repositories"
   ];
-  gitlabBin = pkgs.writeShellScriptBin "gitlab-mcp" ''
-    if [[ -x ${esc glabBin} ]] \
-      && host=$(${esc glabBin} config get host 2>/dev/null) && [[ -n "$host" ]] \
-      && token=$(${esc glabBin} config get token --host "$host" 2>/dev/null) && [[ -n "$token" ]]; then
-      export GITLAB_PERSONAL_ACCESS_TOKEN="$token"
-      export GITLAB_API_URL="https://''${host}/api/v4"
-    elif [[ -f ${esc gitlabPatFile} ]]; then
-      export GITLAB_PERSONAL_ACCESS_TOKEN="$(cat ${esc gitlabPatFile})"
-      export GITLAB_API_URL=${esc "${gitlabUrl}/api/v4"}
-    fi
-    export GITLAB_TOOLSETS=${esc gitlabToolsets}
-    exec ${lib.getExe pkgs.mcp-server-gitlab} "$@"
-  '';
+  gitlabBin = mkServer {
+    name = "gitlab";
+    command = [ (lib.getExe pkgs.mcp-server-gitlab) ];
+    envVars.GITLAB_TOOLSETS = gitlabToolsets;
+    setup = ''
+      if host=$(${esc glabBin} config get host 2>/dev/null) && [[ -n "$host" ]] \
+        && token=$(${esc glabBin} config get token --host "$host" 2>/dev/null) \
+        && [[ -n "$token" ]]; then
+        export GITLAB_PERSONAL_ACCESS_TOKEN="$token"
+        export GITLAB_API_URL="https://''${host}/api/v4"
+      elif [[ -f ${esc gitlabPatFile} ]]; then
+        export GITLAB_PERSONAL_ACCESS_TOKEN="$(cat ${esc gitlabPatFile})"
+        export GITLAB_API_URL=${esc "${gitlabUrl}/api/v4"}
+      fi
+    '';
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Scrapling
