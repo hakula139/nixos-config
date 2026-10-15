@@ -45,7 +45,6 @@ let
     ];
     braveSearch = [ "llm-assistants/mcp/brave-api-key" ];
     exa = [ "llm-assistants/mcp/exa-api-key" ];
-    github = [ "github/pat" ];
     gitlab = [ "gitlab/pat" ];
   };
 
