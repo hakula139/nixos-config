@@ -3,7 +3,6 @@
 # ==================================================================================================
 
 {
-  config,
   pkgs,
   lib,
   ...
@@ -20,8 +19,6 @@ let
     source-file ${catppuccinPluginDir}/catppuccin_options_tmux.conf
     source-file ${catppuccinPluginDir}/catppuccin_tmux.conf
   '';
-
-  clipboardConfig = import ./clipboard.nix { inherit config pkgs lib; };
 
   # Continuum must inject its save command after the final status-right assignment.
   continuumConfig = ''
@@ -77,7 +74,6 @@ in
     extraConfig = lib.concatStringsSep "\n" [
       (lib.fileContents ./tmux.conf)
       darwinConfig
-      clipboardConfig
       nushellConfig
       catppuccinConfig
       continuumConfig
