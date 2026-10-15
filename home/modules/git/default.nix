@@ -4,9 +4,35 @@
 
 {
   pkgs,
+  lib,
+  repoLib,
+  secretPath,
+  enableDevToolchains ? false,
   ...
 }:
 
+let
+  esc = lib.escapeShellArg;
+
+  ghPatFile = secretPath "github/pat";
+
+  # GH_TOKEN overrides stored logins, so export the PAT only when none is readable. `gh auth login`
+  # refuses to run while GH_TOKEN is set.
+  ghBin = repoLib.wrapPackage {
+    inherit pkgs;
+    pkg = pkgs.gh;
+    wrapArgs = [
+      "--run"
+      ''
+        if [[ -z "''${GH_TOKEN:-}" && -z "''${GITHUB_TOKEN:-}" && -s ${esc ghPatFile} ]] \
+          && [[ "''${1:-}" != auth || "''${2:-}" != login ]] \
+          && ! ${lib.getExe pkgs.gh} auth token --hostname github.com >/dev/null 2>&1; then
+          export GH_TOKEN="$(<${esc ghPatFile})"
+        fi
+      ''
+    ];
+  };
+in
 {
   # ------------------------------------------------------------------------------------------------
   # Git Configuration
@@ -93,10 +119,13 @@
   # ------------------------------------------------------------------------------------------------
   programs.gh = {
     enable = true;
+    package = lib.mkIf enableDevToolchains ghBin;
     settings = {
       git_protocol = "ssh";
     };
   };
+
+  hakula.secrets.required = lib.mkIf enableDevToolchains { "github/pat" = { }; };
 
   # ------------------------------------------------------------------------------------------------
   # GitLab CLI

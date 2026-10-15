@@ -48,10 +48,5 @@ in
       port = lib.mkDefault 7897;
       controllerPort = lib.mkDefault 59386;
     };
-
-    # ----------------------------------------------------------------------------------------------
-    # Secrets
-    # ----------------------------------------------------------------------------------------------
-    hakula.secrets.required."github/pat".name = lib.mkForce "github/pat-work";
   };
 }
