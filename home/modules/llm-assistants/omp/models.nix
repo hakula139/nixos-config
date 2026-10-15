@@ -31,12 +31,13 @@ let
     let
       api = familyApis.${profile.family};
       provider = providers.${profile.provider};
+      tokenFile = secretPath (provider.tokenSecretFor "omp");
     in
     {
       inherit api;
       baseUrl = provider.apiUrls.${api};
       auth = "apiKey";
-      apiKey = "!${lib.getExe' pkgs.coreutils "cat"} ${lib.escapeShellArg (secretPath provider.tokenSecret)}";
+      apiKey = "!${lib.getExe' pkgs.coreutils "cat"} ${lib.escapeShellArg tokenFile}";
       authHeader = true;
       headers = provider.extraHeaders or { };
       models = map (mkModel profile.channel) (lib.unique (builtins.attrValues profile.models));

@@ -22,6 +22,7 @@ let
 
   # Common groupings
   allServersAndMacbook = allServers ++ [ macbook ];
+  corpGatewayKeys = allWorkstations ++ [ devvm ];
   us1Only = allUsers ++ [ us-1 ];
   us4Only = allUsers ++ [ us-4 ];
 in
@@ -37,8 +38,12 @@ in
   "llm-assistants/ikuncode-api-key.age".publicKeys = allKeys;
   "llm-assistants/yescode-api-key.age".publicKeys = allKeys;
 
-  "llm-assistants/bifrost-api-key.age".publicKeys = allWorkstations ++ [ devvm ];
-  "llm-assistants/corp-cachain.crt.age".publicKeys = allWorkstations ++ [ devvm ];
+  "llm-assistants/corp-gateway/cachain.crt.age".publicKeys = corpGatewayKeys;
+  "llm-assistants/corp-gateway/claude-code-api-key.age".publicKeys = corpGatewayKeys;
+  "llm-assistants/corp-gateway/codex-api-key.age".publicKeys = corpGatewayKeys;
+  "llm-assistants/corp-gateway/omp-api-key.age".publicKeys = corpGatewayKeys;
+  "llm-assistants/corp-gateway/opencode-api-key.age".publicKeys = corpGatewayKeys;
+  "llm-assistants/corp-gateway/oxide-code-api-key.age".publicKeys = corpGatewayKeys;
 
   "llm-assistants/telegram-bot-token.age".publicKeys = allKeys;
 

@@ -80,7 +80,7 @@ in
         inherit (shared) mkHooks;
         gateway = lib.optionalAttrs cfg.auth.enableCorpGateway {
           inherit (corpGateway) baseUrl;
-          tokenFile = secretPath corpGateway.tokenSecret;
+          tokenFile = secretPath (corpGateway.tokenSecretFor "codex");
           caFile = secretPath corpGateway.caSecret;
         };
       };

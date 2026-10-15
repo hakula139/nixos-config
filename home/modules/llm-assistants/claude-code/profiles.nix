@@ -67,7 +67,7 @@ let
         {
           type = "api-key";
           baseUrl = provider.apiUrls.anthropic-messages;
-          inherit (provider) tokenSecret;
+          tokenSecret = provider.tokenSecretFor "claude-code";
           extraHeaders = provider.extraHeaders or { };
         }
         // lib.optionalAttrs (profile.provider == "corp-gateway") {

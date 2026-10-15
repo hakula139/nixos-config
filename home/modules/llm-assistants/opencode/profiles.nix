@@ -20,7 +20,7 @@ let
   managedAgents = lib.filterAttrs (name: _: lib.elem name enabledAgents) sharedAgents;
 
   corpGateway = profileDefinitions.providers.corp-gateway;
-  tokenFile = secretPath corpGateway.tokenSecret;
+  tokenFile = secretPath (corpGateway.tokenSecretFor "opencode");
   caFile = secretPath corpGateway.caSecret;
 
   # ------------------------------------------------------------------------------------------------
@@ -201,7 +201,7 @@ in
     # Secrets
     # ----------------------------------------------------------------------------------------------
     hakula.secrets.required = lib.mkIf cfg.enableCorpGateway {
-      ${corpGateway.tokenSecret} = { };
+      ${corpGateway.tokenSecretFor "opencode"} = { };
       ${corpGateway.caSecret} = { };
     };
 

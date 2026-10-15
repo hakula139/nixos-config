@@ -135,8 +135,8 @@ in
       inherit baseUrl;
       apiUrls = lib.mapAttrs (_: path: "${baseUrl}/${path}") apiPaths;
 
-      tokenSecret = "llm-assistants/bifrost-api-key";
-      caSecret = "llm-assistants/corp-cachain.crt";
+      tokenSecretFor = client: "llm-assistants/corp-gateway/${client}-api-key";
+      caSecret = "llm-assistants/corp-gateway/cachain.crt";
 
       # The gateway injects its MCP tools into every model request unless this header names the
       # clients to keep. Naming none keeps the tools on the MCP server, and OMP drops empty header
@@ -146,12 +146,12 @@ in
 
   providers.ikuncode = {
     apiUrls.anthropic-messages = "https://api.ikuncode.cc";
-    tokenSecret = "llm-assistants/ikuncode-api-key";
+    tokenSecretFor = _: "llm-assistants/ikuncode-api-key";
   };
 
   providers.yescode = {
     apiUrls.anthropic-messages = "https://co.yes.vg";
-    tokenSecret = "llm-assistants/yescode-api-key";
+    tokenSecretFor = _: "llm-assistants/yescode-api-key";
   };
 
   # ------------------------------------------------------------------------------------------------
