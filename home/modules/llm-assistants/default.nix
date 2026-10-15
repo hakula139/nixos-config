@@ -40,8 +40,8 @@ let
   mcpServerSecrets = {
     atlassian = [ "llm-assistants/mcp/confluence-pat" ];
     bifrost = [
-      "llm-assistants/bifrost-api-key"
-      "llm-assistants/corp-cachain.crt"
+      "llm-assistants/corp-gateway/claude-code-api-key"
+      "llm-assistants/corp-gateway/cachain.crt"
     ];
     braveSearch = [ "llm-assistants/mcp/brave-api-key" ];
     exa = [ "llm-assistants/mcp/exa-api-key" ];

@@ -20,7 +20,7 @@ let
   stateDir = "${config.xdg.stateHome}/codex";
 
   corpGateway = profileDefinitions.providers.corp-gateway;
-  tokenFile = secretPath corpGateway.tokenSecret;
+  tokenFile = secretPath (corpGateway.tokenSecretFor "codex");
   caFile = secretPath corpGateway.caSecret;
 
   mkModelCatalog = import ./models.nix {
@@ -124,7 +124,7 @@ in
     # Secrets
     # ----------------------------------------------------------------------------------------------
     hakula.secrets.required = lib.mkIf cfg.enableCorpGateway {
-      ${corpGateway.tokenSecret} = { };
+      ${corpGateway.tokenSecretFor "codex"} = { };
       ${corpGateway.caSecret} = { };
     };
 
