@@ -125,7 +125,7 @@ in
     # Secrets
     # ----------------------------------------------------------------------------------------------
     hakula.secrets.required = lib.mkIf cfg.enableCorpGateway {
-      ${corpGateway.tokenSecret} = { };
+      ${corpGateway.tokenSecretFor "omp"} = { };
       ${corpGateway.caSecret} = { };
     };
 
