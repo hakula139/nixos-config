@@ -3,13 +3,14 @@ name: dream
 description: >-
   Consolidate a project's file-based agent memory from recent sessions of any assistant: merge
   duplicates, fix drifted or contradicted facts, convert relative dates, prune stale entries, and
-  rebuild the MEMORY.md index. Use when asked to dream, consolidate, reorganize, or clean up
-  memories, or when the memory index has grown long, stale, or contradictory, and promotes mature rules into the instruction files that own them through PRs / MRs.
+  rebuild the MEMORY.md index. Then promote mature rules into the instruction files that own them
+  through PRs / MRs. Use when asked to dream, consolidate, reorganize, or clean up memories, or
+  when the memory index has grown long, stale, or contradictory.
 ---
 
 # Dream
 
-A dream is a reflective pass over one project's memory store. It folds what recent sessions learned into durable, well-organized memories so that future sessions can orient quickly. The pass edits the memory store directly. Rules proven durable over several dreams move through a PR / MR into the instruction files that own them, so an instruction file changes only when the user merges that PR / MR, after which a later dream retires the promoted memory.
+A dream is a reflective pass over one project's memory store. It folds what recent sessions learned into durable, well-organized memories so that future sessions can orient quickly. The pass edits the memory store directly. Rules that have proven durable move through a PR / MR into the instruction files that own them, so an instruction file changes only when the user merges that PR / MR, after which a later dream retires the promoted memory.
 
 ## Locate the store
 
@@ -26,11 +27,11 @@ The host's memory instructions define the file format, the memory types, and wha
 
 ## Phase 1: Orient
 
-- List the store, read `MEMORY.md`, and skim the topic files so you improve existing entries instead of creating near-duplicates.
+- List the store, read `MEMORY.md`, and skim the topic files so new signal extends the entries that already cover its topic.
 - Note the global instructions and the repository's `AGENTS.md` that are already loaded. A memory that repeats one of them is a removal candidate.
 - If `logs/` or `sessions/` subdirectories exist, review their recent entries.
-- The modification time of `<store>/.consolidate-lock` marks the last consolidation. When the file is absent, Treat every session as recent.
-- Record which memories existed before that stamp, because consolidation edits update modification times and Phase 5 needs the original ages.
+- The modification time of `<store>/.consolidate-lock` marks the last consolidation. When the file is absent, treat every session as recent.
+- Record which memories were last modified before that stamp. Consolidation edits update modification times, and Phase 5 needs these original ages.
 
 ## Phase 2: Gather recent signal
 
@@ -90,11 +91,9 @@ When a memory's frontmatter metadata holds `promotion: <URL>`, it was already pr
 
 A memory is a candidate only when all of these hold:
 
-- Its type is `feedback` or `user` because it states a durable rule or preference, which excludes project state and reference pointers.
-- It survived an earlier dream by existing before the previous `.consolidate-lock` stamp or being corroborated by two or more sessions.
+- Its type is `feedback` or `user`, the types that state durable rules and preferences.
+- It survived an earlier dream, as Phase 1 recorded by a modification time older than the previous `.consolidate-lock` stamp, or two or more sessions corroborated it.
 - It carries no `promotion` URL.
-
-Read the target file before evaluating a candidate. If the target already states the rule, delete the memory and its index line because the instruction now carries it. If the target's own admission rules reject the rule, such as a repository that admits only constraints a reader cannot infer from its code, keep it as a memory.
 
 ### Choose the target
 
@@ -104,6 +103,8 @@ Choose the most specific file that owns the rule:
 - **Every project**: the global instruction sources in the nixos-config checkout, located as the `environment-repair` skill describes. `home/modules/llm-assistants/instructions/shared.md` holds rules for every assistant, and adjacent assistant files such as `claude-code.md` hold additions for one assistant. Sections rendered from an `@name@` placeholder live in `home/modules/llm-assistants/shared/prompt-fragments/`. Never edit rendered files such as `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`, because they are generated.
 - **One skill's procedure**: that skill's source `SKILL.md`, which for shared skills sits under `home/modules/llm-assistants/shared/skills/` in nixos-config. Skip any skill whose source you cannot trace to a repository.
 
+Read the target file before promoting a candidate. If the target already states the rule, delete the memory and its index line because the instruction now carries it. If the target's own admission rules reject the rule, such as a repository that admits only constraints a reader cannot infer from its code, keep it as a memory.
+
 ### Integrate
 
 Rewrite each rule into the target's existing structure to match its writing conventions and repository documentation rules, merging it with any neighbouring rule it refines or generalizes so the section reads as one coherent set. Never paste memory text verbatim, and omit the memory's **Why** and **How to apply** scaffolding, keeping only the reasoning a reader needs to apply the rule correctly.
@@ -112,8 +113,8 @@ Rewrite each rule into the target's existing structure to match its writing conv
 
 Because instruction files are versioned, the PR / MR serves as the approval gate. Work unattended following the `git-workflow` skill and the target repository's `AGENTS.md`:
 
-- Open one PR / MR per target repository per dream from the branch `docs/promote-memories`. When that branch already has an open request, add the new promotions to it.
-- Work in an isolated worktree created from the repository's committed default branch under its usual worktree location, leaving the main checkout and any other agent's uncommitted work untouched.
+- Each dream opens or updates at most one PR / MR per target repository, always from the branch `docs/promote-memories`. When that branch has an open request, add the new promotions to it.
+- Work in an isolated worktree under the repository's usual worktree location, leaving the main checkout and any other agent's uncommitted work untouched. Check out the open request's branch, or else start the branch from the remote default branch. When a closed request left a stale branch of that name, overwrite it with `git push --force-with-lease`, which loses nothing because the closed request keeps its commits.
 - Run the repository's verification and pre-commit hooks, and never bypass them.
 - Never merge, as merging stays with the user.
 - For a public repository, keep private material out of the diff, commits, and description, including internal hostnames, gateway names, local paths, and private repositories. A rule that cannot be stated without such material stays a memory.
