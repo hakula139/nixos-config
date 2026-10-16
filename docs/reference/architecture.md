@@ -42,6 +42,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   ├── overlays.nix            # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, custom packages)
 │   ├── packages.nix            # Base and font package groups for each package set
 │   ├── proxy.nix               # mkProxyOptions, mkProxyScript, wrapWithProxy, no_proxy rendering
+│   ├── script-tests.nix        # `checks.<system>.scripts`, running every `*.test.nu` under nu-test
 │   ├── secrets.nix             # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
 │   ├── ssh.nix                 # Builder and SSH configuration from server inventory
 │   ├── systemd.nix             # Shared systemd unit hardening defaults

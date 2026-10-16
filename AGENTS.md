@@ -10,7 +10,7 @@ This file is an index. It holds only what applies to every task, while anything 
 | ------------------------------------- | ------------------------------------------------------------------ |
 | A module, package, or host            | [docs/conventions/nix.md](docs/conventions/nix.md)                 |
 | A `.sh` script or inline shell in Nix | [docs/conventions/shell.md](docs/conventions/shell.md)             |
-| A `.nu` script                        | [docs/conventions/nushell.md](docs/conventions/nushell.md)         |
+| A `.nu` script or a `.test.nu` file   | [docs/conventions/nushell.md](docs/conventions/nushell.md)         |
 | A secret or a recipient list          | [docs/guides/secrets.md](docs/guides/secrets.md)                   |
 | First-time setup on any platform      | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)               |
 | Host wiring, builders, or the layout  | [docs/reference/architecture.md](docs/reference/architecture.md)   |
@@ -24,7 +24,7 @@ This file is an index. It holds only what applies to every task, while anything 
 
 ## Verification
 
-`nix flake check` covers structure and the pre-commit hooks, and `nix develop -c zsh` enters the shell those tools come from. For iteration, build the affected host output directly:
+`nix flake check` validates structure, pre-commit hooks, and script tests, while `nix develop -c zsh` enters the shell providing those tools. When iterating on a script with a colocated `.test.nu` file, `nu-test <file>` runs faster. For host changes, build the affected host output directly:
 
 ```bash
 nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
