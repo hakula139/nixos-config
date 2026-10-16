@@ -46,6 +46,16 @@ Both writers prepend an absolute-store-path shebang, which demotes a script's ow
 
 A parse-time `use` target must resolve in both the source tree and the store output. Expose a helper as an executable when no stable module path exists in both places.
 
+## Testing
+
+A script whose output is easy to get subtly wrong gets a `<script>.test.nu` beside it: a parser, a renderer that decides who gets access, a hook that rewrites user text. The harness is nushell whatever the script's language. A test drives the script the way its caller does, through arguments, stdin, files, and environment, and stubs any executable the script receives through its config, such as a model caller. Skip a test file when the only possible check would restate the code or would need the external tools the script exists to call.
+
+- **Tests** are commands named `test <behavior>`, asserting with `use std/assert`. Keep names to plain words, since the runner calls each one by name.
+- **Fixtures** go in `mktemp` directories. The runner gives each file a scratch `TMPDIR` and removes it afterwards.
+- **Running**: `nu-test <file>...` in the dev shell runs each test in its own `nu` process. `checks.<system>.scripts` from `lib/script-tests.nix` finds every `*.test.nu`, so a new file needs no wiring. A test that needs an interpreter other than nushell or bash also needs that interpreter added to the check's inputs.
+
+Before keeping a test, break the behavior it guards and confirm that it fails.
+
 ## Linting
 
 `nu-check` (`packages/nu-check/`) wraps `nu --ide-check`. It gates delimiters and the arity of your own `def`s and little else, since a mistyped command name passes as an external call, so a script still needs one real run.

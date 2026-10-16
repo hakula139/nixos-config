@@ -58,6 +58,7 @@
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };
     mcp-server-gitlab = final.callPackage ../packages/mcp/mcp-server-gitlab { };
     nu-check = final.callPackage ../packages/nu-check { };
+    nu-test = final.callPackage ../packages/nu-test { };
     peertube = final.callPackage ../packages/peertube { };
     peertube-runner = final.callPackage ../packages/peertube/runner.nix { };
     thaw = final.callPackage ../packages/thaw { };
