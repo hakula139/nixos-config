@@ -38,6 +38,7 @@ let
   # also writes the config files its LSP needs.
   shell = with pkgs; [
     nushell
+    nu-test
   ];
 in
 {
