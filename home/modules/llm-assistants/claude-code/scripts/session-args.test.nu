@@ -7,12 +7,15 @@
 use std/assert
 
 const SCRIPT_DIR = path self .
+const SCRIPT = ($SCRIPT_DIR | path join session-args.sh)
+
 const SESSION = ["--settings=/settings.json" "--mcp-config=/mcp.json"]
 
 # The argv Claude Code receives after the launcher sources the script over `argv`.
 def session-args [argv: list<string>]: nothing -> list<string> {
   let script = (mktemp)
-  open --raw ($SCRIPT_DIR | path join session-args.sh)
+
+  open --raw $SCRIPT
   | str replace "@mcpFlag@" "--mcp-config=/mcp.json"
   | save --force $script
 

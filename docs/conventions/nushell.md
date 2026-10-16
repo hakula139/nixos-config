@@ -23,7 +23,7 @@ Read this before writing or editing a `.nu` file. Nushell is the default for new
 - **Bare words depend on context.** `if $x { green }` calls a command named `green`, so quote literal colour names in blocks. An untyped argument such as `1min` arrives as a duration, while a `: string` parameter coerces it to a string.
 - **Build dynamic regexes by concatenation.** Parentheses start interpolation in both `$"..."` and `$'...'`, and double-quoted strings interpret backslashes before the regex engine sees them. Keep the pattern in a single-quoted literal: `($label + ' (?<n>\d+)')`.
 - **Quote list elements containing commas.** `[--sort=-pcpu,-pmem]` passes two arguments, so `ps` receives a separate `-pmem` and selects different rows.
-- **String literals preserve source newlines and indentation.** Nushell has no backslash line continuation inside strings. Put prose in an adjacent Markdown file. For generated text, join explicit lines or fragments with the intended separator.
+- **String literals preserve source newlines and indentation.** Nushell has no backslash line continuation inside strings. Put prose in an adjacent Markdown file. For a multiline literal, indent it with the code and pipe it through `str dedent` from `std-rfc/str`, which strips the closing quote's indentation from every line. For generated text, join explicit lines or fragments with the intended separator.
 - **Argument-forwarding functions need `def --wrapped`.** With a plain `def`, `...args` leaves `--porcelain` subject to the wrapper's own flag parser. `def --wrapped name [...args: string] { ^command ...$args }` accepts undeclared flags and forwards them as arguments.
 
 ### External commands
@@ -48,10 +48,10 @@ A parse-time `use` target must resolve in both the source tree and the store out
 
 ## Testing
 
-A script whose output is easy to get subtly wrong gets a `<script>.test.nu` beside it: a parser, a renderer that decides who gets access, a hook that rewrites user text. The harness is nushell whatever the script's language. A test drives the script the way its caller does, through arguments, stdin, files, and environment, and stubs any executable the script receives through its config, such as a model caller. Skip a test file when the only possible check would restate the code or would need the external tools the script exists to call.
+Give a script a `<script>.test.nu` beside it when its output is easy to get subtly wrong, as with a parser, a renderer that decides who gets access, or a hook that rewrites user text. Tests are nushell whatever the script's language, and drive the script the way its caller does, through arguments, stdin, files, and environment. Skip a test that could only restate the code or would need the external tools the script exists to call.
 
 - **Tests** are commands named `test <behavior>`, asserting with `use std/assert`. Keep names to plain words, since the runner calls each one by name.
-- **Fixtures** go in `mktemp` directories. The runner gives each file a scratch `TMPDIR` and removes it afterwards.
+- **Fixtures**: keep inputs and expected values inline as records or `str dedent` literals. A stand-in for an executable the script calls is a script named `<executable>.stub.nu` beside the test. Write files into `mktemp` directories, which the runner confines to a scratch `TMPDIR` per test file.
 - **Running**: `nu-test <file>...` in the dev shell runs each test in its own `nu` process. `checks.<system>.scripts` from `lib/script-tests.nix` finds every `*.test.nu`, so a new file needs no wiring. A test that needs an interpreter other than nushell or bash also needs that interpreter added to the check's inputs.
 
 Before keeping a test, break the behavior it guards and confirm that it fails.
