@@ -67,7 +67,8 @@ Aim for a simple, coherent design that meets current requirements.
 ### Test Quality
 
 - Write tests that fail against a plausible bug. Avoid structural-only assertions like `assert_eq!(items.len(), 3)` that would pass against a wrong implementation.
-- After writing tests, audit each one for unique coverage. Drop or merge subsumed tests.
+- After writing tests, audit each one for unique coverage, dropping or merging any that are subsumed.
+- Lay out each test into arrange, act, and assert steps separated by blank lines, keeping any check that the act succeeded directly beside the act.
 
 ## Communication
 

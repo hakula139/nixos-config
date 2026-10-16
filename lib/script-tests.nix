@@ -1,8 +1,6 @@
 # ==================================================================================================
 # Script Tests
 # ==================================================================================================
-# Each `*.test.nu` file runs under `nu-test` with the files beside it, which hold its subject.
-# ==================================================================================================
 
 {
   pkgs,
@@ -29,7 +27,6 @@ pkgs.runCommand "script-tests"
     ];
   }
   ''
-    export HOME="$TMPDIR"
     cd ${src}
     nu-test ${lib.escapeShellArgs testPaths}
     touch "$out"

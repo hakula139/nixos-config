@@ -31,24 +31,27 @@ const SETTINGS = {
   outbounds: [{protocol: freedom}]
 }
 
-# Render for a server admitting `min_level` and above, returning the run and the output path.
 def render [min_level: string]: nothing -> record {
   let dir = (mktemp --directory)
-  $USERS | to json | save ($dir | path join users.json)
-  "private-key\n" | save ($dir | path join private-key)
+  let users_file = ($dir | path join users.json)
+  let key_file = ($dir | path join private-key)
+  let config_file = ($dir | path join render.json)
   let output = ($dir | path join config.json)
+
+  $USERS | to json | save $users_file
+  "private-key\n" | save $key_file
   {
     settings: $SETTINGS
     clientFlows: {vless-reality: xtls-rprx-vision}
     minLevel: $min_level
-    usersFile: ($dir | path join users.json)
-    privateKeyFile: ($dir | path join private-key)
+    usersFile: $users_file
+    privateKeyFile: $key_file
     outputFile: $output
   }
   | to json
-  | save ($dir | path join render.json)
+  | save $config_file
 
-  let run = (^$nu.current-exe --no-config-file $SCRIPT ($dir | path join render.json) | complete)
+  let run = (^$nu.current-exe --no-config-file $SCRIPT $config_file | complete)
   {run: $run, output: $output}
 }
 
@@ -68,7 +71,6 @@ def "test an admin server admits only admins" [] {
   assert equal $ws.settings.clients [{id: alice-uuid}]
   assert equal $ws.streamSettings {network: ws}
   assert equal $config.outbounds $SETTINGS.outbounds
-  # The config carries the REALITY private key.
   assert equal (ls -l $result.output | get 0.mode) "rw-------"
 }
 
@@ -83,6 +85,7 @@ def "test a user server admits every level, reading a missing level as user" [] 
 
 def "test an unknown minimum level fails without writing a config" [] {
   let result = (render owner)
+
   assert not equal $result.run.exit_code 0
   assert not ($result.output | path exists)
 }
