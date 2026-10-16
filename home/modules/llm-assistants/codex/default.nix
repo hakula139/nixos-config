@@ -121,10 +121,17 @@ in
         pkg = pkgs.codex;
         name = "codex-${pkgs.codex.version}";
         bin = "codex";
-        wrapArgs = lib.optionals cfg.proxy.enable [
-          "--run"
-          (repoLib.proxy.mkProxyScript cfg.proxy)
-        ];
+        wrapArgs =
+          lib.optionals pkgs.stdenv.isLinux [
+            "--suffix"
+            "PATH"
+            ":"
+            (lib.makeBinPath [ pkgs.bubblewrap ])
+          ]
+          ++ lib.optionals cfg.proxy.enable [
+            "--run"
+            (repoLib.proxy.mkProxyScript cfg.proxy)
+          ];
       };
 
       # --------------------------------------------------------------------------------------------
