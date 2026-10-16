@@ -188,6 +188,7 @@ nslookup
 nspr
 nufmt
 numtide
+nuon
 nvcr
 nvim
 osascript
