@@ -40,7 +40,7 @@
       "ultra"
       "persistent"
     ];
-    external-agent-import-sync-enabled = true;
+    external-agent-import-sync-enabled = false;
     external-agent-import-sync-item-types = {
       CONFIG = "original";
       HOOKS = "original";
