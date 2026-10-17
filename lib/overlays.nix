@@ -48,9 +48,15 @@
     };
 
     # ----------------------------------------------------------------------------------------------
+    # Package builders
+    # ----------------------------------------------------------------------------------------------
+    writeNuApplication = final.callPackage ./nu-application.nix { };
+
+    # ----------------------------------------------------------------------------------------------
     # Custom packages
     # ----------------------------------------------------------------------------------------------
     acpx = final.callPackage ../packages/acpx { };
+    activity-history = final.callPackage ../packages/activity-history { };
     browser-tools = final.callPackage ../packages/browser-tools { };
     cloudreve = final.callPackage ../packages/cloudreve { };
     mcp-server-filesystem = final.callPackage ../packages/mcp/mcp-server-filesystem { };

@@ -39,7 +39,8 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   ├── default.nix             # Repository helper namespace exposed as repoLib
 │   ├── aria2.nix               # Shared aria2 download and RPC settings
 │   ├── builders.nix            # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL
-│   ├── overlays.nix            # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, custom packages)
+│   ├── nu-application.nix      # writeNuApplication, packaging a multi-file Nushell tool
+│   ├── overlays.nix            # nixpkgs overlay (channels, flake-input CLIs, toolchains, package builders, custom packages)
 │   ├── packages.nix            # Base and font package groups for each package set
 │   ├── proxy.nix               # mkProxyOptions, mkProxyScript, wrapWithProxy, no_proxy rendering
 │   ├── script-tests.nix        # `checks.<system>.scripts`, running every `*.test.nu` under nu-test

@@ -31,6 +31,7 @@ in
     ./modules/darwin.nix
     ./modules/wsl.nix
     ./modules/stale-links.nix
+    ./modules/activity-history
     ./modules/corp-mirrors
     ./modules/fonts
     ./modules/git

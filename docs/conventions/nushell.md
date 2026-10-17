@@ -38,13 +38,22 @@ Read this before writing or editing a `.nu` file. Nushell is the default for new
 
 `pkgs.writers.writeNu` produces a plain script and `writeNuBin` produces `$out/bin/<name>`. Both take an optional attrset as their second argument, after the name.
 
-Keep checked-in Nushell valid on its own. Supply one or two scalar values as typed `main` arguments through `makeWrapperArgs` and `--add-flag`. For structured values, write one JSON config, inject its path the same way, and open it in `main`. Put ordinary executable dependencies on the wrapper's `PATH`.
+Keep checked-in Nushell valid on its own. For a single-entry script, supply one or two scalar values as typed `main` arguments through `makeWrapperArgs` and `--add-flag`. For structured values, write one JSON config, inject its path the same way, and open it in `main`. Put ordinary executable dependencies on the wrapper's `PATH`.
 
 Put model-facing prose in an adjacent `prompt.md`, or `<role>-prompt.md` when a hook needs more than one, and load it with `builtins.readFile`. Markdown formatting and prose checks can inspect these files but cannot inspect strings embedded in Nushell. `MD013` is off, so each paragraph stays on one line. Name the file for its role, since the directory already names the hook.
 
 Both writers prepend an absolute-store-path shebang, which demotes a script's own `#!/usr/bin/env nu` line to a comment. Keep that line for standalone execution and LSP checks. For helpers invoked directly from the checkout, also commit the executable bit and call them by path. To spawn nushell from inside a generated script, read `$nu.current-exe` rather than substituting a store path.
 
 A parse-time `use` target must resolve in both the source tree and the store output. Expose a helper as an executable when no stable module path exists in both places.
+
+### Multi-file tools
+
+Split a script into modules once its concerns no longer fit one file, and package it under `packages/<name>/` with `pkgs.writeNuApplication`, registered in `lib/overlays.nix` like any other package. The builder copies the directory to `$out/share/<name>/`, leaving out `default.nix`, `*.test.nu`, and `*.stub.nu`, and installs `$out/bin/<name>`, which runs `main.nu` under the tool's name with `runtimeInputs` on `PATH`. Sibling files such as `prompt.md` ship with the modules, so read them at runtime through `SCRIPT_DIR`. `packages/activity-history/` is the reference layout.
+
+- **Entry point**: `main.nu` holds config loading, the steps its subcommands share, `def "main <sub>"` subcommands, and a bare `def main` that prints `help main`. Give each command a one-line description, then a bare `#` line before any detail, which help shows only for that command. Keep the `#!/usr/bin/env nu` line and the executable bit so the checkout can run it.
+- **Modules**: one file per concern, imported with a relative `use <module>.nu *`, which resolves from the importing file in both the checkout and the store. Export a module's interface and keep its helpers private. Put a helper in `common.nu` only when several modules use it, and otherwise keep it in its one consumer. A module cannot export a command with its own name, so name modules for their concern (`metrics.nu` exporting `measure`).
+- **Configuration**: keep the package host-agnostic. `--add-flags` would place its arguments before the subcommand name, so the Home Manager module passes the JSON config's path in a `<NAME>_CONFIG` environment variable through `repoLib.wrapPackage`, adding host-specific tools to `PATH`. The module also owns any shell alias.
+- **Tests**: `main.test.nu` beside `main.nu` runs the subcommands as separate processes, with the config variable pointing at a scratch file.
 
 ## Testing
 

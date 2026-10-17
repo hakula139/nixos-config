@@ -125,6 +125,7 @@ kdelpf
 kdelrs
 keka
 keyclu
+khal
 khtml
 kimi
 kubeconfig
@@ -298,6 +299,7 @@ unhinted
 usernamehw
 utun
 vadimcn
+vdirsyncer
 vercel
 vhdx
 vhost
@@ -322,4 +324,5 @@ xtype
 yzhang
 zereight
 zstd
+zstdcat
 zstyle
