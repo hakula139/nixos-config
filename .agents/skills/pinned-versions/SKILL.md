@@ -35,8 +35,8 @@ Listing the registry requires Nushell and Git. Upstream comparisons also require
 
 Update a selected input with `nix flake update <input>`. An explicit tag or release branch in `flake.nix` constrains what a lockfile refresh can select:
 
-- `listenbrainz-scrobbler` uses a release tag. Choose a release from `hakula139/listenbrainz-scrobbler`, update its URL, then run `nix flake update listenbrainz-scrobbler`.
-- `nixpkgs`, `nixos-wsl`, `nix-darwin`, `home-manager`, and `system-manager` select the 26.05 release branches. Review these selectors together for a NixOS release upgrade. The checker compares only the scrobbler tag.
+- `listenbrainz-scrobbler` and `oxide-code` use release tags. Choose a release from `hakula139/listenbrainz-scrobbler` or `hakula139/oxide-code`, update its URL, then run `nix flake update <input>`. The checker compares `oxide-code` against its newest release, pre-releases included.
+- `nixpkgs`, `nixos-wsl`, `nix-darwin`, `home-manager`, and `system-manager` select the 26.05 release branches. Review these selectors together for a NixOS release upgrade. The checker compares only the two release tags.
 - Assistant CLIs, ACP adapters, `ccusage`, and `workmux` come from `llm-agents` through `lib/overlays.nix`. Use `nix flake update llm-agents` to refresh that source.
 - `anthropics-skills` and `openai-skills` are non-flake inputs whose revisions also live in `flake.lock`.
 

@@ -59,6 +59,11 @@ def gh-latest-release [repo: string]: nothing -> string {
   gh-api $"repos/($repo)/releases/latest" ".tag_name"
 }
 
+# `releases/latest` skips pre-releases, which may be all an upstream has published.
+def gh-newest-release [repo: string]: nothing -> string {
+  gh-api $"repos/($repo)/releases?per_page=1" ".[0].tag_name"
+}
+
 def gh-latest-release-head [repo: string]: nothing -> string {
   let tag = (gh-latest-release $repo)
   gh-api $"repos/($repo)/commits/($tag)" ".sha"
@@ -224,6 +229,11 @@ def registry [root: string]: nothing -> list<record> {
             nix-attr $root "flake.nix" 'github:hakula139/listenbrainz-scrobbler/(?<v>[^"]+)'
           }
           upstream: {|| gh-latest-release "hakula139/listenbrainz-scrobbler" }
+        }
+        {
+          pin: "oxide-code"
+          local: {|| nix-attr $root "flake.nix" 'github:hakula139/oxide-code/(?<v>[^"]+)' }
+          upstream: {|| gh-newest-release "hakula139/oxide-code" }
         }
       ]
     }
