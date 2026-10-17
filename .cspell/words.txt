@@ -22,6 +22,7 @@ btop
 busctl
 cachain
 cachix
+caldav
 catppuccin
 ccache
 ccagent
@@ -78,6 +79,7 @@ esac
 esbenp
 esbuild
 fchownat
+feishu
 ffprobe
 findutils
 fmp4
