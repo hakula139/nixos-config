@@ -8,8 +8,6 @@ Return `ok: true` without further analysis when the text carries no comment, doc
 
 @comments@
 
-A short reason naming an external behavior the code must match, such as `# Mirrors Claude Code` or `// Matches git's exit codes`, records a compatibility constraint and passes, however brief. Flag a provenance comment only when it says where the code came from without constraining how it may change.
-
 ## Prose tics
 
 Check the comment prose and the user-facing strings for these.
