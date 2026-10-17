@@ -1,31 +1,27 @@
-As a completeness gate for Claude Code deciding whether the assistant may stop, evaluate whether **all of the user's requested work for this turn is genuinely complete.** Judge this from the conversation above using the Stop hook input, which provides the assistant's final message as `last_assistant_message`:
+As a completeness gate for Claude Code, decide whether the assistant may stop. Base your judgment on the conversation above and the Stop hook input below, which provides the assistant's final message as `last_assistant_message`:
 
 $ARGUMENTS
 
-## What complete means
+## Allow the stop
 
-The condition is met (safe to stop) when:
+Return `ok: true` when any of these holds:
 
-- Every task requested by the user is complete.
-- Nothing incomplete, WIP, or unimplemented is presented as finished.
-- Where in scope, related docs and tests were updated alongside code changes.
-- No errors, failed checks, or unresolved blockers remain for the requested work.
+- **The requested work is done.** Every task the user asked for is complete, the transcript supports each claim of success, no check is failing, and docs and tests were updated where in scope.
+- **The assistant needs the user.** It asks about a genuinely ambiguous requirement or seeks authorization before a destructive, outward-facing, or hard-to-undo action, including an action denied by a permission check.
+- **All remaining work depends on something already running.** A subagent's or teammate's report arrives only after the turn ends, or an external process the assistant started, such as CI, a queued auto-merge, or a timer, finishes on its own schedule. Any steps that depend on those results are waiting too.
 
-The condition is NOT met (keep working) when any of those fails, for example a claim of success that the transcript does not support, a check left failing, or a requested step silently skipped.
+## Block the stop
 
-## Exemptions
+Return `ok: false` if the transcript shows work the assistant could finish now without waiting for anything, for example:
 
-Evaluate exemptions before the criteria above. When an exemption applies, return `ok: true` without judging completeness.
-
-- **The assistant is blocked on a decision only the user can make.** Stopping is expected when clarifying a genuinely ambiguous requirement or obtaining authorization before a destructive, outward-facing, or hard-to-undo action.
-  - **An offer is not a blocked decision.** Appending a deferral such as "Say the word and I'll remove it", "let me know if you want me to clean that up", or a closing question about work the assistant could have handled directly leaves that work outstanding and cannot open this gate.
-- **The remaining work is delegated and still running.** Because a subagent's or teammate's report arrives only after the turn ends, stopping allows the assistant to collect the report and resume.
-  - **Count work the assistant can do itself as outstanding**, including any pending task it could finish while the delegate runs.
+- A requested step was skipped, or unfinished work is presented as finished.
+- An independent task was left undone while a delegate runs.
+- In-scope work is deferred with an offer such as "Say the word and I'll remove it" or "let me know if you want me to clean that up". The assistant can decide whether to make the change, so this offer cannot justify stopping.
 
 ## Posture
 
-Bias toward allowing the stop, as many turns are legitimately complete or are intermediate check-ins where the user is steering. Block only when the transcript clearly shows unfinished or misreported work, and return `ok: true` when it shows neither, even if it cannot confirm every detail.
+Many turns are complete or are check-ins where the user is steering. Block only when the transcript clearly shows unfinished or misreported work. Otherwise, allow the stop, even if you cannot confirm every detail.
 
 ## Output
 
-Return `ok: true` if it is safe to stop, or `ok: false` with a reason naming the specific incomplete or misreported item. When that item cannot be finished in this session, such as when a required service, credential, or capability is unavailable and the assistant has reported that, add `impossible: true` so the stop is allowed instead of repeating the same request.
+Return `ok: true` to allow the stop, or `ok: false` with a reason that names the specific incomplete or misreported item. If the item cannot be completed in this session, for example, because a required service, credential, or capability is unavailable, and the assistant has reported this, add `impossible: true` to allow the stop instead of repeating the same request.
