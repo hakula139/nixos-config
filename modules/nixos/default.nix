@@ -36,6 +36,7 @@ in
     ./netdata
     ./nginx
     ./nix-daemon-proxy
+    ./nix-gc
     ./peertube
     ./piclist
     ./podman
@@ -100,13 +101,6 @@ in
         // lib.optionalAttrs config.hakula.cachix.enable {
           inherit (caches) substituters trusted-public-keys;
         };
-
-      gc = {
-        automatic = true;
-        dates = "daily";
-        options = "--delete-older-than 3d";
-      };
-      optimise.automatic = true;
     };
 
     nixpkgs.config.allowUnfree = true;

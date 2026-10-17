@@ -141,6 +141,10 @@ After the guards pass, call `tmux rename-session -t '<session_id>' '<task-name>'
 
 Use the shared `find-docs` skill for Context7 documentation lookups. The managed `ctx7` command loads its API key at launch. Run `ctx7 library <name> <query>` and `ctx7 docs <libraryId> <query>` directly, replacing the upstream skill's `npx` examples. Do not reinstall the CLI or configure Context7 MCP.
 
+### Dev shells
+
+Enter a repository's dev shell only from inside that repository, since a dev shell's hook may install Git hooks into whichever repository is current. Get standalone tools from `PATH` or `nix shell nixpkgs#<pkg> -c`. A skill may document a hook-free shell for use elsewhere, as `browser-debugging` does.
+
 ### Delegation
 
 - When subagents or teammates are available, the top-level interactive agent acts as the coordinator. It splits and briefs the work, verifies and integrates results, and talks with the user. It delegates substantive work without asking, including implementation, multi-file exploration, code reviews, research, scans, and cleanup sweeps, and hands design planning to a flagship-tier planner when the task warrants one. It works directly only on quick lookups, small edits, and steps that depend heavily on the live conversation. Delegating keeps the coordinator's context on decisions and results, so it survives compaction.
