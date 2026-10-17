@@ -78,7 +78,6 @@ Use local exceptions for file-specific opaque literals, compatibility spellings,
 ### recieve <!-- cspell:disable-line -->
 
 <!-- cspell:disable-next-line -->
-
 `legacyRecieveValue`
 ```
 
