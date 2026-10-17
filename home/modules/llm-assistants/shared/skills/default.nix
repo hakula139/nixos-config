@@ -11,7 +11,6 @@
 }:
 
 let
-  acpCfg = config.hakula.llm-assistants.acp;
   anthropic = inputs.anthropics-skills + "/skills";
   openai = inputs.openai-skills + "/skills/.curated";
 
@@ -32,7 +31,7 @@ let
     review = ./review;
     security-best-practices = openai + "/security-best-practices";
   }
-  // lib.optionalAttrs acpCfg.enable {
+  // lib.optionalAttrs config.hakula.acp.enable {
     acp-delegate = ./acp-delegate;
   }
   // lib.optionalAttrs config.hakula.ctx7.enable {
