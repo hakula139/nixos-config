@@ -31,6 +31,7 @@ let
       icon = "terminal-bash";
       path = "bash";
     };
+
     # The direnv extension injects the workspace dev shell into terminals, and a new tmux server
     # keeps that environment for every pane. `direnv exec /` reverts it so panes load their own.
     tmux = {
@@ -41,6 +42,7 @@ let
       icon = "terminal-tmux";
       path = "bash";
     };
+
     zsh = {
       args = [
         "-l"
@@ -76,6 +78,7 @@ let
       in
       {
         nixpkgs.expr = "import (${flake}).inputs.nixpkgs { }";
+
         options = {
           home-manager.expr = hmOptionsExpr;
         }
@@ -94,18 +97,19 @@ let
   # ------------------------------------------------------------------------------------------------
   # Portable settings
   # ------------------------------------------------------------------------------------------------
-  portableSettings = {
+  portableSettings = terminalSettings // {
     "bashIde.shellcheckPath" = "shellcheck";
     "bashIde.shfmt.path" = "shfmt";
+
     "nix.serverPath" = "nixd";
     "nix.serverSettings" = {
       "nixd" = {
         formatting.command = [ "nixfmt" ];
       };
     };
+
     "nushellLanguageServer.nushellExecutablePath" = "nu";
-  }
-  // terminalSettings;
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Machine settings
@@ -113,7 +117,7 @@ let
   machineSettings = portableSettings // {
     "bashIde.shellcheckPath" = lib.getExe pkgs.shellcheck;
     "bashIde.shfmt.path" = lib.getExe pkgs.shfmt;
-    "direnv.path.executable" = lib.getExe pkgs.direnv;
+
     "nix.serverPath" = lib.getExe pkgs.nixd;
     "nix.serverSettings" = {
       "nixd" = {
@@ -121,7 +125,11 @@ let
       }
       // nixdCompletions;
     };
+
     "nushellLanguageServer.nushellExecutablePath" = lib.getExe pkgs.nushell;
+
+    "direnv.path.executable" = lib.getExe pkgs.direnv;
+
     "python.defaultInterpreterPath" = "${profileDirectory}/bin/python";
   };
 
@@ -129,6 +137,7 @@ let
   # Final settings
   # ------------------------------------------------------------------------------------------------
   settings = settingsBase // portableSettings;
+
   settingsJson = json.generate "cursor-settings.json" settings;
   machineSettingsJson = json.generate "cursor-machine-settings.json" machineSettings;
   windowsSettingsJson = json.generate "cursor-windows-settings.json" (settings // windowsSettings);
