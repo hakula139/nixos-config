@@ -89,7 +89,21 @@ in
       serviceConfig.Type = "oneshot";
     };
 
-    systemd.timers.nh-clean.timerConfig.Persistent = true;
+    systemd.services.nix-optimise = {
+      description = "Nix Store Optimiser";
+      serviceConfig = {
+        ExecStart = "${lib.getExe' config.nix.package "nix-store"} --optimise";
+        Nice = 19;
+        CPUSchedulingPolicy = "idle";
+        IOSchedulingClass = "idle";
+      };
+      startAt = "03:45";
+    };
+
+    systemd.timers = {
+      nh-clean.timerConfig.Persistent = true;
+      nix-optimise.timerConfig.Persistent = true;
+    };
 
     # ----------------------------------------------------------------------------------------------
     # Shell & Environment
