@@ -20,6 +20,7 @@ let
     browser-debugging = ./browser-debugging;
     clean-gone = ./clean-gone;
     cspell = ./cspell;
+    disk-cleanup = ./disk-cleanup;
     dream = ./dream;
     environment-repair = ./environment-repair;
     frontend-design = anthropic + "/frontend-design";

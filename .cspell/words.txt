@@ -6,6 +6,7 @@ alnum
 alsa
 anthropics
 aone
+apfs
 ariang
 attrsets
 autocd
@@ -282,6 +283,7 @@ timedatectl
 tmp
 tmpfiles
 tmpfs
+tmutil
 tomlkit
 tomlq
 toolsai
