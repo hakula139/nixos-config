@@ -41,6 +41,6 @@ Check whether a candidate is in use before treating it as safe. `find <path> \( 
 - **Docker:** `docker image prune -a -f` removes images that no container uses. Leave volumes to the user because they hold data.
 - **Nix store:** `nixgc` collects old generations and their garbage. It requires sudo, so give the command to the user.
 - **Local snapshots:** `tmutil deletelocalsnapshots <date>` frees space used by a snapshot. It requires the user's decision and sudo, so give them the command too.
-- **Agent worktrees:** First copy out unique gitignored content, such as agent memory directories, local settings, and notes. `git -C <worktree> status --short --ignored` lists gitignored files. Compare each with its counterpart in the main checkout and merge anything missing there. Then remove the worktree using the `clean-gone` skill or `git worktree remove` to keep branch bookkeeping consistent.
+- **Agent worktrees:** preserve their content as the `git-workflow` skill's Cleanup section describes, then remove them through the `clean-gone` skill or `git worktree remove`, which keep branch bookkeeping consistent.
 
 Show the user the sizes and exact commands for items in the "needs the user's decision" group, then wait for them to choose. Report the space freed using a fresh `df -h`, and note that a local snapshot may keep the space unavailable until thinned.

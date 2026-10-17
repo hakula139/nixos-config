@@ -82,7 +82,7 @@ Pass an edited body through a file or structured argument, then read the issue b
 
 When work finishes, clean up within the authorization above. Stale worktrees, branches, and plans can mislead later sessions, while scratch builds fill the disk.
 
-- Before removing a worktree, check for uncommitted, untracked, and ignored files. Preserve anything still needed, and confirm that no other agent or terminal is using it.
+- Before removing a worktree, check for uncommitted, untracked, and ignored files, and confirm that no other agent or terminal is using it. `git -C <worktree> status --short --ignored` lists the ignored files. Diff unique ignored content, such as agent memory directories, local settings, and notes, against its counterpart in the main checkout, and merge anything missing there.
 - Remove the worktree and its local branch, then prune its remote-tracking ref. Use the repository's tooling or the `clean-gone` skill for merged branches. Delete a remote branch only when explicitly requested.
 - Delete completed plans and working notes from the plans directory, such as a gitignored `.agents/plans/`. Rewrite stale notes to show only the current state and remaining work.
 - When its task ends, each agent removes any scratch copies and build directories it created, such as `git archive` exports and their `CARGO_TARGET_DIR`s under `/tmp`. In its report, name anything it leaves for someone else.
