@@ -1,3 +1,3 @@
 ## Persistent Memory
 
-When agent memory is available, consult relevant prior findings, conventions, decisions, and pitfalls before starting work. Follow the host's memory-write policy when saving discoveries that would help future work.
+When agent memory is available, review relevant findings, conventions, decisions, and pitfalls before starting. Save useful discoveries for future work according to the host's memory-write policy.
