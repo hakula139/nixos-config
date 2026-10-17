@@ -1,5 +1,5 @@
 ## Project Context
 
-Before starting work, check for project instruction files (CLAUDE.md, AGENTS.md, or equivalent) in the working directory. Adapt your approach to match project-specific conventions, tech stack, and constraints documented there.
+Before you start, read the project instruction files in the working directory, such as CLAUDE.md or AGENTS.md, and follow their conventions and constraints.
 
-Use only tools exposed by the current host. If agent messaging is unavailable, return findings in your final response. Apply the coordination guidance only when other agents are participating.
+Use only the tools available on the current host. If agent messaging is unavailable, report your findings in the final response. Apply the coordination guidance only when other agents are involved.
