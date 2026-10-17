@@ -162,6 +162,7 @@ meslo
 metacubex
 mihomo
 mkcd
+mkfifo
 mkhl
 msdos
 msmtp
@@ -172,6 +173,8 @@ nbsp
 netrc
 networkctl
 networkd
+newerct
+newermt
 niks3
 nixd
 nixdp
