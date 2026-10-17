@@ -7,35 +7,21 @@ description: >-
 
 # Read PDFs
 
-Read local PDFs with Poppler. Keep source documents and extracted content local unless the user explicitly asks to share them.
-
-Check that `pdfinfo`, `pdftotext`, and `pdftoppm` are available. This repository installs `poppler-utils` on development hosts. Elsewhere, prefix the commands below with `nix shell nixpkgs#poppler-utils -c` to run them without changing the host configuration.
+Read local PDFs with Poppler, keeping source documents and extracted content local unless the user asks to share them. Development hosts install `poppler-utils`. Elsewhere, prefix the commands below with `nix shell nixpkgs#poppler-utils -c`.
 
 ## Workflow
 
-1. Inspect the document before extraction.
+1. Inspect the document with `pdfinfo "$input_pdf"` for page count, page size, metadata, encryption, and PDF version. Run `pdffonts "$input_pdf"` when missing Unicode mappings or embedded fonts may affect extraction.
 
-   ```bash
-   pdfinfo "$input_pdf"
-   ```
-
-   Use `pdfinfo` for page count, page size, metadata, encryption, and PDF version. Run `pdffonts "$input_pdf"` when missing Unicode mappings or embedded fonts may affect extraction.
-
-2. Extract text in reading order first.
+2. Extract text in reading order.
 
    ```bash
    pdftotext -enc UTF-8 "$input_pdf" -
    ```
 
-   For résumés, tables, multi-column pages, or other layout-sensitive documents, compare the default output with physical-layout output:
+   For résumés, tables, multi-column pages, or other layout-sensitive documents, compare it with `pdftotext -layout`, and keep whichever preserves the intended reading order, since `-layout` can break multi-column prose.
 
-   ```bash
-   pdftotext -layout -enc UTF-8 "$input_pdf" -
-   ```
-
-   Prefer the version that preserves the intended reading order. Do not assume `-layout` is always better for multi-column prose.
-
-   When page-aware citations matter, extract each page with an explicit marker:
+   When page citations matter, extract each page behind a marker:
 
    ```bash
    page_count="$(pdfinfo "$input_pdf" | awk '/^Pages:/ { print $2 }')"
@@ -52,20 +38,18 @@ Check that `pdfinfo`, `pdftotext`, and `pdftoppm` are available. This repository
    pdftoppm -png -r 150 "$input_pdf" "$render_dir/page"
    ```
 
-   Inspect the generated PNGs with the image-viewing tool. Increase to 200 DPI for small text. Render a page range with `-f` and `-l` for long documents.
+   Inspect the PNGs with the image-viewing tool, raising the resolution to 200 DPI for small text.
 
-4. Cross-check material claims against the rendered pages. Text extraction can lose column order, symbols, charts, annotations, and visual hierarchy.
+4. Cross-check material claims against the rendered pages, because extraction can lose column order, symbols, charts, annotations, and visual hierarchy.
 
-5. Cite page numbers in summaries or reviews when they help the user verify the result. Distinguish document statements from your inferences.
+5. Cite page numbers where they help the user verify the result, and distinguish the document's statements from your inferences.
 
 ## Failure handling
 
-- If `pdftotext` reports an encryption error, ask the user for the password. Do not attempt to bypass document security.
-- If fonts lack usable mappings, use rendered pages. `pdffonts` may show `uni` as `no`. This does not always prevent Poppler from recovering text.
-- If a document is scanned, inspect rendered pages directly. Do not install OCR packages or mutate the environment unless the user asks for OCR support.
-- If only part of a long document is relevant, use `-f` and `-l` with both `pdftotext` and `pdftoppm`.
-- Keep rendered pages and extracted text in a task-specific temporary directory. Remove temporary artifacts after the task when they are no longer useful.
-
-## Scope
+- On an encryption error, ask the user for the password, and never try to bypass document security.
+- When fonts lack usable mappings, read the rendered pages. `pdffonts` may show `uni` as `no` even when Poppler still recovers the text.
+- For a scanned document, inspect the rendered pages directly, and install OCR packages or change the environment only when the user asks for OCR.
+- For a long document, limit both `pdftotext` and `pdftoppm` to the relevant pages with `-f` and `-l`.
+- Keep rendered pages and extracted text in a task-specific temporary directory, and remove them when they are no longer useful.
 
 This skill covers reading and visual review. For PDF creation, forms, encryption, merging, splitting, or redaction, use a task-specific toolchain and verify the final rendering before delivery.
