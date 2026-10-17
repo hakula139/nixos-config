@@ -1,0 +1,320 @@
+#!/usr/bin/env nu
+
+# ==================================================================================================
+# Activity Digest
+# ==================================================================================================
+# Prints each day's agent sessions and commits on this host as JSON for the activity-report skill.
+# Only prompts a person typed count toward active hours, so turns that notifications or other agents
+# start never extend them.
+# ==================================================================================================
+
+const EXCERPT_CHARS = 400
+
+# Claude Code delivers these as user turns, though nobody typed them.
+const CLAUDE_INJECTED = (
+  '^\s*(<(local-command-|task-notification|teammate-message|system-reminder)'
+  + '|Another Claude session sent a message:|\[Request interrupted)'
+)
+
+# Browser state that Codex Desktop prepends to a prompt
+const BROWSER_CONTEXT = (
+  '(?s)<in-app-browser-context.*?</in-app-browser-context>\s*(## My request:)?'
+)
+
+# --------------------------------------------------------------------------------------------------
+# Text
+# --------------------------------------------------------------------------------------------------
+
+# A message's content is a string or a list of typed parts, of which only text parts carry text.
+def content-text []: any -> string {
+  let content = $in
+  if ($content | describe) == "string" {
+    $content
+  } else {
+    $content | default [] | get -o text | compact | str join "\n"
+  }
+}
+
+def excerpt []: string -> string {
+  let flat = (
+    $in
+    | str replace --regex $BROWSER_CONTEXT ''
+    | str replace --all --regex '\s+' ' '
+    | str trim
+  )
+  if ($flat | str length --grapheme-clusters) > $EXCERPT_CHARS {
+    ($flat | str substring --grapheme-clusters 0..<$EXCERPT_CHARS) + "..."
+  } else {
+    $flat
+  }
+}
+
+# --------------------------------------------------------------------------------------------------
+# Transcripts
+# --------------------------------------------------------------------------------------------------
+
+def transcripts [pattern: string, since: datetime]: nothing -> list<string> {
+  glob $pattern | where {|file| (ls $file | get 0.modified) >= $since }
+}
+
+# A transcript may end in a partial line while its session is still being written.
+def read-transcript [file: string]: nothing -> list {
+  let text = (open --raw $file)
+  try {
+    $text | from json --objects
+  } catch {
+    $text | lines | drop 1 | str join "\n" | from json --objects
+  }
+}
+
+def session [tool: string, id: string, cwd: string, events: list]: nothing -> record {
+  {
+    tool: $tool
+    id: $id
+    cwd: $cwd
+    events: ($events | update ts { into datetime | date to-timezone local })
+  }
+}
+
+def claude-human [r: record]: nothing -> bool {
+  let typed = (
+    $r.toolUseResult? == null and $r.isMeta? != true and $r.isCompactSummary? != true
+    and $r.isSidechain? != true and $r.teamName? == null
+  )
+  if not $typed {
+    return false
+  }
+  if $r.origin? != null {
+    return ($r.origin.kind? == "human")
+  }
+  let text = ($r.message.content | content-text)
+  ($text | is-not-empty) and not ($text =~ $CLAUDE_INJECTED)
+}
+
+def claude-sessions [since: datetime]: nothing -> list {
+  transcripts ($nu.home-dir | path join .claude projects * *.jsonl) $since
+  | each {|file|
+    let records = (read-transcript $file)
+    let cwd = ($records | get -o cwd | compact | get -o 0)
+    let entrypoint = ($records | get -o entrypoint | compact | get -o 0 | default "")
+    if $cwd == null or ($entrypoint | str starts-with "sdk") {
+      return null
+    }
+    let events = (
+      $records
+      | each {|r|
+        if $r.type == "user" and (claude-human $r) {
+          {kind: prompt, ts: $r.timestamp, text: ($r.message.content | content-text)}
+        } else if $r.type == "assistant" and $r.message.stop_reason? == "end_turn" {
+          {kind: reply, ts: $r.timestamp, text: ($r.message.content | content-text)}
+        }
+      }
+      | compact
+    )
+    session claude ($file | path parse | get stem) $cwd $events
+  }
+  | compact
+}
+
+def codex-sessions [since: datetime]: nothing -> list {
+  let home = ($nu.home-dir | path join .codex)
+  [($home | path join sessions * * * *.jsonl) ($home | path join archived_sessions *.jsonl)]
+  | each {|pattern| transcripts $pattern $since }
+  | flatten
+  | each {|file|
+    let records = (read-transcript $file)
+    let meta = ($records | get -o 0.payload)
+    # Desktop imports of other assistants' sessions, subagents, and reviewers carry other thread
+    # sources, while `codex exec` and MCP runs are headless.
+    if $meta.thread_source? != "user" or $meta.source? in [exec mcp] {
+      return null
+    }
+    let events = (
+      $records
+      | where type == "event_msg"
+      | each {|r|
+        let p = $r.payload
+        if $p.type == "item_completed" and $p.item.type? == "UserMessage" {
+          {kind: prompt, ts: $r.timestamp, text: ($p.item.content | content-text)}
+        } else if $p.type == "task_complete" and $p.last_agent_message? != null {
+          {kind: reply, ts: $r.timestamp, text: $p.last_agent_message}
+        }
+      }
+      | compact
+    )
+    session codex $meta.id $meta.cwd $events
+  }
+  | compact
+}
+
+def omp-sessions [since: datetime]: nothing -> list {
+  transcripts ($nu.home-dir | path join .omp agent sessions * *.jsonl) $since
+  | each {|file|
+    let records = (read-transcript $file)
+    let meta = ($records | where type == "session" | first)
+    let events = (
+      $records
+      | where type == "message"
+      | each {|r|
+        let m = $r.message
+        if $m.role == "user" and $m.attribution? == "user" {
+          {kind: prompt, ts: $r.timestamp, text: ($m.content | content-text)}
+        } else if $m.role == "assistant" and $m.stopReason? == "stop" {
+          {kind: reply, ts: $r.timestamp, text: ($m.content | content-text)}
+        }
+      }
+      | compact
+    )
+    session omp $meta.id $meta.cwd $events
+  }
+}
+
+# --------------------------------------------------------------------------------------------------
+# Commits
+# --------------------------------------------------------------------------------------------------
+
+def commits [roots: list<string>, since: datetime]: nothing -> list {
+  $roots
+  | where ($it | path exists)
+  | each {|root| ls $root | where type == dir | get name }
+  | flatten
+  | where ($it | path join .git | path exists)
+  | each {|repo|
+    let email = (^git -C $repo config user.email | complete | get stdout | str trim)
+    if ($email | is-empty) {
+      return []
+    }
+    (
+      ^git -C $repo log --exclude=refs/stash --all --no-merges $"--author=($email)"
+        $"--since=($since | format date '%+')" "--format=%aI%x09%s"
+    )
+    | lines
+    | parse "{ts}\t{subject}"
+    | each {|c|
+      {cwd: $repo, ts: ($c.ts | into datetime | date to-timezone local), subject: $c.subject}
+    }
+  }
+  | flatten
+  # A rebase leaves the original commit reachable from another ref with the same author date.
+  | uniq-by cwd ts subject
+}
+
+# --------------------------------------------------------------------------------------------------
+# Days
+# --------------------------------------------------------------------------------------------------
+
+# A Claude Code worktree, `<repo>/.claude/worktrees/<name>`, reports work on its repository.
+def project-of [cwd: string]: nothing -> string {
+  $cwd | str replace --regex '/\.claude/worktrees/[^/]+.*$' '' | path basename
+}
+
+# Everything on a host shares its context, except this configuration, which is always personal.
+def context-of [cfg: record, project: string]: nothing -> string {
+  if $project == "nixos-config" { "personal" } else { $cfg.context }
+}
+
+# Each half hour of the day holding at least one human prompt counts as half an hour of attention.
+def hours [stamps: list<datetime>]: nothing -> float {
+  let halves = ($stamps | each { into record | $in.hour * 2 + $in.minute // 30 } | uniq)
+  ($halves | length) / 2
+}
+
+def stamp []: record -> record {
+  {at: ($in.ts | format date "%H:%M"), text: ($in.text | excerpt)}
+}
+
+# A turn's final reply is the last one before the next prompt.
+def final-replies []: list -> list {
+  let events = $in
+  $events
+  | enumerate
+  | where {|e|
+    $e.item.kind == "reply" and ($events | get -o ($e.index + 1) | get -o kind) != "reply"
+  }
+  | get item
+}
+
+def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -> record {
+  let end = ($start + 1day)
+  let attended = (
+    $sessions
+    | each {|s|
+      let events = ($s.events | where ts >= $start and ts < $end)
+      let prompts = ($events | where kind == "prompt")
+      if ($prompts | is-empty) {
+        return null
+      }
+      let project = (project-of $s.cwd)
+      {
+        tool: $s.tool
+        session: $s.id
+        cwd: $s.cwd
+        project: $project
+        context: (context-of $cfg $project)
+        active_hours: (hours ($prompts | get ts))
+        prompts: ($prompts | each { stamp })
+        replies: ($events | final-replies | each { stamp } | where text != "")
+        stamps: ($prompts | get ts)
+      }
+    }
+    | compact
+    | sort-by {|s| $s.stamps | first }
+  )
+  {
+    date: ($start | format date "%Y-%m-%d")
+    weekday: ($start | format date "%a")
+    active_hours: (
+      $attended | group-by context | update cells {|rows| hours ($rows | get stamps | flatten) }
+    )
+    sessions: ($attended | reject stamps)
+    commits: (
+      $commits
+      | where ts >= $start and ts < $end
+      | sort-by ts
+      | each {|c|
+        let project = (project-of $c.cwd)
+        {
+          at: ($c.ts | format date "%H:%M")
+          project: $project
+          context: (context-of $cfg $project)
+          subject: $c.subject
+        }
+      }
+    )
+  }
+}
+
+# --------------------------------------------------------------------------------------------------
+# Entry point
+# --------------------------------------------------------------------------------------------------
+
+# Print the agent sessions and commits on this host for a range of local dates as JSON.
+#
+# For each day, a session lists its human prompts and the final reply of each turn, and its
+# active_hours count the half hours holding a human prompt. A day's active_hours merge those half
+# hours across sessions for each context.
+def main [
+  config: path # JSON with the host's context and git roots
+  from: string # First local date, as YYYY-MM-DD
+  to?: string # Last local date, as YYYY-MM-DD, the first date by default
+]: nothing -> nothing {
+  let cfg = (open $config)
+  let to = ($to | default $from)
+  if $to < $from {
+    error make {msg: $"($to) precedes ($from)"}
+  }
+  let days = (seq date --begin-date $from --end-date $to | each { into datetime })
+  let since = ($days | first)
+  # A Workmux worker takes its prompts from the agent that launched it.
+  let sessions = (
+    (claude-sessions $since) ++ (codex-sessions $since) ++ (omp-sessions $since)
+    | where cwd !~ '__worktrees/'
+  )
+  let commits = (commits $cfg.gitRoots $since)
+  {
+    context: $cfg.context
+    days: ($days | each {|start| day $cfg $start $sessions $commits })
+  }
+  | to json
+  | print
+}

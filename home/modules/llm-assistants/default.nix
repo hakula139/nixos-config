@@ -66,6 +66,7 @@ in
 {
   imports = [
     ./acp
+    ./activity-report
     ./ccusage
     ./claude-code
     ./codex
