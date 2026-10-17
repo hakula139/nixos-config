@@ -7,7 +7,7 @@ description: >-
 
 # Environment Repair
 
-A tool startup failure, a broken managed setting, or a reproducible environment regression can justify a background repair. A remote outage, missing account permission, or ordinary project defect alone does not. Capture the failing command and relevant error without exposing credentials, and require the worker to confirm that nixos-config owns the cause before editing.
+A tool startup failure, a broken managed setting, or a reproducible environment regression can justify a background repair. A remote outage, missing account permission, or ordinary project defect alone does not. Capture the failing command and relevant error without exposing credentials, and require the worker to determine whether nixos-config owns the cause before editing.
 
 ## Locate the checkout
 

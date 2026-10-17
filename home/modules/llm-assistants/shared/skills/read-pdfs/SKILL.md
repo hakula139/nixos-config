@@ -49,7 +49,9 @@ Read local PDFs with Poppler, keeping source documents and extracted content loc
 - On an encryption error, ask the user for the password, and never try to bypass document security.
 - When fonts lack usable mappings, read the rendered pages. `pdffonts` may show `uni` as `no` even when Poppler still recovers the text.
 - For a scanned document, inspect the rendered pages directly, and install OCR packages or change the environment only when the user asks for OCR.
-- For a long document, limit both `pdftotext` and `pdftoppm` to the relevant pages with `-f` and `-l`.
+- If only part of a long document is relevant, limit both `pdftotext` and `pdftoppm` to those pages with `-f` and `-l`.
 - Keep rendered pages and extracted text in a task-specific temporary directory, and remove them when they are no longer useful.
+
+## Scope
 
 This skill covers reading and visual review. For PDF creation, forms, encryption, merging, splitting, or redaction, use a task-specific toolchain and verify the final rendering before delivery.
