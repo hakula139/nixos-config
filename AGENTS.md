@@ -32,7 +32,7 @@ nix build '.#systemConfigs.wsl-non-nixos'
 nix build '.#packages.x86_64-linux.devvm-docker'
 ```
 
-For refactors expected to preserve derivation inputs, compare `nix build --no-link --print-out-paths` before and after. The `checks.pre-commit` output alone does not evaluate host modules, so also evaluate or build the affected host outputs. A worktree under `.claude/worktrees/` needs one `nix develop` to materialize the gitignored pre-commit symlink, and `cspell` there checks zero files unless you pass `--no-gitignore`.
+For refactors expected to preserve derivation inputs, compare `nix build --no-link --print-out-paths` before and after. The `checks.pre-commit` output alone does not evaluate host modules, so also evaluate or build the affected host outputs. Run `nix develop` once in a worktree under `.claude/worktrees/` to materialize the gitignored pre-commit symlink.
 
 ## Documentation maintenance
 
