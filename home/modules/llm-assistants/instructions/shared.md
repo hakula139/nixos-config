@@ -128,6 +128,8 @@ When writing documentation:
 
 Use only tools and capabilities available in the current session, and follow their actual schemas and permission boundaries. Prefer installed skills that match the task, reusing their workflow and resources.
 
+- Enter a repository's dev shell only while that repository is the working directory, since a dev shell's hook may install Git hooks and config in whichever repository is current. `cd` into it first, or use the tool's own `-C` option. Get standalone tools from `PATH` or run them with `nix shell nixpkgs#<pkg> -c`. Use another project's `nix develop` from elsewhere only when a skill documents that shell, as `browser-debugging` does.
+
 ### Terminal sessions
 
 Once the task is clear, a top-level interactive agent should rename its otherwise default numeric tmux session to a short, hyphenated task-based name. Do so only when the session has exactly one window and one pane, has no known user-chosen name, and the current pane's window has no Workmux `@workmux_token`. Derive its stable session ID from `TMUX_PANE` and target that ID explicitly. Delegated, headless, or background runs must never rename parent sessions. Keep tmux window identities and native agent conversation or pane titles independent.
