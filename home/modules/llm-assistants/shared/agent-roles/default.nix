@@ -6,24 +6,13 @@
   readPrompt,
 }:
 
-let
-  roleFragments = builtins.mapAttrs (_: builtins.readFile) {
-    "@readOnly@" = ./fragments/read-only.md;
-    "@status@" = ./fragments/status.md;
-  };
-  readRolePrompt =
-    file:
-    builtins.replaceStrings (builtins.attrNames roleFragments) (builtins.attrValues roleFragments) (
-      readPrompt file
-    );
-in
 {
   architect = {
     description = ''
       Architecture review and design critique. Use when you need analysis of code structure, design
       patterns, dependency relationships, or feedback on an approach before implementation.
     '';
-    prompt = readRolePrompt ./prompts/architect.md;
+    prompt = readPrompt ./prompts/architect.md;
     workload = "flagship";
 
     claude = {
@@ -60,7 +49,7 @@ in
       Hypothesis-driven debugging and root cause analysis. Use when you need to investigate a bug,
       unexpected behavior, or failure, especially when the cause is unclear.
     '';
-    prompt = readRolePrompt ./prompts/debugger.md;
+    prompt = readPrompt ./prompts/debugger.md;
     workload = "flagship";
 
     claude = {
@@ -84,7 +73,7 @@ in
       self-contained coding task, including writing new features, applying changes, or refactoring
       code.
     '';
-    prompt = readRolePrompt ./prompts/implementer.md;
+    prompt = readPrompt ./prompts/implementer.md;
     workload = "flagship";
 
     claude = {
@@ -107,7 +96,7 @@ in
       Fast codebase exploration and documentation lookup. Use when you need to gather context from
       multiple files, search for patterns, or look up external documentation.
     '';
-    prompt = readRolePrompt ./prompts/researcher.md;
+    prompt = readPrompt ./prompts/researcher.md;
     workload = "mini";
 
     claude = {
@@ -145,7 +134,7 @@ in
       Code quality review, security analysis, and bug detection. Use after implementation to get a
       focused review of recent changes, or to audit existing code for issues.
     '';
-    prompt = readRolePrompt ./prompts/reviewer.md;
+    prompt = readPrompt ./prompts/reviewer.md;
     workload = "flagship";
 
     claude = {
@@ -182,7 +171,7 @@ in
       Test writing and execution, failure analysis. Use when you need tests written for new code,
       want to run existing tests, or need help diagnosing test failures.
     '';
-    prompt = readRolePrompt ./prompts/tester.md;
+    prompt = readPrompt ./prompts/tester.md;
     workload = "standard";
 
     claude = {
@@ -206,7 +195,7 @@ in
       evaluate user-facing surfaces such as APIs, docs, CLI help text, error messages, and UI copy
       for intuitiveness and clarity.
     '';
-    prompt = readRolePrompt ./prompts/usability-reviewer.md;
+    prompt = readPrompt ./prompts/usability-reviewer.md;
     workload = "flagship";
 
     claude = {
