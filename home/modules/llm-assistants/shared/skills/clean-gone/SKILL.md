@@ -33,7 +33,7 @@ Clean branches whose upstream refs were deleted without risking uncommitted or u
 
 3. Before applying, confirm that no other agent or terminal is still using the planned worktrees. The script protects the current checkout but cannot detect other active sessions.
 
-   If the user explicitly requested cleanup, apply the reviewed plan.
+   If the user requested cleanup, or the cleanup follows merged work under `git-workflow`, apply the reviewed plan.
 
    ```bash
    <skill-dir>/scripts/clean-gone.nu --apply
@@ -45,7 +45,7 @@ Clean branches whose upstream refs were deleted without risking uncommitted or u
 
    Before manually removing a skipped worktree, inspect its tracked, untracked, and ignored files, including every submodule, and preserve unique local content. A local change already preserved elsewhere can be discarded from the stale worktree after verifying the copies match. Leave active worktrees and unresolved changes alone.
 
-   Once integration and local-content preservation are established, use `git worktree remove` and then `git branch -D` if squash history prevents ordinary branch deletion. If Git refuses ordinary worktree removal, `git worktree remove --force` is allowed only after verifying integration, confirming all tracked, untracked, and ignored content in the worktree and every submodule is clean or preserved, and checking that no agent, process, or terminal still uses them. This covers stale worktrees Git refuses to remove because they contain submodules. Existing explicit cleanup authorization covers this verified fallback without another permission request. Do not recursively delete directories to bypass unresolved state.
+   Once integration and local-content preservation are established, use `git worktree remove` and then `git branch -D` if squash history prevents ordinary branch deletion. If Git refuses ordinary worktree removal, `git worktree remove --force` is allowed only after verifying integration, confirming all tracked, untracked, and ignored content in the worktree and every submodule is clean or preserved, and checking that no agent, process, or terminal still uses them. This covers stale worktrees Git refuses to remove because they contain submodules. Cleanup authorization from step 3 covers this verified fallback without another permission request. Do not recursively delete directories to bypass unresolved state.
 
 5. Report removed and skipped worktrees and branches, including the evidence used for manual cleanup and the reason for each remaining skip.
 
