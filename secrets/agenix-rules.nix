@@ -18,7 +18,7 @@ let
     us-4
     devvm
     ;
-  inherit (keys.workstations) macbook;
+  inherit (keys.workstations) macbook wsl;
 
   # Common groupings
   allServersAndMacbook = allServers ++ [ macbook ];
@@ -91,4 +91,6 @@ in
   "betterdisplay/license.age".publicKeys = [ macbook ];
   "drivedx/license.age".publicKeys = [ macbook ];
   "rclone/config.age".publicKeys = [ macbook ];
+
+  "feishu/caldav.age".publicKeys = [ wsl ];
 }

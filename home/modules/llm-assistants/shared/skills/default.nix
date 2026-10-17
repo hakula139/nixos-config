@@ -34,6 +34,9 @@ let
   // lib.optionalAttrs config.hakula.acp.enable {
     acp-delegate = ./acp-delegate;
   }
+  // lib.optionalAttrs config.hakula.llm-assistants.activity-report.enable {
+    activity-report = ./activity-report;
+  }
   // lib.optionalAttrs config.hakula.ctx7.enable {
     find-docs = "${pkgs.unstable.ctx7}/share/skills/ctx7/find-docs";
   };
