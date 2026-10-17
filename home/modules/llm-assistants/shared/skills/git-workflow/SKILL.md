@@ -2,9 +2,11 @@
 name: git-workflow
 description: >-
   Prepare commits, draft or create and update pull requests or merge requests, push branches, merge
-  approved requests, and update existing issues. Use when completing a logical implementation chunk
-  or performing Git ref creation and publication tasks, including PR titles and descriptions and
-  edits to existing issues. Skip read-only Git inspection and code review.
+  approved requests, resolve merge or rebase conflicts, update existing issues, and clean up
+  finished work. Use when completing a logical implementation chunk, resolving conflicts, updating
+  an existing issue, cleaning up after merged or abandoned work, or performing Git ref creation and
+  publication tasks, including PR titles and descriptions. Skip read-only Git inspection and code
+  review.
 ---
 
 # Git Workflow
@@ -14,6 +16,7 @@ Read the repository's contribution instructions before changing Git state or pre
 ## Authorization
 
 - **Publish completed changes by default.** For requested repository changes and incidental environment repairs, create an appropriate task branch when needed, commit verified changes, push, and create or update a PR / MR. Complete publication before reporting the work done. Reuse the task's existing branch and request when appropriate.
+- **Clean up finished work by default.** The user has pre-authorized removing a merged branch and its worktree, or an abandoned one whose commits all exist on a remote, once the worktree is verified clean, and deleting plans and working notes whose completion a closed issue or merged PR / MR confirms. Ask before deleting abandoned work with commits missing from every remote, or a note whose completion you cannot confirm.
 - **Honor narrower authorization.** Review-only and draft-text-only requests do not authorize publication. Respect explicit instructions to keep work local, avoid pushing, or omit a PR / MR. Tags and backup refs require an explicit request.
 - **Wait for explicit approval before merging each PR / MR.** Earlier blanket approvals do not cover requests opened later in the session. After publishing, share the URL and wait for `lgtm` or `merge` referring to that specific PR / MR. A request to review and merge approves each PR / MR covered by the review, including any opened for its fixes, once the review reports no remaining findings.
 
@@ -56,6 +59,14 @@ The discovered repository conventions govern the description's structure. Apply 
 - Read back the created or updated request to verify its title, body, base, diff, assignees, and labels. Check that the published body preserves the reviewed structure and content. Correct omissions before reporting completion.
 - For an approved merge, confirm that CI passes on the current head and the host reports the branch as mergeable. Use the repository's merge method, then verify the resulting remote state. Rebase only if the branch has conflicts or the host requires it to be up to date. CI on the target branch checks the combined result, so confirm it passes after the merge. For GitHub squash merges, use GitHub's default commit message without supplying a custom subject or body. Report queued auto-merge as pending until it has landed.
 
+## Conflict Resolution
+
+A mechanically resolved conflict can compile while silently reversing an upstream rename, reorder, or simplification.
+
+- Before resolving a conflict, read the upstream PR / MR or commit message and the surrounding code to understand the change's intent.
+- Integrate both sides so each one's purpose survives. Keeping only one side discards the other's change, and concatenating both duplicates or contradicts content.
+- Check that the result's ordering and grouping follow local conventions, including sorted lists, import order, section order, and documentation tables. Then rerun the checks covering the conflicting files.
+
 ## Issues
 
 An issue is a public record of one unit of work. Each kind of information has one home, chosen by who reads it and when.
@@ -71,3 +82,12 @@ An issue is a public record of one unit of work. Each kind of information has on
 - **Local working notes:** execution state such as agent assignments, worktrees, in-flight branches, ordering, raw research, and private context. Keep these in the session or a gitignored plans directory, never in the issue.
 - **Existing comments:** when a comment carries a decision or finding that belongs in the spec, fold it into the description. Delete the comment only when the description now covers everything it said.
 - **Edits:** pass the edited body through a file or structured argument, then read the issue back to verify it.
+
+## Cleanup
+
+Clean up when the work finishes, within the authorization above. Stale worktrees, branches, and plans mislead later sessions and clutter their context, and leftover scratch builds can fill the disk.
+
+- Before removing a worktree, check it for uncommitted, untracked, and ignored files, preserve anything still needed, and confirm that no other agent or terminal still uses it.
+- Remove the worktree and its local branch, and prune its remote-tracking ref. Use the repository's tooling when available, or the `clean-gone` skill for merged branches. Delete a remote branch only on explicit request.
+- Delete plans and working notes whose work is complete from the plans directory, such as a gitignored `.agents/plans/`. Rewrite a stale one to show only the current state and remaining work.
+- When its task ends, each agent removes the scratch copies and build directories it created, such as `git archive` exports and their `CARGO_TARGET_DIR`s under `/tmp`, and names any it leaves for someone else in its report.

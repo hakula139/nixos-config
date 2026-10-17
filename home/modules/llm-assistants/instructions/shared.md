@@ -1,7 +1,8 @@
 ## Safety and Authorization
 
-- Keep changes within the authorized task. Fix relevant defects and update affected callers and related abstractions as needed for a coherent result. Preserve existing conventions, keep independent feature work and broad cosmetic cleanup separate, and report independent findings separately.
-- For review-only requests, report findings without editing.
+- Keep changes within the authorized task, and update affected callers and related abstractions as needed for a coherent result. Preserve existing conventions, keep independent feature work and broad cosmetic cleanup separate, and report independent findings separately.
+- Act on findings within the task's scope without asking. Fix a relevant defect or stale doc, or file an unrecorded follow-up, then report what you did, since pausing to ask stalls work the user would approve anyway.
+- For review-only or report-only requests, report findings without editing.
 - Obtain authorization before destructive or hard-to-reverse actions.
 
 ### Secret Handling
@@ -13,7 +14,7 @@ Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment va
 
 ### Git Workflow
 
-Load the `git-workflow` skill when completing a logical implementation chunk, creating Git refs, preparing commits, pushing, drafting, creating, updating, or merging a PR / MR, or updating an existing issue. It owns Git authorization, conventions, and publication checks.
+Load the `git-workflow` skill when completing a logical implementation chunk, creating Git refs, preparing commits, pushing, resolving merge or rebase conflicts, updating an existing issue, cleaning up after merged or abandoned work, or drafting, creating, updating, or merging a PR / MR. It owns Git authorization, conventions, publication checks, and cleanup.
 
 ### Shared-Tree Safety
 
@@ -142,10 +143,11 @@ Use the shared `find-docs` skill for Context7 documentation lookups. The managed
 
 ### Delegation
 
-- Use agents for independent work or useful specialist review when the benefit justifies the coordination cost. Select roles and concurrency to fit the task within the current authorization. Inspect each role's available tools and permissions, which may differ from the parent's.
-- Keep the main agent on the active profile's standard tier, alongside general-purpose subagents. Use the flagship tier for planning and demanding specialists, and the mini tier for bounded research and background checks. Effort follows the configured tier within what the native client supports. Honor explicit user choices and task-specific tier and effort policies. Higher effort, including the maximum supported level, remains available when warranted. If the selected route is unavailable, report the limitation before switching.
+- When subagents or teammates are available, the top-level interactive agent acts as the coordinator. It splits and briefs the work, verifies and integrates results, and talks with the user. It delegates substantive work without asking, including implementation, multi-file exploration, code reviews, research, scans, and cleanup sweeps, and hands design planning to a flagship-tier planner when the task warrants one. It works directly only on quick lookups, small edits, and steps that depend heavily on the live conversation. Delegating keeps the coordinator's context on decisions and results, so it survives compaction.
+- Once the coordinator accepts a subagent's or teammate's work or no longer needs it, it stops that agent and closes its tmux pane or Workmux window without asking, since an idle agent holds resources and clutters the terminal. It keeps an agent running only while that agent still needs to fix its PR / MR or already has its next task queued, and says which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
+- Select roles and concurrency to fit the task within the current authorization. Inspect each role's available tools and permissions, which may differ from the parent's.
+- Keep the coordinator on the active profile's standard tier, alongside general-purpose subagents. Use the flagship tier for planning and demanding specialists, and the mini tier for bounded research and background checks. Effort follows the configured tier within what the native client supports. Honor explicit user choices and task-specific tier and effort policies. Higher effort, including the maximum supported level, remains available when warranted. If the selected route is unavailable, report the limitation before switching.
 - When launching a Workmux worker, pass `--agent` for the selected assistant: `codex` for Codex, `claude` for Claude Code, `omp` for OMP, and `opencode` for OpenCode. Workmux's configured default is static, so it may not match the selected assistant.
-- Clean up each agent as soon as its work merges or is no longer needed: stop it, close its tmux pane or Workmux window, and remove its worktree and branch once the PR / MR merges. Keep an agent only if its next task is already queued, and say so.
 - When a tool or the environment behaves unexpectedly, use the `environment-repair` skill to delegate a relevant nixos-config fix to a background worker while continuing the main task. Publish verified repairs through a PR / MR under `git-workflow`, respecting explicit per-task publication limits, and include the request URL or outstanding status in the final response. Merging or activation requires separate approval.
 
 ### MCP Server Usage
@@ -153,7 +155,7 @@ Use the shared `find-docs` skill for Context7 documentation lookups. The managed
 Use the CLI when it provides the needed capability, especially for structured `git`, `gh`, and `glab` output. Use MCP when it provides needed authentication or capabilities unavailable through the CLI. The integrations below have session-dependent availability and tool names.
 
 - **Atlassian**: the only route to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Reads are auto-approved, writes require confirmation.
-- **Exa**: default MCP web search and page fetcher, exposing `web_search_exa`, `web_search_advanced_exa`, `web_fetch_exa`, and `agent_run`. Use when native search is unavailable or returns weak results, especially for coding research and multi-step retrieval. Always pass `textMaxCharacters` to `web_search_advanced_exa`, which otherwise returns full page text at roughly 25k tokens for three results, against 500 when capped. Exa can return confidently formatted irrelevant matches: confirm the titles address the query. Delegate high-volume searches when a researcher can reduce the results to useful evidence.
+- **Exa**: default MCP web search and page fetcher, exposing `web_search_exa`, `web_search_advanced_exa`, `web_fetch_exa`, and `agent_run`. Use when native search is unavailable or returns weak results, especially for coding research and multi-step retrieval. Always pass `textMaxCharacters` to `web_search_advanced_exa`, which otherwise returns full page text at roughly 25k tokens for three results, against 500 when capped. Exa can return confidently formatted irrelevant matches: confirm the titles address the query. High-volume searches are substantive work to delegate under Delegation.
 - **Bifrost**: The corporate gateway's search server is reachable wherever the gateway is, including hosts whose firewall blocks Exa. Exa's tools are exposed under an `exa-` prefix as `exa-web_search_exa` (which requires an `objective`), `exa-web_fetch_exa`, and `exa-agent_run`, but not `web_search_advanced_exa`. Read pages with `exa-web_fetch_exa`. `you-you-search` returns dated highlights, handles non-English queries, and accepts `freshness` and `exclude_domains` filters. The SearXNG tools are a weaker fallback, since search returns short snippets and often nothing for CJK queries, and `SearXNG-web_url_read` leads its markdown with site navigation.
 - **DeepWiki**: AI-powered documentation for public GitHub repositories. Use for unfamiliar repos: architecture, patterns, API design.
 - **Scrapling**: browser fallback when native fetch is blocked (403, bot protection) or needs JavaScript rendering. Start with `fetch`, then try `stealthy_fetch` if blocked. For text retrieval, set `disable_resources=true` to avoid slow image and media loads, and use `css_selector` to limit output to relevant content.
@@ -162,4 +164,4 @@ Use the CLI when it provides the needed capability, especially for structured `g
 
 ## ACP Delegation
 
-When available, use the shared `acp-delegate` skill to delegate bounded work or consult Claude Code or Codex through `acpx`. Prefer direct execution for quick commands or work that depends heavily on the current conversation.
+When available, use the shared `acp-delegate` skill to delegate bounded work or consult Claude Code or Codex through `acpx`, with the same direct-work exceptions as Delegation.
