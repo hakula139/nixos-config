@@ -83,6 +83,7 @@ in
       direnv = whenDev pkgs.direnv;
       dprint = whenDev pkgs.dprint;
       dprintConfig = whenDevPath dprintConfig;
+      git = lib.getExe pkgs.git;
       markdownlint = whenDev pkgs.markdownlint-cli2;
       nixfmt = lib.getExe pkgs.nixfmt;
       nuCheck = "${pkgs.nu-check}";

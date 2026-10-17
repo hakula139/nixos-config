@@ -34,6 +34,19 @@ def project-bin [path: string, tool: string]: nothing -> string {
   ""
 }
 
+# cspell finds its config and `.gitignore` root from the working directory, which belongs to the
+# session and may be another repository. Before 10.1 it also resolves a linked worktree's root to
+# the main checkout, whose `.gitignore` can ignore the worktree, so the root is passed explicitly.
+def check-spelling [path: string, config: record]: nothing -> string {
+  let toplevel = (^$config.git -C ($path | path dirname) rev-parse --show-toplevel | complete)
+  if $toplevel.exit_code != 0 {
+    return (check $config.cspell ["--no-progress" $path] $path)
+  }
+  let root = ($toplevel.stdout | str trim)
+  cd $root
+  check $config.cspell ["--no-progress" "--gitignore-root" $root $path] $path
+}
+
 def format-markdown [path: string, config: record] {
   try {
     let dprint = $config.dprint
@@ -113,7 +126,7 @@ def format-file [path: string, config: record]: nothing -> list<any> {
         format-markdown $path $config
         [
           (check $config.markdownlint ["--fix" $path] $path)
-          (check $config.cspell ["--no-progress" $path] $path)
+          (check-spelling $path $config)
         ]
       })
     ]
