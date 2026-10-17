@@ -81,6 +81,16 @@ in
       };
     };
 
+    systemd.services.nh-clean = {
+      description = "Nh clean";
+      script = "exec ${lib.getExe pkgs.nh} clean all ${defaults.nixCleanArgs}";
+      startAt = "daily";
+      path = [ config.nix.package ];
+      serviceConfig.Type = "oneshot";
+    };
+
+    systemd.timers.nh-clean.timerConfig.Persistent = true;
+
     # ----------------------------------------------------------------------------------------------
     # Shell & Environment
     # ----------------------------------------------------------------------------------------------

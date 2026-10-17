@@ -101,12 +101,13 @@ in
           inherit (caches) substituters trusted-public-keys;
         };
 
-      gc = {
-        automatic = true;
-        dates = "daily";
-        options = "--delete-older-than 3d";
-      };
       optimise.automatic = true;
+    };
+
+    programs.nh.clean = {
+      enable = true;
+      dates = "daily";
+      extraArgs = defaults.nixCleanArgs;
     };
 
     nixpkgs.config.allowUnfree = true;

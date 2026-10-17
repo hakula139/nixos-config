@@ -25,4 +25,10 @@
     min-free = 3221225472; # 3 GB
     max-free = 10737418240; # 10 GB
   };
+
+  # ------------------------------------------------------------------------------------------------
+  # Garbage collection
+  # ------------------------------------------------------------------------------------------------
+  # Arguments to `nh clean all`, shared by the scheduled cleanup on every host and the `nixgc` alias.
+  nixCleanArgs = "--keep 5 --keep-since 3d";
 }

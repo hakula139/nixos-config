@@ -99,16 +99,21 @@ in
       distributedBuilds = true;
       buildMachines = repoLib.ssh.mkBuildMachines serverList config.age.secrets.builder-ssh-key.path;
 
-      gc = {
-        automatic = true;
-        interval = {
-          Weekday = 0; # Sunday
-          Hour = 2;
-          Minute = 0;
-        };
-        options = "--delete-older-than 7d";
-      };
       optimise.automatic = true;
+    };
+
+    launchd.daemons.nh-clean = {
+      command = "${lib.getExe pkgs.nh} clean all ${defaults.nixCleanArgs}";
+      path = [ config.nix.package ];
+      serviceConfig = {
+        RunAtLoad = false;
+        StartCalendarInterval = [
+          {
+            Hour = 2;
+            Minute = 0;
+          }
+        ];
+      };
     };
 
     nixpkgs.config.allowUnfree = true;
