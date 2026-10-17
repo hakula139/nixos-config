@@ -52,7 +52,7 @@ Give a script a `<script>.test.nu` beside it when its output is easy to get subt
 
 - **Tests** are commands named `test <behavior>`, asserting with `use std/assert`. Keep names to plain words, since the runner calls each one by name.
 - **Fixtures**: keep inputs and expected values inline as records or `str dedent` literals. A stand-in for an executable the script calls is a script named `<executable>.stub.nu` beside the test. Write files into `mktemp` directories, which the runner confines to a scratch `TMPDIR` per test file.
-- **Running**: `nu-test <file>...` in the dev shell runs each test in its own `nu` process. `checks.<system>.scripts` from `lib/script-tests.nix` finds every `*.test.nu`, so a new file needs no wiring. A test that needs an interpreter other than nushell or bash also needs that interpreter added to the check's inputs.
+- **Running**: `nu-test <file>...` in the dev shell runs each test in its own `nu` process. `checks.<system>.scripts` from `lib/script-tests.nix` finds every `*.test.nu`, so a new file needs no wiring. A test that needs a command beyond nushell, bash, and coreutils, such as git or Python, also needs that command added to the check's inputs.
 
 Before keeping a test, break the behavior it guards and confirm that it fails.
 

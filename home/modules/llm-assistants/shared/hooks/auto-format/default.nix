@@ -1,5 +1,5 @@
 # ==================================================================================================
-# Auto-format Hook
+# Auto-Format Hook
 # ==================================================================================================
 
 {
@@ -78,14 +78,15 @@ in
     slug = "auto-format";
     script = ./auto-format.nu;
     config = {
-      patchInput = toString patchInput;
       cspell = whenDev pkgs.cspell;
       direnv = whenDev pkgs.direnv;
       dprint = whenDev pkgs.dprint;
       dprintConfig = whenDevPath dprintConfig;
+      git = lib.getExe pkgs.git;
       markdownlint = whenDev pkgs.markdownlint-cli2;
       nixfmt = lib.getExe pkgs.nixfmt;
       nuCheck = "${pkgs.nu-check}";
+      patchInput = toString patchInput;
       prettier = whenDev pkgs.unstable.prettier;
       pyright = whenDev pkgs.pyright;
       ruff = whenDev pkgs.ruff;
