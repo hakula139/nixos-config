@@ -3,12 +3,36 @@
 # ==================================================================================================
 
 {
+  config,
   pkgs,
   lib,
   ...
 }:
 
 let
+  esc = lib.escapeShellArg;
+
+  wrapper = pkgs.writeShellScript "tmux-wrapper" (
+    builtins.replaceStrings
+      [ "@direnv@" "@tmux@" ]
+      [ (esc (lib.getExe config.programs.direnv.package)) (esc (lib.getExe pkgs.tmux)) ]
+      (builtins.readFile ./wrapper.sh)
+  );
+
+  # A custom join keeps the man output, which wrap-package would drop.
+  tmuxBin = pkgs.symlinkJoin {
+    inherit (pkgs.tmux) name;
+    paths = [
+      pkgs.tmux
+      pkgs.tmux.man
+    ];
+    postBuild = ''
+      rm "$out/bin/tmux"
+      ln -s ${esc wrapper} "$out/bin/tmux"
+    '';
+    meta.mainProgram = "tmux";
+  };
+
   # The plugin wrapper starts nested tmux clients, which deadlock in the config queue when
   # synchronous and can be interrupted midway when backgrounded.
   catppuccinPluginDir = "${pkgs.tmuxPlugins.catppuccin}/share/tmux-plugins/catppuccin";
@@ -27,12 +51,6 @@ let
     run-shell ${pkgs.tmuxPlugins.continuum.rtp}
   '';
 
-  darwinConfig = lib.optionalString pkgs.stdenv.isDarwin ''
-    # SDK paths inherited from Nix dev shells may be garbage-collected.
-    set-environment -gu DEVELOPER_DIR
-    set-environment -gu SDKROOT
-  '';
-
   nushellConfig = ''
     bind C-n split-window -h -c "#{pane_current_path}" "${lib.getExe pkgs.nushell}"
     bind N new-window -c "#{pane_current_path}" "${lib.getExe pkgs.nushell}"
@@ -41,6 +59,7 @@ in
 {
   programs.tmux = {
     enable = true;
+    package = tmuxBin;
 
     # ----------------------------------------------------------------------------------------------
     # Core settings
@@ -73,7 +92,6 @@ in
     # ----------------------------------------------------------------------------------------------
     extraConfig = lib.concatStringsSep "\n" [
       (lib.fileContents ./tmux.conf)
-      darwinConfig
       nushellConfig
       catppuccinConfig
       continuumConfig
