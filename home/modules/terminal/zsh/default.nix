@@ -275,6 +275,8 @@ in
     # ----------------------------------------------------------------------------------------------
     # Additional configuration
     # ----------------------------------------------------------------------------------------------
-    initContent = lib.fileContents ./init.zsh;
+    initContent = builtins.replaceStrings [ "@tmux@" ] [ (lib.escapeShellArg (lib.getExe pkgs.tmux)) ] (
+      lib.fileContents ./init.zsh
+    );
   };
 }
