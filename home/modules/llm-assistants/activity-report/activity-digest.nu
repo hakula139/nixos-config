@@ -8,12 +8,15 @@
 # ==================================================================================================
 
 const EXCERPT_CHARS = 400
-const HEARTBEAT = 30min
 
 # Claude Code delivers these as user turns, though nobody typed them.
 const CLAUDE_INJECTED = (
-  '^\s*(<(local-command-|task-notification|teammate-message|system-reminder)'
-  + '|Another Claude session sent a message:|\[Request interrupted)'
+  [
+    '^\s*<(local-command-|task-notification|teammate-message|system-reminder)'
+    '^\s*Another Claude session sent a message:'
+    '^\s*\[Request interrupted'
+  ]
+  | str join '|'
 )
 
 # Browser state that Codex Desktop prepends to a prompt
@@ -24,9 +27,12 @@ const BROWSER_CONTEXT = (
 # A credential: a known token prefix, a 32+ character alphanumeric run holding a digit, or the value
 # after `password:`
 const SECRET = (
-  '\b(sk|ghp|gho|ghs|github_pat|glpat|xox[abp])[-_][A-Za-z0-9_-]{16,}'
-  + '|(?<![A-Za-z0-9])(?=[A-Za-z]*[0-9])[A-Za-z0-9]{32,}(?![A-Za-z0-9])'
-  + '|\b(?i:password|passwd)\s*[:=]\s*\S+'
+  [
+    '\b(sk|ghp|gho|ghs|github_pat|glpat|xox[abp])[-_][A-Za-z0-9_-]{16,}'
+    '(?<![A-Za-z0-9])(?=[A-Za-z]*[0-9])[A-Za-z0-9]{32,}(?![A-Za-z0-9])'
+    '(?<kw>\b(?i:password|passwd)\s*[:=]\s*)\S+'
+  ]
+  | str join '|'
 )
 
 # --------------------------------------------------------------------------------------------------
@@ -47,12 +53,12 @@ def excerpt []: string -> string {
   let flat = (
     $in
     | str replace --regex $BROWSER_CONTEXT ''
-    | str replace --all --regex $SECRET '<redacted>'
+    | str replace --all --regex $SECRET '${kw}<redacted>'
     | str replace --all --regex '\s+' ' '
     | str trim
   )
   if ($flat | str length --grapheme-clusters) > $EXCERPT_CHARS {
-    ($flat | str substring --grapheme-clusters 0..<$EXCERPT_CHARS) + "..."
+    $"($flat | str substring --grapheme-clusters 0..<$EXCERPT_CHARS)..."
   } else {
     $flat
   }
@@ -100,8 +106,8 @@ def claude-human [r: record]: nothing -> bool {
   ($text | is-not-empty) and not ($text =~ $CLAUDE_INJECTED)
 }
 
-def claude-sessions [since: datetime]: nothing -> list {
-  transcripts ($nu.home-dir | path join .claude projects * *.jsonl) $since
+def claude-sessions [dir: string, since: datetime]: nothing -> list {
+  transcripts ($dir | path join projects * *.jsonl) $since
   | each {|file|
     let records = (read-transcript $file)
     let cwd = ($records | get -o cwd | compact | get -o 0)
@@ -125,9 +131,8 @@ def claude-sessions [since: datetime]: nothing -> list {
   | compact
 }
 
-def codex-sessions [since: datetime]: nothing -> list {
-  let home = ($nu.home-dir | path join .codex)
-  [($home | path join sessions * * * *.jsonl) ($home | path join archived_sessions *.jsonl)]
+def codex-sessions [dir: string, since: datetime]: nothing -> list {
+  [($dir | path join sessions * * * *.jsonl) ($dir | path join archived_sessions *.jsonl)]
   | each {|pattern| transcripts $pattern $since }
   | flatten
   | each {|file|
@@ -156,8 +161,8 @@ def codex-sessions [since: datetime]: nothing -> list {
   | compact
 }
 
-def omp-sessions [since: datetime]: nothing -> list {
-  transcripts ($nu.home-dir | path join .omp agent sessions * *.jsonl) $since
+def omp-sessions [dir: string, since: datetime]: nothing -> list {
+  transcripts ($dir | path join sessions * *.jsonl) $since
   | each {|file|
     let records = (read-transcript $file)
     let meta = ($records | where type == "session" | first)
@@ -217,31 +222,33 @@ def project-of [cwd: string]: nothing -> string {
   $cwd | str replace --regex '/\.claude/worktrees/[^/]+.*$' '' | path basename
 }
 
-# Everything on a host shares its context, except this configuration, which is always personal.
 def context-of [cfg: record, project: string]: nothing -> string {
-  if $project == "nixos-config" { "personal" } else { $cfg.context }
+  if $project in $cfg.personalProjects { "personal" } else { $cfg.context }
 }
 
 def to-hours []: list<duration> -> float {
   math sum | $in / 1hr | math round --precision 2
 }
 
-# Each human prompt, across all sessions, credits the time until the next one, capped at a
-# heartbeat, to the project it was typed in.
-def hours [prompts: list<record>]: nothing -> record {
+# Credit each human prompt, across all sessions, with the time until its turn ends plus a reading
+# allowance, cut short by the next prompt anywhere and capped per prompt.
+def hours [cfg: record, prompts: list<record>]: nothing -> record {
   let timeline = ($prompts | sort-by ts)
   let credits = (
     $timeline
     | enumerate
     | each {|p|
-      let next = ($timeline | get -o ($p.index + 1) | get -o ts)
-      let gap = if $next == null { $HEARTBEAT } else { $next - $p.item.ts }
-      {project: $p.item.project, gap: ([$gap $HEARTBEAT] | math min)}
+      let until = [
+        ($p.item.end + $cfg.readingMinutes * 1min)
+        ($p.item.ts + $cfg.maxMinutes * 1min)
+        ($timeline | get -o ($p.index + 1) | get -o ts)
+      ]
+      {project: $p.item.project, credit: (($until | compact | math min) - $p.item.ts)}
     }
   )
   {
-    total: ($credits | get -o gap | append 0sec | to-hours)
-    projects: ($credits | group-by project | update cells {|rows| $rows | get gap | to-hours })
+    total: ($credits | get -o credit | append 0sec | to-hours)
+    projects: ($credits | group-by project | update cells {|rows| $rows | get credit | to-hours })
   }
 }
 
@@ -274,6 +281,15 @@ def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -
       let next = ($s.events | where kind == "prompt" and ts >= $end | get -o 0.ts)
       let events = ($s.events | where {|e| $e.ts >= $first and ($next == null or $e.ts < $next) })
       let project = (project-of $s.cwd)
+      let replies = ($s.events | where kind == "reply")
+      # A turn ends at its first reply, so later turns that notifications start never extend it.
+      let turns = (
+        $prompts
+        | each {|p|
+          let end = ($replies | where ts >= $p.ts | get -o 0.ts | default $p.ts)
+          {ts: $p.ts, end: $end, project: $project}
+        }
+      )
       {
         tool: $s.tool
         session: $s.id
@@ -282,17 +298,17 @@ def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -
         context: (context-of $cfg $project)
         prompts: ($prompts | each { stamp })
         replies: ($events | final-replies | each { stamp } | where text != "")
-        heartbeats: ($prompts | select ts | insert project $project)
+        turns: $turns
       }
     }
     | compact
-    | sort-by {|s| $s.heartbeats.0.ts }
+    | sort-by {|s| $s.turns.0.ts }
   )
   {
     date: ($start | format date "%Y-%m-%d")
     weekday: ($start | format date "%a")
-    hours: (hours ($attended | get -o heartbeats | flatten))
-    sessions: ($attended | reject heartbeats)
+    hours: (hours $cfg ($attended | get -o turns | flatten))
+    sessions: ($attended | reject turns)
     commits: (
       $commits
       | where ts >= $start and ts < $end
@@ -311,23 +327,26 @@ def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -
 # Print the agent sessions and commits on this host for a range of local dates as JSON.
 #
 # For each day, a session lists its human prompts and the final reply of each turn. The day's hours
-# credit each human prompt, across all sessions, with the time until the next one, capped at 30
-# minutes, and sum those credits per project.
+# credit each human prompt with the time until its turn ends plus a reading allowance, cut short by
+# the next prompt in any session and capped per prompt, summed per project.
 def main [
-  config: path # JSON with the host's context and git roots
+  config_file: string # JSON with the host's context, policy, and source directories
   from: string # First local date, as YYYY-MM-DD
   to?: string # Last local date, as YYYY-MM-DD, the first date by default
 ]: nothing -> nothing {
-  let cfg = (open $config)
+  let cfg = (open $config_file)
   let to = ($to | default $from)
   if $to < $from {
-    error make {msg: $"($to) precedes ($from)"}
+    error make {msg: $"Last date ($to) precedes first date ($from)"}
   }
   let days = (seq date --begin-date $from --end-date $to | each { into datetime })
   let since = ($days | first)
+  let dirs = $cfg.assistantDirs
   # A Workmux worker takes its prompts from the agent that launched it.
   let sessions = (
-    (claude-sessions $since) ++ (codex-sessions $since) ++ (omp-sessions $since)
+    (claude-sessions $dirs.claude $since)
+    ++ (codex-sessions $dirs.codex $since)
+    ++ (omp-sessions $dirs.omp $since)
     | where cwd !~ '__worktrees/'
   )
   let commits = (commits $cfg.gitRoots $since)
