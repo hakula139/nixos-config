@@ -15,13 +15,24 @@
 let
   inherit (pkgs.stdenv) isDarwin;
   cfg = config.hakula.llm-assistants.activity-report;
-  json = pkgs.formats.json { };
 
   homeDir = config.home.homeDirectory;
   isWork = hostType == "work";
 
+  # ------------------------------------------------------------------------------------------------
+  # Digest
+  # ------------------------------------------------------------------------------------------------
+  json = pkgs.formats.json { };
+
   digestConfig = json.generate "activity-digest.json" {
     context = hostType;
+    inherit (cfg) personalProjects readingMinutes maxMinutes;
+    assistantDirs = {
+      claude = "${homeDir}/.claude";
+      codex =
+        if config.home.preferXdgDirectories then "${config.xdg.configHome}/codex" else "${homeDir}/.codex";
+      omp = "${homeDir}/.omp/agent";
+    };
     gitRoots =
       if isDarwin then
         [ "${homeDir}/GitHub" ]
@@ -44,6 +55,9 @@ let
     ];
   } (builtins.readFile ./activity-digest.nu);
 
+  # ------------------------------------------------------------------------------------------------
+  # Calendar
+  # ------------------------------------------------------------------------------------------------
   caldavSecret = secretPath "feishu/caldav";
   readCaldav = key: [
     (lib.getExe pkgs.nushell)
@@ -56,10 +70,30 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options.hakula.llm-assistants.activity-report.enable = lib.mkOption {
-    type = lib.types.bool;
-    default = config.hakula.llm-assistants.enable && isDesktop;
-    description = "Whether to install the activity-report skill and the digest it reads";
+  options.hakula.llm-assistants.activity-report = {
+    enable = lib.mkOption {
+      type = lib.types.bool;
+      default = config.hakula.llm-assistants.enable && isDesktop;
+      description = "Whether to install the activity-report skill and the digest it reads";
+    };
+
+    personalProjects = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ "nixos-config" ];
+      description = "Projects reported as personal on every host, regardless of the host's context";
+    };
+
+    readingMinutes = lib.mkOption {
+      type = lib.types.ints.unsigned;
+      default = 10;
+      description = "Minutes a prompt earns after its agent turn ends, for reading the reply";
+    };
+
+    maxMinutes = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 60;
+      description = "Most minutes a single prompt can earn";
+    };
   };
 
   # ------------------------------------------------------------------------------------------------
