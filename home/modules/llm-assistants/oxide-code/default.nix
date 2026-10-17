@@ -66,6 +66,10 @@ in
       configToml = toml.generate "ox-config.toml" (
         profiles.settings
         // {
+          # `yolo` is the closest match to Claude Code's classifier-backed `auto` mode. The shared
+          # policy's gates need an ask tier, which oxide-code lacks until its tiered permissions.
+          permission.mode = "yolo";
+
           tui = {
             show_thinking = true;
             status_line = [

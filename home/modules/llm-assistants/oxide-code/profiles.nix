@@ -29,7 +29,7 @@ let
       {
         baseUrl = provider.apiUrls.anthropic-messages;
         tokenEnv = "ANTHROPIC_AUTH_TOKEN";
-        tokenSecret = provider.tokenSecretFor "claude-code";
+        tokenSecret = provider.tokenSecretFor "oxide-code";
         extraHeaders = provider.extraHeaders or { };
       }
       // lib.optionalAttrs (profile.provider == "corp-gateway") {
@@ -144,7 +144,7 @@ in
   # Module options
   # ------------------------------------------------------------------------------------------------
   options = profileDefinitions.mkOptions {
-    defaultProfile = "official";
+    defaultProfile = if cfg.enableCorpGateway then "corp-gateway-anthropic" else "official";
     enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
   };
 
@@ -158,7 +158,7 @@ in
     assertions = [
       {
         assertion = builtins.hasAttr cfg.defaultProfile profiles;
-        message = "hakula.oxide-code.auth.defaultProfile requires its profile to be enabled";
+        message = "hakula.oxide-code: auth.defaultProfile '${cfg.defaultProfile}' is not in the enabled profiles";
       }
     ];
 
