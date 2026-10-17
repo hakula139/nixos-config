@@ -10,119 +10,119 @@ description: >-
 
 # Dream
 
-A dream is a reflective pass over one project's memory store. It folds what recent sessions learned into durable, well-organized memories so that future sessions can orient quickly. The pass edits the memory store directly. Rules that have proven durable move through a PR / MR into the instruction files that own them, so an instruction file changes only when the user merges that PR / MR, after which a later dream retires the promoted memory.
+A dream combines what recent sessions have learned into one project's memory store by editing it directly. Rules that prove durable move into the instruction files responsible for them through a PR / MR, which the user merges. A later dream then retires the promoted memory.
 
 ## Locate the store
 
-The target is the Claude Code auto-memory directory for the current project, which holds one fact per Markdown file plus a `MEMORY.md` index. Resolve it in this order:
+The target is the current project's Claude Code auto-memory directory. It contains one fact per Markdown file and a `MEMORY.md` index. Resolve its location in this order:
 
-1. The memory directory named by the host's own memory instructions, when the host provides them.
-2. `~/.claude/projects/<slug>/memory/`, where `<slug>` is the main worktree's absolute path with every non-alphanumeric character replaced by `-`. Take the main worktree from the first `worktree` line of `git worktree list --porcelain`, since all worktrees of a repository share one store.
+1. The memory directory named in the host's memory instructions, if any.
+2. `~/.claude/projects/<slug>/memory/`, where `<slug>` is the main worktree's absolute path with every non-alphanumeric character replaced by `-`. All worktrees share one store, so identify the main worktree from the first `worktree` line in `git worktree list --porcelain`.
 
-If the directory does not exist, report that and stop. Before the first edit, copy the store to a new directory under `/tmp/` and report its path, because the store sits outside version control and a bad merge cannot otherwise be undone.
+If the directory does not exist, report that and stop. Before the first edit, copy the store to a new directory under `/tmp/` and report its path. The store is unversioned, so a bad merge cannot otherwise be undone.
 
-Leave natively managed stores untouched and read them only as signal. Codex regenerates `~/.codex/memories/` through its own consolidation pipeline, and OMP keeps memory in `~/.omp/agent/agent.db`, so manual edits there are overwritten or bypass the host's schema.
+Use natively managed stores only as a source of context, and never edit them. Codex regenerates `~/.codex/memories/` through its own pipeline, and OMP stores memory in `~/.omp/agent/agent.db`. Manual edits are either overwritten or bypass the host's schema.
 
-The host's memory instructions define the file format, the memory types, and what is worth saving. When the host provides none, match the frontmatter, body structure, and index line shape of the files already in the store.
+The host's memory instructions define the file format, memory types, and what is worth saving. If there are no such instructions, follow the frontmatter, body structure, and index lines in the existing files.
 
 ## Phase 1: Orient
 
-- List the store, read `MEMORY.md`, and skim the topic files so new signal extends the entries that already cover its topic.
-- Note the global instructions and the repository's `AGENTS.md` that are already loaded. A memory that repeats one of them is a removal candidate.
-- If `logs/` or `sessions/` subdirectories exist, review their recent entries.
-- The modification time of `<store>/.consolidate-lock` marks the last consolidation. When the file is absent, treat every session as recent.
-- Record which memories were last modified before that stamp. Consolidation edits update modification times, and Phase 5 needs these original ages.
+- List the store, read `MEMORY.md`, and skim the topic files so new signal builds on entries that already cover the same topic.
+- Note the loaded global instructions and the repository's `AGENTS.md`. Memories that repeat those instructions are candidates for removal.
+- Review recent entries in any `logs/` or `sessions/` subdirectories.
+- The modification time of `<store>/.consolidate-lock` marks the last consolidation. If the file is absent, treat every session as recent.
+- Record which memories were last modified before that timestamp. Consolidation edits reset modification times, and Phase 5 needs the original ages.
 
 ## Phase 2: Gather recent signal
 
 Look for new information worth persisting, in rough priority order:
 
-1. Daily logs under `logs/YYYY/MM/YYYY-MM-DD.md`, when present, which are the append-only stream.
-2. Memories that drifted. Check every file, flag, option, command, and path a memory names against the current repository, and treat a contradiction as a fix to make at the source.
-3. Transcripts touched since the last consolidation, from every assistant that worked on this project or one of its worktrees. Match sessions by the working directories that `git worktree list --porcelain` reports, since some worktrees live outside the main checkout.
+1. Daily logs under `logs/YYYY/MM/YYYY-MM-DD.md`, the append-only stream, if present.
+2. Drifted memories. Check every file, flag, option, command, and path named in a memory against the current repository, and correct any contradiction at its source.
+3. Transcripts touched since the last consolidation from every assistant that worked on this project or its worktrees. Match sessions using the working directories reported by `git worktree list --porcelain`, since some worktrees are outside the main checkout.
 
 - **Claude Code**: `~/.claude/projects/<slug>*/*.jsonl`, with one directory per worktree path.
-- **Codex**: `~/.codex/memories/rollout_summaries/*.md`, condensed summaries with a `cwd:` header line that identify their raw transcripts under `~/.codex/sessions/` in `rollout_path:`.
+- **Codex**: `~/.codex/memories/rollout_summaries/*.md`, condensed summaries with a `cwd:` header line and a `rollout_path:` naming the raw transcript under `~/.codex/sessions/`.
 - **OMP**: `~/.omp/agent/sessions/*/*.jsonl`, where the `"type":"session"` line records `cwd`.
 
-Skip OpenCode because it stores sessions in SQLite. Transcripts are large, so select files with `find <dir> -newer <store>/.consolidate-lock` and grep them for narrow terms:
+Skip OpenCode, which stores sessions in SQLite. Transcripts are large, so use `find <dir> -newer <store>/.consolidate-lock` to select files, then grep them for narrow terms:
 
 ```bash
 grep -n '<narrow term>' <selected transcripts> | tail -50
 ```
 
-Search only for things you already suspect matter, such as user corrections, approaches the user confirmed, and failures that recurred across sessions. Never read transcripts exhaustively.
+Search only for suspected signal, such as user corrections, approaches the user confirmed, and failures that recurred across sessions. Never read transcripts exhaustively.
 
 ## Phase 3: Consolidate
 
-Decide for each candidate whether it adds a memory, updates one, deletes one, or changes nothing.
+For each candidate, decide whether it adds, updates, or deletes a memory, or leaves the store unchanged.
 
-- Merge new signal into the existing file that covers the topic.
-- Resolve relative dates such as "yesterday" or "next Thursday" against when the memory was written, taken from its text or else the file's modification time. Once that date has passed, check whether the expected event or work has happened, and delete the memory when it is done or no longer applies. Otherwise rewrite it with the absolute date.
-- Delete or correct a memory that the current repository or a later session contradicts.
-- Save only what the host's memory rules admit. Facts already recorded by instruction files, code, or git history stay out.
-- When a merge or rename retires a memory name, update every `[[name]]` link that pointed at it.
-- Re-read a file immediately before rewriting it, because concurrent sessions may also write to the store.
+- Merge new signal into the existing file for its topic.
+- Resolve relative dates such as "yesterday" or "next Thursday" based on when the memory was written, using its text or, if that is unavailable, the file's modification time. Once the date has passed, check whether the expected event occurred. Delete the memory if it is done or no longer applies. Otherwise, rewrite it with the absolute date.
+- Delete or correct memories contradicted by the current repository or a later session.
+- Save only information allowed by the host's memory rules, omitting facts already recorded in instruction files, code, or git history.
+- When a merge or rename retires a memory name, update every `[[name]]` link to it.
+- Re-read each file immediately before rewriting it, since concurrent sessions may write to the store.
 
-A durable rule that belongs in an instruction file stays a memory during this phase, leaving Phase 5 to decide whether it is ready to move.
+Keep durable rules that belong in an instruction file as memories during this phase. Phase 5 decides whether to move them.
 
 ## Phase 4: Prune and index
 
-Keep `MEMORY.md` under 200 lines and about 25 KB. It is an index, so each entry is one line under about 150 characters in the store's existing shape, and memory content never goes into it.
+Keep `MEMORY.md` under 200 lines and about 25 KB. It is an index with one line per memory, each about 150 characters or fewer in the store's existing format. Never put memory content in the index.
 
-- Remove pointers to memories that are stale, wrong, or superseded.
-- Shorten any line over about 200 characters by moving its detail into the topic file.
+- Remove pointers to stale, incorrect, or superseded memories.
+- Move details from any line over about 200 characters into its topic file.
 - Add pointers to newly important memories.
-- Check that every memory file has exactly one pointer and every pointer resolves to a file.
+- Check that every memory file has exactly one pointer and that every pointer resolves to a file.
 
 ## Phase 5: Promote
 
-Promotion moves a memory into long-term knowledge, the instruction file that owns its rule. Because every future session loads that rule, promote only what has proven itself.
+Every future session loads an instruction file, so promote only memories that have proven durable.
 
 ### Track earlier proposals
 
-When a memory's frontmatter metadata holds `promotion: <URL>`, it was already proposed. Check that request's state using the hosting service's CLI, such as `gh pr view <URL> --json state` or `glab mr view <URL>`:
+A memory whose frontmatter includes `promotion: <URL>` has already been proposed. Check the request's state using the hosting service's CLI, such as `gh pr view <URL> --json state` or `glab mr view <URL>`:
 
-- **Merged**: delete the memory and its index line, then remove or reword every `[[name]]` link that pointed at it.
-- **Closed without merging**: keep the memory and its `promotion` URL, and never propose it again.
-- **Open**: leave the memory alone.
+- **Merged**: delete the memory and its index line, then remove or reword every `[[name]]` link to it.
+- **Closed without merging**: keep the memory and its `promotion` URL. Never propose it again.
+- **Open**: leave the memory unchanged.
 
 ### Select candidates
 
 A memory is a candidate only when all of these hold:
 
-- Its type is `feedback` or `user`, the types that state durable rules and preferences.
-- It survived an earlier dream, as Phase 1 recorded by a modification time older than the previous `.consolidate-lock` stamp, or two or more sessions corroborated it.
-- It carries no `promotion` URL.
+- Its type is `feedback` or `user`, the types used for durable rules and preferences.
+- It survived an earlier dream, as shown by a Phase 1 modification time older than the previous `.consolidate-lock` timestamp, or was corroborated by two or more sessions.
+- It has no `promotion` URL.
 
 ### Choose the target
 
 Choose the most specific file that owns the rule:
 
-- **One repository**: that repository's convention doc for the affected area, or its `AGENTS.md` when no convention doc fits.
-- **Every project**: the global instruction sources in the nixos-config checkout, located as the `environment-repair` skill describes. `home/modules/llm-assistants/instructions/shared.md` holds rules for every assistant, and adjacent assistant files such as `claude-code.md` hold additions for one assistant. Sections rendered from an `@name@` placeholder live in `home/modules/llm-assistants/shared/prompt-fragments/`. Never edit rendered files such as `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`, because they are generated.
-- **One skill's procedure**: that skill's source `SKILL.md`, which for shared skills sits under `home/modules/llm-assistants/shared/skills/` in nixos-config. Skip any skill whose source you cannot trace to a repository.
+- **One repository**: the convention doc for the affected area, or `AGENTS.md` if no convention doc applies.
+- **Every project**: the global instruction sources in the nixos-config checkout, located as described in the `environment-repair` skill. `home/modules/llm-assistants/instructions/shared.md` contains rules for every assistant, and adjacent files such as `claude-code.md` contain additions for a single assistant. Sections rendered from an `@name@` placeholder live in `home/modules/llm-assistants/shared/prompt-fragments/`. Never edit generated files such as `~/.claude/CLAUDE.md` or `~/.codex/AGENTS.md`.
+- **One skill's procedure**: the skill's source `SKILL.md`. Shared skills live under `home/modules/llm-assistants/shared/skills/` in nixos-config. Skip any skill whose source cannot be traced to a repository.
 
-Read the target file before promoting a candidate. If the target already states the rule, delete the memory and its index line because the instruction now carries it. If the target's own admission rules reject the rule, such as a repository that admits only constraints a reader cannot infer from its code, keep it as a memory.
+Read the target before promoting a rule. If it already states the rule, delete the memory and its index line. If its admission rules reject the rule, such as when a repository admits only constraints a reader cannot infer from its code, keep the memory.
 
 ### Integrate
 
-Rewrite each rule into the target's existing structure to match its writing conventions and repository documentation rules, merging it with any neighbouring rule it refines or generalizes so the section reads as one coherent set. Never paste memory text verbatim, and omit the memory's **Why** and **How to apply** scaffolding, keeping only the reasoning a reader needs to apply the rule correctly.
+Rewrite each rule to fit the target's structure, writing conventions, and documentation rules. Merge it with any neighbouring rule it refines or generalizes so the section reads as a coherent set. Never paste memory text verbatim. Remove the **Why** and **How to apply** scaffolding, keeping only the reasoning readers need to apply the rule.
 
 ### Publish
 
-Because instruction files are versioned, the PR / MR serves as the approval gate. Work unattended following the `git-workflow` skill and the target repository's `AGENTS.md`:
+The PR / MR is the approval gate. Work unattended under the `git-workflow` skill and the target repository's `AGENTS.md`:
 
-- Each dream opens or updates at most one PR / MR per target repository, always from the branch `docs/promote-memories`. When that branch has an open request, add the new promotions to it.
-- Work in an isolated worktree under the repository's usual worktree location, leaving the main checkout and any other agent's uncommitted work untouched. Check out the open request's branch, or else start the branch from the remote default branch. When a closed request left a stale branch of that name, overwrite it with `git push --force-with-lease`, which loses nothing because the closed request keeps its commits.
-- Run the repository's verification and pre-commit hooks, and never bypass them.
-- Never merge, as merging stays with the user.
-- For a public repository, keep private material out of the diff, commits, and description, including internal hostnames, gateway names, local paths, and private repositories. A rule that cannot be stated without such material stays a memory.
+- Open or update at most one PR / MR per target repository per dream, always from the `docs/promote-memories` branch. Add to its open request if one exists.
+- Work in an isolated worktree in the repository's usual worktree location, leaving the main checkout and other agents' uncommitted work untouched. Check out the open request's branch, or branch from the remote default branch if there is no open request. If a closed request left a stale branch with that name, overwrite it with `git push --force-with-lease`. The closed request retains its commits, so nothing is lost.
+- Run the repository's verification and pre-commit hooks. Never bypass them.
+- Never merge. The user handles merging.
+- In public repositories, keep private material out of the diff, commits, and description, including internal hostnames, gateway names, local paths, and private repositories. Keep a rule in memory if it cannot be stated without such material.
 
 After publishing, add `promotion: <URL>` beside the type in each proposed memory's frontmatter metadata.
 
 ## Finish
 
-After the pass completes, stamp it with `: > <store>/.consolidate-lock`. Claude Code's native auto-dream reads the same file's modification time, so either mechanism counts from the latest pass. Skip the stamp when the pass stopped early.
+Mark a completed pass with `: > <store>/.consolidate-lock`. Skip the stamp if the pass stops early. Claude Code's native auto-dream reads the same file's modification time, so both mechanisms count from the latest pass.
 
-Report the backup path and a brief summary of what you consolidated, updated, or pruned, followed by the URL of each opened or updated PR / MR along with the memories it promotes and any memories retired because their promotion merged or their target already covered them. If nothing changed because the memories are already tight, say so.
+Report the backup path, briefly summarize what you consolidated, updated, or pruned, and give the URL of each opened or updated PR / MR along with the memories it promotes. Also report memories retired because their promotion merged or their target already covered them. If the memories were already concise and nothing changed, say so.
