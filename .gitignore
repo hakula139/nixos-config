@@ -24,4 +24,5 @@ __pycache__/
 **/.claude/agent-memory-local
 **/.claude/plans
 **/.claude/settings.local.json
-**/.claude/worktrees
+# cspell matches `**/` against absolute paths, which would ignore every file in a worktree
+.claude/worktrees
