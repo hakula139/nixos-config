@@ -3,9 +3,15 @@
 # ==================================================================================================
 # tmux Wrapper
 # ==================================================================================================
-# A tmux server hands the environment it starts with to every pane, so it must not start inside a
-# dev shell. direnv records its changes, which `direnv exec /` reverts exactly. A Nix shell keeps
-# no such record, so inside one tmux may reach a running server but never start a new one.
+# tmux panes are environment-neutral: each directory's dev shell comes from direnv, so a client
+# never passes on a dev shell. A new server would hand its environment to every pane, and a client
+# outside a session lends its PATH to the panes it creates. direnv's changes are reverted exactly
+# with `direnv exec /`. A Nix shell records no such diff, so inside one the client borrows the
+# server's PATH and never starts a server.
+#
+# A pane command started from a dev shell, such as `tmux new-window 'cargo run'`, therefore runs
+# without it, the same as an interactive pane shell. Run it through `direnv exec . <cmd>`, or let
+# the pane shell's direnv hook load the dev shell in an allowed directory.
 # ==================================================================================================
 
 set -euo pipefail
@@ -14,21 +20,30 @@ if [[ -n "${DIRENV_DIFF:-}" ]]; then
   exec @direnv@ exec / "$0" "$@"
 fi
 
-if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+if [[ -z "${IN_NIX_SHELL:-}" && -z "${NIX_BUILD_TOP:-}" ]]; then
   exec @tmux@ "$@"
 fi
 
 socket=()
-while getopts ':c:f:L:S:T:' opt; do
+while getopts ':c:f:L:S:T:V' opt; do
   case "$opt" in
-    L | S) socket=("-$opt" "$OPTARG") ;;
+    L | S) socket+=("-$opt" "$OPTARG") ;;
+    V) exec @tmux@ "$@" ;;
     *) ;;
   esac
 done
+command="${!OPTIND:-new-session}"
 
-status=0
-@tmux@ -N "$@" || status=$?
-if ((status != 0)) && ! @tmux@ "${socket[@]}" -N has-session 2>/dev/null; then
-  echo "tmux: not starting a server inside a Nix shell, whose environment every pane would inherit" >&2
+if server_path="$(@tmux@ "${socket[@]}" -N show-environment -g PATH 2>/dev/null)"; then
+  PATH="${server_path#PATH=}" exec @tmux@ -N "$@"
 fi
-exit "$status"
+
+case "$command" in
+  new | new-s* | start | start-s*)
+    echo "tmux: no server is running, and none is started inside a Nix shell." >&2
+    echo "Start tmux outside the Nix shell, or run: env -u IN_NIX_SHELL -u NIX_BUILD_TOP tmux" >&2
+    exit 1
+    ;;
+esac
+
+exec @tmux@ -N "$@"

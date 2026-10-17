@@ -30,10 +30,11 @@ zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
 
 mkcd() { mkdir -p "$1" && cd "$1"; }
 
-# Refresh tmux env per prompt so reattaches see new tokens and sockets.
+# Refresh tmux env per prompt so reattaches see new tokens and sockets. The unwrapped tmux skips
+# the wrapper's direnv revert, which this read-only query does not need on every prompt.
 if [[ -n "$TMUX" ]]; then
   _refresh_tmux_env() {
-    eval "$(tmux show-environment -s 2>/dev/null | grep -E '(VSCODE_|GIT_ASKPASS|CLAUDE_CODE_SSE_PORT)')"
+    eval "$(@tmux@ show-environment -s 2>/dev/null | grep -E '(VSCODE_|GIT_ASKPASS|CLAUDE_CODE_SSE_PORT)')"
     # WSL_INTEROP from tmux state can point at a dead socket, causing slow interop and Crashpad
     # errors. Always use the newest socket on disk.
     if [[ -d /run/WSL ]]; then

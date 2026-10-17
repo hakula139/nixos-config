@@ -10,14 +10,17 @@
 }:
 
 let
+  esc = lib.escapeShellArg;
+
   wrapper = pkgs.writeShellScript "tmux-wrapper" (
     builtins.replaceStrings
       [ "@direnv@" "@tmux@" ]
-      [ (lib.getExe config.programs.direnv.package) (lib.getExe pkgs.tmux) ]
+      [ (esc (lib.getExe config.programs.direnv.package)) (esc (lib.getExe pkgs.tmux)) ]
       (builtins.readFile ./wrapper.sh)
   );
 
-  package = pkgs.symlinkJoin {
+  # A custom join keeps the man output, which wrap-package would drop.
+  tmuxBin = pkgs.symlinkJoin {
     inherit (pkgs.tmux) name;
     paths = [
       pkgs.tmux
@@ -25,8 +28,9 @@ let
     ];
     postBuild = ''
       rm "$out/bin/tmux"
-      ln -s ${wrapper} "$out/bin/tmux"
+      ln -s ${esc wrapper} "$out/bin/tmux"
     '';
+    meta.mainProgram = "tmux";
   };
 
   # The plugin wrapper starts nested tmux clients, which deadlock in the config queue when
@@ -55,7 +59,7 @@ in
 {
   programs.tmux = {
     enable = true;
-    inherit package;
+    package = tmuxBin;
 
     # ----------------------------------------------------------------------------------------------
     # Core settings
