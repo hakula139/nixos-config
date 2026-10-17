@@ -3,6 +3,7 @@
 # ==================================================================================================
 
 {
+  nixosModulesPath,
   config,
   pkgs,
   lib,
@@ -24,7 +25,15 @@ let
   );
 in
 {
-  imports = [ ./age.nix ];
+  imports = [
+    ./age.nix
+    ../nixos/nix-gc
+  ]
+  ++ map (path: nixosModulesPath + path) [
+    "/programs/nh.nix"
+    "/services/misc/nix-gc.nix"
+    "/services/misc/nix-optimise.nix"
+  ];
 
   # ------------------------------------------------------------------------------------------------
   # Module options
@@ -80,6 +89,9 @@ in
         ];
       };
     };
+
+    # System Manager restarts changed units even when inactive, and upstream nh.nix leaves this on.
+    systemd.services.nh-clean.restartIfChanged = false;
 
     # ----------------------------------------------------------------------------------------------
     # Shell & Environment
