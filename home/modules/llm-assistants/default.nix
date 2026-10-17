@@ -124,7 +124,6 @@ in
 
     (lib.mkIf cfg.enable {
       hakula =
-        # oxide-code has no MCP settings, so it joins only the CLI defaults.
         lib.genAttrs (cliAssistantNames ++ [ "oxide-code" ]) (_: {
           enable = lib.mkDefault true;
           proxy = lib.mkIf cfg.proxy.enable assistantProxy;

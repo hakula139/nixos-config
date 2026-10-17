@@ -7,23 +7,11 @@
   pkgs,
   lib,
   repoLib,
-  secretPath,
   ...
 }:
 
 let
   cfg = config.hakula.oxide-code;
-  shared = config.lib.llmAssistants;
-
-  profiles = import ./profiles.nix {
-    inherit
-      config
-      pkgs
-      lib
-      secretPath
-      ;
-    inherit (shared) profileDefinitions mkProfileSwitch;
-  };
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -31,8 +19,6 @@ in
   # ------------------------------------------------------------------------------------------------
   options.hakula.oxide-code = {
     enable = lib.mkEnableOption "oxide-code";
-
-    auth = profiles.options;
 
     proxy = repoLib.proxy.mkProxyOptions "oxide-code";
   };
@@ -47,12 +33,10 @@ in
       # --------------------------------------------------------------------------------------------
       # Package wrapper
       # --------------------------------------------------------------------------------------------
-      wrapArgs =
-        profiles.wrapArgs
-        ++ lib.optionals cfg.proxy.enable [
-          "--run"
-          (repoLib.proxy.mkProxyScript cfg.proxy)
-        ];
+      wrapArgs = lib.optionals cfg.proxy.enable [
+        "--run"
+        (repoLib.proxy.mkProxyScript cfg.proxy)
+      ];
 
       oxBin = repoLib.wrapPackage {
         inherit pkgs wrapArgs;
@@ -63,36 +47,29 @@ in
       # --------------------------------------------------------------------------------------------
       # Configuration files
       # --------------------------------------------------------------------------------------------
-      configToml = toml.generate "ox-config.toml" (
-        profiles.settings
-        // {
-          # `yolo` is the closest match to Claude Code's classifier-backed `auto` mode. The shared
-          # policy's gates need an ask tier, which oxide-code lacks until its tiered permissions.
-          permission.mode = "yolo";
+      configToml = toml.generate "ox-config.toml" {
+        permission.mode = "yolo";
 
-          tui = {
-            show_thinking = true;
-            status_line = [
-              "current-dir"
-              "git-branch"
-              "pull-request"
-              "pull-request-checks"
-              "model-with-effort"
-              "context-used"
-              "session-cost"
-              "five-hour-limit"
-              "weekly-limit"
-              "task-progress"
-              "run-state"
-              "thread-title"
-            ];
-          };
-        }
-      );
+        tui = {
+          show_thinking = true;
+          status_line = [
+            "current-dir"
+            "git-branch"
+            "pull-request"
+            "pull-request-checks"
+            "model-with-effort"
+            "context-used"
+            "session-cost"
+            "five-hour-limit"
+            "weekly-limit"
+            "task-progress"
+            "run-state"
+            "thread-title"
+          ];
+        };
+      };
     in
     lib.mkMerge [
-      profiles.config
-
       {
         # ------------------------------------------------------------------------------------------
         # Packages
