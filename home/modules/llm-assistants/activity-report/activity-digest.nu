@@ -286,8 +286,8 @@ def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -
       let turns = (
         $prompts
         | each {|p|
-          let end = ($replies | where ts >= $p.ts | get -o 0.ts | default $p.ts)
-          {ts: $p.ts, end: $end, project: $project}
+          let ended = ($replies | where ts >= $p.ts | get -o 0.ts | default $p.ts)
+          {ts: $p.ts, end: $ended, project: $project}
         }
       )
       {
