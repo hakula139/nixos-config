@@ -11,8 +11,8 @@ def have [tool: string]: nothing -> bool {
   which $tool | is-not-empty
 }
 
-# One `try` each, so a crashing tool cannot skip the ones after it. Only a failing exit reports, so a
-# linter that exits 0 on warnings needs the flag that fails it.
+# One `try` each, so a crashing tool cannot skip the ones after it. Only a failing exit reports, so
+# a linter that exits 0 on warnings needs the flag that fails it.
 def check [tool: string, args: list<string>, path: string]: nothing -> string {
   let run = (try { ^$tool ...$args | complete } catch { null })
   if $run == null or $run.exit_code == 0 {
@@ -24,7 +24,7 @@ def check [tool: string, args: list<string>, path: string]: nothing -> string {
   $"($name) exited with ($run.exit_code) on ($path):\n($output)"
 }
 
-# Node's own resolution order, since eslint only works with its own project's config and plugins.
+# The nearest `node_modules/.bin/<tool>` above `path`, or an empty string.
 def project-bin [path: string, tool: string]: nothing -> string {
   let parts = ($path | path expand | path dirname | path split)
   for n in (($parts | length)..1) {
@@ -32,6 +32,14 @@ def project-bin [path: string, tool: string]: nothing -> string {
     if ($candidate | path exists) { return $candidate }
   }
   ""
+}
+
+# The root of the repository holding `path`, or its directory outside a repository. Tools such as
+# markdownlint-cli2 read their config only from the working directory down, so they run from here.
+def project-root [path: string, git: string]: nothing -> string {
+  let dir = ($path | path dirname)
+  let toplevel = (^$git -C $dir rev-parse --show-toplevel | complete)
+  if $toplevel.exit_code == 0 { $toplevel.stdout | str trim } else { $dir }
 }
 
 def format-markdown [path: string, config: record] {
@@ -48,8 +56,10 @@ def format-markdown [path: string, config: record] {
   } catch { null }
 }
 
-# A `--fix` pass reports whatever it could not fix, so one call covers both.
+# A `--fix` pass reports whatever it could not fix, so one call covers both. Each file's tools run
+# from its own project, never the session's.
 def format-file [path: string, config: record]: nothing -> list<any> {
+  cd (project-root $path $config.git)
   match ($path | path parse | get extension) {
     "sh" => [
       (check $config.shfmt ["-w" $path] $path)
@@ -95,15 +105,15 @@ def format-file [path: string, config: record]: nothing -> list<any> {
     ]
     "css" | "scss" | "less" | "js" | "jsx" | "mjs" | "cjs" | "ts" | "tsx" | "vue" => {
       # A pinned prettier cannot load the plugins the project's config names.
-      let prettier = (project-bin $path "prettier")
-      let formatter = if ($prettier | is-not-empty) { $prettier } else { $config.prettier }
-      # A file the project ignores is not this hook's business.
+      let formatter = (project-bin $path "prettier" | default --empty $config.prettier)
+      # eslint only works with its own project's config and plugins.
       let eslint = (project-bin $path "eslint")
       [
         (if (have $formatter) {
           check $formatter ["--log-level" "warn" "--write" $path] $path
         })
         (if ($eslint | is-not-empty) {
+          # A file the project ignores is not this hook's business.
           check $eslint ["--fix" "--max-warnings" "0" "--no-warn-ignored" $path] $path
         })
       ]
@@ -111,9 +121,11 @@ def format-file [path: string, config: record]: nothing -> list<any> {
     "md" => [
       (if (have $config.dprint) {
         format-markdown $path $config
+        let cspell = (project-bin $path "cspell" | default --empty $config.cspell)
         [
           (check $config.markdownlint ["--fix" $path] $path)
-          (check $config.cspell ["--no-progress" $path] $path)
+          # A file the project excludes from spell checking is not this hook's business.
+          (check $cspell ["--no-progress" "--no-must-find-files" $path] $path)
         ]
       })
     ]

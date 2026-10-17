@@ -22,6 +22,7 @@ in
 pkgs.runCommand "script-tests"
   {
     nativeBuildInputs = [
+      pkgs.git
       pkgs.nu-test
       (pkgs.python3.withPackages (ps: [ ps.jinja2 ]))
     ];
