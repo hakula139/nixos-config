@@ -58,10 +58,16 @@ The discovered repository conventions govern the description's structure. Apply 
 
 ## Issues
 
-Keep an existing GitHub or GitLab issue's description as its one current, organized spec. A reader should get the issue's state from the body alone, while comment trails accumulate superseded decisions.
+An issue is a public record of one unit of work. Each kind of information has one home, chosen by who reads it and when.
 
-- Record decisions, scope changes, research findings, progress updates, and close reasons by editing the description. Do not add comments to existing issues.
-- Revise acceptance criteria in place without keeping superseded wording beside the correction. Record decisions under the issue's Notes section or the repository's equivalent.
-- When existing comments carry this kind of content, fold them into a reorganized body, then delete the folded comments.
-- Close an issue as not planned with the reason stated in the body and no closing comment.
-- Pass the edited body through a file or structured argument, then read the issue back to verify it.
+- **Description:** the current spec. It holds the goal, the acceptance criteria, the decisions and scope that define what to build, dependencies, and findings that shape the work. Edit it in place as these change. Tick criteria as they are met, and replace superseded wording without keeping it beside the correction, so the body alone shows the current state.
+- **Comments:** events that watchers should be notified of and that belong in the history:
+  - the reason for closing an issue that no linked PR / MR closes, such as not planned, duplicate, or completed by other means
+  - the reason for reopening one
+  - questions or discussion that need a reply
+  - a short notice of a material scope change that points to the edited description
+
+  Skip progress narration and anything a linked PR / MR already shows.
+- **Local working notes:** execution state such as agent assignments, worktrees, in-flight branches, ordering, raw research, and private context. Keep these in the session or a gitignored plans directory, never in the issue.
+- **Existing comments:** when a comment carries a decision or finding that belongs in the spec, fold it into the description. Delete the comment only when the description now covers everything it said.
+- **Edits:** pass the edited body through a file or structured argument, then read the issue back to verify it.
