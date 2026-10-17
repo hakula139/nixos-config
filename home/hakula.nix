@@ -40,6 +40,7 @@ in
     ./modules/rclone
     ./modules/secrets
     ./modules/ssh
+    ./modules/syncthing
     ./modules/terminal
     ./modules/wakatime
   ];
