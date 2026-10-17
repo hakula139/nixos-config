@@ -29,6 +29,6 @@
   # ------------------------------------------------------------------------------------------------
   # Garbage collection
   # ------------------------------------------------------------------------------------------------
-  # Arguments to `nh clean all`, shared by the scheduled cleanup on every host and the `nixgc` alias.
+  # Arguments to `nh clean all`.
   nixCleanArgs = "--keep 5 --keep-since 3d";
 }

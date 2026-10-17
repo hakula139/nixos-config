@@ -106,13 +106,15 @@ in
       command = "${lib.getExe pkgs.nh} clean all ${defaults.nixCleanArgs}";
       path = [ config.nix.package ];
       serviceConfig = {
-        RunAtLoad = false;
         StartCalendarInterval = [
           {
             Hour = 2;
             Minute = 0;
           }
         ];
+        ProcessType = "Background";
+        StandardOutPath = "/var/log/nh-clean.log";
+        StandardErrorPath = "/var/log/nh-clean.log";
       };
     };
 
