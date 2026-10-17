@@ -1,4 +1,4 @@
 interface:
   display_name: "Activity Report"
-  short_description: "Write a per-day task log of recent work"
-  default_prompt: "Use $activity-report to write this week's per-day task log from local activity."
+  short_description: "Report recent work with hours per project and task"
+  default_prompt: "Use $activity-report to report this week's work with hours per project and task."
