@@ -74,6 +74,7 @@ Use local exceptions for file-specific opaque literals, compatibility spellings,
 - `cspell:ignore` permits the listed tokens throughout the file. Use it when those exact tokens need file-wide acceptance and surrounding words should remain checked.
 - For known typos required across files, use `.cspell/typos.txt` globally. For verified, reusable vocabulary, use the accepted-word dictionary regardless of its current occurrence count.
 
+<!-- dprint-ignore -->
 ```markdown
 ### recieve <!-- cspell:disable-line -->
 

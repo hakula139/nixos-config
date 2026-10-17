@@ -34,19 +34,12 @@ def project-bin [path: string, tool: string]: nothing -> string {
   ""
 }
 
-# cspell checks only files under its working directory, and before 10.1 it resolves a linked
-# worktree's gitignore root to the main checkout, so it runs from the repository root and gets that
-# root explicitly. A file the project's ignore rules exclude is not this hook's business.
-def check-spelling [path: string, config: record]: nothing -> string {
-  let cspell = (project-bin $path "cspell" | default --empty $config.cspell)
-  let args = ["--no-progress" "--no-must-find-files"]
-  let toplevel = (^$config.git rev-parse --show-toplevel | complete)
-  if $toplevel.exit_code != 0 {
-    return (check $cspell [...$args $path] $path)
-  }
-  let root = ($toplevel.stdout | str trim)
-  cd $root
-  check $cspell [...$args "--gitignore-root" $root $path] $path
+# The root of the repository holding `path`, or its directory outside a repository. Tools such as
+# markdownlint-cli2 read their config only from the working directory down, so they run from here.
+def project-root [path: string, git: string]: nothing -> string {
+  let dir = ($path | path dirname)
+  let toplevel = (^$git -C $dir rev-parse --show-toplevel | complete)
+  if $toplevel.exit_code == 0 { $toplevel.stdout | str trim } else { $dir }
 }
 
 def format-markdown [path: string, config: record] {
@@ -64,9 +57,9 @@ def format-markdown [path: string, config: record] {
 }
 
 # A `--fix` pass reports whatever it could not fix, so one call covers both. Each file's tools run
-# from its directory, so they find that file's project, never the session's.
+# from its own project, never the session's.
 def format-file [path: string, config: record]: nothing -> list<any> {
-  cd ($path | path dirname)
+  cd (project-root $path $config.git)
   match ($path | path parse | get extension) {
     "sh" => [
       (check $config.shfmt ["-w" $path] $path)
@@ -128,9 +121,11 @@ def format-file [path: string, config: record]: nothing -> list<any> {
     "md" => [
       (if (have $config.dprint) {
         format-markdown $path $config
+        let cspell = (project-bin $path "cspell" | default --empty $config.cspell)
         [
           (check $config.markdownlint ["--fix" $path] $path)
-          (check-spelling $path $config)
+          # A file the project excludes from spell checking is not this hook's business.
+          (check $cspell ["--no-progress" "--no-must-find-files" $path] $path)
         ]
       })
     ]
