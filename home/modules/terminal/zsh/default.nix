@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  defaults,
   flakeConfigName,
   username ? "hakula",
   isNixOS ? false,
@@ -182,7 +183,7 @@ in
       # Nix aliases
       nixdp = "colmena apply";
       nixup = "nix flake update";
-      nixgc = "nh clean all --keep-since 3d";
+      nixgc = "nh clean all ${defaults.nixCleanArgs}";
       nixopt = "nix-store --optimise";
 
       # Git extras
