@@ -9,36 +9,43 @@ description: >-
 
 <!-- cspell:ignore legacyrecievevalue recieve -->
 
-Classify each reported token before changing spelling configuration. A passing check should still catch mistakes in authored prose.
+Classify each reported token before changing spelling configuration, so that a passing check still catches mistakes in authored prose.
 
-## Diagnose before accepting a word
+## Diagnose
 
-Read the repository's spelling configuration, custom dictionaries, and the reported line in context. Use its pinned CSpell executable and existing check command.
+Read the repository's spelling configuration, custom dictionaries, and the reported line in context, and use its pinned CSpell executable and existing check command.
 
 ```bash
 cspell lint --config cspell.json --no-progress --show-context --show-suggestions path/to/file.md
 cspell trace --config cspell.json --ignore-case --only-found candidate
 ```
 
-Trace searches dictionaries. It does not reproduce filename overrides or identifier splitting, so check the actual file as well. Verify the summary reports files checked. A linked worktree inside an ignored directory, such as `.claude/worktrees/`, can silently check zero files, because cspell before 10.1 reads the main checkout's `.gitignore` and cspell matches `**/` ignore rules against absolute paths. Fix the repository: set `"gitignoreRoot": "."` in its cspell config and anchor the worktree rule at the repository root (`.claude/worktrees`, without `**/`). Treat `--no-gitignore` as a last resort and pass it explicit file paths, since a glob run with it also scans ignored build output.
+Trace searches dictionaries without reproducing filename overrides or identifier splitting, so also check the actual file. Confirm the summary reports a nonzero count of checked files. A linked worktree inside an ignored directory, such as `.claude/worktrees/`, can silently check zero files, because cspell before 10.1 reads the main checkout's `.gitignore` and cspell matches `**/` ignore rules against absolute paths. Fix the repository by setting `"gitignoreRoot": "."` in its cspell config and anchoring the worktree rule at the root (`.claude/worktrees`, without `**/`). Use `--no-gitignore` only as a last resort and only with explicit file paths, since a glob run with it also scans ignored build output.
 
-- Fix new misspellings in authored prose and identifiers when changing them is safe. For a historical API field, compatibility name, or path, inspect callers and migration requirements before renaming it. Suggestions help identify possible corrections but do not establish that a token is a legitimate word.
-- Verify unfamiliar names and technical terms against their defining source or official documentation. Inspect identifier boundaries, neighboring uses, and the expected meaning. A token extracted from an APK, generated source, or a dependency can still be an upstream typo.
-- Check existing language dictionaries and identifier splitting before accepting fragments of a long name. Do not add every unknown substring returned by a bulk extraction.
-- Preserve a known misspelling where changing its exact bytes or identifier would break a contract, compatibility, source citation, path, or evidence record. This can include project-owned names. Use the correct spelling in your explanation and record the source and intended correction where needed to maintain the exception.
-- If the classification remains uncertain and affects the result, discuss it with the user before accepting the token.
+Then classify the token:
 
-## Verified vocabulary
+- **A new misspelling** in authored prose or identifiers: fix it when that is safe. For a historical API field, compatibility name, or path, inspect callers and migration requirements before renaming. Suggestions hint at corrections but do not prove a token is a word.
+- **An unfamiliar name or technical term:** verify it against its defining source or official documentation, checking identifier boundaries, neighboring uses, and the expected meaning. A token from an APK, generated source, or a dependency can still be an upstream typo.
+- **A fragment of a long name:** check existing language dictionaries and identifier splitting first, and never add every unknown substring a bulk extraction returns.
+- **A required misspelling:** preserve its exact bytes where changing them would break a contract, compatibility, source citation, path, or evidence record, including in project-owned names. Use the correct spelling in your explanation and record the source and intended correction where the exception needs maintaining.
 
-Put verified, reusable vocabulary in the existing accepted-word dictionary, usually `.cspell/words.txt`. This includes standard command names, library names, and technical terms, even when they currently appear only once. Classify the token by its meaning before choosing its scope. Keep one entry per line, sorted alphabetically without regard to case, and remove case-equivalent duplicates within the edited group.
+If the classification stays uncertain and affects the result, discuss it with the user before accepting the token.
 
-Use lowercase entries for the normal case-insensitive configuration. For example, `hakula` covers `Hakula` and `HAKULA`, so separate entries are unnecessary. Preserve explicit case-sensitive dictionary requirements when a project has them. Do not rewrite source names to match dictionary casing.
+## Choose the scope
 
-Review the complete dictionary diff. Each addition should have a known meaning and a real checked use. Keep recognized words separate from known misspellings.
+| Token                                                                       | Home                           |
+| --------------------------------------------------------------------------- | ------------------------------ |
+| Verified, reusable vocabulary, even if used once                            | The accepted-word dictionary   |
+| Required misspelling used across files                                      | `.cspell/typos.txt`            |
+| Required misspelling, compatibility spelling, or opaque literal in one file | A local exception in that file |
 
-## Known typo exceptions
+### Accepted words
 
-Keep required known misspellings used across files in `.cspell/typos.txt`. Enable it alongside the accepted-word dictionary so shared contracts do not need a list of per-file overrides. A typo confined to one file can use a local exception directly.
+Put verified vocabulary, such as standard command names, library names, and technical terms, in the existing accepted-word dictionary, usually `.cspell/words.txt`. Keep one entry per line, sorted alphabetically without regard to case, and remove case-equivalent duplicates within the edited group. Use lowercase entries under the normal case-insensitive configuration, since `hakula` already covers `Hakula` and `HAKULA`, but preserve a project's explicit case-sensitive requirements and never rewrite source names to match dictionary casing.
+
+### Known typos
+
+Enable `.cspell/typos.txt` beside the accepted-word dictionary so shared contracts need no per-file overrides:
 
 ```json
 {
@@ -57,22 +64,19 @@ Keep required known misspellings used across files in `.cspell/typos.txt`. Enabl
 }
 ```
 
-Dictionary paths are relative to the configuration file. Leave `addWords` off the typo dictionary so editor additions continue to target accepted vocabulary. Apply the same sorting and duplicate rules to typo entries.
+Dictionary paths are relative to the configuration file. Leave `addWords` off the typo dictionary so editor additions keep targeting accepted vocabulary, and apply the same sorting and duplicate rules to its entries.
 
-Prefer the full preserved identifier or path token to its misspelled fragments. Verify the actual occurrence with CSpell because recognition and splitting depend on the token and configuration.
+Prefer the full preserved identifier or path token to its misspelled fragments, and verify the actual occurrence with CSpell, since recognition and splitting depend on the token and configuration. For example, `legacyrecievevalue` preserves `legacyRecieveValue`, while adding only `recieve` would also accept that typo in ordinary prose.
 
-For example, use `legacyrecievevalue` to preserve `legacyRecieveValue` as a whole identifier. Adding only `recieve` would also accept that typo in ordinary prose.
+When a required cross-file contract is itself a misspelled ordinary word, accepting it globally weakens detection of the same mistake in new prose. Preserve the contract and review authored prose for accidental uses. The contract and where it is used decide whether a typo belongs here, regardless of its origin.
 
-If a required cross-file contract is itself a misspelled ordinary word, globally accepting it weakens detection of the same mistake in new prose. Use local exceptions when the word remains confined to one file. Otherwise, preserve the contract and review authored prose for accidental uses. A typo's origin does not determine whether it belongs in this dictionary. The contract and where it is used do.
+### Local exceptions
 
-## Local exceptions
+Put the directive in the file it covers. Use a filename override with `ignoreWords` only when the format cannot carry comments without changing the data, or a concrete configuration constraint requires it. Keep the reason beside an exception whose purpose is otherwise unclear.
 
-Use local exceptions for file-specific opaque literals, compatibility spellings, and required known misspellings confined to one file. Put the local directive in that file. Use a filename override with `ignoreWords` only when the format cannot carry comments without changing the data, or a concrete configuration constraint requires it. Keep the reason beside an exception when the literal's purpose is otherwise unclear.
-
-- For one line containing an intentional spelling or opaque literal, `cspell:disable-line` suppresses that entire line. Inspect other words on the line before using it. In Markdown, an inline HTML comment keeps the directive out of rendered prose.
-- `cspell:disable-next-line` suppresses the next content line. Place the directive immediately above its target, with no intervening blank line by default. Preserve a blank line when the formatter requires one. CSpell 9.7.0 supports this layout, but verify behavior with the project's pinned version.
-- `cspell:ignore` permits the listed tokens throughout the file. Use it when those exact tokens need file-wide acceptance and surrounding words should remain checked.
-- For known typos required across files, use `.cspell/typos.txt` globally. For verified, reusable vocabulary, use the accepted-word dictionary regardless of its current occurrence count.
+- `cspell:disable-line` suppresses its entire line, including unrelated mistakes, so inspect the other words on the line first. In Markdown, an inline HTML comment keeps the directive out of rendered prose.
+- `cspell:disable-next-line` suppresses the next content line. Place it directly above the target without a blank line, unless the formatter requires one. CSpell 9.7.0 supports this layout, but verify it with the project's pinned version.
+- `cspell:ignore` accepts the listed tokens throughout the file while keeping surrounding words checked, but it also allows them elsewhere in the file, which needs review. Prefer it, or an exact literal pattern, to a line directive when nearby prose still needs checking.
 
 <!-- dprint-ignore -->
 ```markdown
@@ -82,14 +86,16 @@ Use local exceptions for file-specific opaque literals, compatibility spellings,
 `legacyRecieveValue`
 ```
 
-The spelling in this example is intentionally preserved. A line directive also suppresses unrelated mistakes on that line, so prefer a token-level file exception or an exact literal pattern when nearby authored prose still needs checking. A file-level exception allows the same token elsewhere in that file, which also needs review.
+Language dictionaries can cover real foreign-language text. Exclusions for generated files, code samples, mathematics, or markup need an ownership reason. Source identifiers under investigation often need spelling checks even inside code spans, so check which content the spelling check owns before copying broad code or comment exclusions, and avoid patterns that suppress arbitrary identifiers.
 
-Language dictionaries can cover real foreign-language text. Exclusions for generated files, code samples, mathematics, or markup require an ownership reason. Source identifiers under investigation often need spelling checks even inside code spans. Check which content the spelling check owns before copying broad code or comment exclusions. Keep exclusions tied to that ownership and avoid patterns that suppress arbitrary identifiers.
+## Verify
 
-## Verify the boundary
+Run the affected checks after editing, requiring a nonzero checked-file count for each:
 
-Run the affected checks after editing. For a new full-identifier dictionary entry, use disposable fixtures to prove that the preserved identifier passes across files while its misspelled fragment and an unrelated typo still fail in ordinary prose. For a local exception, verify its intended scope and check that unrelated words remain checked. If a globally accepted entry is a misspelled ordinary word, report that it also passes in new prose and review those occurrences manually. Require a nonzero checked-file count for each control.
+- For a new full-identifier entry, use disposable fixtures to prove the identifier passes across files while its misspelled fragment and an unrelated typo still fail in ordinary prose.
+- For a local exception, confirm its intended scope and that unrelated words stay checked.
+- For a globally accepted misspelled ordinary word, report that it also passes in new prose and review those occurrences manually.
 
-Review dictionary entries, override matches, and surrounding prose together. A successful check does not validate the meaning of newly accepted words.
+Review the complete dictionary diff, override matches, and surrounding prose together. Each addition needs a known meaning and a real checked use, and recognized words stay separate from known misspellings. A passing check does not validate the meaning of newly accepted words.
 
 Configuration details: [custom dictionaries](https://cspell.org/docs/dictionaries/custom-dictionaries), [overrides](https://cspell.org/docs/Configuration/overrides), and [case sensitivity](https://cspell.org/docs/case-sensitive).
