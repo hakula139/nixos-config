@@ -39,12 +39,16 @@ proxy-groups:
 {%- endfor %}
 
 rule-providers:
-  LAN:
-    type: http
-    behavior: ipcidr
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt
-    path: ./ruleset/lancidr.yaml
-    interval: 86400
+  Telemetry:
+    type: inline
+    behavior: domain
+    payload:
+      - a-api.anthropic.com
+      - a-cdn.anthropic.com
+      - +.browser-intake-us5-datadoghq.com
+      - +.logs.us5.datadoghq.com
+      - +.ingest.us.sentry.io
+      - api3.siftscience.com
   Reject:
     type: http
     behavior: domain
@@ -69,12 +73,6 @@ rule-providers:
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt
     path: ./ruleset/google.yaml
     interval: 86400
-  Telegram:
-    type: http
-    behavior: ipcidr
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt
-    path: ./ruleset/telegramcidr.yaml
-    interval: 86400
   GFW:
     type: http
     behavior: domain
@@ -87,30 +85,43 @@ rule-providers:
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt
     path: ./ruleset/proxy.yaml
     interval: 86400
-  ChinaIP:
-    type: http
-    behavior: ipcidr
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt
-    path: ./ruleset/cncidr.yaml
-    interval: 86400
   Direct:
     type: http
     behavior: domain
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt
     path: ./ruleset/direct.yaml
     interval: 86400
+  LAN:
+    type: http
+    behavior: ipcidr
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt
+    path: ./ruleset/lancidr.yaml
+    interval: 86400
+  Telegram:
+    type: http
+    behavior: ipcidr
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt
+    path: ./ruleset/telegramcidr.yaml
+    interval: 86400
+  ChinaIP:
+    type: http
+    behavior: ipcidr
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt
+    path: ./ruleset/cncidr.yaml
+    interval: 86400
 
 rules:
   - DOMAIN-SUFFIX,hakula.xyz,DIRECT
-  - RULE-SET,LAN,DIRECT,no-resolve
+  - RULE-SET,Telemetry,REJECT
   - RULE-SET,Reject,REJECT
   - RULE-SET,iCloud,DIRECT
   - RULE-SET,Apple,DIRECT
   - RULE-SET,Google,PROXY
-  - RULE-SET,Telegram,PROXY,no-resolve
   - RULE-SET,GFW,PROXY
   - RULE-SET,Proxy,PROXY
-  - RULE-SET,ChinaIP,DIRECT,no-resolve
   - RULE-SET,Direct,DIRECT
+  - RULE-SET,LAN,DIRECT,no-resolve
+  - RULE-SET,Telegram,PROXY,no-resolve
+  - RULE-SET,ChinaIP,DIRECT,no-resolve
   - GEOIP,CN,DIRECT
   - MATCH,PROXY
