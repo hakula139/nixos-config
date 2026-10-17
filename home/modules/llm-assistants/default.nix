@@ -8,6 +8,7 @@
   hostType,
   repoLib,
   enableDevToolchains ? false,
+  isDesktop ? false,
   ...
 }:
 
@@ -66,6 +67,7 @@ in
 {
   imports = [
     ./acp
+    ./activity-report
     ./ccusage
     ./claude-code
     ./codex
@@ -129,7 +131,10 @@ in
         })
         // lib.genAttrs [ "ccusage" "ctx7" "workmux" ] (_: {
           enable = lib.mkDefault true;
-        });
+        })
+        // {
+          activity-report.enable = lib.mkDefault isDesktop;
+        };
     })
   ];
 }

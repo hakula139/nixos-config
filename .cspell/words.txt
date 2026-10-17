@@ -22,6 +22,7 @@ btop
 busctl
 cachain
 cachix
+caldav
 catppuccin
 ccache
 ccagent
@@ -78,6 +79,7 @@ esac
 esbenp
 esbuild
 fchownat
+feishu
 ffprobe
 findutils
 fmp4
@@ -89,6 +91,7 @@ gfm
 ghcup
 gitea
 glab
+glpat
 gnused
 gofmt
 goimports
@@ -123,6 +126,7 @@ kdelpf
 kdelrs
 keka
 keyclu
+khal
 khtml
 kimi
 kubeconfig
@@ -296,6 +300,7 @@ unhinted
 usernamehw
 utun
 vadimcn
+vdirsyncer
 vercel
 vhdx
 vhost
