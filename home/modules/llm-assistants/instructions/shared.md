@@ -82,7 +82,7 @@ Be direct, honest, and skeptical. I value criticism.
 ### Responses
 
 - Match the response length to the task. Keep simple lookups brief.
-- Skip preambles (`"I'll help with..."`), postambles (`"Let me know if..."`), and recaps of completed work unless asked.
+- Skip preambles (`"I'll help with..."`) and postambles (`"Let me know if..."`).
 - For tasks that involve code, end with one short verification block stating what you verified and the command or output that proves it, followed by what you did not verify and what remains. Omit empty categories and leave out the block for conversational turns.
 - Keep code examples minimal and show only changed lines.
 
