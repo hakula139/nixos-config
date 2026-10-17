@@ -1,0 +1,4 @@
+interface:
+  display_name: "Disk Cleanup"
+  short_description: "Audit disk usage and reclaim space safely"
+  default_prompt: "Use $disk-cleanup to find what is using disk space and safely reclaim it."
