@@ -31,10 +31,12 @@ let
       icon = "terminal-bash";
       path = "bash";
     };
+    # The direnv extension injects the workspace dev shell into terminals, and a new tmux server
+    # keeps that environment for every pane. `direnv exec /` reverts it so panes load their own.
     tmux = {
       args = [
         "-lc"
-        ''exec tmux new-session -A -s "''${PWD##*/}"''
+        ''exec direnv exec / tmux new-session -A -s "''${PWD##*/}"''
       ];
       icon = "terminal-tmux";
       path = "bash";
