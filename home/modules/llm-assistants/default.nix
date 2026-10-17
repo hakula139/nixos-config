@@ -129,7 +129,10 @@ in
         })
         // lib.genAttrs [ "ccusage" "ctx7" "workmux" ] (_: {
           enable = lib.mkDefault true;
-        });
+        })
+        // {
+          acp.enable = lib.mkDefault (config.hakula.claude-code.enable || config.hakula.codex.enable);
+        };
     })
   ];
 }

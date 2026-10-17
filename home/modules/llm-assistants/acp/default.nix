@@ -11,7 +11,7 @@
 }:
 
 let
-  cfg = config.hakula.llm-assistants.acp;
+  cfg = config.hakula.acp;
 
   json = pkgs.formats.json { };
 
@@ -107,10 +107,8 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options.hakula.llm-assistants.acp.enable = lib.mkOption {
-    type = lib.types.bool;
-    default = config.hakula.llm-assistants.enable && enabledAgents != { };
-    description = "Whether to install the acpx client for the enabled Claude Code and Codex assistants";
+  options.hakula.acp = {
+    enable = lib.mkEnableOption "acpx client and its Claude Code and Codex adapters";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -120,7 +118,7 @@ in
     assertions = [
       {
         assertion = enabledAgents != { };
-        message = "hakula.llm-assistants.acp requires Claude Code or Codex to be enabled";
+        message = "hakula.acp requires Claude Code or Codex to be enabled";
       }
     ];
 
