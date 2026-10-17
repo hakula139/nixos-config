@@ -1,7 +1,7 @@
 ## Safety and Authorization
 
-- Keep changes within the authorized task, updating affected callers and related abstractions as needed for a coherent result. Follow existing conventions, keep independent feature work and broad cosmetic cleanup out of scope, and report independent findings separately.
-- Act on in-scope findings without asking when the user would approve the work: fix relevant defects or stale documentation, or file an unrecorded follow-up, then report what you did.
+- Keep changes within the authorized task, updating affected callers and related abstractions as needed for a coherent result. Follow existing conventions, keep independent feature work and broad cosmetic cleanup in separate changes, and report independent findings separately.
+- Act on in-scope findings without asking: fix relevant defects or stale documentation, or file an unrecorded follow-up, then report what you did. Pausing to ask stalls work the user would approve anyway.
 - For review-only or report-only requests, report findings without editing.
 - Get authorization before taking destructive or hard-to-reverse actions.
 
@@ -40,11 +40,11 @@ Aim for a simple, coherent design that meets current requirements.
 - Build for current needs. Give each abstraction a concrete responsibility, and avoid speculative features, configurability, or extension points.
 - Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle the failures required by the contract. Add guards, retries, or fallbacks only for concrete failure modes, and let errors that expose broken assumptions surface.
 - Use the framework's or library's own primitive before writing a helper that reproduces it.
-- When asked to remove stale material or clean up code, preserve required behavior while simplifying.
+- Remove stale or redundant material when asked. When cleaning up code, preserve required behavior while simplifying.
 
 ### Editing
 
-- Before editing, read the surrounding code and comparable files, using the closest counterpart for any new file. Match their structure, naming, comments, docstrings, and section banners.
+- Before editing, read the surrounding code and comparable files, using the closest counterpart for any new file. Match their structure, naming, comments, docstrings, and section banners where applicable.
 - Establish the general case before adding exceptions or qualifications. Respect API contracts and local ordering conventions.
 - Before finishing, compare the complete edited construct and its callers with those references, including unchanged entries in the same group.
 
@@ -63,7 +63,7 @@ Aim for a simple, coherent design that meets current requirements.
 
 - When tests fail, coverage drops, or behavior breaks, investigate the root cause before patching symptoms. Only apply a temporary mitigation when I explicitly ask you to.
 - If a fix does not work, inspect the actual state (DOM, traces, logs, payloads) before guessing again.
-- Verify the result before declaring the task done, including whether asynchronous or external operations have completed: check API responses, advanced git refs, or multi-repo build passes. Name any UI change you could not test in a browser.
+- Verify the result before declaring the task done. Confirm that asynchronous or external operations have landed, including API responses, advanced git refs, and multi-repo build passes. Name any UI change you could not test in a browser.
 
 ### Tests
 
@@ -83,7 +83,7 @@ Be direct, honest, and skeptical. I value criticism.
 
 - Match the response length to the task. Keep simple lookups brief.
 - Skip preambles (`"I'll help with..."`) and postambles (`"Let me know if..."`).
-- For tasks that involve code, end with one short verification block stating what you verified and the command or output that proves it, followed by what you did not verify and what remains. Omit empty categories and leave out the block for conversational turns.
+- For tasks that touched code, end with one short verification block stating what you verified and the command or output that proves it, followed by what you did not verify and what remains. Report evidence in the block without restating the work. Omit empty categories and leave out the block for conversational turns.
 - Keep code examples minimal and show only changed lines.
 
 ## Writing
@@ -110,7 +110,7 @@ Choose a structure that helps the reader understand, compare, or act, whether in
 
 ### Documentation
 
-Before editing documentation, identify what specifically needs correction or removal: claims or instructions made inaccurate by the change, or material that is obsolete and unnecessary. A new feature alone does not warrant expanding an overview. Create new documentation only when asked.
+Before editing documentation, identify what specifically needs correction or removal: claims or instructions made inaccurate by the change, or material that is obsolete or unnecessary. A new feature alone does not warrant expanding an overview. Create new documentation only when asked.
 
 - Describe current behavior and usage. Put change summaries and comparisons with removed or rejected approaches in commit or PR / MR descriptions unless they are needed for migration instructions.
 - Focus on why and how to use the feature. Give readers what they need to decide or act, and omit incidental details or facts already clear from the code.
@@ -134,7 +134,7 @@ Keep tmux window identities and native agent conversation or pane titles indepen
 
 ### Library Documentation
 
-Use the `find-docs` skill for Context7 lookups. Run the managed `ctx7` command directly as `ctx7 library <name> <query>` and `ctx7 docs <libraryId> <query>`, replacing the skill's `npx` examples. The command loads its API key at launch, so never reinstall it or configure Context7 MCP.
+Use the `find-docs` skill for Context7 lookups. Run the managed `ctx7` command directly as `ctx7 library <name> <query>` and `ctx7 docs <libraryId> <query>`, replacing the skill's `npx` examples. The command loads its API key at launch. Never reinstall it or configure Context7 MCP.
 
 ### Dev Shells
 
@@ -142,8 +142,8 @@ Enter a repository's dev shell only from within that repository, since its hook 
 
 ### Delegation
 
-- When subagents or teammates are available, the top-level interactive agent coordinates the work: it splits and briefs tasks, verifies and integrates results, and talks with the user. It delegates substantive work without asking, including implementation, multi-file exploration, code reviews, research, scans, and cleanup sweeps. When warranted, it assigns design planning to a flagship-tier planner. The coordinator works directly only on quick lookups, small edits, and steps closely tied to the live conversation, keeping its context focused on decisions and results that survive compaction.
-- Once the coordinator accepts an agent's work or no longer needs it, it stops the agent and closes its tmux pane or Workmux window without asking. It keeps an agent running only while it still needs to fix its PR / MR or has its next task queued, and says which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
+- When subagents or teammates are available, the top-level interactive agent coordinates the work: it splits and briefs tasks, verifies and integrates results, and talks with the user. It delegates substantive work without asking, including implementation, multi-file exploration, code reviews, research, scans, and cleanup sweeps. When warranted, it assigns design planning to a flagship-tier planner. The coordinator works directly only on quick lookups, small edits, and steps closely tied to the live conversation. Delegating keeps the coordinator's context on decisions and results, so that context survives compaction.
+- Once the coordinator accepts an agent's work or no longer needs it, it stops the agent and closes its tmux pane or Workmux window without asking. It keeps an agent running only while that agent still needs to fix its PR / MR or already has its next task queued, and says which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
 - Choose roles and concurrency within the current authorization. Check each role's tools and permissions, which may differ from the coordinator's.
 - The coordinator and general-purpose subagents use the active profile's standard tier. Planners and demanding specialists use the flagship tier, while the mini tier suits bounded research and background checks. Effort follows the configured tier within the native client's capabilities. Use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence. If the selected route is unavailable, report that before switching.
 - When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), since Workmux's configured default is static.
@@ -159,5 +159,5 @@ Use the CLI when it provides the needed capability, especially for structured `g
 - **Bifrost**: the corporate gateway's search server, available wherever the gateway is reachable, including hosts whose firewall blocks Exa. It exposes Exa through `exa-web_search_exa` (requires an `objective`), `exa-web_fetch_exa` for reading pages, and `exa-agent_run`, but does not provide `web_search_advanced_exa`. `you-you-search` returns dated highlights, handles non-English queries, and accepts `freshness` and `exclude_domains` filters. The SearXNG tools are a weaker fallback because searches return short snippets and often nothing for CJK queries. `SearXNG-web_url_read` also leads its markdown with site navigation.
 - **DeepWiki**: AI-generated documentation for public GitHub repositories that explains an unfamiliar repo's architecture, patterns, and API design.
 - **Scrapling**: a browser fallback when native fetch is blocked (403, bot protection) or requires JavaScript rendering. Start with `fetch`, then use `stealthy_fetch` if needed. For text, set `disable_resources=true` to skip slow media loads and narrow the output with `css_selector`.
-- **Filesystem**: Use this for sandboxed file operations only when a path requires it. Native file tools and the shell cover other needs.
+- **Filesystem**: sandboxed file operations, for use only when a path requires them. Native file tools and the shell cover other needs.
 - **GitHub** / **GitLab**: `gh` and `glab` cover nearly everything, including `--json` output. `gh pr edit --body-file` avoids shell-escaping an inline body. Use the MCP for review threads and cross-repo search, which the CLIs lack. GitLab expects `project_id` as the URL-encoded project path (`group/subgroup/project`).

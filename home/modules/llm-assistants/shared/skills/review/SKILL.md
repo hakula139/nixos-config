@@ -20,7 +20,7 @@ Infer the target from the request and conversation. Ask only if it remains ambig
 - **All open PRs / MRs:** Review each one separately.
 - **Commit range or uncommitted work:** Review the specified range or the staged, unstaged, and untracked changes. Keep those change groups separate when staging affects their meaning.
 
-For a branch comparison, refresh the relevant remote refs, then use `git merge-base` and `git diff <base>...HEAD`. If the PR / MR head differs from the checkout, run tools against it in a separate worktree and leave the current one untouched. If fetching fails, state which revision you reviewed.
+For a branch comparison, refresh the relevant remote refs, then use `git merge-base` and `git diff <base>...HEAD`. If tools must run against a PR / MR head that differs from the checkout, use a separate worktree and leave the current one untouched. If fetching fails, state which revision you reviewed.
 
 ## Load the instructions
 
@@ -28,7 +28,7 @@ Apply the global instructions, the repository's `AGENTS.md` / `CLAUDE.md` files,
 
 ## Review each dimension
 
-A whole-repository review covers existing code and design, so challenge choices that a better design could replace. For a diff review, read each touched file in full because defects in unchanged lines of a touched function are in scope. Trace every changed contract through its callers, tests, configuration, and documentation, including sibling repositories the project integrates with, such as downstream consumers checked out nearby.
+A whole-repository review covers existing code and design, so challenge choices that a better design could replace. For a diff review, read each touched file in full because defects in unchanged lines of a touched function are in scope. Trace every changed contract through its callers, tests, configuration, and documentation. For DRY, consistency, and integration checks, include sibling repositories the project integrates with, such as downstream consumers checked out nearby.
 
 - **Correctness and edge cases:** broken assumptions, empty or boundary inputs, paths, permissions, data shapes, concurrency, and resource lifecycles.
 - **Error handling:** swallowed or merely logged errors, overly broad catches, fallbacks that hide failures, and unhelpful messages.
@@ -74,7 +74,7 @@ If the repository ignores the plans directory `.agents/plans/`, save the review 
 
 Each finding needs a `file:line` reference, the triggering condition, the resulting failure or maintenance cost, a suggested fix, and its verification mark. Use the repository's severity scheme if it has one. Otherwise, use:
 
-- **Critical:** Bugs that break core behavior, builds, or deployment, security vulnerabilities, or cause data loss.
+- **Critical:** Bugs that break core behavior, builds, or deployment, as well as security vulnerabilities and data loss.
 - **Warning:** Edge-case failures with a named trigger, missing error handling or behavioral coverage, and maintainability problems with a concrete cost.
 - **Suggestion:** Issues with conventions, consistency, ordering, or readability.
 
@@ -84,7 +84,7 @@ When in doubt, choose the lower severity. Avoid generic requests to add tests.
 
 - **Review (default):** Report findings without editing files, committing, or posting comments. Post PR / MR comments only when asked.
 - **Fix:** Resolve every verified finding in the same round, including Suggestions and pre-existing issues. Do not defer any to follow-up PRs or TODOs. Fix findings specific to a PR on its branch, and put pre-existing issues and repository-review fixes in scoped PRs / MRs. Resolve design questions from first principles and record each decision with its rationale in the PR / MR description. Rerun checks and review the fixed areas until no findings remain, then commit and publish through `git-workflow`.
-- **Merge:** Once no findings remain, merge each reviewed PR / MR through `git-workflow`, update pins or submodules that track the merged commit, and clean up as described in its Cleanup section.
+- **Merge:** Once no findings remain, merge each reviewed PR / MR through `git-workflow`, update pins or submodules that track the merged commit, and clean up as the `git-workflow` skill's Cleanup section describes.
 
 ## Report
 
