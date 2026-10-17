@@ -6,6 +6,15 @@
 
 const MAX_LINES = 10
 
+# dprint-plugin-markdown formats a `markdown` or `md` fence as a nested document, with no option to
+# turn that off, and so rewrites examples whose layout is the point. Prefixing the tag on a fence's
+# opening line makes the plugin keep the block as written, and removing the prefix restores the tag.
+const KEEP_TAG = "keep-as-written-"
+# A fence's opening line up to its tag: indentation, a backtick or tilde run, and spaces.
+const FENCE_OPENING = '^([ \t]*(?:`{3,}|~{3,})[ \t]*)'
+const MARKDOWN_FENCE = '(?im)' + $FENCE_OPENING + '(markdown|md)\b'
+const KEPT_FENCE = '(?m)' + $FENCE_OPENING + $KEEP_TAG
+
 # Dev-only tools are empty strings on non-dev hosts.
 def have [tool: string]: nothing -> bool {
   which $tool | is-not-empty
@@ -39,11 +48,12 @@ def format-markdown [path: string, config: record] {
     let dprint = $config.dprint
     let run = (
       open --raw $path
+      | str replace --all --regex $MARKDOWN_FENCE ('${1}' + $KEEP_TAG + '${2}')
       | ^$dprint fmt --config $config.dprintConfig --stdin md
       | complete
     )
     if $run.exit_code == 0 and ($run.stdout | is-not-empty) {
-      $run.stdout | save --force --raw $path
+      $run.stdout | str replace --all --regex $KEPT_FENCE '${1}' | save --force --raw $path
     }
   } catch { null }
 }
