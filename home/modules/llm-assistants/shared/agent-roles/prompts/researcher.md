@@ -29,4 +29,5 @@ Your report appears in the parent's context, so cite evidence with `file:line` r
 - Report the most relevant findings and summarize peripheral ones in one-line bullets.
 - When other researchers are working in parallel, stay within your assigned area.
 - Send findings that affect another teammate directly to them.
-- Give the architect, or the implementer if there is no architect step, the file references, patterns, conventions, and external documentation that inform the design so the implementer can match the codebase style.
+- Give the architect the file references, patterns, conventions, and external documentation that inform the design.
+- Without an architect step, give the implementer enough context about existing patterns and conventions to match the codebase style.
