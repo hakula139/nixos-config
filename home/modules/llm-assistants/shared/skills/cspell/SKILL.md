@@ -76,7 +76,7 @@ Put the directive in the file it covers. Use a filename override with `ignoreWor
 
 - `cspell:disable-line` suppresses its entire line, including unrelated mistakes, so inspect the other words on the line first. In Markdown, an inline HTML comment keeps the directive out of rendered prose.
 - `cspell:disable-next-line` suppresses the next content line. Place it directly above the target without a blank line, unless the formatter requires one. CSpell 9.7.0 supports this layout, but verify it with the project's pinned version.
-- `cspell:ignore` accepts the listed tokens throughout the file while keeping surrounding words checked, but it also allows them elsewhere in the file, which needs review. Prefer it, or an exact literal pattern, to a line directive when nearby prose still needs checking.
+- `cspell:ignore` accepts the listed tokens throughout the file while keeping surrounding words checked, so review their other occurrences in that file. Prefer it, or an exact literal pattern, to a line directive when nearby prose still needs checking.
 
 <!-- dprint-ignore -->
 ```markdown
@@ -85,6 +85,8 @@ Put the directive in the file it covers. Use a filename override with `ignoreWor
 <!-- cspell:disable-next-line -->
 `legacyRecieveValue`
 ```
+
+### Exclusions
 
 Language dictionaries can cover real foreign-language text. Exclusions for generated files, code samples, mathematics, or markup need an ownership reason. Source identifiers under investigation often need spelling checks even inside code spans, so check which content the spelling check owns before copying broad code or comment exclusions, and avoid patterns that suppress arbitrary identifiers.
 

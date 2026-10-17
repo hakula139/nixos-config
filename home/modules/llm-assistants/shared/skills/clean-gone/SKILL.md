@@ -41,7 +41,7 @@ Remove branches with deleted upstream refs while protecting uncommitted and unme
 
    Before manually removing a skipped worktree, inspect its tracked, untracked, and ignored files, including files in every submodule, and preserve any unique local content. You may discard a change already preserved elsewhere once you verify that the copies match. Leave active worktrees and unresolved changes alone.
 
-   Once integration and preservation are established, run `git worktree remove`, then `git branch -D` if squash history prevents ordinary deletion. Use `git worktree remove --force` only after verifying integration, confirming that all tracked, untracked, and ignored content in the worktree and every submodule is clean or preserved, and checking that no agent, process, or terminal is using them. This applies to worktrees Git refuses to remove because they contain submodules, and the authorization in step 3 covers it. Never recursively delete directories to bypass unresolved state.
+   Once integration and preservation are established, run `git worktree remove`, then `git branch -D` if squash history prevents ordinary deletion. If Git refuses ordinary worktree removal, such as for a worktree that contains submodules, use `git worktree remove --force` only after verifying integration, confirming that all tracked, untracked, and ignored content in the worktree and every submodule is clean or preserved, and checking that no agent, process, or terminal is using them. The authorization in step 3 covers this verified fallback. Never recursively delete directories to bypass unresolved state.
 
 5. Report the worktrees and branches removed or skipped, the evidence for each manual cleanup, and the reason for each remaining skip.
 

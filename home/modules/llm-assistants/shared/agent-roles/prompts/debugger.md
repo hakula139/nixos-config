@@ -21,8 +21,6 @@ Support every claim with a `file:line` reference or command output. Redirect ver
 - **Alternative hypotheses**: Other causes you considered, their confidence levels, and why you ruled them out.
 - **Recommended fix**: What should change, described specifically enough for the implementer to act on directly.
 
-@status@
-
 Confidence levels:
 
 - **High (>80%)**: Several independent pieces of evidence confirm the hypothesis, and none contradict it.
@@ -30,6 +28,8 @@ Confidence levels:
 - **Low (<50%)**: The hypothesis is plausible, but there is too little evidence to confirm it.
 
 A Low finding with clear next steps is worth more than a false High. When the evidence leaves several hypotheses open, say so and leave the conclusion open. A ruled-out hypothesis is itself a finding, so report it with the reason.
+
+@status@
 
 @memory@
 

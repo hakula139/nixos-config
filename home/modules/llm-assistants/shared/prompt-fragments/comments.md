@@ -2,7 +2,7 @@
 
 **Docstrings document contracts** according to the project's conventions. Include the non-obvious constraints, units, ownership, errors, or invariants callers need to know. Keep docstrings concise and avoid restating the item's name or implementation.
 
-**Preserve useful rationale.** When editing, remove comments that repeat the code and correct misleading ones. Investigate uncertain comments before deleting them, since they may record a constraint that still applies.
+**Preserve useful rationale.** Within the scope of an edit, remove comments that repeat the code and correct misleading ones. Investigate uncertain comments before deleting them, since they may record a constraint that still applies.
 
 **Align trailing comments** in directory trees and similar listings in one column, several spaces after the longest entry, so a small rename does not shift every comment.
 
@@ -17,6 +17,7 @@ Avoid:
 Worth keeping:
 
 - **The meaning of a cryptic flag, literal, or API quirk** that would otherwise require external documentation, such as what a flag does to a squash merge or why a unit is `oneshot`.
+- **A short reason naming an external behavior the code must match**, such as `# Mirrors Claude Code` or `// Matches git's exit codes`, which records a compatibility constraint however brief. A provenance comment that says only where the code came from, without constraining how it may change, belongs in the PR / MR description.
 - **A Nushell comment directly above a `def`**, which Nushell renders as the command's `--help` text.
-- **A label naming the construct matched by a non-obvious regex.** This is the case where stating what it matches earns a comment, since nobody reads `[=*_-]{4,}\s*$` as "a run of rule characters to end of line" without stepping through the pattern.
+- **A label naming the construct matched by a non-obvious regex.** Restating the pattern in words is the one case where WHAT earns its place, since nobody reads `[=*_-]{4,}\s*$` as "a run of rule characters to end of line" without stepping through the pattern.
 - **Section banners** where surrounding or comparable files use them, including nested sections when that is the convention. Use short labels (`# Module options`, `# Formatter configuration`) and follow the existing decoration. Explanatory sentences in a file header follow the usual comment rules.

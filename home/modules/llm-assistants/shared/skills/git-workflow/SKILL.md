@@ -16,16 +16,16 @@ Read the repository's contribution instructions before starting, and use its own
 ## Authorization
 
 - **Publish completed changes by default.** For requested work and incidental environment repairs, create a task branch if needed, commit the verified changes, push them, and create or update a PR / MR before reporting completion. Reuse the task's existing branch and request when appropriate.
-- **Clean up finished work by default.** You may remove a merged branch and its verified-clean worktree, or an abandoned branch whose commits all exist on a remote. You may also delete plans and notes when a closed issue or merged PR / MR confirms the work is complete. Ask before deleting abandoned work with commits missing from every remote, or notes whose completion you cannot confirm.
+- **Clean up finished work by default.** You may remove a merged branch, or an abandoned branch whose commits all exist on a remote, together with its worktree once that worktree is verified clean. You may also delete plans and notes when a closed issue or merged PR / MR confirms the work is complete. Ask before deleting abandoned work with commits missing from every remote, or notes whose completion you cannot confirm.
 - **Honor narrower authorization.** Review-only and draft-text-only requests do not authorize publication. Follow instructions to keep work local, avoid pushing, or omit a PR / MR. Create tags and backup refs only when explicitly requested.
-- **Get explicit approval before merging each PR / MR.** Blanket approval given earlier does not cover requests opened later in the session. Share the URL and wait for `lgtm` or `merge` naming that PR / MR. A request to review and merge authorizes merging each PR / MR covered by the review, including requests opened for its fixes, once the review reports no remaining findings.
+- **Get explicit approval before merging each PR / MR.** Blanket approval given earlier does not cover requests opened later in the session. Share the URL and wait for `lgtm` or `merge` referring to that specific PR / MR. A request to review and merge authorizes merging each PR / MR covered by the review, including requests opened for its fixes, once the review reports no remaining findings.
 
 ## Commits
 
 - Commit each logical chunk after its checks pass and before moving on.
 - Verify the current branch and inspect the diff, then stage only the intended files or hunks.
 - Use `type(scope): description` in the imperative mood, with one logical change per commit. Types are `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, and `perf`. Infer the scope and granularity from the affected component, file, or host, and from comparable commits.
-- For substantial changes, include a body explaining the problem, rationale, and relevant tradeoffs or validation without repeating the subject. Small, self-explanatory changes need only a subject.
+- For substantial changes, include a body explaining the problem, rationale, and relevant tradeoffs or validation without repeating the subject. Keep the body proportional to the change. Small, self-explanatory changes need only a subject.
 - Name branches `<type>/<short-name>` using the same types, and keep an appropriate existing branch.
 
 ## Pull / Merge Requests
@@ -44,9 +44,9 @@ Read the repository's contribution instructions before starting, and use its own
 Follow the repository's conventions for structure. The guidance below applies within that structure and fills gaps only when the evidence does not determine the choice.
 
 - Open with the concrete problem or goal and the resulting behavior, using the established opening section if there is one.
-- Give reviewers the details they need to assess the change, including rationale, tradeoffs, measurements, or migration steps where relevant.
+- Give reviewers the details they need to assess the change, including rationale, tradeoffs, measurements, or migration steps where relevant. Preserve the established headings and validation format while removing repetition.
 - Report the checks you ran and their results in the repository's validation format. Distinguish verified behavior from untested limits.
-- Write for reviewers who have not seen the conversation. Include review fixes in the description, and omit implementation history, commit inventories, and abandoned approaches unless they explain a current tradeoff.
+- Write for reviewers who have not seen the conversation. Fold review fixes into the description, and omit implementation history, commit inventories, and abandoned approaches unless they explain a current tradeoff.
 - Omit boilerplate sections, generated-by attributions, and emojis unless requested.
 - Keep local-only paths out of commits and descriptions. Never include internal information in a description, including internal URLs or plain-text references.
 
@@ -55,7 +55,7 @@ Follow the repository's conventions for structure. The guidance below applies wi
 - Before creating or updating a request, compare its complete title and body with the recorded conventions and examples. Fix any differences in heading hierarchy, section order, or validation format. Reading the examples alone does not complete this check.
 - Before pushing, verify the base branch, diff, and commit count. If asked only to draft a title and body, return the text without publishing. A request for a draft PR / MR authorizes publishing it as a draft.
 - When creating a request, set assignees and existing labels, using the hosting service's CLI when available.
-- Pass multiline bodies through a file, such as `gh pr create --body-file <file>` or `gh pr edit --body-file <file>`. Use `#N` for issues and GitHub PRs in the same repository, and `!N` for GitLab MRs.
+- Pass multiline bodies through a file or structured argument, such as `gh pr create --body-file <file>` or `gh pr edit --body-file <file>`. Use `#N` for issues and GitHub PRs in the same repository, and `!N` for GitLab MRs.
 - Read back each created or updated request to verify its title, body, base, diff, assignees, and labels. Correct anything lost from the published body before reporting completion.
 - For an approved merge, confirm that CI passes on the current head and the host reports the branch as mergeable. Use the repository's merge method, then verify the remote state. Rebase only if the branch conflicts or the host requires it to be up to date. Confirm CI passes on the target branch after the merge, since it checks the combined result. For GitHub squash merges, keep GitHub's default commit message. Report queued auto-merges as pending until they land.
 
@@ -72,9 +72,9 @@ A mechanical conflict resolution can compile while silently reverting an upstrea
 An issue is a public record of one unit of work, with a designated place for each kind of information:
 
 - **Description:** the current specification, including the goal, acceptance criteria, decisions and scope, dependencies, and findings that shape the work. Edit it in place, mark criteria as they are met, and replace superseded wording so the body shows the current state on its own.
-- **Comments:** events that watchers should be notified about. These include why an issue is being closed without a linked PR / MR closing it (not planned, duplicate, or completed by other means), why it is being reopened, questions that need a reply, and brief notices of material scope changes that point to the edited description. Skip progress updates and information already shown in a linked PR / MR.
+- **Comments:** events that watchers should be notified about. These include why an issue is being closed without a linked PR / MR closing it (not planned, duplicate, or completed by other means), why it is being reopened, questions or discussion that need a reply, and brief notices of material scope changes that point to the edited description. Skip progress updates and information already shown in a linked PR / MR.
 - **Local working notes:** execution details such as agent assignments, worktrees, in-flight branches, ordering, raw research, and private context. Keep these in the session or a gitignored plans directory, never in the issue.
-- **Existing comments:** incorporate each comment's decision or finding into the description. Delete the comment only after the description covers everything it says.
+- **Existing comments:** when a comment carries a decision or finding that belongs in the spec, fold it into the description. Delete the comment only after the description covers everything it says.
 
 Pass an edited body through a file or structured argument, then read the issue back.
 
@@ -82,7 +82,7 @@ Pass an edited body through a file or structured argument, then read the issue b
 
 When work finishes, clean up within the authorization above. Stale worktrees, branches, and plans can mislead later sessions, while scratch builds fill the disk.
 
-- Before removing a worktree, check for uncommitted, untracked, and ignored files, and confirm that no other agent or terminal is using it. `git -C <worktree> status --short --ignored` lists the ignored files. Diff unique ignored content, such as agent memory directories, local settings, and notes, against its counterpart in the main checkout, and merge anything missing there.
+- Before removing a worktree, check it for uncommitted, untracked, and ignored files, preserve anything still needed, and confirm that no other agent or terminal is using it. `git -C <worktree> status --short --ignored` lists the ignored files. Diff unique ignored content, such as agent memory directories, local settings, and notes, against its counterpart in the main checkout, and merge anything missing there.
 - Remove the worktree and its local branch, then prune its remote-tracking ref. Use the repository's tooling or the `clean-gone` skill for merged branches. Delete a remote branch only when explicitly requested.
 - Delete completed plans and working notes from the plans directory, such as a gitignored `.agents/plans/`. Rewrite stale notes to show only the current state and remaining work.
 - When its task ends, each agent removes any scratch copies and build directories it created, such as `git archive` exports and their `CARGO_TARGET_DIR`s under `/tmp`. In its report, name anything it leaves for someone else.
