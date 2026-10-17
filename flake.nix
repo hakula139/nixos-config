@@ -379,7 +379,15 @@
         in
         {
           default = pkgs.mkShell {
-            inherit (preCommitCheck) shellHook;
+            # The hook installs into whatever repository the shell starts in, so it runs only in a
+            # checkout of this flake, whose `flake.nix` matches the one this shell was built from.
+            shellHook = ''
+              toplevel=$(${pkgs.lib.getExe pkgs.git} rev-parse --show-toplevel 2>/dev/null)
+              if ${pkgs.diffutils}/bin/cmp -s "$toplevel/flake.nix" ${./flake.nix}; then
+                ${preCommitCheck.shellHook}
+              fi
+              unset toplevel
+            '';
             buildInputs = basePackages;
           };
 
