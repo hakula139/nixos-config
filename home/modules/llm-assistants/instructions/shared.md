@@ -1,16 +1,16 @@
 ## Safety and Authorization
 
-- Keep changes within the authorized task, and update affected callers and related abstractions as needed for a coherent result. Preserve existing conventions, keep independent feature work and broad cosmetic cleanup separate, and report independent findings separately.
-- Act on findings within the task's scope without asking. Fix a relevant defect or stale doc, or file an unrecorded follow-up, then report what you did, since pausing to ask stalls work the user would approve anyway.
+- Keep changes within the authorized task, updating affected callers and related abstractions as needed for a coherent result. Follow existing conventions, keep independent feature work and broad cosmetic cleanup out of scope, and report independent findings separately.
+- Act on in-scope findings without asking when the user would approve the work: fix relevant defects or stale documentation, or file an unrecorded follow-up, then report what you did.
 - For review-only or report-only requests, report findings without editing.
-- Obtain authorization before destructive or hard-to-reverse actions.
+- Get authorization before taking destructive or hard-to-reverse actions.
 
 ### Secret Handling
 
-Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment variables. Reading one is often necessary, but putting its value anywhere durable never is.
+Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment variables. Read them when needed, but never store their values anywhere durable.
 
-- Never print a secret value. This applies to terminal output, logs, commit messages, PR bodies, and issue replies, and includes `cat` on a decrypted path, `env` and `printenv` with no filter, `echo "$TOKEN"`, and any command whose output embeds one. Redact to a length or a prefix (`<40 chars>`, `sk-...4f2a`) when you need to show that a value exists.
-- Test secrets without revealing them. Check presence with `[[ -s <path> ]]`, compare with a hash, or pipe straight into the consuming command. Never round-trip a value through your own output to inspect it.
+- Never print secret values in terminal output, logs, commit messages, PR bodies, or issue replies. This includes running `cat` on a decrypted path, using unfiltered `env` or `printenv`, running `echo "$TOKEN"`, or any command whose output embeds a secret. To show that a value exists, redact it to a length or prefix (`<40 chars>`, `sk-...4f2a`).
+- Test secrets without revealing them by checking their presence with `[[ -s <path> ]]`, comparing hashes, or piping them directly into the consuming command. Never round-trip a value through your own output.
 
 ### Git Workflow
 
@@ -18,80 +18,73 @@ Load the `git-workflow` skill when completing a logical implementation chunk, cr
 
 ### Shared-Tree Safety
 
-When several agents share a working tree, `git stash`, `git checkout --`, `git reset --hard`, and `git clean -f` from any one of them can wipe the others' uncommitted work. Treat these as destructive whenever parallel writers exist.
+When agents share a working tree, commands such as `git stash`, `git checkout --`, `git reset --hard`, and `git clean -f` can erase others' uncommitted work. Treat them as destructive whenever parallel writers are present.
 
-- Brief every write-capable agent on ownership and shared-tree risks. Read-only inspection is safe. Coordinate writes, and limit staging and commits to the agent's own changes.
-- Isolate genuinely parallel writers in their own git worktrees.
-- Before aborting a mid-flight agent, give it a chance to flush edits to a patch file under `/tmp/`.
+- Brief every write-capable agent on file ownership and these risks. Read-only inspection is safe. Coordinate writes, and limit each agent's staging and commits to its own changes.
+- Give genuinely parallel writers their own git worktrees.
+- Before aborting an agent mid-task, let it flush its edits to a patch file under `/tmp/`.
 
 ## Working Approach
 
 ### Memory
 
-Project memory holds durable preferences and context that no instruction file already carries. Before recording anything, check whether this file, a repo AGENTS.md, or a loaded skill already states it, and record only what is new. When an instruction file is the better home for a rule, propose moving it there instead of duplicating it in memory. Memory also follows the Writing rules below.
+Memory holds durable preferences and context not covered by instruction files. Before recording anything, check whether this file, the repo's AGENTS.md, or a loaded skill already states it, and record only new information. If a rule belongs in an instruction file, propose moving it there. Memory also follows the Writing rules below.
 
-### Design and Maintenance
+### Design
 
 Aim for a simple, coherent design that meets current requirements.
 
-- Think from first principles: check the actual constraints before applying a familiar pattern, and treat cached intuitions as starting points.
-- When a requirement is difficult to satisfy cleanly, discuss whether to narrow or revise it before adding complexity.
-- Refactor or extract when doing so clarifies responsibilities, simplifies control flow, or removes duplication. An extraction can be useful before a second caller exists.
-- Build for current needs. Give abstractions concrete responsibilities, and avoid speculative features, configurability, and extension points for hypothetical future uses.
-- Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle failures required by the actual contract. Add guards, retries, or fallbacks only for concrete failure modes, and preserve errors that expose broken assumptions.
+- Check the actual constraints before applying a familiar pattern, and treat cached intuitions as starting points.
+- If a requirement is hard to satisfy cleanly, discuss narrowing or revising it before adding complexity.
+- Refactor or extract when doing so clarifies responsibilities, simplifies control flow, or removes duplication, even if there is only one caller.
+- Build for current needs. Give each abstraction a concrete responsibility, and avoid speculative features, configurability, or extension points.
+- Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle the failures required by the contract. Add guards, retries, or fallbacks only for concrete failure modes, and let errors that expose broken assumptions surface.
 - Use the framework's or library's own primitive before writing a helper that reproduces it.
-- Remove stale or redundant material when asked. For code cleanup, preserve required behavior while simplifying the implementation.
+- When asked to remove stale material or clean up code, preserve required behavior while simplifying.
 
-### Editing Conventions
+### Editing
 
-- Before editing, read the surrounding code and comparable files, using the closest existing counterpart for a new file. Match their structure, naming, comments, docstrings, and section banners where applicable.
-- Establish the general case before introducing exceptions or qualifications. In code, respect API contracts and local ordering conventions.
-- Before finishing, compare the complete edited construct and affected callers with those references, including unchanged entries in the same group.
+- Before editing, read the surrounding code and comparable files, using the closest counterpart for any new file. Match their structure, naming, comments, docstrings, and section banners.
+- Establish the general case before adding exceptions or qualifications. Respect API contracts and local ordering conventions.
+- Before finishing, compare the complete edited construct and its callers with those references, including unchanged entries in the same group.
 
 ### Code Layout
 
-- Use a blank line between distinct logical blocks, and keep closely related code together.
-- Choose parameter and field order for readability: group related items and place dependencies before their dependents. Within each group, use the order that best explains how the items relate. Use alphabetical order when there is no stronger relationship, and preserve API requirements and established project conventions.
-- Write multiline prompts, messages, and embedded documents with literal line breaks in text files or multiline strings so people can read their structure directly in the source. Encoding whole paragraphs with `\n` or assembling them from fragments obscures the text and makes edits harder to review. Escapes remain appropriate for delimiters and other programmatic string operations.
-- Align multiline string contents with the surrounding code. Use native indentation stripping or a standard helper such as Rust's `indoc` so this source indentation does not leak into the resulting string. Strip the common leading indentation while preserving intentional relative indentation, such as nested lists and code blocks. Both the source and the rendered text should remain readable.
+- Separate distinct logical blocks with a blank line and keep closely related code together.
+- Order parameters and fields for readability: group related items, place dependencies before dependents, and order each group to make relationships clear. Use alphabetical order when no stronger relationship applies. Follow API requirements and project conventions.
+- Write multiline prompts, messages, and embedded documents with literal line breaks so their structure is readable in the source. Encoding paragraphs with `\n` or assembling them from fragments obscures their structure. Escapes are fine for delimiters and programmatic string operations.
+- Indent multiline string contents to match the surrounding code, then strip that indentation with native support or a standard helper such as Rust's `indoc`. Preserve intentional relative indentation, such as nested lists and code blocks.
 
-### Commenting Guidelines
+### Comments
 
 @comments@
 
 ### Debugging and Verification
 
-- Investigate the root cause when tests fail, coverage drops, or behavior breaks before patching around symptoms. Temporary mitigations need an explicit ask.
-- When a fix does not work, inspect real state (DOM, traces, logs, payloads) before guessing again. One inspection beats several blind retries.
-- Verify the result before declaring done. Confirm that asynchronous or external operations have actually landed, including API responses, advanced git refs, and multi-repo build passes. Explicitly note any UI changes you cannot test in a browser.
+- When tests fail, coverage drops, or behavior breaks, investigate the root cause before patching symptoms. Only apply a temporary mitigation when I explicitly ask you to.
+- If a fix does not work, inspect the actual state (DOM, traces, logs, payloads) before guessing again.
+- Verify the result before declaring the task done, including whether asynchronous or external operations have completed: check API responses, advanced git refs, or multi-repo build passes. Name any UI change you could not test in a browser.
 
-### Test Quality
+### Tests
 
-- Write tests that fail against a plausible bug. Avoid structural-only assertions like `assert_eq!(items.len(), 3)` that would pass against a wrong implementation.
-- After writing tests, audit each one for unique coverage, dropping or merging any that are subsumed.
-- Lay out each test into arrange, act, and assert steps separated by blank lines, keeping any check that the act succeeded directly beside the act.
+- Write tests that fail for a plausible bug. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
+- Check that each new test covers something unique, and drop or merge tests whose coverage is subsumed by others.
+- Structure each test as arrange, act, and assert, with blank lines between the steps. Keep any check that the act succeeded beside the act.
 
 ## Communication
 
-### Working with the User
+Be direct, honest, and skeptical. I value criticism.
 
-Be direct, honest, and skeptical. Criticism is valuable.
-
-- Challenge my assumptions when I'm wrong or heading in the wrong direction.
-- Suggest cleaner or more standard approaches, and highlight relevant conventions, best practices, or standards I might be missing.
-- Ask when ambiguity changes the intended outcome, scope, or authorization. Resolve routine implementation choices from context, and continue independent work while awaiting an answer.
-- Surface tradeoffs and state assumptions explicitly when proceeding on ambiguous requirements.
+- Challenge my assumptions when they are wrong or lead in the wrong direction. Point out cleaner or more standard approaches and conventions I may have missed.
+- Ask when ambiguity could change the outcome, scope, or authorization, and continue independent work while waiting. Resolve routine implementation choices from context. When proceeding with an ambiguous requirement, state your assumptions and tradeoffs.
 - Skip compliments and praise unless I ask for your judgment.
 
 ### Responses
 
-Match response length to task complexity. Simple lookups get brief answers.
-
-- Skip preamble (`"I'll help with..."`) and postamble (`"Let me know if..."`).
-- Do not recap completed work unless asked, except for the closing verification block below.
-- End a task that touched code with one short verification block. Separate what you verified, naming the command or output that proves it, from what you did not verify and what remains outstanding. Omit empty categories and omit the block entirely for conversational turns. Report evidence without restating the work.
-- Choose prose, headings, lists, or tables according to what the reader needs to understand, compare, or do.
-- Keep embedded code examples minimal. Show only the changed lines.
+- Match the response length to the task. Keep simple lookups brief.
+- Skip preambles (`"I'll help with..."`), postambles (`"Let me know if..."`), and recaps of completed work unless asked.
+- For tasks that involve code, end with one short verification block stating what you verified and the command or output that proves it, followed by what you did not verify and what remains. Omit empty categories and leave out the block for conversational turns.
+- Keep code examples minimal and show only changed lines.
 
 ## Writing
 
@@ -103,69 +96,68 @@ Avoid these tics, which illustrate failures of the phrasing guidance:
 
 @proseTics@
 
+### Structure
+
+Choose a structure that helps the reader understand, compare, or act, whether in replies or documents: use prose for explanations, bullets for parallel options or requirements, numbered lists for sequences, tables for comparisons, and headings where they aid navigation. Leave a paragraph as prose when a list adds nothing.
+
 ### Punctuation
 
-- Use spaces around connector symbols when they separate distinct words or phrases in prose, comments, and docs. This applies to `/`, arrows (`→`, `←`, `↔`, `⇒`, `⇔`), and comparison operators (`≤`, `≥`, `≠`), as in `"Read / Write"`, `"Speed ↔ Intelligence"`, `"low → high"`, and `"size ≥ 4"`.
-  - Omit spaces for abbreviations, compound terms, and tight notation (`"I/O"`, `"TCP/IP"`, `"k≥0"` as a math constraint, `"2x"` as a multiplier).
-  - Leave single-character UI labels like `←/→` (arrow keys) as compact strings.
-- Follow logical punctuation by placing commas and periods outside closing quotation marks (e.g., `"foobar",` rather than `"foobar,"`).
-- Wrap punctuation marks in code spans when discussing the marks themselves (such as `、；：`, `「」`, and `——`). Leave them unformatted when they merely punctuate surrounding examples, like the `、` between two work titles.
-- Use fullwidth punctuation in Han text in both replies and generated files. Half-width commas, periods, or colons between Han characters are generation artifacts.
+- Put spaces around connector symbols that separate distinct words or phrases: `/`, arrows (`→`, `←`, `↔`, `⇒`, `⇔`), and comparison operators (`≤`, `≥`, `≠`), as in `"Read / Write"`, `"Speed ↔ Intelligence"`, `"low → high"`, and `"size ≥ 4"`.
+  - Omit spaces in abbreviations, compound terms, and tight notation (`"I/O"`, `"TCP/IP"`, `"k≥0"` as a math constraint, `"2x"` as a multiplier), and in single-character UI labels such as `←/→`.
+- Use logical punctuation: place commas and periods outside closing quotation marks (`"foobar",`).
+- When discussing punctuation marks, put them in code spans (`、；：`, `「」`, `——`). Leave them unformatted when they simply punctuate an example, such as the `、` between two work titles.
+- Use fullwidth punctuation in Han text, both in replies and generated files. Half-width commas, periods, or colons between Han characters are generation artifacts.
 
 ### Documentation
 
-Before editing existing documentation, identify the concrete correction or removal. Correct claims or instructions made inaccurate by the change, or remove obsolete or unnecessary material. Adding a feature does not by itself require expanding an overview. Create new documentation only when requested.
+Before editing documentation, identify what specifically needs correction or removal: claims or instructions made inaccurate by the change, or material that is obsolete and unnecessary. A new feature alone does not warrant expanding an overview. Create new documentation only when asked.
 
-When writing documentation:
-
-- Describe current behavior and usage directly. Keep change summaries and comparisons with removed or rejected approaches in commit / PR descriptions unless needed for migration instructions.
-- Focus on "why" and "how to use". Include what the intended reader needs to decide or act, and omit incidental details and facts already clear from the code.
-- Organize sections around reader tasks or questions. Keep paragraphs short and focused on one idea, and split long sections at meaningful boundaries, such as shared prerequisites and platform-specific instructions.
-- Use prose for explanations, bullets for parallel options or requirements, numbered lists for sequences, and tables for comparisons. Choose structure where it helps the reader, without turning every paragraph into a list.
-- Only reference implemented functionality. Never describe WIP, TODO, or planned features as if they exist.
+- Describe current behavior and usage. Put change summaries and comparisons with removed or rejected approaches in commit or PR / MR descriptions unless they are needed for migration instructions.
+- Focus on why and how to use the feature. Give readers what they need to decide or act, and omit incidental details or facts already clear from the code.
+- Organize sections around reader tasks or questions. Keep paragraphs short and focused on one idea, and split long sections at meaningful points, such as between shared prerequisites and platform-specific instructions.
+- Describe only implemented functionality. Do not present WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them.
 
 ## Tools and Delegation
 
-Use only tools and capabilities available in the current session, and follow their actual schemas and permission boundaries. Prefer installed skills that match the task, reusing their workflow and resources.
+Use only the tools and capabilities available in the current session, within their actual schemas and permission boundaries. Prefer relevant installed skills and follow their workflows and resources.
 
-### Terminal sessions
+### Terminal Sessions
 
-Once the task is clear, a top-level interactive agent should rename its otherwise default numeric tmux session to a short, hyphenated task-based name. Do so only when the session has exactly one window and one pane, has no known user-chosen name, and the current pane's window has no Workmux `@workmux_token`. Derive its stable session ID from `TMUX_PANE` and target that ID explicitly. Delegated, headless, or background runs must never rename parent sessions. Keep tmux window identities and native agent conversation or pane titles independent.
+Once the task is clear, a top-level interactive agent renames its default numeric tmux session to a short, hyphenated task name. Delegated, headless, and background runs must never rename a parent session.
 
-Use the current agent's terminal / shell tool for inspection and renaming (OMP: `bash`, not an Eval subprocess). Eval kernels may lack the interactive agent's tmux environment. Require both `TMUX` and `TMUX_PANE` in the shell tool, then inspect with `tmux display-message -p -t "$TMUX_PANE" '#{session_id}|#{session_name}|#{session_windows}|#{window_panes}|#{@workmux_token}'`. If either variable is missing or the lookup fails, leave sessions untouched. Never fall back to an active or recently attached session.
+1. In the agent's own shell tool (OMP: `bash`, since an Eval kernel may lack the tmux environment), require both `TMUX` and `TMUX_PANE`, then inspect the session with `tmux display-message -p -t "$TMUX_PANE" '#{session_id}|#{session_name}|#{session_windows}|#{window_panes}|#{@workmux_token}'`. If either variable is missing or the lookup fails, leave sessions untouched. Never fall back to an active or recently attached session.
+2. Rename the session only if it has exactly one window and one pane, has no known user-chosen name, and its window has no Workmux `@workmux_token`.
+3. Run `tmux rename-session -t '<session_id>' '<task-name>'` using the observed stable ID, in single quotes so its `$` stays literal. Then inspect the same pane again to confirm.
 
-After the guards pass, call `tmux rename-session -t '<session_id>' '<task-name>'` with the observed stable ID and chosen name. Quote the ID so its `$` is literal, then inspect the same pane again to confirm.
+Keep tmux window identities and native agent conversation or pane titles independent of the session name.
 
-### Library documentation
+### Library Documentation
 
-Use the shared `find-docs` skill for Context7 documentation lookups. The managed `ctx7` command loads its API key at launch. Run `ctx7 library <name> <query>` and `ctx7 docs <libraryId> <query>` directly, replacing the upstream skill's `npx` examples. Do not reinstall the CLI or configure Context7 MCP.
+Use the `find-docs` skill for Context7 lookups. Run the managed `ctx7` command directly as `ctx7 library <name> <query>` and `ctx7 docs <libraryId> <query>`, replacing the skill's `npx` examples. The command loads its API key at launch, so never reinstall it or configure Context7 MCP.
 
-### Dev shells
+### Dev Shells
 
-Enter a repository's dev shell only from inside that repository, since a dev shell's hook may install Git hooks into whichever repository is current. Get standalone tools from `PATH` or `nix shell nixpkgs#<pkg> -c`. A skill may document a hook-free shell for use elsewhere, as `browser-debugging` does.
+Enter a repository's dev shell only from within that repository, since its hook may install Git hooks into whichever repository is current. Get standalone tools from `PATH`, `nix shell nixpkgs#<pkg> -c`, or a hook-free shell documented by a skill, such as `browser-debugging`.
 
 ### Delegation
 
-- When subagents or teammates are available, the top-level interactive agent acts as the coordinator. It splits and briefs the work, verifies and integrates results, and talks with the user. It delegates substantive work without asking, including implementation, multi-file exploration, code reviews, research, scans, and cleanup sweeps, and hands design planning to a flagship-tier planner when the task warrants one. It works directly only on quick lookups, small edits, and steps that depend heavily on the live conversation. Delegating keeps the coordinator's context on decisions and results, so it survives compaction.
-- Once the coordinator accepts a subagent's or teammate's work or no longer needs it, it stops that agent and closes its tmux pane or Workmux window without asking, since an idle agent holds resources and clutters the terminal. It keeps an agent running only while that agent still needs to fix its PR / MR or already has its next task queued, and says which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
-- Select roles and concurrency to fit the task within the current authorization. Inspect each role's available tools and permissions, which may differ from the parent's.
-- Keep the coordinator on the active profile's standard tier, alongside general-purpose subagents. Use the flagship tier for planning and demanding specialists, and the mini tier for bounded research and background checks. Effort follows the configured tier within what the native client supports. Honor explicit user choices and task-specific tier and effort policies. Higher effort, including the maximum supported level, remains available when warranted. If the selected route is unavailable, report the limitation before switching.
-- When launching a Workmux worker, pass `--agent` for the selected assistant: `codex` for Codex, `claude` for Claude Code, `omp` for OMP, and `opencode` for OpenCode. Workmux's configured default is static, so it may not match the selected assistant.
-- When a tool or the environment behaves unexpectedly, use the `environment-repair` skill to delegate a relevant nixos-config fix to a background worker while continuing the main task. Publish verified repairs through a PR / MR under `git-workflow`, respecting explicit per-task publication limits, and include the request URL or outstanding status in the final response. Merging or activation requires separate approval.
+- When subagents or teammates are available, the top-level interactive agent coordinates the work: it splits and briefs tasks, verifies and integrates results, and talks with the user. It delegates substantive work without asking, including implementation, multi-file exploration, code reviews, research, scans, and cleanup sweeps. When warranted, it assigns design planning to a flagship-tier planner. The coordinator works directly only on quick lookups, small edits, and steps closely tied to the live conversation, keeping its context focused on decisions and results that survive compaction.
+- Once the coordinator accepts an agent's work or no longer needs it, it stops the agent and closes its tmux pane or Workmux window without asking. It keeps an agent running only while it still needs to fix its PR / MR or has its next task queued, and says which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
+- Choose roles and concurrency within the current authorization. Check each role's tools and permissions, which may differ from the coordinator's.
+- The coordinator and general-purpose subagents use the active profile's standard tier. Planners and demanding specialists use the flagship tier, while the mini tier suits bounded research and background checks. Effort follows the configured tier within the native client's capabilities. Use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence. If the selected route is unavailable, report that before switching.
+- When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), since Workmux's configured default is static.
+- If a tool or the environment misbehaves, use the `environment-repair` skill to delegate a relevant nixos-config fix to a background worker while continuing the main task. Publish verified repairs as a PR / MR under `git-workflow`, respecting any per-task publication limits, and include its URL or outstanding status in the final response. Merging or activation requires separate approval.
+- When available, use the `acp-delegate` skill to delegate bounded work to Claude Code or Codex through `acpx`, or consult them, following the same exceptions for direct work.
 
-### MCP Server Usage
+### MCP Servers
 
-Use the CLI when it provides the needed capability, especially for structured `git`, `gh`, and `glab` output. Use MCP when it provides needed authentication or capabilities unavailable through the CLI. The integrations below have session-dependent availability and tool names.
+Use the CLI when it provides the needed capability, especially for structured `git`, `gh`, and `glab` output. Use MCP for authentication or capabilities the CLI lacks. Availability and tool names vary by session.
 
-- **Atlassian**: the only route to Confluence. Search, read, and navigate pages, spaces, and hierarchies. Reads are auto-approved, writes require confirmation.
-- **Exa**: default MCP web search and page fetcher, exposing `web_search_exa`, `web_search_advanced_exa`, `web_fetch_exa`, and `agent_run`. Use when native search is unavailable or returns weak results, especially for coding research and multi-step retrieval. Always pass `textMaxCharacters` to `web_search_advanced_exa`, which otherwise returns full page text at roughly 25k tokens for three results, against 500 when capped. Exa can return confidently formatted irrelevant matches: confirm the titles address the query. High-volume searches are substantive work to delegate under Delegation.
-- **Bifrost**: The corporate gateway's search server is reachable wherever the gateway is, including hosts whose firewall blocks Exa. Exa's tools are exposed under an `exa-` prefix as `exa-web_search_exa` (which requires an `objective`), `exa-web_fetch_exa`, and `exa-agent_run`, but not `web_search_advanced_exa`. Read pages with `exa-web_fetch_exa`. `you-you-search` returns dated highlights, handles non-English queries, and accepts `freshness` and `exclude_domains` filters. The SearXNG tools are a weaker fallback, since search returns short snippets and often nothing for CJK queries, and `SearXNG-web_url_read` leads its markdown with site navigation.
-- **DeepWiki**: AI-powered documentation for public GitHub repositories. Use for unfamiliar repos: architecture, patterns, API design.
-- **Scrapling**: browser fallback when native fetch is blocked (403, bot protection) or needs JavaScript rendering. Start with `fetch`, then try `stealthy_fetch` if blocked. For text retrieval, set `disable_resources=true` to avoid slow image and media loads, and use `css_selector` to limit output to relevant content.
-- **Filesystem**: sandboxed file operations. The native file tools and shell cover this, so reach for it only when a sandboxed path demands it.
-- **GitHub** / **GitLab**: `gh` and `glab` cover nearly everything, including structured output via `--json`, and `gh pr edit --body-file` avoids the shell-escape traps of an inline body. Reach for the MCP for review threads and cross-repo search, where the CLI has no equivalent subcommand. GitLab wants `project_id` as the URL-encoded project path (e.g., `group/subgroup/project`).
-
-## ACP Delegation
-
-When available, use the shared `acp-delegate` skill to delegate bounded work or consult Claude Code or Codex through `acpx`, with the same direct-work exceptions as Delegation.
+- **Atlassian**: the only route to Confluence pages, spaces, and hierarchies. Reads are auto-approved, and writes require confirmation.
+- **Exa**: the default MCP web search and page fetcher (`web_search_exa`, `web_search_advanced_exa`, `web_fetch_exa`, `agent_run`), used when native search is unavailable or weak, especially for coding research and multi-step retrieval. Always pass `textMaxCharacters` to `web_search_advanced_exa`. Without it, the tool returns full page text, roughly 25k tokens for three results, compared with 500 when capped. Check that result titles address the query because Exa can return confidently formatted but irrelevant matches. High-volume searching is substantive work to delegate.
+- **Bifrost**: the corporate gateway's search server, available wherever the gateway is reachable, including hosts whose firewall blocks Exa. It exposes Exa through `exa-web_search_exa` (requires an `objective`), `exa-web_fetch_exa` for reading pages, and `exa-agent_run`, but does not provide `web_search_advanced_exa`. `you-you-search` returns dated highlights, handles non-English queries, and accepts `freshness` and `exclude_domains` filters. The SearXNG tools are a weaker fallback because searches return short snippets and often nothing for CJK queries. `SearXNG-web_url_read` also leads its markdown with site navigation.
+- **DeepWiki**: AI-generated documentation for public GitHub repositories that explains an unfamiliar repo's architecture, patterns, and API design.
+- **Scrapling**: a browser fallback when native fetch is blocked (403, bot protection) or requires JavaScript rendering. Start with `fetch`, then use `stealthy_fetch` if needed. For text, set `disable_resources=true` to skip slow media loads and narrow the output with `css_selector`.
+- **Filesystem**: Use this for sandboxed file operations only when a path requires it. Native file tools and the shell cover other needs.
+- **GitHub** / **GitLab**: `gh` and `glab` cover nearly everything, including `--json` output. `gh pr edit --body-file` avoids shell-escaping an inline body. Use the MCP for review threads and cross-repo search, which the CLIs lack. GitLab expects `project_id` as the URL-encoded project path (`group/subgroup/project`).
