@@ -13,7 +13,7 @@ Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment va
 
 ### Git Workflow
 
-Load the `git-workflow` skill when completing a logical implementation chunk, creating Git refs, preparing commits, pushing, or drafting, creating, updating, or merging a PR / MR. It owns Git authorization, conventions, and publication checks.
+Load the `git-workflow` skill when completing a logical implementation chunk, creating Git refs, preparing commits, pushing, drafting, creating, updating, or merging a PR / MR, or updating an existing issue. It owns Git authorization, conventions, and publication checks.
 
 ### Shared-Tree Safety
 
