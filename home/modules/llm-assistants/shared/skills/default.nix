@@ -35,7 +35,7 @@ let
   // lib.optionalAttrs acpCfg.enable {
     acp-delegate = ./acp-delegate;
   }
-  // lib.optionalAttrs config.hakula.llm-assistants.activity-report.enable {
+  // lib.optionalAttrs config.hakula.activity-report.enable {
     activity-report = ./activity-report;
   }
   // lib.optionalAttrs config.hakula.ctx7.enable {

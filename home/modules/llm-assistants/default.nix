@@ -8,6 +8,7 @@
   hostType,
   repoLib,
   enableDevToolchains ? false,
+  isDesktop ? false,
   ...
 }:
 
@@ -130,7 +131,10 @@ in
         })
         // lib.genAttrs [ "ccusage" "ctx7" "workmux" ] (_: {
           enable = lib.mkDefault true;
-        });
+        })
+        // {
+          activity-report.enable = lib.mkDefault isDesktop;
+        };
     })
   ];
 }

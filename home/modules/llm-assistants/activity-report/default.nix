@@ -8,13 +8,12 @@
   lib,
   hostType,
   secretPath,
-  isDesktop ? false,
   ...
 }:
 
 let
   inherit (pkgs.stdenv) isDarwin;
-  cfg = config.hakula.llm-assistants.activity-report;
+  cfg = config.hakula.activity-report;
 
   homeDir = config.home.homeDirectory;
   isWork = hostType == "work";
@@ -76,12 +75,8 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options.hakula.llm-assistants.activity-report = {
-    enable = lib.mkOption {
-      type = lib.types.bool;
-      default = config.hakula.llm-assistants.enable && isDesktop;
-      description = "Whether to install the activity-report skill and the digest it reads";
-    };
+  options.hakula.activity-report = {
+    enable = lib.mkEnableOption "activity-report skill and its digest command";
 
     excludedDirs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
