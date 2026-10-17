@@ -126,7 +126,7 @@ Use only the tools and capabilities available in the current session, within the
 
 Once the task is clear, a top-level interactive agent renames its default numeric tmux session to a short, hyphenated task name. Delegated, headless, and background runs must never rename a parent session.
 
-1. In the agent's own shell tool (OMP: `bash`, since an Eval kernel may lack the tmux environment), require both `TMUX` and `TMUX_PANE`, then inspect the session with `tmux display-message -p -t "$TMUX_PANE" '#{session_id}|#{session_name}|#{session_windows}|#{window_panes}|#{@workmux_token}'`. If either variable is missing or the lookup fails, leave sessions untouched. Never fall back to an active or recently attached session.
+1. In the agent's own shell tool, require both `TMUX` and `TMUX_PANE`, then inspect the session with `tmux display-message -p -t "$TMUX_PANE" '#{session_id}|#{session_name}|#{session_windows}|#{window_panes}|#{@workmux_token}'`. If either variable is missing or the lookup fails, leave sessions untouched. Never fall back to an active or recently attached session.
 2. Rename the session only if it has exactly one window and one pane, has no known user-chosen name, and its window has no Workmux `@workmux_token`.
 3. Run `tmux rename-session -t '<session_id>' '<task-name>'` using the observed stable ID, in single quotes so its `$` stays literal. Then inspect the same pane again to confirm.
 
