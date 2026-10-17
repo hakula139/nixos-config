@@ -4,6 +4,7 @@
 
 {
   lib,
+  instructions,
   sharedAgents,
   enabledAgents,
 }:
@@ -22,10 +23,14 @@ let
     in
     lib.concatStringsSep "\n" ([ "---" ] ++ frontmatterLines ++ [ "---" ]);
 
+  # OMP's task tool drops every context file named AGENTS.md from a subagent, so the global
+  # instructions reach role subagents only through their own prompts.
   renderAgent = name: agent: ''
     ${renderFrontmatter name agent}
 
-    ${agent.prompt}
+    ${lib.trim agent.prompt}
+
+    ${lib.trim instructions}
   '';
 in
 {
