@@ -50,7 +50,7 @@ def wrap [argv: list<string>, env_vars: record = {}]: nothing -> record {
 }
 
 def caller-path []: nothing -> string {
-  [$env.PATH] | flatten | str join (char esep)
+  [$env.PATH] | flatten | str join ":"
 }
 
 def "test outside a dev shell tmux runs unchanged" [] {
