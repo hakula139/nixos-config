@@ -20,7 +20,7 @@ cspell lint --config cspell.json --no-progress --show-context --show-suggestions
 cspell trace --config cspell.json --ignore-case --only-found candidate
 ```
 
-Trace searches dictionaries. It does not reproduce filename overrides or identifier splitting, so check the actual file as well. Verify the summary reports files checked. A worktree inside an ignored directory can silently check zero files. Use `--no-gitignore` with explicit file paths when that is the cause.
+Trace searches dictionaries. It does not reproduce filename overrides or identifier splitting, so check the actual file as well. Verify the summary reports files checked. A linked worktree inside an ignored directory, such as `.claude/worktrees/`, can silently check zero files, because cspell before 10.1 reads the main checkout's `.gitignore` and cspell matches `**/` ignore rules against absolute paths. Fix the repository: set `"gitignoreRoot": "."` in its cspell config and anchor the worktree rule at the repository root (`.claude/worktrees`, without `**/`). Treat `--no-gitignore` as a last resort and pass it explicit file paths, since a glob run with it also scans ignored build output.
 
 - Fix new misspellings in authored prose and identifiers when changing them is safe. For a historical API field, compatibility name, or path, inspect callers and migration requirements before renaming it. Suggestions help identify possible corrections but do not establish that a token is a legitimate word.
 - Verify unfamiliar names and technical terms against their defining source or official documentation. Inspect identifier boundaries, neighboring uses, and the expected meaning. A token extracted from an APK, generated source, or a dependency can still be an upstream typo.
