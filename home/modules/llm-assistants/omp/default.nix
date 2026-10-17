@@ -62,6 +62,7 @@ in
       agents = import ./agents.nix {
         inherit lib;
         inherit (cfg.agents) enabledAgents;
+        instructions = instructions.omp;
         sharedAgents = shared.agentRoles;
       };
 
