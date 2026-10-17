@@ -26,7 +26,13 @@ let
 
   digestConfig = json.generate "activity-digest.json" {
     context = hostType;
-    inherit (cfg) personalProjects readingMinutes maxMinutes;
+    inherit (cfg)
+      excludedDirs
+      worktreePatterns
+      personalProjects
+      readingMinutes
+      maxMinutes
+      ;
     assistantDirs = {
       claude = "${homeDir}/.claude";
       codex =
@@ -75,6 +81,19 @@ in
       type = lib.types.bool;
       default = config.hakula.llm-assistants.enable && isDesktop;
       description = "Whether to install the activity-report skill and the digest it reads";
+    };
+
+    excludedDirs = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      # Workmux workers take their prompts from the agent that launched them.
+      default = [ "__worktrees/" ];
+      description = "Regexes matching the working directories of sessions to leave out";
+    };
+
+    worktreePatterns = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ "/\\.claude/worktrees/[^/]+.*$" ];
+      description = "Regexes stripped from a session's working directory to recover its repository";
     };
 
     personalProjects = lib.mkOption {

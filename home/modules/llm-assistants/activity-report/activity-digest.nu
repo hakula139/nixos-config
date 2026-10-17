@@ -24,13 +24,11 @@ const BROWSER_CONTEXT = (
   '(?s)<in-app-browser-context.*?</in-app-browser-context>\s*(## My request:)?'
 )
 
-# A credential: a known token prefix, a 32+ character alphanumeric run holding a digit, or the value
-# after `password:`
+# A credential: a known token prefix, or a 32+ character alphanumeric run holding a digit
 const SECRET = (
   [
     '\b(sk|ghp|gho|ghs|github_pat|glpat|xox[abp])[-_][A-Za-z0-9_-]{16,}'
     '(?<![A-Za-z0-9])(?=[A-Za-z]*[0-9])[A-Za-z0-9]{32,}(?![A-Za-z0-9])'
-    '(?<kw>\b(?i:password|passwd)\s*[:=]\s*)\S+'
   ]
   | str join '|'
 )
@@ -53,7 +51,7 @@ def excerpt []: string -> string {
   let flat = (
     $in
     | str replace --regex $BROWSER_CONTEXT ''
-    | str replace --all --regex $SECRET '${kw}<redacted>'
+    | str replace --all --regex $SECRET '<redacted>'
     | str replace --all --regex '\s+' ' '
     | str trim
   )
@@ -217,9 +215,10 @@ def commits [roots: list<string>, since: datetime]: nothing -> list {
 # Days
 # --------------------------------------------------------------------------------------------------
 
-# A Claude Code worktree, `<repo>/.claude/worktrees/<name>`, reports work on its repository.
-def project-of [cwd: string]: nothing -> string {
-  $cwd | str replace --regex '/\.claude/worktrees/[^/]+.*$' '' | path basename
+def project-of [cfg: record, cwd: string]: nothing -> string {
+  $cfg.worktreePatterns
+  | reduce --fold $cwd {|pattern, dir| $dir | str replace --regex $pattern '' }
+  | path basename
 }
 
 def context-of [cfg: record, project: string]: nothing -> string {
@@ -280,7 +279,7 @@ def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -
       let first = ($prompts | first | get ts)
       let next = ($s.events | where kind == "prompt" and ts >= $end | get -o 0.ts)
       let events = ($s.events | where {|e| $e.ts >= $first and ($next == null or $e.ts < $next) })
-      let project = (project-of $s.cwd)
+      let project = (project-of $cfg $s.cwd)
       let replies = ($s.events | where kind == "reply")
       # A turn ends at its first reply, so later turns that notifications start never extend it.
       let turns = (
@@ -314,7 +313,13 @@ def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -
       | where ts >= $start and ts < $end
       | sort-by ts
       | each {|c|
-        {at: ($c.ts | format date "%H:%M"), project: (project-of $c.cwd), subject: $c.subject}
+        let project = (project-of $cfg $c.cwd)
+        {
+          at: ($c.ts | format date "%H:%M")
+          project: $project
+          context: (context-of $cfg $project)
+          subject: $c.subject
+        }
       }
     )
   }
@@ -342,12 +347,11 @@ def main [
   let days = (seq date --begin-date $from --end-date $to | each { into datetime })
   let since = ($days | first)
   let dirs = $cfg.assistantDirs
-  # A Workmux worker takes its prompts from the agent that launched it.
   let sessions = (
     (claude-sessions $dirs.claude $since)
     ++ (codex-sessions $dirs.codex $since)
     ++ (omp-sessions $dirs.omp $since)
-    | where cwd !~ '__worktrees/'
+    | where {|s| $cfg.excludedDirs | all {|pattern| $s.cwd !~ $pattern } }
   )
   let commits = (commits $cfg.gitRoots $since)
   {

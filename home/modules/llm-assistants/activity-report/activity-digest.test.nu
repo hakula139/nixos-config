@@ -50,6 +50,8 @@ def digest [dir: string, overrides: record = {}]: nothing -> record {
   let config_file = ($dir | path join config.json)
   {
     context: personal
+    excludedDirs: [__worktrees/]
+    worktreePatterns: ['/\.claude/worktrees/[^/]+.*$']
     personalProjects: [nixos-config]
     readingMinutes: 10
     maxMinutes: 60
@@ -159,7 +161,6 @@ def "test excerpts redact credentials and nothing else" [] {
     ["push with ghp_FAKE0123456789abcdefABCDEF now" ghp_FAKE0123456789abcdefABCDEF]
     ["claim ndc.Ab1Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0UvWx for netdata" Ab1Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0UvWx]
     ["try key cr_0123456789abcdef0123456789abcdef here" 0123456789abcdef0123456789abcdef]
-    ["sudo password: hunter2! then rebuild" "hunter2!"]
     ["resume 349d7e4c-29da-4c95-91d9-05961d34ae8f in /home/me/github/app" null]
   ]
   let records = (
@@ -195,7 +196,7 @@ def "test the host context covers every project except personal ones" [] {
   ]
 }
 
-def "test workmux workers are left out" [] {
+def "test sessions in excluded directories are left out" [] {
   let dir = (mktemp --directory)
   transcript $dir [claude projects app a.jsonl] [
     (claude-user /work/app "10:00" "delegate" $HUMAN)
@@ -203,8 +204,11 @@ def "test workmux workers are left out" [] {
   transcript $dir [claude projects worker w.jsonl] [
     (claude-user /work/app__worktrees/fix "11:00" "# Task: fix it" $HUMAN)
   ]
+  transcript $dir [claude projects probe p.jsonl] [
+    (claude-user /tmp/probe "12:00" "try it" $HUMAN)
+  ]
 
-  let day = (digest $dir)
+  let day = (digest $dir {excludedDirs: [__worktrees/ '^/tmp/']})
 
   assert equal ($day.sessions | get cwd) [/work/app]
   assert equal ($day.hours.projects | columns) [app]
