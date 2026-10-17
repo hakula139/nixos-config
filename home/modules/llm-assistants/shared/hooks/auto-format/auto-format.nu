@@ -38,13 +38,19 @@ def project-bin [path: string, tool: string]: nothing -> string {
 # session and may be another repository. Before 10.1 it also resolves a linked worktree's root to
 # the main checkout, whose `.gitignore` can ignore the worktree, so the root is passed explicitly.
 def check-spelling [path: string, config: record]: nothing -> string {
+  let project = (project-bin $path "cspell")
+  let cspell = if ($project | is-not-empty) { $project } else { $config.cspell }
   let toplevel = (^$config.git -C ($path | path dirname) rev-parse --show-toplevel | complete)
   if $toplevel.exit_code != 0 {
-    return (check $config.cspell ["--no-progress" $path] $path)
+    return (check $cspell ["--no-progress" $path] $path)
   }
   let root = ($toplevel.stdout | str trim)
+  # cspell skips an ignored file and then fails because it found none.
+  if (^$config.git -C $root check-ignore --quiet $path | complete).exit_code == 0 {
+    return ""
+  }
   cd $root
-  check $config.cspell ["--no-progress" "--gitignore-root" $root $path] $path
+  check $cspell ["--no-progress" "--gitignore-root" $root $path] $path
 }
 
 def format-markdown [path: string, config: record] {
