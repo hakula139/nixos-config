@@ -14,13 +14,15 @@ Measure first, classify each large item, then remove only what is safe to remove
 
 Start with `df -h` for the affected volumes. On macOS, `df` excludes purgeable space, and APFS local snapshots keep deleted files on disk until the snapshots are thinned, so also run `tmutil listlocalsnapshots /`. Then size the usual heavy spots with `du -sh`, keeping to one filesystem with `-x` and sorting the output to find the largest entries:
 
-| Location                                                                        | How to size it                                                                                   |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `/private/tmp` (macOS) or `/tmp`                                                | `du -xsh /private/tmp/* \| sort -h`. Agents often leave Cargo target dirs and review copies here |
-| Agent worktrees, such as `.claude/worktrees/*` in each repository               | `du -sh` on each worktree and its `target/`, `node_modules/`, or `result*` outputs               |
-| `~/.cache/uv`, `~/.npm`, `pnpm store path`, `brew --cache`, `~/.cargo/registry` | `du -sh` on each path                                                                            |
-| Nix store                                                                       | `nix store gc --dry-run` lists what garbage collection would delete                              |
-| Docker                                                                          | `docker system df`                                                                               |
+| Location                                                                                                          | How to size it                                                                                   |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `/private/tmp` (macOS) or `/tmp`                                                                                  | `du -xsh /private/tmp/* \| sort -h`. Agents often leave Cargo target dirs and review copies here |
+| Agent worktrees, such as `.claude/worktrees/*` in each repository                                                 | `du -sh` on each worktree and its `target/`, `node_modules/`, or `result*` outputs               |
+| `~/.cache/uv`, `~/.npm`, `~/.cargo/registry`, and the directories that `pnpm store path` and `brew --cache` print | `du -sh` on each path                                                                            |
+| Nix store                                                                                                         | `nix store gc --dry-run` lists what garbage collection would delete                              |
+| Docker                                                                                                            | `docker system df`                                                                               |
+
+macOS's `tmp_cleaner` removes `/tmp` files idle for 4 days or more, so a recent pile-up there is live churn from current work.
 
 Look beyond the table when the numbers don't add up, starting with `du -xh -d 1 ~ | sort -h`.
 
@@ -40,6 +42,7 @@ Check liveness for each candidate before treating it as safe. `find <path> \( -m
 - **Caches:** `uv cache clean`, `pnpm store prune`, `npm cache clean --force`, and `brew cleanup --prune=all`.
 - **Docker:** `docker image prune -a -f` removes images that no container uses. Leave volumes to the user, since they hold data.
 - **Nix store:** `nixgc` collects old generations and the garbage they leave. It needs sudo, so hand the command to the user to run.
+- **Local snapshots:** `tmutil deletelocalsnapshots <date>` frees the space a local snapshot holds. It needs the user's decision and sudo, so hand it to the user as well.
 - **Agent worktrees:** before removing one, copy out unique gitignored content, such as agent memory directories, local settings, and notes. `git -C <worktree> status --short --ignored` lists the gitignored files. Diff each against its counterpart in the main checkout and merge what is missing there. Then remove the worktree through the `clean-gone` skill or `git worktree remove`, which keep the branch bookkeeping consistent.
 
 Present the "needs the user's decision" group with sizes and the exact commands, and wait for the user to choose. Report the freed space, measured with `df -h` again, and remember that a local snapshot can keep it unavailable until it is thinned.
