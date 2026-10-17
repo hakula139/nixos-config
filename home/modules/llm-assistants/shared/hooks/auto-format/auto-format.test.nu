@@ -23,9 +23,16 @@ const TOOLS = [
   taplo
 ]
 
-# Runs the hook on a Write of `path` from `cwd`, with a stub for every configured tool and `path`
-# directories as the only other `PATH` entries besides `cat`. Returns the stub calls in order, each
-# with its `bin` path, `cwd`, and `args`.
+def install-stub [target: string]: nothing -> string {
+  mkdir ($target | path dirname)
+  $"#!($nu.current-exe) --no-config-file\n" + (open --raw $STUB) | save $target
+  ^chmod +x $target
+  $target
+}
+
+# Runs the hook on a Write of `file` from `cwd`, with a stub for every configured tool and the
+# `--path` directories as the only other `PATH` entries besides `cat`. Returns the stub calls in
+# order, each with its `bin` path, `cwd`, and `args`.
 def run-hook [file: string, cwd: string, --path: list<string> = []]: nothing -> list<record> {
   let dir = (mktemp --directory | path expand)
   let bin = ($dir | path join bin)
@@ -57,62 +64,10 @@ def run-hook [file: string, cwd: string, --path: list<string> = []]: nothing -> 
   }
 }
 
-def install-stub [target: string]: nothing -> string {
-  mkdir ($target | path dirname)
-  $"#!($nu.current-exe) --no-config-file\n" + (open --raw $STUB) | save $target
-  ^chmod +x $target
-  $target
-}
-
 def write-file [path: string]: nothing -> string {
   mkdir ($path | path dirname)
   "content\n" | save $path
   $path
-}
-
-def "test tools run from the repository root of the edited file" [] {
-  let repo = (mktemp --directory | path expand)
-  ^git -C $repo init --quiet
-  let tools = ($repo | path join tools)
-  install-stub ($tools | path join cargo)
-  let file = (write-file ($repo | path join crate src lib.rs))
-
-  let calls = (run-hook $file (mktemp --directory) --path [$tools])
-
-  assert equal ($calls | get cwd) [$repo $repo]
-}
-
-def "test tools outside a repository run from the directory of the edited file" [] {
-  let dir = (mktemp --directory | path expand)
-  let file = (write-file ($dir | path join docs notes.md))
-
-  let calls = (run-hook $file (mktemp --directory))
-
-  assert equal ($calls | get cwd | uniq) [($dir | path join docs)]
-}
-
-def "test tools in a linked worktree run from the worktree root" [] {
-  let repo = (mktemp --directory | path expand)
-  ^git -C $repo init --quiet
-  ^git -C $repo -c user.name=test -c user.email=test@test commit --quiet --allow-empty -m init
-  let worktree = ($repo | path join .claude worktrees wt)
-  ^git -C $repo worktree add --quiet --detach $worktree
-  let file = (write-file ($worktree | path join docs notes.md))
-
-  let calls = (run-hook $file $repo)
-
-  assert equal ($calls | get cwd | uniq) [$worktree]
-}
-
-def "test the nearest project cspell takes precedence" [] {
-  let dir = (mktemp --directory | path expand)
-  install-stub ($dir | path join node_modules .bin cspell)
-  let nearest = (install-stub ($dir | path join docs node_modules .bin cspell))
-  let file = (write-file ($dir | path join docs notes.md))
-
-  let calls = (run-hook $file $dir)
-
-  assert equal ($calls | where ($it.bin | path basename) == cspell | get bin) [$nearest]
 }
 
 def "test each extension runs its tools with their flags" [] {
@@ -172,6 +127,51 @@ def "test each extension runs its tools with their flags" [] {
     let actual = ($calls | each {|call| {bin: ($call.bin | path basename), args: $call.args} })
     assert equal $actual $expected $"extension ($case.ext) with ($case.tools)"
   }
+}
+
+def "test tools run from the repository root of the edited file" [] {
+  let repo = (mktemp --directory | path expand)
+  ^git -C $repo init --quiet
+  let tools = ($repo | path join tools)
+  install-stub ($tools | path join cargo)
+  let file = (write-file ($repo | path join crate src lib.rs))
+
+  let calls = (run-hook $file (mktemp --directory) --path [$tools])
+
+  assert equal ($calls | get cwd) [$repo $repo]
+}
+
+def "test tools outside a repository run from the directory of the edited file" [] {
+  let dir = (mktemp --directory | path expand)
+  let file = (write-file ($dir | path join docs notes.md))
+
+  let calls = (run-hook $file (mktemp --directory))
+
+  assert equal ($calls | get cwd | uniq) [($dir | path join docs)]
+}
+
+def "test tools in a linked worktree run from the worktree root" [] {
+  let repo = (mktemp --directory | path expand)
+  ^git -C $repo init --quiet
+  ^git -C $repo -c user.name=test -c user.email=test@test commit --quiet --allow-empty -m init
+  let worktree = ($repo | path join .claude worktrees wt)
+  ^git -C $repo worktree add --quiet --detach $worktree
+  let file = (write-file ($worktree | path join docs notes.md))
+
+  let calls = (run-hook $file $repo)
+
+  assert equal ($calls | get cwd | uniq) [$worktree]
+}
+
+def "test the nearest project cspell takes precedence" [] {
+  let dir = (mktemp --directory | path expand)
+  install-stub ($dir | path join node_modules .bin cspell)
+  let nearest = (install-stub ($dir | path join docs node_modules .bin cspell))
+  let file = (write-file ($dir | path join docs notes.md))
+
+  let calls = (run-hook $file $dir)
+
+  assert equal ($calls | where ($it.bin | path basename) == cspell | get bin) [$nearest]
 }
 
 def "test malformed input exits cleanly without output" [] {
