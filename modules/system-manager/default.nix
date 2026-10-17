@@ -3,6 +3,7 @@
 # ==================================================================================================
 
 {
+  nixosModulesPath,
   config,
   pkgs,
   lib,
@@ -24,7 +25,15 @@ let
   );
 in
 {
-  imports = [ ./age.nix ];
+  imports = [
+    ./age.nix
+    ../nixos/nix-gc
+  ]
+  ++ map (path: nixosModulesPath + path) [
+    "/programs/nh.nix"
+    "/services/misc/nix-gc.nix"
+    "/services/misc/nix-optimise.nix"
+  ];
 
   # ------------------------------------------------------------------------------------------------
   # Module options
@@ -81,29 +90,8 @@ in
       };
     };
 
-    systemd.services.nh-clean = {
-      description = "Nh clean";
-      script = "exec ${lib.getExe pkgs.nh} clean all ${defaults.nixCleanArgs}";
-      startAt = "daily";
-      path = [ config.nix.package ];
-      serviceConfig.Type = "oneshot";
-    };
-
-    systemd.services.nix-optimise = {
-      description = "Nix Store Optimiser";
-      serviceConfig = {
-        ExecStart = "${lib.getExe' config.nix.package "nix-store"} --optimise";
-        Nice = 19;
-        CPUSchedulingPolicy = "idle";
-        IOSchedulingClass = "idle";
-      };
-      startAt = "03:45";
-    };
-
-    systemd.timers = {
-      nh-clean.timerConfig.Persistent = true;
-      nix-optimise.timerConfig.Persistent = true;
-    };
+    # System Manager restarts changed units even when inactive, and upstream nh.nix leaves this on.
+    systemd.services.nh-clean.restartIfChanged = false;
 
     # ----------------------------------------------------------------------------------------------
     # Shell & Environment
