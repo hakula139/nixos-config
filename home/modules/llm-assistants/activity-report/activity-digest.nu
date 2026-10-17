@@ -4,11 +4,11 @@
 # Activity Digest
 # ==================================================================================================
 # Prints each day's agent sessions and commits on this host as JSON for the activity-report skill.
-# Only prompts a person typed count toward active hours, so turns that notifications or other agents
-# start never extend them.
+# Only prompts a person typed earn hours, so turns that notifications or agents start add none.
 # ==================================================================================================
 
 const EXCERPT_CHARS = 400
+const HEARTBEAT = 30min
 
 # Claude Code delivers these as user turns, though nobody typed them.
 const CLAUDE_INJECTED = (
@@ -19,6 +19,14 @@ const CLAUDE_INJECTED = (
 # Browser state that Codex Desktop prepends to a prompt
 const BROWSER_CONTEXT = (
   '(?s)<in-app-browser-context.*?</in-app-browser-context>\s*(## My request:)?'
+)
+
+# A credential: a known token prefix, a 32+ character alphanumeric run holding a digit, or the value
+# after `password:`
+const SECRET = (
+  '\b(sk|ghp|gho|ghs|github_pat|glpat|xox[abp])[-_][A-Za-z0-9_-]{16,}'
+  + '|(?<![A-Za-z0-9])(?=[A-Za-z]*[0-9])[A-Za-z0-9]{32,}(?![A-Za-z0-9])'
+  + '|\b(?i:password|passwd)\s*[:=]\s*\S+'
 )
 
 # --------------------------------------------------------------------------------------------------
@@ -39,6 +47,7 @@ def excerpt []: string -> string {
   let flat = (
     $in
     | str replace --regex $BROWSER_CONTEXT ''
+    | str replace --all --regex $SECRET '<redacted>'
     | str replace --all --regex '\s+' ' '
     | str trim
   )
@@ -213,10 +222,27 @@ def context-of [cfg: record, project: string]: nothing -> string {
   if $project == "nixos-config" { "personal" } else { $cfg.context }
 }
 
-# Each half hour of the day holding at least one human prompt counts as half an hour of attention.
-def hours [stamps: list<datetime>]: nothing -> float {
-  let halves = ($stamps | each { into record | $in.hour * 2 + $in.minute // 30 } | uniq)
-  ($halves | length) / 2
+def to-hours []: list<duration> -> float {
+  math sum | $in / 1hr | math round --precision 2
+}
+
+# Each human prompt, across all sessions, credits the time until the next one, capped at a
+# heartbeat, to the project it was typed in.
+def hours [prompts: list<record>]: nothing -> record {
+  let timeline = ($prompts | sort-by ts)
+  let credits = (
+    $timeline
+    | enumerate
+    | each {|p|
+      let next = ($timeline | get -o ($p.index + 1) | get -o ts)
+      let gap = if $next == null { $HEARTBEAT } else { $next - $p.item.ts }
+      {project: $p.item.project, gap: ([$gap $HEARTBEAT] | math min)}
+    }
+  )
+  {
+    total: ($credits | get -o gap | append 0sec | to-hours)
+    projects: ($credits | group-by project | update cells {|rows| $rows | get gap | to-hours })
+  }
 }
 
 def stamp []: record -> record {
@@ -239,11 +265,14 @@ def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -
   let attended = (
     $sessions
     | each {|s|
-      let events = ($s.events | where ts >= $start and ts < $end)
-      let prompts = ($events | where kind == "prompt")
+      let prompts = ($s.events | where kind == "prompt" and ts >= $start and ts < $end)
       if ($prompts | is-empty) {
         return null
       }
+      # Turns started today keep their replies past midnight, until the next prompt.
+      let first = ($prompts | first | get ts)
+      let next = ($s.events | where kind == "prompt" and ts >= $end | get -o 0.ts)
+      let events = ($s.events | where {|e| $e.ts >= $first and ($next == null or $e.ts < $next) })
       let project = (project-of $s.cwd)
       {
         tool: $s.tool
@@ -251,34 +280,25 @@ def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -
         cwd: $s.cwd
         project: $project
         context: (context-of $cfg $project)
-        active_hours: (hours ($prompts | get ts))
         prompts: ($prompts | each { stamp })
         replies: ($events | final-replies | each { stamp } | where text != "")
-        stamps: ($prompts | get ts)
+        heartbeats: ($prompts | select ts | insert project $project)
       }
     }
     | compact
-    | sort-by {|s| $s.stamps | first }
+    | sort-by {|s| $s.heartbeats.0.ts }
   )
   {
     date: ($start | format date "%Y-%m-%d")
     weekday: ($start | format date "%a")
-    active_hours: (
-      $attended | group-by context | update cells {|rows| hours ($rows | get stamps | flatten) }
-    )
-    sessions: ($attended | reject stamps)
+    hours: (hours ($attended | get -o heartbeats | flatten))
+    sessions: ($attended | reject heartbeats)
     commits: (
       $commits
       | where ts >= $start and ts < $end
       | sort-by ts
       | each {|c|
-        let project = (project-of $c.cwd)
-        {
-          at: ($c.ts | format date "%H:%M")
-          project: $project
-          context: (context-of $cfg $project)
-          subject: $c.subject
-        }
+        {at: ($c.ts | format date "%H:%M"), project: (project-of $c.cwd), subject: $c.subject}
       }
     )
   }
@@ -290,9 +310,9 @@ def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -
 
 # Print the agent sessions and commits on this host for a range of local dates as JSON.
 #
-# For each day, a session lists its human prompts and the final reply of each turn, and its
-# active_hours count the half hours holding a human prompt. A day's active_hours merge those half
-# hours across sessions for each context.
+# For each day, a session lists its human prompts and the final reply of each turn. The day's hours
+# credit each human prompt, across all sessions, with the time until the next one, capped at 30
+# minutes, and sum those credits per project.
 def main [
   config: path # JSON with the host's context and git roots
   from: string # First local date, as YYYY-MM-DD
