@@ -97,38 +97,48 @@ def "test only prompts a person typed count" [] {
   ]
 }
 
-def "test half hours with a prompt count once per session and once per day" [] {
+def "test each prompt credits its project until the next prompt across sessions" [] {
   let home = (mktemp --directory)
   transcript $home [.claude projects app a.jsonl] [
     (claude-user /work/app "10:00" "start" $HUMAN)
     (claude-reply /work/app "10:05" "working")
-    (claude-reply /work/app "10:20" "started")
-    (claude-user /work/app "10:29" "more" $HUMAN)
-    (claude-user /work/app "10:30" "and this" $HUMAN)
-    (claude-user /work/app "14:45" "next" $HUMAN)
-    (claude-user /work/app "15:30" "<task-notification>" {origin: {kind: task-notification}})
-    (claude-reply /work/app "23:00" "merged")
+    (claude-reply /work/app "10:12" "started")
+    (claude-user /work/app "10:15" "more" $HUMAN)
+    (claude-user /work/app "10:45" "<task-notification>" {origin: {kind: task-notification}})
+    (claude-user /work/app "11:30" "next" $HUMAN)
+    (claude-reply /work/app "23:00" "merging")
+    (claude-reply /work/app "00:30" "merged" | update timestamp "2026-10-16T00:30:00.000Z")
   ]
-  transcript $home [.claude projects lib b.jsonl] [
-    (claude-user /work/lib "10:10" "review" $HUMAN)
-    (claude-user /work/lib "16:00" "merge" $HUMAN)
-  ]
+  transcript $home [.claude projects lib b.jsonl] [(claude-user /work/lib "10:30" "review" $HUMAN)]
 
   let day = (digest $home)
 
-  assert equal ($day.sessions | get active_hours) [1.5 1.0]
-  assert equal $day.active_hours {personal: 2.0}
-  assert equal ($day.sessions.0.replies | get at) ["10:20" "23:00"]
+  assert equal $day.hours {total: 1.5, projects: {app: 1.0, lib: 0.5}}
+  assert equal ($day.sessions.0.replies | get at) ["10:12" "00:30"]
+}
+
+def "test excerpts redact credentials" [] {
+  let home = (mktemp --directory)
+  let prompt = (
+    "deploy 349d7e4c-29da-4c95-91d9-05961d34ae8f from /home/me/github/app"
+    + " with ghp_FAKE0123456789abcdefABCDEF, token ndc.Ab1Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0UvWx,"
+    + " key cr_0123456789abcdef0123456789abcdef, and password: hunter2!"
+  )
+  transcript $home [.claude projects app a.jsonl] [(claude-user /work/app "10:00" $prompt $HUMAN)]
+
+  let day = (digest $home)
+
+  assert equal $day.sessions.0.prompts.0.text (
+    "deploy 349d7e4c-29da-4c95-91d9-05961d34ae8f from /home/me/github/app"
+    + " with <redacted>, token ndc.<redacted>, key cr_<redacted>, and <redacted>"
+  )
 }
 
 def "test host context covers every project except nixos-config" [] {
   let home = (mktemp --directory)
   let worktree = "/home/me/nixos-config/.claude/worktrees/fix"
   transcript $home [.claude projects app a.jsonl] [(claude-user /work/app "10:00" "ship" $HUMAN)]
-  transcript $home [.claude projects cfg b.jsonl] [
-    (claude-user $worktree "10:00" "tidy" $HUMAN)
-    (claude-user $worktree "11:00" "merge" $HUMAN)
-  ]
+  transcript $home [.claude projects cfg b.jsonl] [(claude-user $worktree "11:00" "tidy" $HUMAN)]
 
   let day = (digest $home work)
 
@@ -136,7 +146,6 @@ def "test host context covers every project except nixos-config" [] {
     {project: app, context: work}
     {project: nixos-config, context: personal}
   ]
-  assert equal $day.active_hours {work: 0.5, personal: 1.0}
 }
 
 def "test workmux workers are left out" [] {
@@ -151,5 +160,5 @@ def "test workmux workers are left out" [] {
   let day = (digest $home)
 
   assert equal ($day.sessions | get cwd) [/work/app]
-  assert equal $day.active_hours {personal: 0.5}
+  assert equal $day.hours {total: 0.5, projects: {app: 0.5}}
 }

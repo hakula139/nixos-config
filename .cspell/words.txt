@@ -91,6 +91,7 @@ gfm
 ghcup
 gitea
 glab
+glpat
 gnused
 gofmt
 goimports
