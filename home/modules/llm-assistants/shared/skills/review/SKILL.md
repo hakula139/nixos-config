@@ -30,20 +30,20 @@ Apply the global instructions, the repository's `AGENTS.md` / `CLAUDE.md` files,
 
 A whole-repository review covers existing code and design, so challenge choices that a better design could replace. For a diff review, read each touched file in full because defects in unchanged lines of a touched function are in scope. Trace every changed contract through its callers, tests, configuration, and documentation, including sibling repositories the project integrates with, such as downstream consumers checked out nearby.
 
-- **Correctness and edge cases:** Check assumptions against empty and boundary inputs, paths, permissions, data shapes, concurrency, and resource lifecycles.
-- **Error handling:** Check for swallowed or merely logged errors, overly broad catches, fallbacks that hide failures, and unhelpful messages.
-- **Types, invariants, and API surface:** Check which invalid states the API permits, whether construction paths bypass invariants, and whether visibility is broader than callers need.
-- **Conventions:** Check every rule in the loaded instructions against the complete changed construct.
-- **Simplicity:** Check for unnecessary abstractions, speculative configurability, dead code, workarounds that leave the root cause in place, and logic with a shorter idiomatic form.
-- **DRY:** Check for duplicated logic across modules or related repositories that an extraction would remove.
-- **Cross-file consistency:** Compare parallel types, files, and modules for differences in structure, naming, ordering, or derived traits.
-- **Ordering and grouping:** Check the order of fields, parameters, match arms, imports, tests, sections, and documentation bullets, along with blank-line grouping. Judge them by semantic relationships and project conventions, using alphabetical order as the fallback. Reviews often miss this, so check every changed group explicitly.
-- **Comments and prose:** Check whether comments, docstrings, and documentation restate code, narrate history, exceed the constraint they explain, have gone stale, or break the writing rules.
-- **Idioms and existing primitives:** Check for non-idiomatic language or standard library use, and handwritten logic already provided by a dependency, framework primitive, or established library.
-- **Tests and coverage:** Check for missing behavioral coverage of new branches and error paths, assertions that would pass despite a plausible bug, and real personal data in fixtures. Run the project's coverage tool on the changed lines, such as `cargo llvm-cov`. Read the PR's Codecov comment if any, and list each uncovered changed line with its reason.
-- **Documentation:** Check whether the target makes README feature lists, roadmaps, layout trees, or usage instructions inaccurate. Also check whether user-facing docs include implementation detail or outgrow their sibling entries.
-- **Security and secrets:** Check for secret exposure, authorization boundary violations, injection from untrusted input, and destructive behavior.
-- **Dependencies, CI, release, and deployment:** Check for dependency downgrades, dropped build outputs, and versions or pins that drift between packages and downstream consumers. Exercise the affected build, packaging, and publish paths without relying on stubbed tests. For a deployed site, check the preview deployment before merge and production after it.
+- **Correctness and edge cases:** broken assumptions, empty or boundary inputs, paths, permissions, data shapes, concurrency, and resource lifecycles.
+- **Error handling:** swallowed or merely logged errors, overly broad catches, fallbacks that hide failures, and unhelpful messages.
+- **Types, invariants, and API surface:** invalid states the API permits, construction paths that bypass invariants, and visibility broader than callers need.
+- **Conventions:** every rule in the loaded instructions, checked against the complete changed construct.
+- **Simplicity:** unnecessary abstractions, speculative configurability, dead code, workarounds that leave the root cause in place, and logic with a shorter idiomatic form.
+- **DRY:** logic duplicated across modules or related repositories that an extraction would remove.
+- **Cross-file consistency:** parallel types, files, and modules that differ in structure, naming, ordering, or derived traits.
+- **Ordering and grouping:** the order of fields, parameters, match arms, imports, tests, sections, and documentation bullets, and their blank-line grouping, judged by semantic relationships and project conventions with alphabetical order as the fallback. Reviews often miss this, so check every changed group explicitly.
+- **Comments and prose:** comments, docstrings, and documentation that restate code, narrate history, exceed the constraint they explain, have gone stale, or break the writing rules.
+- **Idioms and existing primitives:** non-idiomatic language or standard library use, and handwritten logic that a dependency, framework primitive, or established library already provides.
+- **Tests and coverage:** missing behavioral coverage of new branches and error paths, assertions that would pass despite a plausible bug, and real personal data in fixtures. Run the project's coverage tool on the changed lines, such as `cargo llvm-cov`, read the PR's Codecov comment if any, and list each uncovered changed line with its reason.
+- **Documentation:** README feature lists, roadmaps, layout trees, and usage instructions the target makes inaccurate, and user-facing docs that include implementation detail or outgrow their sibling entries.
+- **Security and secrets:** secret exposure, authorization boundaries, injection from untrusted input, and destructive behavior.
+- **Dependencies, CI, release, and deployment:** dependency downgrades, dropped build outputs, and versions or pins that drift between packages and downstream consumers. Exercise the affected build, packaging, and publish paths without relying on stubbed tests. For a deployed site, check the preview deployment before merge and production after it.
 
 Then reread the target from these perspectives:
 
