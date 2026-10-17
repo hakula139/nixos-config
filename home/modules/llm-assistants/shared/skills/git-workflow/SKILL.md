@@ -1,10 +1,10 @@
 ---
 name: git-workflow
 description: >-
-  Prepare commits, draft or create and update pull requests or merge requests, push branches, and
-  merge approved requests. Use when completing a logical implementation chunk or performing Git ref
-  creation and publication tasks, including PR titles and descriptions. Skip read-only Git
-  inspection and code review.
+  Prepare commits, draft or create and update pull requests or merge requests, push branches, merge
+  approved requests, and update existing issues. Use when completing a logical implementation chunk
+  or performing Git ref creation and publication tasks, including PR titles and descriptions and
+  edits to existing issues. Skip read-only Git inspection and code review.
 ---
 
 # Git Workflow
@@ -55,3 +55,13 @@ The discovered repository conventions govern the description's structure. Apply 
 - Pass multiline bodies through a file or structured argument. Prefer `gh pr create --body-file <file>` and `gh pr edit --body-file <file>` to shell interpolation. Use `#N` for same-repository issues and GitHub PRs, and `!N` for GitLab MRs.
 - Read back the created or updated request to verify its title, body, base, diff, assignees, and labels. Check that the published body preserves the reviewed structure and content. Correct omissions before reporting completion.
 - For an approved merge, confirm that CI passes on the current head and the host reports the branch as mergeable. Use the repository's merge method, then verify the resulting remote state. Rebase only if the branch has conflicts or the host requires it to be up to date. CI on the target branch checks the combined result, so confirm it passes after the merge. For GitHub squash merges, use GitHub's default commit message without supplying a custom subject or body. Report queued auto-merge as pending until it has landed.
+
+## Issues
+
+Keep an existing GitHub or GitLab issue's description as its one current, organized spec. A reader should get the issue's state from the body alone, while comment trails accumulate superseded decisions.
+
+- Record decisions, scope changes, research findings, progress updates, and close reasons by editing the description. Do not add comments to existing issues.
+- Revise acceptance criteria in place without keeping superseded wording beside the correction. Record decisions under the issue's Notes section or the repository's equivalent.
+- When existing comments carry this kind of content, fold them into a reorganized body, then delete the folded comments.
+- Close an issue as not planned with the reason stated in the body and no closing comment.
+- Pass the edited body through a file or structured argument, then read the issue back to verify it.
