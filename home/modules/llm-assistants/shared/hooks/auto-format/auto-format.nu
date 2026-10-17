@@ -11,8 +11,8 @@ def have [tool: string]: nothing -> bool {
   which $tool | is-not-empty
 }
 
-# One `try` each, so a crashing tool cannot skip the ones after it. Only a failing exit reports, so a
-# linter that exits 0 on warnings needs the flag that fails it.
+# One `try` each, so a crashing tool cannot skip the ones after it. Only a failing exit reports, so
+# a linter that exits 0 on warnings needs the flag that fails it.
 def check [tool: string, args: list<string>, path: string]: nothing -> string {
   let run = (try { ^$tool ...$args | complete } catch { null })
   if $run == null or $run.exit_code == 0 {
@@ -24,7 +24,7 @@ def check [tool: string, args: list<string>, path: string]: nothing -> string {
   $"($name) exited with ($run.exit_code) on ($path):\n($output)"
 }
 
-# Node's own resolution order, since eslint only works with its own project's config and plugins.
+# The nearest `node_modules/.bin/<tool>` above `path`, or an empty string.
 def project-bin [path: string, tool: string]: nothing -> string {
   let parts = ($path | path expand | path dirname | path split)
   for n in (($parts | length)..1) {
@@ -34,23 +34,19 @@ def project-bin [path: string, tool: string]: nothing -> string {
   ""
 }
 
-# cspell finds its config and `.gitignore` root from the working directory, which belongs to the
-# session and may be another repository. Before 10.1 it also resolves a linked worktree's root to
-# the main checkout, whose `.gitignore` can ignore the worktree, so the root is passed explicitly.
+# cspell checks only files under its working directory, and before 10.1 it resolves a linked
+# worktree's gitignore root to the main checkout, so it runs from the repository root and gets that
+# root explicitly. A file the project's ignore rules exclude is not this hook's business.
 def check-spelling [path: string, config: record]: nothing -> string {
-  let project = (project-bin $path "cspell")
-  let cspell = if ($project | is-not-empty) { $project } else { $config.cspell }
-  let toplevel = (^$config.git -C ($path | path dirname) rev-parse --show-toplevel | complete)
+  let cspell = (project-bin $path "cspell" | default --empty $config.cspell)
+  let args = ["--no-progress" "--no-must-find-files"]
+  let toplevel = (^$config.git rev-parse --show-toplevel | complete)
   if $toplevel.exit_code != 0 {
-    return (check $cspell ["--no-progress" $path] $path)
+    return (check $cspell [...$args $path] $path)
   }
   let root = ($toplevel.stdout | str trim)
-  # cspell skips an ignored file and then fails because it found none.
-  if (^$config.git -C $root check-ignore --quiet $path | complete).exit_code == 0 {
-    return ""
-  }
   cd $root
-  check $cspell ["--no-progress" "--gitignore-root" $root $path] $path
+  check $cspell [...$args "--gitignore-root" $root $path] $path
 }
 
 def format-markdown [path: string, config: record] {
@@ -67,8 +63,10 @@ def format-markdown [path: string, config: record] {
   } catch { null }
 }
 
-# A `--fix` pass reports whatever it could not fix, so one call covers both.
+# A `--fix` pass reports whatever it could not fix, so one call covers both. Each file's tools run
+# from its directory, so they find that file's project, never the session's.
 def format-file [path: string, config: record]: nothing -> list<any> {
+  cd ($path | path dirname)
   match ($path | path parse | get extension) {
     "sh" => [
       (check $config.shfmt ["-w" $path] $path)
@@ -114,15 +112,15 @@ def format-file [path: string, config: record]: nothing -> list<any> {
     ]
     "css" | "scss" | "less" | "js" | "jsx" | "mjs" | "cjs" | "ts" | "tsx" | "vue" => {
       # A pinned prettier cannot load the plugins the project's config names.
-      let prettier = (project-bin $path "prettier")
-      let formatter = if ($prettier | is-not-empty) { $prettier } else { $config.prettier }
-      # A file the project ignores is not this hook's business.
+      let formatter = (project-bin $path "prettier" | default --empty $config.prettier)
+      # eslint only works with its own project's config and plugins.
       let eslint = (project-bin $path "eslint")
       [
         (if (have $formatter) {
           check $formatter ["--log-level" "warn" "--write" $path] $path
         })
         (if ($eslint | is-not-empty) {
+          # A file the project ignores is not this hook's business.
           check $eslint ["--fix" "--max-warnings" "0" "--no-warn-ignored" $path] $path
         })
       ]
