@@ -73,6 +73,7 @@ in
     ./cursor
     ./omp
     ./opencode
+    ./oxide-code
     ./shared
     ./workmux
   ];
@@ -123,7 +124,7 @@ in
 
     (lib.mkIf cfg.enable {
       hakula =
-        lib.genAttrs cliAssistantNames (_: {
+        lib.genAttrs (cliAssistantNames ++ [ "oxide-code" ]) (_: {
           enable = lib.mkDefault true;
           proxy = lib.mkIf cfg.proxy.enable assistantProxy;
         })

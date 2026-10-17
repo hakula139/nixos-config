@@ -225,6 +225,11 @@ def registry [root: string]: nothing -> list<record> {
           }
           upstream: {|| gh-latest-release "hakula139/listenbrainz-scrobbler" }
         }
+        {
+          pin: "oxide-code"
+          local: {|| nix-attr $root "flake.nix" 'github:hakula139/oxide-code/(?<v>[^"]+)' }
+          upstream: {|| gh-latest-release "hakula139/oxide-code" }
+        }
       ]
     }
     {
