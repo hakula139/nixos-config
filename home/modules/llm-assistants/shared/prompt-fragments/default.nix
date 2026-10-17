@@ -12,6 +12,9 @@ let
 
     "@memory@" = ./memory.md;
     "@coordination@" = ./coordination.md;
+
+    "@readOnly@" = ./read-only.md;
+    "@status@" = ./status.md;
   };
   placeholders = builtins.attrNames fragments;
   fragmentBodies = builtins.attrValues fragments;
