@@ -38,6 +38,7 @@
         Port ${toString server.port}
         User root
         IdentityFile ${sshKey}
+        ServerAliveInterval 60
     '') servers;
 
   mkKnownHosts =
