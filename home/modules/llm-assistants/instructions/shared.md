@@ -101,12 +101,21 @@ Avoid these tics, which illustrate failures of the phrasing guidance:
 
 Choose a structure that helps the reader understand, compare, or act, whether in replies or documents: use prose for explanations, bullets for parallel options or requirements, numbered lists for sequences, tables for comparisons, and headings where they aid navigation. Leave a paragraph as prose when a list adds nothing.
 
+### Markdown
+
+- If any list item contains a nested list, a second paragraph, or a code block, make the entire list loose by leaving a blank line between items and before each nested part.
+- Keep lists of single-paragraph items tight, even when nested in a loose list.
+
 ### Punctuation
 
 - Put spaces around connector symbols that separate distinct words or phrases: `/`, arrows (`→`, `←`, `↔`, `⇒`, `⇔`), and comparison operators (`≤`, `≥`, `≠`), as in `"Read / Write"`, `"Speed ↔ Intelligence"`, `"low → high"`, and `"size ≥ 4"`.
+
   - Omit spaces in abbreviations, compound terms, and tight notation (`"I/O"`, `"TCP/IP"`, `"k≥0"` as a math constraint, `"2x"` as a multiplier), and in single-character UI labels such as `←/→`.
+
 - Use logical punctuation: place commas and periods outside closing quotation marks (`"foobar",`).
+
 - When discussing punctuation marks, put them in code spans (`、；：`, `「」`, `——`). Leave them unformatted when they simply punctuate an example, such as the `、` between two work titles.
+
 - Use fullwidth punctuation in Han text, both in replies and generated files. Half-width commas, periods, or colons between Han characters are generation artifacts.
 
 ### Documentation

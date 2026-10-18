@@ -69,6 +69,7 @@ ast-grep scan --rule "$rule_dir/await-in-loop.yml" src/
 Shell rewrites bypass the editor tools' hooks, including auto-formatting and comment checks, and Claude Code checkpoints cannot roll them back. Treat every rewrite as an unreviewed bulk edit.
 
 1. Run `git status --short`. On a clean tree, `git diff` shows only the rewrite and `git restore` undoes it. Uncommitted changes may belong to the user or another agent, so never stash, commit, or restore them, and exclude their files with `--globs '!<path>'` so restoring the rewrite cannot discard them.
+
 2. Preview the change. `-r` on `run`, or a `fix` key in a rule, prints a diff and writes nothing.
 
    ```bash
@@ -76,7 +77,9 @@ Shell rewrites bypass the editor tools' hooks, including auto-formatting and com
    ```
 
 3. Read every hunk, and narrow the paths, globs, or pattern until the preview holds only intended changes.
+
 4. Apply the reviewed command unchanged apart from `-U` (`--update-all`). Avoid `-i`, which needs an interactive terminal.
+
 5. Review `git diff` for the rewritten files, then run the project's formatters, linters, and tests on them, since ast-grep does not reformat its output.
 
 Keep each rewrite to one logical change, with separate runs and previews for unrelated transformations. For changes that need type or reference information, such as renaming a symbol with overloads or shadowing, prefer the language server or the language's refactoring tool.

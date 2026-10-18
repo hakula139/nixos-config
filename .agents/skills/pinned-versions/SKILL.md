@@ -62,6 +62,7 @@ These revisions control the prebuilt Claude Code cache when `hakula.claude-code.
 To update a manual marketplace:
 
 1. Resolve the intended release tag or default branch to a commit. Update `rev` and its tag or date comment together.
+
 2. Obtain the extracted-tree hash. `fetchFromGitHub` requires `--unpack` when prefetching an archive:
 
    ```bash
