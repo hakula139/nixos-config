@@ -235,6 +235,7 @@
   "harper.linters.ToDoHyphen": false,
   "harper.linters.UseTitleCase": false,
   "js/ts.updateImportsOnFileMove.enabled": "always",
+  "json.schemaDownload.enable": true,
   "jupyter.askForKernelRestart": false,
   "lldb.suppressUpdateNotifications": true,
   "markdown-preview-enhanced.breakOnSingleNewLine": false,
