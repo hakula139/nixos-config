@@ -14,7 +14,7 @@ Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment va
 
 ### Git Workflow
 
-Load the `git-workflow` skill when completing a logical implementation chunk, creating Git refs, preparing commits, pushing, resolving merge or rebase conflicts, updating an existing issue, cleaning up after merged or abandoned work, or drafting, creating, updating, or merging a PR / MR. It owns Git authorization, conventions, publication checks, and cleanup.
+Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue update, conflict resolution, or cleanup. It owns Git authorization and conventions.
 
 ### Shared-Tree Safety
 
@@ -148,16 +148,15 @@ Enter a repository's dev shell only from within that repository, since its hook 
 - Give Codex only fully specified tasks with mechanically checkable results, such as an exact edit list, because it does not reliably infer conventions or make design decisions. Keep design decisions, convention judgments, and test writing with Claude.
 - When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), since Workmux's configured default is static.
 - If a tool or the environment misbehaves, hand the repair to the `environment-repair` skill and continue the main task.
-- When available, use the `acp-delegate` skill to delegate bounded work to Claude Code or Codex through `acpx`, or consult them, following the same exceptions for direct work.
 
 ### MCP Servers
 
 Use the CLI when it provides the needed capability, especially for structured `git`, `gh`, and `glab` output. Use MCP for authentication or capabilities the CLI lacks. Availability and tool names vary by session.
 
-- **Atlassian**: the only route to Confluence pages, spaces, and hierarchies. Reads are auto-approved, and writes require confirmation.
-- **Exa**: the default MCP web search and page fetcher (`web_search_exa`, `web_search_advanced_exa`, `web_fetch_exa`, `agent_run`), used when native search is unavailable or weak, especially for coding research and multi-step retrieval. Always pass `textMaxCharacters` to `web_search_advanced_exa`. Without it, the tool returns full page text, roughly 25k tokens for three results, compared with 500 when capped. Check that result titles address the query because Exa can return confidently formatted but irrelevant matches. High-volume searching is substantive work to delegate.
-- **Bifrost**: the corporate gateway's search server, available wherever the gateway is reachable, including hosts whose firewall blocks Exa. It exposes Exa through `exa-web_search_exa` (requires an `objective`), `exa-web_fetch_exa` for reading pages, and `exa-agent_run`, but does not provide `web_search_advanced_exa`. `you-you-search` returns dated highlights, handles non-English queries, and accepts `freshness` and `exclude_domains` filters. The SearXNG tools are a weaker fallback because searches return short snippets and often nothing for CJK queries. `SearXNG-web_url_read` also leads its markdown with site navigation.
+- **Atlassian**: the only route to Confluence pages, spaces, and hierarchies. Confirm before writing to Confluence.
+- **Exa**: the default MCP web search and page fetcher (`web_search_exa`, `web_search_advanced_exa`, `web_fetch_exa`, `agent_run`), used when native search is unavailable or weak, especially for coding research and multi-step retrieval. Always pass `textMaxCharacters` to `web_search_advanced_exa`, which otherwise returns full page text. Check that result titles address the query because Exa can return confidently formatted but irrelevant matches.
+- **Bifrost**: the corporate gateway's search server, for hosts whose firewall blocks Exa. It proxies Exa without `web_search_advanced_exa`, `you-you-search` handles non-English queries and freshness filters, and SearXNG is the last fallback.
 - **DeepWiki**: AI-generated documentation for public GitHub repositories that explains an unfamiliar repo's architecture, patterns, and API design.
-- **Scrapling**: a browser fallback when native fetch is blocked (403, bot protection) or requires JavaScript rendering. Start with `fetch`, then use `stealthy_fetch` if needed. For text, set `disable_resources=true` to skip slow media loads and narrow the output with `css_selector`.
+- **Scrapling**: a browser fallback when native fetch is blocked (403, bot protection) or requires JavaScript rendering.
 - **Filesystem**: sandboxed file operations, for use only when a path requires them. Native file tools and the shell cover other needs.
-- **GitHub** / **GitLab**: `gh` and `glab` cover nearly everything, including `--json` output. `gh pr edit --body-file` avoids shell-escaping an inline body. Use the MCP for review threads and cross-repo search, which the CLIs lack. GitLab expects `project_id` as the URL-encoded project path (`group/subgroup/project`).
+- **GitHub** / **GitLab**: `gh` and `glab` cover nearly everything, including `--json` output. Use the MCP for review threads and cross-repo search, which the CLIs lack. GitLab expects `project_id` as the URL-encoded project path (`group/subgroup/project`).
