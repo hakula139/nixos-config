@@ -68,12 +68,7 @@ Keep durable rules that belong in an instruction file as memories during this ph
 
 ## Phase 4: Prune and index
 
-Keep `MEMORY.md` under 200 lines and about 25 KB. It is an index with one line per memory, each about 150 characters or fewer in the store's existing format. Never put memory content in the index.
-
-- Remove pointers to stale, incorrect, or superseded memories.
-- Move details from any line over about 200 characters into its topic file.
-- Add pointers to newly important memories.
-- Check that every memory file has exactly one pointer and that every pointer resolves to a file.
+Keep `MEMORY.md` within the host's index limits, one line per memory and no content. Remove stale pointers, add new ones, and check that every file has exactly one pointer and every pointer resolves.
 
 ## Phase 5: Promote
 
@@ -114,10 +109,8 @@ Rewrite each rule to fit the target's structure, writing conventions, and docume
 The PR / MR is the approval gate. Work unattended under the `git-workflow` skill and the target repository's `AGENTS.md`:
 
 - Open or update at most one PR / MR per target repository per dream, always from the `docs/promote-memories` branch. Add to its open request if one exists.
-- Work in an isolated worktree in the repository's usual worktree location, leaving the main checkout and other agents' uncommitted work untouched. Check out the open request's branch, or branch from the remote default branch if there is no open request. If a closed request left a stale branch with that name, overwrite it with `git push --force-with-lease`. The closed request retains its commits, so nothing is lost.
-- Run the repository's verification and pre-commit hooks. Never bypass them.
-- Never merge. The user handles merging.
-- In public repositories, keep private material out of the diff, commits, and description, including internal hostnames, gateway names, local paths, and private repositories. Keep a rule in memory if it cannot be stated without such material.
+- If a closed request left a stale branch with that name, overwrite it with `git push --force-with-lease`.
+- In public repositories, keep a rule in memory if it cannot be stated without private material.
 
 After publishing, add `promotion: <URL>` beside the type in each proposed memory's frontmatter metadata.
 
