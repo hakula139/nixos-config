@@ -39,7 +39,7 @@ Remove branches with deleted upstream refs while protecting uncommitted and unme
 
 4. Investigate skips when other evidence suggests they may be stale. The script is conservative around squash merges, cherry-picks, and overlapping changes. Git's patch equivalence ignores whitespace and merge-resolution changes, so patch equivalence alone is insufficient. A merged PR / MR is sufficient evidence when its recorded head exactly matches the local branch tip and its merge commit is an ancestor of the target branch. A merged title or matching branch name is not sufficient.
 
-   Before manually removing a skipped worktree, inspect its tracked, untracked, and ignored files, including files in every submodule, and preserve any unique local content. You may discard a change already preserved elsewhere once you verify that the copies match. Leave active worktrees and unresolved changes alone.
+   Before manually removing a skipped worktree, preserve its content as the `git-workflow` skill's Cleanup section describes, covering every submodule too. Leave active worktrees and unresolved changes alone.
 
    Once integration and preservation are established, run `git worktree remove`, then `git branch -D` if squash history prevents ordinary deletion. If Git refuses ordinary worktree removal, such as for a worktree that contains submodules, use `git worktree remove --force` only after verifying integration, confirming that all tracked, untracked, and ignored content in the worktree and every submodule is clean or preserved, and checking that no agent, process, or terminal is using them. The authorization in step 3 covers this verified fallback. Never recursively delete directories to bypass unresolved state.
 

@@ -229,7 +229,7 @@ let
     name = "scrapling";
     command = [
       "--from"
-      "scrapling[ai]"
+      "scrapling[ai]==0.5"
       "scrapling-mcp"
       "--executable-path=${lib.getExe pkgs.browser-tools.chromium}"
     ];
