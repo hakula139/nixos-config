@@ -34,7 +34,7 @@ A whole-repository review covers existing code and design, so challenge choices 
 - **Error handling:** swallowed or merely logged errors, overly broad catches, fallbacks that hide failures, and unhelpful messages.
 - **Types, invariants, and API surface:** invalid states the API permits, construction paths that bypass invariants, and visibility broader than callers need.
 - **Conventions:** every rule in the loaded instructions, checked against the complete changed construct.
-- **Simplicity:** unnecessary abstractions, speculative configurability, dead code, workarounds that leave the root cause in place, and logic with a shorter idiomatic form.
+- **Simplicity:** unnecessary abstractions, speculative configurability, dead code, and logic with a shorter idiomatic form.
 - **DRY:** logic duplicated across modules or related repositories that an extraction would remove.
 - **Cross-file consistency:** parallel types, files, and modules that differ in structure, naming, ordering, or derived traits.
 - **Ordering and grouping:** the order of fields, parameters, match arms, imports, tests, sections, and documentation bullets, and their blank-line grouping, judged by semantic relationships and project conventions with alphabetical order as the fallback. Reviews often miss this, so check every changed group explicitly.
@@ -50,7 +50,7 @@ Then reread the target from these perspectives:
 - **Removed behavior:** For each deleted or moved line, name the invariant it upheld and identify what upholds it now.
 - **Consumers across boundaries:** For each new or changed type, variant, message, flag, or default, find every consumer, including dispatch points outside the diff that might silently drop it.
 - **History:** Check `git log` and `git blame` for touched lines, along with earlier review comments on the same files, to identify constraints the change might break.
-- **Altitude:** Check whether a fix addresses the root cause at the right depth or only patches a symptom.
+- **Altitude:** Check whether a fix addresses the root cause at the right depth or only patches a symptom. Flag workarounds that get checks passing: skipped, ignored, or platform-gated tests that could be made hermetic; retries or sleeps that let tests pass; `|| true` and `continue-on-error`; ignore, allowlist, and lint-suppression entries that hide real problems; special cases for specific historical commits, PRs, or data; and compatibility shims nothing still needs. Name the root cause and the fix at the layer that owns it.
 
 ## Fan out and verify
 
@@ -64,7 +64,7 @@ These are not findings:
 
 - Issues reported by the project's formatter, linter, or type checker.
 - The contents of generated, vendored, lock, and minified files beyond what their changes imply, such as a dependency downgrade.
-- Patterns whose documented rationale in code, commits, or the PR discussion still applies.
+- Patterns whose documented rationale in code, commits, or the PR discussion still applies, such as generated-file ignores or deliberate license exceptions. A stated reason does not exempt a workaround whose root cause can be fixed.
 - Security issues with no reachable untrusted input.
 - Personal preferences without a documented convention or established pattern behind them.
 
