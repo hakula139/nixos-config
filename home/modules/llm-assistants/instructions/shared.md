@@ -100,6 +100,11 @@ Avoid these tics, which illustrate failures of the phrasing guidance:
 
 Choose a structure that helps the reader understand, compare, or act, whether in replies or documents: use prose for explanations, bullets for parallel options or requirements, numbered lists for sequences, tables for comparisons, and headings where they aid navigation. Leave a paragraph as prose when a list adds nothing.
 
+### Markdown
+
+- If any list item contains a nested list, a second paragraph, or a code block, make the entire list loose by leaving a blank line between items and before each nested part.
+- Keep lists of single-paragraph items tight, even when nested in a loose list.
+
 ### Punctuation
 
 - Put spaces around connector symbols that separate distinct words or phrases: `/`, arrows (`→`, `←`, `↔`, `⇒`, `⇔`), and comparison operators (`≤`, `≥`, `≠`), as in `"Read / Write"`, `"Speed ↔ Intelligence"`, `"low → high"`, and `"size ≥ 4"`.
