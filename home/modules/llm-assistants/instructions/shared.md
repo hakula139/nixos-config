@@ -137,10 +137,6 @@ Use only the tools and capabilities available in the current session, within the
 
 Once the task is clear, a top-level interactive agent runs `tmux-task-name <short-hyphenated-name>` from its shell tool. The script renames only a default numeric session with one window, one pane, and no Workmux token. Delegated, headless, and background runs never call it. Keep tmux window identities and native agent conversation or pane titles independent of the session name.
 
-### Library Documentation
-
-Use the `find-docs` skill for Context7 lookups. Run the managed `ctx7` command directly as `ctx7 library <name> <query>` and `ctx7 docs <libraryId> <query>`, replacing the skill's `npx` examples. The command loads its API key at launch. Never reinstall it or configure Context7 MCP.
-
 ### Dev Shells
 
 Enter a repository's dev shell only from within that repository, since its hook may install Git hooks into whichever repository is current. Get standalone tools from `PATH`, `nix shell nixpkgs#<pkg> -c`, or a hook-free shell documented by a skill, such as `browser-debugging`.
