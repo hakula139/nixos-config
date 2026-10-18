@@ -22,3 +22,5 @@ Each ban states its reason because a bare rule gets satisfied on the surface whi
 6. **Orphaned last word**: in hard-wrapped text such as a code comment, a final line holding one short word means the wording is too long by a hair. Tighten the wording until it fits in one fewer line. Moving the break earlier only relocates the problem.
 
 7. **Absolutist claims about correctness**: "bug-free", "production-ready", "fully verified", "guaranteed", "bulletproof". State what you checked and how, then let the reader judge, since these words assert a completeness no test run establishes.
+
+Chinese text uses `——` and `；` legitimately, so a single one is no tic. Overuse still is: dashes and semicolons stacked across neighbouring clauses, as in `X——是 Y；Z——也只有 W`, or a colon or semicolon in most clauses. Reserve `——` for a turn or a key step and put subordinate detail in parentheses. Han characters take fullwidth punctuation, so a half-width comma, period, or colon between them is a generation artifact.

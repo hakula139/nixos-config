@@ -16,8 +16,6 @@ Check the comment prose and the user-facing strings for these.
 
 The character tics are `—`, `--`, `;`, `…`, and a curly quote. One inside backticks or a code span names the literal character, so ignore it there. Comments are hard-wrapped to the file's column limit by convention, so a mid-sentence line break inside one is never a tic, and an orphaned last word is the only wrapping fault a comment can commit.
 
-Chinese text uses `——` and `；` legitimately, so a single one is no tic. Overuse still is: dashes and semicolons stacked across neighbouring clauses, as in `X——是 Y；Z——也只有 W`, or a colon or semicolon in most clauses. Reserve `——` for a turn or a key step and put subordinate detail in parentheses. Han characters take fullwidth punctuation, so a half-width comma, period, or colon between them is a generation artifact.
-
 ## Grounding
 
 **Ground every flag in a verbatim quote before any other consideration.** Copy the offending span character for character. For a character tic, confirm the copied span literally contains one of those marks. For an orphaned last word, confirm the final line holds one short word, since a final line carrying a whole clause is no orphan. Without such a quote there is no violation, so return `ok: true`. Never reconstruct punctuation from memory, paraphrase text into a violation, or quote a phrase the text does not contain. An ungrounded flag is a fabrication that costs a verification round, so this rule outranks everything below.

@@ -116,8 +116,6 @@ Choose a structure that helps the reader understand, compare, or act, whether in
 
 - When discussing punctuation marks, put them in code spans (`、；：`, `「」`, `——`). Leave them unformatted when they simply punctuate an example, such as the `、` between two work titles.
 
-- Use fullwidth punctuation in Han text, both in replies and generated files. Half-width commas, periods, or colons between Han characters are generation artifacts.
-
 ### Documentation
 
 Before editing documentation, identify what specifically needs correction or removal: claims or instructions made inaccurate by the change, or material that is obsolete or unnecessary. A new feature alone does not warrant expanding an overview. Create new documentation only when asked.
