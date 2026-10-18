@@ -26,7 +26,7 @@ in
     hostKey = keys.hosts.us-4;
     proxyLevel = "admin";
     isBuilder = true;
-    maxJobs = 3;
+    maxJobs = 1;
     speedFactor = 6;
   };
 }
