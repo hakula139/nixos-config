@@ -23,15 +23,15 @@ Reconstruct the user's activity during the date range, with hours by project and
 2. **Forge.** Query activity directly and convert UTC timestamps to local days.
 
    - Personal host: run `gh search prs --author @me --updated "<from>..<to>"`, the same command with `--reviewed-by @me`, and `gh search issues --author @me --updated "<from>..<to>"`, each with `--limit 1000` and `--json` fields covering the repository, URL, and dates. A PR's `state` is `merged`, `closed`, or `open`, and `closedAt` records when it merged or closed, so judge its state at the end of the range from `closedAt`, since `state` reflects today. An open item reports `closedAt` as `0001-01-01T00:00:00Z`. Avoid the REST events API, which stops at 300 events.
-   - Work host: run `glab api --paginate "events?after=<day before from>&before=<day after to>&per_page=100"`. Its date bounds are exclusive. Then run `glab api projects/<id>` for each `project_id` to get its name and web URL.
+   - Work host: run `glab api --paginate "events?after=<day before from>&before=<day after to>&per_page=100"`. Its date bounds are exclusive, and `--paginate` prints one JSON array per page, so merge them with `jq -s add`. Then run `glab api projects/<id>` for each `project_id` to get its name and web URL.
 
-3. **Meetings, on the work host.** Run `vdirsyncer sync`, which keeps the past 14 days. If it reports an undiscovered collection, run `vdirsyncer discover` first. Then `khal list <from> <N>d` lists an N-day range.
+3. **Meetings, on the work host.** Run `vdirsyncer sync`, which keeps the past 14 days. If it reports an undiscovered collection, run `vdirsyncer discover` first. If the sync fails, read the local cache and note when it last synced. Then `khal list <from> <N>d` lists an N-day range.
 
 4. **Computer History, on macOS.** If enabled, ChatGPT and Codex desktop summarize screen activity in `~/.codex/memories/extensions/skysight/resources/*.md`, with filenames based on UTC start time. Use this as supplementary evidence and treat gaps as missing coverage.
 
 ## Rules
 
-- Use the digest and meeting durations for hours. Never invent time. Round each day's total to 0.5 hours, then divide it among tasks in 0.5-hour steps that add up to the total. Fold shorter periods into a related line.
+- Hours come from the digest's `hours.projects` in the report's context plus meeting durations, counting a prompt made during a meeting only once. Never invent time. Round each day's total to 0.5 hours, then divide it among tasks in 0.5-hour steps that add up to the total. Fold shorter periods into a related line.
 - Give no time to a task without prompts on this host. If a session covers several projects, split its time in proportion to the prompts that drove each project, including PRs it delegated in other repositories.
 - Name a session outside any repository, such as a Codex Desktop chat in a scratch directory, after its task. Group small sessions under one **Errands** line, which also gets a row in Projects.
 - The host determines the context: activity on a work host is work, and activity on a personal host is personal. Each session's `context` already reflects the configured exceptions, so use it as given and omit personal items from a work report.
