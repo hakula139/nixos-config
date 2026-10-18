@@ -22,8 +22,8 @@ Reconstruct the user's activity during the date range, with hours by project and
 
 2. **Forge.** Query activity directly and convert UTC timestamps to local days.
 
-   - Personal host: run `gh search prs --author @me --updated ">=<from>"`, the same command with `--reviewed-by @me`, and `gh search issues --author @me --updated ">=<from>"`, each with `--limit 1000` and `--json` date fields. Determine each item's state at the end of the range from `mergedAt` and `closedAt`, since its current state may reflect a later date. Avoid the REST events API, which stops at 300 events.
-   - Work host: run `glab api --paginate "events?after=<day before from>&before=<day after to>&per_page=100"`. Its date bounds are exclusive. Then run `glab api projects/<id>` for each `project_id`.
+   - Personal host: run `gh search prs --author @me --updated ">=<from>"`, the same command with `--reviewed-by @me`, and `gh search issues --author @me --updated ">=<from>"`, each with `--limit 1000` and `--json` fields covering the repository, URL, and dates. Determine each item's state at the end of the range from `mergedAt` and `closedAt`, since its current state may reflect a later date. Avoid the REST events API, which stops at 300 events.
+   - Work host: run `glab api --paginate "events?after=<day before from>&before=<day after to>&per_page=100"`. Its date bounds are exclusive. Then run `glab api projects/<id>` for each `project_id` to get its name and web URL.
 
 3. **Meetings, on the work host.** Run `vdirsyncer sync`, which keeps the past 14 days. If it reports an undiscovered collection, run `vdirsyncer discover` first. Then `khal list <from> <N>d` lists an N-day range.
 
@@ -55,16 +55,19 @@ Reconstruct the user's activity during the date range, with hours by project and
 ### Mon 10-12 · 5.5h
 
 - 4h **billing**: Released v1.4.0 and fixed the migration it exposed
-  - 349d7e4c · #212-#214
+
+  - claude 349d7e4c · [billing#212](https://github.com/acme/billing/pull/212), [billing#214](https://github.com/acme/billing/pull/214)
+
 - 1.5h **docs-site**: Rebuilt search on the static index (in review)
-  - 01a145fd · #88
+
+  - codex 01a145fd · [docs-site!88](https://gitlab.example.com/acme/docs-site/-/merge_requests/88)
 
 ## Open
 
-- **docs-site**: #88, the search rebuild, awaits review
+- **docs-site**: [docs-site!88](https://gitlab.example.com/acme/docs-site/-/merge_requests/88), the search rebuild, awaits review
 ```
 
 - **Projects** totals each project's hours from the day lines, sorts projects by hours, and gives one brief highlight of each project's main results.
-- **Days** has one line per task. Each line is an idiomatic past-tense sentence naming a concrete result, such as a version, PR, MR, document, or decision. Add a status such as `(ongoing)` or `(in review)` only for unfinished work. Include one evidence sub-bullet per line with session ids and PR, MR, or meeting references. Keep busy days to about six to eight lines by grouping related PRs, and omit days without activity.
+- **Days** has one line per task. Each line is an idiomatic past-tense sentence naming a concrete result, such as a version, PR, MR, document, or decision. Add a status such as `(ongoing)` or `(in review)` only for unfinished work. Include one evidence sub-bullet per line listing each session as its tool and first 8 id characters, then each PR, MR, or issue as a link whose text names its repository, as in `repo#N` for GitHub and `repo!N` for GitLab, and each meeting by title. Keep busy days to about six to eight lines by grouping related PRs, and omit days without activity.
 - **Open** lists work still in flight at the end of the range, such as open PRs or MRs, pending reviews, and blockers. Omit this section if nothing is open.
 - Report results and final decisions, leaving out the investigation. If evidence for an outcome is thin, state what was attempted.
