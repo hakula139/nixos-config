@@ -61,7 +61,7 @@ Aim for a simple, coherent design that meets current requirements.
 
 ### Debugging and Verification
 
-- When tests fail, coverage drops, or behavior breaks, investigate the root cause before patching symptoms. Only apply a temporary mitigation when I explicitly ask you to.
+- When tests fail, coverage drops, or behavior breaks, investigate the root cause before patching symptoms. Skipping tests, adding ignores or retries, or special-casing specific commits or data to get checks passing also patches symptoms, so fix the cause or make the test hermetic. Only apply a temporary mitigation when I explicitly ask you to.
 - If a fix does not work, inspect the actual state (DOM, traces, logs, payloads) before guessing again.
 - Verify the result before declaring the task done. Confirm that asynchronous or external operations have landed, including API responses, advanced git refs, and multi-repo build passes. Name any UI change you could not test in a browser.
 
