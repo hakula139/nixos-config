@@ -110,6 +110,7 @@ The PR / MR is the approval gate. Work unattended under the `git-workflow` skill
 
 - Open or update at most one PR / MR per target repository per dream, always from the `docs/promote-memories` branch. Add to its open request if one exists.
 - If a closed request left a stale branch with that name, overwrite it with `git push --force-with-lease`.
+- Run the repository's verification and pre-commit hooks, and never bypass them.
 - In public repositories, keep a rule in memory if it cannot be stated without private material.
 
 After publishing, add `promotion: <URL>` beside the type in each proposed memory's frontmatter metadata.
