@@ -30,6 +30,7 @@ let
       personalProjects
       readingMinutes
       maxMinutes
+      agentMaxMinutes
       ;
     assistantDirs = {
       claude = "${homeDir}/.claude";
@@ -73,7 +74,10 @@ in
 
     worktreePatterns = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "/\\.claude/worktrees/[^/]+.*$" ];
+      default = [
+        "/\\.claude/worktrees/[^/]+.*$"
+        "__worktrees/[^/]+.*$"
+      ];
       description = "Regexes stripped from a session's working directory to recover its repository";
     };
 
@@ -93,6 +97,12 @@ in
       type = lib.types.ints.positive;
       default = 60;
       description = "Most minutes a single prompt can earn";
+    };
+
+    agentMaxMinutes = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 120;
+      description = "Most agent minutes a single turn can earn";
     };
   };
 

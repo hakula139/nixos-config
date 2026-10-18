@@ -4,7 +4,7 @@
 # Activity Digest
 # ==================================================================================================
 # Prints each day's agent sessions on this host as JSON for the activity-report skill.
-# Only prompts a person typed earn hours, so turns that notifications or agents start add none.
+# Human hours credit only prompts a person typed, while agent hours cover every session's turns.
 # ==================================================================================================
 
 const EXCERPT_CHARS = 400
@@ -56,10 +56,6 @@ def excerpt []: string -> string {
 # Transcripts
 # --------------------------------------------------------------------------------------------------
 
-def transcripts [pattern: string, since: datetime]: nothing -> list<string> {
-  glob $pattern | where {|file| (ls $file | get 0.modified) >= $since }
-}
-
 # A transcript may end in a partial line while its session is still being written.
 def read-transcript [file: string]: nothing -> list {
   let text = (open --raw $file)
@@ -70,19 +66,50 @@ def read-transcript [file: string]: nothing -> list {
   }
 }
 
-def session [tool: string, id: string, cwd: string, events: list]: nothing -> record {
-  {
-    tool: $tool
-    id: $id
-    cwd: $cwd
-    events: ($events | update ts { into datetime | date to-timezone local })
+# A turn starts at any user message and ends at its first reply, so a later turn that a
+# notification starts never extends an earlier one.
+def turns [project: string]: list -> list {
+  let events = $in
+  let replies = ($events | where kind == "reply" | get ts)
+  $events
+  | where kind != "reply"
+  | insert project $project
+  | insert end {|e| $replies | where $it >= $e.ts | get -o 0 }
+}
+
+# Read the tool's transcripts that match the globs and changed since the date as sessions. The
+# parser maps a transcript's records and file to `id`, `cwd`, `attended`, and `events`, or to null
+# to skip it. Only an attended session's prompts earn human hours.
+def read-sessions [
+  cfg: record
+  since: datetime
+  tool: string
+  globs: list<string>
+  parse: closure
+]: nothing -> list {
+  $globs
+  | each {|pattern| glob ($cfg.assistantDirs | get $tool | path join $pattern) }
+  | flatten
+  | where {|file| (ls $file | get 0.modified) >= $since }
+  | each {|file| do $parse (read-transcript $file) $file }
+  | compact
+  | each {|s|
+    let project = (project-of $cfg $s.cwd)
+    let events = ($s.events | update ts { into datetime | date to-timezone local })
+    $s | merge {
+      tool: $tool
+      project: $project
+      attended: ($s.attended and ($cfg.excludedDirs | all {|pattern| $s.cwd !~ $pattern }))
+      events: $events
+      turns: ($events | turns $project)
+    }
   }
 }
 
 def claude-human [r: record]: nothing -> bool {
   let typed = (
-    $r.toolUseResult? == null and $r.isMeta? != true and $r.isCompactSummary? != true
-    and $r.isSidechain? != true and $r.teamName? == null
+    $r.isMeta? != true and $r.isCompactSummary? != true and $r.isSidechain? != true
+    and $r.teamName? == null
   )
   if not $typed {
     return false
@@ -94,41 +121,41 @@ def claude-human [r: record]: nothing -> bool {
   ($text | is-not-empty) and not ($text =~ $CLAUDE_INJECTED)
 }
 
-def claude-sessions [dir: string, since: datetime]: nothing -> list {
-  transcripts ($dir | path join projects * *.jsonl) $since
-  | each {|file|
-    let records = (read-transcript $file)
+# Subagents end their run with a SubagentHandback call in place of a final text reply.
+def claude-reply [r: record]: nothing -> bool {
+  $r.message.stop_reason? == "end_turn" or "SubagentHandback" in ($r.message.content | get -o name)
+}
+
+def claude-sessions [cfg: record, since: datetime]: nothing -> list {
+  let globs = [projects/*/*.jsonl projects/*/*/subagents/*.jsonl]
+  read-sessions $cfg $since claude $globs {|records, file|
     let cwd = ($records | get -o cwd | compact | get -o 0)
-    let entrypoint = ($records | get -o entrypoint | compact | get -o 0 | default "")
-    if $cwd == null or ($entrypoint | str starts-with "sdk") {
+    if $cwd == null {
       return null
     }
+    let entrypoint = ($records | get -o entrypoint | compact | get -o 0 | default "")
     let events = (
       $records
       | each {|r|
-        if $r.type == "user" and (claude-human $r) {
-          {kind: prompt, ts: $r.timestamp, text: ($r.message.content | content-text)}
-        } else if $r.type == "assistant" and $r.message.stop_reason? == "end_turn" {
+        if $r.type == "user" and $r.toolUseResult? == null {
+          let kind = if (claude-human $r) { "prompt" } else { "trigger" }
+          {kind: $kind, ts: $r.timestamp, text: ($r.message.content | content-text)}
+        } else if $r.type == "assistant" and (claude-reply $r) {
           {kind: reply, ts: $r.timestamp, text: ($r.message.content | content-text)}
         }
       }
       | compact
     )
-    session claude ($file | path parse | get stem) $cwd $events
+    let id = ($file | path parse | get stem)
+    {id: $id, cwd: $cwd, attended: (not ($entrypoint | str starts-with "sdk")), events: $events}
   }
-  | compact
 }
 
-def codex-sessions [dir: string, since: datetime]: nothing -> list {
-  [($dir | path join sessions * * * *.jsonl) ($dir | path join archived_sessions *.jsonl)]
-  | each {|pattern| transcripts $pattern $since }
-  | flatten
-  | each {|file|
-    let records = (read-transcript $file)
+def codex-sessions [cfg: record, since: datetime]: nothing -> list {
+  read-sessions $cfg $since codex [sessions/*/*/*/*.jsonl archived_sessions/*.jsonl] {|records|
     let meta = ($records | get -o 0.payload)
-    # Desktop imports of other assistants' sessions, subagents, and reviewers carry other thread
-    # sources, while `codex exec` and MCP runs are headless.
-    if $meta.thread_source? != "user" or $meta.source? in [exec mcp] {
+    # Codex Desktop imports of other assistants' sessions carry no thread source.
+    if $meta.thread_source? == null {
       return null
     }
     let events = (
@@ -136,7 +163,9 @@ def codex-sessions [dir: string, since: datetime]: nothing -> list {
       | where type == "event_msg"
       | each {|r|
         let p = $r.payload
-        if $p.type == "item_completed" and $p.item.type? == "UserMessage" {
+        if $p.type == "task_started" {
+          {kind: trigger, ts: $r.timestamp, text: ""}
+        } else if $p.type == "item_completed" and $p.item.type? == "UserMessage" {
           {kind: prompt, ts: $r.timestamp, text: ($p.item.content | content-text)}
         } else if $p.type == "task_complete" and $p.last_agent_message? != null {
           {kind: reply, ts: $r.timestamp, text: $p.last_agent_message}
@@ -144,30 +173,30 @@ def codex-sessions [dir: string, since: datetime]: nothing -> list {
       }
       | compact
     )
-    session codex $meta.id $meta.cwd $events
+    # Subagents and reviewers carry other thread sources. `codex exec` and MCP runs are headless.
+    let attended = ($meta.thread_source == "user" and $meta.source? not-in [exec mcp])
+    {id: $meta.id, cwd: $meta.cwd, attended: $attended, events: $events}
   }
-  | compact
 }
 
-def omp-sessions [dir: string, since: datetime]: nothing -> list {
-  transcripts ($dir | path join sessions * *.jsonl) $since
-  | each {|file|
-    let records = (read-transcript $file)
+def omp-sessions [cfg: record, since: datetime]: nothing -> list {
+  read-sessions $cfg $since omp [sessions/*/*.jsonl] {|records|
     let meta = ($records | where type == "session" | first)
     let events = (
       $records
       | where type == "message"
       | each {|r|
         let m = $r.message
-        if $m.role == "user" and $m.attribution? == "user" {
-          {kind: prompt, ts: $r.timestamp, text: ($m.content | content-text)}
+        if $m.role == "user" {
+          let kind = if $m.attribution? == "user" { "prompt" } else { "trigger" }
+          {kind: $kind, ts: $r.timestamp, text: ($m.content | content-text)}
         } else if $m.role == "assistant" and $m.stopReason? == "stop" {
           {kind: reply, ts: $r.timestamp, text: ($m.content | content-text)}
         }
       }
       | compact
     )
-    session omp $meta.id $meta.cwd $events
+    {id: $meta.id, cwd: $meta.cwd, attended: true, events: $events}
   }
 }
 
@@ -185,30 +214,59 @@ def context-of [cfg: record, project: string]: nothing -> string {
   if $project in $cfg.personalProjects { "personal" } else { $cfg.context }
 }
 
-def to-hours []: list<duration> -> float {
-  math sum | $in / 1hr | math round --precision 2
+# Convert each project's time to hours, adding their total.
+def tally []: record -> record {
+  let hours = ($in | update cells { $in / 1hr })
+  {
+    total: ($hours | values | append 0.0 | math sum | math round --precision 2)
+    projects: ($hours | update cells { math round --precision 2 })
+  }
 }
 
 # Credit each human prompt, across all sessions, with the time until its turn ends plus a reading
 # allowance, cut short by the next prompt anywhere and capped per prompt.
-def hours [cfg: record, prompts: list<record>]: nothing -> record {
+def human-hours [cfg: record, prompts: list<record>]: nothing -> record {
   let timeline = ($prompts | sort-by ts)
-  let credits = (
-    $timeline
-    | enumerate
-    | each {|p|
-      let until = [
-        ($p.item.end + $cfg.readingMinutes * 1min)
-        ($p.item.ts + $cfg.maxMinutes * 1min)
-        ($timeline | get -o ($p.index + 1) | get -o ts)
-      ]
-      {project: $p.item.project, credit: (($until | compact | math min) - $p.item.ts)}
-    }
-  )
-  {
-    total: ($credits | get -o credit | append 0sec | to-hours)
-    projects: ($credits | group-by project | update cells {|rows| $rows | get credit | to-hours })
+  $timeline
+  | enumerate
+  | each {|p|
+    let until = [
+      (($p.item.end | default $p.item.ts) + $cfg.readingMinutes * 1min)
+      ($p.item.ts + $cfg.maxMinutes * 1min)
+      ($timeline | get -o ($p.index + 1) | get -o ts)
+    ]
+    {project: $p.item.project, credit: (($until | compact | math min) - $p.item.ts)}
   }
+  | group-by project
+  | update cells { get credit | math sum }
+  | tally
+}
+
+# Time covered by a list of spans, counting overlaps once
+def covered []: list<record> -> duration {
+  let spans = ($in | sort-by from)
+  $spans
+  | reduce --fold {total: 0sec, until: $spans.0.from} {|span, acc|
+    let added = ([($span.to - ([$span.from $acc.until] | math max)) 0sec] | math max)
+    {total: ($acc.total + $added), until: ([$span.to $acc.until] | math max)}
+  }
+  | get total
+}
+
+# Union each project's turns that got a reply, capped per turn and clipped to the day, so parallel
+# sessions count once.
+def agent-hours [cfg: record, start: datetime, turns: list<record>]: nothing -> record {
+  let end = ($start + 1day)
+  $turns
+  | where end != null
+  | each {|t|
+    let to = ([$t.end ($t.ts + $cfg.agentMaxMinutes * 1min) $end] | math min)
+    {project: $t.project, from: ([$t.ts $start] | math max), to: $to}
+  }
+  | where {|span| $span.to > $span.from }
+  | group-by project
+  | update cells { covered }
+  | tally
 }
 
 def stamp []: record -> record {
@@ -217,7 +275,7 @@ def stamp []: record -> record {
 
 # A turn's final reply is the last one before the next prompt.
 def final-replies []: list -> list {
-  let events = $in
+  let events = ($in | where kind != "trigger")
   $events
   | enumerate
   | where {|e|
@@ -230,44 +288,37 @@ def day [cfg: record, start: datetime, sessions: list]: nothing -> record {
   let end = ($start + 1day)
   let attended = (
     $sessions
+    | where attended
     | each {|s|
-      let prompts = ($s.events | where kind == "prompt" and ts >= $start and ts < $end)
+      let prompts = ($s.turns | where kind == "prompt" and ts >= $start and ts < $end)
       if ($prompts | is-empty) {
         return null
       }
       # Turns started today keep their replies past midnight, until the next prompt.
       let first = ($prompts | first | get ts)
-      let next = ($s.events | where kind == "prompt" and ts >= $end | get -o 0.ts)
+      let next = ($s.turns | where kind == "prompt" and ts >= $end | get -o 0.ts)
       let events = ($s.events | where {|e| $e.ts >= $first and ($next == null or $e.ts < $next) })
-      let project = (project-of $cfg $s.cwd)
-      let replies = ($s.events | where kind == "reply")
-      # A turn ends at its first reply, so later turns that notifications start never extend it.
-      let turns = (
-        $prompts
-        | each {|p|
-          let ended = ($replies | where ts >= $p.ts | get -o 0.ts | default $p.ts)
-          {ts: $p.ts, end: $ended, project: $project}
-        }
-      )
       {
         tool: $s.tool
         session: $s.id
         cwd: $s.cwd
-        project: $project
-        context: (context-of $cfg $project)
-        prompts: ($prompts | each { stamp })
+        project: $s.project
+        context: (context-of $cfg $s.project)
+        prompts: $prompts
         replies: ($events | final-replies | each { stamp } | where text != "")
-        turns: $turns
       }
     }
     | compact
-    | sort-by {|s| $s.turns.0.ts }
+    | sort-by {|s| $s.prompts.0.ts }
   )
   {
     date: ($start | format date "%Y-%m-%d")
     weekday: ($start | format date "%a")
-    hours: (hours $cfg ($attended | get -o turns | flatten))
-    sessions: ($attended | reject turns)
+    hours: {
+      human: (human-hours $cfg ($attended | get -o prompts | flatten))
+      agent: (agent-hours $cfg $start ($sessions | get -o turns | flatten))
+    }
+    sessions: ($attended | update prompts { each { stamp } })
   }
 }
 
@@ -277,9 +328,10 @@ def day [cfg: record, start: datetime, sessions: list]: nothing -> record {
 
 # Print the agent sessions on this host for a range of local dates as JSON.
 #
-# For each day, a session lists its human prompts and the final reply of each turn. The day's hours
+# For each day, a session lists its human prompts and the final reply of each turn. Human hours
 # credit each human prompt with the time until its turn ends plus a reading allowance, cut short by
-# the next prompt in any session and capped per prompt, summed per project.
+# the next prompt in any session and capped per prompt, summed per project. Agent hours union each
+# project's turns in every session, from any user message to its reply and capped per turn.
 def main [
   config_file: string # JSON with the host's context, policy, and source directories
   from: string # First local date, as YYYY-MM-DD
@@ -292,12 +344,8 @@ def main [
   }
   let days = (seq date --begin-date $from --end-date $to | each { into datetime })
   let since = ($days | first)
-  let dirs = $cfg.assistantDirs
   let sessions = (
-    (claude-sessions $dirs.claude $since)
-    ++ (codex-sessions $dirs.codex $since)
-    ++ (omp-sessions $dirs.omp $since)
-    | where {|s| $cfg.excludedDirs | all {|pattern| $s.cwd !~ $pattern } }
+    (claude-sessions $cfg $since) ++ (codex-sessions $cfg $since) ++ (omp-sessions $cfg $since)
   )
   {
     context: $cfg.context
