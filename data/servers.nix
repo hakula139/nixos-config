@@ -26,7 +26,8 @@ in
     hostKey = keys.hosts.us-4;
     proxyLevel = "admin";
     isBuilder = true;
-    maxJobs = 3;
+    # The host has 2 vCPUs and 2 GiB of RAM, and a single large Rust build already spills into swap.
+    maxJobs = 1;
     speedFactor = 6;
   };
 }
