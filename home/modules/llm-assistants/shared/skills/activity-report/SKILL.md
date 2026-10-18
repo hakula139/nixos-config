@@ -22,7 +22,7 @@ Reconstruct the user's activity during the date range, with hours by project and
 
 2. **Forge.** Query activity directly and convert UTC timestamps to local days.
 
-   - Personal host: run `gh search prs --author @me --updated ">=<from>"`, the same command with `--reviewed-by @me`, and `gh search issues --author @me --updated ">=<from>"`, each with `--limit 1000` and `--json` fields covering the repository, URL, and dates. Determine each item's state at the end of the range from `mergedAt` and `closedAt`, since its current state may reflect a later date. Avoid the REST events API, which stops at 300 events.
+   - Personal host: run `gh search prs --author @me --updated ">=<from>"`, the same command with `--reviewed-by @me`, and `gh search issues --author @me --updated ">=<from>"`, each with `--limit 1000` and `--json` fields covering the repository, URL, and dates. A PR's `state` is `merged`, `closed`, or `open`, and `closedAt` records when it merged or closed, so judge its state at the end of the range from `closedAt`, since `state` reflects today. Avoid the REST events API, which stops at 300 events.
    - Work host: run `glab api --paginate "events?after=<day before from>&before=<day after to>&per_page=100"`. Its date bounds are exclusive. Then run `glab api projects/<id>` for each `project_id` to get its name and web URL.
 
 3. **Meetings, on the work host.** Run `vdirsyncer sync`, which keeps the past 14 days. If it reports an undiscovered collection, run `vdirsyncer discover` first. Then `khal list <from> <N>d` lists an N-day range.
