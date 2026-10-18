@@ -170,10 +170,8 @@
   "Bash(wget *)"
   "mcp__Bifrost"
   "mcp__Exa"
-  "mcp__Scrapling__bulk_fetch"
-  "mcp__Scrapling__bulk_stealthy_fetch"
-  "mcp__Scrapling__fetch"
-  "mcp__Scrapling__stealthy_fetch"
+  "mcp__Scrapling__browser_fetch_once"
+  "mcp__Scrapling__make_request"
   "WebFetch"
   "WebSearch"
 

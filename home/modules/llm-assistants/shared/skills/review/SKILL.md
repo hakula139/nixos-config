@@ -28,7 +28,7 @@ Apply the global instructions, the repository's `AGENTS.md` / `CLAUDE.md` files,
 
 ## Review each dimension
 
-A whole-repository review covers existing code and design, so challenge choices that a better design could replace. For a diff review, read each touched file in full because defects in unchanged lines of a touched function are in scope. Trace every changed contract through its callers, tests, configuration, and documentation. For DRY, consistency, and integration checks, include sibling repositories the project integrates with, such as downstream consumers checked out nearby.
+A whole-repository review covers existing code and design, so challenge choices that a better design could replace. A diff review also covers the code around the change: read each touched file in full, review its callers, siblings, and touched modules for defects, and propose more concise or elegant designs there even when one takes a large refactor. Trace every changed contract through its callers, tests, configuration, and documentation. For DRY, consistency, and integration checks, include sibling repositories the project integrates with, such as downstream consumers checked out nearby.
 
 - **Correctness and edge cases:** broken assumptions, empty or boundary inputs, paths, permissions, data shapes, concurrency, and resource lifecycles.
 - **Error handling:** swallowed or merely logged errors, overly broad catches, fallbacks that hide failures, and unhelpful messages.
@@ -50,7 +50,7 @@ Then reread the target from these perspectives:
 - **Removed behavior:** For each deleted or moved line, name the invariant it upheld and identify what upholds it now.
 - **Consumers across boundaries:** For each new or changed type, variant, message, flag, or default, find every consumer, including dispatch points outside the diff that might silently drop it.
 - **History:** Check `git log` and `git blame` for touched lines, along with earlier review comments on the same files, to identify constraints the change might break.
-- **Altitude:** Check whether a fix addresses the root cause at the right depth or only patches a symptom. Flag workarounds that get checks passing: skipped, ignored, or platform-gated tests that could be made hermetic; retries or sleeps that let tests pass; `|| true` and `continue-on-error`; ignore, allowlist, and lint-suppression entries that hide real problems; special cases for specific historical commits, PRs, or data; and compatibility shims nothing still needs. Name the root cause and the fix at the layer that owns it.
+- **Altitude:** Check whether a fix addresses the root cause at the right depth or only patches a symptom. Flag workarounds that get checks passing: skipped, ignored, or platform-gated tests that could be made hermetic, retries or sleeps, suppressions that hide real problems (`|| true`, `continue-on-error`, ignore and allowlist entries), and special cases for specific commits or data. Name the root cause and the fix at the layer that owns it.
 
 ## Fan out and verify
 
@@ -83,13 +83,13 @@ When in doubt, choose the lower severity. Avoid generic requests to add tests.
 ## Choose the mode
 
 - **Review (default):** Report findings without editing files, committing, or posting comments. Post PR / MR comments only when asked.
-- **Fix:** Resolve every verified finding in the same round, including Suggestions and pre-existing issues. Do not defer any to follow-up PRs or TODOs. Fix findings specific to a PR on its branch, and put pre-existing issues and repository-review fixes in scoped PRs / MRs. Resolve design questions from first principles and record each decision with its rationale in the PR / MR description. Rerun checks and review the fixed areas until no findings remain, then commit and publish through `git-workflow`.
+- **Fix:** Resolve every verified finding in the same round, including Suggestions and pre-existing issues, such as those in the code around a diff. Do not defer any to follow-up PRs or TODOs. Fix findings specific to a PR on its branch, and put pre-existing issues and repository-review fixes in scoped PRs / MRs. Resolve design questions from first principles and record each decision with its rationale in the PR / MR description. Rerun checks and review the fixed areas until no findings remain, then commit and publish through `git-workflow`.
 - **Merge:** Once no findings remain, merge each reviewed PR / MR through `git-workflow`, update pins or submodules that track the merged commit, and clean up as the `git-workflow` skill's Cleanup section describes.
 
 ## Report
 
-For the top-level review, use the host's findings-report tool when available, such as Claude Code's `ReportFindings`. Otherwise, start with the reviewed revision and scope, a merge-readiness verdict, and finding counts by severity. Then list findings by severity and impact, grouping pre-existing issues separately.
+For the top-level review, use the host's findings-report tool when available, such as Claude Code's `ReportFindings`. Otherwise, start with the reviewed revision and scope, a merge-readiness verdict, and finding counts by severity. Then list findings by severity and impact, grouping pre-existing issues separately. When Critical and Warning findings already make the report long, summarize Suggestions as a count with one-line bullets.
 
 Write each finding as one short, matter-of-fact paragraph. State the triggering scenario first so the author can grasp the issue at a glance, and quote no more than three lines of code. Anchor any posted inline comment to the shortest diff range that shows the problem.
 
-Close with the checks you ran and their results, including changed-line coverage, consequential assumptions, and anything left unverified. If there are no findings, say so and state the limits of the review. In fix and merge modes, also report the fixes, final checks, PR / MR states, and any actions only the user can take.
+Close with the checks you ran and their results, including changed-line coverage, consequential assumptions, anything left unverified, and any area the review did not cover. If there are no findings, say so. In fix and merge modes, also report the fixes, final checks, PR / MR states, and any actions only the user can take.

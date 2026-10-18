@@ -7,7 +7,7 @@ description: >-
 
 # Read PDFs
 
-Read local PDFs with Poppler, keeping source documents and extracted content local unless the user asks to share them. Development hosts install `poppler-utils`. Elsewhere, prefix the commands below with `nix shell nixpkgs#poppler-utils -c`.
+Read a PDF with the harness's native reader when it has one, such as Claude Code's Read tool, and use Poppler where that reader falls short. Keep source documents and extracted content local unless the user asks to share them.
 
 ## Workflow
 
@@ -19,17 +19,7 @@ Read local PDFs with Poppler, keeping source documents and extracted content loc
    pdftotext -enc UTF-8 "$input_pdf" -
    ```
 
-   For résumés, tables, multi-column pages, or other layout-sensitive documents, compare it with `pdftotext -layout`, and keep whichever preserves the intended reading order, since `-layout` can break multi-column prose.
-
-   When page citations matter, extract each page behind a marker:
-
-   ```bash
-   page_count="$(pdfinfo "$input_pdf" | awk '/^Pages:/ { print $2 }')"
-   for page in $(seq 1 "$page_count"); do
-     printf '\n--- page %s ---\n' "$page"
-     pdftotext -f "$page" -l "$page" -enc UTF-8 "$input_pdf" -
-   done
-   ```
+   For résumés, tables, multi-column pages, or other layout-sensitive documents, compare it with `pdftotext -layout`, and keep whichever preserves the intended reading order, since `-layout` can break multi-column prose. `pdftotext` ends each page with a form feed (`\f`), so count form feeds to cite page numbers.
 
 3. Render pages when layout or visuals matter, or when extracted text is empty, incomplete, or garbled.
 
