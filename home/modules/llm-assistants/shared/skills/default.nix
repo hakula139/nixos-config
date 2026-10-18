@@ -4,7 +4,6 @@
 
 {
   config,
-  pkgs,
   lib,
   inputs,
   ...
@@ -38,7 +37,7 @@ let
     activity-report = ./activity-report;
   }
   // lib.optionalAttrs config.hakula.ctx7.enable {
-    find-docs = "${pkgs.unstable.ctx7}/share/skills/ctx7/find-docs";
+    find-docs = ./find-docs;
   };
 
   mkSkillFiles =

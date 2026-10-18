@@ -33,6 +33,15 @@ let
     meta.mainProgram = "tmux";
   };
 
+  taskName = pkgs.writers.writeNuBin "tmux-task-name" {
+    makeWrapperArgs = [
+      "--prefix"
+      "PATH"
+      ":"
+      (lib.makeBinPath [ pkgs.tmux ])
+    ];
+  } (builtins.readFile ./task-name.nu);
+
   # The plugin wrapper starts nested tmux clients, which deadlock in the config queue when
   # synchronous and can be interrupted midway when backgrounded.
   catppuccinPluginDir = "${pkgs.tmuxPlugins.catppuccin}/share/tmux-plugins/catppuccin";
@@ -57,6 +66,8 @@ let
   '';
 in
 {
+  home.packages = [ taskName ];
+
   programs.tmux = {
     enable = true;
     package = tmuxBin;

@@ -101,7 +101,11 @@ let
 
   defaultAgent = if config.hakula.codex.enable then "codex" else "claude";
 
-  configFile = json.generate "acpx-config.json" { inherit agents defaultAgent; };
+  configFile = json.generate "acpx-config.json" {
+    inherit agents defaultAgent;
+    # Seconds each prompt waits for a response before acpx exits with code 3
+    timeout = 600;
+  };
 in
 {
   # ------------------------------------------------------------------------------------------------

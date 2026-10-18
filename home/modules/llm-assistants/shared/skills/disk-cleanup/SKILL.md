@@ -22,7 +22,7 @@ Start by running `df -h` on the affected volumes. On macOS, `df` excludes purgea
 | Nix store                                                                                                         | `nix store gc --dry-run` lists what garbage collection would delete                              |
 | Docker                                                                                                            | `docker system df`                                                                               |
 
-macOS's `tmp_cleaner` removes `/tmp` files that have been idle for at least 4 days, so a recent pile-up there reflects active work. If the numbers don't add up, investigate further, starting with `du -xh -d 1 ~ | sort -h`.
+If the numbers don't add up, investigate further, starting with `du -xh -d 1 ~ | sort -h`.
 
 ## Classify
 

@@ -27,7 +27,5 @@ If an architect's design or another plan is provided, also assess the following 
 
 ### Role-specific coordination
 
-- Group findings by severity. If Critical and Warning findings already make the report long, summarize Suggestions with a count and one-line bullets.
-- If the change is too large to review thoroughly, state which areas you covered and which you did not.
 - If the implementer is on the team, send findings directly to them without waiting for the lead to relay them. Start with Critical findings and their `file:line` references. If an architect is involved, message them about cross-cutting security or architecture concerns.
 - Tell the tester the confirmed scope of the changes and which areas need focused testing.

@@ -10,7 +10,7 @@ description: >-
 
 ast-grep matches tree-sitter patterns against the syntax tree, so whitespace and line breaks do not affect a match, and code inside comments or strings never matches. Use the harness's native structural search or edit tool instead when one exists.
 
-Invoke the binary as `ast-grep`, translating any `sg` command its messages suggest, because nixpkgs ships no `sg` alias and `sg` on these hosts is shadow's group-switching command. Development hosts install ast-grep. Elsewhere, prefix the commands below with `nix shell nixpkgs#ast-grep -c`.
+Run `ast-grep`, never `sg`, which is shadow's group command on these hosts.
 
 ## Choosing a tool
 
@@ -37,16 +37,12 @@ ast-grep run -p 'foo($$$ARGS)' -l ts --json=stream . | jq -r '"\(.file):\(.range
 Use a YAML rule when a pattern alone cannot express the query, keeping scratch rules outside the repository, for example in a `mktemp -d` directory.
 
 ```yaml
-id: await-in-loop
+id: await-in-for
 language: TypeScript
 rule:
   pattern: await $CALL
   inside:
-    any:
-      - kind: for_statement
-      - kind: for_in_statement
-      - kind: while_statement
-      - kind: do_statement
+    kind: for_statement
     stopBy:
       any:
         - kind: arrow_function
@@ -56,10 +52,10 @@ rule:
 ```
 
 ```bash
-ast-grep scan --rule "$rule_dir/await-in-loop.yml" src/
+ast-grep scan --rule "$rule_dir/await-in-for.yml" src/
 ```
 
-- Combine conditions with `all`, `any`, and `not`. Relational keys (`inside`, `has`, `precedes`, `follows`) inspect only the adjacent node by default. `stopBy: end` searches every ancestor, descendant, or sibling in that direction, and a `stopBy` rule stops at the first node it matches, as the example does at function boundaries so an `await` in a callback defined inside a loop is not reported.
+- Combine conditions with `all`, `any`, and `not`. Relational keys (`inside`, `has`, `precedes`, `follows`) inspect only the adjacent node by default. `stopBy: end` searches every ancestor, descendant, or sibling in that direction, and a `stopBy` rule stops at the first node it matches, as the example does at a function boundary so an `await` in a callback, function, or method defined inside the loop is not reported.
 - Match a fragment that does not parse alone, such as an object key, with `pattern: { context: '({ timeout: $V })', selector: pair }`.
 - Filter captures with `constraints`, for example `constraints: { NAME: { regex: '^use' } }`.
 - `ast-grep scan` without `--rule` or `--inline-rules` needs an `sgconfig.yml` project and otherwise exits 3.

@@ -11,10 +11,10 @@ Delegates do not share your conversation, so provide the repository, relevant fi
 
 ## Single task
 
-`exec` runs in a disposable session. Use `--cwd` to select another checkout and `--timeout` to set the wait limit in seconds.
+`exec` runs in a disposable session. Use `--cwd` to select another checkout. Each prompt waits for a response up to the configured `timeout` that `acpx config show` reports, and `--timeout <seconds>` raises it for longer tasks.
 
 ```bash
-acpx --cwd /absolute/path/to/repo --timeout 120 codex exec 'Read src/auth/ and identify the token refresh race. Do not edit files.'
+acpx --cwd /absolute/path/to/repo codex exec 'Read src/auth/ and identify the token refresh race. Do not edit files.'
 ```
 
 The delegate loads the selected checkout's project instructions and runs through this host's assistant wrappers, using their authentication and proxy setup. Its tools and plugins retain their own configuration.
@@ -25,8 +25,8 @@ Named sessions retain context and are scoped to a target and working directory. 
 
 ```bash
 acpx claude sessions new --name auth-review
-acpx --timeout 120 claude -s auth-review 'Inspect src/auth/ for token refresh races.'
-acpx --timeout 120 claude -s auth-review 'Which test would expose the race?'
+acpx claude -s auth-review 'Inspect src/auth/ for token refresh races.'
+acpx claude -s auth-review 'Which test would expose the race?'
 acpx claude sessions close auth-review
 ```
 
@@ -34,6 +34,6 @@ acpx claude sessions close auth-review
 
 ## Permissions and results
 
-By default, acpx approves read requests and prompts for all others. If no interactive terminal is available, pass `--non-interactive-permissions deny` to reject prompts. Use `--approve-all` only for delegated work that is already authorized. These flags apply only to permission requests sent through ACP, so they do not sandbox tools an assistant runs without asking. State the read-only scope explicitly in the prompt.
+acpx approves read requests and prompts for all others, denying them when no interactive terminal is available. Use `--approve-all` only for delegated work that is already authorized. These policies apply only to permission requests sent through ACP, so they do not sandbox tools an assistant runs without asking. State the read-only scope explicitly in the prompt.
 
-For structured output, pass `--format json --json-strict`. Exit codes include `2` for invalid usage, `3` for timeout, `4` for a missing session, `5` for permission denial, and `130` for interruption. Verify the delegate's work before reporting completion.
+For structured output, pass `--format json --json-strict`. Exit code `3` means the wait limit expired. Verify the delegate's work before reporting completion.

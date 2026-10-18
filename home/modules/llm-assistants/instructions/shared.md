@@ -14,7 +14,7 @@ Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment va
 
 ### Git Workflow
 
-Load the `git-workflow` skill when completing a logical implementation chunk, creating Git refs, preparing commits, pushing, resolving merge or rebase conflicts, updating an existing issue, cleaning up after merged or abandoned work, or drafting, creating, updating, or merging a PR / MR. It owns Git authorization, conventions, publication checks, and cleanup.
+Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue update, conflict resolution, or cleanup. It owns Git authorization and conventions.
 
 ### Shared-Tree Safety
 
@@ -116,15 +116,13 @@ Choose a structure that helps the reader understand, compare, or act, whether in
 
 - When discussing punctuation marks, put them in code spans (`、；：`, `「」`, `——`). Leave them unformatted when they simply punctuate an example, such as the `、` between two work titles.
 
-- Use fullwidth punctuation in Han text, both in replies and generated files. Half-width commas, periods, or colons between Han characters are generation artifacts.
-
 ### Documentation
 
 Before editing documentation, identify what specifically needs correction or removal: claims or instructions made inaccurate by the change, or material that is obsolete or unnecessary. A new feature alone does not warrant expanding an overview. Create new documentation only when asked.
 
 - Describe current behavior and usage. Put change summaries and comparisons with removed or rejected approaches in commit or PR / MR descriptions unless they are needed for migration instructions.
 - Focus on why and how to use the feature. Give readers what they need to decide or act, and omit incidental details or facts already clear from the code.
-- State each rule once in agent instructions and convention docs. Add an example only when the rule would otherwise be ambiguous. Omit cases and data points a capable model can infer from the rule, while preserving every rule and qualification.
+- State each rule once in agent instructions and convention docs. Add an example only when the rule would otherwise be ambiguous. Omit cases and data points a capable model can infer from the rule, while preserving every rule and qualification. Repository instructions cover only exceptions that history and metadata cannot show.
 - Organize sections around reader tasks or questions. Keep paragraphs short and focused on one idea, and split long sections at meaningful points, such as between shared prerequisites and platform-specific instructions.
 - Describe only implemented functionality. Do not present WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them.
@@ -135,17 +133,7 @@ Use only the tools and capabilities available in the current session, within the
 
 ### Terminal Sessions
 
-Once the task is clear, a top-level interactive agent renames its default numeric tmux session to a short, hyphenated task name. Delegated, headless, and background runs must never rename a parent session.
-
-1. In the agent's own shell tool, require both `TMUX` and `TMUX_PANE`, then inspect the session with `tmux display-message -p -t "$TMUX_PANE" '#{session_id}|#{session_name}|#{session_windows}|#{window_panes}|#{@workmux_token}'`. If either variable is missing or the lookup fails, leave sessions untouched. Never fall back to an active or recently attached session.
-2. Rename the session only if it has exactly one window and one pane, has no known user-chosen name, and its window has no Workmux `@workmux_token`.
-3. Run `tmux rename-session -t '<session_id>' '<task-name>'` using the observed stable ID, in single quotes so its `$` stays literal. Then inspect the same pane again to confirm.
-
-Keep tmux window identities and native agent conversation or pane titles independent of the session name.
-
-### Library Documentation
-
-Use the `find-docs` skill for Context7 lookups. Run the managed `ctx7` command directly as `ctx7 library <name> <query>` and `ctx7 docs <libraryId> <query>`, replacing the skill's `npx` examples. The command loads its API key at launch. Never reinstall it or configure Context7 MCP.
+Once the task is clear, a top-level interactive agent runs `tmux-task-name <short-hyphenated-name>` from its shell tool. The script renames only a default numeric session with one window, one pane, and no Workmux token. Delegated, headless, and background runs never call it. Keep tmux window identities and native agent conversation or pane titles independent of the session name.
 
 ### Dev Shells
 
@@ -159,17 +147,16 @@ Enter a repository's dev shell only from within that repository, since its hook 
 - The coordinator and general-purpose subagents use the active profile's standard tier. Planners and demanding specialists use the flagship tier, while the mini tier suits bounded research and background checks. Effort follows the configured tier within the native client's capabilities. Use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence. If the selected route is unavailable, report that before switching.
 - Give Codex only fully specified tasks with mechanically checkable results, such as an exact edit list, because it does not reliably infer conventions or make design decisions. Keep design decisions, convention judgments, and test writing with Claude.
 - When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), since Workmux's configured default is static.
-- If a tool or the environment misbehaves, use the `environment-repair` skill to delegate a relevant nixos-config fix to a background worker while continuing the main task. Publish verified repairs as a PR / MR under `git-workflow`, respecting any per-task publication limits, and include its URL or outstanding status in the final response. Merging or activation requires separate approval.
-- When available, use the `acp-delegate` skill to delegate bounded work to Claude Code or Codex through `acpx`, or consult them, following the same exceptions for direct work.
+- If a tool or the environment misbehaves, hand the repair to the `environment-repair` skill and continue the main task.
 
 ### MCP Servers
 
 Use the CLI when it provides the needed capability, especially for structured `git`, `gh`, and `glab` output. Use MCP for authentication or capabilities the CLI lacks. Availability and tool names vary by session.
 
-- **Atlassian**: the only route to Confluence pages, spaces, and hierarchies. Reads are auto-approved, and writes require confirmation.
-- **Exa**: the default MCP web search and page fetcher (`web_search_exa`, `web_search_advanced_exa`, `web_fetch_exa`, `agent_run`), used when native search is unavailable or weak, especially for coding research and multi-step retrieval. Always pass `textMaxCharacters` to `web_search_advanced_exa`. Without it, the tool returns full page text, roughly 25k tokens for three results, compared with 500 when capped. Check that result titles address the query because Exa can return confidently formatted but irrelevant matches. High-volume searching is substantive work to delegate.
-- **Bifrost**: the corporate gateway's search server, available wherever the gateway is reachable, including hosts whose firewall blocks Exa. It exposes Exa through `exa-web_search_exa` (requires an `objective`), `exa-web_fetch_exa` for reading pages, and `exa-agent_run`, but does not provide `web_search_advanced_exa`. `you-you-search` returns dated highlights, handles non-English queries, and accepts `freshness` and `exclude_domains` filters. The SearXNG tools are a weaker fallback because searches return short snippets and often nothing for CJK queries. `SearXNG-web_url_read` also leads its markdown with site navigation.
+- **Atlassian**: the only route to Confluence pages, spaces, and hierarchies. Confirm before writing to Confluence.
+- **Exa**: the default MCP web search and page fetcher (`web_search_exa`, `web_search_advanced_exa`, `web_fetch_exa`, `agent_run`), used when native search is unavailable or weak, especially for coding research and multi-step retrieval. Always pass `textMaxCharacters` to `web_search_advanced_exa`, which otherwise returns full page text. Check that result titles address the query because Exa can return confidently formatted but irrelevant matches.
+- **Bifrost**: the corporate gateway's search server, for hosts whose firewall blocks Exa. It proxies Exa without `web_search_advanced_exa`, `you-you-search` handles non-English queries and freshness filters, and SearXNG is the last fallback.
 - **DeepWiki**: AI-generated documentation for public GitHub repositories that explains an unfamiliar repo's architecture, patterns, and API design.
-- **Scrapling**: a browser fallback when native fetch is blocked (403, bot protection) or requires JavaScript rendering. Start with `fetch`, then use `stealthy_fetch` if needed. For text, set `disable_resources=true` to skip slow media loads and narrow the output with `css_selector`.
+- **Scrapling**: a browser fallback when native fetch is blocked (403, bot protection) or requires JavaScript rendering.
 - **Filesystem**: sandboxed file operations, for use only when a path requires them. Native file tools and the shell cover other needs.
-- **GitHub** / **GitLab**: `gh` and `glab` cover nearly everything, including `--json` output. `gh pr edit --body-file` avoids shell-escaping an inline body. Use the MCP for review threads and cross-repo search, which the CLIs lack. GitLab expects `project_id` as the URL-encoded project path (`group/subgroup/project`).
+- **GitHub** / **GitLab**: `gh` and `glab` cover nearly everything, including `--json` output. Use the MCP for review threads and cross-repo search, which the CLIs lack. GitLab expects `project_id` as the URL-encoded project path (`group/subgroup/project`).
