@@ -24,15 +24,6 @@ const BROWSER_CONTEXT = (
   '(?s)<in-app-browser-context.*?</in-app-browser-context>\s*(## My request:)?'
 )
 
-# A credential: a known token prefix, or a 32+ character alphanumeric run holding a digit
-const SECRET = (
-  [
-    '\b(sk|ghp|gho|ghs|github_pat|glpat|xox[abp])[-_][A-Za-z0-9_-]{16,}'
-    '(?<![A-Za-z0-9])(?=[A-Za-z]*[0-9])[A-Za-z0-9]{32,}(?![A-Za-z0-9])'
-  ]
-  | str join '|'
-)
-
 # --------------------------------------------------------------------------------------------------
 # Text
 # --------------------------------------------------------------------------------------------------
@@ -51,7 +42,6 @@ def excerpt []: string -> string {
   let flat = (
     $in
     | str replace --regex $BROWSER_CONTEXT ''
-    | str replace --all --regex $SECRET '<redacted>'
     | str replace --all --regex '\s+' ' '
     | str trim
   )

@@ -154,32 +154,6 @@ def "test a turn keeps its final reply past midnight" [] {
   ]
 }
 
-def "test excerpts redact credentials and nothing else" [] {
-  let dir = (mktemp --directory)
-  let cases = [
-    [text secret];
-    ["push with ghp_FAKE0123456789abcdefABCDEF now" ghp_FAKE0123456789abcdefABCDEF]
-    ["claim ndc.Ab1Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0UvWx for netdata" Ab1Cd2Ef3Gh4Ij5Kl6Mn7Op8Qr9St0UvWx]
-    ["try key cr_0123456789abcdef0123456789abcdef here" 0123456789abcdef0123456789abcdef]
-    ["resume 349d7e4c-29da-4c95-91d9-05961d34ae8f in /home/me/github/app" null]
-  ]
-  let records = (
-    $cases | enumerate | each {|c| claude-user /work/app $"1($c.index):00" $c.item.text $HUMAN }
-  )
-  transcript $dir [claude projects app a.jsonl] $records
-
-  let prompts = (digest $dir | get sessions.0.prompts.text)
-
-  for case in ($cases | merge ($prompts | wrap output)) {
-    let expected = if $case.secret == null {
-      $case.text
-    } else {
-      $case.text | str replace $case.secret "<redacted>"
-    }
-    assert equal $case.output $expected
-  }
-}
-
 def "test the host context covers every project except personal ones" [] {
   let dir = (mktemp --directory)
   let worktree = "/home/me/nixos-config/.claude/worktrees/fix"
