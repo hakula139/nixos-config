@@ -1,4 +1,4 @@
 interface:
-  display_name: "Dream"
-  short_description: "Consolidate project memory from recent sessions"
+  display_name: 'Dream'
+  short_description: 'Consolidate project memory from recent sessions'
   default_prompt: "Use $dream to consolidate this project's memory store from recent sessions and report what changed."
