@@ -149,7 +149,7 @@ Enter a repository's dev shell only from within that repository, since its hook 
 - The coordinator and general-purpose subagents use the active profile's standard tier. Planners and demanding specialists use the flagship tier, while the mini tier suits bounded research and background checks. Effort follows the configured tier within the native client's capabilities. Use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence. If the selected route is unavailable, report that before switching.
 - Give Codex only fully specified tasks with mechanically checkable results, such as an exact edit list, because it does not reliably infer conventions or make design decisions. Keep design decisions, convention judgments, and test writing with Claude.
 - When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), since Workmux's configured default is static.
-- If a tool or the environment misbehaves, use the `environment-repair` skill to delegate a relevant nixos-config fix to a background worker while continuing the main task. Publish verified repairs as a PR / MR under `git-workflow`, respecting any per-task publication limits, and include its URL or outstanding status in the final response. Merging or activation requires separate approval.
+- If a tool or the environment misbehaves, hand the repair to the `environment-repair` skill and continue the main task.
 - When available, use the `acp-delegate` skill to delegate bounded work to Claude Code or Codex through `acpx`, or consult them, following the same exceptions for direct work.
 
 ### MCP Servers

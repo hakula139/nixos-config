@@ -42,7 +42,6 @@ in
     }
 
     (lib.mkIf (cfg.configPath != null) {
-      home.sessionVariables.NIXOS_CONFIG_DIR = cfg.configPath;
       xdg.configFile."nixos-config/repository".text = cfg.configPath + "\n";
     })
   ];
