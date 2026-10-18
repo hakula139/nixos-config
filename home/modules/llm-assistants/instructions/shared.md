@@ -108,9 +108,13 @@ Choose a structure that helps the reader understand, compare, or act, whether in
 ### Punctuation
 
 - Put spaces around connector symbols that separate distinct words or phrases: `/`, arrows (`→`, `←`, `↔`, `⇒`, `⇔`), and comparison operators (`≤`, `≥`, `≠`), as in `"Read / Write"`, `"Speed ↔ Intelligence"`, `"low → high"`, and `"size ≥ 4"`.
+
   - Omit spaces in abbreviations, compound terms, and tight notation (`"I/O"`, `"TCP/IP"`, `"k≥0"` as a math constraint, `"2x"` as a multiplier), and in single-character UI labels such as `←/→`.
+
 - Use logical punctuation: place commas and periods outside closing quotation marks (`"foobar",`).
+
 - When discussing punctuation marks, put them in code spans (`、；：`, `「」`, `——`). Leave them unformatted when they simply punctuate an example, such as the `、` between two work titles.
+
 - Use fullwidth punctuation in Han text, both in replies and generated files. Half-width commas, periods, or colons between Han characters are generation artifacts.
 
 ### Documentation
