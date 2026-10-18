@@ -161,7 +161,15 @@
               types = [ "file" ];
             };
 
-            statix.enable = true;
+            prettier = {
+              enable = true;
+              # Markdown keeps the auto-format hook's dprint style, which Prettier would rewrite.
+              files = "\\.(js|json|jsonc|ya?ml)$";
+            };
+
+            ruff.enable = true;
+
+            ruff-format.enable = true;
 
             # `shfmt` reads `.editorconfig` only when the entry passes no formatting flag. Any flag
             # reverts it to tabs and ignores the `binary_next_line` and `switch_case_indent` keys.
@@ -175,6 +183,10 @@
                 case-indent = false;
               };
             };
+
+            statix.enable = true;
+
+            taplo.enable = true;
 
             trim-trailing-whitespace = {
               enable = true;
@@ -376,10 +388,18 @@
           tooling = import ./lib/tooling.nix { inherit pkgs; };
           preCommitCheck = preCommitCheckFor system;
           basePackages = preCommitCheck.enabledPackages ++ tooling.all;
+          git = nixpkgs.lib.getExe pkgs.git;
         in
         {
           default = pkgs.mkShell {
-            inherit (preCommitCheck) shellHook;
+            # git-hooks.nix sets a relative hooks path from the main checkout that linked worktrees
+            # can't resolve (cachix/git-hooks.nix#688), so commits there would skip the hooks.
+            shellHook = ''
+              ${preCommitCheck.shellHook}
+              if dir=$(${git} rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
+                ${git} config --local core.hooksPath "$dir/hooks"
+              fi
+            '';
             buildInputs = basePackages;
           };
 

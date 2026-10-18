@@ -26,6 +26,10 @@
       "automerge": true
     },
     {
+      "matchManagers": ["rust-toolchain"],
+      "automerge": true
+    },
+    {
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "Node dependencies",
