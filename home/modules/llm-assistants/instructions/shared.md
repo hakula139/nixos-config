@@ -21,7 +21,7 @@ Load the `git-workflow` skill when completing a logical implementation chunk, cr
 When agents share a working tree, commands such as `git stash`, `git checkout --`, `git reset --hard`, and `git clean -f` can erase others' uncommitted work. Treat them as destructive whenever parallel writers are present.
 
 - Brief every write-capable agent on file ownership and these risks. Read-only inspection is safe. Coordinate writes, and limit each agent's staging and commits to its own changes.
-- Give genuinely parallel writers their own git worktrees.
+- Give genuinely parallel writers their own git worktrees. Each worktree or scratch copy adds build output, often several gigabytes, so use an existing checkout of the required revision for builds and reviews when available.
 - Before aborting an agent mid-task, let it flush its edits to a patch file under `/tmp/`.
 
 ## Working Approach
@@ -39,7 +39,8 @@ Aim for a simple, coherent design that meets current requirements.
 - Refactor or extract when doing so clarifies responsibilities, simplifies control flow, or removes duplication, even if there is only one caller.
 - Build for current needs. Give each abstraction a concrete responsibility, and avoid speculative features, configurability, or extension points.
 - Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle the failures required by the contract. Add guards, retries, or fallbacks only for concrete failure modes, and let errors that expose broken assumptions surface.
-- Use the framework's or library's own primitive before writing a helper that reproduces it.
+- Use the framework's or library's own primitive before writing a helper that reproduces it. Before hand-writing substantial logic, look for a well-maintained library that provides it, and prefer dependencies already in the tree.
+- Set tool policies, such as lint levels, in the tool's config file, and keep commands plain. Use environment variables only for settings without a config option, secrets, and per-environment values.
 - Remove stale or redundant material when asked. When cleaning up code, preserve required behavior while simplifying.
 
 ### Editing
@@ -114,6 +115,7 @@ Before editing documentation, identify what specifically needs correction or rem
 
 - Describe current behavior and usage. Put change summaries and comparisons with removed or rejected approaches in commit or PR / MR descriptions unless they are needed for migration instructions.
 - Focus on why and how to use the feature. Give readers what they need to decide or act, and omit incidental details or facts already clear from the code.
+- State each rule once in agent instructions and convention docs. Add an example only when the rule would otherwise be ambiguous. Omit cases and data points a capable model can infer from the rule, while preserving every rule and qualification.
 - Organize sections around reader tasks or questions. Keep paragraphs short and focused on one idea, and split long sections at meaningful points, such as between shared prerequisites and platform-specific instructions.
 - Describe only implemented functionality. Do not present WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them.
@@ -146,6 +148,7 @@ Enter a repository's dev shell only from within that repository, since its hook 
 - Once the coordinator accepts an agent's work or no longer needs it, it stops the agent and closes its tmux pane or Workmux window without asking. It keeps an agent running only while that agent still needs to fix its PR / MR or already has its next task queued, and says which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
 - Choose roles and concurrency within the current authorization. Check each role's tools and permissions, which may differ from the coordinator's.
 - The coordinator and general-purpose subagents use the active profile's standard tier. Planners and demanding specialists use the flagship tier, while the mini tier suits bounded research and background checks. Effort follows the configured tier within the native client's capabilities. Use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence. If the selected route is unavailable, report that before switching.
+- Give Codex only fully specified tasks with mechanically checkable results, such as an exact edit list, because it does not reliably infer conventions or make design decisions. Keep design decisions, convention judgments, and test writing with Claude.
 - When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), since Workmux's configured default is static.
 - If a tool or the environment misbehaves, use the `environment-repair` skill to delegate a relevant nixos-config fix to a background worker while continuing the main task. Publish verified repairs as a PR / MR under `git-workflow`, respecting any per-task publication limits, and include its URL or outstanding status in the final response. Merging or activation requires separate approval.
 - When available, use the `acp-delegate` skill to delegate bounded work to Claude Code or Codex through `acpx`, or consult them, following the same exceptions for direct work.
