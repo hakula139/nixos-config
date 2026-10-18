@@ -4,11 +4,7 @@
   // Skill and agent files open with YAML front matter, and prompt files open with prose.
   "first-line-heading": false,
   "line-length": false,
-  "no-bare-urls": false,
   "no-duplicate-heading": { "siblings_only": true },
-  // Go and Makefile samples need literal tabs inside a fence.
-  "no-hard-tabs": { "code_blocks": false },
-  "no-inline-html": false,
   "ol-prefix": { "style": "ordered" },
 
   // The auto-format hook runs dprint before this linter, so these match its output.

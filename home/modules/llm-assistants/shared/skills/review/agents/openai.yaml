@@ -1,4 +1,4 @@
 interface:
-  display_name: "Review"
-  short_description: "Review repositories, PRs, MRs, or local changes"
-  default_prompt: "Use $review to review this target and report verified findings."
+  display_name: 'Review'
+  short_description: 'Review repositories, PRs, MRs, or local changes'
+  default_prompt: 'Use $review to review this target and report verified findings.'
