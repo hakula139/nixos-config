@@ -3,7 +3,7 @@
 # ==================================================================================================
 # Activity Digest
 # ==================================================================================================
-# Prints each day's agent sessions and commits on this host as JSON for the activity-report skill.
+# Prints each day's agent sessions on this host as JSON for the activity-report skill.
 # Only prompts a person typed earn hours, so turns that notifications or agents start add none.
 # ==================================================================================================
 
@@ -172,36 +172,6 @@ def omp-sessions [dir: string, since: datetime]: nothing -> list {
 }
 
 # --------------------------------------------------------------------------------------------------
-# Commits
-# --------------------------------------------------------------------------------------------------
-
-def commits [roots: list<string>, since: datetime]: nothing -> list {
-  $roots
-  | where ($it | path exists)
-  | each {|root| ls $root | where type == dir | get name }
-  | flatten
-  | where ($it | path join .git | path exists)
-  | each {|repo|
-    let email = (^git -C $repo config user.email | complete | get stdout | str trim)
-    if ($email | is-empty) {
-      return []
-    }
-    (
-      ^git -C $repo log --exclude=refs/stash --all --no-merges $"--author=($email)"
-        $"--since=($since | format date '%+')" "--format=%aI%x09%s"
-    )
-    | lines
-    | parse "{ts}\t{subject}"
-    | each {|c|
-      {cwd: $repo, ts: ($c.ts | into datetime | date to-timezone local), subject: $c.subject}
-    }
-  }
-  | flatten
-  # A rebase leaves the original commit reachable from another ref with the same author date.
-  | uniq-by cwd ts subject
-}
-
-# --------------------------------------------------------------------------------------------------
 # Days
 # --------------------------------------------------------------------------------------------------
 
@@ -256,7 +226,7 @@ def final-replies []: list -> list {
   | get item
 }
 
-def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -> record {
+def day [cfg: record, start: datetime, sessions: list]: nothing -> record {
   let end = ($start + 1day)
   let attended = (
     $sessions
@@ -298,20 +268,6 @@ def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -
     weekday: ($start | format date "%a")
     hours: (hours $cfg ($attended | get -o turns | flatten))
     sessions: ($attended | reject turns)
-    commits: (
-      $commits
-      | where ts >= $start and ts < $end
-      | sort-by ts
-      | each {|c|
-        let project = (project-of $cfg $c.cwd)
-        {
-          at: ($c.ts | format date "%H:%M")
-          project: $project
-          context: (context-of $cfg $project)
-          subject: $c.subject
-        }
-      }
-    )
   }
 }
 
@@ -319,7 +275,7 @@ def day [cfg: record, start: datetime, sessions: list, commits: list]: nothing -
 # Entry point
 # --------------------------------------------------------------------------------------------------
 
-# Print the agent sessions and commits on this host for a range of local dates as JSON.
+# Print the agent sessions on this host for a range of local dates as JSON.
 #
 # For each day, a session lists its human prompts and the final reply of each turn. The day's hours
 # credit each human prompt with the time until its turn ends plus a reading allowance, cut short by
@@ -343,10 +299,9 @@ def main [
     ++ (omp-sessions $dirs.omp $since)
     | where {|s| $cfg.excludedDirs | all {|pattern| $s.cwd !~ $pattern } }
   )
-  let commits = (commits $cfg.gitRoots $since)
   {
     context: $cfg.context
-    days: ($days | each {|start| day $cfg $start $sessions $commits })
+    days: ($days | each {|start| day $cfg $start $sessions })
   }
   | to json
   | print

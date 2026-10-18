@@ -60,7 +60,6 @@ def digest [dir: string, overrides: record = {}]: nothing -> record {
       codex: ($dir | path join codex)
       omp: ($dir | path join omp)
     }
-    gitRoots: []
   }
   | merge $overrides
   | to json
@@ -135,15 +134,16 @@ def "test a prompt earns its turn and a reading allowance until the next prompt 
   assert equal $day.hours {total: 2.2, projects: {app: 2.0, lib: 0.2}}
 }
 
-def "test a turn keeps its final reply past midnight" [] {
+def "test a day keeps its final replies past midnight until the next prompt" [] {
   let dir = (mktemp --directory)
   transcript $dir [claude projects app a.jsonl] [
     (claude-user /work/app "10:00" "start" $HUMAN)
     (claude-reply /work/app "10:05" "working")
     (claude-reply /work/app "10:12" "started")
     (claude-user /work/app "10:15" "ship it" $HUMAN)
-    (claude-reply /work/app "23:00" "merging")
     (claude-reply /work/app "00:30" "merged" | update timestamp "2026-10-16T00:30:00.000Z")
+    (claude-user /work/app "09:00" "next" $HUMAN | update timestamp "2026-10-16T09:00:00.000Z")
+    (claude-reply /work/app "09:05" "tomorrow" | update timestamp "2026-10-16T09:05:00.000Z")
   ]
 
   let day = (digest $dir)

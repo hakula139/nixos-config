@@ -12,7 +12,6 @@
 }:
 
 let
-  inherit (pkgs.stdenv) isDarwin;
   cfg = config.hakula.activity-report;
 
   homeDir = config.home.homeDirectory;
@@ -38,23 +37,10 @@ let
         if config.home.preferXdgDirectories then "${config.xdg.configHome}/codex" else "${homeDir}/.codex";
       omp = "${homeDir}/.omp/agent";
     };
-    gitRoots =
-      if isDarwin then
-        [ "${homeDir}/GitHub" ]
-      else
-        [
-          "${homeDir}/github"
-          "${homeDir}/gitlab"
-        ];
   };
 
   digest = pkgs.writers.writeNuBin "activity-digest" {
     makeWrapperArgs = [
-      "--prefix"
-      "PATH"
-      ":"
-      (lib.makeBinPath [ pkgs.git ])
-
       "--add-flag"
       "${digestConfig}"
     ];
