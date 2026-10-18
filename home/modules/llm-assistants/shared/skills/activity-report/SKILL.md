@@ -20,7 +20,7 @@ Reconstruct the user's activity during the date range, with hours by project and
 
    Human hours credit each prompt the user types to its session's project until the agent's turn ends, plus a reading allowance. The next prompt in any session ends that credit early, and each prompt has a cap, so parallel sessions count only once. Turns started by notifications, teammates, or hooks earn no human time. Headless runs, subagents, Claude Code teammates, and sessions in excluded directories such as Workmux workers are omitted from `sessions[]` and human hours, so delegated work appears in the lead session's replies.
 
-   Agent hours cover every session, those runs included. A turn started by any user message counts from its start to its first reply, capped per turn and clipped to the day, and each project counts overlapping turns once.
+   Agent hours cover every session, those runs included. A turn started by any user message counts from its start to its first reply, capped per turn and clipped to the day, and each project counts overlapping turns once. Explicitly canceled Codex turns and turns without a reply earn no agent time.
 
 2. **Forge.** Query activity directly and convert UTC timestamps to local days.
 

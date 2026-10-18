@@ -66,15 +66,18 @@ def read-transcript [file: string]: nothing -> list {
   }
 }
 
-# A turn starts at any user message and ends at its first reply, so a later turn that a
-# notification starts never extends an earlier one.
+# Match starts to their first subsequent reply, stopping at an explicit cancellation.
 def turns [project: string]: list -> list {
-  let events = $in
-  let replies = ($events | where kind == "reply" | get ts)
-  $events
-  | where kind != "reply"
-  | insert project $project
-  | insert end {|e| $replies | where $it >= $e.ts | get -o 0 }
+  $in
+  | reverse
+  | generate {|event, nextReply = null|
+    match $event.kind {
+      reply => {next: $event.ts}
+      abort => {next: null}
+      _ => {out: ($event | merge {project: $project, end: $nextReply}), next: $nextReply}
+    }
+  }
+  | reverse
 }
 
 # Read the tool's transcripts that match the globs and changed since the date as sessions. The
@@ -165,6 +168,8 @@ def codex-sessions [cfg: record, since: datetime]: nothing -> list {
         let p = $r.payload
         if $p.type == "task_started" {
           {kind: trigger, ts: $r.timestamp, text: ""}
+        } else if $p.type == "turn_aborted" {
+          {kind: abort, ts: $r.timestamp}
         } else if $p.type == "item_completed" and $p.item.type? == "UserMessage" {
           {kind: prompt, ts: $r.timestamp, text: ($p.item.content | content-text)}
         } else if $p.type == "task_complete" and $p.last_agent_message? != null {
@@ -180,7 +185,7 @@ def codex-sessions [cfg: record, since: datetime]: nothing -> list {
 }
 
 def omp-sessions [cfg: record, since: datetime]: nothing -> list {
-  read-sessions $cfg $since omp [sessions/*/*.jsonl] {|records|
+  read-sessions $cfg $since omp [sessions/**/*.jsonl] {|records|
     let meta = ($records | where type == "session" | first)
     let events = (
       $records
@@ -275,7 +280,7 @@ def stamp []: record -> record {
 
 # A turn's final reply is the last one before the next prompt.
 def final-replies []: list -> list {
-  let events = ($in | where kind != "trigger")
+  let events = ($in | where kind not-in [trigger abort])
   $events
   | enumerate
   | where {|e|

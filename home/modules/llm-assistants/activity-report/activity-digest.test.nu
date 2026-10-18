@@ -235,6 +235,74 @@ def "test a turn without a reply earns no agent time" [] {
   assert equal $day.hours.agent {total: 0.5, projects: {app: 0.5}}
 }
 
+def "test canceled Codex turns cannot borrow a later reply" [] {
+  let dir = (mktemp --directory)
+  let meta = {id: canceled, cwd: /work/app, thread_source: user}
+  let prompt = {type: UserMessage, content: [{type: text, text: "start"}]}
+  transcript $dir [codex sessions "2026" "10" "15" canceled.jsonl] [
+    {type: session_meta, payload: $meta}
+    (codex-event "10:00" {type: task_started, turn_id: first})
+    (codex-event "10:00" {type: item_completed, item: $prompt})
+    (codex-event "10:01" {type: turn_aborted, turn_id: first})
+    (codex-event "13:00" {type: task_started, turn_id: second})
+    (codex-event "13:10" {type: task_complete, last_agent_message: done})
+    (codex-event "13:11" {type: turn_aborted, turn_id: second})
+    (codex-event "13:12" {type: task_complete, last_agent_message: final})
+  ]
+
+  let day = (digest $dir)
+
+  assert equal $day.hours {
+    human: {total: 0.17, projects: {app: 0.17}}
+    agent: {total: 0.17, projects: {app: 0.17}}
+  }
+  assert equal $day.sessions.0.replies [{at: "13:12", text: final}]
+}
+
+def "test steering prompts and triggers share the first reply" [] {
+  let dir = (mktemp --directory)
+  transcript $dir [claude projects app a.jsonl] [
+    (claude-user /work/app "10:00" "start" $HUMAN)
+    (claude-user /work/app "10:05" "also check tests" $HUMAN)
+    (claude-user /work/app "10:08" "<task-notification>" $NOTIFIED)
+    (claude-reply /work/app "10:30" "done")
+  ]
+
+  let day = (digest $dir)
+
+  assert equal $day.hours {
+    human: {total: 0.67, projects: {app: 0.67}}
+    agent: {total: 0.5, projects: {app: 0.5}}
+  }
+  assert equal $day.sessions.0.replies [{at: "10:30", text: done}]
+}
+
+def "test nested OMP advisors extend agent hours without human excerpts" [] {
+  let dir = (mktemp --directory)
+  let prompt = {role: user, attribution: user, content: "review it"}
+  let task = {role: user, attribution: agent, content: "check the API"}
+  let reply = {role: assistant, stopReason: stop, content: "done"}
+  transcript $dir [omp sessions app parent.jsonl] [
+    {type: session, id: parent, cwd: /work/app}
+    {type: message, timestamp: (at "10:00"), message: $prompt}
+    {type: message, timestamp: (at "10:30"), message: $reply}
+  ]
+  transcript $dir [omp sessions app parent __advisor.jsonl] [
+    {type: session, id: advisor, cwd: /work/app}
+    {type: message, timestamp: (at "10:15"), message: $task}
+    {type: message, timestamp: (at "11:00"), message: $reply}
+  ]
+
+  let day = (digest $dir)
+
+  assert equal $day.hours {
+    human: {total: 0.67, projects: {app: 0.67}}
+    agent: {total: 1.0, projects: {app: 1.0}}
+  }
+  assert equal ($day.sessions | get session) [parent]
+  assert equal $day.sessions.0.replies [{at: "10:30", text: done}]
+}
+
 def "test an agent turn earns at most the cap" [] {
   let dir = (mktemp --directory)
   transcript $dir [claude projects app a.jsonl] [

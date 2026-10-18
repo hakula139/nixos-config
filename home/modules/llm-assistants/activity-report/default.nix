@@ -69,7 +69,7 @@ in
       type = lib.types.listOf lib.types.str;
       # Workmux workers take their prompts from the agent that launched them.
       default = [ "__worktrees/" ];
-      description = "Regexes matching the working directories of sessions to leave out";
+      description = "Regexes matching session directories excluded from human hours and excerpts";
     };
 
     worktreePatterns = lib.mkOption {
