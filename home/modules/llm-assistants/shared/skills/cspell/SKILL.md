@@ -16,11 +16,11 @@ Classify each reported token before changing spelling configuration, so that a p
 Read the repository's spelling configuration, custom dictionaries, and the reported line in context, and use its pinned CSpell executable and existing check command.
 
 ```bash
-cspell lint --config cspell.json --no-progress --show-context --show-suggestions path/to/file.md
-cspell trace --config cspell.json --ignore-case --only-found candidate
+cspell --show-suggestions <file>
+cspell trace --ignore-case --only-found <word>
 ```
 
-Trace searches dictionaries without reproducing filename overrides or identifier splitting, so also check the actual file. Confirm the summary reports a nonzero count of checked files. A linked worktree inside an ignored directory, such as `.claude/worktrees/`, can silently check zero files, because cspell before 10.1 reads the main checkout's `.gitignore` and cspell matches `**/` ignore rules against absolute paths. Fix the repository by setting `"gitignoreRoot": "."` in its cspell config and anchoring the worktree rule at the root (`.claude/worktrees`, without `**/`). Use `--no-gitignore` only as a last resort and only with explicit file paths, since a glob run with it also scans ignored build output.
+Trace searches dictionaries without reproducing filename overrides or identifier splitting, so also check the actual file. Confirm the summary reports a nonzero count of checked files. A linked worktree inside an ignored directory, such as `.claude/worktrees/`, can silently check zero files. Fix the repository by setting `"gitignoreRoot": "."` in its cspell config and anchoring the worktree rule at the root (`.claude/worktrees`, without `**/`).
 
 Then classify the token:
 
@@ -45,26 +45,7 @@ Put verified vocabulary, such as standard command names, library names, and tech
 
 ### Known typos
 
-Enable `.cspell/typos.txt` beside the accepted-word dictionary so shared contracts need no per-file overrides:
-
-```json
-{
-  "dictionaryDefinitions": [
-    {
-      "name": "project-words",
-      "path": "./.cspell/words.txt",
-      "addWords": true
-    },
-    {
-      "name": "known-typos",
-      "path": "./.cspell/typos.txt"
-    }
-  ],
-  "dictionaries": ["project-words", "known-typos"]
-}
-```
-
-Dictionary paths are relative to the configuration file. Leave `addWords` off the typo dictionary so editor additions keep targeting accepted vocabulary, and apply the same sorting and duplicate rules to its entries.
+Register `.cspell/typos.txt` as a second custom dictionary without `addWords`, so shared contracts need no per-file overrides and editor additions keep targeting accepted vocabulary. Apply the same sorting and duplicate rules to its entries.
 
 Prefer the full preserved identifier or path token to its misspelled fragments, and verify the actual occurrence with CSpell, since recognition and splitting depend on the token and configuration. For example, `legacyrecievevalue` preserves `legacyRecieveValue`, while adding only `recieve` would also accept that typo in ordinary prose.
 
@@ -75,7 +56,7 @@ When a required cross-file contract is itself a misspelled ordinary word, accept
 Put the directive in the file it covers. Use a filename override with `ignoreWords` only when the format cannot carry comments without changing the data, or a concrete configuration constraint requires it. Keep the reason beside an exception whose purpose is otherwise unclear.
 
 - `cspell:disable-line` suppresses its entire line, including unrelated mistakes, so inspect the other words on the line first. In Markdown, an inline HTML comment keeps the directive out of rendered prose.
-- `cspell:disable-next-line` suppresses the next content line. Place it directly above the target without a blank line, unless the formatter requires one. CSpell 9.7.0 supports this layout, but verify it with the project's pinned version.
+- `cspell:disable-next-line` suppresses the next content line. Place it directly above the target without a blank line, unless the formatter requires one.
 - `cspell:ignore` accepts the listed tokens throughout the file while keeping surrounding words checked, so review their other occurrences in that file. Prefer it, or an exact literal pattern, to a line directive when nearby prose still needs checking.
 
 <!-- dprint-ignore -->
