@@ -20,7 +20,7 @@ nixdp --on @cloudcone
 
 `nixdp` is the shared Zsh alias for `colmena apply`, accepting Colmena flags to run deployments directly from the current checkout with normal Nix cache and build behavior. The pinned CLI is installed on managed hosts and accessible through `nix develop`.
 
-Inventory and deployment metadata live in `data/servers.nix`. Because every proxy node is also a deploy target, verify which route is in use before running a fleet-wide apply.
+Inventory and deployment metadata live in `data/servers.nix`. Every proxy node is a deploy target, and activating one can restart its nginx or Xray, which cuts off a deployment whose SSH connection routes through that node. Before deploying a node, switch the workstation's proxy client to another node, then switch back after deployment finishes. When proxy credentials rotate, first deploy the subscription host `us-4` while routing through a node that has not yet been deployed. Then refresh the client's subscription before deploying the remaining nodes.
 
 ## NixOS-WSL workstation
 
