@@ -1,4 +1,4 @@
 interface:
-  display_name: "ast-grep"
-  short_description: "Search and rewrite code by syntax tree"
-  default_prompt: "Use $ast-grep to find or rewrite these code patterns structurally, previewing every rewrite before applying it."
+  display_name: 'ast-grep'
+  short_description: 'Search and rewrite code by syntax tree'
+  default_prompt: 'Use $ast-grep to find or rewrite these code patterns structurally, previewing every rewrite before applying it.'
