@@ -14,14 +14,19 @@ Reconstruct the user's activity during the date range, with hours by project and
 ## Gather
 
 1. **Digest.** Resolve the range in local time. By default, use Monday of the current week through today, then run `activity-digest <from> [<to>]`. Its JSON has one entry per local day in `days[]`:
+
    - `date`, `weekday`, and `hours` as `{total, projects}`
    - `sessions[]` with `tool`, `session`, `cwd`, `project`, `context`, and `prompts[]` and `replies[]` excerpts in the form `{at, text}`. Each reply is the last answer before the next prompt, including one sent after midnight.
 
    Each prompt the user types credits its session's project until the agent's turn ends, plus a reading allowance. The next prompt in any session ends that credit early, and each prompt has a cap, so parallel sessions count only once. Turns started by notifications, teammates, or hooks earn no time. Headless runs, Claude Code teammates, and sessions in excluded directories such as Workmux workers are omitted, so delegated work appears in the lead session's replies.
+
 2. **Forge.** Query activity directly and convert UTC timestamps to local days.
+
    - Personal host: run `gh search prs --author @me --updated ">=<from>"`, the same command with `--reviewed-by @me`, and `gh search issues --author @me --updated ">=<from>"`, each with `--limit 1000` and `--json` date fields. Determine each item's state at the end of the range from `mergedAt` and `closedAt`, since its current state may reflect a later date. Avoid the REST events API, which stops at 300 events.
    - Work host: run `glab api --paginate "events?after=<day before from>&before=<day after to>&per_page=100"`. Its date bounds are exclusive. Then run `glab api projects/<id>` for each `project_id`.
+
 3. **Meetings, on the work host.** Run `vdirsyncer sync`, which keeps the past 14 days. If it reports an undiscovered collection, run `vdirsyncer discover` first. Then `khal list <from> <N>d` lists an N-day range.
+
 4. **Computer History, on macOS.** If enabled, ChatGPT and Codex desktop summarize screen activity in `~/.codex/memories/extensions/skysight/resources/*.md`, with filenames based on UTC start time. Use this as supplementary evidence and treat gaps as missing coverage.
 
 ## Rules
