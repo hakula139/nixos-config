@@ -30,9 +30,6 @@
   # ------------------------------------------------------------------------------------------------
   # SSH configuration helpers
   # ------------------------------------------------------------------------------------------------
-  # The route to a server can pass through an Xray node, which closes a connection that carries no
-  # traffic for a full 300 s check window. A remote build can be silent that long while it links,
-  # so `ServerAliveInterval` keeps the connection active.
   mkExtraConfig =
     servers: sshKey:
     lib.concatMapStringsSep "\n" (server: ''
