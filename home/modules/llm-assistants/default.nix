@@ -127,7 +127,7 @@ in
           enable = lib.mkDefault true;
           proxy = lib.mkIf cfg.proxy.enable assistantProxy;
         })
-        // lib.genAttrs [ "ccusage" "ctx7" "workmux" ] (_: {
+        // lib.genAttrs [ "acp" "ccusage" "ctx7" "workmux" ] (_: {
           enable = lib.mkDefault true;
         });
     })
