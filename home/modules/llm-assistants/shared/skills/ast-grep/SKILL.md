@@ -43,14 +43,19 @@ rule:
   pattern: await $CALL
   inside:
     kind: for_statement
-    stopBy: { kind: arrow_function }
+    stopBy:
+      any:
+        - kind: arrow_function
+        - kind: function_declaration
+        - kind: function_expression
+        - kind: method_definition
 ```
 
 ```bash
 ast-grep scan --rule "$rule_dir/await-in-for.yml" src/
 ```
 
-- Combine conditions with `all`, `any`, and `not`. Relational keys (`inside`, `has`, `precedes`, `follows`) inspect only the adjacent node by default. `stopBy: end` searches every ancestor, descendant, or sibling in that direction, and a `stopBy` rule stops at the first node it matches, as the example does at an arrow function so an `await` in a callback defined inside the loop is not reported.
+- Combine conditions with `all`, `any`, and `not`. Relational keys (`inside`, `has`, `precedes`, `follows`) inspect only the adjacent node by default. `stopBy: end` searches every ancestor, descendant, or sibling in that direction, and a `stopBy` rule stops at the first node it matches, as the example does at a function boundary so an `await` in a callback, function, or method defined inside the loop is not reported.
 - Match a fragment that does not parse alone, such as an object key, with `pattern: { context: '({ timeout: $V })', selector: pair }`.
 - Filter captures with `constraints`, for example `constraints: { NAME: { regex: '^use' } }`.
 - `ast-grep scan` without `--rule` or `--inline-rules` needs an `sgconfig.yml` project and otherwise exits 3.
