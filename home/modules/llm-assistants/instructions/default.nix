@@ -39,7 +39,6 @@ in
   omp = render {
     title = "AGENTS.md";
     intro = "Global instructions for OMP behavior across all projects.";
-    body = ./omp.md;
   };
 
   opencode = render {
