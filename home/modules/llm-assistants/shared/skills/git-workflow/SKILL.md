@@ -57,7 +57,9 @@ Follow the repository's conventions for structure. The guidance below applies wi
 - When creating a request, set assignees and existing labels, using the hosting service's CLI when available.
 - Pass multiline bodies through a file or structured argument, such as `gh pr create --body-file <file>` or `gh pr edit --body-file <file>`. Use `#N` for issues and GitHub PRs in the same repository, and `!N` for GitLab MRs.
 - Read back each created or updated request to verify its title, body, base, diff, assignees, and labels. Correct anything lost from the published body before reporting completion.
-- For an approved merge, confirm that CI passes on the current head and the host reports the branch as mergeable. Use the repository's merge method, then verify the remote state. Rebase only if the branch conflicts or the host requires it to be up to date. Confirm CI passes on the target branch after the merge, since it checks the combined result. For GitHub squash merges, keep GitHub's default commit message. Report queued auto-merges as pending until they land.
+- For an approved merge, confirm the host reports the branch as mergeable, then use the repository's merge method. If branch protection requires CI checks, queue an auto-merge, such as `gh pr merge --auto --squash`, and move on without polling. Otherwise, wait for CI to pass on the current head. Rebase only if the branch conflicts or the host requires it to be up to date. If a queued auto-merge falls behind, run `gh pr update-branch` because auto-merge does not update the branch.
+- After the merge, verify the remote state and confirm CI passes on the target branch, since CI checks the combined result. For GitHub squash merges, keep GitHub's default commit message. Report queued auto-merges as pending until they land.
+- Stack a request that depends on or overlaps another open request on that request's branch, and name the base request in the description. After the base squash-merges, run `git rebase --onto <default-branch> <old-base-head> <branch>` to drop its pre-squash commits, then retarget the request to the default branch if the host has not.
 
 ## Conflict Resolution
 
