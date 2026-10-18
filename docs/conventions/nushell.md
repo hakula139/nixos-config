@@ -40,7 +40,7 @@ Read this before writing or editing a `.nu` file. Nushell is the default for new
 
 Keep checked-in Nushell valid on its own. Supply one or two scalar values as typed `main` arguments through `makeWrapperArgs` and `--add-flag`. For structured values, write one JSON config, inject its path the same way, and open it in `main`. Put ordinary executable dependencies on the wrapper's `PATH`.
 
-Put model-facing prose in an adjacent `prompt.md`, or `<role>-prompt.md` when a hook needs more than one, and load it with `builtins.readFile`. Markdown formatting and prose checks can inspect these files but cannot inspect strings embedded in Nushell. `MD013` is off, so each paragraph stays on one line. Name the file for its role, since the directory already names the hook.
+Put model-facing prose in an adjacent `prompt.md`, or `<role>-prompt.md` when a hook needs more than one, and load it with `builtins.readFile`. Markdown formatting and prose checks can inspect these files but cannot inspect strings embedded in Nushell. The markdownlint `line-length` rule is off, so each paragraph stays on one line. Name the file for its role, since the directory already names the hook.
 
 Both writers prepend an absolute-store-path shebang, which demotes a script's own `#!/usr/bin/env nu` line to a comment. Keep that line for standalone execution and LSP checks. For helpers invoked directly from the checkout, also commit the executable bit and call them by path. To spawn nushell from inside a generated script, read `$nu.current-exe` rather than substituting a store path.
 
