@@ -24,6 +24,7 @@ Read the repository's contribution instructions before starting, and use its own
 
 - Commit each logical chunk after its checks pass and before moving on.
 - Verify the current branch and inspect the diff, then stage only the intended files or hunks.
+- Before discarding a lockfile that a tool regenerated, check whether it corrects a stale lock, as `uv lock --check` reports. Keep a correction, publishing it separately when it falls outside the task.
 - Use `type(scope): description` in the imperative mood, with one logical change per commit. Types are `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, and `perf`. Infer the scope and granularity from comparable commits.
 - For substantial changes, include a body explaining the problem, rationale, and relevant tradeoffs or validation without repeating the subject. Keep the body proportional to the change.
 - Name branches `<type>/<short-name>` using the same types, and keep an appropriate existing branch.
@@ -37,7 +38,7 @@ Read the repository's contribution instructions before starting, and use its own
 - Infer assignees from comparable requests, checking the authenticated identity when the convention is self-assignment.
 - Match labels to established usage and the available labels' descriptions. Commit types can inform the choice but do not imply a fixed label mapping.
 - If metadata remains ambiguous, ask a focused question. Never invent a rule or silently omit metadata.
-- Keep each request focused on one purpose. Put unrelated changes, including dependency or lockfile churn, in separate requests.
+- Keep each request focused on one purpose. Put unrelated changes, including dependency or lockfile churn, in separate requests, and fix every occurrence of the same problem within a repository in one request.
 
 ### Description
 
@@ -52,7 +53,7 @@ Write within the recorded structure, for reviewers who have not seen the convers
 
 - Before pushing, verify the base branch, diff, and commit count. Before creating or updating a request, compare its complete title and body with the recorded conventions, fixing any difference in heading hierarchy, section order, or validation format.
 - If asked only to draft a title and body, return the text without publishing. A request for a draft PR / MR authorizes publishing it as a draft.
-- Set assignees and existing labels when creating a request. Pass multiline bodies through a file or structured argument, such as `gh pr create --body-file <file>`. Use `#N` for issues and GitHub PRs in the same repository, and `!N` for GitLab MRs.
+- Set assignees and labels when creating a request. If no existing label fits, create one that follows the repository's label scheme. Pass multiline bodies through a file or structured argument, such as `gh pr create --body-file <file>`. Use `#N` for issues and GitHub PRs in the same repository, and `!N` for GitLab MRs.
 - Read back each created or updated request, verifying its title, body, base, diff, assignees, and labels, and fix anything lost before reporting completion.
 - For an approved merge, confirm the host reports the branch as mergeable, then use the repository's merge method. If branch protection requires CI checks, queue an auto-merge, such as `gh pr merge --auto --squash`, and move on without polling. Otherwise, wait for CI to pass on the current head. Rebase only if the branch conflicts or the host requires it to be up to date. If a queued auto-merge falls behind, run `gh pr update-branch` because auto-merge does not update the branch.
 - After the merge, verify the remote state and confirm CI passes on the target branch. For GitHub squash merges, keep GitHub's default commit message. Report queued auto-merges as pending until they land.

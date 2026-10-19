@@ -125,7 +125,7 @@ Before editing documentation, identify what specifically needs correction or rem
 - State each rule once in agent instructions and convention docs. Add an example only when the rule would otherwise be ambiguous. Omit cases and data points a capable model can infer from the rule, while preserving every rule and qualification. Repository instructions cover only exceptions that history and metadata cannot show.
 - Organize sections around reader tasks or questions. Keep paragraphs short and focused on one idea, and split long sections at meaningful points, such as between shared prerequisites and platform-specific instructions.
 - Describe only implemented functionality. Do not present WIP, TODO, or planned features as if they exist.
-- Verify claims against the codebase or data before citing them.
+- Verify claims against the codebase or data before citing them. Before calling a referenced path stale, resolve it relative to the file that contains it and open that target.
 
 ## Tools and Delegation
 
