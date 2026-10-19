@@ -123,7 +123,7 @@ def format-file [path: string, config: record]: nothing -> list<any> {
         format-markdown $path $config
         let cspell = (project-bin $path "cspell" | default --empty $config.cspell)
         [
-          (check $config.markdownlint ["--fix" $path] $path)
+          (check $config.markdownlint ["--config" $config.markdownlintConfig "--fix" $path] $path)
           # A file the project excludes from spell checking is not this hook's business.
           (check $cspell ["--no-progress" "--no-must-find-files" $path] $path)
         ]

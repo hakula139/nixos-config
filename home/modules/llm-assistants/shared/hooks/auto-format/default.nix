@@ -19,6 +19,7 @@ let
   whenDev = pkg: if enableDevToolchains then lib.getExe pkg else "";
   whenDevPath = path: if enableDevToolchains then "${path}" else "";
 
+  markdownlintConfig = lib.path.append repo.root ".markdownlint.jsonc";
   prettierConfig = lib.importJSON (lib.path.append repo.root ".prettierrc.json");
   ruffConfig = lib.importTOML (lib.path.append repo.root "ruff.toml");
   taploConfig = lib.importTOML (lib.path.append repo.root ".taplo.toml");
@@ -89,6 +90,7 @@ in
       dprintConfig = whenDevPath dprintConfig;
       git = lib.getExe pkgs.git;
       markdownlint = whenDev pkgs.markdownlint-cli2;
+      markdownlintConfig = whenDevPath markdownlintConfig;
       nixfmt = lib.getExe pkgs.nixfmt;
       nuCheck = "${pkgs.nu-check}";
       patchInput = toString patchInput;
