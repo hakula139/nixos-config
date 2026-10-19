@@ -14,5 +14,6 @@
     patches = (old.patches or [ ]) ++ [
       ./cursor-incremental-query.patch
     ];
+
     vendorHash = "sha256-MpE3Q/YK7SliqxF4aM1fyUWe70SNI7qlex7mUQk1W6g=";
   })

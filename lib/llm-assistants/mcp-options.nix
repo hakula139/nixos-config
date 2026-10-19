@@ -71,6 +71,7 @@ let
         inherit names;
         description = "${description} to enable";
       };
+
       disabledServers = mkDisabledServersOption {
         description = "${description} to disable";
       };

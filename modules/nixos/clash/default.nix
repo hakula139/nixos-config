@@ -45,6 +45,7 @@ in
         isSystemUser = true;
         group = "clashgen";
       };
+
       users.groups.clashgen = { };
 
       # --------------------------------------------------------------------------------------------
@@ -73,6 +74,7 @@ in
           StateDirectoryMode = "0750";
           WorkingDirectory = "%S/%N";
         };
+
         restartTriggers = [ config.age.secrets.clash-users.file ];
       };
     }

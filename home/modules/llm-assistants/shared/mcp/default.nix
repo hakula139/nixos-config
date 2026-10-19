@@ -119,6 +119,7 @@ let
       "--verify-ssl=${secretPath corpGateway.caSecret}"
       "${corpGateway.baseUrl}/mcp"
     ];
+
     envFiles.API_ACCESS_TOKEN = secretPath (corpGateway.tokenSecretFor "claude-code");
   };
 
@@ -183,6 +184,7 @@ let
       (lib.getExe pkgs.mcp-server-github)
       "stdio"
     ];
+
     setup = ''
       if [[ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]] \
         && token=$(${esc ghBin} auth token 2>/dev/null); then
@@ -205,6 +207,7 @@ let
     "projects"
     "repositories"
   ];
+
   gitlabBin = mkServer {
     name = "gitlab";
     command = [ (lib.getExe pkgs.mcp-server-gitlab) ];

@@ -121,6 +121,7 @@ in
         envVars = profiles.envVars // {
           PUPPETEER_EXECUTABLE_PATH = lib.getExe' pkgs.browser-tools "chromium";
         };
+
         envFiles = {
           EXA_API_KEY = secretPath "llm-assistants/mcp/exa-api-key";
           TELEGRAM_BOT_TOKEN = secretPath "llm-assistants/telegram-bot-token";

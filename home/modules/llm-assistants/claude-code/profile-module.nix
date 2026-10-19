@@ -16,6 +16,7 @@ lib.types.submodule {
         "oauth-token"
         "api-key"
       ];
+
       default = "api-key";
       description = "Authentication type";
     };

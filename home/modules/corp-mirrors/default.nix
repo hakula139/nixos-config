@@ -21,6 +21,7 @@ let
   pypiExtraIndexes = [
     "${artifactoryUrl}/api/pypi/hpc-pypi/simple"
   ];
+
   cargoMirror = "sparse+${artifactoryUrl}/api/cargo/mirrors-cargo-crates/index/";
 
   ociMirrors = [

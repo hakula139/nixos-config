@@ -94,6 +94,7 @@
       "thread-title"
       "task-progress"
     ];
+
     status_line_use_colors = true;
     whimsy = false;
   };

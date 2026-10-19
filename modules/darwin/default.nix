@@ -22,6 +22,7 @@ let
     name = userName;
     home = config.users.users.${userName}.home or "/Users/${userName}";
   };
+
   sshCfg = config.hakula.access.ssh;
   serverList = lib.attrValues servers;
 in
@@ -112,6 +113,7 @@ in
             Minute = 0;
           }
         ];
+
         ProcessType = "Background";
         StandardOutPath = "/var/log/nh-clean.log";
         StandardErrorPath = "/var/log/nh-clean.log";

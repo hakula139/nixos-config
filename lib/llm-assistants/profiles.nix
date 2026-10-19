@@ -18,16 +18,19 @@ let
       flagship = "xhigh";
       mini = "low";
     };
+
     gpt = {
       standard = "medium";
       flagship = "high";
       mini = "low";
     };
+
     gemini = {
       standard = "medium";
       flagship = "high";
       mini = "low";
     };
+
     local = {
       standard = "high";
       flagship = "max";
@@ -99,6 +102,7 @@ let
         modelId = modelIds.${tier};
         inherit effort;
       };
+
       workloads = lib.mapAttrs resolveWorkload workloadPolicy.${profile.family};
     in
     profile
@@ -191,6 +195,7 @@ in
           nativeWebSearch = true;
         };
       };
+
       enabledProviderProfiles = lib.filterAttrs (
         _: profile:
         lib.elem profile.provider providers

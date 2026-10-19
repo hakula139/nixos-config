@@ -16,6 +16,7 @@ let
     "@readOnly@" = ./read-only.md;
     "@status@" = ./status.md;
   };
+
   placeholders = builtins.attrNames fragments;
   fragmentBodies = builtins.attrValues fragments;
 in

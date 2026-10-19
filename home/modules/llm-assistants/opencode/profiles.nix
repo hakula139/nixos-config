@@ -40,6 +40,7 @@ let
           display = "summarized";
         };
       };
+
       openai-responses.reasoningEffort = effort;
     }
     .${api};
@@ -60,6 +61,7 @@ let
           context = model.contextWindow;
           output = model.maxTokens;
         };
+
         modalities = {
           inherit (model) input;
           output = [ "text" ];
@@ -99,6 +101,7 @@ let
             # base URL must include /v1.
             baseURL = corpGateway.apiUrls.anthropic-messages + "/v1";
           };
+
           openai-responses = {
             name = "openai";
             baseURL = corpGateway.apiUrls.openai-responses;

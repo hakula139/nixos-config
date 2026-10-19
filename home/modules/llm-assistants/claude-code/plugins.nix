@@ -20,6 +20,7 @@ let
         owner = "anthropics";
         repo = "claude-plugins-official";
       };
+
       rev = "ea0a38e1d671aa18a30431c9160e31193dc9860b"; # 2026-09-17
       hash = "sha256-Jcbbc+mOXg9ca1dBO+gXXEpJ2SDqqjyKbqvipiTDR4k=";
       pluginsDir = "plugins";
@@ -30,6 +31,7 @@ let
         owner = "openai";
         repo = "codex-plugin-cc";
       };
+
       rev = "db52e28f4d9ded852ab3942cea316258ae4ef346"; # v1.0.6
       hash = "sha256-S/R4kHTcIHBcG0TRX063C7ILXZZm0oMqunchPGg6ToU=";
       pluginsDir = "plugins";

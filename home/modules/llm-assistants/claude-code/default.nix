@@ -109,6 +109,7 @@ in
           )
         );
       };
+
       statusLinePackage = pkgs.writers.writeNuBin "statusline-command" {
         makeWrapperArgs = [
           "--prefix"
@@ -213,13 +214,16 @@ in
             source = "${pluginBundle}/cache";
             recursive = true;
           };
+
           ".claude/plugins/marketplaces" = {
             source = "${pluginBundle}/marketplaces";
             recursive = true;
           };
+
           ".claude/plugins/installed_plugins.json" = {
             source = "${pluginBundle}/installed_plugins.json";
           };
+
           ".claude/plugins/known_marketplaces.json" = {
             source = "${pluginBundle}/known_marketplaces.json";
           };
