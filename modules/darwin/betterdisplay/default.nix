@@ -49,6 +49,7 @@ in
         "/Applications/BetterDisplay.app"
         licenseFile
       ];
+
       ProcessType = "Background";
     };
   };

@@ -132,6 +132,7 @@ in
           webapp.enabled = false;
           embed.enabled = false;
         };
+
         tracker.enabled = false;
 
         http_timeouts.request = "24 hours";

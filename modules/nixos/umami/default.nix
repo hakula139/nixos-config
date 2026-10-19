@@ -72,6 +72,7 @@ in
           ensureDBOwnership = true;
         }
       ];
+
       authentication = lib.mkAfter ''
         host ${dbName} ${serviceName} 127.0.0.1/32 scram-sha-256
         host ${dbName} ${serviceName} ${config.hakula.podman.network.subnet} scram-sha-256

@@ -20,6 +20,7 @@ let
   cloudflareRealIPConfig = lib.concatMapStringsSep "\n" (ip: "set_real_ip_from ${ip};") (
     cloudflareIPs.ipv4 ++ cloudflareIPs.ipv6
   );
+
   cloudflareOriginCA = ../cloudflare/origin-pull-ca.pem;
 
   # ------------------------------------------------------------------------------------------------
@@ -47,6 +48,7 @@ let
         ssl = true;
       }
     ];
+
     extraConfig = ''
       ssl_stapling off;
     '';
@@ -96,6 +98,7 @@ in
       isSystemUser = true;
       group = "acme";
     };
+
     users.groups.acme = { };
 
     users.users.nginx = {
@@ -106,6 +109,7 @@ in
       ]
       ++ lib.optional config.hakula.services.clashGenerator.enable "clashgen";
     };
+
     users.groups.nginx = { };
 
     # ----------------------------------------------------------------------------------------------
@@ -128,6 +132,7 @@ in
         environmentFile = config.age.secrets.cloudflare-credentials.path;
         dnsResolver = "1.1.1.1:53";
       };
+
       certs."hakula.xyz" = {
         domain = "*.hakula.xyz";
         extraDomainNames = [ "hakula.xyz" ];
@@ -208,6 +213,7 @@ in
           extraConfig = cloudflareVhostConfig.extraConfig + ''
             absolute_redirect off;
           '';
+
           locations."/" = {
             alias = "/var/lib/clash-generator/";
             extraConfig = ''
@@ -216,6 +222,7 @@ in
               ${noCacheExtraConfig}
             '';
           };
+
           locations."= /" = {
             return = "404";
           };
@@ -231,30 +238,37 @@ in
             proxyPass = cloudreveUpstream;
             extraConfig = noCacheExtraConfig;
           };
+
           locations."= /sw.js" = {
             proxyPass = cloudreveUpstream;
             extraConfig = noCacheExtraConfig;
           };
+
           locations."= /manifest.json" = {
             proxyPass = cloudreveUpstream;
             extraConfig = noCacheExtraConfig;
           };
+
           locations."/api/v4/ws" = {
             proxyPass = cloudreveUpstream;
             proxyWebsockets = true;
           };
+
           locations."/api/v4/file/download" = {
             proxyPass = cloudreveUpstream;
             extraConfig = noBufferingExtraConfig;
           };
+
           locations."/api/v4/file/upload" = {
             proxyPass = cloudreveUpstream;
             extraConfig = noBufferingExtraConfig;
           };
+
           locations."/dav" = {
             proxyPass = cloudreveUpstream;
             extraConfig = noBufferingExtraConfig;
           };
+
           locations."/" = {
             proxyPass = cloudreveUpstream;
           };
@@ -283,6 +297,7 @@ in
             proxyPass = piclistUpstream;
             extraConfig = noBufferingExtraConfig;
           };
+
           locations."/" = {
             return = "302 https://cloud.hakula.xyz";
           };
@@ -326,6 +341,7 @@ in
             proxy_send_timeout 86400s;
             proxy_read_timeout 86400s;
           '';
+
           locations."/api/v1/runners/" = {
             proxyPass = peertubeUpstream;
             extraConfig = ''
@@ -333,10 +349,12 @@ in
               client_max_body_size 0;
             '';
           };
+
           locations."/socket.io/" = {
             proxyPass = peertubeUpstream;
             proxyWebsockets = true;
           };
+
           locations."/" = {
             return = "302 https://v.hakula.xyz$request_uri";
           };
@@ -361,6 +379,7 @@ in
                   proxy_read_timeout 300s;
                 '';
               };
+
               locations."/" = {
                 return = "302 https://hakula.xyz";
               };

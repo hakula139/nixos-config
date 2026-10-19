@@ -202,21 +202,25 @@ in
                 (lib.getExe pkgs.nixfmt)
                 "$FILE"
               ];
+
               ruff.command = [
                 "${ruffFormatScript}"
                 "$FILE"
               ];
+
               shfmt.command = [
                 (lib.getExe pkgs.shfmt)
                 "-w"
                 "$FILE"
               ];
+
               taplo = {
                 command = [
                   (lib.getExe pkgs.taplo)
                   "fmt"
                   "$FILE"
                 ];
+
                 extensions = [ ".toml" ];
               };
             }
@@ -252,6 +256,7 @@ in
             source = ohMyOpenCodeRoot;
             recursive = true;
           };
+
           "opencode/plugins/oh-my-openagent.js".text = ''
             export { default } from "../oh-my-opencode/dist/index.js";
           '';

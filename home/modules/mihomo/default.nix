@@ -39,6 +39,7 @@ let
       ;
     inherit (repoLib.proxy) proxyVars;
   };
+
   updatePackage = pkgs.writers.writeNuBin "mihomo-update" {
     makeWrapperArgs = [
       "--prefix"
@@ -178,6 +179,7 @@ in
               Minute = 0;
             }
           ];
+
           StandardOutPath = "${homeDir}/Library/Logs/mihomo-update.log";
           StandardErrorPath = "${homeDir}/Library/Logs/mihomo-update.log";
         };

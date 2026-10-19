@@ -40,6 +40,7 @@
         "pr"
         "merge"
       ];
+
       reason = "Integrates a pull request into a shared branch.";
     }
     {
@@ -48,6 +49,7 @@
         "mr"
         "merge"
       ];
+
       reason = "Integrates a merge request into a shared branch.";
     }
   ];

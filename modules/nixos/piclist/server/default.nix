@@ -47,6 +47,7 @@ pkgs.writeShellApplication {
     gnused
     nodejs
   ];
+
   text = ''
     exec ${lib.getExe pkgs.bash} ${runScript}
   '';

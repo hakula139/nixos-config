@@ -11,6 +11,7 @@ let
       "text"
       "image"
     ];
+
     reasoning = true;
     thinking = {
       mode = "anthropic-adaptive";
@@ -21,6 +22,7 @@ let
         "xhigh"
         "max"
       ];
+
       defaultLevel = "medium";
       supportsDisplay = true;
     };
@@ -34,6 +36,7 @@ let
       "text"
       "image"
     ];
+
     reasoning = true;
     thinking = {
       mode = "effort";
@@ -44,6 +47,7 @@ let
         "xhigh"
         "max"
       ];
+
       defaultLevel = "high";
     };
   };
@@ -56,6 +60,7 @@ let
       "text"
       "image"
     ];
+
     reasoning = true;
     thinking = {
       mode = "effort";
@@ -64,6 +69,7 @@ let
         "medium"
         "high"
       ];
+
       defaultLevel = "medium";
       requiresEffort = true;
     };
@@ -74,6 +80,7 @@ let
       "text"
       "image"
     ];
+
     reasoning = true;
     thinking = {
       mode = "effort";
@@ -82,9 +89,11 @@ let
         "high"
         "max"
       ];
+
       defaultLevel = "high";
       requiresEffort = true;
     };
+
     channelCost.local = {
       input = 0;
       output = 0;
@@ -100,16 +109,19 @@ in
       standard = "claude-opus-5-5";
       mini = "claude-haiku-5-5";
     };
+
     gpt = {
       flagship = "gpt-6-astra";
       standard = "gpt-6.1-sol";
       mini = "gpt-6-luna";
     };
+
     gemini = {
       flagship = "gemini-4-argon";
       standard = "gemini-4-argon";
       mini = "gemini-3.8-flash";
     };
+
     local = {
       flagship = "kimi-k3";
       standard = "kimi-k3";
@@ -124,6 +136,7 @@ in
       thinking = claudeAdaptiveCommon.thinking // {
         requiresEffort = true;
       };
+
       channelId.anthropic = "bedrock/global.anthropic.claude-opus-5-5";
       channelCost.anthropic = {
         input = 4.0;
@@ -177,6 +190,7 @@ in
         "text"
         "image"
       ];
+
       reasoning = true;
       thinking = {
         mode = "budget";
@@ -187,8 +201,10 @@ in
           "high"
           "xhigh"
         ];
+
         defaultLevel = "high";
       };
+
       channelId.anthropic = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
       channelCost.anthropic = {
         input = 1.0;
@@ -225,6 +241,7 @@ in
       thinking = gptCommon.thinking // {
         defaultLevel = "low";
       };
+
       channelId.openai = "openai/gpt-6-luna";
       channelCost.openai = {
         input = 0.1;
@@ -281,6 +298,7 @@ in
       thinking = localCommon.thinking // {
         defaultLevel = "low";
       };
+
       channelId.local = "GLM-5.3-Flash";
     };
   };

@@ -209,6 +209,7 @@
           darwin = ./modules/darwin;
           nixos = ./modules/nixos;
         };
+
         profiles = {
           platform = {
             cloudcone-sc2 = ./hosts/_profiles/platform/cloudcone-sc2;
@@ -216,6 +217,7 @@
             dmit = ./hosts/_profiles/platform/dmit;
             wsl = ./hosts/_profiles/platform/wsl;
           };
+
           role = {
             server = ./hosts/_profiles/role/server;
             workstation = ./hosts/_profiles/role/workstation;
