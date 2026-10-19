@@ -388,28 +388,35 @@
           tooling = import ./lib/tooling.nix { inherit pkgs; };
           preCommitCheck = preCommitCheckFor system;
           basePackages = preCommitCheck.enabledPackages ++ tooling.all;
+          flock = nixpkgs.lib.getExe pkgs.flock;
           git = nixpkgs.lib.getExe pkgs.git;
         in
         {
           default = pkgs.mkShell {
-            # git-hooks.nix sets a relative hooks path from the main checkout that linked worktrees
-            # can't resolve (cachix/git-hooks.nix#688), so commits there would skip the hooks.
+            packages = basePackages ++ [ preCommitCheck.config.package ];
+
+            # git-hooks.nix stores a hooks path relative to the main checkout, which linked worktrees
+            # can't resolve (cachix/git-hooks.nix#688), so unset it to fall back to the shared hooks
+            # directory. The lock keeps a concurrent load from setting it mid-install, which would
+            # send prek's hooks to that path.
             shellHook = ''
-              ${preCommitCheck.shellHook}
-              if dir=$(${git} rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
-                ${git} config --local core.hooksPath "$dir/hooks"
+              if common=$(${git} rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
+                (
+                  ${flock} 9
+                  ${preCommitCheck.config.installationScript}
+                  ${git} config --local --unset-all core.hooksPath || true
+                ) 9>"$common/git-hooks.lock"
               fi
             '';
-            buildInputs = basePackages;
           };
 
           browser = pkgs.mkShell {
-            buildInputs = basePackages;
-            packages = [
+            packages = basePackages ++ [
               pkgs.browser-tools
               pkgs.nodejs_24
               (pkgs.python3.withPackages (ps: [ ps.playwright ]))
             ];
+
             PLAYWRIGHT_BROWSERS_PATH = pkgs.browser-tools.browsers;
           };
         }
