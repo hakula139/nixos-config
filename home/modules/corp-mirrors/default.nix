@@ -22,8 +22,6 @@ let
     "${artifactoryUrl}/api/pypi/hpc-pypi/simple"
   ];
 
-  cargoMirror = "sparse+${artifactoryUrl}/api/cargo/mirrors-cargo-crates/index/";
-
   ociMirrors = [
     "docker.io"
     "gcr.io"
@@ -123,23 +121,6 @@ in
             [[index]]
             url = "${url}"
           '') pypiExtraIndexes}
-        '';
-
-        # ------------------------------------------------------------------------------------------
-        # Rust Development
-        # ------------------------------------------------------------------------------------------
-        ".cargo/config.toml".text = ''
-          [registry]
-          default = "artifactory"
-
-          [registries.artifactory]
-          index = "${cargoMirror}"
-
-          [source.artifactory-remote]
-          registry = "${cargoMirror}"
-
-          [source.crates-io]
-          replace-with = "artifactory-remote"
         '';
 
         # ------------------------------------------------------------------------------------------
