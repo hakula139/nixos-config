@@ -20,7 +20,7 @@ Infer the target from the request and conversation. Ask only if it remains ambig
 - **All open PRs / MRs:** Review each one separately.
 - **Commit range or uncommitted work:** Review the specified range or the staged, unstaged, and untracked changes. Keep those change groups separate when staging affects their meaning.
 
-For a branch comparison, refresh the relevant remote refs, then use `git merge-base` and `git diff <base>...HEAD`. If tools must run against a PR / MR head that differs from the checkout, use a separate worktree and leave the current one untouched. If fetching fails, state which revision you reviewed.
+For a branch comparison, refresh the relevant remote refs, then use `git merge-base` and `git diff <base>...HEAD`. When other agents share the ref store, skip the refresh, since a fetch moves `origin/*` under every agent, and instead pin the PR / MR head SHA and read files through `git show <sha>:<path>`. If tools must run against a PR / MR head that differs from the checkout, use a separate worktree and leave the current one untouched. If fetching fails, state which revision you reviewed.
 
 ## Load the instructions
 
