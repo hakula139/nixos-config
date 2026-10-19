@@ -1,7 +1,7 @@
 ## Claude Code
 
-- **Prose polish**: a hook rewrites your Markdown prose, question text, and certain MCP fields before writing them. Treat its output as final, restoring only substantive claims or qualifications it dropped.
-- **Bash**: never start the `command` field with a shell comment because that breaks permission pattern matching. Put explanations in the `description` parameter.
+- **Prose polish**: a hook rewrites your Markdown prose, question text, and certain MCP fields before writing them. It polishes each edited fragment without its surrounding sentence, so replace whole sentences or bullets and reread the result. Treat its output as final, restoring only substantive claims or qualifications it dropped through a replacement run from Bash, which the hook leaves alone.
+- **Bash**: never start the `command` field with a shell comment because that breaks permission pattern matching. Put explanations in the `description` parameter. In an isolated worktree, the guard refuses any command it cannot prove keeps git inside the worktree, including loops, substitutions, heredocs, and text that merely contains `git`, so write multi-step logic as a script in the worktree's gitignored build directory and run each git command on its own.
 - **Web search**: native `WebSearch` needs a profile that enables it, while `WebFetch` always works.
 - **IDE MCP** (`mcp__ide__*`): use `getDiagnostics` to check for language server errors and warnings. Use `executeCode` to run Python in Jupyter kernels when working with notebooks.
 - **Agents**: use subagents for independent tasks and Agent Teams when peers need shared task state or direct messaging. Isolate parallel writers with `Agent({ isolation: "worktree" })`.
