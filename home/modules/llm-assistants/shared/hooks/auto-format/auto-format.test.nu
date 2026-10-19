@@ -41,7 +41,13 @@ def run-hook [file: string, cwd: string, --path: list<string> = []]: nothing -> 
 
   mkdir $bin
   ^ln -s (which cat | get 0.path) ($bin | path join cat)
-  let base = {direnv: "", dprintConfig: "", git: (which git | get 0.path), patchInput: ""}
+  let base = {
+    direnv: ""
+    dprintConfig: ""
+    git: (which git | get 0.path)
+    markdownlintConfig: ""
+    patchInput: ""
+  }
   $TOOLS
   | reduce --fold $base {|tool, config|
     $config | insert $tool (install-stub ($bin | path join $tool))
@@ -101,7 +107,7 @@ def "test each extension runs its tools with their flags" [] {
       tools: []
       calls: [
         [dprint ["fmt" "--config" "" "--stdin" "md"] false]
-        [markdownlint ["--fix"]]
+        [markdownlint ["--config" "" "--fix"]]
         [cspell ["--no-progress" "--no-must-find-files"]]
       ]
     }
