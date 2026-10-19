@@ -35,6 +35,7 @@
     cloudreve.enable = true;
     umami.enable = true;
   };
+
   hakula.services.clashGenerator.enable = true;
   hakula.services.cloudreve = {
     enable = true;
@@ -43,6 +44,7 @@
       workerHost = "b2.hakula.xyz";
     };
   };
+
   hakula.services.piclist.enable = true;
   hakula.services.postgresql.enable = true;
   hakula.services.umami.enable = true;

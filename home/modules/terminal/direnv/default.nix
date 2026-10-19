@@ -16,6 +16,7 @@
     package = pkgs.direnv.overrideAttrs (old: {
       doCheck = old.doCheck or true && !pkgs.stdenv.isDarwin;
     });
+
     enableZshIntegration = true;
     nix-direnv.enable = true;
     silent = true;

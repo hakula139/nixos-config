@@ -19,6 +19,7 @@
       "nix-command"
       "flakes"
     ];
+
     keep-outputs = false;
     keep-derivations = false;
     download-buffer-size = 1073741824; # 1 GB

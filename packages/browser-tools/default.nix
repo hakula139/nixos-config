@@ -17,6 +17,7 @@ pkgs.runCommand "browser-tools"
     nativeBuildInputs = [
       pkgs.makeBinaryWrapper
     ];
+
     passthru = { inherit driver browsers chromium; };
     meta = {
       description = "Playwright CLI and its matching browsers";

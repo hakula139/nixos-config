@@ -24,6 +24,7 @@ let
     lib.optional config.hakula.fonts.windowsSync.enable "install-windows-fonts"
     ++ lib.optional config.hakula.cursor.windowsSync.enable "sync-windows-cursor-settings"
   );
+
   hasPostSwitchCommands = postSwitchCommands != "";
 
   # ------------------------------------------------------------------------------------------------

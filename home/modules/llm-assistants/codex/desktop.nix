@@ -23,8 +23,10 @@
         diffRemoved = "#e02e2a";
         skill = "#b06dff";
       };
+
       surface = "#111111";
     };
+
     appearanceDarkCodeThemeId = "codex";
     avatar-overlay-pet-visible = false;
     browser-show-full-url = true;
@@ -40,6 +42,7 @@
       "ultra"
       "persistent"
     ];
+
     external-agent-import-sync-enabled = false;
     external-agent-import-sync-item-types = {
       CONFIG = "original";
@@ -49,6 +52,7 @@
       SESSIONS = "original";
       SKILLS = "original";
     };
+
     followUpQueueMode = "steer";
     git-pull-request-merge-method = "squash";
     hotkey-window-projectless-default-enabled = true;
@@ -63,6 +67,7 @@
     usePointerCursors = true;
     worktree-upstream-refresh-mode = "best-effort";
   };
+
   features = {
     chronicle = true;
   };

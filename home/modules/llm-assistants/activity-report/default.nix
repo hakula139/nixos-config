@@ -78,6 +78,7 @@ in
         "/\\.claude/worktrees/[^/]+.*$"
         "__worktrees/[^/]+.*$"
       ];
+
       description = "Regexes stripped from a session's working directory to recover its repository";
     };
 
@@ -130,10 +131,12 @@ in
             type = "caldav";
             passwordCommand = readCaldav "password";
           };
+
           local = {
             type = "filesystem";
             fileExt = ".ics";
           };
+
           vdirsyncer = {
             enable = true;
             urlCommand = readCaldav "url";
@@ -144,6 +147,7 @@ in
               end = "datetime.now() + timedelta(days=1)";
             };
           };
+
           khal = {
             enable = true;
             readOnly = true;

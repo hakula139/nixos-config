@@ -24,6 +24,7 @@ let
         model = modelAliases.${agent.workload};
         effort = workloadPolicy.${agent.workload};
       };
+
       frontmatterLines = [
         "name: ${name}"
         "description: |"

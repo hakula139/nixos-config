@@ -37,6 +37,7 @@ let
         "-lc"
         ''exec tmux new-session -A -s "''${PWD##*/}"''
       ];
+
       icon = "terminal-tmux";
       path = "bash";
     };
@@ -46,6 +47,7 @@ let
         "-l"
         "-i"
       ];
+
       path = "zsh";
     };
   };

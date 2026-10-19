@@ -100,6 +100,7 @@ let
         "ikuncode"
         "yescode"
       ];
+
       channels = [
         "anthropic"
         "openai"
@@ -144,6 +145,7 @@ let
         "oauth-token"
         "api-key"
       ];
+
       forbidden = [ "subscription" ];
     }
     {
@@ -191,6 +193,7 @@ let
       p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
     ) (builtins.attrValues cfg.auth.profiles)
   );
+
   requiredSecrets = lib.genAttrs requiredSecretNames (_: { });
 
   # ------------------------------------------------------------------------------------------------
@@ -212,6 +215,7 @@ let
           lib.nameValuePair "${name}.md" (pkgs.writeText "claude-code-agent-${family}-${name}.md" text)
         ) agents.files
       );
+
       settings = {
         effortLevel = policy.standard;
       };

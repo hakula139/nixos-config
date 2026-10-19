@@ -35,6 +35,7 @@ in
         User = "git";
         IdentityFile = "${homeDir}/.ssh/GitHub/hakula139";
       };
+
       "Hakula-MacBook" = {
         HostName = "hakula-macbook";
         User = "hakula";
@@ -43,6 +44,7 @@ in
         ProxyCommand = "tailscale nc %h %p";
         ForwardAgent = true;
       };
+
       "Hakula-Work" = {
         HostName = "wsl";
         User = "hakula";

@@ -45,6 +45,7 @@ let
         tiny = "@mini";
         advisor = "@tiny";
       };
+
       compaction = {
         enabled = true;
         thresholdTokens = roles.default.model.autoCompactTokens;
@@ -65,6 +66,7 @@ let
       "local"
     ];
   };
+
   profiles = lib.mapAttrs mkProfile enabledProfiles;
 
   models = import ./models.nix {

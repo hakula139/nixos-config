@@ -52,6 +52,7 @@
             server.ip
             "[${server.ip}]:${toString server.port}"
           ];
+
           publicKey = server.hostKey;
         };
       }) servers

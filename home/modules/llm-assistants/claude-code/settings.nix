@@ -55,6 +55,7 @@
     type = "command";
     command = "${homeDir}/.claude/statusline-command";
   };
+
   showThinkingSummaries = true;
 
   wheelScrollAccelerationEnabled = false;

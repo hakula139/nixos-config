@@ -42,10 +42,12 @@ let
       inherit (prettierConfig) printWidth;
       quotes = preferredQuoteStyle prettierConfig.singleQuote;
     };
+
     markdown = {
       emphasisKind = "underscores";
       strongKind = "asterisks";
     };
+
     markup.printWidth = prettierConfig.printWidth;
     ruff = {
       indentStyle = ruffConfig.format.indent-style;
@@ -54,6 +56,7 @@ let
       quoteStyle = ruffConfig.format.quote-style;
       skipMagicTrailingComma = ruffConfig.format.skip-magic-trailing-comma;
     };
+
     toml.lineWidth = taploConfig.formatting.column_width;
     typescript = {
       inherit (prettierConfig) quoteProps;
@@ -61,10 +64,12 @@ let
       lineWidth = prettierConfig.printWidth;
       quoteStyle = preferredQuoteStyle prettierConfig.singleQuote;
     };
+
     yaml = {
       inherit (prettierConfig) printWidth;
       quotes = preferredQuoteStyle prettierConfig.singleQuote;
     };
+
     plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
   };
 in

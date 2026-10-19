@@ -67,6 +67,7 @@ let
           "unix://${socketPath name}"
           "--rc-no-auth"
         ];
+
         EnvironmentVariables.PATH = "/usr/bin:/bin:/usr/sbin:/sbin";
         RunAtLoad = true;
         KeepAlive.SuccessfulExit = false;
@@ -84,6 +85,7 @@ let
           (lib.getExe refresh)
           (socketPath name)
         ];
+
         StartInterval = cfg.refreshInterval;
         Umask = 63;
         StandardOutPath = "${logDir}/${name}-refresh.log";
@@ -120,12 +122,14 @@ in
                 "writes"
                 "full"
               ];
+
               default = "writes";
               description = "Use writes for remotes without reliable change fingerprints";
             };
           };
         }
       );
+
       default = { };
       description = "Cloud mounts under ~/Cloud, keyed by directory name";
     };

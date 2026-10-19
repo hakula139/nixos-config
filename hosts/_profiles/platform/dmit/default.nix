@@ -48,6 +48,7 @@
       DHCP = "ipv4";
       IPv6AcceptRA = true;
     };
+
     linkConfig.RequiredForOnline = "routable";
   };
 }

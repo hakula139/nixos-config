@@ -25,6 +25,7 @@ let
       umamiCfg.workerHost
     ];
   };
+
   trackingJSFilename = "umami-tracking.js";
 
   indexHTMLPatch = pkgs.writeText "umami-scripts.html" ''

@@ -17,6 +17,7 @@ let
       url = "${baseUrl}/github-mcp-server_Darwin_arm64.tar.gz";
       hash = "sha256-HanP8kkPKQji/QUeCQxcB5LNRHc+4ZW4WtD1SdPENdA=";
     };
+
     x86_64-linux = {
       url = "${baseUrl}/github-mcp-server_Linux_x86_64.tar.gz";
       hash = "sha256-snVJIa7BsTArGacVMdJtJC7w5/HgVpa4REvqtafmHVs=";

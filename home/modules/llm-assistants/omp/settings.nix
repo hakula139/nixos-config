@@ -24,11 +24,13 @@
       "path"
       "git"
     ];
+
     rightSegments = [
       "context_pct"
       "cost"
       "token_rate"
     ];
+
     separator = "pipe";
     compactThinkingLevel = false;
     sessionAccent = false;
@@ -40,6 +42,7 @@
         maxLength = 28;
         stripWorkPrefix = true;
       };
+
       git = {
         showBranch = true;
         showStaged = true;

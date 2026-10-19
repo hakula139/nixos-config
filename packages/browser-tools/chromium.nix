@@ -17,6 +17,7 @@ pkgs.runCommand "playwright-chromium"
       pkgs.nodejs_24
       pkgs.makeBinaryWrapper
     ];
+
     PLAYWRIGHT_BROWSERS_PATH = browsers;
     meta = {
       description = "Chromium matching the pinned Playwright driver";

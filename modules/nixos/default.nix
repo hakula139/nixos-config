@@ -237,6 +237,7 @@ in
       packages = packages.fonts;
       fontconfig.enable = true;
     };
+
     environment.systemPackages = packages.base;
 
     # ----------------------------------------------------------------------------------------------

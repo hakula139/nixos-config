@@ -30,6 +30,7 @@ let
     "omp"
     "opencode"
   ];
+
   cliAssistantNames = lib.remove "cursor" assistantNames;
 
   # Cursor's IDE settings apply to every host, so it acts as an assistant only within the bundle.
@@ -44,6 +45,7 @@ let
       "llm-assistants/corp-gateway/claude-code-api-key"
       "llm-assistants/corp-gateway/cachain.crt"
     ];
+
     braveSearch = [ "llm-assistants/mcp/brave-api-key" ];
     exa = [ "llm-assistants/mcp/exa-api-key" ];
     gitlab = [ "gitlab/pat" ];

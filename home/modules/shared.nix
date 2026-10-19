@@ -48,6 +48,7 @@ in
     ".duckdbrc".text = ''
       .autopilot on
     '';
+
     ".editorconfig".source = lib.path.append repo.root ".editorconfig";
     ".prettierrc.json".source = lib.path.append repo.root ".prettierrc.json";
     "ruff.toml".source = lib.path.append repo.root "ruff.toml";

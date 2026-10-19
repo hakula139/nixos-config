@@ -26,10 +26,12 @@ let
       pkgs.tmux
       pkgs.tmux.man
     ];
+
     postBuild = ''
       rm "$out/bin/tmux"
       ln -s ${esc wrapper} "$out/bin/tmux"
     '';
+
     meta.mainProgram = "tmux";
   };
 
