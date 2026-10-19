@@ -115,6 +115,7 @@ in
       group = serviceName;
       extraGroups = [ "systemd-journal" ] ++ allExtraGroups;
     };
+
     users.groups.${serviceName} = { };
 
     # ----------------------------------------------------------------------------------------------
@@ -291,9 +292,11 @@ in
               User = serviceName;
               Group = serviceName;
             };
+
             path = [
               pkgs.curl
             ];
+
             script = ''
               curl \
                 -fsSL \
@@ -318,11 +321,13 @@ in
               User = serviceName;
               Group = serviceName;
             };
+
             path = [
               pkgs.coreutils
               pkgs.curl
               pkgs.systemd
             ];
+
             script = ''
               code="''${EXIT_STATUS:-fail}"
               url="${lib.escapeShellArg heartbeatUrl}/$code"

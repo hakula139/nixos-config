@@ -92,6 +92,7 @@ in
       ]
       ++ lib.optionals cfg.aria2.enable [ "aria2" ];
     };
+
     users.groups.${serviceName} = { };
 
     # ----------------------------------------------------------------------------------------------
@@ -105,6 +106,7 @@ in
           ensureDBOwnership = true;
         }
       ];
+
       authentication = lib.mkAfter ''
         local ${dbName} ${serviceName} peer
       '';

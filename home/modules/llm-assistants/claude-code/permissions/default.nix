@@ -33,6 +33,7 @@ in
     defaultMode = "auto";
     allow = import ./allow-rules.nix;
   };
+
   skipDangerousModePermissionPrompt = true;
 
   autoMode = {
@@ -41,6 +42,7 @@ in
       "$defaults"
       "Source control: github.com/hakula139 and all repos under it"
     ];
+
     allow = [ "$defaults" ] ++ toProseRules policy.allows;
     soft_deny = [ "$defaults" ] ++ toSoftDenyRules (policy.gates ++ policy.softDenies);
   };

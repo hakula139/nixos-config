@@ -117,6 +117,7 @@ let
       specialArgs = commonSpecialArgs // {
         inherit hostName hostType;
       };
+
       modules = [
         {
           nixpkgs.hostPlatform = "x86_64-linux";
@@ -155,6 +156,7 @@ let
           hostType
           ;
       };
+
       modules = [
         {
           nixpkgs.hostPlatform = "aarch64-darwin";
@@ -233,6 +235,7 @@ let
         specialArgs = commonSpecialArgs // {
           inherit hostName hostType;
         };
+
         modules = [
           {
             nixpkgs.hostPlatform = "x86_64-linux";

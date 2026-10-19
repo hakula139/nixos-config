@@ -67,6 +67,7 @@ let
             mode = "bytes";
             limit = 10000;
           };
+
           context_window = model.contextWindow;
           max_context_window = model.contextWindow;
           auto_compact_token_limit = model.autoCompactTokens;

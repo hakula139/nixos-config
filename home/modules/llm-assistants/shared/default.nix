@@ -55,6 +55,7 @@ in
         ;
       corpGateway = profileDefinitions.providers.corp-gateway;
     };
+
     mcpSecrets = import ./mcp/secrets.nix;
 
     # ----------------------------------------------------------------------------------------------

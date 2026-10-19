@@ -30,6 +30,7 @@ A caller's set lifts its `inherit` entries into a leading block, then follows th
 - **Format generators**: bind `json = pkgs.formats.json { };` (likewise `yaml` and `toml`) once in the `let` block that uses it, after the `inherit` bindings and `cfg`, then call `json.generate`. Avoid inline `(pkgs.formats.json { }).generate`.
 - **Wrapper arguments**: keep each wrapper option and its operands together, separating options in Nix lists with a blank line. Put environment setup before fixed command arguments. Preserve the order of environment transformations and pass fixed arguments in the callee's order.
 - **Ordering**: group related fields, then choose an order within each group that makes their relationships clear. Use alphabetical order when no stronger semantic order applies. Order a `let` block so a binding follows what it depends on.
+- **Blank lines**: follow a multiline binding or attribute with a blank line before its next sibling. Keep single-line siblings together and separate their groups with a blank line. A single-line binding may lead directly into a related multiline one.
 
 ## Section banners
 
