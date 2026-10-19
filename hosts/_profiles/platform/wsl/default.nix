@@ -51,6 +51,13 @@ in
   };
 
   # ------------------------------------------------------------------------------------------------
+  # Containers
+  # ------------------------------------------------------------------------------------------------
+  # Home Manager installs rootless podman as a plain package, which reads its signature policy from
+  # /etc/containers/policy.json and refuses to pull or build without one.
+  virtualisation.containers.enable = true;
+
+  # ------------------------------------------------------------------------------------------------
   # User session
   # ------------------------------------------------------------------------------------------------
   # logind under NixOS-WSL sees `Linger=yes` but doesn't actually call StartUnit on
