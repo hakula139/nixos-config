@@ -157,10 +157,11 @@ in
       };
     };
 
-    # Claude Code's auto-mode classifier requests this model regardless of the tier aliases.
+    # Claude Code's auto-mode classifier requests this model regardless of the tier aliases. The
+    # gateway's global inference profile for it returns 503, so it routes through the US profile.
     "claude-sonnet-5" = claudeAdaptiveCommon // {
       name = "Claude Sonnet 5";
-      channelId.anthropic = "bedrock/global.anthropic.claude-sonnet-5";
+      channelId.anthropic = "bedrock/us.anthropic.claude-sonnet-5";
       channelCost.anthropic = {
         input = 2.0;
         output = 10.0;
