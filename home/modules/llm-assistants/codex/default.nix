@@ -174,7 +174,7 @@ in
         ];
       } (builtins.readFile ./scripts/activate-config.nu);
 
-      updateDaemon = pkgs.writers.writeNu "update-codex-daemon" {
+      stopStaleDaemon = pkgs.writers.writeNu "stop-stale-codex-daemon" {
         makeWrapperArgs = [
           "--prefix"
           "PATH"
@@ -184,7 +184,7 @@ in
           "--add-flag"
           "${pkgs.codex}"
         ];
-      } (builtins.readFile ./scripts/update-daemon.nu);
+      } (builtins.readFile ./scripts/stop-stale-daemon.nu);
 
       # Separate from default.rules, which Codex rewrites on TUI allowlisting.
       codexRulesTarget =
@@ -228,7 +228,7 @@ in
         '';
 
         home.activation.codexDaemon = lib.hm.dag.entryAfter [ "codexAuthProfile" ] ''
-          run ${updateDaemon}
+          run ${stopStaleDaemon}
         '';
       }
     ]
