@@ -45,9 +45,6 @@ let
     // lib.optionalAttrs (profile.family == "claude") {
       compat.supportsLongCacheRetention = true;
     }
-    // lib.optionalAttrs (profile.channel == "local") {
-      modelOverrides."Kimi-K3".compat.supportsImageDetailOriginal = false;
-    }
     // lib.optionalAttrs (api == "openai-responses") {
       compat = {
         # Override unrelated bundled-provider compat inherited by custom models.
