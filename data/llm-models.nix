@@ -24,6 +24,7 @@ let
       ];
 
       defaultLevel = "medium";
+      requiresEffort = false;
       supportsDisplay = true;
     };
   };
@@ -49,6 +50,8 @@ let
       ];
 
       defaultLevel = "high";
+      requiresEffort = false;
+      supportsDisplay = false;
     };
   };
 
@@ -72,6 +75,7 @@ let
 
       defaultLevel = "medium";
       requiresEffort = true;
+      supportsDisplay = false;
     };
   };
 
@@ -91,7 +95,8 @@ let
       ];
 
       defaultLevel = "high";
-      requiresEffort = true;
+      requiresEffort = false;
+      supportsDisplay = false;
     };
 
     channelCost.local = {
@@ -123,9 +128,9 @@ in
     };
 
     local = {
-      flagship = "kimi-k3";
-      standard = "kimi-k3";
-      mini = "glm-5.3-flash";
+      flagship = "deepseek-v4.1-flash";
+      standard = "deepseek-v4.1-flash";
+      mini = "deepseek-v4.1-flash";
     };
   };
 
@@ -179,39 +184,6 @@ in
         output = 0.5;
         cacheRead = 0.01;
         cacheWrite = 0.125;
-      };
-    };
-
-    "claude-haiku-4-5-20251001" = {
-      name = "Claude Haiku 4.5";
-      contextWindow = 200000;
-      maxTokens = 64000;
-      autoCompactTokens = 160000;
-      input = [
-        "text"
-        "image"
-      ];
-
-      reasoning = true;
-      thinking = {
-        mode = "budget";
-        efforts = [
-          "minimal"
-          "low"
-          "medium"
-          "high"
-          "xhigh"
-        ];
-
-        defaultLevel = "high";
-      };
-
-      channelId.anthropic = "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0";
-      channelCost.anthropic = {
-        input = 1.0;
-        output = 5.0;
-        cacheRead = 0.1;
-        cacheWrite = 1.25;
       };
     };
 
@@ -274,33 +246,12 @@ in
       };
     };
 
-    "kimi-k3" = localCommon // {
-      name = "Kimi K3";
-      contextWindow = 400000;
-      maxTokens = 65536;
-      autoCompactTokens = 320000;
-      channelId.local = "Kimi-K3";
-    };
-
-    "glm-5.3" = localCommon // {
-      name = "GLM-5.3";
-      contextWindow = 400000;
-      maxTokens = 131072;
-      autoCompactTokens = 320000;
-      input = [ "text" ];
-      channelId.local = "GLM-5.3";
-    };
-
-    "glm-5.3-flash" = localCommon // {
-      name = "GLM-5.3-Flash";
+    "deepseek-v4.1-flash" = localCommon // {
+      name = "DeepSeek V4.1 Flash";
       contextWindow = 1048576;
-      maxTokens = 131072;
+      maxTokens = 393216;
       autoCompactTokens = 400000;
-      thinking = localCommon.thinking // {
-        defaultLevel = "low";
-      };
-
-      channelId.local = "GLM-5.3-Flash";
+      channelId.local = "local_v2/DeepSeek-V4.1-Flash-1017";
     };
   };
 }
