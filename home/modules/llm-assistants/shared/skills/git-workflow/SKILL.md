@@ -20,6 +20,11 @@ Read the repository's contribution instructions before starting, and use its own
 - **Honor narrower authorization.** Review-only and draft-text-only requests do not authorize publication. Follow instructions to keep work local, avoid pushing, or omit a PR / MR. Create tags and backup refs only when explicitly requested.
 - **Get explicit approval before merging each PR / MR.** Blanket approval given earlier does not cover requests opened later in the session. Share the URL and wait for `lgtm` or `merge` referring to that specific PR / MR. A request to review and merge authorizes merging each PR / MR covered by the review, including requests opened for its fixes, once the review reports no remaining findings.
 
+## Worktrees
+
+- Keep the main checkout on the default branch, because several agents may work in the repository at once and editing it or switching its branch can collide with their work.
+- Create every task branch, including the coordinator's own, in a worktree under `.claude/worktrees/<name>`. Claude Code and Workmux (under `workmux/`) create their worktrees there too, so they all share one gitignored directory.
+
 ## Commits
 
 - Commit each logical chunk after its checks pass and before moving on.
