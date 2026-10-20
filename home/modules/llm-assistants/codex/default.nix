@@ -174,6 +174,18 @@ in
         ];
       } (builtins.readFile ./scripts/activate-config.nu);
 
+      updateDaemon = pkgs.writers.writeNu "update-codex-daemon" {
+        makeWrapperArgs = [
+          "--prefix"
+          "PATH"
+          ":"
+          (lib.makeBinPath [ codexBin ])
+
+          "--add-flag"
+          "${pkgs.codex}"
+        ];
+      } (builtins.readFile ./scripts/update-daemon.nu);
+
       # Separate from default.rules, which Codex rewrites on TUI allowlisting.
       codexRulesTarget =
         if config.home.preferXdgDirectories then
@@ -213,6 +225,10 @@ in
 
         home.activation.codexMutableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           run ${activateConfig}
+        '';
+
+        home.activation.codexDaemon = lib.hm.dag.entryAfter [ "codexAuthProfile" ] ''
+          run ${updateDaemon}
         '';
       }
     ]
