@@ -68,17 +68,13 @@ in
     excludedDirs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       # Workmux workers take their prompts from the agent that launched them.
-      default = [ "__worktrees/" ];
+      default = [ "/\\.claude/worktrees/workmux/" ];
       description = "Regexes matching session directories excluded from human hours and excerpts";
     };
 
     worktreePatterns = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [
-        "/\\.claude/worktrees/[^/]+.*$"
-        "__worktrees/[^/]+.*$"
-      ];
-
+      default = [ "/\\.claude/worktrees/[^/]+.*$" ];
       description = "Regexes stripped from a session's working directory to recover its repository";
     };
 

@@ -11,7 +11,6 @@ const SCRIPT = ($SCRIPT_DIR | path join activity-digest.nu)
 
 const DAY = "2026-10-15"
 const HUMAN = {origin: {kind: human}}
-const NOTIFIED = {origin: {kind: task-notification}}
 
 # A clock time on the reported day, or a full date and time
 def at [clock: string]: nothing -> string {
@@ -29,32 +28,48 @@ def claude-user [cwd: string, clock: string, text: string, extra: record = {}]: 
   | merge $extra
 }
 
+def claude-prompt [cwd: string, clock: string, text: string]: nothing -> record {
+  claude-user $cwd $clock $text $HUMAN
+}
+
+def claude-notification [cwd: string, clock: string]: nothing -> record {
+  claude-user $cwd $clock "<task-notification>" {origin: {kind: task-notification}}
+}
+
 def claude-reply [cwd: string, clock: string, text: string = "done"]: nothing -> record {
   let message = {stop_reason: end_turn, content: [{type: text, text: $text}]}
   {type: assistant, cwd: $cwd, timestamp: (at $clock), message: $message}
+}
+
+def codex-transcript [dir: string, meta: record, records: list<record>]: nothing -> nothing {
+  let path = [codex sessions ...($DAY | split row -) $"($meta.id).jsonl"]
+  transcript $dir $path ([{type: session_meta, payload: $meta}] ++ $records)
 }
 
 def codex-event [clock: string, payload: record]: nothing -> record {
   {type: event_msg, timestamp: (at $clock), payload: $payload}
 }
 
-# Each turn starts a task, with a prompt if it has `text`, completed if it has a `done` time.
-def codex-transcript [dir: string, meta: record, turns: list<record>]: nothing -> nothing {
-  let records = (
-    $turns
-    | each {|t|
-      let item = {type: UserMessage, content: [{type: text, text: $t.text?}]}
-      [
-        (codex-event $t.clock {type: task_started})
-        (if $t.text? != null { codex-event $t.clock {type: item_completed, item: $item} })
-        (if $t.done? != null { codex-event $t.done {type: task_complete, last_agent_message: ok} })
-      ]
-      | compact
-    }
-    | flatten
-  )
-  let path = [codex sessions "2026" "10" "15" $"($meta.id).jsonl"]
-  transcript $dir $path ([{type: session_meta, payload: $meta}] ++ $records)
+# A turn's task start, followed by its prompt if it has `text` and its completion at a `done` time
+def codex-turn [clock: string, text?: string, --done: string]: nothing -> list<record> {
+  let item = {type: UserMessage, content: [{type: text, text: $text}]}
+  [
+    (codex-event $clock {type: task_started})
+    (if $text != null { codex-event $clock {type: item_completed, item: $item} })
+    (if $done != null { codex-event $done {type: task_complete, last_agent_message: ok} })
+  ]
+  | compact
+}
+
+def omp-user [clock: string, text: string, --agent]: nothing -> record {
+  let attribution = if $agent { "agent" } else { "user" }
+  let message = {role: user, attribution: $attribution, content: $text}
+  {type: message, timestamp: (at $clock), message: $message}
+}
+
+def omp-reply [clock: string, text: string = "done"]: nothing -> record {
+  let message = {role: assistant, stopReason: stop, content: $text}
+  {type: message, timestamp: (at $clock), message: $message}
 }
 
 # Run the digest in UTC, so the fixtures' `Z` timestamps read as local times.
@@ -62,8 +77,8 @@ def digest [dir: string, overrides: record = {}]: nothing -> record {
   let config_file = ($dir | path join config.json)
   {
     context: personal
-    excludedDirs: [__worktrees/]
-    worktreePatterns: ['/\.claude/worktrees/[^/]+.*$' '__worktrees/[^/]+.*$']
+    excludedDirs: ['/\.claude/worktrees/workmux/']
+    worktreePatterns: ['/\.claude/worktrees/[^/]+.*$']
     personalProjects: [nixos-config]
     readingMinutes: 10
     maxMinutes: 60
@@ -89,30 +104,18 @@ def digest [dir: string, overrides: record = {}]: nothing -> record {
 def "test only prompts a person typed count" [] {
   let dir = (mktemp --directory)
   let app = "/work/app"
-  transcript $dir [claude projects app lead.jsonl] [
-    (claude-user $app "10:00" "fix the parser" $HUMAN)
-    (claude-user $app "11:00" "<task-notification>" $NOTIFIED)
+  transcript $dir [claude projects app a.jsonl] [
+    (claude-prompt $app "10:00" "fix the parser")
+    (claude-notification $app "11:00")
     (claude-user $app "12:00" "Another Claude session sent a message:" {isMeta: true})
     (claude-user $app "13:00" '<teammate-message teammate_id="a">hi</teammate-message>')
     (claude-user $app "14:00" "<command-name>/review</command-name>")
   ]
-  transcript $dir [claude projects app teammate.jsonl] [
-    (claude-user $app "15:00" "From the lead: continue" ($HUMAN | insert teamName t))
-  ]
-  transcript $dir [claude projects app headless.jsonl] [
-    (claude-user $app "15:30" "Reply with exactly: OK" {entrypoint: sdk-cli})
-  ]
-  codex-transcript $dir {id: user, cwd: $app, thread_source: user} [
-    {clock: "16:00", text: "check CI"}
-  ]
-  codex-transcript $dir {id: import, cwd: $app} [{clock: "17:00", text: "imported"}]
-  codex-transcript $dir {id: exec, cwd: $app, thread_source: user, source: exec} [
-    {clock: "17:30", text: "probe"}
-  ]
-  let omp_prompt = {role: user, attribution: user, content: "plan it"}
-  transcript $dir [omp sessions app s.jsonl] [
+  codex-transcript $dir {id: user, cwd: $app, thread_source: user} (codex-turn "16:00" "check CI")
+  codex-transcript $dir {id: import, cwd: $app} (codex-turn "17:00" "imported")
+  transcript $dir [omp sessions app a.jsonl] [
     {type: session, id: omp, cwd: $app}
-    {type: message, timestamp: (at "18:00"), message: $omp_prompt}
+    (omp-user "18:00" "plan it")
   ]
 
   let day = (digest $dir)
@@ -122,69 +125,6 @@ def "test only prompts a person typed count" [] {
     {tool: codex, prompts: ["16:00"]}
     {tool: omp, prompts: ["18:00"]}
   ]
-}
-
-def "test a prompt earns its turn and a reading allowance until the next prompt anywhere" [] {
-  let dir = (mktemp --directory)
-  transcript $dir [claude projects app a.jsonl] [
-    (claude-user /work/app "10:00" "release it, I'll watch" $HUMAN)
-    (claude-reply /work/app "11:30")
-    (claude-user /work/app "12:00" "fix the test" $HUMAN)
-    (claude-reply /work/app "12:06")
-    (claude-user /work/app "13:00" "refactor the parser" $HUMAN)
-    (claude-reply /work/app "13:45")
-    (claude-user /work/app "14:00" "merge it" $HUMAN)
-    (claude-reply /work/app "14:06")
-    (claude-user /work/app "14:30" "<task-notification>" $NOTIFIED)
-    (claude-reply /work/app "14:50")
-  ]
-  transcript $dir [claude projects lib b.jsonl] [
-    (claude-user /work/lib "13:24" "review the API" $HUMAN)
-  ]
-
-  let day = (digest $dir {readingMinutes: 12})
-
-  assert equal $day.hours.human {total: 2.2, projects: {app: 2.0, lib: 0.2}}
-}
-
-def "test a notification turn earns agent time but no human time" [] {
-  let dir = (mktemp --directory)
-  transcript $dir [claude projects app a.jsonl] [
-    (claude-user /work/app "10:00" "fix it" $HUMAN)
-    (claude-reply /work/app "10:30")
-    (claude-user /work/app "12:00" "<task-notification>" $NOTIFIED)
-    (claude-reply /work/app "12:30")
-  ]
-
-  let day = (digest $dir)
-
-  assert equal $day.hours {
-    human: {total: 0.67, projects: {app: 0.67}}
-    agent: {total: 1.0, projects: {app: 1.0}}
-  }
-}
-
-def "test parallel agents on a project count once" [] {
-  let dir = (mktemp --directory)
-  transcript $dir [claude projects app a.jsonl] [
-    (claude-user /work/app "10:00" "build it" $HUMAN)
-    (claude-reply /work/app "11:00")
-  ]
-  let omp_task = {role: user, attribution: agent, content: "build the API"}
-  let omp_reply = {role: assistant, stopReason: stop, content: "built"}
-  transcript $dir [omp sessions app b.jsonl] [
-    {type: session, id: omp, cwd: /work/app}
-    {type: message, timestamp: (at "10:30"), message: $omp_task}
-    {type: message, timestamp: (at "11:30"), message: $omp_reply}
-  ]
-  transcript $dir [claude projects lib c.jsonl] [
-    (claude-user /work/lib "10:00" "<task-notification>" $NOTIFIED)
-    (claude-reply /work/lib "10:30")
-  ]
-
-  let day = (digest $dir)
-
-  assert equal $day.hours.agent {total: 2.0, projects: {app: 1.5, lib: 0.5}}
 }
 
 def "test sessions without a person add only agent time" [] {
@@ -198,19 +138,15 @@ def "test sessions without a person add only agent time" [] {
     (claude-user /work/app/.claude/worktrees/agent-a "11:00" "Review it" {isSidechain: true})
     {type: assistant, timestamp: (at "11:30"), message: $handback}
   ]
-  transcript $dir [claude projects worker w.jsonl] [
-    (claude-user /work/app__worktrees/fix "12:00" "# Task: fix it" $HUMAN)
-    (claude-reply /work/app__worktrees/fix "12:30")
-  ]
   transcript $dir [claude projects lib headless.jsonl] [
     (claude-user /work/lib "13:00" "Reply with exactly: OK" {entrypoint: sdk-cli})
     (claude-reply /work/lib "13:15")
   ]
   codex-transcript $dir {id: exec, cwd: /work/cli, thread_source: user, source: exec} [
-    {clock: "14:00", text: "probe", done: "14:30"}
+    ...(codex-turn "14:00" "probe" --done "14:30")
   ]
   codex-transcript $dir {id: sub, cwd: /work/cli, thread_source: subagent} [
-    {clock: "15:00", done: "15:30"}
+    ...(codex-turn "15:00" "review the diff" --done "15:30")
   ]
 
   let day = (digest $dir)
@@ -218,16 +154,138 @@ def "test sessions without a person add only agent time" [] {
   assert equal $day.sessions []
   assert equal $day.hours {
     human: {total: 0.0, projects: {}}
-    agent: {total: 2.75, projects: {app: 1.5, lib: 0.25, cli: 1.0}}
+    agent: {total: 2.25, projects: {app: 1.0, lib: 0.25, cli: 1.0}}
   }
+}
+
+def "test nested OMP advisors extend agent hours without human excerpts" [] {
+  let dir = (mktemp --directory)
+  transcript $dir [omp sessions app parent.jsonl] [
+    {type: session, id: parent, cwd: /work/app}
+    (omp-user "10:00" "review it")
+    (omp-reply "10:30")
+  ]
+  transcript $dir [omp sessions app parent __advisor.jsonl] [
+    {type: session, id: advisor, cwd: /work/app}
+    (omp-user "10:15" "check the API" --agent)
+    (omp-reply "11:00")
+  ]
+
+  let day = (digest $dir)
+
+  assert equal $day.hours {
+    human: {total: 0.67, projects: {app: 0.67}}
+    agent: {total: 1.0, projects: {app: 1.0}}
+  }
+  assert equal ($day.sessions | get session) [parent]
+  assert equal $day.sessions.0.replies [{at: "10:30", text: done}]
+}
+
+def "test worktrees count for their repository but Workmux workers earn only agent time" [] {
+  let dir = (mktemp --directory)
+  let worktree = "/work/app/.claude/worktrees/fix"
+  let worker = "/work/app/.claude/worktrees/workmux/fix"
+  transcript $dir [claude projects worktree a.jsonl] [
+    (claude-prompt $worktree "10:00" "fix it")
+    (claude-reply $worktree "10:30")
+  ]
+  transcript $dir [claude projects worker b.jsonl] [
+    (claude-prompt $worker "11:00" "# Task: fix it")
+    (claude-reply $worker "11:30")
+  ]
+
+  let day = (digest $dir)
+
+  assert equal ($day.sessions | select cwd project) [{cwd: $worktree, project: app}]
+  assert equal $day.hours {
+    human: {total: 0.67, projects: {app: 0.67}}
+    agent: {total: 1.0, projects: {app: 1.0}}
+  }
+}
+
+def "test the host context covers every project except personal ones" [] {
+  let dir = (mktemp --directory)
+  transcript $dir [claude projects app a.jsonl] [(claude-prompt /work/app "10:00" "ship")]
+  transcript $dir [claude projects cfg b.jsonl] [(claude-prompt /work/nixos-config "11:00" "tidy")]
+  transcript $dir [claude projects notes c.jsonl] [(claude-prompt /work/notes "12:00" "file")]
+
+  let day = (digest $dir {context: work, personalProjects: [nixos-config notes]})
+
+  assert equal ($day.sessions | select project context) [
+    {project: app, context: work}
+    {project: nixos-config, context: personal}
+    {project: notes, context: personal}
+  ]
+}
+
+def "test a prompt earns its turn and a reading allowance until the next prompt anywhere" [] {
+  let dir = (mktemp --directory)
+  transcript $dir [claude projects app a.jsonl] [
+    (claude-prompt /work/app "10:00" "release it, I'll watch")
+    (claude-reply /work/app "11:30")
+    (claude-prompt /work/app "12:00" "fix the test")
+    (claude-reply /work/app "12:06")
+    (claude-prompt /work/app "13:00" "refactor the parser")
+    (claude-reply /work/app "13:45")
+    (claude-prompt /work/app "14:00" "merge it")
+    (claude-reply /work/app "14:06")
+    (claude-notification /work/app "14:30")
+    (claude-reply /work/app "14:50")
+  ]
+  transcript $dir [claude projects lib b.jsonl] [
+    (claude-prompt /work/lib "13:24" "review the API")
+  ]
+
+  let day = (digest $dir {readingMinutes: 12})
+
+  assert equal $day.hours.human {total: 2.2, projects: {app: 2.0, lib: 0.2}}
+}
+
+def "test steering prompts and triggers share the first reply" [] {
+  let dir = (mktemp --directory)
+  transcript $dir [claude projects app a.jsonl] [
+    (claude-prompt /work/app "10:00" "start")
+    (claude-prompt /work/app "10:05" "also check tests")
+    (claude-notification /work/app "10:08")
+    (claude-reply /work/app "10:30")
+  ]
+
+  let day = (digest $dir)
+
+  assert equal $day.hours {
+    human: {total: 0.67, projects: {app: 0.67}}
+    agent: {total: 0.5, projects: {app: 0.5}}
+  }
+  assert equal $day.sessions.0.replies [{at: "10:30", text: done}]
+}
+
+def "test parallel agents on a project count once" [] {
+  let dir = (mktemp --directory)
+  transcript $dir [claude projects app a.jsonl] [
+    (claude-prompt /work/app "10:00" "build it")
+    (claude-reply /work/app "11:00")
+  ]
+  transcript $dir [omp sessions app b.jsonl] [
+    {type: session, id: omp, cwd: /work/app}
+    (omp-user "10:30" "build the API" --agent)
+    (omp-reply "11:30" "built")
+  ]
+  transcript $dir [claude projects lib c.jsonl] [
+    (claude-notification /work/lib "10:00")
+    (claude-reply /work/lib "10:30")
+  ]
+
+  let day = (digest $dir)
+
+  assert equal $day.hours.agent {total: 2.0, projects: {app: 1.5, lib: 0.5}}
 }
 
 def "test a turn without a reply earns no agent time" [] {
   let dir = (mktemp --directory)
   transcript $dir [claude projects app a.jsonl] [
-    (claude-user /work/app "10:00" "<task-notification>" $NOTIFIED)
+    (claude-notification /work/app "10:00")
     (claude-reply /work/app "10:30")
-    (claude-user /work/app "11:00" "<task-notification>" $NOTIFIED)
+    (claude-notification /work/app "11:00")
   ]
 
   let day = (digest $dir)
@@ -235,12 +293,36 @@ def "test a turn without a reply earns no agent time" [] {
   assert equal $day.hours.agent {total: 0.5, projects: {app: 0.5}}
 }
 
+def "test an agent turn earns at most the cap" [] {
+  let dir = (mktemp --directory)
+  transcript $dir [claude projects app a.jsonl] [
+    (claude-notification /work/app "10:00")
+    (claude-reply /work/app "13:00")
+  ]
+
+  let day = (digest $dir {agentMaxMinutes: 90})
+
+  assert equal $day.hours.agent {total: 1.5, projects: {app: 1.5}}
+}
+
+def "test agent turns across midnight count only within the day" [] {
+  let dir = (mktemp --directory)
+  transcript $dir [claude projects app a.jsonl] [
+    (claude-notification /work/app "2026-10-14T23:30")
+    (claude-reply /work/app "00:30")
+    (claude-notification /work/app "23:00")
+    (claude-reply /work/app "2026-10-16T01:00")
+  ]
+
+  let day = (digest $dir)
+
+  assert equal $day.hours.agent {total: 1.5, projects: {app: 1.5}}
+}
+
 def "test canceled Codex turns cannot borrow a later reply" [] {
   let dir = (mktemp --directory)
-  let meta = {id: canceled, cwd: /work/app, thread_source: user}
   let prompt = {type: UserMessage, content: [{type: text, text: "start"}]}
-  transcript $dir [codex sessions "2026" "10" "15" canceled.jsonl] [
-    {type: session_meta, payload: $meta}
+  codex-transcript $dir {id: canceled, cwd: /work/app, thread_source: user} [
     (codex-event "10:00" {type: task_started, turn_id: first})
     (codex-event "10:00" {type: item_completed, item: $prompt})
     (codex-event "10:01" {type: turn_aborted, turn_id: first})
@@ -259,86 +341,16 @@ def "test canceled Codex turns cannot borrow a later reply" [] {
   assert equal $day.sessions.0.replies [{at: "13:12", text: final}]
 }
 
-def "test steering prompts and triggers share the first reply" [] {
-  let dir = (mktemp --directory)
-  transcript $dir [claude projects app a.jsonl] [
-    (claude-user /work/app "10:00" "start" $HUMAN)
-    (claude-user /work/app "10:05" "also check tests" $HUMAN)
-    (claude-user /work/app "10:08" "<task-notification>" $NOTIFIED)
-    (claude-reply /work/app "10:30" "done")
-  ]
-
-  let day = (digest $dir)
-
-  assert equal $day.hours {
-    human: {total: 0.67, projects: {app: 0.67}}
-    agent: {total: 0.5, projects: {app: 0.5}}
-  }
-  assert equal $day.sessions.0.replies [{at: "10:30", text: done}]
-}
-
-def "test nested OMP advisors extend agent hours without human excerpts" [] {
-  let dir = (mktemp --directory)
-  let prompt = {role: user, attribution: user, content: "review it"}
-  let task = {role: user, attribution: agent, content: "check the API"}
-  let reply = {role: assistant, stopReason: stop, content: "done"}
-  transcript $dir [omp sessions app parent.jsonl] [
-    {type: session, id: parent, cwd: /work/app}
-    {type: message, timestamp: (at "10:00"), message: $prompt}
-    {type: message, timestamp: (at "10:30"), message: $reply}
-  ]
-  transcript $dir [omp sessions app parent __advisor.jsonl] [
-    {type: session, id: advisor, cwd: /work/app}
-    {type: message, timestamp: (at "10:15"), message: $task}
-    {type: message, timestamp: (at "11:00"), message: $reply}
-  ]
-
-  let day = (digest $dir)
-
-  assert equal $day.hours {
-    human: {total: 0.67, projects: {app: 0.67}}
-    agent: {total: 1.0, projects: {app: 1.0}}
-  }
-  assert equal ($day.sessions | get session) [parent]
-  assert equal $day.sessions.0.replies [{at: "10:30", text: done}]
-}
-
-def "test an agent turn earns at most the cap" [] {
-  let dir = (mktemp --directory)
-  transcript $dir [claude projects app a.jsonl] [
-    (claude-user /work/app "10:00" "<task-notification>" $NOTIFIED)
-    (claude-reply /work/app "13:00")
-  ]
-
-  let day = (digest $dir {agentMaxMinutes: 90})
-
-  assert equal $day.hours.agent {total: 1.5, projects: {app: 1.5}}
-}
-
-def "test agent turns across midnight count only within the day" [] {
-  let dir = (mktemp --directory)
-  transcript $dir [claude projects app a.jsonl] [
-    (claude-user /work/app "2026-10-14T23:30" "<task-notification>" $NOTIFIED)
-    (claude-reply /work/app "00:30")
-    (claude-user /work/app "23:00" "<task-notification>" $NOTIFIED)
-    (claude-reply /work/app "2026-10-16T01:00")
-  ]
-
-  let day = (digest $dir)
-
-  assert equal $day.hours.agent {total: 1.5, projects: {app: 1.5}}
-}
-
 def "test a day keeps its final replies past midnight until the next prompt" [] {
   let dir = (mktemp --directory)
   transcript $dir [claude projects app a.jsonl] [
-    (claude-user /work/app "10:00" "start" $HUMAN)
+    (claude-prompt /work/app "10:00" "start")
     (claude-reply /work/app "10:05" "working")
-    (claude-user /work/app "10:08" "<task-notification>" $NOTIFIED)
+    (claude-notification /work/app "10:08")
     (claude-reply /work/app "10:12" "started")
-    (claude-user /work/app "10:15" "ship it" $HUMAN)
+    (claude-prompt /work/app "10:15" "ship it")
     (claude-reply /work/app "2026-10-16T00:30" "merged")
-    (claude-user /work/app "2026-10-16T09:00" "next" $HUMAN)
+    (claude-prompt /work/app "2026-10-16T09:00" "next")
     (claude-reply /work/app "2026-10-16T09:05" "tomorrow")
   ]
 
@@ -347,21 +359,5 @@ def "test a day keeps its final replies past midnight until the next prompt" [] 
   assert equal ($day.sessions.0.replies | select at text) [
     {at: "10:12", text: started}
     {at: "00:30", text: merged}
-  ]
-}
-
-def "test the host context covers every project except personal ones" [] {
-  let dir = (mktemp --directory)
-  let worktree = "/home/me/nixos-config/.claude/worktrees/fix"
-  transcript $dir [claude projects app a.jsonl] [(claude-user /work/app "10:00" "ship" $HUMAN)]
-  transcript $dir [claude projects cfg b.jsonl] [(claude-user $worktree "11:00" "tidy" $HUMAN)]
-  transcript $dir [claude projects notes c.jsonl] [(claude-user /work/notes "12:00" "file" $HUMAN)]
-
-  let day = (digest $dir {context: work, personalProjects: [nixos-config notes]})
-
-  assert equal ($day.sessions | select project context) [
-    {project: app, context: work}
-    {project: nixos-config, context: personal}
-    {project: notes, context: personal}
   ]
 }
