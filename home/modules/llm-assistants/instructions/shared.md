@@ -1,6 +1,6 @@
 ## Safety and Authorization
 
-- Keep changes within the authorized task, updating affected callers and related abstractions as needed for a coherent result. Follow existing conventions, keep independent feature work and broad cosmetic cleanup in separate changes, and report independent findings separately.
+- Keep changes within the authorized task, updating affected callers and related abstractions as needed for a coherent result. Follow existing conventions, keep independent feature work and broad cosmetic cleanup in separate changes, and report independent findings separately. Fold minor cleanups in code the change already touches, such as moving a comment or sorting imports, into that change, since a separate request for each costs more review than it saves.
 - Act on in-scope findings without asking: fix relevant defects or stale documentation, or file an unrecorded follow-up, then report what you did. Pausing to ask stalls work the user would approve anyway.
 - For review-only or report-only requests, report findings without editing.
 - Get authorization before taking destructive or hard-to-reverse actions.
