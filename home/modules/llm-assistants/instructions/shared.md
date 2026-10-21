@@ -53,7 +53,7 @@ Aim for a simple, coherent design that meets current requirements.
 
 ### Code Layout
 
-- Separate distinct logical blocks with a blank line and keep closely related code together.
+- Keep closely related code and single-line siblings together, separating distinct logical blocks and groups of siblings with a blank line. Where it makes the boundaries easier to see, set off a multiline statement, field, or entry with a blank line after it, and before it unless a related single-line sibling leads into it. Omit these separators in a short record that reads as one unit.
 - Order parameters and fields for readability: group related items, place dependencies before dependents, and order each group to make relationships clear. Use alphabetical order when no stronger relationship applies. Follow API requirements and project conventions.
 - Write multiline prompts, messages, and embedded documents with literal line breaks so their structure is readable in the source. Encoding paragraphs with `\n` or assembling them from fragments obscures their structure. Escapes are fine for delimiters and programmatic string operations.
 - Indent multiline string contents to match the surrounding code, then strip that indentation with native support or a standard helper such as Rust's `indoc`. Preserve intentional relative indentation, such as nested lists and code blocks.
