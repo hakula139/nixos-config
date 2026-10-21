@@ -31,12 +31,14 @@ let
       ...
     }:
     let
-      mkRole =
+      modelRef =
         workload:
         let
           provider = if workload.channel == null then "openai-codex" else workload.source;
         in
-        "${provider}/${workload.modelId}:${workload.effort}";
+        "${provider}/${workload.modelId}";
+
+      mkRole = workload: "${modelRef workload}:${workload.effort}";
     in
     {
       modelRoles = lib.mapAttrs (_: mkRole) workloads // {
@@ -51,7 +53,11 @@ let
 
       compaction = {
         enabled = true;
-        thresholdTokens = roles.default.model.autoCompactTokens;
+        modelThresholds = lib.listToAttrs (
+          map (workload: lib.nameValuePair (modelRef workload) workload.model.autoCompactTokens) (
+            builtins.attrValues workloads
+          )
+        );
       };
     };
 
@@ -99,9 +105,7 @@ let
     configFile = "${configDir}/config.yml";
     resetKeys = [
       "modelRoles"
-      "ask.notify"
-      "completion.notify"
-      "error.notify"
+      "compaction.modelThresholds"
     ];
   };
 in

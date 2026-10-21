@@ -6,7 +6,7 @@
   lib,
   defaultSessionEffort,
   defaultEfforts,
-  defaultCompactWindow,
+  defaultCompactWindows,
 }:
 
 lib.types.submodule {
@@ -32,6 +32,12 @@ lib.types.submodule {
       type = lib.types.attrsOf lib.types.str;
       default = { };
       description = "Reasoning effort for each model ID, replacing `sessionEffort` for that model";
+    };
+
+    compactWindows = lib.mkOption {
+      type = lib.types.attrsOf lib.types.ints.positive;
+      default = defaultCompactWindows;
+      description = "Auto-compaction window in tokens for each model ID";
     };
 
     efforts = lib.mkOption {
@@ -92,6 +98,4 @@ lib.types.submodule {
       description = "Expose native WebSearch for this profile";
     };
   };
-
-  config.extraEnv.CLAUDE_CODE_AUTO_COMPACT_WINDOW = lib.mkOptionDefault defaultCompactWindow;
 }
