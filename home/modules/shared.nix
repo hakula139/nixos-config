@@ -98,7 +98,7 @@ in
       fontconfig
       git-cliff
       git-filter-repo
-      scc
+      unstable.scc
     ]
     ++ tooling.nix
     ++ tooling.secrets
