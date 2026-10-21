@@ -16,7 +16,12 @@
 }:
 
 let
-  inherit (profileDefinitions) modelAliases providers workloadPolicy;
+  inherit (profileDefinitions)
+    modelAliases
+    providers
+    roleTiers
+    workloadPolicy
+    ;
 
   cfg = config.hakula.claude-code;
   json = pkgs.formats.json { };
@@ -35,27 +40,48 @@ let
   mkProfile =
     _: profile:
     let
-      aliasModelIds = if profile.channel == "anthropic" then profile.modelKeys else profile.modelIds;
+      inherit (profile) roles workloads;
+      # Claude Code recognizes catalog keys, and `modelOverrides` maps them to gateway IDs.
+      clientModelId =
+        workload: if workload.channel == "anthropic" then workload.modelKey else workload.modelId;
+
+      aliasModelId =
+        workload:
+        clientModelId workload + lib.optionalString (workload.model.contextWindow >= 1000000) "[1m]";
+
       extraEnv =
         lib.mapAttrs' (
           tier: alias:
-          lib.nameValuePair "ANTHROPIC_DEFAULT_${lib.toUpper alias}_MODEL" (
-            aliasModelIds.${tier} + lib.optionalString (profile.models.${tier}.contextWindow >= 1000000) "[1m]"
-          )
+          lib.nameValuePair "ANTHROPIC_DEFAULT_${lib.toUpper alias}_MODEL" (aliasModelId workloads.${tier})
         ) modelAliases.claude
         // {
-          CLAUDE_CODE_AUTO_COMPACT_WINDOW = toString profile.roles.default.model.autoCompactTokens;
+          CLAUDE_CODE_AUTO_COMPACT_WINDOW = toString roles.default.model.autoCompactTokens;
+          CLAUDE_CODE_SUBAGENT_MODEL = modelAliases.claude.${roleTiers.task.modelTier};
         }
-        // lib.optionalAttrs (profile.family == "claude") {
+        // lib.optionalAttrs (roles.default.family == "claude") {
           PROSE_POLISH_ENABLED = "true";
         };
     in
     {
       inherit extraEnv;
-      inherit (profile) family nativeWebSearch;
-      modelOverrides = lib.optionalAttrs (profile.channel == "anthropic") (
-        lib.mapAttrs (_: model: model.channelId.anthropic) anthropicModels
+      inherit (profile) nativeWebSearch;
+      sessionEffort = roles.default.effort;
+      # Generic subagents and other requests without an effort take the session effort, which other
+      # families may reject (DeepSeek has no `medium`), so each model gets its own family's effort.
+      modelEfforts = lib.filterAttrs (_: effort: effort != roles.default.effort) (
+        lib.listToAttrs (
+          map (
+            workload:
+            lib.nameValuePair (clientModelId workload)
+              workloadPolicy.${workload.family}.${roleTiers.default.effortTier}
+          ) (builtins.attrValues workloads)
+        )
       );
+
+      efforts = lib.mapAttrs (_: workload: workload.effort) workloads;
+      modelOverrides = lib.optionalAttrs (lib.any (workload: workload.channel == "anthropic") (
+        builtins.attrValues workloads
+      )) (lib.mapAttrs (_: model: model.channelId.anthropic) anthropicModels);
     }
     // (
       if profile.provider == null then
@@ -80,8 +106,8 @@ let
               # and allow every stop.
               CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS = "1";
             }
-            // lib.optionalAttrs (profile.family == "local") {
-              CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString profile.roles.default.model.contextWindow;
+            // lib.optionalAttrs (roles.default.family == "local") {
+              CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString roles.default.model.contextWindow;
             };
           extraSecretEnv.NODE_EXTRA_CA_CERTS = provider.caSecret;
           nativeWebSearch = false;
@@ -95,6 +121,8 @@ let
     profileDefinitions.mkProfiles {
       inherit (cfg.auth) enableCorpGateway;
       nativeFamily = "claude";
+      hybridBase = "corp-gateway-anthropic";
+
       providers = [
         "corp-gateway"
         "ikuncode"
@@ -121,7 +149,8 @@ let
   # ------------------------------------------------------------------------------------------------
   profileType = import ./profile-module.nix {
     inherit lib;
-    families = builtins.attrNames workloadPolicy;
+    defaultSessionEffort = defaultProfiles.official.sessionEffort;
+    defaultEfforts = workloadPolicy.claude;
     defaultCompactWindow = defaultProfiles.official.extraEnv.CLAUDE_CODE_AUTO_COMPACT_WINDOW;
   };
 
@@ -197,30 +226,26 @@ let
   requiredSecrets = lib.genAttrs requiredSecretNames (_: { });
 
   # ------------------------------------------------------------------------------------------------
-  # Family configuration
+  # Custom agents
   # ------------------------------------------------------------------------------------------------
-  familyConfigs = lib.mapAttrs (
-    family: policy:
+  mkAgentsDir =
+    efforts:
     let
       agents = import ./agents {
-        inherit lib sharedAgents enabledAgents;
+        inherit
+          lib
+          sharedAgents
+          enabledAgents
+          efforts
+          ;
         modelAliases = modelAliases.claude;
-        workloadPolicy = policy;
       };
     in
-    {
-      agentsDir = pkgs.linkFarm "claude-code-agents-${family}" (
-        lib.mapAttrs' (
-          name: text:
-          lib.nameValuePair "${name}.md" (pkgs.writeText "claude-code-agent-${family}-${name}.md" text)
-        ) agents.files
-      );
-
-      settings = {
-        effortLevel = policy.standard;
-      };
-    }
-  ) workloadPolicy;
+    pkgs.linkFarm "claude-code-agents" (
+      lib.mapAttrs' (
+        name: text: lib.nameValuePair "${name}.md" (pkgs.writeText "claude-code-agent-${name}.md" text)
+      ) agents.files
+    );
 
   # ------------------------------------------------------------------------------------------------
   # Profile bundles
@@ -239,10 +264,13 @@ let
     name: profile:
     let
       esc = lib.escapeShellArg;
-      familyConfig = familyConfigs.${profile.family};
-      settingsName = if profile.modelOverrides == { } then profile.family else name;
-      settings = json.generate "claude-code-settings-${settingsName}.json" (
-        familyConfig.settings
+      settings = json.generate "claude-code-settings-${name}.json" (
+        {
+          effortLevel = profile.sessionEffort;
+        }
+        // lib.optionalAttrs (profile.modelEfforts != { }) {
+          modelSettings = lib.mapAttrs (_: effortLevel: { inherit effortLevel; }) profile.modelEfforts;
+        }
         // lib.optionalAttrs (profile.modelOverrides != { }) {
           inherit (profile) modelOverrides;
         }
@@ -284,7 +312,7 @@ let
     in
     pkgs.linkFarm "claude-profile-${name}" {
       "env.sh" = envScript;
-      agents = familyConfig.agentsDir;
+      agents = mkAgentsDir profile.efforts;
     };
 
   profileBundles = lib.mapAttrs mkProfileBundle cfg.auth.profiles;
@@ -425,7 +453,7 @@ in
   ];
 
   settings = {
-    model = modelAliases.claude.standard;
+    model = modelAliases.claude.${roleTiers.default.modelTier};
     processWrapper = "${processWrapper}";
   };
 }
