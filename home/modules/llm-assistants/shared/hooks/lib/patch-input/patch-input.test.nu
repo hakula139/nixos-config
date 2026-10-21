@@ -17,7 +17,8 @@ def parse-patch [patch: string]: nothing -> list<record> {
 def "test reports each file with only its added lines" [] {
   # A context line's one-space marker leaves it off the 2-space indent grid.
   # editorconfig-checker-disable
-  let patch = "
+  let patch = (
+    "
     *** Begin Patch
     *** Add File: docs/new.md
     +# Title
@@ -31,7 +32,9 @@ def "test reports each file with only its added lines" [] {
     +let added = 3;
     *** Delete File: src/gone.rs
     *** End Patch
-    " | str dedent
+    "
+    | str dedent
+  )
   # editorconfig-checker-enable
 
   assert equal (parse-patch $patch) [
