@@ -5,16 +5,14 @@
 {
   lib,
   mkNuHook,
+  timeouts,
   modelCall,
   modelCatalog,
   phrasing,
-  timeouts,
 }:
 
 let
   mcpProseFields = lib.importJSON ./mcp-fields.json;
-  # Each round of feedback removes some of the faults but rarely all of them, so a document dense
-  # with protected spans needs several to converge.
   maxRepairs = 3;
 in
 {
@@ -25,17 +23,18 @@ in
     "fileWrite"
   ]
   ++ builtins.attrNames mcpProseFields;
+  usesGateway = true;
+  timeout = (1 + maxRepairs) * timeouts.modelCall;
   statusMessage = "Polishing prose";
-  timeout = 2 * (1 + maxRepairs) * timeouts.modelCall;
   command = mkNuHook {
     slug = "prose-polish";
     script = ./prose-polish.nu;
     config = {
       inherit
-        maxRepairs
-        mcpProseFields
         modelCall
         phrasing
+        maxRepairs
+        mcpProseFields
         ;
       model = modelCatalog.models.${modelCatalog.defaults.gemini.mini}.channelId.google;
       prompt = builtins.readFile ./prompt.md;

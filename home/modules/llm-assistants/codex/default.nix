@@ -18,8 +18,6 @@ let
   inherit (shared) agentRoleOptions instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
 
-  corpGateway = shared.profileDefinitions.providers.corp-gateway;
-
   codexConfigDir =
     if config.home.preferXdgDirectories then
       "${config.xdg.configHome}/codex"
@@ -78,11 +76,7 @@ in
       hooks = import ./hooks {
         inherit pkgs lib;
         inherit (shared) mkHooks;
-        gateway = lib.optionalAttrs cfg.auth.enableCorpGateway {
-          inherit (corpGateway) baseUrl;
-          tokenFile = secretPath (corpGateway.tokenSecretFor "codex");
-          caFile = secretPath corpGateway.caSecret;
-        };
+        inherit (cfg.auth) enableCorpGateway;
       };
 
       mcp = import ./mcp.nix {

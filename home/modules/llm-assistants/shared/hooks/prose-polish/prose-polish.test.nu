@@ -11,12 +11,12 @@ const SCRIPT_DIR = path self .
 const SCRIPT = ($SCRIPT_DIR | path join prose-polish.nu)
 const STUB = ($SCRIPT_DIR | path join model-call.stub.nu)
 
-const PARAGRAPH = "Run `nix flake check` before you push, since it utilizes the same hooks as CI does."
-const POLISHED = "Run `nix flake check` before you push, since it uses the same hooks as CI does."
+const PARAGRAPH = "推送之前先运行 `nix flake check`，它会用与 CI 相同的钩子进行检查。"
+const POLISHED = "推送之前先运行 `nix flake check`，它会用与 CI 相同的钩子检查。"
 
-const SIMPLIFY = {find: utilizes, replace: uses}
-const DROP_CODE = {find: "`nix flake check`", replace: "the flake check"}
-const ADD_SEMICOLON = {find: " since ", replace: "; "}
+const SIMPLIFY = {find: 进行检查, replace: 检查}
+const DROP_CODE = {find: "`nix flake check`", replace: "这项检查"}
+const ADD_SEMICOLON = {find: "，", replace: "; "}
 
 # `input` is the hook's rewritten tool input, or null when it leaves the call alone, and `calls`
 # holds the passages each model call received.
@@ -31,13 +31,13 @@ def polish [payload: record, rules: list<record>]: nothing -> record {
   ^chmod +x $stub
   $rules | to json | save $rules_file
   {
-    maxRepairs: 1
-    mcpProseFields: {}
-    model: stub
     modelCall: $stub
+    model: stub
     phrasing: ""
     prompt: ""
     repairPrompt: ""
+    maxRepairs: 1
+    mcpProseFields: {}
   }
   | to json
   | save $config_file
@@ -67,9 +67,10 @@ def write [path: string, content: string]: nothing -> record {
 
 def "test a write rewrites only its prose and keeps everything else byte-identical" [] {
   # The fence's middle piece holds no delimiter, so only fence tracking keeps it out of the rewrite.
-  let document = $"
+  let document = (
+    $"
     ---
-    title: Notes that utilizes front matter
+    title: 带有前置元数据并且需要进行检查的笔记
     ---
 
     # Checks
@@ -79,19 +80,22 @@ def "test a write rewrites only its prose and keeps everything else byte-identic
     ```text
     head
 
-    This line utilizes enough words to pass for prose, yet it sits inside a fence.
+    这一行的汉字足以算作正文，但它位于代码块中，不应进行检查。
 
     tail
     ```
 
 
-    - A list item that also utilizes enough words to count as prose.
+    - 这个列表项同样含有足够的汉字，也需要进行检查。
 
-    " | str dedent
+    "
+    | str dedent
+  )
 
-  let expected = $"
+  let expected = (
+    $"
     ---
-    title: Notes that utilizes front matter
+    title: 带有前置元数据并且需要进行检查的笔记
     ---
 
     # Checks
@@ -101,71 +105,146 @@ def "test a write rewrites only its prose and keeps everything else byte-identic
     ```text
     head
 
-    This line utilizes enough words to pass for prose, yet it sits inside a fence.
+    这一行的汉字足以算作正文，但它位于代码块中，不应进行检查。
 
     tail
     ```
 
 
-    - A list item that also uses enough words to count as prose.
+    - 这个列表项同样含有足够的汉字，也需要检查。
 
-    " | str dedent
+    "
+    | str dedent
+  )
 
   let result = (polish (write notes.md $document) [$SIMPLIFY])
 
-  assert equal ($result.calls.0 | get text) [
+  assert equal ($result.calls | flatten | get text) [
     $PARAGRAPH
-    "- A list item that also utilizes enough words to count as prose."
+    "- 这个列表项同样含有足够的汉字，也需要进行检查。"
   ]
   assert equal $result.input.content $expected
 }
 
 def "test an edit leaves paragraphs the document already holds" [] {
   let dir = (mktemp --directory)
-  let existing = "This paragraph already utilizes the document, so the agent did not write it."
+  let existing = "这一段早已在文档里，并非智能体所写，因此无需进行检查。"
 
   $"
-    # Notes
+  # Notes
 
-    ($existing)
+  ($existing)
 
-    " | str dedent | save ($dir | path join notes.md)
+  "
+  | str dedent
+  | save ($dir | path join notes.md)
 
   let payload = {
     tool_name: Edit
     tool_input: {
       file_path: ($dir | path join notes.md)
       old_string: $existing
-      new_string: ($"
+      new_string: (
+        $"
         ($existing)
 
         ($PARAGRAPH)
-        " | str dedent)
+        "
+        | str dedent
+      )
     }
   }
 
   let result = (polish $payload [$SIMPLIFY])
 
   assert equal ($result.calls | flatten | get text) [$PARAGRAPH]
-  assert equal $result.input.new_string ($"
+  assert equal $result.input.new_string (
+    $"
     ($existing)
 
     ($POLISHED)
-    " | str dedent)
+    "
+    | str dedent
+  )
+}
+
+def "test an English passage is left alone" [] {
+  let english = "Run the flake check before you push, since it utilizes the same hooks as CI."
+  let document = (
+    $"
+    ($english)
+
+    ($PARAGRAPH)
+    "
+    | str dedent
+  )
+
+  let result = (polish (write notes.md $document) [$SIMPLIFY])
+
+  assert equal ($result.calls | flatten | get text) [$PARAGRAPH]
+  assert equal $result.input.content (
+    $"
+    ($english)
+
+    ($POLISHED)
+    "
+    | str dedent
+  )
+}
+
+def "test indented lines inside a fence still let the document through" [] {
+  let document = (
+    $"
+    ($PARAGRAPH)
+
+    ```nix
+    {
+        enable = true;
+    }
+    ```
+    "
+    | str dedent
+  )
+
+  let result = (polish (write notes.md $document) [$SIMPLIFY])
+
+  assert equal ($result.calls | flatten | get text) [$PARAGRAPH]
+  assert equal $result.input.content ($document | str replace $PARAGRAPH $POLISHED)
+}
+
+def "test an indented code block outside a fence skips the document" [] {
+  let document = (
+    $"
+    ($PARAGRAPH)
+
+        nix flake check
+    "
+    | str dedent
+  )
+
+  let result = (polish (write notes.md $document) [$SIMPLIFY])
+
+  assert equal $result.calls []
+  assert equal $result.input null
 }
 
 def "test a rewrite that drops a code span is repaired with the reason" [] {
   let result = (polish (write notes.md $PARAGRAPH) [$DROP_CODE $SIMPLIFY])
 
-  let repair = ($result.calls | get 1.0)
-  assert equal $repair.rejected ($PARAGRAPH | str replace $DROP_CODE.find $DROP_CODE.replace)
-  assert str contains $repair.problem "code span"
+  assert equal ($result.calls | get 1) [
+    {
+      id: 0
+      text: $PARAGRAPH
+      rejected: ($PARAGRAPH | str replace $DROP_CODE.find $DROP_CODE.replace)
+      problem: "a code span, link, URL, number, or quoted span was dropped or edited"
+    }
+  ]
   assert equal $result.input.content $POLISHED
 }
 
 def "test a rewrite that stays faulty keeps the agent text" [] {
   let result = (polish (write notes.md $PARAGRAPH) [$DROP_CODE $ADD_SEMICOLON])
 
-  assert equal ($result.calls | length) 2
+  assert equal ($result.calls | flatten | get text) [$PARAGRAPH $PARAGRAPH]
   assert equal $result.input null
 }

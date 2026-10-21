@@ -8,6 +8,8 @@
 {
   pkgs,
   lib,
+  corpGateway,
+  secretPath,
   dataHome,
   modelCatalog,
   readPrompt,
@@ -19,16 +21,23 @@
 {
   assistant,
   toolClasses,
-  gateway ? { },
+  enableCorpGateway,
 }:
 
 let
   json = pkgs.formats.json { };
 
+  gateway = {
+    inherit (corpGateway) baseUrl;
+    tokenFile = secretPath (corpGateway.tokenSecretFor assistant);
+    caFile = secretPath corpGateway.caSecret;
+  };
+
   # ------------------------------------------------------------------------------------------------
   # Hook timeouts
   # ------------------------------------------------------------------------------------------------
   timeouts = {
+    modelConnect = 5;
     modelCall = 90;
     tool = 10;
     # Auto-format runs `cargo clippy`, which may rebuild the crate after an edit.
@@ -71,7 +80,6 @@ let
         lib
         gateway
         mkNuHook
-        modelCatalog
         timeouts
         ;
     })
@@ -112,8 +120,9 @@ let
   # Codex trusts a hook by hashing its command, so a store path would need review after every
   # rebuild. Commands therefore name stable links, which each activation repoints.
   install =
-    hooks:
+    requested:
     let
+      hooks = lib.filter (hook: hook.usesGateway or false -> enableCorpGateway) requested;
       commandHooks = lib.filter (hook: hook.type == "command") hooks;
       link = hook: "llm-assistants/hooks/${lib.unsafeDiscardStringContext (baseNameOf hook.command)}";
       linked = map (
@@ -151,10 +160,11 @@ in
     commentGate = import ./comment-gate {
       inherit
         mkNuHook
-        modelCall
-        patchInput
-        readPrompt
         timeouts
+        modelCall
+        modelCatalog
+        readPrompt
+        patchInput
         ;
     };
 
@@ -164,10 +174,10 @@ in
       inherit
         lib
         mkNuHook
+        timeouts
         modelCall
         modelCatalog
         phrasing
-        timeouts
         ;
     };
   };
