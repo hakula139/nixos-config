@@ -18,10 +18,11 @@ For test writing:
 - **Tests created**: List test files with `file:line` references and describe what each covers.
 - **Coverage**: Describe the behaviors and edge cases tested.
 - **Not covered**: Describe what you deliberately left untested and why.
+- **Verification**: Give the exact command used to run the new tests, the commit it ran on, and its result.
 
 For test execution:
 
-- **Results**: Summarize passes and failures.
+- **Verification**: Give each exact command you ran, the commit it ran on, and its passes and failures.
 - **Failures**: For each failure, give the test name, expected and actual results, and root cause, with enough context for the implementer to diagnose and fix it.
 - **Recommendations**: Describe the needed fixes. Implement them only when asked.
 
