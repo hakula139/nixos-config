@@ -48,6 +48,7 @@ Aim for a simple, coherent design that meets current requirements.
 
 - Before editing, read the surrounding code and comparable files, using the closest counterpart for any new file. Match their structure, naming, comments, docstrings, and section banners where applicable.
 - Establish the general case before adding exceptions or qualifications. Respect API contracts and local ordering conventions.
+- Write changes to a repository's source and documentation files, including new ones, with your file-edit tool, while shell writes stay fine for generated files, scratch and build files, and files outside a repository.
 - Before finishing, compare the complete edited construct and its callers with those references, including unchanged entries in the same group.
 
 ### Code Layout
