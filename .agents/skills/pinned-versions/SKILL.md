@@ -50,18 +50,17 @@ Package attributes such as `nodejs_24` and `postgresql_17` select majors within 
 
 Manual marketplace pins live in the `marketplaces` attrset in `home/modules/llm-assistants/claude-code/plugins.nix`:
 
-| Marketplace               | Upstream                             | Revision selection                 |
-| ------------------------- | ------------------------------------ | ---------------------------------- |
-| `openai-codex`            | `openai/codex-plugin-cc`             | Release tag, recorded in a comment |
-| `claude-plugins-official` | `anthropics/claude-plugins-official` | Default branch, dated comment      |
+| Marketplace               | Upstream                             | Revision selection            |
+| ------------------------- | ------------------------------------ | ----------------------------- |
+| `claude-plugins-official` | `anthropics/claude-plugins-official` | Default branch, dated comment |
 
-Each row stores a commit `rev` and extracted-tree `hash`. The checker compares revision prefixes with the commit behind the latest release tag or default branch. It reads the pinned revision from code, so an inaccurate tag comment cannot make a stale source appear current. The Workmux marketplace uses `pkgs.workmux.src` from the locked `llm-agents` input. Common skills use the separate `anthropics-skills` and `openai-skills` inputs.
+Each row stores a commit `rev` and extracted-tree `hash`. The checker compares revision prefixes with the default branch head. It reads the pinned revision from code, so an inaccurate date comment cannot make a stale source appear current. The Workmux marketplace uses `pkgs.workmux.src` from the locked `llm-agents` input. Common skills use the separate `anthropics-skills` and `openai-skills` inputs.
 
 These revisions control the prebuilt Claude Code cache when `hakula.claude-code.plugins.bundle` is enabled, currently in `devvm`. Bundling sets `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL`. Unbundled Claude Code fetches the configured marketplaces at runtime, so editing these hashes does not pin its runtime cache.
 
 To update a manual marketplace:
 
-1. Resolve the intended release tag or default branch to a commit. Update `rev` and its tag or date comment together.
+1. Resolve the default branch to a commit. Update `rev` and its date comment together.
 
 2. Obtain the extracted-tree hash. `fetchFromGitHub` requires `--unpack` when prefetching an archive:
 
@@ -97,17 +96,15 @@ To update a manual marketplace:
 
 These packages are registered in `lib/overlays.nix`. The MCP packages are grouped under `packages/mcp/`:
 
-| Package                 | Location                                         | Upstream                                 |
-| ----------------------- | ------------------------------------------------ | ---------------------------------------- |
-| `acpx`                  | `packages/acpx/default.nix`                      | `openclaw/acpx` releases                 |
-| `cloudreve`             | `packages/cloudreve/default.nix`                 | `cloudreve/cloudreve` releases           |
-| `mcp-server-filesystem` | `packages/mcp/mcp-server-filesystem/default.nix` | `modelcontextprotocol/servers` date tags |
-| `mcp-server-git`        | `packages/mcp/mcp-server-git/default.nix`        | `mcp-server-git` on PyPI                 |
-| `mcp-server-github`     | `packages/mcp/mcp-server-github/default.nix`     | `github/github-mcp-server` releases      |
-| `mcp-server-gitlab`     | `packages/mcp/mcp-server-gitlab/default.nix`     | `zereight/gitlab-mcp` releases           |
-| `peertube`              | `packages/peertube/default.nix`                  | `Chocobozzz/PeerTube` releases           |
-| `wakatime-cli`          | `packages/wakatime-cli/default.nix`              | `wakatime/wakatime-cli` releases         |
-| `zsh-hist`              | `packages/zsh-hist/default.nix`                  | `marlonrichert/zsh-hist` default branch  |
+| Package             | Location                                     | Upstream                                |
+| ------------------- | -------------------------------------------- | --------------------------------------- |
+| `acpx`              | `packages/acpx/default.nix`                  | `openclaw/acpx` releases                |
+| `cloudreve`         | `packages/cloudreve/default.nix`             | `cloudreve/cloudreve` releases          |
+| `mcp-server-github` | `packages/mcp/mcp-server-github/default.nix` | `github/github-mcp-server` releases     |
+| `mcp-server-gitlab` | `packages/mcp/mcp-server-gitlab/default.nix` | `zereight/gitlab-mcp` releases          |
+| `peertube`          | `packages/peertube/default.nix`              | `Chocobozzz/PeerTube` releases          |
+| `wakatime-cli`      | `packages/wakatime-cli/default.nix`          | `wakatime/wakatime-cli` releases        |
+| `zsh-hist`          | `packages/zsh-hist/default.nix`              | `marlonrichert/zsh-hist` default branch |
 
 Update the package's `version` and source hash, preserving its upstream tag convention. `zsh-hist` uses a commit pin, so update `src.rev`, `src.hash`, and the date in its `0-unstable-YYYY-MM-DD` version together.
 
@@ -115,8 +112,7 @@ Hash requirements depend on the fetcher:
 
 - `acpx` needs both the GitHub source hash and `pnpmDeps.hash` from `fetchPnpmDeps`.
 - `wakatime-cli` needs both the GitHub source hash and `vendorHash`.
-- `mcp-server-filesystem` and `mcp-server-gitlab` need the GitHub source hash and `npmDepsHash`. Rebuild to validate dependency hashes even when the upstream lockfile appears unchanged.
-- `mcp-server-git` fetches a PyPI source distribution. Check that its declared nixpkgs Python dependencies still satisfy the new release. The package disables upstream tests because its source distribution contains none.
+- `mcp-server-gitlab` needs the GitHub source hash and `npmDepsHash`. Rebuild to validate dependency hashes even when the upstream lockfile appears unchanged.
 - `cloudreve` and `mcp-server-github` use `fetchurl` for release archives. Update every entry in `sources`, including platforms unavailable locally. Prefetch their archive bytes without `--unpack`. Cloudreve currently supports `x86_64-linux`. The GitHub server also supports `aarch64-darwin`.
 
 Use `lib.fakeHash` temporarily when obtaining a hash from a Nix mismatch error. Build again with the reported hash, resolving dependency hashes after the source hash. Never leave a placeholder hash in the final change.
