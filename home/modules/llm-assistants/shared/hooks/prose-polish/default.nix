@@ -24,7 +24,7 @@ in
   ]
   ++ builtins.attrNames mcpProseFields;
   usesGateway = true;
-  timeout = (1 + maxRepairs) * timeouts.modelCall;
+  timeout = (1 + maxRepairs) * timeouts.modelCall + timeouts.modelHookMargin;
   statusMessage = "Polishing prose";
   command = mkNuHook {
     slug = "prose-polish";
