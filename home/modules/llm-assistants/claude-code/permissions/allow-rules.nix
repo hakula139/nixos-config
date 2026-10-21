@@ -41,8 +41,6 @@
   # ------------------------------------------------------------------------------------------------
   # Filesystem - Search
   # ------------------------------------------------------------------------------------------------
-  "Bash(fd *)"
-  "Bash(find *)"
   "Bash(grep *)"
   "Bash(rg *)"
 
@@ -69,14 +67,11 @@
   # ------------------------------------------------------------------------------------------------
   # Text Processing
   # ------------------------------------------------------------------------------------------------
-  "Bash(awk *)"
   "Bash(col *)"
   "Bash(cut *)"
   "Bash(diff *)"
   "Bash(jq *)"
-  "Bash(sed *)"
   "Bash(sort *)"
-  "Bash(tee *)"
   "Bash(tr *)"
   "Bash(uniq *)"
   "Bash(wc *)"
@@ -148,7 +143,6 @@
   "Bash(dig *)"
   "Bash(host *)"
   "Bash(ip *)"
-  "Bash(nc *)"
   "Bash(nslookup *)"
   "Bash(ping *)"
   "Bash(ss *)"
@@ -157,15 +151,9 @@
   # ------------------------------------------------------------------------------------------------
   # Web
   # ------------------------------------------------------------------------------------------------
-  "Bash(curl *)"
-  "Bash(http *)"
-  "Bash(httpie *)"
-  "Bash(https *)"
-  "Bash(wget *)"
   "mcp__Bifrost"
   "mcp__Exa"
   "mcp__Scrapling__browser_fetch_once"
-  "mcp__Scrapling__make_request"
   "WebFetch"
   "WebSearch"
 
@@ -332,15 +320,10 @@
   "Bash(g++ *)"
   "Bash(gcc *)"
   "Bash(markdownlint-cli2 *)"
-  "Bash(node *)"
   "Bash(npm config get *)"
   "Bash(npm view *)"
-  "Bash(pip *)"
-  "Bash(pip3 *)"
   "Bash(pnpm exec cspell *)"
   "Bash(pnpm exec prettier *)"
-  "Bash(python *)"
-  "Bash(python3 *)"
   "Bash(ruff *)"
   "Bash(rustc *)"
   "Bash(shellcheck *)"
