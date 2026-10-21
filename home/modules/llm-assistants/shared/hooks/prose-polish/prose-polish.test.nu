@@ -9,7 +9,6 @@ use std-rfc/str
 
 const SCRIPT_DIR = path self .
 const SCRIPT = ($SCRIPT_DIR | path join prose-polish.nu)
-const STUB = ($SCRIPT_DIR | path join model-call.stub.nu)
 
 const PARAGRAPH = "推送之前先运行 `nix flake check`，它会用与 CI 相同的钩子进行检查。"
 const POLISHED = "推送之前先运行 `nix flake check`，它会用与 CI 相同的钩子检查。"
@@ -22,16 +21,13 @@ const ADD_SEMICOLON = {find: "，", replace: "; "}
 # holds the passages each model call received.
 def polish [payload: record, rules: list<record>]: nothing -> record {
   let dir = (mktemp --directory)
-  let stub = ($dir | path join model-call)
   let rules_file = ($dir | path join rules.json)
   let config_file = ($dir | path join config.json)
   let log = ($dir | path join calls.jsonl)
 
-  $"#!($nu.current-exe) --no-config-file\n" + (open --raw $STUB) | save $stub
-  ^chmod +x $stub
   $rules | to json | save $rules_file
   {
-    modelCall: $stub
+    modelCall: ($env.NU_TEST_STUBS | path join model-call)
     model: stub
     phrasing: ""
     prompt: ""
@@ -52,7 +48,7 @@ def polish [payload: record, rules: list<record>]: nothing -> record {
   }
   assert equal $run.exit_code 0 $run.stderr
 
-  let calls = if ($log | path exists) { open $log | lines | each { from json } } else { [] }
+  let calls = if ($log | path exists) { open $log | from json --objects } else { [] }
   let input = if ($run.stdout | str trim | is-empty) {
     null
   } else {

@@ -8,7 +8,6 @@ use std/assert
 
 const SCRIPT_DIR = path self .
 const SCRIPT = ($SCRIPT_DIR | path join auto-format.nu)
-const STUB = ($SCRIPT_DIR | path join tool.stub.nu)
 const TOOLS = [
   cspell
   dprint
@@ -23,12 +22,10 @@ const TOOLS = [
   taplo
 ]
 
-# Installs the tool stub as an executable at `target` and returns `target`, the path the stub
-# logs as its `bin`.
+# Copies the tool stub to `target` and returns `target`, the path the stub logs as its `bin`.
 def install-stub [target: string]: nothing -> string {
   mkdir ($target | path dirname)
-  $"#!($nu.current-exe) --no-config-file\n" + (open --raw $STUB) | save $target
-  ^chmod +x $target
+  cp ($env.NU_TEST_STUBS | path join tool) $target
   $target
 }
 
@@ -65,11 +62,7 @@ def run-hook [file: string, cwd: string, --path: list<string> = []]: nothing -> 
   }
   assert equal $run.exit_code 0 $run.stderr
 
-  if ($log | path exists) {
-    open $log | lines | each { from json }
-  } else {
-    []
-  }
+  if ($log | path exists) { open $log | from json --objects } else { [] }
 }
 
 # Writes a file at `path`, creating its parent directories, and returns `path`.

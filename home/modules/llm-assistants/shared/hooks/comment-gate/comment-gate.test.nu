@@ -9,17 +9,14 @@ use std-rfc/str
 
 const SCRIPT_DIR = path self .
 const SCRIPT = ($SCRIPT_DIR | path join comment-gate.nu)
-const STUB = ($SCRIPT_DIR | path join model-call.stub.nu)
 
 # The context the hook hands the agent, or null when it stays silent.
 def gate [env_vars: record]: nothing -> any {
   let dir = (mktemp --directory)
-  let stub = ($dir | path join model-call)
   let config_file = ($dir | path join config.json)
 
-  $"#!($nu.current-exe) --no-config-file\n" + (open --raw $STUB) | save $stub
-  ^chmod +x $stub
-  {modelCall: $stub, model: stub, prompt: "", patchInput: ""} | to json | save $config_file
+  let model_call = ($env.NU_TEST_STUBS | path join model-call)
+  {modelCall: $model_call, model: stub, prompt: "", patchInput: ""} | to json | save $config_file
 
   let payload = {
     tool_name: Write
