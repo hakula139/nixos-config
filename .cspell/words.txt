@@ -45,6 +45,7 @@ createdb
 csum
 ctest
 cursor
+cwds
 darkhttpd
 davidanson
 dbaeumer
