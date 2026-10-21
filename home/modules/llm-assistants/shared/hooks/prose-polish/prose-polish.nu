@@ -362,9 +362,6 @@ def --env polished [config: record]: nothing -> any {
   if ($found | is-empty) {
     return null
   }
-  if ($env | get -o PROSE_POLISH_ENABLED | default "false") != "true" {
-    return null
-  }
 
   let opening = (
     call-model ($found | enumerate | each {|slot| {id: $slot.index, text: $slot.item.before} }) [] $config
