@@ -11,23 +11,107 @@
     # Local / system state
     # ----------------------------------------------------------------------------------------------
     {
-      argv = [ "rm" ];
-      reason = "Irreversible local deletion.";
-    }
-    {
-      argv = [ "sudo" ];
-      reason = "Privilege escalation.";
-    }
-    {
-      argv = [ "agenix" ];
+      command = "agenix";
       reason = "Rewrites encrypted secrets.";
     }
     {
-      argv = [ "darwin-rebuild" ];
+      command = "rm";
+      reason = "Irreversible local deletion.";
+    }
+    {
+      command = "sudo";
+      reason = "Privilege escalation.";
+    }
+
+    # ----------------------------------------------------------------------------------------------
+    # Host activation
+    # ----------------------------------------------------------------------------------------------
+    {
+      command = "colmena apply";
+      reason = "Deploys host configurations.";
+    }
+    {
+      command = "colmena apply-local";
       reason = "Switches system configuration.";
     }
     {
-      argv = [ "nixos-rebuild" ];
+      command = "colmena upload-keys";
+      reason = "Deploys secrets to hosts.";
+    }
+    {
+      command = "darwin-rebuild";
+      reason = "Switches system configuration.";
+    }
+    {
+      command = "home-manager switch";
+      reason = "Switches home configuration.";
+    }
+    {
+      command = "nh darwin switch";
+      reason = "Switches system configuration.";
+    }
+    {
+      command = "nh home switch";
+      reason = "Switches home configuration.";
+    }
+    {
+      command = "nh os boot";
+      reason = "Changes the boot configuration.";
+    }
+    {
+      command = "nh os rollback";
+      reason = "Switches system configuration.";
+    }
+    {
+      command = "nh os switch";
+      reason = "Switches system configuration.";
+    }
+    {
+      command = "nh os test";
+      reason = "Switches system configuration.";
+    }
+    {
+      command = "nixboot";
+      reason = "Changes the boot configuration.";
+    }
+    {
+      command = "nixdp";
+      reason = "Deploys host configurations.";
+    }
+    {
+      command = "nixos-rebuild";
+      reason = "Switches system configuration.";
+    }
+    {
+      command = "nixroll";
+      reason = "Switches system configuration.";
+    }
+    {
+      command = "nixsw";
+      reason = "Switches system configuration.";
+    }
+    {
+      command = "nixtest";
+      reason = "Switches system configuration.";
+    }
+    {
+      command = "system-manager activate";
+      reason = "Switches system configuration.";
+    }
+    {
+      command = "system-manager deactivate";
+      reason = "Removes managed system configuration.";
+    }
+    {
+      command = "system-manager pre-populate";
+      reason = "Writes managed system files.";
+    }
+    {
+      command = "system-manager register";
+      reason = "Changes the active system profile.";
+    }
+    {
+      command = "system-manager switch";
       reason = "Switches system configuration.";
     }
 
@@ -35,21 +119,11 @@
     # Pull / merge requests
     # ----------------------------------------------------------------------------------------------
     {
-      argv = [
-        "gh"
-        "pr"
-        "merge"
-      ];
-
+      command = "gh pr merge";
       reason = "Integrates a pull request into a shared branch.";
     }
     {
-      argv = [
-        "glab"
-        "mr"
-        "merge"
-      ];
-
+      command = "glab mr merge";
       reason = "Integrates a merge request into a shared branch.";
     }
   ];
