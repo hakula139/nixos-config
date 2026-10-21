@@ -57,7 +57,7 @@ def render [min_level: string]: nothing -> record {
 
 def "test an admin server admits only admins" [] {
   let result = (render admin)
-  assert equal $result.run.exit_code 0
+  assert equal $result.run.exit_code 0 $result.run.stderr
 
   let config = (open $result.output)
   let reality = ($config.inbounds | where tag == vless-reality | first)
@@ -76,7 +76,7 @@ def "test an admin server admits only admins" [] {
 
 def "test a user server admits every level, reading a missing level as user" [] {
   let result = (render user)
-  assert equal $result.run.exit_code 0
+  assert equal $result.run.exit_code 0 $result.run.stderr
 
   let reality = (open $result.output | get inbounds | where tag == vless-reality | first)
   assert equal ($reality.settings.clients | get id | sort) [alice-uuid bob-uuid carol-uuid]
@@ -86,6 +86,7 @@ def "test a user server admits every level, reading a missing level as user" [] 
 def "test an unknown minimum level fails without writing a config" [] {
   let result = (render owner)
 
-  assert not equal $result.run.exit_code 0
+  assert equal $result.run.exit_code 1
+  assert str contains $result.run.stderr "Unknown minimum level: owner"
   assert not ($result.output | path exists)
 }

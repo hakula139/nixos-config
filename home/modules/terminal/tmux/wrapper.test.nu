@@ -17,8 +17,9 @@ const SERVER_PATH = "/server/bin"
 const REFUSAL = "none is started inside a Nix shell"
 
 # Runs the wrapper over `argv` with stubbed tmux and direnv in an environment holding only the
-# caller's PATH plus `env_vars`. `calls` lists the stub invocations in order.
-def wrap [argv: list<string>, env_vars: record = {}]: nothing -> record {
+# caller's PATH plus `env_vars`, and asserts it exits with `status`. `calls` lists the stub
+# invocations in order, and `script` is the wrapper path direnv receives as the command to rerun.
+def wrap [argv: list<string>, env_vars: record = {}, --status: int = 0]: nothing -> record {
   let dir = (mktemp --directory)
   let log = ($dir | path join calls.jsonl)
   let script = ($dir | path join wrapper.sh)
@@ -40,13 +41,15 @@ def wrap [argv: list<string>, env_vars: record = {}]: nothing -> record {
     ^env -u DIRENV_DIFF -u IN_NIX_SHELL -u NIX_BUILD_TOP ...$assignments bash $script ...$argv
     | complete
   )
+  let context = $"argv ($argv | to nuon), env ($env_vars | to nuon): ($run.stderr)"
+  assert equal $run.exit_code $status $context
 
   let calls = if ($log | path exists) {
     open --raw $log | lines | each { from json }
   } else {
     []
   }
-  $run | insert calls $calls
+  $run | insert calls $calls | insert script $script
 }
 
 def caller-path []: nothing -> string {
@@ -56,23 +59,21 @@ def caller-path []: nothing -> string {
 def "test outside a dev shell tmux runs unchanged" [] {
   let run = (wrap [new-session -A -s work])
 
-  assert equal $run.exit_code 0 $run.stderr
   assert equal $run.calls [{tool: tmux, args: [new-session -A -s work], path: (caller-path)}]
 }
 
 def "test a direnv shell is reverted before tmux runs" [] {
   let run = (wrap [new-window] {DIRENV_DIFF: diff, IN_NIX_SHELL: impure})
 
-  assert equal $run.exit_code 0 $run.stderr
-  assert equal ($run.calls | get tool) [direnv tmux]
-  assert equal ($run.calls.0.args | take 2) [exec /]
-  assert equal $run.calls.1.args [new-window]
+  assert equal $run.calls [
+    {tool: direnv, args: [exec / $run.script new-window]}
+    {tool: tmux, args: [new-window], path: (caller-path)}
+  ]
 }
 
 def "test a Nix shell client borrows the running server PATH" [] {
   let run = (wrap [new-window "cargo run"] {IN_NIX_SHELL: impure, STUB_SERVER_PATH: $SERVER_PATH})
 
-  assert equal $run.exit_code 0 $run.stderr
   assert equal $run.calls [
     {tool: tmux, args: [-N show-environment -g PATH], path: (caller-path)}
     {tool: tmux, args: [-N new-window "cargo run"], path: $SERVER_PATH}
@@ -88,19 +89,20 @@ def "test a Nix shell nested in a direnv shell is still caught" [] {
   }
   let run = (wrap [split-window] $env_vars)
 
-  assert equal $run.exit_code 0 $run.stderr
-  assert equal ($run.calls | get tool) [direnv tmux tmux]
-  assert equal ($run.calls | last) {tool: tmux, args: [-N split-window], path: $SERVER_PATH}
+  assert equal $run.calls [
+    {tool: direnv, args: [exec / $run.script split-window]}
+    {tool: tmux, args: [-N show-environment -g PATH], path: (caller-path)}
+    {tool: tmux, args: [-N split-window], path: $SERVER_PATH}
+  ]
 }
 
 def "test every socket flag reaches the server probe" [] {
   let argv = [-S /tmp/sock -L name new-window]
   let run = (wrap $argv {NIX_BUILD_TOP: /tmp/nix-shell, STUB_SERVER_PATH: $SERVER_PATH})
 
-  assert equal $run.exit_code 0 $run.stderr
-  assert equal ($run.calls | get args) [
-    [-S /tmp/sock -L name -N show-environment -g PATH]
-    [-N ...$argv]
+  assert equal $run.calls [
+    {tool: tmux, args: [-S /tmp/sock -L name -N show-environment -g PATH], path: (caller-path)}
+    {tool: tmux, args: [-N ...$argv], path: $SERVER_PATH}
   ]
 }
 
@@ -113,8 +115,7 @@ def "test the tmux exit status passes through" [] {
   ]
 
   for case in $cases {
-    let run = (wrap [has-session -t work] ($case | insert STUB_STATUS "3"))
-    assert equal $run.exit_code 3 $"env: ($case | to nuon)"
+    wrap [has-session -t work] ($case | insert STUB_STATUS "3") --status 3
   }
 }
 
@@ -133,16 +134,15 @@ def "test only server-starting commands are refused inside a Nix shell" [] {
   ]
 
   for case in $cases {
-    let run = (wrap $case.argv {IN_NIX_SHELL: impure})
+    let refused = ($case.client == null)
+    let run = (wrap $case.argv {IN_NIX_SHELL: impure} --status (if $refused { 1 } else { 0 }))
     let context = $"argv: ($case.argv | to nuon)"
     let clients = ($run.calls | where {|call| "show-environment" not-in $call.args } | get args)
 
-    if $case.client == null {
-      assert equal $run.exit_code 1 $context
+    if $refused {
       assert str contains $run.stderr $REFUSAL $context
       assert equal $clients [] $context
     } else {
-      assert equal $run.exit_code 0 $context
       assert not ($run.stderr | str contains $REFUSAL) $context
       assert equal $clients [$case.client] $context
     }
