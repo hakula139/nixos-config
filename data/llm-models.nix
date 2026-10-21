@@ -116,7 +116,7 @@ in
     };
 
     gpt = {
-      flagship = "gpt-6-astra";
+      flagship = "gpt-6.1-sol";
       standard = "gpt-6.1-sol";
       mini = "gpt-6-luna";
     };
@@ -184,17 +184,6 @@ in
         output = 0.5;
         cacheRead = 0.01;
         cacheWrite = 0.125;
-      };
-    };
-
-    "gpt-6-astra" = gptCommon // {
-      name = "GPT-6 Astra";
-      channelId.openai = "openai/gpt-6-astra";
-      channelCost.openai = {
-        input = 10.0;
-        output = 50.0;
-        cacheRead = 1.0;
-        cacheWrite = 12.5;
       };
     };
 

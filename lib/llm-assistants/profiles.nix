@@ -21,7 +21,7 @@ let
 
     gpt = {
       standard = "medium";
-      flagship = "high";
+      flagship = "xhigh";
       mini = "low";
     };
 
@@ -88,41 +88,71 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile resolution
   # ------------------------------------------------------------------------------------------------
-  resolveProfile =
-    _: profile:
-    let
-      modelKeys = modelCatalog.defaults.${profile.family};
-      models = lib.mapAttrs (_: id: modelCatalog.models.${id}) modelKeys;
-      modelIds = lib.mapAttrs (
-        tier: id: if profile.channel == null then id else models.${tier}.channelId.${profile.channel}
-      ) modelKeys;
-      resolveWorkload = tier: effort: {
-        modelTier = tier;
-        model = models.${tier};
-        modelId = modelIds.${tier};
-        inherit effort;
-      };
+  familyApis = {
+    claude = "anthropic-messages";
+    gpt = "openai-responses";
+    gemini = "openai-responses";
+    local = "openai-responses";
+  };
 
-      workloads = lib.mapAttrs resolveWorkload workloadPolicy.${profile.family};
+  roleTiers = {
+    default = {
+      modelTier = "flagship";
+      effortTier = "standard";
+    };
+
+    plan = {
+      modelTier = "flagship";
+      effortTier = "flagship";
+    };
+
+    task = {
+      modelTier = "standard";
+      effortTier = "standard";
+    };
+
+    small = {
+      modelTier = "mini";
+      effortTier = "mini";
+    };
+  };
+
+  resolveProfile =
+    sourceProfiles: name: profile:
+    let
+      sources = profile.sources or (lib.mapAttrs (_: _: name) workloadPolicy.${profile.family});
+
+      resolveWorkload =
+        { modelTier, effortTier }:
+        let
+          source = sources.${modelTier};
+          inherit (sourceProfiles.${source}) channel family;
+          modelKey = modelCatalog.defaults.${family}.${modelTier};
+          model = modelCatalog.models.${modelKey};
+        in
+        {
+          inherit source channel family;
+          api = familyApis.${family};
+          inherit modelKey model;
+          modelId = if channel == null then modelKey else model.channelId.${channel};
+          effort = workloadPolicy.${family}.${effortTier};
+        };
     in
-    profile
-    // {
-      inherit
-        modelKeys
-        modelIds
-        models
-        workloads
-        ;
-      roles = {
-        default = workloads.standard;
-        plan = workloads.flagship;
-        task = workloads.standard;
-        small = workloads.mini;
-      };
+    {
+      inherit (profile) provider nativeWebSearch;
+      workloads = lib.mapAttrs (
+        tier: _:
+        resolveWorkload {
+          modelTier = tier;
+          effortTier = tier;
+        }
+      ) sources;
+
+      roles = lib.mapAttrs (_: resolveWorkload) roleTiers;
     };
 in
 {
-  inherit workloadPolicy;
+  inherit roleTiers workloadPolicy;
 
   # ------------------------------------------------------------------------------------------------
   # Provider configuration
@@ -161,13 +191,6 @@ in
   # ------------------------------------------------------------------------------------------------
   # Model mappings
   # ------------------------------------------------------------------------------------------------
-  familyApis = {
-    claude = "anthropic-messages";
-    gpt = "openai-responses";
-    gemini = "openai-responses";
-    local = "openai-responses";
-  };
-
   modelAliases = {
     claude = {
       flagship = "opus";
@@ -182,6 +205,7 @@ in
   mkProfiles =
     {
       nativeFamily ? null,
+      hybridBase ? null,
       providers,
       channels,
       enableCorpGateway,
@@ -202,8 +226,30 @@ in
         && (profile.channel == null || lib.elem profile.channel channels)
         && (profile.provider != "corp-gateway" || enableCorpGateway)
       ) providerProfiles;
+
+      sourceProfiles = officialProfiles // enabledProviderProfiles;
+
+      # The hybrid runs its flagship tier on the `hybridBase` gateway profile, whose family need not
+      # match `nativeFamily`, and the other tiers on the local model. Mini-tier work is read-only,
+      # and flagship-tier agents review the standard tier's changes.
+      hybridProfiles = lib.optionalAttrs (hybridBase != null) {
+        corp-gateway-hybrid = {
+          provider = "corp-gateway";
+          sources = {
+            flagship = hybridBase;
+            standard = "corp-gateway-local";
+            mini = "corp-gateway-local";
+          };
+
+          inherit (sourceProfiles.${hybridBase}) nativeWebSearch;
+        };
+      };
+
+      enabledHybridProfiles = lib.filterAttrs (
+        _: profile: lib.all (source: sourceProfiles ? ${source}) (builtins.attrValues profile.sources)
+      ) hybridProfiles;
     in
-    lib.mapAttrs resolveProfile (officialProfiles // enabledProviderProfiles);
+    lib.mapAttrs (resolveProfile sourceProfiles) (sourceProfiles // enabledHybridProfiles);
 
   mkOptions =
     {
