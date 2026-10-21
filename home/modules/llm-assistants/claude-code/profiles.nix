@@ -56,9 +56,6 @@ let
         ) modelAliases.claude
         // {
           CLAUDE_CODE_SUBAGENT_MODEL = modelAliases.claude.${roleTiers.task.modelTier};
-        }
-        // lib.optionalAttrs (roles.default.family == "claude") {
-          PROSE_POLISH_ENABLED = "true";
         };
     in
     {

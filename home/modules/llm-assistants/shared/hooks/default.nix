@@ -39,6 +39,8 @@ let
   timeouts = {
     modelConnect = 5;
     modelCall = 90;
+    # A hook outlives its model calls by this much, so it can still report one that timed out.
+    modelHookMargin = 10;
     tool = 10;
     # Auto-format runs `cargo clippy`, which may rebuild the crate after an edit.
     postEdit = 120;
@@ -117,8 +119,9 @@ let
   # ------------------------------------------------------------------------------------------------
   # Hook installation
   # ------------------------------------------------------------------------------------------------
-  # Codex trusts a hook by hashing its command, so a store path would need review after every
-  # rebuild. Commands therefore name stable links, which each activation repoints.
+  # Codex trusts a hook by hashing its event, matcher, and handler, command included. Commands name
+  # stable links, which each activation repoints, so a rebuild that changes only a script keeps the
+  # hook's hash.
   install =
     requested:
     let

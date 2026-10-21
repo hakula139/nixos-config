@@ -38,7 +38,7 @@ def polish [payload: record, rules: list<record>]: nothing -> record {
   | to json
   | save $config_file
 
-  let env_vars = {PROSE_POLISH_ENABLED: "true", STUB_LOG: $log, STUB_RULES: $rules_file}
+  let env_vars = {STUB_LOG: $log, STUB_RULES: $rules_file}
   let run = with-env $env_vars {
     $payload
     | upsert cwd $dir

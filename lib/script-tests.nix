@@ -24,6 +24,7 @@ in
 pkgs.runCommand "script-tests"
   {
     nativeBuildInputs = [
+      pkgs.codex
       pkgs.git
       pkgs.nu-test
       tooling.scriptPython

@@ -17,6 +17,59 @@ def save-config [content: string, target: string] {
   }
 }
 
+# Mirrors Codex 0.163's `hook_hash` for command handlers without `additionalContextLimit`: the
+# SHA-256 of the key-sorted JSON identity of the event, its matcher, and the handler with its
+# defaults filled in.
+def hook-hash [event: string, matcher: any, handler: record]: nothing -> string {
+  let timeout = if $event in [session_end interrupt] {
+    [([($handler | get -o timeout | default 1) 3] | math min) 1] | math max
+  } else {
+    [($handler | get -o timeout | default 600) 1] | math max
+  }
+  let normalized = {
+    type: command
+    command: $handler.command
+    timeout: $timeout
+    async: ($handler | get -o async | default false)
+  }
+  let status = ($handler | get -o statusMessage)
+  let described = if $status == null {
+    $normalized
+  } else {
+    $normalized | insert statusMessage $status
+  }
+  let identity = {event_name: $event, hooks: [($described | sort)]}
+  let keyed = if $matcher == null { $identity } else { $identity | insert matcher $matcher }
+  $"sha256:($keyed | sort | to json --raw | hash sha256)"
+}
+
+# Codex runs a config hook only after its current hash is recorded as trusted. Every hook comes from
+# the managed settings, so activation records each command hook's hash in Codex's state table.
+def trust-hooks [hooks: record, state: record, source: string]: nothing -> record {
+  $hooks
+  | transpose event groups
+  | each {|entry|
+    let event = ($entry.event | str snake-case)
+    # Codex ignores the matcher on these events.
+    let matcherless = ($event in [user_prompt_submit stop interrupt])
+    $entry.groups | enumerate | each {|group|
+      let matcher = if $matcherless { null } else { $group.item | get -o matcher }
+      $group.item.hooks | enumerate | where item.type == command | each {|handler|
+        {
+          key: $"($source):($event):($group.index):($handler.index)"
+          hash: (hook-hash $event $matcher $handler.item)
+        }
+      }
+    }
+  }
+  | flatten
+  | flatten
+  | reduce --fold $state {|hook, acc|
+    let current = ($acc | get -o ([$hook.key] | into cell-path) | default {})
+    $acc | upsert ([$hook.key] | into cell-path) ($current | upsert trusted_hash $hook.hash)
+  }
+}
+
 # Apply managed settings while preserving Codex's mutable user state.
 def main [config_file: string] {
   let config = (open $config_file)
@@ -38,8 +91,9 @@ def main [config_file: string] {
   mut settings = ($current
     | merge deep --strategy overwrite $config.settings
     | merge ($config.settings | select tools mcp_servers hooks))
-  let hook_state = ($current | get -o hooks.state)
-  if $hook_state != null {
+  let prior_state = ($current | get -o hooks.state | default {})
+  let hook_state = (trust-hooks $config.settings.hooks $prior_state $target)
+  if not ($hook_state | is-empty) {
     $settings = ($settings | upsert hooks.state $hook_state)
   }
 

@@ -32,9 +32,9 @@ def main [config_file: string] {
   } else {
     $body
   }
-  let token = (open --raw $gateway.tokenFile | str trim)
   let curl = $config.curl
-  # The gateway's advertised IPv6 endpoint closes during TLS.
+  # The gateway's advertised IPv6 endpoint closes during TLS. The token stays off curl's command
+  # line, which other local users can read.
   let run = (
     $shaped
     | to json
@@ -42,7 +42,8 @@ def main [config_file: string] {
       --connect-timeout $config.connectTimeout
       --max-time $config.timeout
       --cacert $gateway.caFile
-      --header $"Authorization: Bearer ($token)"
+      --variable $"token@($gateway.tokenFile)"
+      --expand-header "Authorization: Bearer {{token:trim}}"
       --header "content-type: application/json"
       --data @-
       $"($gateway.baseUrl)/v1/chat/completions"

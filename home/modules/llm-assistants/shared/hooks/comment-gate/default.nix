@@ -16,7 +16,7 @@
   type = "command";
   tools = [ "fileWrite" ];
   usesGateway = true;
-  timeout = timeouts.modelCall;
+  timeout = timeouts.modelCall + timeouts.modelHookMargin;
   statusMessage = "Checking comments";
   command = mkNuHook {
     slug = "comment-gate";
