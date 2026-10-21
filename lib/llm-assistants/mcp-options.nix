@@ -14,8 +14,6 @@ let
     chromeDevtools = "ChromeDevTools";
     deepwiki = "DeepWiki";
     exa = "Exa";
-    filesystem = "Filesystem";
-    git = "Git";
     github = "GitHub";
     gitlab = "GitLab";
     scrapling = "Scrapling";
@@ -29,8 +27,6 @@ let
     "chromeDevtools"
     "deepwiki"
     "exa"
-    "filesystem"
-    "git"
     "github"
     "gitlab"
     "scrapling"

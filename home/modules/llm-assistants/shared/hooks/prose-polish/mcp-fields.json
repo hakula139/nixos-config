@@ -3,7 +3,6 @@
   "mcp__Atlassian__confluence_create_page": ["content", "title"],
   "mcp__Atlassian__confluence_reply_to_comment": ["body"],
   "mcp__Atlassian__confluence_update_page": ["content", "title"],
-  "mcp__Git__git_commit": ["message"],
   "mcp__GitHub__create_pull_request": ["body", "title"],
   "mcp__GitHub__issue_write": ["body", "title"],
   "mcp__GitHub__pull_request_review_write": ["body"],

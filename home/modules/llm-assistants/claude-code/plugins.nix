@@ -26,17 +26,6 @@ let
       pluginsDir = "plugins";
     };
 
-    openai-codex = {
-      github = {
-        owner = "openai";
-        repo = "codex-plugin-cc";
-      };
-
-      rev = "db52e28f4d9ded852ab3942cea316258ae4ef346"; # v1.0.6
-      hash = "sha256-S/R4kHTcIHBcG0TRX063C7ILXZZm0oMqunchPGg6ToU=";
-      pluginsDir = "plugins";
-    };
-
     workmux = {
       github = {
         owner = "raine";
@@ -68,7 +57,6 @@ let
     "typescript-lsp@claude-plugins-official" = true;
 
     # Third-party plugins
-    "codex@openai-codex" = true;
     "workmux-status@workmux" = true;
   }
   # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
