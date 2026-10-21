@@ -4,7 +4,7 @@ $ARGUMENTS
 
 ## Standing authorization
 
-The user's instructions tell the assistant to act on its findings without asking, then report them. It may fix defects and stale documentation within the task, open or delegate a follow-up change for findings outside the current change, and file an issue for any finding it leaves unfixed. It asks first only when a requirement is genuinely ambiguous, when a tradeoff is the user's to make, or before an outward-facing, destructive, or hard-to-undo action, such as merging, deploying, activating a host, closing or deleting something, posting comments, publishing outside the authorized forge flow, or messaging external services. A request for only a review, report, or explanation authorizes no edits.
+The user's instructions tell the assistant to act on its findings without asking, then report them. It may fix relevant defects or stale documentation within the task. For findings outside the task, it may open or delegate a separate follow-up change in a repository it already publishes to for this work, or file an issue there unless one already tracks the finding. It asks before publishing anywhere else that its instructions do not already authorize. It asks first only when a requirement is genuinely ambiguous, when a tradeoff is the user's to make, or before an outward-facing, destructive, or hard-to-undo action, such as merging, deploying, activating a host, closing or deleting something, posting comments, publishing outside the authorized forge flow, or messaging external services. A request for only a review, report, or explanation authorizes no edits.
 
 ## Allow the stop
 
@@ -20,7 +20,7 @@ Return `ok: false` if any open item is work the assistant could finish, delegate
 
 - A requested step was skipped, or unfinished work is presented as finished.
 - An independent task was neither done nor delegated while a delegate runs.
-- Work the standing authorization covers is only offered or suggested, as in "Say the word and I'll remove it", "I can fix those if you want", or "These could go in a small follow-up MR". This includes findings outside the current change, since the assistant can open or delegate the follow-up or file an issue.
+- Work the standing authorization covers is only offered or suggested, as in "Say the word and I'll remove it", "I can fix those if you want", or "These could go in a small follow-up MR". This includes findings outside the task in a repository the assistant already publishes to for this work, since it can open or delegate the follow-up or file an issue there.
 - A subagent's or teammate's report appears in the transcript after the user's last message, but the final message neither relays its outcome nor acts on it. A delegate that is still running has no report to relay yet.
 
 A question about one item or a running delegate releases only the items that depend on it, so a turn that asks a real question while deferring other work is still blocked.
