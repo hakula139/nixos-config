@@ -61,7 +61,7 @@ Write within the recorded structure, for reviewers who have not seen the convers
 - If asked only to draft a title and body, return the text without publishing. A request for a draft PR / MR authorizes publishing it as a draft.
 - Set assignees and labels when creating a request. If no existing label fits, create one that follows the repository's label scheme. Pass multiline bodies through a file or structured argument, such as `gh pr create --body-file <file>`. Use `#N` for issues and GitHub PRs in the same repository, and `!N` for GitLab MRs.
 - Read back each created or updated request, verifying its title, body, base, diff, assignees, and labels, and fix anything lost before reporting completion.
-- For an approved merge, confirm the host reports the branch as mergeable, then use the repository's merge method. If branch protection requires CI checks, queue an auto-merge, such as `gh pr merge --auto --squash`, and move on without polling. Otherwise, wait for CI to pass on the current head. Rebase only if the branch conflicts or the host requires it to be up to date. If a queued auto-merge falls behind, run `gh pr update-branch` because auto-merge does not update the branch.
+- For an approved merge, delegate to the `operator` agent when one is available, quote the user's approval verbatim in its brief, and have it follow this procedure: confirm that the host reports the branch as mergeable, then use the repository's merge method. If branch protection requires CI checks, queue an auto-merge, such as `gh pr merge --auto --squash`, and move on without polling. Otherwise, wait for CI to pass on the current head. Rebase only if the branch conflicts or the host requires it to be up to date. If a queued auto-merge falls behind, run `gh pr update-branch` because auto-merge does not update the branch.
 - After the merge, verify the remote state and confirm CI passes on the target branch. For GitHub squash merges, keep GitHub's default commit message. Report queued auto-merges as pending until they land.
 - Stack a request that depends on or overlaps another open request on that request's branch, and name the base request in the description. After the base squash-merges, run `git rebase --onto <default-branch> <old-base-head> <branch>` to drop its pre-squash commits, then retarget the request to the default branch if the host has not.
 
@@ -80,7 +80,7 @@ Pass an edited body through a file or structured argument, then read the issue b
 
 ## Cleanup
 
-When work finishes, clean up within the authorization above.
+When work finishes, clean up within the authorization above, and include the cleanup in the operator's brief after an approved merge when an `operator` agent is available.
 
 - Before removing a worktree, check it for uncommitted, untracked, and ignored files, preserve anything still needed, and confirm that no other agent or terminal is using it. A detached HEAD may be the only reference to its commits, so confirm they reached a remote branch, matching by subject as well as patch ID because conflict resolution changes patch IDs. Treat a denied or interrupted removal as an unknown outcome and reread `git worktree list` before retrying. Diff unique ignored content, such as agent memory directories, local settings, and notes, against its counterpart in the main checkout, and merge anything missing there.
 - Remove the worktree and its local branch, then prune its remote-tracking ref. Use the repository's tooling or the `clean-gone` skill for merged branches. Delete a remote branch only when explicitly requested.

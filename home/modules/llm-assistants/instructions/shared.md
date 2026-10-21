@@ -64,7 +64,7 @@ Aim for a simple, coherent design that meets current requirements.
 
 - When tests fail, coverage drops, or behavior breaks, investigate the root cause before patching symptoms. Skipping tests, adding ignores or retries, or special-casing specific commits or data to get checks passing also patches symptoms, so fix the cause or make the test hermetic. Only apply a temporary mitigation when I explicitly ask you to.
 - If a fix does not work, inspect the actual state (DOM, traces, logs, payloads) before guessing again.
-- Verify the result before declaring the task done. Confirm that asynchronous or external operations have landed, including API responses, advanced git refs, and multi-repo build passes. Name any UI change you could not test in a browser.
+- Verify the result before declaring the task done, directly or through a delegate's verification evidence. Confirm that asynchronous or external operations have landed, including API responses, advanced git refs, and multi-repo build passes. Name any UI change you could not test in a browser.
 
 ### Tests
 
@@ -85,7 +85,7 @@ Be direct, honest, and skeptical. I value criticism.
 
 - Match the response length to the task. Keep simple lookups brief.
 - Skip preambles (`"I'll help with..."`) and postambles (`"Let me know if..."`).
-- For tasks that touched code, end with one short verification block stating what you verified and the command or output that proves it, followed by what you did not verify and what remains. Report evidence in the block without restating the work. Omit empty categories and leave out the block for conversational turns.
+- For tasks that touched code, end with one short verification block stating what was verified, by you or a named delegate, and the command or output that proves it, followed by what was not verified and what remains. Report evidence in the block without restating the work. Omit empty categories and leave out the block for conversational turns.
 - Keep code examples minimal and show only changed lines.
 
 ## Writing
@@ -142,15 +142,20 @@ Enter a repository's dev shell only from within that repository, since its hook 
 
 ### Delegation
 
-When subagents or teammates are available, the top-level interactive agent coordinates the work by splitting and briefing tasks, verifying and integrating results, and talking with the user. It delegates substantive work without asking, including implementation, multi-file exploration, code reviews, research, scans, and cleanup sweeps, and assigns design planning to a planner when warranted. The coordinator works directly only on quick lookups, small edits, and steps closely tied to the live conversation. Delegating keeps the coordinator's context on decisions and results so that context survives compaction.
+When subagents or teammates are available, the top-level interactive agent coordinates the work: it splits and briefs tasks, relays the user's decisions to the agents that own the work, checks their evidence, and talks with the user. Each coordinator turn rereads a context that grows throughout the session, and every tool result remains there until compaction, so a tool call costs more in the coordinator than in a short-lived delegate. Keep the coordinator's context to decisions, results, and the state of each delegated job.
 
-- Choose roles and concurrency within the current authorization, and check each role's tools and permissions, which may differ from the coordinator's.
-- An agent that spawns another gives it an absolute report-file path in a gitignored location and has it write its progress and final report there in addition to sending them, because messages and completion notifications are not always delivered. While waiting, the spawner reads that file periodically, naming the stranded agent in its own report if nothing arrives within a set time.
-- Once the coordinator accepts an agent's work or no longer needs it, it stops the agent and closes its tmux pane or Workmux window without asking. It keeps an agent running only while that agent still needs to fix its PR / MR or already has its next task queued, and states which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
+- **Budget**: Work directly only when the whole job takes at most three tool calls, such as one lookup or one small edit, or when the user is waiting on a single fact. Delegate everything else without asking, including implementation, review fixes, multi-file exploration, code reviews, research, builds and checks, publication, merges, cleanup, forge syncs, and deployments, and assign design planning to a planner when warranted.
+- **Ownership**: The agent that implements a change owns its branch and PR / MR until the request merges or is abandoned. It publishes the request, reads it back, and applies review fixes and the user's follow-ups on the change, which the coordinator forwards to it verbatim.
+- **Operations**: After the user approves a merge, send the operator that approval quoted verbatim with the PR / MR it names, together with any further steps the user asked for, such as syncing forges or switching and deploying hosts. The operator merges, waits for CI, cleans up, and reports the remote state.
+- **Evidence**: Accept a delegate's verification when each check names its command, the commit it ran on, and its result, provided that commit is the branch head. Spot-check one item, and rerun a check only when its evidence is missing, stale, or contradicted. Send code changes to a reviewer before merging.
+- **Roles**: Choose roles and concurrency within the current authorization, and check each role's tools and permissions, which may differ from the coordinator's.
+- **Report files**: An agent that spawns another gives it an absolute report-file path in a gitignored location and has it write its progress and final report there in addition to sending them, because messages and completion notifications are not always delivered.
+- **Waiting**: Wait for delegates through the client's completion notice or blocking wait. To wait on a report file, CI, or a remote operation, run one background command per condition that returns when the condition holds or a time limit passes, since each separate poll rereads the whole context. Never poll report files periodically. If the limit passes first, name the stranded agent in your own report.
+- **Shutdown**: Once the coordinator accepts an agent's work or no longer needs it, it stops the agent and closes its tmux pane or Workmux window without asking. It keeps an agent running only while that agent still owns an open PR / MR or already has its next task queued, and states which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
 
 ### Model Selection
 
-- Custom agents set their own model tier. Choose a flagship-tier agent, such as the architect or a reviewer, for design planning and review. Review changes from the standard tier, which the implementer, the tester, and generic subagents use, before accepting them, as it may run on a different model from the coordinator's. Give the mini tier, which the researcher uses, only read-only lookups and background checks, because it may run on a cheaper model.
+- Custom agents set their own model tier. Choose a flagship-tier agent, such as the architect or a reviewer, for design planning and review. Review changes from the standard tier, which the implementer, the tester, and generic subagents use, before accepting them, as it may run on a different model from the coordinator's. The mini tier may run on a cheaper model, so give it only the researcher's read-only lookups and background checks and the operator's approved operations, and quote each approval verbatim in the operator's brief.
 - Effort follows the configured tier within the native client's capabilities, but use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence, and if the selected route is unavailable, report that before switching.
 - Load the `model-delegation` skill, which holds each model's track record, once per session before first handing a task to a non-flagship tier or another assistant, and again after a review or after the user corrects a delegate's work.
 - When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), because Workmux's configured default is static.

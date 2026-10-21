@@ -84,7 +84,7 @@ When in doubt, choose the lower severity. Avoid generic requests to add tests.
 
 - **Review (default):** Report findings without editing files, committing, or posting comments. Post PR / MR comments only when asked.
 - **Fix:** Resolve every verified finding in the same round, including Suggestions and pre-existing issues, such as those in the code around a diff. Do not defer any to follow-up PRs or TODOs. Fix findings specific to a PR on its branch, and put pre-existing issues and repository-review fixes in scoped PRs / MRs. Resolve design questions from first principles and record each decision with its rationale in the PR / MR description. Rerun checks and review the fixed areas until no findings remain, then commit and publish through `git-workflow`.
-- **Merge:** Once no findings remain, merge each reviewed PR / MR through `git-workflow`, update pins or submodules that track the merged commit, and clean up as the `git-workflow` skill's Cleanup section describes.
+- **Merge:** Once no findings remain, merge each reviewed PR / MR through `git-workflow`, which hands the merge to the `operator` agent when one is available, quoting the user's review-and-merge request verbatim as the approval. Then update pins or submodules that track the merged commit, and clean up as the `git-workflow` skill's Cleanup section describes.
 
 ## Report
 
