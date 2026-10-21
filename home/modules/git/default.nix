@@ -59,7 +59,9 @@ in
       pull.rebase = true;
       rebase = {
         autostash = true;
-        updateRefs = true;
+        # Force-moves every branch in the rebased range that no worktree has checked out, silently
+        # rewriting other agents' branches in a shared ref store. Pass --update-refs to opt in.
+        updateRefs = false;
       };
 
       # Report a submodule only when its checked-out commit changes
