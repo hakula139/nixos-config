@@ -55,7 +55,6 @@ let
           lib.nameValuePair "ANTHROPIC_DEFAULT_${lib.toUpper alias}_MODEL" (aliasModelId workloads.${tier})
         ) modelAliases.claude
         // {
-          CLAUDE_CODE_AUTO_COMPACT_WINDOW = toString roles.default.model.autoCompactTokens;
           CLAUDE_CODE_SUBAGENT_MODEL = modelAliases.claude.${roleTiers.task.modelTier};
         }
         // lib.optionalAttrs (roles.default.family == "claude") {
@@ -75,6 +74,12 @@ let
             lib.nameValuePair (clientModelId workload)
               workloadPolicy.${workload.family}.${roleTiers.default.effortTier}
           ) (builtins.attrValues workloads)
+        )
+      );
+
+      compactWindows = lib.listToAttrs (
+        map (workload: lib.nameValuePair (clientModelId workload) workload.model.autoCompactTokens) (
+          builtins.attrValues workloads
         )
       );
 
@@ -153,7 +158,7 @@ let
     inherit lib;
     defaultSessionEffort = defaultProfiles.official.sessionEffort;
     defaultEfforts = workloadPolicy.claude;
-    defaultCompactWindow = defaultProfiles.official.extraEnv.CLAUDE_CODE_AUTO_COMPACT_WINDOW;
+    defaultCompactWindows = defaultProfiles.official.compactWindows;
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -266,12 +271,18 @@ let
     name: profile:
     let
       esc = lib.escapeShellArg;
+
+      modelSettings = lib.zipAttrsWith (_: lib.mergeAttrsList) [
+        (lib.mapAttrs (_: effortLevel: { inherit effortLevel; }) profile.modelEfforts)
+        (lib.mapAttrs (_: autoCompactWindow: { inherit autoCompactWindow; }) profile.compactWindows)
+      ];
+
       settings = json.generate "claude-code-settings-${name}.json" (
         {
           effortLevel = profile.sessionEffort;
         }
-        // lib.optionalAttrs (profile.modelEfforts != { }) {
-          modelSettings = lib.mapAttrs (_: effortLevel: { inherit effortLevel; }) profile.modelEfforts;
+        // lib.optionalAttrs (modelSettings != { }) {
+          inherit modelSettings;
         }
         // lib.optionalAttrs (profile.modelOverrides != { }) {
           inherit (profile) modelOverrides;
