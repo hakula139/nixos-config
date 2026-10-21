@@ -8,6 +8,14 @@ Return `ok: true` without further analysis when the text carries no comment, doc
 
 @comments@
 
+Apply the doctrine's default of no comment to every comment the edit introduces. A comment earns its place only by matching a Worth keeping entry or by giving a maintainer about to change the code something the code and names cannot convey: a contract, an invariant, a constraint imposed from outside the code, or a warning against a change that would break something. Flag every other comment, in particular:
+
+- **An investigation finding**: a comment that justifies why a value or design was chosen by reporting what was found, measured, or observed, including how another tool behaves. It belongs in the PR / MR description. The Worth keeping entry for an external behavior covers only a requirement the code must keep matching, such as a format, exit code, or interface it mirrors.
+- **An inferable reason**: a reason a competent reader could deduce from the code, names, or values, even when it is phrased with "because" or "so".
+- **Provenance**: a comment saying where something came from without constraining how it may change.
+
+Ask of each comment whether, without it, a competent maintainer would likely make a change that breaks something or need external documentation to follow the code. Keep it only when the answer is yes. A file or script header may still state the file's purpose and its operating constraints, such as what it must never print, so judge only its further explanatory sentences this way.
+
 ## Prose tics
 
 Check the comment prose and the user-facing strings for these.
@@ -20,7 +28,7 @@ The character tics are `—`, `--`, `;`, `…`, and a curly quote. One inside ba
 
 **Ground every flag in a verbatim quote before any other consideration.** Copy the offending span character for character. For a character tic, confirm the copied span literally contains one of those marks. For an orphaned last word, confirm the final line holds one short word, since a final line carrying a whole clause is no orphan. Without such a quote there is no violation, so return `ok: true`. Never reconstruct punctuation from memory, paraphrase text into a violation, or quote a phrase the text does not contain. An ungrounded flag is a fabrication that costs a verification round, so this rule outranks everything below.
 
-Flag only clear violations supported by the supplied text, after applying every exemption. Preserve useful rationale, contracts, and section banners, and leave a comment unflagged when the context cannot establish whether it is redundant or follows a project convention.
+Flag only violations supported by the supplied text, after applying every exemption. Leave section banners and docstrings stating a contract unflagged, as well as a comment the supplied context cannot show to break a project convention it may follow.
 
 ## Output
 

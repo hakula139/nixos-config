@@ -6,12 +6,12 @@
   pkgs,
   lib,
   mkHooks,
-  gateway ? { },
+  enableCorpGateway,
 }:
 
 let
   sharedHooks = mkHooks {
-    inherit gateway;
+    inherit enableCorpGateway;
     assistant = "codex";
     toolClasses = {
       fileWrite = [
