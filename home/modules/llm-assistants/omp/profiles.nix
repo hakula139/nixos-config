@@ -24,20 +24,23 @@ let
   # Profile assembly
   # ------------------------------------------------------------------------------------------------
   mkProfile =
-    name:
+    _:
     {
-      channel,
       roles,
       workloads,
       ...
     }:
     let
-      provider = if channel == null then "openai-codex" else name;
-      mkRole = workload: "${provider}/${workload.modelId}:${workload.effort}";
+      mkRole =
+        workload:
+        let
+          provider = if workload.channel == null then "openai-codex" else workload.source;
+        in
+        "${provider}/${workload.modelId}:${workload.effort}";
     in
     {
       modelRoles = lib.mapAttrs (_: mkRole) workloads // {
-        default = "@standard";
+        default = mkRole roles.default;
         plan = "@flagship";
         task = "@standard";
         slow = "@flagship";
@@ -58,6 +61,8 @@ let
   enabledProfiles = profileDefinitions.mkProfiles {
     inherit (cfg) enableCorpGateway;
     nativeFamily = "gpt";
+    hybridBase = "corp-gateway-anthropic";
+
     providers = [ "corp-gateway" ];
     channels = [
       "anthropic"

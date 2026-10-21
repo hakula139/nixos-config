@@ -129,7 +129,7 @@ Before editing documentation, identify what specifically needs correction or rem
 
 ## Tools and Delegation
 
-Use only the tools and capabilities available in the current session, within their actual schemas and permission boundaries. Prefer relevant installed skills and follow their workflows and resources.
+Use only the tools and capabilities available in the current session, within their actual schemas and permission boundaries. Prefer relevant installed skills, following their workflows and resources. If a tool or the environment misbehaves, hand the repair to the `environment-repair` skill and continue the main task.
 
 ### Terminal Sessions
 
@@ -141,14 +141,18 @@ Enter a repository's dev shell only from within that repository, since its hook 
 
 ### Delegation
 
-- When subagents or teammates are available, the top-level interactive agent coordinates the work: it splits and briefs tasks, verifies and integrates results, and talks with the user. It delegates substantive work without asking, including implementation, multi-file exploration, code reviews, research, scans, and cleanup sweeps. When warranted, it assigns design planning to a flagship-tier planner. The coordinator works directly only on quick lookups, small edits, and steps closely tied to the live conversation. Delegating keeps the coordinator's context on decisions and results, so that context survives compaction.
-- An agent that spawns another gives it an absolute report-file path in a gitignored location and has it write its progress and final report there in addition to sending them, since messages and completion notifications are not always delivered. While waiting, the spawner reads that file periodically, and if nothing arrives within a set time, it names the stranded agent in its own report.
-- Once the coordinator accepts an agent's work or no longer needs it, it stops the agent and closes its tmux pane or Workmux window without asking. It keeps an agent running only while that agent still needs to fix its PR / MR or already has its next task queued, and says which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
-- Choose roles and concurrency within the current authorization. Check each role's tools and permissions, which may differ from the coordinator's.
-- The coordinator and general-purpose subagents use the active profile's standard tier. Planners and demanding specialists use the flagship tier, while the mini tier suits bounded research and background checks. Effort follows the configured tier within the native client's capabilities. Use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence. If the selected route is unavailable, report that before switching.
-- Give Codex only fully specified tasks with mechanically checkable results, such as an exact edit list, because it does not reliably infer conventions or make design decisions. Keep design decisions, convention judgments, and test writing with Claude.
-- When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), since Workmux's configured default is static.
-- If a tool or the environment misbehaves, hand the repair to the `environment-repair` skill and continue the main task.
+When subagents or teammates are available, the top-level interactive agent coordinates the work by splitting and briefing tasks, verifying and integrating results, and talking with the user. It delegates substantive work without asking, including implementation, multi-file exploration, code reviews, research, scans, and cleanup sweeps, and assigns design planning to a planner when warranted. The coordinator works directly only on quick lookups, small edits, and steps closely tied to the live conversation. Delegating keeps the coordinator's context on decisions and results so that context survives compaction.
+
+- Choose roles and concurrency within the current authorization, and check each role's tools and permissions, which may differ from the coordinator's.
+- An agent that spawns another gives it an absolute report-file path in a gitignored location and has it write its progress and final report there in addition to sending them, because messages and completion notifications are not always delivered. While waiting, the spawner reads that file periodically, naming the stranded agent in its own report if nothing arrives within a set time.
+- Once the coordinator accepts an agent's work or no longer needs it, it stops the agent and closes its tmux pane or Workmux window without asking. It keeps an agent running only while that agent still needs to fix its PR / MR or already has its next task queued, and states which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
+
+### Model Selection
+
+- Custom agents set their own model tier. Choose a flagship-tier agent, such as the architect or a reviewer, for design planning and review. Review changes from the standard tier, which the implementer, the tester, and generic subagents use, before accepting them, as it may run on a different model from the coordinator's. Give the mini tier, which the researcher uses, only read-only lookups and background checks, because it may run on a cheaper model.
+- Effort follows the configured tier within the native client's capabilities, but use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence, and if the selected route is unavailable, report that before switching.
+- Load the `model-delegation` skill, which holds each model's track record, once per session before first handing a task to a non-flagship tier or another assistant, and again after a review or after the user corrects a delegate's work.
+- When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), because Workmux's configured default is static.
 
 ### MCP Servers
 

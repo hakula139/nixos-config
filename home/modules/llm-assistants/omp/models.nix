@@ -11,7 +11,7 @@
 }:
 
 let
-  inherit (profileDefinitions) familyApis providers;
+  inherit (profileDefinitions) providers;
 
   mkModel = channel: model: {
     inherit (model)
@@ -26,11 +26,16 @@ let
     cost = model.channelCost.${channel};
   };
 
+  # Every workload of one source shares its API, channel, and family.
+  sourceWorkloads = lib.groupBy (workload: workload.source) (
+    lib.concatMap (profile: builtins.attrValues profile.workloads) (builtins.attrValues profiles)
+  );
+
   mkProvider =
-    _: profile:
+    source: workloads:
     let
-      api = familyApis.${profile.family};
-      provider = providers.${profile.provider};
+      inherit (lib.head workloads) api channel family;
+      provider = providers.${profiles.${source}.provider};
       tokenFile = secretPath (provider.tokenSecretFor "omp");
     in
     {
@@ -40,9 +45,9 @@ let
       apiKey = "!${lib.getExe' pkgs.coreutils "cat"} ${lib.escapeShellArg tokenFile}";
       authHeader = true;
       headers = provider.extraHeaders or { };
-      models = map (mkModel profile.channel) (lib.unique (builtins.attrValues profile.models));
+      models = map (mkModel channel) (lib.unique (map (workload: workload.model) workloads));
     }
-    // lib.optionalAttrs (profile.family == "claude") {
+    // lib.optionalAttrs (family == "claude") {
       compat.supportsLongCacheRetention = true;
     }
     // lib.optionalAttrs (api == "openai-responses") {
@@ -50,11 +55,11 @@ let
         # Override unrelated bundled-provider compat inherited by custom models.
         supportsReasoningEffort = true;
       }
-      // lib.optionalAttrs (profile.family == "gpt") {
+      // lib.optionalAttrs (family == "gpt") {
         supportsLongPromptCacheRetention = true;
       };
     };
 in
 {
-  providers = lib.mapAttrs mkProvider profiles;
+  providers = lib.mapAttrs mkProvider sourceWorkloads;
 }

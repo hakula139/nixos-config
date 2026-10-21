@@ -82,7 +82,7 @@
     '';
 
     prompt = readPrompt ./prompts/implementer.md;
-    workload = "flagship";
+    workload = "standard";
 
     claude = {
       color = "yellow";

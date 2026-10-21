@@ -26,6 +26,7 @@ let
     gh-fix-ci = openai + "/gh-fix-ci";
     git-workflow = ./git-workflow;
     mcp-builder = anthropic + "/mcp-builder";
+    model-delegation = ./model-delegation;
     read-pdfs = ./read-pdfs;
     review = ./review;
     security-best-practices = openai + "/security-best-practices";

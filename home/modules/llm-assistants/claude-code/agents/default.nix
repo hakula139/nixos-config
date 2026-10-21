@@ -7,7 +7,7 @@
   sharedAgents,
   enabledAgents,
   modelAliases,
-  workloadPolicy,
+  efforts,
 }:
 
 let
@@ -22,7 +22,7 @@ let
     let
       settings = agent.claude // {
         model = modelAliases.${agent.workload};
-        effort = workloadPolicy.${agent.workload};
+        effort = efforts.${agent.workload};
       };
 
       frontmatterLines = [
