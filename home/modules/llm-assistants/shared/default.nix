@@ -65,12 +65,14 @@ in
       inherit
         pkgs
         lib
+        secretPath
         modelCatalog
         repo
         enableDevToolchains
         ;
       inherit (config.xdg) dataHome;
       inherit (promptFragments) readPrompt phrasing;
+      corpGateway = profileDefinitions.providers.corp-gateway;
     };
 
     notify = import ./notify { inherit pkgs lib; };
