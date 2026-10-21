@@ -8,8 +8,6 @@
 }:
 
 let
-  commandText = entry: lib.concatStringsSep " " entry.argv;
-
   softDenyClearance = ''
     Allow when the user explicitly approves the action, including approval already given in
     the conversation. Otherwise, block it even if an allow rule would permit it.
@@ -20,7 +18,7 @@ let
     map (
       entry:
       let
-        name = entry.name or "`${commandText entry}`";
+        name = entry.name or "`${entry.command}`";
       in
       "${name}: ${lib.trim entry.reason}"
     ) entries;
@@ -29,7 +27,7 @@ let
     entries: map (rule: "${rule} ${lib.trim softDenyClearance}") (toProseRules entries);
 in
 {
-  classifyAllShell = true;
+  classifyAllShell = false;
   environment = [
     "$defaults"
     "Source control: github.com/hakula139 and all repos under it"
