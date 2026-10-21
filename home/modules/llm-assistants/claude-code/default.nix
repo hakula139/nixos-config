@@ -80,6 +80,7 @@ in
       hooks = import ./hooks {
         inherit pkgs lib;
         inherit (shared) mkHooks notify;
+        inherit (cfg.auth) enableCorpGateway;
         modelAliases = shared.profileDefinitions.modelAliases.claude;
       };
 

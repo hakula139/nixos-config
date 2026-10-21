@@ -6,12 +6,14 @@
   pkgs,
   lib,
   mkHooks,
+  enableCorpGateway,
   modelAliases,
   notify,
 }:
 
 let
   sharedHooks = mkHooks {
+    inherit enableCorpGateway;
     assistant = "claude-code";
     toolClasses = {
       askQuestion = [ "AskUserQuestion" ];

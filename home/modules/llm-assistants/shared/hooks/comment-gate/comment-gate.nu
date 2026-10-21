@@ -4,8 +4,10 @@
 # Comment Gate
 # ==================================================================================================
 
+use std-rfc/str
+
 const MIN_CHARS = 12
-const MAX_TOKENS = 2048
+const MAX_TOKENS = 8192
 
 # Line comment openers by file extension. A payload carrying none of its language's openers cannot
 # carry a comment, which is the whole prefilter.
@@ -80,15 +82,43 @@ def commentish [path: string, text: string]: nothing -> bool {
   $openers | any {|opener| $stripped | str contains $opener }
 }
 
-def judge [text: string, config: record]: nothing -> string {
+# The model's reply, or the caller's reason for having none.
+def judge [text: string, config: record]: nothing -> record {
   let caller = $config.modelCall
   let request = {
+    model: $config.model
+    maxTokens: $MAX_TOKENS
     system: $config.prompt
     user: $text
-    maxTokens: $MAX_TOKENS
   }
   let run = ($request | to json | ^$caller | complete)
-  if $run.exit_code != 0 { "" } else { $run.stdout }
+  if $run.exit_code != 0 {
+    {error: ($run.stderr | str trim)}
+  } else {
+    {reply: $run.stdout}
+  }
+}
+
+def context [message: string]: nothing -> string {
+  {
+    hookSpecificOutput: {
+      hookEventName: "PostToolUse"
+      additionalContext: $message
+    }
+  }
+  | to json --raw
+}
+
+# A check that could not run still tells the agent, since silence would read as a pass.
+def unchecked [problem: string]: nothing -> string {
+  print --stderr $"comment-gate: ($problem)"
+  context ({problem: $problem} | format pattern (
+    "
+    The comment gate could not check the text you just wrote, so its comments went unreviewed.
+    Reason: {problem}
+    "
+    | str dedent
+  ))
 }
 
 # The verdict sits at the end of the reply, after findings that quote the text under judgement.
@@ -126,29 +156,30 @@ def gate [config: record]: nothing -> any {
   })
   if ($found | is-empty) { return null }
 
-  let raw = (judge ($found | to json) $config)
-  if ($raw | str trim | is-empty) {
+  let judged = (judge ($found | to json) $config)
+  if ($judged | get -o error) != null {
+    return (unchecked $judged.error)
+  }
+  let ok = (verdict $judged.reply | get -o ok)
+  if $ok == null {
+    return (unchecked "the model's reply carries no verdict")
+  }
+  if $ok {
     return null
   }
-  if ((verdict $raw) | get -o ok | default true) {
-    return null
-  }
-  {
-    hookSpecificOutput: {
-      hookEventName: "PostToolUse"
-      additionalContext: ([
-        "The comment gate flagged comments in the text you just wrote."
-        "Check each finding against surrounding code and comparable files before changing it."
-        ""
-        (reason $raw)
-      ] | str join "\n")
-    }
-  }
-  | to json --raw
+  context ({reason: (reason $judged.reply)} | format pattern (
+    "
+    The comment gate flagged comments in the text you just wrote.
+    Check each finding against surrounding code and comparable files before changing it.
+
+    {reason}
+    "
+    | str dedent
+  ))
 }
 
 def main [config_file: string] {
-  let out = (try { gate (open $config_file) } catch { null })
+  let out = try { gate (open $config_file) } catch {|err| unchecked $err.msg }
   if $out != null {
     print $out
   }

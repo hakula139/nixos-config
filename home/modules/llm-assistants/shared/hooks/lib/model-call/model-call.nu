@@ -3,32 +3,22 @@
 # ==================================================================================================
 # Shared Model Call
 # ==================================================================================================
-# Two legs: the profile's gateway, then Codex. Codex carries its own credentials, so it is the only
-# leg that survives a subscription profile, where the gateway variables are absent.
+# Sends one chat completion to the corp gateway and prints the reply. Without a usable reply it
+# exits nonzero with the reason on stderr.
 # ==================================================================================================
 
-def gateway [request: record, config: record]: nothing -> string {
-  # Codex authenticates its provider with a command, so hooks do not inherit a token.
-  let credentials = if ($config.gateway | is-not-empty) {
-    {
-      baseUrl: $config.gateway.baseUrl
-      token: (open --raw $config.gateway.tokenFile | str trim)
-      caFile: $config.gateway.caFile
-    }
-  } else {
-    {
-      # Claude profile API suffix
-      baseUrl: ($env | get -o ANTHROPIC_BASE_URL | default "" | str replace -r '/anthropic$' '')
-      token: ($env | get -o ANTHROPIC_AUTH_TOKEN | default "")
-      caFile: ($env | get -o NODE_EXTRA_CA_CERTS | default "")
-    }
-  }
-  if ($credentials.baseUrl | is-empty) or ($credentials.token | is-empty) {
-    return ""
-  }
+def fail [reason: string] {
+  print --stderr $"model-call: ($reason)"
+  exit 1
+}
+
+def main [config_file: string] {
+  let config = (open $config_file)
+  let gateway = $config.gateway
+  let request = (^cat | from json)
 
   let body = {
-    model: ($request | get -o model | default $config.gatewayModel)
+    model: $request.model
     max_tokens: $request.maxTokens
     stream: false
     tool_choice: "none"
@@ -42,83 +32,37 @@ def gateway [request: record, config: record]: nothing -> string {
   } else {
     $body
   }
-  let ca = $credentials.caFile
-  let cacert = if ($ca | is-empty) { [] } else { [--cacert $ca] }
+  let token = (open --raw $gateway.tokenFile | str trim)
   let curl = $config.curl
   # The gateway's advertised IPv6 endpoint closes during TLS.
   let run = (
     $shaped
     | to json
-    | ^$curl --ipv4 --silent --show-error --fail --max-time $config.gatewayTimeout
-      ...$cacert
-      --header $"Authorization: Bearer ($credentials.token)"
+    | ^$curl --ipv4 --silent --show-error --fail
+      --connect-timeout $config.connectTimeout
+      --max-time $config.timeout
+      --cacert $gateway.caFile
+      --header $"Authorization: Bearer ($token)"
       --header "content-type: application/json"
       --data @-
-      $"($credentials.baseUrl)/v1/chat/completions"
+      $"($gateway.baseUrl)/v1/chat/completions"
     | complete
   )
   if $run.exit_code != 0 {
-    return ""
+    fail ($run.stderr | str trim)
   }
 
-  let response = ($run.stdout | from json)
+  let response = (try { $run.stdout | from json } catch { null })
   if not ($response | describe | str starts-with "record") {
-    return ""
+    fail "the gateway reply is not a JSON object"
   }
-  if ($response | get -o choices.0.finish_reason | default "") != "stop" {
-    return ""
+  let finish = ($response | get -o choices.0.finish_reason | default "none")
+  if $finish != "stop" {
+    fail $"the gateway reply ended with finish_reason ($finish)"
   }
-  let reply = ($response | get -o choices.0.message.content | default "")
-  if ($reply | describe) == "string" { $reply } else { "" }
-}
-
-def codex [request: record, config: record]: nothing -> string {
-  let codex_bin = $config.codex
-  if (which $codex_bin | is-empty) {
-    return ""
+  let reply = ($response | get -o choices.0.message.content)
+  if ($reply | describe) != "string" or ($reply | str trim | is-empty) {
+    fail "the gateway reply carries no text"
   }
-  let timeout = $config.timeout
-  # Codex has no response-format switch, so JSON mode is asked for in words.
-  let instruction = if ($request | get -o json | default false) {
-    "Reply with one JSON object and nothing else. No prose, no code fence."
-  } else {
-    ""
-  }
-  let run = (
-    [$request.system $instruction "" $request.user]
-    | where ($it | is-not-empty)
-    | str join "\n"
-    # `codex exec` takes no deadline of its own.
-    | ^$timeout $config.codexTimeout $codex_bin exec
-      --ephemeral
-      # Skips the MCP servers a normal session loads, keeping this leg near the gateway's latency.
-      --ignore-user-config
-      --skip-git-repo-check
-      --color never
-      --sandbox read-only
-      --model $config.codexModel
-      -
-    | complete
-  )
-  if $run.exit_code != 0 { "" } else { $run.stdout }
-}
-
-def reply [request: record, config: record]: nothing -> string {
-  let first = (try { gateway $request $config } catch { "" })
-  if ($first | str trim | is-not-empty) {
-    return $first
-  }
-  try { codex $request $config } catch { "" }
-}
-
-def main [config_file: string] {
-  let config = (open $config_file)
-  let request = (^cat | from json)
-  if not ($request | describe | str starts-with "record") {
-    return
-  }
-  let out = (reply $request $config)
-  if ($out | str trim | is-not-empty) {
-    print --no-newline $out
-  }
+  print --no-newline $reply
 }
