@@ -395,7 +395,10 @@
         in
         {
           default = pkgs.mkShell {
-            packages = basePackages ++ [ preCommitCheck.config.package ];
+            packages = basePackages ++ [
+              preCommitCheck.config.package
+              tooling.scriptPython
+            ];
 
             # git-hooks.nix stores a hooks path relative to the main checkout, which linked worktrees
             # can't resolve (cachix/git-hooks.nix#688), so unset it to fall back to the shared hooks
