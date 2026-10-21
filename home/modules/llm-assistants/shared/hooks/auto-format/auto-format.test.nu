@@ -23,6 +23,8 @@ const TOOLS = [
   taplo
 ]
 
+# Installs the tool stub as an executable at `target` and returns `target`, the path the stub
+# logs as its `bin`.
 def install-stub [target: string]: nothing -> string {
   mkdir ($target | path dirname)
   $"#!($nu.current-exe) --no-config-file\n" + (open --raw $STUB) | save $target
@@ -70,6 +72,7 @@ def run-hook [file: string, cwd: string, --path: list<string> = []]: nothing -> 
   }
 }
 
+# Writes a file at `path`, creating its parent directories, and returns `path`.
 def write-file [path: string]: nothing -> string {
   mkdir ($path | path dirname)
   "content\n" | save $path
@@ -153,7 +156,8 @@ def "test tools outside a repository run from the directory of the edited file" 
 
   let calls = (run-hook $file (mktemp --directory))
 
-  assert equal ($calls | get cwd | uniq) [($dir | path join docs)]
+  let docs = ($dir | path join docs)
+  assert equal ($calls | get cwd) [$docs $docs $docs]
 }
 
 def "test tools in a linked worktree run from the worktree root" [] {
@@ -166,7 +170,7 @@ def "test tools in a linked worktree run from the worktree root" [] {
 
   let calls = (run-hook $file $repo)
 
-  assert equal ($calls | get cwd | uniq) [$worktree]
+  assert equal ($calls | get cwd) [$worktree $worktree $worktree]
 }
 
 def "test the nearest project cspell takes precedence" [] {

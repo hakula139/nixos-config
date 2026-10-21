@@ -74,6 +74,7 @@ def "test each user gets the servers their level admits" [] {
 def "test no valid users fails and keeps existing subscriptions" [] {
   let result = (generate {eve: {uuid: eve-uuid, level: admin}})
 
-  assert not equal $result.run.exit_code 0
+  assert equal $result.run.exit_code 1
+  assert str contains $result.run.stderr "User eve is missing required fields: uuid, shortId"
   assert equal (subscriptions $result.output) [stale-uuid.yaml]
 }

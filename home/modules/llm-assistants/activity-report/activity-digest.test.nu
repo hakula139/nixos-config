@@ -12,7 +12,7 @@ const SCRIPT = ($SCRIPT_DIR | path join activity-digest.nu)
 const DAY = "2026-10-15"
 const HUMAN = {origin: {kind: human}}
 
-# A clock time on the reported day, or a full date and time
+# A clock time on the reported day, or a full date and time.
 def at [clock: string]: nothing -> string {
   if ($clock | str contains T) { $"($clock):00.000Z" } else { $"($DAY)T($clock):00.000Z" }
 }
@@ -50,7 +50,7 @@ def codex-event [clock: string, payload: record]: nothing -> record {
   {type: event_msg, timestamp: (at $clock), payload: $payload}
 }
 
-# A turn's task start, followed by its prompt if it has `text` and its completion at a `done` time
+# A turn's task start, followed by its prompt if it has `text` and its completion at a `done` time.
 def codex-turn [clock: string, text?: string, --done: string]: nothing -> list<record> {
   let item = {type: UserMessage, content: [{type: text, text: $text}]}
   [
