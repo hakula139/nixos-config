@@ -8,10 +8,6 @@ use std/assert
 
 const SCRIPT_DIR = path self .
 const SCRIPT = ($SCRIPT_DIR | path join wrapper.sh)
-const STUBS = {
-  direnv: ($SCRIPT_DIR | path join direnv.stub.nu)
-  tmux: ($SCRIPT_DIR | path join tmux.stub.nu)
-}
 
 const SERVER_PATH = "/server/bin"
 const REFUSAL = "none is started inside a Nix shell"
@@ -24,16 +20,9 @@ def wrap [argv: list<string>, env_vars: record = {}, --status: int = 0]: nothing
   let log = ($dir | path join calls.jsonl)
   let script = ($dir | path join wrapper.sh)
 
-  let stubs = $STUBS | items {|name, source|
-    let stub = ($dir | path join $name)
-    $"#!($nu.current-exe) --no-config-file\n" + (open --raw $source) | save $stub
-    ^chmod +x $stub
-    {name: $name, path: $stub}
-  } | transpose --header-row --as-record
-
   open --raw $SCRIPT
-  | str replace --all "@direnv@" $"'($stubs.direnv)'"
-  | str replace --all "@tmux@" $"'($stubs.tmux)'"
+  | str replace --all "@direnv@" $"'($env.NU_TEST_STUBS | path join direnv)'"
+  | str replace --all "@tmux@" $"'($env.NU_TEST_STUBS | path join tmux)'"
   | save $script
 
   let assignments = ({STUB_LOG: $log} | merge $env_vars | items {|name, value| $"($name)=($value)" })
@@ -44,11 +33,7 @@ def wrap [argv: list<string>, env_vars: record = {}, --status: int = 0]: nothing
   let context = $"argv ($argv | to nuon), env ($env_vars | to nuon): ($run.stderr)"
   assert equal $run.exit_code $status $context
 
-  let calls = if ($log | path exists) {
-    open --raw $log | lines | each { from json }
-  } else {
-    []
-  }
+  let calls = if ($log | path exists) { open $log | from json --objects } else { [] }
   $run | insert calls $calls | insert script $script
 }
 
