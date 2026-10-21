@@ -13,6 +13,8 @@ let
     the conversation. Otherwise, block it even if an allow rule would permit it.
   '';
 
+  toLine = text: lib.replaceStrings [ "\n" ] [ " " ] (lib.trim text);
+
   toProseRules =
     entries:
     map (
@@ -20,7 +22,7 @@ let
       let
         name = entry.name or "`${entry.command}`";
       in
-      "${name}: ${lib.trim entry.reason}"
+      "${name}: ${toLine entry.reason}"
     ) entries;
 
   mcpGates = map (gate: {
@@ -28,8 +30,7 @@ let
     inherit (gate) reason;
   }) policy.mcpGates;
 
-  toSoftDenyRules =
-    entries: map (rule: "${rule} ${lib.trim softDenyClearance}") (toProseRules entries);
+  toSoftDenyRules = entries: map (rule: "${rule} ${toLine softDenyClearance}") (toProseRules entries);
 in
 {
   classifyAllShell = false;

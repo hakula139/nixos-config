@@ -9,10 +9,6 @@
 let
   mcpOptions = import ./mcp-options.nix { inherit lib; };
 
-  covers = command: other: command == other || lib.hasPrefix "${command} " other;
-
-  duplicates = list: lib.unique (lib.filter (item: lib.count (other: other == item) list > 1) list);
-
   toMcpEntries =
     servers:
     lib.concatLists (
@@ -29,12 +25,29 @@ let
       ) servers
     );
 
-  withEntries =
+  toArgumentPatterns =
+    command: argument:
+    if lib.hasPrefix "-" argument then
+      [ "${command} *${argument}*" ]
+    else
+      [
+        "${command} ${argument}"
+        "${command} ${argument} *"
+        "${command} * ${argument}"
+        "${command} * ${argument} *"
+      ];
+
+  withFlatLists =
     policy:
     policy
     // {
       allowCommands = policy.allows.commands.readOnly ++ policy.allows.commands.mutating;
       gateCommands = map (gate: gate.command) policy.gates.commands;
+      argumentCommands = lib.unique (lib.concatMap (gate: gate.commands) policy.gates.arguments);
+      argumentPatterns = lib.concatMap (
+        gate:
+        lib.concatMap (command: lib.concatMap (toArgumentPatterns command) gate.arguments) gate.commands
+      ) policy.gates.arguments;
       mcpAllows = toMcpEntries (
         lib.mapAttrs (
           _:
@@ -45,6 +58,10 @@ let
       );
       mcpGates = toMcpEntries policy.gates.mcp;
     };
+
+  covers = command: other: command == other || lib.hasPrefix "${command} " other;
+
+  duplicates = list: lib.unique (lib.filter (item: lib.count (other: other == item) list > 1) list);
 
   checkPermissions =
     policy:
@@ -59,29 +76,52 @@ let
         )
       ) allowCommands;
 
+      readOnlyCovers = lib.concatMap (
+        readOnly:
+        map (mutating: "read-only `${readOnly}` covers mutating `${mutating}`") (
+          lib.filter (covers readOnly) policy.allows.commands.mutating
+        )
+      ) policy.allows.commands.readOnly;
+
+      readOnlyExecutors = lib.concatMap (
+        readOnly:
+        map (command: "read-only `${readOnly}` overlaps gated arguments of `${command}`") (
+          lib.filter (command: covers readOnly command || covers command readOnly) policy.argumentCommands
+        )
+      ) policy.allows.commands.readOnly;
+
       mcpServers = builtins.attrNames policy.allows.mcp ++ builtins.attrNames policy.gates.mcp;
       unknownServers = lib.unique (lib.subtractLists mcpOptions.allServerNames mcpServers);
 
       toMcpId = entry: "${entry.server}.${entry.tool}";
-      mcpAllows = map toMcpId policy.mcpAllows;
-      mcpGates = map toMcpId policy.mcpGates;
+      mcpAllowIds = map toMcpId policy.mcpAllows;
+      mcpGateIds = map toMcpId policy.mcpGates;
 
-      wildcards = lib.filter (lib.hasInfix "*") (allCommands ++ mcpAllows ++ mcpGates);
+      arguments = lib.concatMap (gate: gate.arguments) policy.gates.arguments;
+
+      wildcards = lib.filter (lib.hasInfix "*") (
+        allCommands ++ policy.argumentCommands ++ arguments ++ mcpAllowIds ++ mcpGateIds
+      );
 
       errors =
         overlaps
+        ++ readOnlyCovers
+        ++ readOnlyExecutors
         ++ map (item: "`${item}` is listed more than once") (
-          duplicates allCommands ++ duplicates mcpAllows ++ duplicates mcpGates
+          duplicates allCommands
+          ++ duplicates policy.argumentPatterns
+          ++ duplicates mcpAllowIds
+          ++ duplicates mcpGateIds
         )
         ++ map (item: "`${item}` contains `*`") wildcards
         ++ map (server: "unknown MCP server `${server}`") unknownServers
         ++ map (tool: "MCP tool `${tool}` is both allowed and gated") (
-          lib.intersectLists mcpAllows mcpGates
+          lib.intersectLists mcpAllowIds mcpGateIds
         );
     in
     lib.throwIf (errors != [ ]) "permissions.nix: ${lib.concatStringsSep "; " errors}" policy;
 
-  permissions = checkPermissions (withEntries (import ./permissions.nix));
+  permissions = checkPermissions (withFlatLists (import ./permissions.nix));
 in
 {
   inherit mcpOptions permissions;
