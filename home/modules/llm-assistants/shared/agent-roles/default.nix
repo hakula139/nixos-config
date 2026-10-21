@@ -101,6 +101,29 @@
     };
   };
 
+  operator = {
+    description = ''
+      Approved publication and operations. Use after the user approves a merge, or for multi-step
+      Git, forge, and host operations: merging approved PRs / MRs, waiting for CI, cleaning up
+      branches and worktrees, syncing forges, and switching or deploying hosts.
+    '';
+
+    prompt = readPrompt ./prompts/operator.md;
+    workload = "mini";
+
+    claude = {
+      color = "orange";
+      memory = "local";
+    };
+
+    codex = {
+      nicknameCandidates = [
+        "operator"
+        "ops"
+      ];
+    };
+  };
+
   researcher = {
     description = ''
       Fast codebase exploration and documentation lookup. Use when you need to gather context from

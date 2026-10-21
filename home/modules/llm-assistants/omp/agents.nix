@@ -13,13 +13,14 @@ let
   renderFrontmatter =
     name: agent:
     let
+      omp = agent.omp or { };
       frontmatterLines = [
         "name: ${builtins.toJSON name}"
         "description: ${builtins.toJSON agent.description}"
         "model: ${builtins.toJSON "@${agent.workload}"}"
       ]
-      ++ lib.optional (agent.omp ? spawns) "spawns: ${builtins.toJSON agent.omp.spawns}"
-      ++ lib.optional (agent.omp ? tools) "tools: ${lib.concatStringsSep ", " agent.omp.tools}";
+      ++ lib.optional (omp ? spawns) "spawns: ${builtins.toJSON omp.spawns}"
+      ++ lib.optional (omp ? tools) "tools: ${lib.concatStringsSep ", " omp.tools}";
     in
     lib.concatStringsSep "\n" ([ "---" ] ++ frontmatterLines ++ [ "---" ]);
 
