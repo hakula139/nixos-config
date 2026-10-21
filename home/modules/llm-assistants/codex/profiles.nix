@@ -44,23 +44,26 @@ let
 
   mkProfile =
     _: profile:
+    let
+      inherit (profile) roles workloads;
+    in
     {
-      model = profile.roles.default.modelId;
-      model_provider = if profile.channel == null then "openai" else "corp-gateway";
-      model_reasoning_effort = profile.roles.default.effort;
-      plan_mode_reasoning_effort = profile.roles.plan.effort;
+      model = roles.default.modelId;
+      model_provider = if profile.provider == null then "openai" else "corp-gateway";
+      model_reasoning_effort = roles.default.effort;
+      plan_mode_reasoning_effort = roles.plan.effort;
       agents = {
-        default_subagent_model = profile.roles.task.modelId;
-        default_subagent_reasoning_effort = profile.roles.task.effort;
+        default_subagent_model = roles.task.modelId;
+        default_subagent_reasoning_effort = roles.task.effort;
       }
-      // mkAgents profile.workloads;
+      // mkAgents workloads;
       web_search = if profile.nativeWebSearch then "live" else "disabled";
     }
-    // lib.optionalAttrs (profile.channel != null) {
+    // lib.optionalAttrs (profile.provider != null) {
       model_catalog_json = toString (mkModelCatalog profile);
     }
-    // lib.optionalAttrs (profile.family == "gpt") {
-      model_auto_compact_token_limit = profile.roles.default.model.autoCompactTokens;
+    // lib.optionalAttrs (roles.default.family == "gpt") {
+      model_auto_compact_token_limit = roles.default.model.autoCompactTokens;
     };
 
   # ------------------------------------------------------------------------------------------------

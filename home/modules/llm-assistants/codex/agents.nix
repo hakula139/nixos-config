@@ -33,6 +33,14 @@ let
       config_file = toString configFile;
       nickname_candidates = agent.codex.nicknameCandidates;
     };
+
+  roles = lib.mapAttrs mkAgentConfig (
+    lib.filterAttrs (name: _: lib.elem name enabledAgents) sharedAgents
+  );
+
+  # Codex has no switch for its built-in explorer, which runs on the default subagent model, so a
+  # role of the same name replaces it with the shared researcher on the mini tier.
+  explorerOverride = lib.optionalAttrs (roles ? researcher) { explorer = roles.researcher; };
 in
 {
   settings = {
@@ -40,5 +48,6 @@ in
     max_depth = 3;
     job_max_runtime_seconds = 1800;
   }
-  // lib.mapAttrs mkAgentConfig (lib.filterAttrs (name: _: lib.elem name enabledAgents) sharedAgents);
+  // roles
+  // explorerOverride;
 }

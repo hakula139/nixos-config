@@ -4,7 +4,8 @@
 
 {
   lib,
-  families,
+  defaultSessionEffort,
+  defaultEfforts,
   defaultCompactWindow,
 }:
 
@@ -21,10 +22,22 @@ lib.types.submodule {
       description = "Authentication type";
     };
 
-    family = lib.mkOption {
-      type = lib.types.enum families;
-      default = "claude";
-      description = "Model family for session and agent effort";
+    sessionEffort = lib.mkOption {
+      type = lib.types.str;
+      default = defaultSessionEffort;
+      description = "Reasoning effort for the main session";
+    };
+
+    modelEfforts = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      description = "Reasoning effort for each model ID, replacing `sessionEffort` for that model";
+    };
+
+    efforts = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = defaultEfforts;
+      description = "Reasoning effort for each model tier, used by custom agents";
     };
 
     baseUrl = lib.mkOption {

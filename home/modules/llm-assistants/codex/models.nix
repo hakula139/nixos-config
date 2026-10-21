@@ -14,8 +14,8 @@ let
   # GPT models
   # ------------------------------------------------------------------------------------------------
   gptDefaults = lib.mapAttrs' (
-    tier: model: lib.nameValuePair profile.modelIds.${tier} model.thinking.defaultLevel
-  ) profile.models;
+    _: workload: lib.nameValuePair workload.modelId workload.model.thinking.defaultLevel
+  ) profile.workloads;
 
   # Codex requires its native catalog's capabilities and prompt metadata.
   gpt =
@@ -46,9 +46,9 @@ let
   localModelMetadata = {
     models =
       lib.imap0
-        (priority: model: {
+        (priority: { model, modelId }: {
           inherit priority;
-          slug = model.channelId.${profile.channel};
+          slug = modelId;
           display_name = model.name;
           description = "${model.name} via the corporate gateway";
           default_reasoning_level = model.thinking.defaultLevel;
@@ -76,7 +76,7 @@ let
         })
         (
           lib.unique (
-            map (tier: profile.models.${tier}) [
+            map (tier: { inherit (profile.workloads.${tier}) model modelId; }) [
               "flagship"
               "standard"
               "mini"
@@ -103,4 +103,4 @@ in
 {
   inherit gpt local;
 }
-.${profile.family}
+.${profile.roles.default.family}

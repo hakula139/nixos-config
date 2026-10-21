@@ -101,7 +101,7 @@
     agentModelOverrides = {
       scout = "@${sharedAgents.researcher.workload}";
       security-reviewer = "@${sharedAgents.reviewer.workload}";
-      sonic = "@mini";
+      sonic = "@standard";
       task = "@task";
     };
 
