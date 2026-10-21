@@ -51,11 +51,12 @@ Write within the recorded structure, for reviewers who have not seen the convers
 
 - Open with the concrete problem or goal and the resulting behavior.
 - Give reviewers what they need to assess the change, such as rationale, tradeoffs, measurements, or migration steps, and report the checks you ran with their results, distinguishing verified behavior from untested limits.
-- Fold review fixes into the description. Omit implementation history, commit inventories, and abandoned approaches unless they explain a current tradeoff, and omit boilerplate sections, generated-by attributions, and emojis unless requested.
+- Fold review fixes into the description, and update it without asking whenever later pushes make any part of it inaccurate. Omit implementation history, commit inventories, and abandoned approaches unless they explain a current tradeoff, and omit boilerplate sections, generated-by attributions, and emojis unless requested.
 - Keep local-only paths and internal information, including internal URLs and plain-text references, out of commits and descriptions.
 
 ### Publication
 
+- Never force-push a branch that someone else may push to. Land fixes there as new commits, using `git revert` for a pushed commit, and rewrite history only on branches you alone own. After pushing `HEAD:refs/heads/<branch>` from a detached worktree, fast-forward the local branch so later commits are not stranded on a stale ref.
 - Before pushing, verify the base branch, diff, and commit count. Before creating or updating a request, compare its complete title and body with the recorded conventions, fixing any difference in heading hierarchy, section order, or validation format.
 - If asked only to draft a title and body, return the text without publishing. A request for a draft PR / MR authorizes publishing it as a draft.
 - Set assignees and labels when creating a request. If no existing label fits, create one that follows the repository's label scheme. Pass multiline bodies through a file or structured argument, such as `gh pr create --body-file <file>`. Use `#N` for issues and GitHub PRs in the same repository, and `!N` for GitLab MRs.
@@ -81,7 +82,7 @@ Pass an edited body through a file or structured argument, then read the issue b
 
 When work finishes, clean up within the authorization above.
 
-- Before removing a worktree, check it for uncommitted, untracked, and ignored files, preserve anything still needed, and confirm that no other agent or terminal is using it. Diff unique ignored content, such as agent memory directories, local settings, and notes, against its counterpart in the main checkout, and merge anything missing there.
+- Before removing a worktree, check it for uncommitted, untracked, and ignored files, preserve anything still needed, and confirm that no other agent or terminal is using it. A detached HEAD may be the only reference to its commits, so confirm they reached a remote branch, matching by subject as well as patch ID because conflict resolution changes patch IDs. Treat a denied or interrupted removal as an unknown outcome and reread `git worktree list` before retrying. Diff unique ignored content, such as agent memory directories, local settings, and notes, against its counterpart in the main checkout, and merge anything missing there.
 - Remove the worktree and its local branch, then prune its remote-tracking ref. Use the repository's tooling or the `clean-gone` skill for merged branches. Delete a remote branch only when explicitly requested.
 - Delete completed plans and working notes from the plans directory, such as a gitignored `.agents/plans/`. Rewrite stale notes to show only the current state and remaining work.
 - Each agent removes the scratch copies and build directories it created, such as `git archive` exports and their `CARGO_TARGET_DIR`s under `/tmp`, and names in its report anything it leaves for someone else.
