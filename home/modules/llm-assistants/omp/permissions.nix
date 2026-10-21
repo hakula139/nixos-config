@@ -8,18 +8,37 @@
 }:
 
 let
+  sanitize =
+    value:
+    lib.concatStringsSep "_" (
+      lib.filter (part: part != "") (
+        lib.splitString "_" (
+          lib.concatMapStrings (part: if lib.isList part then "_" else part) (
+            builtins.split "[^a-z0-9_]+" (lib.toLower value)
+          )
+        )
+      )
+    );
+
+  # Mirrors OMP's mintMCPToolName, which hashes names over 64 characters in a way Nix can't
+  # reproduce, so a longer name fails evaluation.
+  toToolName =
+    entry:
+    let
+      server = sanitize entry.displayName;
+      name = "mcp__${server}_${lib.removePrefix "${server}_" (sanitize entry.tool)}";
+    in
+    lib.throwIf (lib.stringLength name > 64) "OMP would hash the MCP tool name `${name}`" name;
+
   toBashRules =
-    approval: entries:
+    approval: commands:
     lib.concatMap (
-      entry:
-      let
-        inherit (entry) command;
-      in
+      command:
       map (match: { inherit match approval; }) [
         command
         "${command} *"
       ]
-    ) entries;
+    ) commands;
 in
 {
   tools = {
@@ -29,8 +48,12 @@ in
       bash = "allow";
       # Eval can execute shells without passing through Bash's command rules.
       eval = "prompt";
-    };
+    }
+    // lib.listToAttrs (map (gate: lib.nameValuePair (toToolName gate) "prompt") policy.mcpGates);
   };
 
-  bash.patterns = toBashRules "prompt" policy.gates;
+  # OMP applies the first matching pattern, so prompts precede allows. Write mode already runs MCP
+  # and web tools, and OMP has no path boundary, so the other allow kinds have nothing to render.
+  bash.patterns =
+    toBashRules "prompt" policy.gateCommands ++ toBashRules "allow" policy.allowCommands;
 }
