@@ -13,7 +13,7 @@ let
     map (
       entry:
       let
-        pattern = lib.concatStringsSep ", " (map (arg: ''"${arg}"'') entry.argv);
+        pattern = lib.concatStringsSep ", " (map (arg: ''"${arg}"'') (lib.splitString " " entry.command));
       in
       ''
         prefix_rule(

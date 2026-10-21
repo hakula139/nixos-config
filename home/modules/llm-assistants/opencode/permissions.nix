@@ -15,7 +15,7 @@ let
       lib.concatMap (
         entry:
         let
-          command = lib.concatStringsSep " " entry.argv;
+          inherit (entry) command;
         in
         [
           (lib.nameValuePair command decision)
