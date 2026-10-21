@@ -35,6 +35,7 @@ Memory holds durable preferences and context not covered by instruction files. B
 Aim for a simple, coherent design that meets current requirements.
 
 - Check the actual constraints before applying a familiar pattern, and treat cached intuitions as starting points.
+- Before implementing a new subsystem, research the options, draft the design with its tradeoffs and open questions in a plan file under the gitignored `.agents/plans/`, and agree on it with the user. Small fixes and well-specified changes skip this step.
 - If a requirement is hard to satisfy cleanly, discuss narrowing or revising it before adding complexity.
 - Refactor or extract when doing so clarifies responsibilities, simplifies control flow, or removes duplication, even if there is only one caller.
 - Build for current needs. Give each abstraction a concrete responsibility, and avoid speculative features, configurability, or extension points.
