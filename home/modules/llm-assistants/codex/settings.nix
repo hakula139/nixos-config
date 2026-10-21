@@ -6,6 +6,7 @@
   hooks,
   mcp,
   notify,
+  permissions,
   skills,
 }:
 
@@ -22,6 +23,9 @@
   approval_policy = "on-request";
   sandbox_mode = "workspace-write";
   approvals_reviewer = "auto_review";
+  auto_review = {
+    extra_policy = permissions.extraPolicy;
+  };
   shell_environment_policy = {
     "inherit" = "all";
   };

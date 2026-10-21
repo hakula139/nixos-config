@@ -5,6 +5,7 @@
 {
   lib,
   enabledServers,
+  mcpApprovals,
   mcpOptions,
   mcpServers,
   timeouts,
@@ -25,6 +26,7 @@ let
       // lib.mapAttrs' (field: toml: lib.nameValuePair toml mcpServers.${name}.${field}) (
         lib.intersectAttrs mcpServers.${name} fieldRenames
       )
+      // mcpApprovals.${name} or { }
     );
 in
 {
