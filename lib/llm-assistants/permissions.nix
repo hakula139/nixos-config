@@ -124,8 +124,148 @@
         reason = "Integrates a pull request into a shared branch.";
       }
       {
+        command = "gh pr review";
+        reason = "Submits a pull request review, which can approve on the user's behalf.";
+      }
+      {
+        command = "glab mr approve";
+        reason = "Approves a merge request on the user's behalf.";
+      }
+      {
         command = "glab mr merge";
         reason = "Integrates a merge request into a shared branch.";
+      }
+    ];
+
+    # Arguments that make a command run another program. An argument starting with `-` matches
+    # anywhere after the command, and any other argument matches as its own word. Patterns can't
+    # follow abbreviated long options or combined short options, so a command whose parser accepts
+    # either has no allow.
+    arguments = [
+      {
+        commands = [ "bat" ];
+        arguments = [ "--pager" ];
+        reason = "Runs the given program as a pager.";
+      }
+      {
+        commands = [ "busctl" ];
+        arguments = [ "call" ];
+        reason = "Calls any D-Bus method, including starting a transient unit.";
+      }
+      {
+        commands = [
+          "git fetch"
+          "git ls-remote"
+        ];
+        arguments = [ "--upload-pack" ];
+        reason = "Runs the given program in place of git-upload-pack.";
+      }
+      {
+        commands = [ "git grep" ];
+        arguments = [
+          "--open-files-in-pager"
+          "-O"
+        ];
+        reason = "Opens the matching files in the given program.";
+      }
+      {
+        commands = [
+          "helm get"
+          "helm history"
+          "helm list"
+          "helm status"
+          "helm template"
+          "kubectl api-resources"
+          "kubectl describe"
+          "kubectl explain"
+          "kubectl get"
+          "kubectl logs"
+          "kubectl version"
+        ];
+        arguments = [ "--kubeconfig" ];
+        reason = "Runs the exec credential plugin named in the given kubeconfig.";
+      }
+      {
+        commands = [ "helm template" ];
+        arguments = [ "--post-renderer" ];
+        reason = "Runs the given program on the rendered manifests.";
+      }
+      {
+        commands = [ "man" ];
+        arguments = [
+          "--html"
+          "--pager"
+          "-H"
+          "-P"
+        ];
+        reason = "Runs the given program as a pager or browser.";
+      }
+      {
+        commands = [
+          "nix build"
+          "nix derivation show"
+          "nix develop"
+          "nix eval"
+          "nix flake"
+          "nix log"
+          "nix path-info"
+          "nix print-dev-env"
+          "nix repl"
+          "nix search"
+          "nix why-depends"
+          "nix-build"
+          "nix-instantiate"
+        ];
+        arguments = [
+          "--allow-unsafe-native-code-during-evaluation"
+          "--build-hook"
+          "--diff-hook"
+          "--option"
+          "--post-build-hook"
+          "--pre-build-hook"
+        ];
+        reason = "Lets evaluation or the build hooks run arbitrary programs.";
+      }
+      {
+        commands = [ "pnpm exec prettier" ];
+        arguments = [ "--plugin" ];
+        reason = "Loads the given JavaScript module.";
+      }
+      {
+        commands = [ "rg" ];
+        arguments = [
+          "--hostname-bin"
+          "--pre"
+        ];
+        reason = "Runs the given program on each searched file or to look up the hostname.";
+      }
+      {
+        commands = [ "sort" ];
+        arguments = [ "--compress-program" ];
+        reason = "Runs the given program to compress temporary files.";
+      }
+      {
+        commands = [ "tar" ];
+        arguments = [
+          "--checkpoint-action"
+          "--info-script"
+          "--new-volume-script"
+          "--rmt-command"
+          "--rsh-command"
+          "--to-command"
+          "--use-compress-program"
+          "-F"
+          "-I"
+        ];
+        reason = "Runs the given program while reading or writing the archive.";
+      }
+      {
+        commands = [ "zip" ];
+        arguments = [
+          "--unzip-command"
+          "-TT"
+        ];
+        reason = "Runs the given program to test the archive.";
       }
     ];
 
@@ -135,8 +275,16 @@
           tool = "merge_pull_request";
           reason = "Integrates a pull request into a shared branch.";
         }
+        {
+          tool = "pull_request_review_write";
+          reason = "Submits pull request reviews, which can approve on the user's behalf.";
+        }
       ];
       gitlab = [
+        {
+          tool = "approve_merge_request";
+          reason = "Approves a merge request on the user's behalf.";
+        }
         {
           tool = "merge_merge_request";
           reason = "Integrates a merge request into a shared branch.";
@@ -156,10 +304,12 @@
 
     policies = [
       {
-        name = "PR / MR merges";
+        name = "PR / MR merges and approvals";
         reason = ''
-          Merging GitHub pull requests or GitLab merge requests through any tool or API,
-          including enabling automatic or queued merging.
+          Merging or approving GitHub pull requests or GitLab merge requests through any tool or
+          API, including enabling automatic or queued merging and submitting a GitHub review with
+          the `APPROVE` event, such as through `pull_request_review_write`. Reviews that only
+          comment or request changes don't count as approvals.
         '';
       }
       {
@@ -306,7 +456,6 @@
         "host"
         "nslookup"
         "ping"
-        "whois"
 
         # ------------------------------------------------------------------------------------------
         # macOS
@@ -319,7 +468,10 @@
         # Git
         # ------------------------------------------------------------------------------------------
         "git blame"
-        "git cat-file"
+        "git cat-file -e"
+        "git cat-file -p"
+        "git cat-file -s"
+        "git cat-file -t"
         "git check-ignore"
         "git describe"
         "git for-each-ref"
@@ -369,26 +521,14 @@
         # ------------------------------------------------------------------------------------------
         # Nix
         # ------------------------------------------------------------------------------------------
-        "nix derivation show"
-        "nix flake info"
         "nix hash"
         "nix help"
-        "nix log"
-        "nix path-info"
-        "nix print-dev-env"
-        "nix search"
         "nix store ls"
-        "nix store path-info"
-        "nix why-depends"
-        "nix-store --query"
-        "nix-store -q"
-        "nix-tree"
         "nvd"
 
         # ------------------------------------------------------------------------------------------
         # Containers
         # ------------------------------------------------------------------------------------------
-        "docker compose logs"
         "docker compose ls"
         "docker compose ps"
         "docker context ls"
@@ -396,8 +536,6 @@
         "docker image ls"
         "docker images"
         "docker info"
-        "docker inspect"
-        "docker logs"
         "docker manifest inspect"
         "docker network inspect"
         "docker ps"
@@ -405,40 +543,25 @@
         "docker volume ls"
         "helm dependency list"
         "helm env"
-        "helm get"
-        "helm history"
         "helm lint"
-        "helm list"
         "helm plugin list"
         "helm repo list"
         "helm search"
         "helm show"
-        "helm status"
         "helm verify"
         "helm version"
-        "kubectl api-resources"
-        "kubectl explain"
-        "kubectl logs"
-        "kubectl version"
-        "podman compose logs"
         "podman compose ls"
         "podman compose ps"
         "podman images"
         "podman info"
-        "podman inspect"
-        "podman logs"
         "podman ps"
         "podman version"
       ];
 
       # Needs no approval where a sandbox or classifier contains it, but may write files, change
-      # remote or system state, start another program, or reveal secrets.
+      # remote or system state, start another program, or print credentials, cluster secrets,
+      # container environments and logs, release values, or the system journal.
       mutating = [
-        # ------------------------------------------------------------------------------------------
-        # General
-        # ------------------------------------------------------------------------------------------
-        "man"
-
         # ------------------------------------------------------------------------------------------
         # Filesystem - Navigation
         # ------------------------------------------------------------------------------------------
@@ -449,9 +572,6 @@
         # ------------------------------------------------------------------------------------------
         "bat"
         "file"
-        "ldd"
-        "less"
-        "more"
         "pdftotext"
 
         # ------------------------------------------------------------------------------------------
@@ -474,15 +594,12 @@
         "7z"
         "gunzip"
         "gzip"
-        "tar"
         "unzip"
-        "zip"
         "zstd"
 
         # ------------------------------------------------------------------------------------------
         # Text Processing
         # ------------------------------------------------------------------------------------------
-        "sort"
         "uniq"
         "yq"
 
@@ -501,13 +618,12 @@
         # ------------------------------------------------------------------------------------------
         # Network
         # ------------------------------------------------------------------------------------------
-        "ip"
         "ss"
+        "whois"
 
         # ------------------------------------------------------------------------------------------
         # macOS
         # ------------------------------------------------------------------------------------------
-        "open"
         "pbcopy"
 
         # ------------------------------------------------------------------------------------------
@@ -516,10 +632,7 @@
         "git add"
         "git branch"
         "git diff"
-        "git fetch"
-        "git grep"
         "git log"
-        "git ls-remote"
         "git remote"
         "git show"
         "git stash"
@@ -555,17 +668,28 @@
         # ------------------------------------------------------------------------------------------
         "deadnix"
         "nix build"
+        "nix derivation show"
         "nix develop -c cargo"
         "nix develop -c true"
         "nix eval"
         "nix flake archive"
         "nix flake check"
+        "nix flake info"
         "nix flake metadata"
         "nix flake show"
+        "nix log"
+        "nix path-info"
+        "nix print-dev-env"
         "nix repl"
+        "nix search"
+        "nix why-depends"
         "nix-build"
         "nix-instantiate"
         "nix-prefetch-url"
+        "nix-store --query"
+        "nix-store -q"
+        "nix-store -qR"
+        "nix-tree"
         "nixfmt"
         "statix"
 
@@ -573,11 +697,25 @@
         # Containers
         # ------------------------------------------------------------------------------------------
         "docker compose config"
+        "docker compose logs"
+        "docker inspect"
+        "docker logs"
+        "helm get"
+        "helm history"
+        "helm list"
+        "helm status"
         "helm template"
+        "kubectl api-resources"
         "kubectl config"
         "kubectl describe"
+        "kubectl explain"
         "kubectl get"
+        "kubectl logs"
+        "kubectl version"
         "podman compose config"
+        "podman compose logs"
+        "podman inspect"
+        "podman logs"
       ];
     };
 
@@ -741,8 +879,8 @@
         reason = ''
           Remote changes are allowed without separate user approval, including pushing commits
           and creating or updating pull requests.
-          Merging PRs or MRs, including automatic or queued merging, still requires
-          explicit user approval.
+          Merging or approving PRs or MRs, including automatic or queued merging, still
+          requires explicit user approval.
         '';
       }
     ];
