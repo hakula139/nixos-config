@@ -44,13 +44,16 @@ jobs:
       - name: Read review prompt
         id: prompt
         run: |
-          {
-            printf 'content<<EOF\n'
-            printf 'REPO: %s\n' "${{ github.repository }}"
-            printf 'PR NUMBER: %s\n\n' "${{ github.event.pull_request.number }}"
-            cat .github/prompts/review.md
-            printf '\nEOF\n'
-          } >> "$GITHUB_OUTPUT"
+          review_prompt="$(cat .github/prompts/review.md)"
+          cat >> "$GITHUB_OUTPUT" <<OUTPUT
+          content<<EOF
+          REPO: ${{ github.repository }}
+          PR NUMBER: ${{ github.event.pull_request.number }}
+
+          $review_prompt
+
+          EOF
+          OUTPUT
 
       - name: Review PR with Claude
         uses: anthropics/claude-code-action@v1
