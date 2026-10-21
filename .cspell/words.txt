@@ -191,6 +191,7 @@ npmjs
 nslookup
 nspr
 nufmt
+numpy
 numtide
 nuon
 nvcr
@@ -230,6 +231,7 @@ pulumi
 pushd
 pycache
 pydantic
+pydocstyle
 pypi
 pyproject
 pyright
