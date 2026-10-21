@@ -79,16 +79,17 @@ in
         inherit (cfg.auth) enableCorpGateway;
       };
 
+      permissions = import ./permissions.nix {
+        inherit lib;
+        policy = repoLib.llmAssistants.permissions;
+      };
+
       mcp = import ./mcp.nix {
         inherit lib mcpOptions;
+        inherit (permissions) mcpApprovals;
         inherit (shared.mcp) timeouts;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
         mcpServers = shared.mcp.servers;
-      };
-
-      permissionRules = import ./permissions.nix {
-        inherit lib;
-        policy = repoLib.llmAssistants.permissions;
       };
 
       plugins = import ./plugins.nix {
@@ -137,6 +138,7 @@ in
             hooks
             mcp
             notify
+            permissions
             skills
             ;
         })
@@ -206,7 +208,7 @@ in
         home.file = {
           codexRules = {
             target = codexRulesTarget;
-            text = permissionRules;
+            text = permissions.rules;
           };
         };
 

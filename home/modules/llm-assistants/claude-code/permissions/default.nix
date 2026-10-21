@@ -7,11 +7,15 @@
   policy,
 }:
 
+let
+  allowRules = import ./allow-rules.nix { inherit lib policy; };
+  denyRules = import ./deny-rules.nix;
+in
 {
   permissions = {
     defaultMode = "auto";
-    allow = import ./allow-rules.nix;
-    deny = import ./deny-rules.nix;
+    allow = allowRules;
+    deny = denyRules;
   };
 
   skipDangerousModePermissionPrompt = true;
