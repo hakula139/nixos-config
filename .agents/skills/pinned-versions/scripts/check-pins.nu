@@ -43,10 +43,6 @@ def abbrev [rev: string]: nothing -> string {
   if ($rev | str length) <= $REV_ABBREV { $rev } else { $rev | str substring 0..<$REV_ABBREV }
 }
 
-def version-key [version: string]: nothing -> list<int> {
-  $version | str replace -r '^v' '' | split row "." | into int
-}
-
 # --------------------------------------------------------------------------------------------------
 # Upstream queries
 # --------------------------------------------------------------------------------------------------
@@ -77,21 +73,8 @@ def gh-default-head [repo: string]: nothing -> string {
   gh-api $"repos/($repo)/commits?per_page=1" ".[0].sha"
 }
 
-def gh-latest-semver-tag [repo: string, field: cell-path]: nothing -> string {
-  gh-api $"repos/($repo)/tags?per_page=100" "."
-  | from json
-  | where {|tag| $tag.name =~ '^v?[0-9]+(\.[0-9]+)*$' }
-  | sort-by {|tag| version-key $tag.name }
-  | last
-  | get $field
-}
-
 def npm-latest [pkg: string]: nothing -> string {
   http get $"https://registry.npmjs.org/($pkg)/latest" | get version
-}
-
-def pypi-latest [pkg: string]: nothing -> string {
-  http get $"https://pypi.org/pypi/($pkg)/json" | get info.version
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -231,11 +214,6 @@ def registry [root: string]: nothing -> list<record> {
       title: "Claude Code plugin marketplaces (rev + hash)"
       pins: [
         {
-          pin: "openai-codex"
-          local: {|| abbrev (plugin-rev $root "openai-codex") }
-          upstream: {|| abbrev (gh-latest-release-head "openai/codex-plugin-cc") }
-        }
-        {
           pin: "claude-plugins-official"
           local: {|| abbrev (plugin-rev $root "claude-plugins-official") }
           upstream: {|| abbrev (gh-default-head "anthropics/claude-plugins-official") }
@@ -267,16 +245,6 @@ def registry [root: string]: nothing -> list<record> {
           pin: "cloudreve"
           local: {|| nix-version $root "packages/cloudreve/default.nix" }
           upstream: {|| gh-latest-release "cloudreve/cloudreve" }
-        }
-        {
-          pin: "mcp-server-filesystem"
-          local: {|| nix-version $root "packages/mcp/mcp-server-filesystem/default.nix" }
-          upstream: {|| gh-latest-semver-tag "modelcontextprotocol/servers" name }
-        }
-        {
-          pin: "mcp-server-git"
-          local: {|| nix-version $root "packages/mcp/mcp-server-git/default.nix" }
-          upstream: {|| pypi-latest "mcp-server-git" }
         }
         {
           pin: "mcp-server-github"

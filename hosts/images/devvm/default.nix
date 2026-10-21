@@ -16,8 +16,6 @@ let
   commonMcpServers = [
     "atlassian"
     "bifrost"
-    "filesystem"
-    "git"
     "gitlab"
   ];
 

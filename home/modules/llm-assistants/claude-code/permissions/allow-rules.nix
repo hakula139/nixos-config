@@ -25,7 +25,6 @@
   "Bash(ls *)"
   "Bash(pwd *)"
   "Bash(tree *)"
-  "mcp__Filesystem"
 
   # ------------------------------------------------------------------------------------------------
   # Filesystem - Reading
@@ -212,16 +211,6 @@
   "Bash(git worktree add *)"
   "Bash(git worktree list *)"
   "Bash(git worktree remove *)"
-  "mcp__Git__git_add"
-  "mcp__Git__git_branch"
-  "mcp__Git__git_checkout"
-  "mcp__Git__git_create_branch"
-  "mcp__Git__git_diff"
-  "mcp__Git__git_diff_staged"
-  "mcp__Git__git_diff_unstaged"
-  "mcp__Git__git_log"
-  "mcp__Git__git_show"
-  "mcp__Git__git_status"
 
   # ------------------------------------------------------------------------------------------------
   # GitHub / GitLab
