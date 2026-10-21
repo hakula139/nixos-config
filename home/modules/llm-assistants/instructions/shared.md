@@ -164,5 +164,4 @@ Use the CLI when it provides the needed capability, especially for structured `g
 - **Bifrost**: the corporate gateway's search server, for hosts whose firewall blocks Exa. It proxies Exa without `web_search_advanced_exa`, `you-you-search` handles non-English queries and freshness filters, and SearXNG is the last fallback.
 - **DeepWiki**: AI-generated documentation for public GitHub repositories that explains an unfamiliar repo's architecture, patterns, and API design.
 - **Scrapling**: a browser fallback when native fetch is blocked (403, bot protection) or requires JavaScript rendering.
-- **Filesystem**: sandboxed file operations, for use only when a path requires them. Native file tools and the shell cover other needs.
 - **GitHub** / **GitLab**: `gh` and `glab` cover nearly everything, including `--json` output. Use the MCP for review threads and cross-repo search, which the CLIs lack. GitLab expects `project_id` as the URL-encoded project path (`group/subgroup/project`).
