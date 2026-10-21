@@ -11,13 +11,7 @@ let
   sanitize =
     value:
     lib.concatStringsSep "_" (
-      lib.filter (part: part != "") (
-        lib.splitString "_" (
-          lib.concatMapStrings (part: if lib.isList part then "_" else part) (
-            builtins.split "[^a-z0-9_]+" (lib.toLower value)
-          )
-        )
-      )
+      lib.filter (part: lib.isString part && part != "") (builtins.split "[^a-z0-9]+" (lib.toLower value))
     );
 
   # Mirrors OMP's mintMCPToolName, which hashes names over 64 characters in a way Nix can't
@@ -52,8 +46,14 @@ in
     // lib.listToAttrs (map (gate: lib.nameValuePair (toToolName gate) "prompt") policy.mcpGates);
   };
 
-  # OMP applies the first matching pattern, so prompts precede allows. Write mode already runs MCP
-  # and web tools, and OMP has no path boundary, so the other allow kinds have nothing to render.
+  # OMP applies the first matching pattern, so prompts precede allows. Nothing contains a command
+  # that OMP runs, so only read-only commands render as allows. Write mode already runs MCP and web
+  # tools, and OMP has no path boundary, so the other allow kinds have nothing to render.
   bash.patterns =
-    toBashRules "prompt" policy.gateCommands ++ toBashRules "allow" policy.allowCommands;
+    toBashRules "prompt" policy.gateCommands
+    ++ map (match: {
+      inherit match;
+      approval = "prompt";
+    }) policy.argumentPatterns
+    ++ toBashRules "allow" policy.allows.commands.readOnly;
 }
