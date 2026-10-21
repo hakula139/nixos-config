@@ -8,20 +8,60 @@
 }:
 
 let
-  toRules =
-    decision: entries:
-    map (
-      entry:
-      let
-        pattern = lib.concatStringsSep ", " (map (arg: ''"${arg}"'') (lib.splitString " " entry.command));
-      in
-      ''
-        prefix_rule(
-            pattern = [${pattern}],
-            decision = "${decision}",
-            justification = "${entry.reason}",
-        )
-      ''
-    ) entries;
+  toPattern =
+    command: lib.concatStringsSep ", " (map (arg: ''"${arg}"'') (lib.splitString " " command));
+
+  gateRules = map (gate: ''
+    prefix_rule(
+        pattern = [${toPattern gate.command}],
+        decision = "prompt",
+        justification = "${gate.reason}",
+    )
+  '') policy.gates.commands;
+
+  # Codex applies the strictest matching decision, and `allow` runs a command outside the sandbox
+  # without review, so only read-only commands render as allows.
+  allowRules = map (command: ''
+    prefix_rule(
+        pattern = [${toPattern command}],
+        decision = "allow",
+    )
+  '') policy.allows.commands.readOnly;
+
+  toMcpApprovals =
+    mode: entries:
+    lib.foldl' lib.recursiveUpdate { } (
+      map (entry: { ${entry.server}.tools.${entry.tool}.approval_mode = mode; }) entries
+    );
+
+  mcpGates = map (gate: {
+    name = "`${gate.tool}` on the ${gate.displayName} MCP server";
+    inherit (gate) reason;
+  }) policy.mcpGates;
+
+  toPolicyItems = lib.concatMapStringsSep "\n" (
+    entry:
+    let
+      name = entry.name or "`${entry.command}`";
+      reason = lib.replaceStrings [ "\n" ] [ "\n  " ] (lib.trim entry.reason);
+    in
+    "- ${name}: ${reason}"
+  );
 in
-lib.concatStringsSep "\n" (toRules "prompt" policy.gates)
+{
+  rules = lib.concatStringsSep "\n" (gateRules ++ allowRules);
+
+  mcpApprovals = lib.recursiveUpdate (toMcpApprovals "approve" policy.mcpAllows) (
+    toMcpApprovals "prompt" policy.mcpGates
+  );
+
+  extraPolicy = ''
+    ## Allowed without user approval
+
+    ${toPolicyItems policy.allows.policies}
+
+    ## Requires the user's explicit approval, including approval given earlier in the conversation
+
+    ${toPolicyItems (policy.gates.commands ++ mcpGates ++ policy.gates.policies)}
+  '';
+}
