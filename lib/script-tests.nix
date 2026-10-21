@@ -10,6 +10,8 @@
 let
   inherit (pkgs) lib;
 
+  tooling = import ./tooling.nix { inherit pkgs; };
+
   tests = lib.fileset.toList (lib.fileset.fileFilter (file: lib.hasSuffix ".test.nu" file.name) root);
 
   src = lib.fileset.toSource {
@@ -24,7 +26,7 @@ pkgs.runCommand "script-tests"
     nativeBuildInputs = [
       pkgs.git
       pkgs.nu-test
-      (pkgs.python3.withPackages (ps: [ ps.jinja2 ]))
+      tooling.scriptPython
     ];
   }
   ''
