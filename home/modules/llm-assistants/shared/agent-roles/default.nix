@@ -214,7 +214,7 @@
     '';
 
     prompt = readPrompt ./prompts/tester.md;
-    workload = "standard";
+    workload = "flagship";
 
     claude = {
       color = "magenta";
