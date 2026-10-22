@@ -3,9 +3,10 @@
 # ==================================================================================================
 
 {
-  # No argument of an allowed command may run another program, since no gate would see it.
+  # No argument of an allowed command may choose a program for it to run, since no gate sees it.
   commands = {
-    # Reads local or remote state. No flag writes files or changes remote or system state.
+    # Reads local or remote state. No flag writes files or changes remote or system state, and cache
+    # writes don't count.
     readOnly = [
       # --------------------------------------------------------------------------------------------
       # Filesystem - Navigation
@@ -187,13 +188,7 @@
       # Development
       # --------------------------------------------------------------------------------------------
       "npm config get"
-      "npm view"
       "shellcheck"
-
-      # --------------------------------------------------------------------------------------------
-      # Nix
-      # --------------------------------------------------------------------------------------------
-      "nvd"
 
       # --------------------------------------------------------------------------------------------
       # Containers
@@ -216,7 +211,6 @@
       "helm plugin list"
       "helm repo list"
       "helm search"
-      "helm show"
       "helm verify"
       "helm version"
       "podman compose ls"
@@ -227,9 +221,8 @@
       "podman version"
     ];
 
-    # May write files, change remote or system state, or print credentials, cluster secrets,
-    # container environments and logs, release values, or the system journal, so only Claude Code
-    # renders these.
+    # May write files, change system state, or print credentials, container environments and logs,
+    # or the system journal, so only Claude Code renders these.
     mutating = [
       # --------------------------------------------------------------------------------------------
       # Filesystem - Navigation
@@ -264,7 +257,6 @@
       # Text Processing
       # --------------------------------------------------------------------------------------------
       "uniq"
-      "yq"
 
       # --------------------------------------------------------------------------------------------
       # System
