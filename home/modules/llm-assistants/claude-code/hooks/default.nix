@@ -29,7 +29,7 @@ let
   autoDream = import ./auto-dream {
     inherit pkgs lib;
     inherit (sharedHooks) mkNuHook timeouts;
-    model = modelAliases.standard;
+    model = modelAliases.flagship;
   };
 
   installed = sharedHooks.install (
