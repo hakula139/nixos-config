@@ -389,22 +389,27 @@
           pkgs = pkgsFor system;
           tooling = import ./lib/tooling.nix { inherit pkgs; };
           preCommitCheck = preCommitCheckFor system;
+
+          # mkShell adds packages to PATH in list order, and the hook packages propagate a bare
+          # `python3`, so each shell lists its own packages ahead of these.
           basePackages = preCommitCheck.enabledPackages ++ tooling.all;
+
           flock = nixpkgs.lib.getExe pkgs.flock;
           git = nixpkgs.lib.getExe pkgs.git;
         in
         {
           default = pkgs.mkShell {
-            packages = basePackages ++ [
+            packages = [
               preCommitCheck.config.package
               tooling.scriptPython
-            ];
+            ]
+            ++ basePackages;
 
-            # git-hooks.nix stores a hooks path relative to the main checkout, which linked worktrees
-            # can't resolve (cachix/git-hooks.nix#688), so unset it to fall back to the shared hooks
-            # directory. The lock keeps a concurrent load from setting it mid-install, which would
-            # send prek's hooks to that path. The script tests' Codex goes last on PATH, behind the
-            # host's wrapped Codex, which carries the proxy and the corp CA.
+            # git-hooks.nix stores a hooks path relative to the main checkout, which linked
+            # worktrees can't resolve (cachix/git-hooks.nix#688), so unset it to fall back to the
+            # shared hooks directory. The lock keeps a concurrent load from setting it mid-install,
+            # which would send prek's hooks to that path. The script tests' Codex goes last on PATH,
+            # behind the host's wrapped Codex, which carries the proxy and the corp CA.
             shellHook = ''
               if common=$(${git} rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
                 (
@@ -418,11 +423,12 @@
           };
 
           browser = pkgs.mkShell {
-            packages = basePackages ++ [
+            packages = [
               pkgs.browser-tools
               pkgs.nodejs_24
-              (pkgs.python3.withPackages (ps: [ ps.playwright ]))
-            ];
+              (pkgs.unstable.python3.withPackages (ps: [ ps.playwright ]))
+            ]
+            ++ basePackages;
 
             PLAYWRIGHT_BROWSERS_PATH = pkgs.browser-tools.browsers;
           };

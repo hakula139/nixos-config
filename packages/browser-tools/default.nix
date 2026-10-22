@@ -9,8 +9,11 @@
 
 let
   inherit (driver) browsers;
-  driver = pkgs.playwright-driver;
-  chromium = pkgs.callPackage ./chromium.nix { };
+
+  # Chrome DevTools MCP runs its latest npm release, which supports only current stable Chrome or
+  # newer, while a stable nixpkgs branch freezes Playwright's Chromium for the release's lifetime.
+  driver = pkgs.unstable.playwright-driver;
+  chromium = pkgs.callPackage ./chromium.nix { inherit driver; };
 in
 pkgs.runCommand "browser-tools"
   {

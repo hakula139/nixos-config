@@ -119,7 +119,7 @@ in
         name = "omp-${pkgs.omp.version}";
         bin = "omp";
         envVars = profiles.envVars // {
-          PUPPETEER_EXECUTABLE_PATH = lib.getExe' pkgs.browser-tools "chromium";
+          PUPPETEER_EXECUTABLE_PATH = lib.getExe pkgs.browser-tools.chromium;
         };
 
         envFiles = {

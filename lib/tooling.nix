@@ -44,7 +44,6 @@ let
   # ------------------------------------------------------------------------------------------------
   # Script Tests
   # ------------------------------------------------------------------------------------------------
-  # Kept out of `all`, where it would shadow the browser shell's Playwright `python3`.
   scriptPython = pkgs.python3.withPackages (ps: [ ps.jinja2 ]);
 in
 {
