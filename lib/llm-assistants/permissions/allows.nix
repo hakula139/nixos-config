@@ -3,9 +3,9 @@
 # ==================================================================================================
 
 {
+  # No argument of an allowed command may run another program, since no gate would see it.
   commands = {
-    # Reads local or remote state. No flag writes files, changes remote or system state, or starts
-    # another program. Nix store and cache writes don't count.
+    # Reads local or remote state. No flag writes files or changes remote or system state.
     readOnly = [
       # --------------------------------------------------------------------------------------------
       # Filesystem - Navigation
@@ -193,9 +193,6 @@
       # --------------------------------------------------------------------------------------------
       # Nix
       # --------------------------------------------------------------------------------------------
-      "nix hash"
-      "nix help"
-      "nix store ls"
       "nvd"
 
       # --------------------------------------------------------------------------------------------
@@ -230,9 +227,9 @@
       "podman version"
     ];
 
-    # Needs no approval where a sandbox or classifier contains it, but may write files, change
-    # remote or system state, start another program, or print credentials, cluster secrets,
-    # container environments and logs, release values, or the system journal.
+    # May write files, change remote or system state, or print credentials, cluster secrets,
+    # container environments and logs, release values, or the system journal, so only Claude Code
+    # renders these.
     mutating = [
       # --------------------------------------------------------------------------------------------
       # Filesystem - Navigation
@@ -242,14 +239,8 @@
       # --------------------------------------------------------------------------------------------
       # Filesystem - Reading
       # --------------------------------------------------------------------------------------------
-      "bat"
       "file"
       "pdftotext"
-
-      # --------------------------------------------------------------------------------------------
-      # Filesystem - Search
-      # --------------------------------------------------------------------------------------------
-      "rg"
 
       # --------------------------------------------------------------------------------------------
       # Filesystem - Modification
@@ -283,7 +274,6 @@
       # --------------------------------------------------------------------------------------------
       # systemd
       # --------------------------------------------------------------------------------------------
-      "busctl"
       "networkctl"
       "resolvectl"
 
@@ -305,7 +295,6 @@
       "git branch"
       "git diff"
       "git log"
-      "git remote"
       "git show"
       "git stash"
       "git switch"
@@ -321,47 +310,13 @@
       # --------------------------------------------------------------------------------------------
       # Development
       # --------------------------------------------------------------------------------------------
-      "cargo"
-      "cspell"
-      "g++"
-      "gcc"
-      "markdownlint-cli2"
-      "pnpm exec cspell"
-      "pnpm exec prettier"
       "ruff"
-      "rustc"
       "shfmt"
-      "uv lock"
-      "uv run ruff"
-      "uv sync"
 
       # --------------------------------------------------------------------------------------------
       # Nix
       # --------------------------------------------------------------------------------------------
       "deadnix"
-      "nix build"
-      "nix derivation show"
-      "nix develop -c cargo"
-      "nix develop -c true"
-      "nix eval"
-      "nix flake archive"
-      "nix flake check"
-      "nix flake info"
-      "nix flake metadata"
-      "nix flake show"
-      "nix log"
-      "nix path-info"
-      "nix print-dev-env"
-      "nix repl"
-      "nix search"
-      "nix why-depends"
-      "nix-build"
-      "nix-instantiate"
-      "nix-prefetch-url"
-      "nix-store --query"
-      "nix-store -q"
-      "nix-store -qR"
-      "nix-tree"
       "nixfmt"
       "statix"
 
@@ -372,18 +327,7 @@
       "docker compose logs"
       "docker inspect"
       "docker logs"
-      "helm get"
-      "helm history"
-      "helm list"
-      "helm status"
-      "helm template"
-      "kubectl api-resources"
       "kubectl config"
-      "kubectl describe"
-      "kubectl explain"
-      "kubectl get"
-      "kubectl logs"
-      "kubectl version"
       "podman compose config"
       "podman compose logs"
       "podman inspect"
