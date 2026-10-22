@@ -247,7 +247,7 @@ in
     };
 
     "deepseek-v4.1-flash" = localCommon // {
-      name = "DeepSeek V4.1 Flash";
+      name = "DeepSeek V4.1 Flash 1017";
       contextWindow = 1048576;
       maxTokens = 393216;
       autoCompactTokens = 400000;
