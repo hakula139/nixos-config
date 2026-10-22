@@ -24,15 +24,18 @@ let
     in
     lib.throwIf (lib.stringLength name > 64) "OMP would hash the MCP tool name `${name}`" name;
 
-  toBashRules =
-    approval: commands:
-    lib.concatMap (
-      command:
-      map (match: { inherit match approval; }) [
+  toPromptRules = lib.concatMap (
+    command:
+    map
+      (match: {
+        inherit match;
+        approval = "prompt";
+      })
+      [
         command
         "${command} *"
       ]
-    ) commands;
+  );
 in
 {
   tools = {
@@ -46,7 +49,5 @@ in
     // lib.listToAttrs (map (gate: lib.nameValuePair (toToolName gate) "prompt") policy.mcpGates);
   };
 
-  # OMP applies the first matching pattern, so prompts precede allows.
-  bash.patterns =
-    toBashRules "prompt" policy.gateCommands ++ toBashRules "allow" policy.allows.commands.readOnly;
+  bash.patterns = toPromptRules policy.gateCommands;
 }
