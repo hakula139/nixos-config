@@ -5,10 +5,10 @@
 {
   pkgs,
   lib,
+  driver,
 }:
 
 let
-  driver = pkgs.playwright-driver;
   browsers = driver.browsers-chromium;
 in
 pkgs.runCommand "playwright-chromium"
