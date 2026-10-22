@@ -32,7 +32,7 @@ nix build '.#systemConfigs.wsl-non-nixos'
 nix build '.#packages.x86_64-linux.devvm-docker'
 ```
 
-For refactors expected to preserve derivation inputs, compare `nix build --no-link --print-out-paths` before and after. The `checks.pre-commit` output alone does not evaluate host modules, so also evaluate or build the affected host outputs. Run `nix develop` once in a worktree under `.claude/worktrees/` to materialize the gitignored pre-commit symlink.
+Host out paths change on every source edit because `home/modules/shared.nix` pins `inputs.self.outPath` into the Nix registry, so to confirm that a refactor preserves behavior, compare what it affects before and after, such as a `nix eval --json` of the changed attribute or a `diff -r --exclude=registry.json` of the built `home-manager-files`. The `checks.pre-commit` output alone does not evaluate host modules, so also evaluate or build the affected host outputs. Run `nix develop` once in a worktree under `.claude/worktrees/` to materialize the gitignored pre-commit symlink.
 
 ## Documentation maintenance
 
