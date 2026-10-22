@@ -105,9 +105,8 @@ let
               CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
               CLAUDE_CODE_AUTO_MODE_MODEL =
                 modelCatalog.models.${modelCatalog.defaults.claude.mini}.channelId.anthropic;
-              # The gateway mistranslates `output_config.format`: Bedrock streams drop every content
-              # block, and OpenAI strict mode rejects optional properties, so prompt hooks fail open
-              # and allow every stop.
+              # The gateway's Bedrock streams often return no content blocks for
+              # `output_config.format`, which fails prompt hooks open and allows the stop.
               CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS = "1";
             }
             // lib.optionalAttrs (roles.default.family == "local") {

@@ -31,4 +31,4 @@ Many turns are complete or are check-ins where the user is steering. Block only 
 
 ## Output
 
-Return `ok: true` to allow the stop, or `ok: false` with a reason that names the specific incomplete, deferred, or misreported item and whether to finish, delegate, or record it. If the item cannot be completed in this session, for example, because a required service, credential, or capability is unavailable, and the assistant has reported this, add `impossible: true` to allow the stop instead of repeating the same request.
+Reply with a single JSON object and no other text, always including a `reason`. Set `ok: true` to allow the stop, or `ok: false` with a `reason` that names the specific incomplete, deferred, or misreported item and whether to finish, delegate, or record it. If the item cannot be completed in this session, for example, because a required service, credential, or capability is unavailable, and the assistant has reported this, add `impossible: true` to allow the stop instead of repeating the same request.
