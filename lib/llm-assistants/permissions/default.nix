@@ -8,6 +8,9 @@
 }:
 
 let
+  gates = import ./gates.nix;
+  allows = import ./allows.nix;
+
   toMcpEntries =
     servers:
     lib.concatLists (
@@ -24,26 +27,19 @@ let
       ) servers
     );
 
-  withFlatLists =
-    policy:
-    policy
-    // {
-      allowCommands = policy.allows.commands.readOnly ++ policy.allows.commands.mutating;
-      gateCommands = map (gate: gate.command) policy.gates.commands;
-      mcpAllows = toMcpEntries (
-        lib.mapAttrs (
-          _:
-          map (tool: {
-            inherit tool;
-          })
-        ) policy.allows.mcp
-      );
-      mcpGates = toMcpEntries policy.gates.mcp;
-    };
-
-  policy = withFlatLists {
-    gates = import ./gates.nix;
-    allows = import ./allows.nix;
+  policy = {
+    inherit gates allows;
+    allowCommands = allows.commands.readOnly ++ allows.commands.mutating;
+    gateCommands = map (gate: gate.command) gates.commands;
+    mcpAllows = toMcpEntries (
+      lib.mapAttrs (
+        _:
+        map (tool: {
+          inherit tool;
+        })
+      ) allows.mcp
+    );
+    mcpGates = toMcpEntries gates.mcp;
   };
 in
 import ./validate.nix { inherit lib mcpOptions policy; }
