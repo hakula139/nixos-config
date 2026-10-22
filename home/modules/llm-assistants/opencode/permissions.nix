@@ -37,7 +37,6 @@ in
   bash = {
     "*" = "allow";
   }
-  // toBashRules "allow" allows.commands.readOnly
   // toBashRules "ask" policy.gateCommands;
 
   external_directory = lib.genAttrs (map (path: "${path}/*") allows.paths) (_: "allow");
