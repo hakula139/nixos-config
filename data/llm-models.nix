@@ -187,6 +187,17 @@ in
       };
     };
 
+    "gpt-6-astra" = gptCommon // {
+      name = "GPT-6 Astra";
+      channelId.openai = "openai/gpt-6-astra";
+      channelCost.openai = {
+        input = 10.0;
+        output = 50.0;
+        cacheRead = 1.0;
+        cacheWrite = 12.5;
+      };
+    };
+
     "gpt-6.1-sol" = gptCommon // {
       name = "GPT-6.1 Sol";
       channelId.openai = "openai/gpt-6.1-sol";
@@ -241,6 +252,14 @@ in
       maxTokens = 393216;
       autoCompactTokens = 400000;
       channelId.local = "local_v2/DeepSeek-V4.1-Flash-1017";
+    };
+
+    "kimi-k3" = localCommon // {
+      name = "Kimi K3";
+      contextWindow = 409600;
+      maxTokens = 65536;
+      autoCompactTokens = 320000;
+      channelId.local = "local_v2_k3/Kimi-K3";
     };
   };
 }
