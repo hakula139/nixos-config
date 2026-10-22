@@ -164,7 +164,7 @@ Review release notes for application and database migrations, then edit the tag 
 
 ### Unpinned MCP wrappers
 
-The `npx` and `uvx` MCP wrappers in `home/modules/llm-assistants/shared/mcp/default.nix` leave versions unspecified, including `mcp-atlassian` and `scrapling[ai]`. Their runtime resolution and caches are outside this pin checker.
+The `npx` and `uvx` MCP wrappers in `home/modules/llm-assistants/shared/mcp/default.nix` float on each package's latest release, `uvx` through `@latest`, so they are outside this pin checker.
 
 ## GitHub Actions
 

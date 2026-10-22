@@ -83,6 +83,8 @@ let
       }
     );
 
+  # `@latest` refreshes the package on every start and ignores any `uv tool install` version, so
+  # every host runs the newest release.
   mkUvServer =
     server:
     mkServer (
@@ -97,7 +99,7 @@ let
   # ------------------------------------------------------------------------------------------------
   atlassianBin = mkUvServer {
     name = "atlassian";
-    command = [ "mcp-atlassian" ];
+    command = [ "mcp-atlassian@latest" ];
     envFiles.CONFLUENCE_PERSONAL_TOKEN = secretPath "llm-assistants/mcp/confluence-pat";
     envVars.CONFLUENCE_URL = wikiUrl;
     # mcp-atlassian ignores NO_PROXY, so unset proxies for internal Confluence.
@@ -211,7 +213,7 @@ let
     name = "scrapling";
     command = [
       "--from"
-      "scrapling[ai]==0.5"
+      "scrapling[ai]@latest"
       "scrapling-mcp"
       "--executable-path=${lib.getExe pkgs.browser-tools.chromium}"
     ];

@@ -227,7 +227,8 @@ def registry [root: string]: nothing -> list<record> {
         {
           pin: "omp-telegram"
           local: {||
-            abbrev (nix-attr $root "home/modules/llm-assistants/omp/extensions.nix" 'rev = "(?<v>[0-9a-f]+)"')
+            let file = "home/modules/llm-assistants/omp/extensions.nix"
+            abbrev (nix-attr $root $file 'rev = "(?<v>[0-9a-f]+)"')
           }
           upstream: {|| abbrev (gh-latest-release-head "TerrifiedBug/omp-telegram") }
         }
@@ -268,7 +269,10 @@ def registry [root: string]: nothing -> list<record> {
         }
         {
           pin: "zsh-hist"
-          local: {|| abbrev (nix-attr $root "packages/zsh-hist/default.nix" 'rev = "(?<v>[0-9a-f]+)"') }
+          local: {||
+            let file = "packages/zsh-hist/default.nix"
+            abbrev (nix-attr $root $file 'rev = "(?<v>[0-9a-f]+)"')
+          }
           upstream: {|| abbrev (gh-default-head "marlonrichert/zsh-hist") }
         }
       ]
@@ -279,7 +283,8 @@ def registry [root: string]: nothing -> list<record> {
         {
           pin: "toasty"
           local: {||
-            nix-attr $root "home/modules/llm-assistants/shared/notify/default.nix" 'download/(?<v>v?[0-9.]+)'
+            let file = "home/modules/llm-assistants/shared/notify/default.nix"
+            nix-attr $root $file 'download/(?<v>v?[0-9.]+)'
           }
           upstream: {|| gh-latest-release-with-asset "shanselman/toasty" "toasty-x64.exe" }
         }
