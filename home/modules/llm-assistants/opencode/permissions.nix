@@ -33,17 +33,12 @@ let
     );
 in
 {
-  # OpenCode resolves permission.bash last-match-wins, and Nix serializes keys alphabetically
-  # (attrsets are unordered: nix-community/home-manager#2519). Each ask overrides `*` because `*`
-  # sorts before every command name, and no allow can match a gated command, because evaluation
-  # rejects an allow that overlaps a gate. Nothing contains a command that OpenCode runs, so only
-  # read-only commands render as allows.
+  # OpenCode applies the last matching key, and `*` sorts first, so each ask overrides it.
   bash = {
     "*" = "allow";
   }
   // toBashRules "allow" allows.commands.readOnly
-  // toBashRules "ask" policy.gateCommands
-  // lib.genAttrs policy.argumentPatterns (_: "ask");
+  // toBashRules "ask" policy.gateCommands;
 
   external_directory = lib.genAttrs (map (path: "${path}/*") allows.paths) (_: "allow");
 }

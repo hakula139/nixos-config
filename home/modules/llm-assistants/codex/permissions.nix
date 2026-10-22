@@ -39,13 +39,6 @@ let
     inherit (gate) reason;
   }) policy.mcpGates;
 
-  toCodeList = lib.concatMapStringsSep ", " (item: "`${item}`");
-
-  argumentGates = map (gate: {
-    name = "${toCodeList gate.commands} with ${toCodeList gate.arguments}";
-    inherit (gate) reason;
-  }) policy.gates.arguments;
-
   toPolicyItems = lib.concatMapStringsSep "\n" (
     entry:
     let
@@ -69,6 +62,6 @@ in
 
     ## Requires the user's explicit approval, including approval given earlier in the conversation
 
-    ${toPolicyItems (policy.gates.commands ++ argumentGates ++ mcpGates ++ policy.gates.policies)}
+    ${toPolicyItems (policy.gates.commands ++ mcpGates ++ policy.gates.policies)}
   '';
 }
