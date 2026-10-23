@@ -5,6 +5,7 @@
 {
   config,
   lib,
+  options,
   hostType,
   repoLib,
   enableDevToolchains ? false,
@@ -29,13 +30,16 @@ let
     "cursor"
     "omp"
     "opencode"
+    "oxide-code"
   ];
 
   cliAssistantNames = lib.remove "cursor" assistantNames;
+  mcpAssistantNames = lib.filter (name: options.hakula.${name} ? mcp) assistantNames;
 
   # Cursor's IDE settings apply to every host, so it acts as an assistant only within the bundle.
-  assistants =
-    map (name: config.hakula.${name}) cliAssistantNames ++ lib.optional cfg.enable config.hakula.cursor;
+  mcpAssistants = map (name: config.hakula.${name}) (
+    lib.filter (name: name != "cursor" || cfg.enable) mcpAssistantNames
+  );
 
   # Map each MCP server to the secret it needs at runtime. Servers absent from this attrset do not
   # require any decrypted file.
@@ -52,7 +56,7 @@ let
   };
 
   activeServers = lib.unique (
-    lib.concatMap (a: if a.enable then mcpOptions.computeEnabledServers a.mcp else [ ]) assistants
+    lib.concatMap (a: if a.enable then mcpOptions.computeEnabledServers a.mcp else [ ]) mcpAssistants
   );
 
   requiredMcpSecretKeys = lib.unique (lib.concatMap (s: mcpServerSecrets.${s} or [ ]) activeServers);
@@ -114,7 +118,7 @@ in
     {
       # Clients enabled apart from the bundle still inherit its MCP policy.
       hakula =
-        lib.genAttrs assistantNames (_: {
+        lib.genAttrs mcpAssistantNames (_: {
           mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
         })
         // {
@@ -128,7 +132,7 @@ in
 
     (lib.mkIf cfg.enable {
       hakula =
-        lib.genAttrs (cliAssistantNames ++ [ "oxide-code" ]) (_: {
+        lib.genAttrs cliAssistantNames (_: {
           enable = lib.mkDefault true;
           proxy = lib.mkIf cfg.proxy.enable assistantProxy;
         })
