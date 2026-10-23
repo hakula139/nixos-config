@@ -30,12 +30,16 @@ in
     enable = lib.mkEnableOption "Cursor configuration";
 
     extensions = {
-      enable = lib.mkEnableOption "Cursor extensions";
-      prune = lib.mkEnableOption "Prune Cursor extensions not in the provisioned list";
+      enable = lib.mkEnableOption "installing the provisioned Cursor extensions";
+      prune = lib.mkEnableOption "uninstalling Cursor extensions missing from the provisioned list";
     };
 
     windowsSync = {
       enable = lib.mkEnableOption "syncing Nix-managed Cursor settings to Windows (WSL only)";
+    };
+
+    mirroredNetworking = {
+      enable = lib.mkEnableOption "turning off Cursor port forwarding in mirrored mode (WSL only)";
     };
 
     mcp = mcpOptions.mkMcpOptions { names = cursorMcpServers; };
@@ -65,6 +69,7 @@ in
           ;
         inherit (config.home) profileDirectory;
         flakePath = config.hakula.nix.configPath;
+        mirroredNetworking = cfg.mirroredNetworking.enable;
         windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
       };
 
