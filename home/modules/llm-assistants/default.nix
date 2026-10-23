@@ -22,6 +22,7 @@ let
   inherit (repoLib.llmAssistants) mcpOptions;
 
   cfg = config.hakula.llm-assistants;
+  corpGateway = config.lib.llmAssistants.profileDefinitions.providers.corp-gateway;
 
   assistantNames = [
     "claude-code"
@@ -137,6 +138,14 @@ in
         // {
           activity-report.enable = lib.mkDefault isDesktop;
         };
+    })
+
+    # oxide-code is installed outside this config, so the bundle provisions its gateway key.
+    (lib.mkIf (cfg.enable && cfg.auth.enableCorpGateway) {
+      hakula.secrets.required = {
+        ${corpGateway.tokenSecretFor "oxide-code"} = { };
+        ${corpGateway.caSecret} = { };
+      };
     })
   ];
 }
