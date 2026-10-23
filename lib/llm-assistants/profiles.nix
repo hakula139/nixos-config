@@ -140,6 +140,7 @@ let
     in
     {
       inherit (profile) provider nativeWebSearch;
+      oauthTokenSecret = profile.oauthTokenSecret or null;
       workloads = lib.mapAttrs (
         tier: _:
         resolveWorkload {
@@ -211,14 +212,25 @@ in
       enableCorpGateway,
     }:
     let
-      officialProfiles = lib.optionalAttrs (nativeFamily != null) {
-        official = {
-          provider = null;
-          channel = null;
-          family = nativeFamily;
-          nativeWebSearch = true;
-        };
+      official = {
+        provider = null;
+        channel = null;
+        family = nativeFamily;
+        nativeWebSearch = true;
       };
+
+      officialTokenSecrets.claude = "llm-assistants/claude-oauth-token";
+
+      officialProfiles = lib.optionalAttrs (nativeFamily != null) (
+        {
+          inherit official;
+        }
+        // lib.optionalAttrs (officialTokenSecrets ? ${nativeFamily}) {
+          official-token = official // {
+            oauthTokenSecret = officialTokenSecrets.${nativeFamily};
+          };
+        }
+      );
 
       enabledProviderProfiles = lib.filterAttrs (
         _: profile:
