@@ -90,9 +90,7 @@ let
     name = "codex-switch";
     assistant = "Codex";
     extension = "config.toml";
-    profiles = lib.mapAttrs (
-      name: settings: toml.generate "codex-profile-${name}.toml" settings
-    ) profiles;
+    profiles = lib.mapAttrs (name: toml.generate "codex-profile-${name}.toml") profiles;
     configFile = "${configDir}/config.toml";
     # Preserve user-defined agents while removing disabled managed roles.
     resetKeys = [

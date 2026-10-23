@@ -16,32 +16,33 @@ let
   stateDir = "${config.xdg.stateHome}/oxide-code";
 
   # ------------------------------------------------------------------------------------------------
+  # Profile assembly
+  # ------------------------------------------------------------------------------------------------
+  mkProfile =
+    _:
+    anthropicProfiles.mkProfileAuth {
+      client = "oxide-code";
+      caEnvVar = "OX_EXTRA_CA_CERTS";
+    };
+
+  # ------------------------------------------------------------------------------------------------
   # Profile definitions
   # ------------------------------------------------------------------------------------------------
   # oxide-code speaks only the Anthropic Messages API and serves only Claude models.
-  profiles =
-    lib.mapAttrs
-      (
-        _:
-        anthropicProfiles.mkProfileAuth {
-          client = "oxide-code";
-          caEnvVar = "OX_EXTRA_CA_CERTS";
-        }
-      )
-      (
-        profileDefinitions.mkProfiles {
-          inherit (cfg) enableCorpGateway;
-          nativeFamily = "claude";
+  profiles = lib.mapAttrs mkProfile (
+    profileDefinitions.mkProfiles {
+      inherit (cfg) enableCorpGateway;
+      nativeFamily = "claude";
 
-          providers = [
-            "corp-gateway"
-            "ikuncode"
-            "yescode"
-          ];
+      providers = [
+        "corp-gateway"
+        "ikuncode"
+        "yescode"
+      ];
 
-          channels = [ "anthropic" ];
-        }
-      );
+      channels = [ "anthropic" ];
+    }
+  );
 
   # ------------------------------------------------------------------------------------------------
   # Profile scripts
@@ -63,8 +64,8 @@ let
   } profiles;
 
   profileLoader = pkgs.replaceVars ./scripts/profile-loader.sh {
-    profileEnvVars = toString profileEnvVars;
     inherit stateDir;
+    profileEnvVars = toString profileEnvVars;
   };
 
   # ------------------------------------------------------------------------------------------------

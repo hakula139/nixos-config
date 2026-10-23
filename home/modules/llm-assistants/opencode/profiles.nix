@@ -187,9 +187,7 @@ let
     name = "opencode-switch";
     assistant = "OpenCode";
     extension = "json";
-    profiles = lib.mapAttrs (
-      name: settings: json.generate "opencode-profile-${name}.json" settings
-    ) profiles;
+    profiles = lib.mapAttrs (name: json.generate "opencode-profile-${name}.json") profiles;
   };
 in
 {

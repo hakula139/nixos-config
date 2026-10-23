@@ -101,7 +101,7 @@ let
     name = "omp-switch";
     assistant = "OMP";
     extension = "config.yml";
-    profiles = lib.mapAttrs (name: settings: yaml.generate "omp-profile-${name}.yml" settings) profiles;
+    profiles = lib.mapAttrs (name: yaml.generate "omp-profile-${name}.yml") profiles;
     configFile = "${configDir}/config.yml";
     resetKeys = [
       "modelRoles"

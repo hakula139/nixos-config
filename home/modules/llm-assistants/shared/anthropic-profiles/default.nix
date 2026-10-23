@@ -1,8 +1,8 @@
 # ==================================================================================================
-# Anthropic Environment Profiles
+# Anthropic Auth Profiles
 # ==================================================================================================
-
-# Auth profiles for clients configured through Claude Code's environment variables.
+# Profiles for the clients configured through Claude Code's environment variables.
+# ==================================================================================================
 
 {
   lib,

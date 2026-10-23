@@ -35,6 +35,7 @@ let
     _: profile:
     let
       inherit (profile) roles workloads;
+
       # Claude Code recognizes catalog keys, and `modelOverrides` maps them to gateway IDs.
       clientModelId =
         workload: if workload.channel == "anthropic" then workload.modelKey else workload.modelId;
@@ -42,13 +43,6 @@ let
       aliasModelId =
         workload:
         clientModelId workload + lib.optionalString (workload.model.contextWindow >= 1000000) "[1m]";
-
-      auth = anthropicProfiles.mkProfileAuth {
-        client = "claude-code";
-        caEnvVar = "NODE_EXTRA_CA_CERTS";
-      } profile;
-
-      isCorpGateway = profile.provider == "corp-gateway";
 
       aliasEnv =
         lib.mapAttrs' (
@@ -58,6 +52,13 @@ let
         // {
           CLAUDE_CODE_SUBAGENT_MODEL = modelAliases.claude.${roleTiers.task.modelTier};
         };
+
+      auth = anthropicProfiles.mkProfileAuth {
+        client = "claude-code";
+        caEnvVar = "NODE_EXTRA_CA_CERTS";
+      } profile;
+
+      isCorpGateway = profile.provider == "corp-gateway";
 
       corpGatewayEnv =
         let
@@ -266,9 +267,11 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile loader
   # ------------------------------------------------------------------------------------------------
+  profileEnvVars = anthropicProfiles.mkProfileEnvVars { } cfg.auth.profiles;
+
   profileLoader = pkgs.replaceVars ./scripts/profile-loader.sh {
-    profileEnvVars = toString (anthropicProfiles.mkProfileEnvVars { } cfg.auth.profiles);
     inherit stateDir;
+    profileEnvVars = toString profileEnvVars;
   };
 
   sessionArgs = pkgs.replaceVars ./scripts/session-args.sh { inherit mcpFlag; };
@@ -276,7 +279,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile switcher
   # ------------------------------------------------------------------------------------------------
-  claudeSwitch = mkProfileSwitch {
+  switch = mkProfileSwitch {
     inherit stateDir;
     inherit (cfg.auth) defaultProfile;
     name = "claude-switch";
@@ -304,7 +307,6 @@ in
       enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
     }
     // {
-
       profiles = lib.mkOption {
         type = lib.types.attrsOf profileType;
         default = { };
@@ -320,7 +322,7 @@ in
     # Assertions
     # ----------------------------------------------------------------------------------------------
     assertions = [
-      claudeSwitch.assertion
+      switch.assertion
     ]
     ++ lib.concatLists (lib.mapAttrsToList mkProfileAssertions cfg.auth.profiles);
 
@@ -343,12 +345,12 @@ in
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    home.packages = [ claudeSwitch.package ];
+    home.packages = [ switch.package ];
 
     # ----------------------------------------------------------------------------------------------
     # Profile files
     # ----------------------------------------------------------------------------------------------
-    home.file = claudeSwitch.files // {
+    home.file = switch.files // {
       ".claude/agents".source = config.lib.file.mkOutOfStoreSymlink "${stateDir}/active-profile/agents";
     };
 
@@ -356,7 +358,7 @@ in
     # Activation
     # ----------------------------------------------------------------------------------------------
     home.activation.claudeCodeProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      run ${lib.getExe claudeSwitch.package} --initialize
+      run ${lib.getExe switch.package} --initialize
     '';
   };
 

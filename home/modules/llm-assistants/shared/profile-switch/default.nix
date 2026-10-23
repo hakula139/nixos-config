@@ -25,9 +25,9 @@ let
   switchConfig = json.generate "${name}.json" {
     inherit
       assistant
+      stateDir
       profilesDir
       extension
-      stateDir
       defaultProfile
       configFile
       resetKeys

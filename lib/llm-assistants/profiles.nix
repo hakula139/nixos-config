@@ -85,8 +85,6 @@ let
     };
   };
 
-  officialTokenSecrets.claude = "llm-assistants/claude-oauth-token";
-
   # ------------------------------------------------------------------------------------------------
   # Profile resolution
   # ------------------------------------------------------------------------------------------------
@@ -214,15 +212,16 @@ in
       enableCorpGateway,
     }:
     let
+      official = {
+        provider = null;
+        channel = null;
+        family = nativeFamily;
+        nativeWebSearch = true;
+      };
+
+      officialTokenSecrets.claude = "llm-assistants/claude-oauth-token";
+
       officialProfiles = lib.optionalAttrs (nativeFamily != null) (
-        let
-          official = {
-            provider = null;
-            channel = null;
-            family = nativeFamily;
-            nativeWebSearch = true;
-          };
-        in
         {
           inherit official;
         }
