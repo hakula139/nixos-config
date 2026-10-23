@@ -76,26 +76,23 @@ def "test a failing verdict hands the findings to the agent" [] {
   )
 }
 
-def "test a failed call tells the agent the text went unchecked" [] {
-  let context = (gate {STUB_ERROR: "model-call: curl: (28) Connection timed out"})
+def "test a call without a verdict tells the agent why the text went unchecked" [] {
+  let timeout = "model-call: curl: (28) Connection timed out"
+  let cases = [
+    [env_vars reason];
+    [{STUB_ERROR: $timeout} $timeout]
+    [{STUB_REPLY: "The comment looks fine."} "the model's reply carries no verdict"]
+  ]
 
-  assert equal $context (
-    "
-    The comment gate could not check the text you just wrote, so its comments went unreviewed.
-    Reason: model-call: curl: (28) Connection timed out
-    "
-    | str dedent
-  )
-}
+  for case in $cases {
+    let context = (gate $case.env_vars)
 
-def "test a reply without a verdict tells the agent the text went unchecked" [] {
-  let context = (gate {STUB_REPLY: "The comment looks fine."})
-
-  assert equal $context (
-    "
-    The comment gate could not check the text you just wrote, so its comments went unreviewed.
-    Reason: the model's reply carries no verdict
-    "
-    | str dedent
-  )
+    assert equal $context (
+      $"
+      The comment gate could not check the text you just wrote, so its comments went unreviewed.
+      Reason: ($case.reason)
+      "
+      | str dedent
+    ) ($case.env_vars | to nuon)
+  }
 }
