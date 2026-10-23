@@ -100,8 +100,8 @@ let
     inherit (cfg) defaultProfile;
     name = "omp-switch";
     assistant = "OMP";
-    profilesDir = "${stateDir}/profiles";
     extension = "config.yml";
+    profiles = lib.mapAttrs (name: settings: yaml.generate "omp-profile-${name}.yml" settings) profiles;
     configFile = "${configDir}/config.yml";
     resetKeys = [
       "modelRoles"
@@ -125,12 +125,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Assertions
     # ----------------------------------------------------------------------------------------------
-    assertions = [
-      {
-        assertion = builtins.hasAttr cfg.defaultProfile profiles;
-        message = "hakula.omp.auth.defaultProfile requires its profile to be enabled";
-      }
-    ];
+    assertions = [ switch.assertion ];
 
     # ----------------------------------------------------------------------------------------------
     # Secrets
@@ -143,15 +138,12 @@ in
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    home.packages = [ switch ];
+    home.packages = [ switch.package ];
 
     # ----------------------------------------------------------------------------------------------
     # Profile files
     # ----------------------------------------------------------------------------------------------
-    home.file = lib.mapAttrs' (name: settings: {
-      name = "${stateDir}/profiles/${name}.config.yml";
-      value.source = yaml.generate "omp-profile-${name}.yml" settings;
-    }) profiles;
+    home.file = switch.files;
 
     # ----------------------------------------------------------------------------------------------
     # Activation
@@ -165,7 +157,7 @@ in
 
     # Keep config.yml writable for profile switching and OMP settings updates.
     home.activation.ompAuthProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      run ${lib.getExe switch} --initialize
+      run ${lib.getExe switch.package} --initialize
     '';
   };
 

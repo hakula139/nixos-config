@@ -82,6 +82,11 @@ in
     # ----------------------------------------------------------------------------------------------
     inherit profileDefinitions;
 
+    anthropicProfiles = import ./anthropic-profiles {
+      inherit lib secretPath;
+      inherit (profileDefinitions) providers;
+    };
+
     mkProfileSwitch = import ./profile-switch { inherit pkgs lib; };
   };
 }

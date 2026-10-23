@@ -186,8 +186,10 @@ let
     inherit (cfg) defaultProfile;
     name = "opencode-switch";
     assistant = "OpenCode";
-    profilesDir = "${stateDir}/profiles";
     extension = "json";
+    profiles = lib.mapAttrs (
+      name: settings: json.generate "opencode-profile-${name}.json" settings
+    ) profiles;
   };
 in
 {
@@ -206,12 +208,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Assertions
     # ----------------------------------------------------------------------------------------------
-    assertions = [
-      {
-        assertion = builtins.hasAttr cfg.defaultProfile profiles;
-        message = "hakula.opencode.auth.defaultProfile requires its profile to be enabled";
-      }
-    ];
+    assertions = [ switch.assertion ];
 
     # ----------------------------------------------------------------------------------------------
     # Secrets
@@ -224,21 +221,18 @@ in
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    home.packages = [ switch ];
+    home.packages = [ switch.package ];
 
     # ----------------------------------------------------------------------------------------------
     # Profile files
     # ----------------------------------------------------------------------------------------------
-    home.file = lib.mapAttrs' (name: settings: {
-      name = "${stateDir}/profiles/${name}.json";
-      value.source = json.generate "opencode-profile-${name}.json" settings;
-    }) profiles;
+    home.file = switch.files;
 
     # ----------------------------------------------------------------------------------------------
     # Activation
     # ----------------------------------------------------------------------------------------------
     home.activation.opencodeAuthProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      run ${lib.getExe switch} --initialize
+      run ${lib.getExe switch.package} --initialize
     '';
   };
 

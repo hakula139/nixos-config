@@ -85,6 +85,8 @@ let
     };
   };
 
+  officialTokenSecrets.claude = "llm-assistants/claude-oauth-token";
+
   # ------------------------------------------------------------------------------------------------
   # Profile resolution
   # ------------------------------------------------------------------------------------------------
@@ -140,6 +142,7 @@ let
     in
     {
       inherit (profile) provider nativeWebSearch;
+      oauthTokenSecret = profile.oauthTokenSecret or null;
       workloads = lib.mapAttrs (
         tier: _:
         resolveWorkload {
@@ -211,14 +214,24 @@ in
       enableCorpGateway,
     }:
     let
-      officialProfiles = lib.optionalAttrs (nativeFamily != null) {
-        official = {
-          provider = null;
-          channel = null;
-          family = nativeFamily;
-          nativeWebSearch = true;
-        };
-      };
+      officialProfiles = lib.optionalAttrs (nativeFamily != null) (
+        let
+          official = {
+            provider = null;
+            channel = null;
+            family = nativeFamily;
+            nativeWebSearch = true;
+          };
+        in
+        {
+          inherit official;
+        }
+        // lib.optionalAttrs (officialTokenSecrets ? ${nativeFamily}) {
+          official-token = official // {
+            oauthTokenSecret = officialTokenSecrets.${nativeFamily};
+          };
+        }
+      );
 
       enabledProviderProfiles = lib.filterAttrs (
         _: profile:

@@ -10,7 +10,7 @@
   enabledAgents,
   modelCatalog,
   profileDefinitions,
-  secretPath,
+  anthropicProfiles,
   mkProfileSwitch,
   mcpFlag,
 }:
@@ -18,7 +18,6 @@
 let
   inherit (profileDefinitions)
     modelAliases
-    providers
     roleTiers
     workloadPolicy
     ;
@@ -26,11 +25,6 @@ let
   cfg = config.hakula.claude-code;
   json = pkgs.formats.json { };
   stateDir = "${config.xdg.stateHome}/claude-code";
-
-  authEnvByType = {
-    oauth-token = "CLAUDE_CODE_OAUTH_TOKEN";
-    api-key = "ANTHROPIC_AUTH_TOKEN";
-  };
 
   # ------------------------------------------------------------------------------------------------
   # Profile assembly
@@ -49,7 +43,14 @@ let
         workload:
         clientModelId workload + lib.optionalString (workload.model.contextWindow >= 1000000) "[1m]";
 
-      extraEnv =
+      auth = anthropicProfiles.mkProfileAuth {
+        client = "claude-code";
+        caEnvVar = "NODE_EXTRA_CA_CERTS";
+      } profile;
+
+      isCorpGateway = profile.provider == "corp-gateway";
+
+      aliasEnv =
         lib.mapAttrs' (
           tier: alias:
           lib.nameValuePair "ANTHROPIC_DEFAULT_${lib.toUpper alias}_MODEL" (aliasModelId workloads.${tier})
@@ -57,10 +58,29 @@ let
         // {
           CLAUDE_CODE_SUBAGENT_MODEL = modelAliases.claude.${roleTiers.task.modelTier};
         };
+
+      corpGatewayEnv =
+        let
+          inherit (workloads) mini;
+        in
+        {
+          CLAUDE_CODE_AUTO_MODE_MODEL =
+            modelCatalog.models.${modelCatalog.defaults.claude.mini}.channelId.anthropic;
+        }
+        // lib.optionalAttrs (roles.default.family == "local") {
+          CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString roles.default.model.contextWindow;
+        }
+        // lib.optionalAttrs (mini.channel == "anthropic") {
+          # Undocumented: `-` clears a catalog flag, so prompt hooks and the auto-mode classifier on
+          # Haiku send the disabled thinking they request, since the gateway's Bedrock streams drop
+          # structured replies that think.
+          CLAUDE_CODE_MODEL_CAPABILITIES = "${mini.modelKey}=-rejects_disabled_thinking";
+        };
     in
-    {
-      inherit extraEnv;
-      inherit (profile) nativeWebSearch;
+    auth
+    // {
+      extraEnv = aliasEnv // auth.extraEnv or { } // lib.optionalAttrs isCorpGateway corpGatewayEnv;
+      nativeWebSearch = profile.nativeWebSearch && !isCorpGateway;
       sessionEffort = roles.default.effort;
       # Generic subagents and other requests without an effort take the session effort, which other
       # families may reject (DeepSeek has no `medium`), so each model gets its own family's effort.
@@ -84,42 +104,7 @@ let
       modelOverrides = lib.optionalAttrs (lib.any (workload: workload.channel == "anthropic") (
         builtins.attrValues workloads
       )) (lib.mapAttrs (_: model: model.channelId.anthropic) anthropicModels);
-    }
-    // (
-      if profile.provider == null then
-        { type = "subscription"; }
-      else
-        let
-          inherit (workloads) mini;
-          provider = providers.${profile.provider};
-        in
-        {
-          type = "api-key";
-          baseUrl = provider.apiUrls.anthropic-messages;
-          tokenSecret = provider.tokenSecretFor "claude-code";
-          extraHeaders = provider.extraHeaders or { };
-        }
-        // lib.optionalAttrs (profile.provider == "corp-gateway") {
-          extraEnv =
-            extraEnv
-            // {
-              CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
-              CLAUDE_CODE_AUTO_MODE_MODEL =
-                modelCatalog.models.${modelCatalog.defaults.claude.mini}.channelId.anthropic;
-            }
-            // lib.optionalAttrs (roles.default.family == "local") {
-              CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString roles.default.model.contextWindow;
-            }
-            // lib.optionalAttrs (mini.channel == "anthropic") {
-              # Undocumented: `-` clears a catalog flag, so prompt hooks and the auto-mode
-              # classifier on Haiku send the disabled thinking they request, since the gateway's
-              # Bedrock streams drop structured replies that think.
-              CLAUDE_CODE_MODEL_CAPABILITIES = "${mini.modelKey}=-rejects_disabled_thinking";
-            };
-          extraSecretEnv.NODE_EXTRA_CA_CERTS = provider.caSecret;
-          nativeWebSearch = false;
-        }
-    );
+    };
 
   # ------------------------------------------------------------------------------------------------
   # Profile definitions
@@ -144,21 +129,14 @@ let
     }
   );
 
-  defaultProfiles = profiles // {
-    official-token = profiles.official // {
-      type = "oauth-token";
-      tokenSecret = "llm-assistants/claude-oauth-token";
-    };
-  };
-
   # ------------------------------------------------------------------------------------------------
   # Profile submodule
   # ------------------------------------------------------------------------------------------------
   profileType = import ./profile-module.nix {
     inherit lib;
-    defaultSessionEffort = defaultProfiles.official.sessionEffort;
+    defaultSessionEffort = profiles.official.sessionEffort;
     defaultEfforts = workloadPolicy.claude;
-    defaultCompactWindows = defaultProfiles.official.compactWindows;
+    defaultCompactWindows = profiles.official.compactWindows;
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -222,17 +200,6 @@ let
     ];
 
   # ------------------------------------------------------------------------------------------------
-  # Profile authentication
-  # ------------------------------------------------------------------------------------------------
-  requiredSecretNames = lib.unique (
-    lib.concatMap (
-      p: lib.optional (p.tokenSecret != null) p.tokenSecret ++ builtins.attrValues p.extraSecretEnv
-    ) (builtins.attrValues cfg.auth.profiles)
-  );
-
-  requiredSecrets = lib.genAttrs requiredSecretNames (_: { });
-
-  # ------------------------------------------------------------------------------------------------
   # Custom agents
   # ------------------------------------------------------------------------------------------------
   mkAgentsDir =
@@ -257,16 +224,6 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile bundles
   # ------------------------------------------------------------------------------------------------
-  readSecretFn = ''
-    __read_secret() {
-      if [[ ! -s "$1" ]]; then
-        echo "claude: secret file missing or empty: $1" >&2
-        return 1
-      fi
-      cat "$1"
-    }
-  '';
-
   mkProfileBundle =
     name: profile:
     let
@@ -292,35 +249,14 @@ let
         }
       );
 
-      tokenLines =
-        if profile.type == "subscription" then
-          [ "# subscription mode: auth via interactive OAuth (.credentials.json)" ]
-        else
-          let
-            sf = esc (secretPath profile.tokenSecret);
-            envVar = authEnvByType.${profile.type};
-          in
-          [
-            readSecretFn
-            ''${envVar}="$(__read_secret ${sf})"''
-            "export ${envVar}"
-          ];
-
-      envLines =
-        let
-          customHeaders = lib.concatStringsSep "\n" (
-            lib.mapAttrsToList (name: value: "${name}: ${value}") profile.extraHeaders
-          );
-        in
-        lib.optional (profile.baseUrl != null) "export ANTHROPIC_BASE_URL=${esc profile.baseUrl}"
-        ++ lib.optional (customHeaders != "") "export ANTHROPIC_CUSTOM_HEADERS=${esc customHeaders}"
-        ++ lib.mapAttrsToList (k: v: "export ${k}=${esc v}") profile.extraEnv
-        ++ lib.mapAttrsToList (
-          k: secretName: "export ${k}=${esc (secretPath secretName)}"
-        ) profile.extraSecretEnv;
-
       envScript = pkgs.writeShellScript "claude-profile-${name}" (
-        lib.concatStringsSep "\n" (tokenLines ++ envLines ++ [ "__claude_settings=${esc settings}" ])
+        lib.concatStringsSep "\n" (
+          anthropicProfiles.mkEnvLines {
+            label = "claude";
+            subscriptionNote = "auth via interactive OAuth (.credentials.json)";
+          } profile
+          ++ [ "__claude_settings=${esc settings}" ]
+        )
       );
     in
     pkgs.linkFarm "claude-profile-${name}" {
@@ -333,25 +269,8 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile loader
   # ------------------------------------------------------------------------------------------------
-  # Clear inherited credentials, ANTHROPIC_API_KEY included, so none can bypass the active profile.
-  knownAuthEnvVars = lib.naturalSort (
-    builtins.attrValues authEnvByType
-    ++ [
-      "ANTHROPIC_API_KEY"
-      "ANTHROPIC_BASE_URL"
-      "ANTHROPIC_CUSTOM_HEADERS"
-    ]
-  );
-
-  profileEnvVars = lib.unique (
-    knownAuthEnvVars
-    ++ lib.concatMap (
-      profile: builtins.attrNames profile.extraEnv ++ builtins.attrNames profile.extraSecretEnv
-    ) (builtins.attrValues cfg.auth.profiles)
-  );
-
   profileLoader = pkgs.replaceVars ./scripts/profile-loader.sh {
-    profileEnvVars = toString profileEnvVars;
+    profileEnvVars = toString (anthropicProfiles.mkProfileEnvVars { } cfg.auth.profiles);
     inherit stateDir;
   };
 
@@ -365,8 +284,8 @@ let
     inherit (cfg.auth) defaultProfile;
     name = "claude-switch";
     assistant = "Claude Code";
-    profilesDir = "${stateDir}/profiles";
     extension = "d";
+    profiles = profileBundles;
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -404,10 +323,7 @@ in
     # Assertions
     # ----------------------------------------------------------------------------------------------
     assertions = [
-      {
-        assertion = lib.hasAttr cfg.auth.defaultProfile cfg.auth.profiles;
-        message = "hakula.claude-code: auth.defaultProfile '${cfg.auth.defaultProfile}' is not in auth.profiles";
-      }
+      claudeSwitch.assertion
     ]
     ++ lib.concatLists (lib.mapAttrsToList mkProfileAssertions cfg.auth.profiles);
 
@@ -420,37 +336,30 @@ in
       // {
         extraEnv = lib.mapAttrs (_: lib.mkDefault) profile.extraEnv;
       }
-    ) defaultProfiles;
+    ) profiles;
 
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    hakula.secrets.required = requiredSecrets;
+    hakula.secrets.required = anthropicProfiles.mkRequiredSecrets cfg.auth.profiles;
 
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    home.packages = [ claudeSwitch ];
+    home.packages = [ claudeSwitch.package ];
 
     # ----------------------------------------------------------------------------------------------
     # Profile files
     # ----------------------------------------------------------------------------------------------
-    home.file =
-      lib.mapAttrs' (name: bundle: {
-        name = "${stateDir}/profiles/${name}.d";
-        value = {
-          source = bundle;
-        };
-      }) profileBundles
-      // {
-        ".claude/agents".source = config.lib.file.mkOutOfStoreSymlink "${stateDir}/active-profile/agents";
-      };
+    home.file = claudeSwitch.files // {
+      ".claude/agents".source = config.lib.file.mkOutOfStoreSymlink "${stateDir}/active-profile/agents";
+    };
 
     # ----------------------------------------------------------------------------------------------
     # Activation
     # ----------------------------------------------------------------------------------------------
     home.activation.claudeCodeProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      run ${lib.getExe claudeSwitch} --initialize
+      run ${lib.getExe claudeSwitch.package} --initialize
     '';
   };
 

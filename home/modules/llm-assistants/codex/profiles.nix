@@ -89,8 +89,10 @@ let
     inherit (cfg) defaultProfile;
     name = "codex-switch";
     assistant = "Codex";
-    profilesDir = "${stateDir}/profiles";
     extension = "config.toml";
+    profiles = lib.mapAttrs (
+      name: settings: toml.generate "codex-profile-${name}.toml" settings
+    ) profiles;
     configFile = "${configDir}/config.toml";
     # Preserve user-defined agents while removing disabled managed roles.
     resetKeys = [
@@ -116,12 +118,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Assertions
     # ----------------------------------------------------------------------------------------------
-    assertions = [
-      {
-        assertion = builtins.hasAttr cfg.defaultProfile profiles;
-        message = "hakula.codex.auth.defaultProfile requires its profile to be enabled";
-      }
-    ];
+    assertions = [ switch.assertion ];
 
     # ----------------------------------------------------------------------------------------------
     # Secrets
@@ -134,15 +131,12 @@ in
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    home.packages = [ switch ];
+    home.packages = [ switch.package ];
 
     # ----------------------------------------------------------------------------------------------
     # Profile files
     # ----------------------------------------------------------------------------------------------
-    home.file = lib.mapAttrs' (name: settings: {
-      name = "${stateDir}/profiles/${name}.config.toml";
-      value.source = toml.generate "codex-profile-${name}.toml" settings;
-    }) profiles;
+    home.file = switch.files;
 
     # ----------------------------------------------------------------------------------------------
     # Activation
@@ -154,7 +148,7 @@ in
           "linkGeneration"
         ]
         ''
-          run ${lib.getExe switch} --initialize
+          run ${lib.getExe switch.package} --initialize
         '';
   };
 
