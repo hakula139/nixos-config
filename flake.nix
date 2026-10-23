@@ -69,6 +69,15 @@
 
     llm-agents.url = "github:numtide/llm-agents.nix";
 
+    oxide-code = {
+      url = "github:hakula139/oxide-code/v0.1.0-alpha.6";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        rust-overlay.follows = "rust-overlay";
+        git-hooks-nix.follows = "git-hooks-nix";
+      };
+    };
+
     anthropics-skills = {
       url = "github:anthropics/skills";
       flake = false;
