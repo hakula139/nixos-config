@@ -18,8 +18,8 @@ const DROP_CODE = {find: "`nix flake check`", replace: "这项检查"}
 const ADD_SEMICOLON = {find: "，", replace: "; "}
 
 # `input` is the hook's rewritten tool input, or null when it leaves the call alone, and `calls`
-# holds the passages each model call received.
-def polish [payload: record, rules: list<record>]: nothing -> record {
+# holds the passages each model call received. `session` adds environment variables to the hook's.
+def polish [payload: record, rules: list<record>, session: record = {}]: nothing -> record {
   let dir = (mktemp --directory)
   let rules_file = ($dir | path join rules.json)
   let config_file = ($dir | path join config.json)
@@ -38,7 +38,7 @@ def polish [payload: record, rules: list<record>]: nothing -> record {
   | to json
   | save $config_file
 
-  let env_vars = {STUB_LOG: $log, STUB_RULES: $rules_file}
+  let env_vars = ($session | merge {STUB_LOG: $log, STUB_RULES: $rules_file})
   let run = with-env $env_vars {
     $payload
     | upsert cwd $dir
@@ -186,6 +186,27 @@ def "test an English passage is left alone" [] {
     "
     | str dedent
   )
+}
+
+def "test the session switch leaves the call alone" [] {
+  let result = (polish (write notes.md $PARAGRAPH) [$SIMPLIFY] {DISABLE_PROSE_POLISH: "1"})
+
+  assert equal $result.calls []
+  assert equal $result.input null
+}
+
+def "test the session switch accepts true" [] {
+  let result = (polish (write notes.md $PARAGRAPH) [$SIMPLIFY] {DISABLE_PROSE_POLISH: "TRUE"})
+
+  assert equal $result.calls []
+  assert equal $result.input null
+}
+
+def "test zero leaves the session switch on" [] {
+  let result = (polish (write notes.md $PARAGRAPH) [$SIMPLIFY] {DISABLE_PROSE_POLISH: "0"})
+
+  assert equal ($result.calls | flatten | get text) [$PARAGRAPH]
+  assert equal $result.input.content $POLISHED
 }
 
 def "test indented lines inside a fence still let the document through" [] {
