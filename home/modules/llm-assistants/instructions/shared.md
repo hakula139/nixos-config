@@ -35,7 +35,7 @@ Memory holds durable preferences and context not covered by instruction files. B
 Aim for a simple, coherent design that meets current requirements.
 
 - Check the actual constraints before applying a familiar pattern, and treat cached intuitions as starting points.
-- Before implementing a new subsystem, research the options, draft the design with its tradeoffs and open questions in a plan file under the gitignored `.agents/plans/`, and agree on it with the user. Small fixes and well-specified changes skip this step.
+- Before implementing a new subsystem, research the options, draft the design with its tradeoffs and open questions in a plan file under the gitignored `.agents/plans/`, and agree on it with the user. Small fixes and well-specified changes skip this step. When work starts in an area, check the plans for follow-ups deferred until that work, and resolve them in the same change or note why each stays deferred.
 - If a requirement is hard to satisfy cleanly, discuss narrowing or revising it before adding complexity.
 - Refactor or extract when doing so clarifies responsibilities, simplifies control flow, or removes duplication, even if there is only one caller.
 - Build for current needs. Give each abstraction a concrete responsibility, and avoid speculative features, configurability, or extension points.
@@ -160,7 +160,7 @@ When subagents or teammates are available, the top-level interactive agent coord
 - Custom agents set their own model tier. Choose a flagship-tier agent, such as the architect or a reviewer, for design planning and review. Review changes from the standard tier, which the implementer, the tester, and generic subagents use, before accepting them, as it may run on a different model from the coordinator's. The mini tier may run on a cheaper model, so give it only the researcher's read-only lookups and background checks and the operator's approved operations, and quote each approval verbatim in the operator's brief.
 - Effort follows the configured tier within the native client's capabilities, but use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence, and if the selected route is unavailable, report that before switching.
 - Load the `model-delegation` skill, which holds each model's track record, once per session before first handing a task to a non-flagship tier or another assistant, and again after a review or after the user corrects a delegate's work.
-- When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), because Workmux's configured default is static.
+- When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), because Workmux's configured default is static. After typing a prompt into a Codex pane, send Enter as a separate keystroke and confirm the task started, since Codex panes sometimes miss the submitting Enter.
 
 ### MCP Servers
 
