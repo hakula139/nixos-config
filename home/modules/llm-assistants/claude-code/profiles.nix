@@ -90,6 +90,7 @@ let
         { type = "subscription"; }
       else
         let
+          inherit (workloads) mini;
           provider = providers.${profile.provider};
         in
         {
@@ -105,12 +106,15 @@ let
               CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
               CLAUDE_CODE_AUTO_MODE_MODEL =
                 modelCatalog.models.${modelCatalog.defaults.claude.mini}.channelId.anthropic;
-              # The gateway's Bedrock streams often return no content blocks for
-              # `output_config.format`, which fails prompt hooks open and allows the stop.
-              CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS = "1";
             }
             // lib.optionalAttrs (roles.default.family == "local") {
               CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString roles.default.model.contextWindow;
+            }
+            // lib.optionalAttrs (mini.channel == "anthropic") {
+              # Undocumented: `-` clears a catalog flag, so prompt hooks and the auto-mode
+              # classifier on Haiku send the disabled thinking they request, since the gateway's
+              # Bedrock streams drop structured replies that think.
+              CLAUDE_CODE_MODEL_CAPABILITIES = "${mini.modelKey}=-rejects_disabled_thinking";
             };
           extraSecretEnv.NODE_EXTRA_CA_CERTS = provider.caSecret;
           nativeWebSearch = false;
