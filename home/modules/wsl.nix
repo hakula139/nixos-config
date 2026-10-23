@@ -39,6 +39,7 @@ in
     hakula.cursor = {
       extensions.prune = lib.mkForce false;
       windowsSync.enable = lib.mkDefault true;
+      mirroredNetworking.enable = lib.mkDefault true;
     };
 
     hakula.fonts.windowsSync.enable = lib.mkDefault true;
