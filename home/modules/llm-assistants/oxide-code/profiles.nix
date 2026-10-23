@@ -49,12 +49,7 @@ let
   mkProfileScript =
     name: profile:
     pkgs.writeShellScript "ox-profile-${name}" (
-      lib.concatStringsSep "\n" (
-        anthropicProfiles.mkEnvLines {
-          label = "ox";
-          subscriptionNote = "auth via the oxide-code or Claude Code login";
-        } profile
-      )
+      lib.concatStringsSep "\n" (anthropicProfiles.mkEnvLines { label = "ox"; } profile)
     );
 
   # ------------------------------------------------------------------------------------------------

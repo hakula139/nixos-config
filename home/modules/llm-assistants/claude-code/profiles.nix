@@ -251,10 +251,7 @@ let
 
       envScript = pkgs.writeShellScript "claude-profile-${name}" (
         lib.concatStringsSep "\n" (
-          anthropicProfiles.mkEnvLines {
-            label = "claude";
-            subscriptionNote = "auth via interactive OAuth (.credentials.json)";
-          } profile
+          anthropicProfiles.mkEnvLines { label = "claude"; } profile
           ++ [ "__claude_settings=${esc settings}" ]
         )
       );

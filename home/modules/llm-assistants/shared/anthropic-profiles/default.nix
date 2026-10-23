@@ -70,33 +70,30 @@ in
   mkEnvLines =
     {
       label,
-      subscriptionNote,
     }:
     profile:
     let
       esc = lib.escapeShellArg;
 
-      tokenLines =
-        if profile.type == "subscription" then
-          [ "# subscription mode: ${subscriptionNote}" ]
-        else
-          let
-            sf = esc (secretPath profile.tokenSecret);
-            envVar = authEnvByType.${profile.type};
-          in
-          [
-            ''
-              __read_secret() {
-                if [[ ! -s "$1" ]]; then
-                  echo "${label}: secret file missing or empty: $1" >&2
-                  return 1
-                fi
-                cat "$1"
-              }
-            ''
-            ''${envVar}="$(__read_secret ${sf})"''
-            "export ${envVar}"
-          ];
+      tokenLines = lib.optionals (profile.type != "subscription") (
+        let
+          sf = esc (secretPath profile.tokenSecret);
+          envVar = authEnvByType.${profile.type};
+        in
+        [
+          ''
+            __read_secret() {
+              if [[ ! -s "$1" ]]; then
+                echo "${label}: secret file missing or empty: $1" >&2
+                return 1
+              fi
+              cat "$1"
+            }
+          ''
+          ''${envVar}="$(__read_secret ${sf})"''
+          "export ${envVar}"
+        ]
+      );
 
       customHeaders = lib.concatStringsSep "\n" (
         lib.mapAttrsToList (name: value: "${name}: ${value}") (profile.extraHeaders or { })
