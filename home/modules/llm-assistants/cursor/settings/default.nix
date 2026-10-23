@@ -9,6 +9,7 @@
   flakePath,
   isDarwin,
   isNixOS,
+  mirroredNetworking,
   profileDirectory,
   windowsInterop,
 }:
@@ -134,12 +135,25 @@ let
   };
 
   # ------------------------------------------------------------------------------------------------
+  # Mirrored networking settings
+  # ------------------------------------------------------------------------------------------------
+  # Mirrored networking already exposes WSL listeners on Windows localhost, so a forward is
+  # redundant, and one that binds while the WSL server is down holds the port it needs.
+  mirroredNetworkingSettings = lib.optionalAttrs mirroredNetworking {
+    "remote.autoForwardPorts" = false;
+    "remote.forwardOnOpen" = false;
+    "remote.restoreForwardedPorts" = false;
+  };
+
+  # ------------------------------------------------------------------------------------------------
   # Final settings
   # ------------------------------------------------------------------------------------------------
   settings = settingsBase // portableSettings;
 
   settingsJson = json.generate "cursor-settings.json" settings;
-  machineSettingsJson = json.generate "cursor-machine-settings.json" machineSettings;
+  machineSettingsJson = json.generate "cursor-machine-settings.json" (
+    machineSettings // mirroredNetworkingSettings
+  );
   windowsSettingsJson = json.generate "cursor-windows-settings.json" (settings // windowsSettings);
 
   # ------------------------------------------------------------------------------------------------
