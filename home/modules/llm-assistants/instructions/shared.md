@@ -73,6 +73,7 @@ Aim for a simple, coherent design that meets current requirements.
 
 - Write tests that fail for a plausible bug. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
 - Check that each new test covers something unique, and drop or merge tests whose coverage is subsumed by others.
+- Merge tests that differ only in their inputs and expected outputs into one table-driven test when the table makes the group's shared intent clearer, and keep tests separate when their setup or the behavior they check differs. Use the framework's parametrization where it exists, and otherwise loop over case records, naming the case in each assertion message so a failure shows which input broke.
 - Structure each test as arrange, act, and assert, with blank lines between the steps. Keep any check that the act succeeded beside the act.
 
 ## Communication

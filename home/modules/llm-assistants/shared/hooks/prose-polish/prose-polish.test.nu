@@ -18,7 +18,8 @@ const DROP_CODE = {find: "`nix flake check`", replace: "这项检查"}
 const ADD_SEMICOLON = {find: "，", replace: "; "}
 
 # `input` is the hook's rewritten tool input, or null when it leaves the call alone, and `calls`
-# holds the passages each model call received. `session` adds environment variables to the hook's.
+# holds the passages each model call received. `session` adds environment variables to the hook's,
+# which never inherits the caller's `DISABLE_PROSE_POLISH`.
 def polish [payload: record, rules: list<record>, session: record = {}]: nothing -> record {
   let dir = (mktemp --directory)
   let rules_file = ($dir | path join rules.json)
@@ -38,6 +39,7 @@ def polish [payload: record, rules: list<record>, session: record = {}]: nothing
   | to json
   | save $config_file
 
+  hide-env --ignore-errors DISABLE_PROSE_POLISH
   let env_vars = ($session | merge {STUB_LOG: $log, STUB_RULES: $rules_file})
   let run = with-env $env_vars {
     $payload
@@ -188,25 +190,23 @@ def "test an English passage is left alone" [] {
   )
 }
 
-def "test the session switch leaves the call alone" [] {
-  let result = (polish (write notes.md $PARAGRAPH) [$SIMPLIFY] {DISABLE_PROSE_POLISH: "1"})
+def "test only a truthy session switch leaves the call alone" [] {
+  let cases = [
+    [value calls content];
+    ["1" [] null]
+    [TRUE [] null]
+    ["0" [$PARAGRAPH] $POLISHED]
+  ]
 
-  assert equal $result.calls []
-  assert equal $result.input null
-}
+  for case in $cases {
+    let session = {DISABLE_PROSE_POLISH: $case.value}
 
-def "test the session switch accepts true" [] {
-  let result = (polish (write notes.md $PARAGRAPH) [$SIMPLIFY] {DISABLE_PROSE_POLISH: "TRUE"})
+    let result = (polish (write notes.md $PARAGRAPH) [$SIMPLIFY] $session)
 
-  assert equal $result.calls []
-  assert equal $result.input null
-}
-
-def "test zero leaves the session switch on" [] {
-  let result = (polish (write notes.md $PARAGRAPH) [$SIMPLIFY] {DISABLE_PROSE_POLISH: "0"})
-
-  assert equal ($result.calls | flatten | get text) [$PARAGRAPH]
-  assert equal $result.input.content $POLISHED
+    let context = ($session | to nuon)
+    assert equal ($result.calls | flatten | get text) $case.calls $context
+    assert equal ($result.input | get --optional content) $case.content $context
+  }
 }
 
 def "test indented lines inside a fence still let the document through" [] {
