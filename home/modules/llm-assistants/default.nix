@@ -56,7 +56,7 @@ let
   };
 
   activeServers = lib.unique (
-    lib.concatMap (a: if a.enable then mcpOptions.computeEnabledServers a.mcp else [ ]) mcpAssistants
+    lib.concatMap (a: lib.optionals a.enable (mcpOptions.computeEnabledServers a.mcp)) mcpAssistants
   );
 
   requiredMcpSecretKeys = lib.unique (lib.concatMap (s: mcpServerSecrets.${s} or [ ]) activeServers);
