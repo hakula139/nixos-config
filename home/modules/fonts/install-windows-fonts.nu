@@ -55,7 +55,7 @@ def main [config_file: string] {
     return
   }
 
-  let win_font_dir = (^wslpath -w $font_dir | str trim)
+  let win_font_dir = (^/bin/wslpath -w $font_dir | str trim)
   for font in (font-files [$font_dir]) {
     let name = ($font | path basename)
     let value = $"($font | path parse | get stem) \((font-type $font)\)"

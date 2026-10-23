@@ -28,7 +28,7 @@ in
     defaultUser = userName;
     wslConf.user.default = userName;
     # Preserve WSLInterop when systemd-binfmt rewrites binfmt entries. Without it, cmd.exe /
-    # powershell.exe / wslpath fail to execute.
+    # powershell.exe fail to execute.
     interop.register = true;
     docker-desktop.enable = true;
   };
