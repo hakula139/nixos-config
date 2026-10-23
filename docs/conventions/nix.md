@@ -45,6 +45,8 @@ Banners end at column 100, counting the indent. Use equals signs at the file hea
       # --------------------------------------------------------------------------------------------
 ```
 
+A file description, in any language using these banners, goes inside the header banner after the title and is closed by a third rule of equals signs.
+
 Option-bearing modules use `Module options` and `Module config` banners before the top-level `options` and `config` assignments.
 
 ## Comments
