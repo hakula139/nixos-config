@@ -171,7 +171,7 @@ in
         ;
     };
 
-    completeness = import ./completeness;
+    completeness = import ./completeness { inherit timeouts; };
 
     prosePolish = import ./prose-polish {
       inherit
