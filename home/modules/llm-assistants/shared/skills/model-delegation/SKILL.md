@@ -23,3 +23,4 @@ One clear failure of the model's ability is enough to stop giving it that kind o
 ## Track record
 
 - **Codex (GPT)**: assign only fully specified tasks with mechanically checkable results, such as an exact edit list, because it does not reliably infer conventions or make design decisions. Keep design decisions, convention judgments, and test writing with Claude.
+- **DeepSeek V4.1 Flash (`local_v2/DeepSeek-V4.1-Flash-1017`)**: hand it implementation only with a detailed design from a flagship-tier agent that names the files, approach, edge cases, and checks, because it does not reliably design on its own. It takes no image input, so route tasks that read screenshots or images to an image-capable model.
