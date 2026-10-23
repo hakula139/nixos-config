@@ -355,8 +355,17 @@ def splice [text: string, edits: list<record>]: nothing -> string {
   | str join ""
 }
 
+# A session variable counts as set when it holds `1`, `true`, `yes`, or `on`, ignoring case.
+def env-flag [name: string]: nothing -> bool {
+  let value = ($env | get -o $name | default "" | into string | str downcase)
+  $value in ["1" "true" "yes" "on"]
+}
+
 def --env polished [config: record]: nothing -> any {
   let payload = (^cat | from json)
+  if (env-flag DISABLE_PROSE_POLISH) {
+    return null
+  }
   cd ($payload | get -o cwd | default $env.PWD)
   let found = (targets $payload $config)
   if ($found | is-empty) {
