@@ -30,7 +30,8 @@ export def --env windows-env-path [name: string]: nothing -> string {
     exit 1
   }
 
-  ^wslpath $value | str trim
+  # SSH sessions and systemd units get a PATH without /bin, where WSL's init links wslpath.
+  ^/bin/wslpath $value | str trim
 }
 
 def main [name: string] {
