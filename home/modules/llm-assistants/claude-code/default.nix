@@ -8,7 +8,6 @@
   lib,
   modelCatalog,
   repoLib,
-  secretPath,
   enableDevToolchains ? false,
   ...
 }:
@@ -35,11 +34,10 @@ let
       pkgs
       lib
       modelCatalog
-      secretPath
       mcpFlag
       ;
     inherit (cfg.agents) enabledAgents;
-    inherit (shared) profileDefinitions mkProfileSwitch;
+    inherit (shared) profileDefinitions anthropicProfiles mkProfileSwitch;
     sharedAgents = shared.agentRoles;
   };
 in

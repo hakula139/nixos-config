@@ -7,7 +7,6 @@
   pkgs,
   lib,
   repoLib,
-  secretPath,
   ...
 }:
 
@@ -20,9 +19,8 @@ let
       config
       pkgs
       lib
-      secretPath
       ;
-    inherit (shared) profileDefinitions mkProfileSwitch;
+    inherit (shared) profileDefinitions anthropicProfiles mkProfileSwitch;
   };
 in
 {
