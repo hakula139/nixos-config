@@ -156,6 +156,12 @@ The failures in sections 3.1 and 3.2 led to rewriting eligible prose directly, w
 4. Checks each result for altered structure or literals, added lines, and newly introduced disallowed punctuation. Failed passages receive up to three repair attempts with the rejected text and validation feedback.
 5. Returns accepted rewrites through `updatedInput` and retains the original text for passages that still fail validation. Unsupported Markdown syntax and hook errors leave the original input unchanged.
 
+Setting `DISABLE_PROSE_POLISH=1` in the session's environment turns the hook off, for projects whose Chinese text is itself the content under test, such as benchmark prompts. The variable counts as set when its value is `1`, `true`, `yes`, or `on`, ignoring case, and any other value leaves the hook on. A project sets it for every session through the `env` entry of its `.claude/settings.json`:
+
+```json
+{ "env": { "DISABLE_PROSE_POLISH": "1" } }
+```
+
 ## 5. Coverage and limits
 
 The hook can rewrite prose exposed through supported tool inputs. Ordinary conversational replies and prose embedded in shell commands rely on the shared writing instructions. Passing the fidelity checks in section 4 does not establish writing quality.
