@@ -408,11 +408,7 @@
         in
         {
           default = pkgs.mkShell {
-            AUTO_FORMAT_DPRINT_CONFIG =
-              import ./home/modules/llm-assistants/shared/hooks/auto-format/dprint.nix
-                {
-                  inherit pkgs;
-                };
+            AUTO_FORMAT_DPRINT_CONFIG = "${tooling.markdownDprintConfigDir}/dprint.json";
 
             packages = [
               preCommitCheck.config.package

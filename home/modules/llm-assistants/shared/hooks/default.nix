@@ -14,8 +14,7 @@
   modelCatalog,
   readPrompt,
   phrasing,
-  repo,
-  enableDevToolchains ? true,
+  formatFiles,
 }:
 
 {
@@ -150,12 +149,9 @@ in
   hooks = {
     autoFormat = import ./auto-format {
       inherit
-        pkgs
-        lib
-        enableDevToolchains
+        formatFiles
         mkNuHook
         patchInput
-        repo
         timeouts
         ;
     };

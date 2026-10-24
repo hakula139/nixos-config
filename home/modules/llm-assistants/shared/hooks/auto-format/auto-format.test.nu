@@ -9,6 +9,7 @@ use std-rfc/str
 
 const SCRIPT_DIR = path self .
 const SCRIPT = ($SCRIPT_DIR | path join auto-format.nu)
+const FORMAT_FILES = ($SCRIPT_DIR | path join .. .. .. .. .. .. lib format-files.nu)
 const PATCH_INPUT = ($SCRIPT_DIR | path join .. lib patch-input patch-input.nu)
 const TOOLS = [
   cspell
@@ -39,11 +40,15 @@ def run-event [
   --direnv
   --export: record = {}
   --config: record = {}
+  --native
+  --exit-code: int = 0
 ]: nothing -> record {
   let dir = (mktemp --directory | path expand)
   let bin = ($dir | path join bin)
   let log = ($dir | path join calls.jsonl)
   let config_file = ($dir | path join config.json)
+  let hook_config = ($dir | path join hook.json)
+  let formatter = ($bin | path join format-files)
   let parser = ($bin | path join patch-input)
 
   mkdir $bin
@@ -54,10 +59,9 @@ def run-event [
   ^chmod +x $parser
   let base = {
     direnv: (if $direnv { install-stub ($bin | path join direnv) } else { "" })
-    dprintConfig: ""
+    dprintConfigDir: ""
     git: (which git | get 0.path)
     markdownlintConfig: ""
-    patchInput: $parser
   }
   $TOOLS
   | reduce --fold $base {|tool, config|
@@ -67,6 +71,19 @@ def run-event [
   | to json
   | save $config_file
 
+  (
+    $"
+    #!($nu.current-exe) --no-config-file
+    def --wrapped main [...args: string] {
+      ^($nu.current-exe | to nuon) --no-config-file ($FORMAT_FILES | to nuon) ($config_file | to nuon) ...$args
+      exit $env.LAST_EXIT_CODE
+    }
+    "
+    | str dedent
+  ) | save $formatter
+  ^chmod +x $formatter
+  {formatFiles: $formatter, patchInput: $parser} | to json | save $hook_config
+
   let run = with-env {
     DPRINT_CACHE_DIR: ($dir | path join dprint-cache)
     STUB_LOG: $log
@@ -74,12 +91,17 @@ def run-event [
     STUB_EXPORT: ($export | to json --raw)
     PATH: ([$bin ...$path] | str join ":")
   } {
-    $input
-    | to json
-    | ^$nu.current-exe --no-config-file $SCRIPT $config_file
-    | complete
+    if $native {
+      cd $input.cwd
+      ^$formatter $input.tool_input.file_path | complete
+    } else {
+      $input
+      | to json
+      | ^$nu.current-exe --no-config-file $SCRIPT $hook_config
+      | complete
+    }
   }
-  assert equal $run.exit_code 0 $run.stderr
+  assert equal $run.exit_code $exit_code $run.stderr
 
   {
     bin: $bin
@@ -146,12 +168,22 @@ def "test each extension runs its tools with their flags" [] {
       ext: md
       tools: []
       calls: [
-        [dprint ["fmt" "--allow-no-files" "--config" ""]]
+        [dprint ["fmt" "--allow-no-files"]]
         [markdownlint ["--config" "" "--fix"]]
         [cspell ["--no-progress" "--no-must-find-files"]]
       ]
     }
     {ext: txt, tools: [], calls: []}
+    {ext: sh, native: true, tools: [], calls: [[shfmt ["-w"]]]}
+    {ext: nu, native: true, tools: [], calls: []}
+    {ext: py, native: true, tools: [], calls: [[ruff ["format"]]]}
+    {ext: rs, native: true, tools: [cargo], calls: [[cargo ["fmt" "--all" "--quiet"] false]]}
+    {
+      ext: md
+      native: true
+      tools: []
+      calls: [[dprint ["fmt" "--allow-no-files"]]]
+    }
   ]
 
   for case in $cases {
@@ -161,7 +193,10 @@ def "test each extension runs its tools with their flags" [] {
     $case.tools | each {|tool| install-stub ($tools | path join $tool) }
     let file = (write-file ($dir | path join $"file.($case.ext)"))
 
-    let calls = (run-hook $file $dir --path [$tools])
+    let native = ($case | get --optional native | default false)
+    let input = {tool_name: Write, tool_input: {file_path: $file}, cwd: $dir}
+
+    let result = (run-event $input --path [$tools] --native=$native)
 
     let expected = (
       $case.calls
@@ -170,8 +205,9 @@ def "test each extension runs its tools with their flags" [] {
         {bin: $call.0, args: (if $takes_path { [...$call.1 $file] } else { $call.1 })}
       }
     )
-    let actual = ($calls | each {|call| {bin: ($call.bin | path basename), args: $call.args} })
-    assert equal $actual $expected $"extension ($case.ext) with ($case.tools)"
+    let actual = ($result.calls | each {|call| {bin: ($call.bin | path basename), args: $call.args} })
+    assert equal $actual $expected $"extension ($case.ext) with ($case.tools), native ($native)"
+    assert equal $result.run.stdout (if $native { "[]\n" } else { "" })
   }
 }
 
@@ -197,7 +233,7 @@ def "test tools outside a repository run from the directory of the edited file" 
   assert equal ($calls | get cwd) [$docs $docs $docs]
 }
 
-def "test tools in a linked worktree run from the worktree root" [] {
+def "test worktree markdown discovers config locally and runs checks from its root" [] {
   let repo = (mktemp --directory | path expand)
   ^git -C $repo init --quiet
   ^git -C $repo -c user.name=test -c user.email=test@test commit --quiet --allow-empty -m init
@@ -207,7 +243,7 @@ def "test tools in a linked worktree run from the worktree root" [] {
 
   let calls = (run-hook $file $repo)
 
-  assert equal ($calls | get cwd) [$worktree $worktree $worktree]
+  assert equal ($calls | get cwd) [($file | path dirname) $worktree $worktree]
 }
 
 def "test mixed patches run cargo once per root and retain file tools" [] {
@@ -215,7 +251,7 @@ def "test mixed patches run cargo once per root and retain file tools" [] {
   ^git -C $repo init --quiet
   let tools = ($repo | path join tools)
   let cargo = (install-stub ($tools | path join cargo))
-  write-file ($repo | path join a.rs)
+  write-file ($repo | path join "--a.rs")
   let nix = (write-file ($repo | path join b.nix))
   write-file ($repo | path join c.rs)
   let shell = (write-file ($repo | path join d.sh))
@@ -223,9 +259,9 @@ def "test mixed patches run cargo once per root and retain file tools" [] {
   mkdir ($repo | path join directory.nix)
   let event = (patch-event [
     {action: Update, path: c.rs}
-    {action: Update, path: a.rs}
+    {action: Update, path: --a.rs}
     {action: Update, path: b.nix}
-    {action: Update, path: ./a.rs}
+    {action: Update, path: ./--a.rs}
     {action: Update, path: ./b.nix}
     {action: Add, path: d.sh}
     {action: Delete, path: deleted.nix}
@@ -360,35 +396,7 @@ def "test failed environment loading stops checks" [] {
 
   let direnv = ($result.bin | path join direnv)
   assert equal $result.calls [{bin: $direnv, cwd: $dir, args: [export json]}]
-  assert equal $result.run.stdout ""
-  assert equal ($result.run.stderr | str trim) "stub failure"
-}
-
-def "test project dprint configuration takes precedence" [] {
-  let cases = [
-    {name: dprint.json, dir: docs}
-    {name: dprint.jsonc, dir: ""}
-    {name: .dprint.json, dir: docs}
-    {name: .dprint.jsonc, dir: ""}
-  ]
-
-  for case in $cases {
-    let dir = (mktemp --directory | path expand)
-    ^git -C $dir init --quiet
-    install-stub ($dir | path join docs node_modules .bin prettier)
-    let selected = (write-file ($dir | path join $case.dir $case.name))
-    if $case.dir != "" { write-file ($dir | path join dprint.json) }
-    let file = (write-file ($dir | path join docs notes.md))
-
-    let calls = (run-hook $file (mktemp --directory))
-
-    let context = ($case | to nuon)
-    let formatters = ($calls | where ($it.bin | path basename) in [dprint prettier])
-    assert equal ($formatters | select cwd args) [
-      {cwd: $dir, args: ["fmt" "--allow-no-files" "--config" $selected $file]}
-    ] $context
-    assert equal ($formatters | get bin | path basename) [dprint] $context
-  }
+  assert equal ($result.run.stdout | from json | get hookSpecificOutput.additionalContext) "Formatters and linters reported problems in the edited files.\n\ndirenv exited with 7:\nstub failure"
 }
 
 def "test project tools use the nearest executable including ancestors" [] {
@@ -419,82 +427,99 @@ def "test project tools use the nearest executable including ancestors" [] {
 }
 
 def "test markdown aligns tables and preserves fenced examples" [] {
-  let dir = (mktemp --directory | path expand)
-  install-stub ($dir | path join node_modules .bin prettier)
-  let file = ($dir | path join notes.md)
-  (
-    '
-    | Name | Value |
-    | --- | --- |
-    | a | longer |
+  for project in [false true] {
+    let dir = (mktemp --directory | path expand)
+    install-stub ($dir | path join docs node_modules .bin prettier)
+    if $project {
+      open $env.AUTO_FORMAT_DPRINT_CONFIG
+      | upsert markdown.emphasisKind "asterisks"
+      | save ($dir | path join dprint.json)
+    }
+    let file = ($dir | path join docs notes.md)
+    (
+      '
+      _Emphasis_
 
-    ```json
-    {"a":1,"b":[2,3]}
-    ```
+      | Name | Value |
+      | --- | --- |
+      | a | longer |
 
-    - Example:
-
-      ```ts
-      const x={a:1,b:[2,3]}
-      ```
-    '
-    | str dedent
-  ) | save $file
-  let input = {tool_name: Write, tool_input: {file_path: $file}, cwd: $dir}
-
-  let result = (run-event $input --config {
-    dprint: (which dprint | get 0.path)
-    dprintConfig: $env.AUTO_FORMAT_DPRINT_CONFIG
-  })
-
-  assert equal (open --raw $file) (
-    '
-    | Name | Value  |
-    | ---- | ------ |
-    | a    | longer |
-
-    ```json
-    {"a":1,"b":[2,3]}
-    ```
-
-    - Example:
-
-      ```ts
-      const x={a:1,b:[2,3]}
+      ```json
+      {"a":1,"b":[2,3]}
       ```
 
-    '
-    | str dedent
-  )
-  assert equal ($result.calls | get bin | path basename) [markdownlint cspell]
-  assert equal $result.run.stdout ""
+      - Example:
+
+        ```ts
+        const x={a:1,b:[2,3]}
+        ```
+      '
+      | str dedent
+    ) | save $file
+    let input = {tool_name: Write, tool_input: {file_path: $file}, cwd: $dir}
+
+    let result = (run-event $input --config {
+      dprint: (which dprint | get 0.path)
+      dprintConfigDir: ($env.AUTO_FORMAT_DPRINT_CONFIG | path dirname)
+    })
+
+    assert equal (open --raw $file) (
+      '
+      _Emphasis_
+
+      | Name | Value  |
+      | ---- | ------ |
+      | a    | longer |
+
+      ```json
+      {"a":1,"b":[2,3]}
+      ```
+
+      - Example:
+
+        ```ts
+        const x={a:1,b:[2,3]}
+        ```
+
+      '
+      | str dedent
+      | str replace "_Emphasis_" (if $project { "*Emphasis*" } else { "_Emphasis_" })
+    ) $"project config ($project)"
+    assert equal ($result.calls | get bin | path basename) [markdownlint cspell]
+    assert equal $result.run.stdout ""
+  }
 }
 
 def "test formatter failures report and keep later checks running" [] {
   let cases = [
     {ext: sh, failure: "shfmt -w", tools: [shfmt shellcheck]}
     {ext: py, failure: "ruff format", tools: [ruff ruff pyright]}
-    {ext: md, failure: "dprint fmt --allow-no-files --config ", tools: [dprint markdownlint cspell]}
+    {ext: md, failure: "dprint fmt --allow-no-files", tools: [dprint markdownlint cspell]}
   ]
 
   for case in $cases {
-    let dir = (mktemp --directory | path expand)
-    let file = (write-file ($dir | path join $"notes.($case.ext)"))
-    let input = {tool_name: Write, tool_input: {file_path: $file}, cwd: $dir}
+    for native in [false true] {
+      let dir = (mktemp --directory | path expand)
+      let file = (write-file ($dir | path join $"notes.($case.ext)"))
+      let input = {tool_name: Write, tool_input: {file_path: $file}, cwd: $dir}
 
-    let result = (run-event $input --fail $"($case.failure) ($file)")
+      let result = (run-event $input --fail $"($case.failure) ($file)" --native=$native --exit-code (if $native { 1 } else { 0 }))
 
-    assert equal ($result.calls | get bin | path basename) $case.tools $case.ext
-    let reports = [
-      "Formatters and linters reported problems in the edited files."
-      $"($case.tools.0) exited with 7 on ($file):\nstub failure"
-    ]
-    assert equal ($result.run.stdout | from json) {
-      hookSpecificOutput: {
-        hookEventName: PostToolUse
-        additionalContext: ($reports | str join "\n\n")
+      let tools = if $native { $case.tools | first 1 } else { $case.tools }
+      let report = $"($case.tools.0) exited with 7 on ($file):\nstub failure"
+      assert equal ($result.calls | get bin | path basename) $tools $case.ext
+      if $native {
+        assert equal ($result.run.stdout | from json) [$report] $case.ext
+      } else {
+        let reports = ["Formatters and linters reported problems in the edited files." $report]
+        assert equal ($result.run.stdout | from json) {
+          hookSpecificOutput: {
+            hookEventName: PostToolUse
+            additionalContext: ($reports | str join "\n\n")
+          }
+        } $case.ext
       }
-    } $case.ext
+    }
   }
 }
 

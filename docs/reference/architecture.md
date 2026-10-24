@@ -39,6 +39,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   ├── default.nix             # Repository helper namespace exposed as repoLib
 │   ├── aria2.nix               # Shared aria2 download and RPC settings
 │   ├── builders.nix            # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL
+│   ├── format-files.nu         # Shared native formatting and optional lint checks
 │   ├── overlays.nix            # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, custom packages)
 │   ├── packages.nix            # Base and font package groups for each package set
 │   ├── proxy.nix               # mkProxyOptions, mkProxyScript, wrapWithProxy, no_proxy rendering
@@ -46,7 +47,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   ├── secrets.nix             # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
 │   ├── ssh.nix                 # Builder and SSH configuration from server inventory
 │   ├── systemd.nix             # Shared systemd unit hardening defaults
-│   ├── tooling.nix             # Shared tool groups (nix, secrets, shell, all)
+│   ├── tooling.nix             # Shared tool groups and formatting policy
 │   ├── wrap-package.nix        # Package wrappers preserving upstream launcher identity
 │   ├── llm-assistants/         # Shared assistant options, permission policies, profile definitions
 │   └── wsl/                    # Windows interop helpers (windows-interop.nu)

@@ -8,6 +8,7 @@
   lib,
   repoLib,
   secretPath,
+  enableDevToolchains ? false,
   ...
 }:
 
@@ -55,6 +56,7 @@ in
     let
       json = pkgs.formats.json { };
       yaml = pkgs.formats.yaml { };
+      tooling = repoLib.toolingFor pkgs;
 
       # --------------------------------------------------------------------------------------------
       # Module imports
@@ -118,9 +120,14 @@ in
         pkg = pkgs.omp;
         name = "omp-${pkgs.omp.version}";
         bin = "omp";
-        envVars = profiles.envVars // {
-          PUPPETEER_EXECUTABLE_PATH = lib.getExe pkgs.browser-tools.chromium;
-        };
+        envVars =
+          profiles.envVars
+          // {
+            PUPPETEER_EXECUTABLE_PATH = lib.getExe pkgs.browser-tools.chromium;
+          }
+          // lib.optionalAttrs enableDevToolchains {
+            DPRINT_CONFIG_DIR = tooling.markdownDprintConfigDir;
+          };
 
         envFiles = {
           EXA_API_KEY = secretPath "llm-assistants/mcp/exa-api-key";
@@ -153,6 +160,18 @@ in
           ".omp/agent/WATCHDOG.md".text = builtins.readFile ./watchdog.md;
           ".omp/agent/extensions/omp-telegram".source = extensions.telegram;
           ".omp/agent/mcp.json".source = json.generate "omp-mcp.json" { mcpServers = mcp.serversConfig; };
+        }
+        // lib.optionalAttrs enableDevToolchains {
+          ".omp/agent/lsp.json".source = json.generate "omp-lsp.json" {
+            servers.dprint = {
+              command = lib.getExe pkgs.dprint;
+              args = [ "lsp" ];
+              fileTypes = [ ".md" ];
+              languageId = "markdown";
+              rootMarkers = [ "." ];
+              isLinter = true;
+            };
+          };
         }
         // agents.homeFiles;
       }

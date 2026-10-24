@@ -16,18 +16,14 @@ let
 
   src = lib.fileset.toSource {
     inherit root;
-    fileset = lib.fileset.unions (map dirOf tests);
+    fileset = lib.fileset.unions ([ ./format-files.nu ] ++ map dirOf tests);
   };
 
   testPaths = map (test: lib.path.removePrefix root test) tests;
 in
 pkgs.runCommand "script-tests"
   {
-    AUTO_FORMAT_DPRINT_CONFIG =
-      import ../home/modules/llm-assistants/shared/hooks/auto-format/dprint.nix
-        {
-          inherit pkgs;
-        };
+    AUTO_FORMAT_DPRINT_CONFIG = "${tooling.markdownDprintConfigDir}/dprint.json";
 
     nativeBuildInputs = [
       pkgs.codex
