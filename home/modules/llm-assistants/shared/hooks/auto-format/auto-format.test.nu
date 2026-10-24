@@ -68,6 +68,7 @@ def run-event [
   | save $config_file
 
   let run = with-env {
+    DPRINT_CACHE_DIR: ($dir | path join dprint-cache)
     STUB_LOG: $log
     STUB_FAIL: $fail
     STUB_EXPORT: ($export | to json --raw)
