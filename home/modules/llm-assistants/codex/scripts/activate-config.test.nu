@@ -47,7 +47,12 @@ def command [command: string, extra: record = {}]: nothing -> record {
 }
 
 def "test activation records the hash codex trusts and keeps other state" [] {
-  let dir = (mktemp --directory)
+  let root = (mktemp --directory | path expand --strict)
+  let dir = ($root | path join codex)
+  mkdir $dir
+  let linked_dir = ($root | path join linked-codex)
+  ^ln -s $dir $linked_dir
+
   let target = ($dir | path join config.toml)
   let config_file = ($dir | path join activation.json)
   let key = {|event: string, group: int, handler: int| $"($target):($event):($group):($handler)" }
@@ -60,7 +65,7 @@ def "test activation records the hash codex trusts and keeps other state" [] {
   {hooks: {state: $prior_state}} | to toml | save $target
   let edits = "Edit|Write"
   {
-    configDir: $dir
+    configDir: $linked_dir
     activeProfile: ($dir | path join missing-profile)
     settings: {
       tools: {}
@@ -99,7 +104,7 @@ def "test activation records the hash codex trusts and keeps other state" [] {
 
   let run = (^$nu.current-exe --no-config-file $SCRIPT $config_file | complete)
   assert equal $run.exit_code 0 $run.stderr
-  let listed = (codex-hooks $dir)
+  let listed = (codex-hooks $linked_dir)
 
   assert equal $listed.errors []
   assert equal $listed.warnings [$"clamping SessionEnd hook timeout to 3s in ($target)"]
