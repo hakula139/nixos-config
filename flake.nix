@@ -70,10 +70,10 @@
     llm-agents.url = "github:numtide/llm-agents.nix";
 
     oxide-code = {
-      url = "github:hakula139/oxide-code/v0.1.0-alpha.6";
+      url = "github:hakula139/oxide-code/v0.1.0-alpha.7";
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        rust-overlay.follows = "rust-overlay";
+        home-manager.follows = "home-manager";
         git-hooks-nix.follows = "git-hooks-nix";
       };
     };

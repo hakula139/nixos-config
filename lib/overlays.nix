@@ -9,6 +9,7 @@
 
 [
   inputs.rust-overlay.overlays.default
+  inputs.oxide-code.overlays.default
   (final: _: {
     # ----------------------------------------------------------------------------------------------
     # Nixpkgs channels
@@ -23,7 +24,6 @@
     # ----------------------------------------------------------------------------------------------
     agenix = inputs.agenix.packages.${final.stdenv.hostPlatform.system}.default;
     colmena = inputs.colmena.packages.${final.stdenv.hostPlatform.system}.colmena;
-    oxide-code = inputs.oxide-code.packages.${final.stdenv.hostPlatform.system}.default;
     system-manager = inputs.system-manager.packages.${final.stdenv.hostPlatform.system}.default;
     inherit (inputs.llm-agents.packages.${final.stdenv.hostPlatform.system})
       ccusage
