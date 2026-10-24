@@ -3,7 +3,7 @@
 # ==================================================================================================
 # Tool Stub
 # ==================================================================================================
-# Stands in for every tool the auto-format hook runs. Each call appends the stub's own path, its
+# Stands in for every tool the formatter runs. Each call appends the stub's own path, its
 # working directory, and its arguments to `STUB_LOG`, one JSON line per call.
 # ==================================================================================================
 

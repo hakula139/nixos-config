@@ -8,7 +8,6 @@
   lib,
   corpHosts,
   modelCatalog,
-  repo,
   repoLib,
   secretPath,
   enableDevToolchains ? false,
@@ -16,6 +15,9 @@
 }:
 
 let
+  formatter = pkgs.file-formatter.override { inherit enableDevToolchains; };
+  fileFormatter = lib.getExe formatter;
+
   promptFragments = import ./prompt-fragments;
   agentRoles = import ./agent-roles { inherit (promptFragments) readPrompt; };
 
@@ -67,8 +69,7 @@ in
         lib
         secretPath
         modelCatalog
-        repo
-        enableDevToolchains
+        fileFormatter
         ;
       inherit (config.xdg) dataHome;
       inherit (promptFragments) readPrompt phrasing;

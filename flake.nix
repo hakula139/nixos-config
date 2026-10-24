@@ -410,6 +410,7 @@
           default = pkgs.mkShell {
             packages = [
               preCommitCheck.config.package
+              pkgs.file-formatter
               tooling.scriptPython
             ]
             ++ basePackages;
