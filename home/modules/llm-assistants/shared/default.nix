@@ -15,8 +15,8 @@
 }:
 
 let
-  tooling = repoLib.toolingFor pkgs;
-  formatFiles = lib.getExe (tooling.mkFormatFiles { inherit enableDevToolchains; });
+  formatter = pkgs.format-files.override { inherit enableDevToolchains; };
+  formatFiles = lib.getExe formatter;
 
   promptFragments = import ./prompt-fragments;
   agentRoles = import ./agent-roles { inherit (promptFragments) readPrompt; };

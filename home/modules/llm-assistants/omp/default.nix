@@ -56,7 +56,6 @@ in
     let
       json = pkgs.formats.json { };
       yaml = pkgs.formats.yaml { };
-      tooling = repoLib.toolingFor pkgs;
 
       # --------------------------------------------------------------------------------------------
       # Module imports
@@ -126,7 +125,7 @@ in
             PUPPETEER_EXECUTABLE_PATH = lib.getExe pkgs.browser-tools.chromium;
           }
           // lib.optionalAttrs enableDevToolchains {
-            DPRINT_CONFIG_DIR = tooling.markdownDprintConfigDir;
+            DPRINT_CONFIG_DIR = pkgs.format-files.dprintConfigDir;
           };
 
         envFiles = {

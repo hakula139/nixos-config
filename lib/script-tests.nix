@@ -16,18 +16,16 @@ let
 
   src = lib.fileset.toSource {
     inherit root;
-    fileset = lib.fileset.unions ([ ./format-files.nu ] ++ map dirOf tests);
+    fileset = lib.fileset.unions (map dirOf tests);
   };
 
   testPaths = map (test: lib.path.removePrefix root test) tests;
 in
 pkgs.runCommand "script-tests"
   {
-    AUTO_FORMAT_DPRINT_CONFIG = "${tooling.markdownDprintConfigDir}/dprint.json";
-
     nativeBuildInputs = [
       pkgs.codex
-      pkgs.dprint
+      pkgs.format-files
       pkgs.git
       pkgs.nu-test
       tooling.scriptPython

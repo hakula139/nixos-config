@@ -408,11 +408,9 @@
         in
         {
           default = pkgs.mkShell {
-            AUTO_FORMAT_DPRINT_CONFIG = "${tooling.markdownDprintConfigDir}/dprint.json";
-
             packages = [
               preCommitCheck.config.package
-              pkgs.dprint
+              pkgs.format-files
               tooling.scriptPython
             ]
             ++ basePackages;
