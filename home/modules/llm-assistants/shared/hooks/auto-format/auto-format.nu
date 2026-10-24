@@ -24,24 +24,21 @@ def check [tool: string, args: list<string>, path: string]: nothing -> string {
   $"($name) exited with ($run.exit_code) on ($path):\n($output)"
 }
 
-# Files matching `names` above `path`, nearest directory first.
-def project-files [path: string, names: list<string>]: nothing -> list<string> {
+# The nearest file matching `names` above `path`, or an empty string.
+def project-file [path: string, names: list<string>]: nothing -> string {
   let parts = ($path | path expand | path dirname | path split)
-  mut found = []
   for n in (($parts | length)..1) {
     for name in $names {
       let candidate = ([($parts | first $n | path join) $name] | path join)
-      if ($candidate | path exists) { $found = ($found | append $candidate) }
+      if ($candidate | path exists) { return $candidate }
     }
   }
-  $found
+  ""
 }
 
 # The nearest `node_modules/.bin/<tool>` above `path`, or an empty string.
 def project-bin [path: string, tool: string]: nothing -> string {
-  project-files $path [(["node_modules" ".bin" $tool] | path join)]
-  | get --optional 0
-  | default ""
+  project-file $path [(["node_modules" ".bin" $tool] | path join)]
 }
 
 # The root of the repository holding `path`, or its directory outside a repository. Tools such as
@@ -52,55 +49,20 @@ def project-root [path: string, git: string]: nothing -> string {
   if $toplevel.exit_code == 0 { $toplevel.stdout | str trim } else { $dir }
 }
 
-def format-markdown [path: string, config: record] {
-  let configs = (project-files $path [dprint.json dprint.jsonc .dprint.json .dprint.jsonc])
-  if ($configs | is-not-empty) {
-    cd ($path | path dirname)
-    return (check $config.dprint ["fmt" $path] $path)
-  }
-
-  let prettier = (project-bin $path "prettier")
-  if ($prettier | is-not-empty) {
-    return (check $prettier ["--log-level" "warn" "--write" $path] $path)
-  }
-
-  for manifest in (project-files $path [package.json]) {
-    let problem = $"Cannot read package metadata in ($manifest). Fix it before formatting ($path)."
-    let package = (try { open $manifest } catch { null })
-    if not ($package | describe | str starts-with "record") {
-      return $problem
-    }
-    let dependencies = (
-      [dependencies devDependencies optionalDependencies peerDependencies]
-      | each {|field| $package | get --optional $field }
-      | compact
-    )
-    if ($dependencies | any {|section| not ($section | describe | str starts-with "record") }) {
-      return $problem
-    }
-    if ($dependencies | any {|section| "prettier" in $section }) {
-      return $"Prettier is missing for ($manifest). Install dependencies before formatting ($path)."
-    }
-  }
-
-  try {
-    let dprint = $config.dprint
-    let run = (
-      open --raw $path
-      | ^$dprint fmt --config $config.dprintConfig --stdin md
-      | complete
-    )
-    if $run.exit_code == 0 and ($run.stdout | is-not-empty) {
-      $run.stdout | save --force --raw $path
-    }
-  } catch { null }
+def format-markdown [path: string, config: record]: nothing -> string {
+  # Keep dprint's table alignment even in projects that use Prettier.
+  let selected = (
+    project-file $path [dprint.json dprint.jsonc .dprint.json .dprint.jsonc]
+    | default --empty $config.dprintConfig
+  )
+  check $config.dprint ["fmt" "--allow-no-files" "--config" $selected $path] $path
 }
 
 # A `--fix` pass reports whatever it could not fix, so one call covers both. Each file's tools run
 # from its own project, never the session's.
-def format-file [path: string, root: string, config: record]: nothing -> list<any> {
+def format-file [path: string, root: string, config: record]: nothing -> list<string> {
   cd $root
-  match ($path | path parse | get extension) {
+  let reports = match ($path | path parse | get extension) {
     "sh" => [
       (check $config.shfmt ["-w" $path] $path)
       (check $config.shellcheck ["--format" "gcc" $path] $path)
@@ -171,6 +133,7 @@ def format-file [path: string, root: string, config: record]: nothing -> list<an
     ]
     _ => []
   }
+  $reports | flatten | compact --empty
 }
 
 def collect-files [input: record, config: record]: nothing -> list<string> {
@@ -230,12 +193,6 @@ def --env format-edited [config: record]: nothing -> any {
     }
     $reports = ($reports | append (format-file $path $root $config))
   }
-  $reports = (
-    $reports
-    | flatten
-    | flatten
-    | compact --empty
-  )
   if ($reports | is-empty) {
     return null
   }

@@ -23,8 +23,15 @@ let
 in
 pkgs.runCommand "script-tests"
   {
+    AUTO_FORMAT_DPRINT_CONFIG =
+      import ../home/modules/llm-assistants/shared/hooks/auto-format/dprint.nix
+        {
+          inherit pkgs;
+        };
+
     nativeBuildInputs = [
       pkgs.codex
+      pkgs.dprint
       pkgs.git
       pkgs.nu-test
       tooling.scriptPython
