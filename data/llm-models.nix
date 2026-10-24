@@ -57,6 +57,13 @@ let
     };
   };
 
+  gptChatEfforts = [
+    "low"
+    "medium"
+    "high"
+    "xhigh"
+  ];
+
   geminiCommon = {
     vendor = "google";
     contextWindow = 1048576;
@@ -192,6 +199,10 @@ in
 
     "gpt-6-astra" = gptCommon // {
       name = "GPT-6 Astra";
+      thinking = gptCommon.thinking // {
+        apiEfforts.openai-chat-completions = gptChatEfforts;
+      };
+
       channelId.openai = "openai/gpt-6-astra";
       channelCost.openai = {
         input = 10.0;
@@ -203,6 +214,10 @@ in
 
     "gpt-6.1-sol" = gptCommon // {
       name = "GPT-6.1 Sol";
+      thinking = gptCommon.thinking // {
+        apiEfforts.openai-chat-completions = gptChatEfforts;
+      };
+
       channelId.openai = "openai/gpt-6.1-sol";
       channelCost.openai = {
         input = 2.0;
