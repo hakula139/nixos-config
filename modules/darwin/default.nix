@@ -105,16 +105,18 @@ in
 
     launchd.daemons.nh-clean = {
       command = "${lib.getExe pkgs.nh} clean all ${defaults.nixCleanArgs}";
-      path = [ config.nix.package ];
+      path = [
+        config.nix.package
+        "/usr/sbin"
+      ];
       serviceConfig = {
         StartCalendarInterval = [
           {
-            Hour = 2;
+            Hour = 6;
             Minute = 0;
           }
         ];
 
-        ProcessType = "Background";
         StandardOutPath = "/var/log/nh-clean.log";
         StandardErrorPath = "/var/log/nh-clean.log";
       };
