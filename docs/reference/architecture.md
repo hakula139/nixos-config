@@ -46,7 +46,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   ├── secrets.nix             # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
 │   ├── ssh.nix                 # Builder and SSH configuration from server inventory
 │   ├── systemd.nix             # Shared systemd unit hardening defaults
-│   ├── tooling.nix             # Shared tool groups (nix, secrets, shell, all)
+│   ├── tooling.nix             # Shared development tool groups
 │   ├── wrap-package.nix        # Package wrappers preserving upstream launcher identity
 │   ├── llm-assistants/         # Shared assistant options, permission policies, profile definitions
 │   └── wsl/                    # Windows interop helpers (windows-interop.nu)

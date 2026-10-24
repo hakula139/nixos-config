@@ -19,6 +19,9 @@ let
   inherit (shared) agentRoleOptions instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
 
+  formatter = pkgs.file-formatter.override { inherit enableDevToolchains; };
+  fileFormatter = lib.getExe formatter;
+
   profiles = import ./profiles.nix {
     inherit
       config
@@ -109,22 +112,6 @@ in
       };
 
       # --------------------------------------------------------------------------------------------
-      # Formatters
-      # --------------------------------------------------------------------------------------------
-      goFormatScript = pkgs.writeShellScript "opencode-go-format" ''
-        if command -v goimports >/dev/null 2>&1; then
-          exec goimports -w "$1"
-        fi
-
-        exec ${lib.getExe' pkgs.unstable.go_latest "gofmt"} -w "$1"
-      '';
-
-      ruffFormatScript = pkgs.writeShellScript "opencode-ruff-format" ''
-        ${lib.getExe pkgs.ruff} format "$1"
-        ${lib.getExe pkgs.ruff} check --fix "$1" >/dev/null 2>&1 || true
-      '';
-
-      # --------------------------------------------------------------------------------------------
       # Package wrapper
       # --------------------------------------------------------------------------------------------
       opencodeBin = repoLib.wrapPackage {
@@ -198,37 +185,25 @@ in
             # Formatters
             # --------------------------------------------------------------------------------------
             formatter = {
-              nixfmt.command = [
-                (lib.getExe pkgs.nixfmt)
-                "$FILE"
-              ];
+              # OpenCode runs every matching formatter, so overlapping built-ins must be disabled.
+              biome.disabled = true;
+              gofmt.disabled = true;
+              nixfmt.disabled = true;
+              oxfmt.disabled = true;
+              prettier.disabled = true;
+              ruff.disabled = true;
+              rustfmt.disabled = true;
+              shfmt.disabled = true;
+              uv.disabled = true;
 
-              ruff.command = [
-                "${ruffFormatScript}"
-                "$FILE"
-              ];
+              shared = {
+                inherit (formatter) extensions;
 
-              shfmt.command = [
-                (lib.getExe pkgs.shfmt)
-                "-w"
-                "$FILE"
-              ];
-
-              taplo = {
                 command = [
-                  (lib.getExe pkgs.taplo)
-                  "fmt"
+                  fileFormatter
                   "$FILE"
                 ];
-
-                extensions = [ ".toml" ];
               };
-            }
-            // lib.optionalAttrs enableDevToolchains {
-              gofmt.command = [
-                "${goFormatScript}"
-                "$FILE"
-              ];
             };
 
             # --------------------------------------------------------------------------------------
