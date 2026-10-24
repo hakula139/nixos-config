@@ -12,4 +12,13 @@ def --wrapped main [...args: string] {
   | to json --raw
   | $"($in)\n"
   | save --append $env.STUB_LOG
+
+  let name = ($env.CURRENT_FILE | path basename)
+  if ($env.STUB_FAIL? | default "") == ($name + " " + ($args | str join " ")) {
+    print --stderr "stub failure"
+    exit 7
+  }
+  if $name == direnv {
+    print $env.STUB_EXPORT
+  }
 }
