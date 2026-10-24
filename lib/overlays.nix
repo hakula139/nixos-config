@@ -10,6 +10,7 @@
 [
   inputs.rust-overlay.overlays.default
   inputs.oxide-code.overlays.default
+
   (final: _: {
     # ----------------------------------------------------------------------------------------------
     # Nixpkgs channels
