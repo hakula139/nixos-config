@@ -491,24 +491,25 @@
         "git-hooks-nix": [
           "git-hooks-nix"
         ],
+        "home-manager": [
+          "home-manager"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ],
-        "rust-overlay": [
-          "rust-overlay"
-        ]
+        "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1792698564,
-        "narHash": "sha256-c5fdIaL/b3+CAoy9Xu/4SDE1G9XBGNW8LLTehRx9/Q4=",
+        "lastModified": 1792788474,
+        "narHash": "sha256-Pzcpaq5lzZfFO0pxSOuAOdcn7odsqUoiqAkSusAC37E=",
         "owner": "hakula139",
         "repo": "oxide-code",
-        "rev": "75535921f33acb8262499710d493305329b19b6e",
+        "rev": "58cb953a1431e218b02d3b1af2c2865a5affd8f3",
         "type": "github"
       },
       "original": {
         "owner": "hakula139",
-        "ref": "v0.1.0-alpha.6",
+        "ref": "v0.1.0-alpha.7",
         "repo": "oxide-code",
         "type": "github"
       }
@@ -557,11 +558,32 @@
         "nixpkgs-unstable": "nixpkgs-unstable",
         "openai-skills": "openai-skills",
         "oxide-code": "oxide-code",
-        "rust-overlay": "rust-overlay",
+        "rust-overlay": "rust-overlay_2",
         "system-manager": "system-manager"
       }
     },
     "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "oxide-code",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792653800,
+        "narHash": "sha256-E8zFJilWlORqzIUJizyhZ/0WKBOizuM6s1nRSgPRomo=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "5f267b7f323a4d6df0b9c0e3eaa043cbe85386f2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "rust-overlay_2": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
