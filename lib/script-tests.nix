@@ -25,6 +25,7 @@ pkgs.runCommand "script-tests"
   {
     nativeBuildInputs = [
       pkgs.codex
+      pkgs.file-formatter
       pkgs.git
       pkgs.nu-test
       tooling.scriptPython

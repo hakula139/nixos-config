@@ -3,77 +3,12 @@
 # ==================================================================================================
 
 {
-  pkgs,
-  lib,
-  enableDevToolchains,
+  fileFormatter,
   mkNuHook,
   patchInput,
-  repo,
   timeouts,
 }:
 
-let
-  json = pkgs.formats.json { };
-
-  # An empty tool path keeps that package out of a non-dev host's closure.
-  whenDev = pkg: if enableDevToolchains then lib.getExe pkg else "";
-  whenDevPath = path: if enableDevToolchains then "${path}" else "";
-
-  markdownlintConfig = lib.path.append repo.root ".markdownlint.jsonc";
-  prettierConfig = lib.importJSON (lib.path.append repo.root ".prettierrc.json");
-  ruffConfig = lib.importTOML (lib.path.append repo.root "ruff.toml");
-  taploConfig = lib.importTOML (lib.path.append repo.root ".taplo.toml");
-
-  preferredQuoteStyle = single: if single then "preferSingle" else "preferDouble";
-
-  dprintPlugins = with pkgs.dprint-plugins; [
-    dprint-plugin-json
-    dprint-plugin-markdown
-    dprint-plugin-ruff
-    dprint-plugin-toml
-    dprint-plugin-typescript
-    g-plane-malva
-    g-plane-markup_fmt
-    g-plane-pretty_yaml
-  ];
-
-  dprintConfig = json.generate "dprint.json" {
-    json.lineWidth = prettierConfig.printWidth;
-    malva = {
-      inherit (prettierConfig) printWidth;
-      quotes = preferredQuoteStyle prettierConfig.singleQuote;
-    };
-
-    markdown = {
-      emphasisKind = "underscores";
-      strongKind = "asterisks";
-    };
-
-    markup.printWidth = prettierConfig.printWidth;
-    ruff = {
-      indentStyle = ruffConfig.format.indent-style;
-      lineEnding = ruffConfig.format.line-ending;
-      lineLength = ruffConfig.line-length;
-      quoteStyle = ruffConfig.format.quote-style;
-      skipMagicTrailingComma = ruffConfig.format.skip-magic-trailing-comma;
-    };
-
-    toml.lineWidth = taploConfig.formatting.column_width;
-    typescript = {
-      inherit (prettierConfig) quoteProps;
-      "jsx.quoteStyle" = preferredQuoteStyle prettierConfig.jsxSingleQuote;
-      lineWidth = prettierConfig.printWidth;
-      quoteStyle = preferredQuoteStyle prettierConfig.singleQuote;
-    };
-
-    yaml = {
-      inherit (prettierConfig) printWidth;
-      quotes = preferredQuoteStyle prettierConfig.singleQuote;
-    };
-
-    plugins = map (p: "${p}/plugin.wasm") dprintPlugins;
-  };
-in
 {
   event = "PostToolUse";
   type = "command";
@@ -84,22 +19,8 @@ in
     slug = "auto-format";
     script = ./auto-format.nu;
     config = {
-      cspell = whenDev pkgs.cspell;
-      direnv = whenDev pkgs.direnv;
-      dprint = whenDev pkgs.dprint;
-      dprintConfig = whenDevPath dprintConfig;
-      git = lib.getExe pkgs.git;
-      markdownlint = whenDev pkgs.markdownlint-cli2;
-      markdownlintConfig = whenDevPath markdownlintConfig;
-      nixfmt = lib.getExe pkgs.nixfmt;
-      nuCheck = "${pkgs.nu-check}";
+      inherit fileFormatter;
       patchInput = toString patchInput;
-      prettier = whenDev pkgs.unstable.prettier;
-      pyright = whenDev pkgs.pyright;
-      ruff = whenDev pkgs.ruff;
-      shellcheck = lib.getExe pkgs.shellcheck;
-      shfmt = lib.getExe pkgs.shfmt;
-      taplo = whenDev pkgs.taplo;
     };
   };
 }

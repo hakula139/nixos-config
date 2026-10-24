@@ -200,6 +200,7 @@ nvim
 osascript
 osc
 oxalica
+oxfmt
 pango
 pcall
 pcdn
