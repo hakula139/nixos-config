@@ -73,8 +73,9 @@ def trust-hooks [hooks: record, state: record, source: string]: nothing -> recor
 # Apply managed settings while preserving Codex's mutable user state.
 def main [config_file: string] {
   let config = (open $config_file)
-  let target = ($config.configDir | path join 'config.toml')
   ^install -d -m 0700 $config.configDir
+  let config_dir = ($config.configDir | path expand --strict)
+  let target = ($config_dir | path join 'config.toml')
 
   mut current = if ($target | path exists) {
     open --raw $target | from toml
@@ -83,7 +84,7 @@ def main [config_file: string] {
   # Native profile files may contain project trust and hook review state.
   if ($config.activeProfile | path exists) {
     let profile = (^readlink $config.activeProfile | str trim)
-    if ($profile | path dirname) == $config.configDir {
+    if ($profile | path dirname | path expand --strict) == $config_dir {
       $current = ($current | merge deep --strategy overwrite (open --raw $profile | from toml))
     }
   }
@@ -100,7 +101,7 @@ def main [config_file: string] {
   save-config ($settings | to toml) $target
 
   if not ($config.keybindings | is-empty) {
-    let keybindings_target = ($config.configDir | path join 'keybindings.json')
+    let keybindings_target = ($config_dir | path join 'keybindings.json')
     let current_keybindings = if ($keybindings_target | path exists) {
       open $keybindings_target
     } else { [] }
