@@ -24,14 +24,24 @@ def check [tool: string, args: list<string>, path: string]: nothing -> string {
   $"($name) exited with ($run.exit_code) on ($path):\n($output)"
 }
 
+# Files matching `names` above `path`, nearest directory first.
+def project-files [path: string, names: list<string>]: nothing -> list<string> {
+  let parts = ($path | path expand | path dirname | path split)
+  mut found = []
+  for n in (($parts | length)..1) {
+    for name in $names {
+      let candidate = ([($parts | first $n | path join) $name] | path join)
+      if ($candidate | path exists) { $found = ($found | append $candidate) }
+    }
+  }
+  $found
+}
+
 # The nearest `node_modules/.bin/<tool>` above `path`, or an empty string.
 def project-bin [path: string, tool: string]: nothing -> string {
-  let parts = ($path | path expand | path dirname | path split)
-  for n in (($parts | length)..1) {
-    let candidate = ([($parts | first $n | path join) "node_modules" ".bin" $tool] | path join)
-    if ($candidate | path exists) { return $candidate }
-  }
-  ""
+  project-files $path [(["node_modules" ".bin" $tool] | path join)]
+  | get --optional 0
+  | default ""
 }
 
 # The root of the repository holding `path`, or its directory outside a repository. Tools such as
@@ -43,6 +53,36 @@ def project-root [path: string, git: string]: nothing -> string {
 }
 
 def format-markdown [path: string, config: record] {
+  let configs = (project-files $path [dprint.json dprint.jsonc .dprint.json .dprint.jsonc])
+  if ($configs | is-not-empty) {
+    cd ($path | path dirname)
+    return (check $config.dprint ["fmt" $path] $path)
+  }
+
+  let prettier = (project-bin $path "prettier")
+  if ($prettier | is-not-empty) {
+    return (check $prettier ["--log-level" "warn" "--write" $path] $path)
+  }
+
+  for manifest in (project-files $path [package.json]) {
+    let problem = $"Cannot read package metadata in ($manifest). Fix it before formatting ($path)."
+    let package = (try { open $manifest } catch { null })
+    if not ($package | describe | str starts-with "record") {
+      return $problem
+    }
+    let dependencies = (
+      [dependencies devDependencies optionalDependencies peerDependencies]
+      | each {|field| $package | get --optional $field }
+      | compact
+    )
+    if ($dependencies | any {|section| not ($section | describe | str starts-with "record") }) {
+      return $problem
+    }
+    if ($dependencies | any {|section| "prettier" in $section }) {
+      return $"Prettier is missing for ($manifest). Install dependencies before formatting ($path)."
+    }
+  }
+
   try {
     let dprint = $config.dprint
     let run = (
@@ -120,9 +160,9 @@ def format-file [path: string, root: string, config: record]: nothing -> list<an
     }
     "md" => [
       (if (have $config.dprint) {
-        format-markdown $path $config
         let cspell = (project-bin $path "cspell" | default --empty $config.cspell)
         [
+          (format-markdown $path $config)
           (check $config.markdownlint ["--config" $config.markdownlintConfig "--fix" $path] $path)
           # A file the project excludes from spell checking is not this hook's business.
           (check $cspell ["--no-progress" "--no-must-find-files" $path] $path)

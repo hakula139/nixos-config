@@ -371,6 +371,152 @@ def "test the nearest project cspell takes precedence" [] {
   assert equal ($calls | where ($it.bin | path basename) == cspell | get bin) [$nearest]
 }
 
+def "test the nearest project prettier takes precedence" [] {
+  for ext in [md ts] {
+    let dir = (mktemp --directory | path expand)
+    install-stub ($dir | path join node_modules .bin prettier)
+    let nearest = (install-stub ($dir | path join docs node_modules .bin prettier))
+    let file = (write-file ($dir | path join docs $"notes.($ext)"))
+
+    let calls = (run-hook $file $dir)
+
+    let formatters = ($calls | where ($it.bin | path basename) in [dprint prettier])
+    assert equal $formatters [
+      {bin: $nearest, cwd: ($file | path dirname), args: ["--log-level" "warn" "--write" $file]}
+    ] $"extension ($ext)"
+  }
+}
+
+def "test project markdown formatter failures leave lint checks running" [] {
+  let dir = (mktemp --directory | path expand)
+  let prettier = (install-stub ($dir | path join node_modules .bin prettier))
+  let file = (write-file ($dir | path join notes.md))
+  let input = {tool_name: Write, tool_input: {file_path: $file}, cwd: $dir}
+
+  let result = (run-event $input --fail $"prettier --log-level warn --write ($file)")
+
+  let bin = $result.bin
+  assert equal $result.calls [
+    {bin: $prettier, cwd: $dir, args: ["--log-level" "warn" "--write" $file]}
+    {bin: ($bin | path join markdownlint), cwd: $dir, args: ["--config" "" "--fix" $file]}
+    {
+      bin: ($bin | path join cspell)
+      cwd: $dir
+      args: ["--no-progress" "--no-must-find-files" $file]
+    }
+  ]
+  let reports = [
+    "Formatters and linters reported problems in the edited files."
+    $"prettier exited with 7 on ($file):\nstub failure"
+  ]
+  assert equal ($result.run.stdout | from json) {
+    hookSpecificOutput: {
+      hookEventName: PostToolUse
+      additionalContext: ($reports | str join "\n\n")
+    }
+  }
+}
+
+def "test project dprint configuration takes precedence" [] {
+  for name in [dprint.json dprint.jsonc .dprint.json .dprint.jsonc] {
+    let dir = (mktemp --directory | path expand)
+    ^git -C $dir init --quiet
+    install-stub ($dir | path join node_modules .bin prettier)
+    write-file ($dir | path join docs $name)
+    let file = (write-file ($dir | path join docs notes.md))
+
+    let calls = (run-hook $file (mktemp --directory))
+
+    let formatters = ($calls | where ($it.bin | path basename) in [dprint prettier])
+    assert equal ($formatters | select cwd args) [
+      {cwd: ($file | path dirname), args: ["fmt" $file]}
+    ] $name
+    assert equal ($formatters | get bin | path basename) [dprint] $name
+  }
+}
+
+def "test missing project prettier reports and keeps lint checks" [] {
+  for field in [dependencies devDependencies optionalDependencies peerDependencies] {
+    let dir = (mktemp --directory | path expand)
+    let manifest = ($dir | path join package.json)
+    {$field: {prettier: "3.9.10"}} | to json | save $manifest
+    let file = (write-file ($dir | path join docs notes.md))
+    {} | to json | save ($dir | path join docs package.json)
+    let input = {tool_name: Write, tool_input: {file_path: $file}, cwd: $dir}
+
+    let result = (run-event $input)
+
+    let bin = $result.bin
+    let cwd = ($file | path dirname)
+    assert equal $result.calls [
+      {bin: ($bin | path join markdownlint), cwd: $cwd, args: ["--config" "" "--fix" $file]}
+      {
+        bin: ($bin | path join cspell)
+        cwd: $cwd
+        args: ["--no-progress" "--no-must-find-files" $file]
+      }
+    ] $field
+    let reports = [
+      "Formatters and linters reported problems in the edited files."
+      $"Prettier is missing for ($manifest). Install dependencies before formatting ($file)."
+    ]
+    assert equal ($result.run.stdout | from json) {
+      hookSpecificOutput: {
+        hookEventName: PostToolUse
+        additionalContext: ($reports | str join "\n\n")
+      }
+    } $field
+  }
+}
+
+def "test shared markdown formatting retains projects without prettier" [] {
+  let dir = (mktemp --directory | path expand)
+  {embeddedLanguageFormatting: off} | to json | save ($dir | path join .prettierrc.json)
+  {devDependencies: {eslint: "10.0.0"}} | to json | save ($dir | path join package.json)
+  let file = (write-file ($dir | path join notes.md))
+
+  let calls = (run-hook $file $dir)
+
+  assert equal ($calls | each {|call| {bin: ($call.bin | path basename), args: $call.args} }) [
+    {bin: dprint, args: ["fmt" "--config" "" "--stdin" "md"]}
+    {bin: markdownlint, args: ["--config" "" "--fix" $file]}
+    {bin: cspell, args: ["--no-progress" "--no-must-find-files" $file]}
+  ]
+}
+
+def "test invalid project metadata reports and keeps lint checks" [] {
+  let cases = [
+    "{"
+    "[]"
+    '{"dependencies": []}'
+    '{"devDependencies": "prettier"}'
+    '{"optionalDependencies": 3}'
+    '{"peerDependencies": false}'
+  ]
+
+  for contents in $cases {
+    let dir = (mktemp --directory | path expand)
+    let manifest = ($dir | path join package.json)
+    $contents | save $manifest
+    let file = (write-file ($dir | path join notes.md))
+    let input = {tool_name: Write, tool_input: {file_path: $file}, cwd: $dir}
+
+    let result = (run-event $input)
+
+    assert equal ($result.calls | get bin | path basename) [markdownlint cspell] $contents
+    let reports = [
+      "Formatters and linters reported problems in the edited files."
+      $"Cannot read package metadata in ($manifest). Fix it before formatting ($file)."
+    ]
+    assert equal ($result.run.stdout | from json) {
+      hookSpecificOutput: {
+        hookEventName: PostToolUse
+        additionalContext: ($reports | str join "\n\n")
+      }
+    } $contents
+  }
+}
+
 def "test malformed input exits cleanly without output" [] {
   for input in ["not json" ({tool_name: Write, tool_input: {}, cwd: "/"} | to json)] {
     let config_file = (mktemp --directory | path join config.json)
