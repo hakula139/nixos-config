@@ -14,7 +14,7 @@
   modelCatalog,
   readPrompt,
   phrasing,
-  formatFiles,
+  fileFormatter,
 }:
 
 {
@@ -149,7 +149,7 @@ in
   hooks = {
     autoFormat = import ./auto-format {
       inherit
-        formatFiles
+        fileFormatter
         mkNuHook
         patchInput
         timeouts

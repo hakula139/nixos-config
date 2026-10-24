@@ -19,8 +19,8 @@ let
   inherit (shared) agentRoleOptions instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
 
-  formatter = pkgs.format-files.override { inherit enableDevToolchains; };
-  formatFiles = lib.getExe formatter;
+  formatter = pkgs.file-formatter.override { inherit enableDevToolchains; };
+  fileFormatter = lib.getExe formatter;
 
   profiles = import ./profiles.nix {
     inherit
@@ -200,7 +200,7 @@ in
                 inherit (formatter) extensions;
 
                 command = [
-                  formatFiles
+                  fileFormatter
                   "$FILE"
                 ];
               };

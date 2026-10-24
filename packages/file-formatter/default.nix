@@ -1,5 +1,5 @@
 # ==================================================================================================
-# Native File Formatting
+# File Formatter
 # ==================================================================================================
 
 {
@@ -53,7 +53,7 @@ let
   whenDev = pkg: if enableDevToolchains then lib.getExe pkg else "";
   whenDevPath = path: if enableDevToolchains then "${path}" else "";
 
-  configFile = json.generate "format-files.json" {
+  configFile = json.generate "file-formatter.json" {
     cspell = whenDev pkgs.cspell;
     direnv = whenDev pkgs.direnv;
     dprint = whenDev pkgs.dprint;
@@ -71,7 +71,7 @@ let
     taplo = whenDev pkgs.taplo;
   };
 in
-(pkgs.writers.writeNuBin "format-files" {
+(pkgs.writers.writeNuBin "file-formatter" {
   makeWrapperArgs = [
     "--prefix"
     "PATH"
@@ -81,7 +81,7 @@ in
     "--add-flag"
     "${configFile}"
   ];
-} (builtins.readFile ./format-files.nu)).overrideAttrs
+} (builtins.readFile ./file-formatter.nu)).overrideAttrs
   (_: {
     passthru = { inherit extensions dprintConfigDir; };
   })

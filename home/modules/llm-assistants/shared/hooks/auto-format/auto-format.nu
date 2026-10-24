@@ -23,7 +23,7 @@ def format-edited [config: record]: nothing -> any {
   )
   if ($paths | is-empty) { return null }
 
-  let formatter = $config.formatFiles
+  let formatter = $config.fileFormatter
   let run = (^$formatter --checks ...$paths | complete)
   if ($run.stderr | is-not-empty) { print --stderr --no-newline $run.stderr }
   let reports = ($run.stdout | from json)

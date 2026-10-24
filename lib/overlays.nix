@@ -55,7 +55,7 @@
     acpx = final.callPackage ../packages/acpx { };
     browser-tools = final.callPackage ../packages/browser-tools { };
     cloudreve = final.callPackage ../packages/cloudreve { };
-    format-files = final.callPackage ../packages/format-files { };
+    file-formatter = final.callPackage ../packages/file-formatter { };
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };
     mcp-server-gitlab = final.callPackage ../packages/mcp/mcp-server-gitlab { };
     nu-check = final.callPackage ../packages/nu-check { };

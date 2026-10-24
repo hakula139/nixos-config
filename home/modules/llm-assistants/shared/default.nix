@@ -15,8 +15,8 @@
 }:
 
 let
-  formatter = pkgs.format-files.override { inherit enableDevToolchains; };
-  formatFiles = lib.getExe formatter;
+  formatter = pkgs.file-formatter.override { inherit enableDevToolchains; };
+  fileFormatter = lib.getExe formatter;
 
   promptFragments = import ./prompt-fragments;
   agentRoles = import ./agent-roles { inherit (promptFragments) readPrompt; };
@@ -69,7 +69,7 @@ in
         lib
         secretPath
         modelCatalog
-        formatFiles
+        fileFormatter
         ;
       inherit (config.xdg) dataHome;
       inherit (promptFragments) readPrompt phrasing;

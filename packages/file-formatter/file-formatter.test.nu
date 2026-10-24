@@ -1,14 +1,14 @@
 #!/usr/bin/env nu
 
 # ==================================================================================================
-# File Formatting Tests
+# File Formatter Tests
 # ==================================================================================================
 
 use std/assert
 use std-rfc/str
 
 const SCRIPT_DIR = path self .
-const SCRIPT = ($SCRIPT_DIR | path join format-files.nu)
+const SCRIPT = ($SCRIPT_DIR | path join file-formatter.nu)
 const TOOLS = [
   cspell
   dprint
@@ -375,7 +375,7 @@ def "test project tools use the nearest executable including ancestors" [] {
 }
 
 def "test markdown aligns tables and preserves fenced examples" [] {
-  let formatter = (which format-files | get 0.path)
+  let formatter = (which file-formatter | get 0.path)
   let dir = (mktemp --directory | path expand)
   install-stub ($dir | path join node_modules .bin prettier)
   let log = ($dir | path join prettier.jsonl)

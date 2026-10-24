@@ -3,7 +3,7 @@
 # ==================================================================================================
 
 {
-  formatFiles,
+  fileFormatter,
   mkNuHook,
   patchInput,
   timeouts,
@@ -19,7 +19,7 @@
     slug = "auto-format";
     script = ./auto-format.nu;
     config = {
-      inherit formatFiles;
+      inherit fileFormatter;
       patchInput = toString patchInput;
     };
   };

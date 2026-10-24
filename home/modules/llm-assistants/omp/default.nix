@@ -125,7 +125,7 @@ in
             PUPPETEER_EXECUTABLE_PATH = lib.getExe pkgs.browser-tools.chromium;
           }
           // lib.optionalAttrs enableDevToolchains {
-            DPRINT_CONFIG_DIR = pkgs.format-files.dprintConfigDir;
+            DPRINT_CONFIG_DIR = pkgs.file-formatter.dprintConfigDir;
           };
 
         envFiles = {

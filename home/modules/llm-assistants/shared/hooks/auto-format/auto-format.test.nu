@@ -29,7 +29,7 @@ def run-event [
   | str replace --regex '^#!.*' $"#!($nu.current-exe) --no-config-file"
   | save $parser
   ^chmod +x $parser
-  {formatFiles: ($env.NU_TEST_STUBS | path join format-files), patchInput: $parser}
+  {fileFormatter: ($env.NU_TEST_STUBS | path join file-formatter), patchInput: $parser}
   | to json
   | save $config_file
 
