@@ -83,8 +83,8 @@ def main [config_file: string] {
 
   # Native profile files may contain project trust and hook review state.
   if ($config.activeProfile | path exists) {
-    let profile = (^readlink $config.activeProfile | str trim)
-    if ($profile | path dirname | path expand --strict) == $config_dir {
+    let profile = ($config.activeProfile | path expand --strict)
+    if ($profile | path dirname) == $config_dir {
       $current = ($current | merge deep --strategy overwrite (open --raw $profile | from toml))
     }
   }
