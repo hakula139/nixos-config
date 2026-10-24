@@ -4,6 +4,7 @@
 
 let
   claudeAdaptiveCommon = {
+    vendor = "anthropic";
     contextWindow = 1000000;
     maxTokens = 128000;
     autoCompactTokens = 400000;
@@ -30,6 +31,7 @@ let
   };
 
   gptCommon = {
+    vendor = "openai";
     contextWindow = 1050000;
     maxTokens = 128000;
     autoCompactTokens = 272000;
@@ -56,6 +58,7 @@ let
   };
 
   geminiCommon = {
+    vendor = "google";
     contextWindow = 1048576;
     maxTokens = 65536;
     autoCompactTokens = 400000;
@@ -248,6 +251,7 @@ in
 
     "deepseek-v4.1-flash" = localCommon // {
       name = "DeepSeek V4.1 Flash 1017";
+      vendor = "deepseek";
       contextWindow = 1048576;
       maxTokens = 393216;
       autoCompactTokens = 400000;
@@ -256,6 +260,7 @@ in
 
     "kimi-k3" = localCommon // {
       name = "Kimi K3";
+      vendor = "moonshot";
       contextWindow = 409600;
       maxTokens = 65536;
       autoCompactTokens = 320000;
