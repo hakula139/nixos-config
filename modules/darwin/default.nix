@@ -117,7 +117,6 @@ in
           }
         ];
 
-        ProcessType = "Background";
         StandardOutPath = "/var/log/nh-clean.log";
         StandardErrorPath = "/var/log/nh-clean.log";
       };
