@@ -58,8 +58,8 @@ def format-markdown [path: string, config: record] {
 
 # A `--fix` pass reports whatever it could not fix, so one call covers both. Each file's tools run
 # from its own project, never the session's.
-def format-file [path: string, config: record]: nothing -> list<any> {
-  cd (project-root $path $config.git)
+def format-file [path: string, root: string, config: record]: nothing -> list<any> {
+  cd $root
   match ($path | path parse | get extension) {
     "sh" => [
       (check $config.shfmt ["-w" $path] $path)
@@ -180,9 +180,18 @@ def --env format-edited [config: record]: nothing -> any {
     return null
   }
 
-  let reports = (
-    collect-files $input $config
-    | each {|path| format-file $path $config }
+  mut rust_roots = []
+  mut reports = []
+  for path in (collect-files $input $config) {
+    let root = (project-root $path $config.git)
+    if ($path | path parse | get extension) == "rs" {
+      if $root in $rust_roots { continue }
+      $rust_roots = ($rust_roots | append $root)
+    }
+    $reports = ($reports | append (format-file $path $root $config))
+  }
+  $reports = (
+    $reports
     | flatten
     | flatten
     | compact --empty
