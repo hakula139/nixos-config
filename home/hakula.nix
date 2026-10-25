@@ -26,6 +26,7 @@ in
 {
   imports = [
     inputs.listenbrainz-scrobbler.homeManagerModules.default
+    inputs.oxide-code.homeModules.default
 
     ./modules/shared.nix
     ./modules/darwin.nix
