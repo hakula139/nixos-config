@@ -8,13 +8,26 @@ use std/assert
 use std-rfc/str
 
 def expected-env [url: string]: nothing -> string {
-  let no_proxy = "localhost,127.0.0.1,10.*,example.test"
+  let no_proxy = 'localhost,127.0.0.1,10.*,example.test,host$var`x`\y"z'
   [
     $"HTTP_PROXY=($url)"
     $"HTTPS_PROXY=($url)"
     $"NO_PROXY=($no_proxy)"
     $"http_proxy=($url)"
     $"https_proxy=($url)"
+    $"no_proxy=($no_proxy)"
+    ""
+  ] | str join (char nl)
+}
+
+def expected-env-file [quoted_url: string]: nothing -> string {
+  let no_proxy = '"localhost,127.0.0.1,10.*,example.test,host\$var\`x\`\\y\"z"'
+  [
+    $"HTTP_PROXY=($quoted_url)"
+    $"HTTPS_PROXY=($quoted_url)"
+    $"NO_PROXY=($no_proxy)"
+    $"http_proxy=($quoted_url)"
+    $"https_proxy=($quoted_url)"
     $"no_proxy=($no_proxy)"
     ""
   ] | str join (char nl)
@@ -52,13 +65,37 @@ def run-proxy [
   )
 }
 
+def assert-output [dir: string, kind: string, url: string, quoted_url: string] {
+  if $kind == envFile {
+    let file = ($dir | path join "proxy environment")
+    assert equal (open --raw $file) (expected-env-file $quoted_url)
+
+    let run = (run-proxy $dir $file)
+    assert equal $run.exit_code 0 $run.stderr
+  }
+
+  assert equal (open --raw ($dir | path join consumer)) (expected-env $url)
+  for marker in [backtick substitution] {
+    assert not ($dir | path join $marker | path exists) $"executed ($marker)"
+  }
+}
+
 def "test literal and secret values reach every proxy variable unchanged" [] {
   let fixtures = (open $env.PROXY_TEST_FIXTURES)
   let cases = [
-    {name: normal, scripts: $fixtures.normal, url: $fixtures.normalUrl, secret: false}
-    {name: literal, scripts: $fixtures.literal, url: $fixtures.literalUrl, secret: false}
-    {name: empty, scripts: $fixtures.empty, url: "", secret: false}
-    {name: secret, scripts: $fixtures.secret, url: $fixtures.literalUrl, secret: true}
+    {
+      name: normal, scripts: $fixtures.normal, url: $fixtures.normalUrl
+      quoted: ('"' + $fixtures.normalUrl + '"'), secret: false
+    }
+    {
+      name: literal, scripts: $fixtures.literal, url: $fixtures.literalUrl
+      quoted: $fixtures.quotedLiteralUrl, secret: false
+    }
+    {name: empty, scripts: $fixtures.empty, url: "", quoted: '""', secret: false}
+    {
+      name: secret, scripts: $fixtures.secret, url: $fixtures.literalUrl
+      quoted: $fixtures.quotedLiteralUrl, secret: true
+    }
   ]
 
   for case in $cases {
@@ -69,13 +106,23 @@ def "test literal and secret values reach every proxy variable unchanged" [] {
       let run = (run-proxy $dir ($case.scripts | get $kind))
       assert equal $run.exit_code 0 $"($case.name) ($kind): ($run.stderr)"
 
-      let output = if $kind == script { "consumer" } else { "proxy environment" }
-      assert equal (open --raw ($dir | path join $output)) (expected-env $case.url)
+      assert-output $dir $kind $case.url $case.quoted
       assert equal $run.stdout ""
-      for marker in [backtick substitution] {
-        assert not ($dir | path join $marker | path exists) $"executed ($marker)"
-      }
     }
+  }
+}
+
+def "test dash prefixed secret filenames are read as paths" [] {
+  let fixtures = (open $env.PROXY_TEST_FIXTURES)
+
+  for kind in [script envFile] {
+    let dir = (mktemp --directory)
+    $fixtures.normalUrl | save ($dir | path join "-n")
+
+    let run = (run-proxy $dir ($fixtures.dashSecret | get $kind))
+    assert equal $run.exit_code 0 $"($kind): ($run.stderr)"
+
+    assert-output $dir $kind $fixtures.normalUrl ('"' + $fixtures.normalUrl + '"')
   }
 }
 
@@ -128,8 +175,7 @@ def "test one secret read supplies a consistent value to every variable" [] {
     let run = (run-proxy $dir ($fixtures.secret | get $kind) --changing-secret)
     assert equal $run.exit_code 0 $"($kind): ($run.stderr)"
 
-    let output = if $kind == script { "consumer" } else { "proxy environment" }
-    assert equal (open --raw ($dir | path join $output)) (expected-env $fixtures.normalUrl) $kind
+    assert-output $dir $kind $fixtures.normalUrl ('"' + $fixtures.normalUrl + '"')
     assert equal (open --raw ($dir | path join "proxy secret")) (
       "http://changed.proxy.example.test:8081"
     )
