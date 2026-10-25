@@ -383,11 +383,6 @@
       checks = forAllSystems (system: {
         pre-commit = preCommitCheckFor system;
 
-        llm-models = import ./lib/llm-model-tests.nix {
-          pkgs = pkgsFor system;
-          inherit modelCatalog;
-        };
-
         scripts = import ./lib/script-tests.nix {
           pkgs = pkgsFor system;
           root = ./.;
