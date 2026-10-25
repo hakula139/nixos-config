@@ -5,6 +5,7 @@
 let
   claudeAdaptiveCommon = {
     vendor = "anthropic";
+    apis = [ "anthropic-messages" ];
     contextWindow = 1000000;
     maxTokens = 128000;
     autoCompactTokens = 400000;
@@ -27,11 +28,22 @@ let
       defaultLevel = "medium";
       requiresEffort = false;
       supportsDisplay = true;
+      apiEfforts.anthropic-messages = [
+        "low"
+        "medium"
+        "high"
+        "xhigh"
+        "max"
+      ];
     };
   };
 
   gptCommon = {
     vendor = "openai";
+    apis = [
+      "openai-chat-completions"
+      "openai-responses"
+    ];
     contextWindow = 1050000;
     maxTokens = 128000;
     autoCompactTokens = 272000;
@@ -54,6 +66,13 @@ let
       defaultLevel = "high";
       requiresEffort = false;
       supportsDisplay = false;
+      apiEfforts.openai-responses = [
+        "low"
+        "medium"
+        "high"
+        "xhigh"
+        "max"
+      ];
     };
   };
 
@@ -66,6 +85,7 @@ let
 
   geminiCommon = {
     vendor = "google";
+    apis = [ "openai-chat-completions" ];
     contextWindow = 1048576;
     maxTokens = 65536;
     autoCompactTokens = 400000;
@@ -86,10 +106,16 @@ let
       defaultLevel = "medium";
       requiresEffort = true;
       supportsDisplay = false;
+      apiEfforts.openai-chat-completions = [
+        "low"
+        "medium"
+        "high"
+      ];
     };
   };
 
   localCommon = {
+    apis = [ "openai-chat-completions" ];
     input = [
       "text"
       "image"
@@ -107,6 +133,11 @@ let
       defaultLevel = "high";
       requiresEffort = false;
       supportsDisplay = false;
+      apiEfforts.openai-chat-completions = [
+        "low"
+        "high"
+        "max"
+      ];
     };
 
     channelCost.local = {
@@ -200,7 +231,9 @@ in
     "gpt-6-astra" = gptCommon // {
       name = "GPT-6 Astra";
       thinking = gptCommon.thinking // {
-        apiEfforts.openai-chat-completions = gptChatEfforts;
+        apiEfforts = gptCommon.thinking.apiEfforts // {
+          openai-chat-completions = gptChatEfforts;
+        };
       };
 
       channelId.openai = "openai/gpt-6-astra";
@@ -215,7 +248,9 @@ in
     "gpt-6.1-sol" = gptCommon // {
       name = "GPT-6.1 Sol";
       thinking = gptCommon.thinking // {
-        apiEfforts.openai-chat-completions = gptChatEfforts;
+        apiEfforts = gptCommon.thinking.apiEfforts // {
+          openai-chat-completions = gptChatEfforts;
+        };
       };
 
       channelId.openai = "openai/gpt-6.1-sol";
@@ -231,6 +266,9 @@ in
       name = "GPT-6 Luna";
       thinking = gptCommon.thinking // {
         defaultLevel = "low";
+        apiEfforts = gptCommon.thinking.apiEfforts // {
+          openai-chat-completions = gptChatEfforts;
+        };
       };
 
       channelId.openai = "openai/gpt-6-luna";
