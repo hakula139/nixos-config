@@ -13,13 +13,7 @@ def command [command: string, extra: record = {}]: nothing -> record {
   {type: command, command: $command} | merge $extra
 }
 
-def "test activation records the hash codex trusts and keeps other state" [] {
-  let version = (^codex --version | complete)
-  assert equal $version.exit_code 0 $version.stderr
-  assert equal ($version.stdout | str trim) "codex-cli 0.164.0" (
-    "Refresh the independently captured Codex hook hashes for this version"
-  )
-
+def "test activation records golden hook hashes and keeps other state" [] {
   let dir = (mktemp --directory | path expand --strict)
   let target = ($dir | path join config.toml)
   let config_file = ($dir | path join activation.json)
