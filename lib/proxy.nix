@@ -19,7 +19,7 @@ let
     proxyCfg:
     if proxyCfg.secretUrlFile != null then
       ''
-        __proxy_url="$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})" || exit "$?"
+        __proxy_url="$(cat -- ${lib.escapeShellArg proxyCfg.secretUrlFile})" || exit "$?"
         if [[ -z "$__proxy_url" ]]; then
           printf '%s\n' \
             ${lib.escapeShellArg "proxy: secret URL file is empty: ${proxyCfg.secretUrlFile}"} >&2
@@ -62,14 +62,28 @@ let
     in
     ''
       ${proxyUrlScript proxyCfg}
+
+      # Matches systemd's EnvironmentFile double-quote escapes.
+      __proxy_env_quote() {
+        local value="$1"
+        value="''${value//\\/\\\\}"
+        value="''${value//\"/\\\"}"
+        value="''${value//\$/\\\$}"
+        value="''${value//\`/\\\`}"
+        printf '"%s"' "$value"
+      }
+
+      __proxy_env_url="$(__proxy_env_quote "$__proxy_url")"
+      __proxy_env_no_proxy="$(__proxy_env_quote ${lib.escapeShellArg noProxy})"
+
       umask 077
       printf '%s\n' \
-        "HTTP_PROXY=$__proxy_url" \
-        "HTTPS_PROXY=$__proxy_url" \
-        ${lib.escapeShellArg "NO_PROXY=${noProxy}"} \
-        "http_proxy=$__proxy_url" \
-        "https_proxy=$__proxy_url" \
-        ${lib.escapeShellArg "no_proxy=${noProxy}"} \
+        "HTTP_PROXY=$__proxy_env_url" \
+        "HTTPS_PROXY=$__proxy_env_url" \
+        "NO_PROXY=$__proxy_env_no_proxy" \
+        "http_proxy=$__proxy_env_url" \
+        "https_proxy=$__proxy_env_url" \
+        "no_proxy=$__proxy_env_no_proxy" \
         >${lib.escapeShellArg dest}
     '';
 
