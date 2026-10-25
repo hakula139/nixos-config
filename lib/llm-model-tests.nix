@@ -25,9 +25,32 @@ let
     "xhigh"
   ];
 
-  apiRestrictions = lib.mapAttrs (_: model: model.thinking.apiEfforts) (
-    lib.filterAttrs (_: model: (model.thinking.apiEfforts or { }) != { }) modelCatalog.models
-  );
+  invalidCapabilities = lib.filterAttrs (
+    _: model:
+    let
+      thinking = model.thinking or null;
+      apiEfforts = if thinking == null then { } else thinking.apiEfforts or { };
+    in
+    model.apis == [ ]
+    || lib.any (
+      api:
+      !(lib.elem api [
+        "anthropic-messages"
+        "openai-chat-completions"
+        "openai-responses"
+      ])
+    ) model.apis
+    || lib.any (api: !(lib.elem api model.apis)) (builtins.attrNames apiEfforts)
+    || (
+      thinking != null
+      && lib.any (
+        api:
+        !(builtins.hasAttr api apiEfforts)
+        || lib.any (effort: !(lib.elem effort thinking.efforts)) apiEfforts.${api}
+        || (thinking.requiresEffort && !(lib.elem thinking.defaultLevel apiEfforts.${api}))
+      ) model.apis
+    )
+  ) modelCatalog.models;
 
   profileDefinitions = import ./llm-assistants/profiles.nix {
     inherit lib modelCatalog;
@@ -72,11 +95,33 @@ let
   };
 
   failures = lib.runTests {
-    testChatRestrictionsStayWithinTheProbedModels = {
-      expr = apiRestrictions;
+    testDeclaredApisAcceptOnlyDeclaredEffortsAndRequiredDefaults = {
+      expr = builtins.attrNames invalidCapabilities;
+      expected = [ ];
+    };
+
+    testChatAndResponsesKeepTheirDifferentEffortCapabilities = {
+      expr = map (name: modelCatalog.models.${name}.thinking.apiEfforts) [
+        "gpt-6-astra"
+        "gpt-6.1-sol"
+      ];
+      expected = lib.replicate 2 {
+        openai-chat-completions = chatEfforts;
+        openai-responses = gptEfforts;
+      };
+    };
+
+    testNativeMessagesUsesAdaptiveThinkingWithItsDeclaredEfforts = {
+      expr = {
+        inherit (modelCatalog.models.claude-opus-5-5) apis;
+        inherit (modelCatalog.models.claude-opus-5-5.thinking) mode apiEfforts;
+      };
       expected = {
-        "gpt-6-astra".openai-chat-completions = chatEfforts;
-        "gpt-6.1-sol".openai-chat-completions = chatEfforts;
+        apis = [ "anthropic-messages" ];
+        mode = "anthropic-adaptive";
+        apiEfforts = {
+          anthropic-messages = gptEfforts;
+        };
       };
     };
 
@@ -93,9 +138,16 @@ let
       ];
     };
 
-    testLunaKeepsItsDefaultEffort = {
-      expr = modelCatalog.models.gpt-6-luna.thinking.defaultLevel;
-      expected = "low";
+    testLunaKeepsItsProvenApiAndDefaultEffort = {
+      expr = {
+        inherit (modelCatalog.models.gpt-6-luna) apis;
+        inherit (modelCatalog.models.gpt-6-luna.thinking) apiEfforts defaultLevel;
+      };
+      expected = {
+        apis = [ "openai-responses" ];
+        apiEfforts.openai-responses = gptEfforts;
+        defaultLevel = "low";
+      };
     };
 
     testOfficialClientWorkloadsKeepTheirNativeCapabilities = {
