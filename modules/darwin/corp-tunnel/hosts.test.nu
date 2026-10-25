@@ -23,6 +23,7 @@ def "test hostname transitions preserve unrelated entries and are idempotent" []
     # Local hosts
     127.0.0.1 localhost
     ::1 localhost
+
     192.0.2.1 unrelated.example.test # managed elsewhere
     192.0.2.2 similar.example.test # nixos-config-other: corp-tunnel
 
