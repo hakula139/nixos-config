@@ -64,6 +64,37 @@ let
     enableCorpGateway = true;
   };
 
+  maintainedProfiles = lib.concatMap (
+    family:
+    builtins.attrValues (
+      profileDefinitions.mkProfiles {
+        nativeFamily = family;
+        hybridBase = "corp-gateway-openai";
+        providers = [
+          "corp-gateway"
+          "ikuncode"
+          "yescode"
+        ];
+        channels = [
+          "anthropic"
+          "openai"
+          "google"
+          "local"
+        ];
+        enableCorpGateway = true;
+      }
+    )
+  ) (builtins.attrNames profileDefinitions.workloadPolicy);
+
+  invalidWorkloads = lib.concatMap (
+    profile:
+    lib.filter (
+      workload:
+      !(lib.elem workload.api workload.model.apis)
+      || !(lib.elem workload.effort (workload.model.thinking.apiEfforts.${workload.api} or [ ]))
+    ) (builtins.attrValues profile.workloads ++ builtins.attrValues profile.roles)
+  ) maintainedProfiles;
+
   workloads =
     profile:
     lib.mapAttrs (_: workload: {
@@ -97,6 +128,11 @@ let
   failures = lib.runTests {
     testDeclaredApisAcceptOnlyDeclaredEffortsAndRequiredDefaults = {
       expr = builtins.attrNames invalidCapabilities;
+      expected = [ ];
+    };
+
+    testMaintainedClientWorkloadsAndRolesUseAdmittedApisAndEfforts = {
+      expr = lib.unique (map (workload: { inherit (workload) modelKey api effort; }) invalidWorkloads);
       expected = [ ];
     };
 
