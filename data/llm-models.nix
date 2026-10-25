@@ -40,10 +40,7 @@ let
 
   gptCommon = {
     vendor = "openai";
-    apis = [
-      "openai-chat-completions"
-      "openai-responses"
-    ];
+    apis = [ "openai-responses" ];
     contextWindow = 1050000;
     maxTokens = 128000;
     autoCompactTokens = 272000;
@@ -230,6 +227,10 @@ in
 
     "gpt-6-astra" = gptCommon // {
       name = "GPT-6 Astra";
+      apis = [
+        "openai-chat-completions"
+        "openai-responses"
+      ];
       thinking = gptCommon.thinking // {
         apiEfforts = gptCommon.thinking.apiEfforts // {
           openai-chat-completions = gptChatEfforts;
@@ -247,6 +248,10 @@ in
 
     "gpt-6.1-sol" = gptCommon // {
       name = "GPT-6.1 Sol";
+      apis = [
+        "openai-chat-completions"
+        "openai-responses"
+      ];
       thinking = gptCommon.thinking // {
         apiEfforts = gptCommon.thinking.apiEfforts // {
           openai-chat-completions = gptChatEfforts;
@@ -266,9 +271,6 @@ in
       name = "GPT-6 Luna";
       thinking = gptCommon.thinking // {
         defaultLevel = "low";
-        apiEfforts = gptCommon.thinking.apiEfforts // {
-          openai-chat-completions = gptChatEfforts;
-        };
       };
 
       channelId.openai = "openai/gpt-6-luna";
