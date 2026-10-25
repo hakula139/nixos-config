@@ -6,6 +6,7 @@ let
   claudeAdaptiveCommon = {
     vendor = "anthropic";
     apis = [ "anthropic-messages" ];
+
     contextWindow = 1000000;
     maxTokens = 128000;
     autoCompactTokens = 400000;
@@ -24,23 +25,16 @@ let
         "xhigh"
         "max"
       ];
-
       defaultLevel = "medium";
       requiresEffort = false;
       supportsDisplay = true;
-      apiEfforts.anthropic-messages = [
-        "low"
-        "medium"
-        "high"
-        "xhigh"
-        "max"
-      ];
     };
   };
 
   gptCommon = {
     vendor = "openai";
     apis = [ "openai-responses" ];
+
     contextWindow = 1050000;
     maxTokens = 128000;
     autoCompactTokens = 272000;
@@ -59,26 +53,11 @@ let
         "xhigh"
         "max"
       ];
-
       defaultLevel = "high";
       requiresEffort = false;
       supportsDisplay = false;
-      apiEfforts.openai-responses = [
-        "low"
-        "medium"
-        "high"
-        "xhigh"
-        "max"
-      ];
     };
   };
-
-  gptChatEfforts = [
-    "low"
-    "medium"
-    "high"
-    "xhigh"
-  ];
 
   geminiCommon = {
     vendor = "google";
@@ -86,6 +65,7 @@ let
       "openai-chat-completions"
       "openai-responses"
     ];
+
     contextWindow = 1048576;
     maxTokens = 65536;
     autoCompactTokens = 400000;
@@ -102,21 +82,9 @@ let
         "medium"
         "high"
       ];
-
       defaultLevel = "medium";
       requiresEffort = true;
       supportsDisplay = false;
-      apiEfforts.openai-chat-completions = [
-        "low"
-        "medium"
-        "high"
-      ];
-
-      apiEfforts.openai-responses = [
-        "low"
-        "medium"
-        "high"
-      ];
     };
   };
 
@@ -125,6 +93,7 @@ let
       "openai-chat-completions"
       "openai-responses"
     ];
+
     input = [
       "text"
       "image"
@@ -138,21 +107,9 @@ let
         "high"
         "max"
       ];
-
       defaultLevel = "high";
       requiresEffort = false;
       supportsDisplay = false;
-      apiEfforts.openai-chat-completions = [
-        "low"
-        "high"
-        "max"
-      ];
-
-      apiEfforts.openai-responses = [
-        "low"
-        "high"
-        "max"
-      ];
     };
 
     channelCost.local = {
@@ -194,6 +151,7 @@ in
   models = {
     "claude-opus-5-5" = claudeAdaptiveCommon // {
       name = "Claude Opus 5.5";
+
       thinking = claudeAdaptiveCommon.thinking // {
         requiresEffort = true;
       };
@@ -245,16 +203,6 @@ in
 
     "gpt-6-astra" = gptCommon // {
       name = "GPT-6 Astra";
-      apis = [
-        "openai-chat-completions"
-        "openai-responses"
-      ];
-      thinking = gptCommon.thinking // {
-        apiEfforts = gptCommon.thinking.apiEfforts // {
-          openai-chat-completions = gptChatEfforts;
-        };
-      };
-
       channelId.openai = "openai/gpt-6-astra";
       channelCost.openai = {
         input = 10.0;
@@ -266,16 +214,6 @@ in
 
     "gpt-6.1-sol" = gptCommon // {
       name = "GPT-6.1 Sol";
-      apis = [
-        "openai-chat-completions"
-        "openai-responses"
-      ];
-      thinking = gptCommon.thinking // {
-        apiEfforts = gptCommon.thinking.apiEfforts // {
-          openai-chat-completions = gptChatEfforts;
-        };
-      };
-
       channelId.openai = "openai/gpt-6.1-sol";
       channelCost.openai = {
         input = 2.0;
@@ -287,6 +225,7 @@ in
 
     "gpt-6-luna" = gptCommon // {
       name = "GPT-6 Luna";
+
       thinking = gptCommon.thinking // {
         defaultLevel = "low";
       };
@@ -325,18 +264,22 @@ in
     "deepseek-v4.1-flash" = localCommon // {
       name = "DeepSeek V4.1 Flash 1017";
       vendor = "deepseek";
+
       contextWindow = 1048576;
       maxTokens = 393216;
       autoCompactTokens = 400000;
+
       channelId.local = "local_v2/DeepSeek-V4.1-Flash-1017";
     };
 
     "kimi-k3" = localCommon // {
       name = "Kimi K3";
       vendor = "moonshot";
+
       contextWindow = 409600;
       maxTokens = 65536;
       autoCompactTokens = 320000;
+
       channelId.local = "local_v2_k3/Kimi-K3";
     };
   };
