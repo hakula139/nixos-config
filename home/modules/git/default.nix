@@ -94,23 +94,30 @@ in
     # ----------------------------------------------------------------------------------------------
     ignores = [
       # macOS
-      ".DS_Store"
       ".AppleDouble"
+      ".DS_Store"
       ".LSOverride"
       "._*"
 
       # Editor swap / backup files
-      "*.swp"
       "*.swo"
+      "*.swp"
       "*~"
 
-      # Editor / assistant local settings
-      ".agents/plans"
-      ".claude/agent-memory-local"
-      ".claude/plans"
-      ".claude/settings.local.json"
-      ".claude/worktrees"
-      ".cursor/plans"
+      # Dependencies
+      ".pnpm-store/"
+      "node_modules/"
+
+      # Nix
+      ".direnv/"
+
+      # Assistant local state
+      "**/.agents/plans/"
+      "**/.claude/agent-memory-local"
+      "**/.claude/plans"
+      "**/.claude/settings.local.json"
+      "**/.claude/worktrees/"
+      "**/.cursor/plans"
     ];
   };
 

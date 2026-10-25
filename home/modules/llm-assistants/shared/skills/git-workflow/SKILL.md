@@ -26,6 +26,12 @@ Read the repository's contribution instructions before starting, and use its own
 - Keep the main checkout on the default branch, because several agents may work in the repository at once and editing it or switching its branch can collide with their work.
 - Create every task branch, including the coordinator's own, in a worktree under `.claude/worktrees/<name>`. Claude Code and Workmux (under `workmux/`) create their worktrees there too, so they all share one gitignored directory.
 
+## Ignore Rules
+
+- Keep portable generated outputs and project-local private state in repository ignores. Put personal OS, editor, and optional assistant state in the global ignore. Check the configured producer before treating an artifact as optional. Contributor privacy must hold without the maintainer's global excludes.
+- Match generated directories wherever their producer can create them. Anchor paths only when the producer fixes their location. A trailing `/` matches directories, leaving same-named files and symlinks visible. Preserve source directories and workflow aliases when ignoring output links.
+- Before changing a rule, verify root and nested paths, files, directories, symlinks, and relevant source exceptions with isolated `git check-ignore` cases that disable global excludes.
+
 ## Commits
 
 - Commit each logical chunk after its checks pass and before moving on.
