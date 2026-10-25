@@ -140,9 +140,9 @@ let
     command = [
       "chrome-devtools-mcp"
       "--executable-path=${lib.getExe pkgs.browser-tools.chromium}"
+      "--isolated"
     ]
-    ++ lib.optionals (!pkgs.stdenv.isDarwin) [ "--headless" ]
-    ++ [ "--isolated" ];
+    ++ lib.optionals (!pkgs.stdenv.isDarwin) [ "--headless" ];
   };
 
   # ------------------------------------------------------------------------------------------------
