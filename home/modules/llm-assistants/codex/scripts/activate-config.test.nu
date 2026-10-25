@@ -16,7 +16,7 @@ def command [command: string, extra: record = {}]: nothing -> record {
 def "test activation records the hash codex trusts and keeps other state" [] {
   let version = (^codex --version | complete)
   assert equal $version.exit_code 0 $version.stderr
-  assert equal ($version.stdout | str trim) "codex-cli 0.163.0" (
+  assert equal ($version.stdout | str trim) "codex-cli 0.164.0" (
     "Refresh the independently captured Codex hook hashes for this version"
   )
 
