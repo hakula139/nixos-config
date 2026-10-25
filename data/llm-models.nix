@@ -15,7 +15,7 @@ let
     ];
 
     reasoning = true;
-    thinking = {
+    thinking = rec {
       mode = "anthropic-adaptive";
       efforts = [
         "low"
@@ -28,13 +28,7 @@ let
       defaultLevel = "medium";
       requiresEffort = false;
       supportsDisplay = true;
-      apiEfforts.anthropic-messages = [
-        "low"
-        "medium"
-        "high"
-        "xhigh"
-        "max"
-      ];
+      apiEfforts.anthropic-messages = efforts;
     };
   };
 
@@ -50,7 +44,7 @@ let
     ];
 
     reasoning = true;
-    thinking = {
+    thinking = rec {
       mode = "effort";
       efforts = [
         "low"
@@ -63,13 +57,7 @@ let
       defaultLevel = "high";
       requiresEffort = false;
       supportsDisplay = false;
-      apiEfforts.openai-responses = [
-        "low"
-        "medium"
-        "high"
-        "xhigh"
-        "max"
-      ];
+      apiEfforts.openai-responses = efforts;
     };
   };
 
@@ -86,6 +74,7 @@ let
       "openai-chat-completions"
       "openai-responses"
     ];
+
     contextWindow = 1048576;
     maxTokens = 65536;
     autoCompactTokens = 400000;
@@ -95,7 +84,7 @@ let
     ];
 
     reasoning = true;
-    thinking = {
+    thinking = rec {
       mode = "effort";
       efforts = [
         "low"
@@ -106,17 +95,8 @@ let
       defaultLevel = "medium";
       requiresEffort = true;
       supportsDisplay = false;
-      apiEfforts.openai-chat-completions = [
-        "low"
-        "medium"
-        "high"
-      ];
-
-      apiEfforts.openai-responses = [
-        "low"
-        "medium"
-        "high"
-      ];
+      apiEfforts.openai-chat-completions = efforts;
+      apiEfforts.openai-responses = efforts;
     };
   };
 
@@ -125,13 +105,14 @@ let
       "openai-chat-completions"
       "openai-responses"
     ];
+
     input = [
       "text"
       "image"
     ];
 
     reasoning = true;
-    thinking = {
+    thinking = rec {
       mode = "effort";
       efforts = [
         "low"
@@ -142,17 +123,8 @@ let
       defaultLevel = "high";
       requiresEffort = false;
       supportsDisplay = false;
-      apiEfforts.openai-chat-completions = [
-        "low"
-        "high"
-        "max"
-      ];
-
-      apiEfforts.openai-responses = [
-        "low"
-        "high"
-        "max"
-      ];
+      apiEfforts.openai-chat-completions = efforts;
+      apiEfforts.openai-responses = efforts;
     };
 
     channelCost.local = {
@@ -249,6 +221,7 @@ in
         "openai-chat-completions"
         "openai-responses"
       ];
+
       thinking = gptCommon.thinking // {
         apiEfforts = gptCommon.thinking.apiEfforts // {
           openai-chat-completions = gptChatEfforts;
@@ -270,6 +243,7 @@ in
         "openai-chat-completions"
         "openai-responses"
       ];
+
       thinking = gptCommon.thinking // {
         apiEfforts = gptCommon.thinking.apiEfforts // {
           openai-chat-completions = gptChatEfforts;
