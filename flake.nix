@@ -70,7 +70,7 @@
     llm-agents.url = "github:numtide/llm-agents.nix";
 
     oxide-code = {
-      url = "github:hakula139/oxide-code/v0.1.0-alpha.7";
+      url = "github:hakula139/oxide-code/v0.1.0-alpha.8";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         home-manager.follows = "home-manager";
