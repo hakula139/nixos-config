@@ -15,12 +15,19 @@ let
     "https_proxy"
   ];
 
-  proxyUrlExpr =
-    proxyCfg: literalUrl:
+  proxyUrlScript =
+    proxyCfg:
     if proxyCfg.secretUrlFile != null then
-      "$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})"
+      ''
+        __proxy_url="$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})" || exit "$?"
+        if [[ -z "$__proxy_url" ]]; then
+          printf '%s\n' \
+            ${lib.escapeShellArg "proxy: secret URL file is empty: ${proxyCfg.secretUrlFile}"} >&2
+          exit 1
+        fi
+      ''
     else
-      literalUrl;
+      "__proxy_url=${lib.escapeShellArg proxyCfg.url}";
 
   baseNoProxy = [
     "localhost"
@@ -33,15 +40,15 @@ let
   mkProxyScript =
     proxyCfg:
     let
-      proxyUrl = proxyUrlExpr proxyCfg (lib.escapeShellArg proxyCfg.url);
       noProxy = lib.escapeShellArg (renderNoProxy proxyCfg);
     in
     ''
-      export HTTP_PROXY=${proxyUrl}
-      export HTTPS_PROXY=${proxyUrl}
+      ${proxyUrlScript proxyCfg}
+      export HTTP_PROXY="$__proxy_url"
+      export HTTPS_PROXY="$__proxy_url"
       export NO_PROXY=${noProxy}
-      export http_proxy=${proxyUrl}
-      export https_proxy=${proxyUrl}
+      export http_proxy="$__proxy_url"
+      export https_proxy="$__proxy_url"
       export no_proxy=${noProxy}
     '';
 
@@ -51,18 +58,18 @@ let
       dest,
     }:
     let
-      proxyUrl = proxyUrlExpr proxyCfg proxyCfg.url;
       noProxy = renderNoProxy proxyCfg;
     in
     ''
+      ${proxyUrlScript proxyCfg}
       umask 077
       printf '%s\n' \
-        "HTTP_PROXY=${proxyUrl}" \
-        "HTTPS_PROXY=${proxyUrl}" \
-        "NO_PROXY=${noProxy}" \
-        "http_proxy=${proxyUrl}" \
-        "https_proxy=${proxyUrl}" \
-        "no_proxy=${noProxy}" \
+        "HTTP_PROXY=$__proxy_url" \
+        "HTTPS_PROXY=$__proxy_url" \
+        ${lib.escapeShellArg "NO_PROXY=${noProxy}"} \
+        "http_proxy=$__proxy_url" \
+        "https_proxy=$__proxy_url" \
+        ${lib.escapeShellArg "no_proxy=${noProxy}"} \
         >${lib.escapeShellArg dest}
     '';
 
