@@ -6,6 +6,7 @@ let
   claudeAdaptiveCommon = {
     vendor = "anthropic";
     apis = [ "anthropic-messages" ];
+
     contextWindow = 1000000;
     maxTokens = 128000;
     autoCompactTokens = 400000;
@@ -24,7 +25,6 @@ let
         "xhigh"
         "max"
       ];
-
       defaultLevel = "medium";
       requiresEffort = false;
       supportsDisplay = true;
@@ -34,6 +34,7 @@ let
   gptCommon = {
     vendor = "openai";
     apis = [ "openai-responses" ];
+
     contextWindow = 1050000;
     maxTokens = 128000;
     autoCompactTokens = 272000;
@@ -52,7 +53,6 @@ let
         "xhigh"
         "max"
       ];
-
       defaultLevel = "high";
       requiresEffort = false;
       supportsDisplay = false;
@@ -82,7 +82,6 @@ let
         "medium"
         "high"
       ];
-
       defaultLevel = "medium";
       requiresEffort = true;
       supportsDisplay = false;
@@ -108,7 +107,6 @@ let
         "high"
         "max"
       ];
-
       defaultLevel = "high";
       requiresEffort = false;
       supportsDisplay = false;
@@ -153,6 +151,7 @@ in
   models = {
     "claude-opus-5-5" = claudeAdaptiveCommon // {
       name = "Claude Opus 5.5";
+
       thinking = claudeAdaptiveCommon.thinking // {
         requiresEffort = true;
       };
@@ -226,6 +225,7 @@ in
 
     "gpt-6-luna" = gptCommon // {
       name = "GPT-6 Luna";
+
       thinking = gptCommon.thinking // {
         defaultLevel = "low";
       };
@@ -264,18 +264,22 @@ in
     "deepseek-v4.1-flash" = localCommon // {
       name = "DeepSeek V4.1 Flash 1017";
       vendor = "deepseek";
+
       contextWindow = 1048576;
       maxTokens = 393216;
       autoCompactTokens = 400000;
+
       channelId.local = "local_v2/DeepSeek-V4.1-Flash-1017";
     };
 
     "kimi-k3" = localCommon // {
       name = "Kimi K3";
       vendor = "moonshot";
+
       contextWindow = 409600;
       maxTokens = 65536;
       autoCompactTokens = 320000;
+
       channelId.local = "local_v2_k3/Kimi-K3";
     };
   };
