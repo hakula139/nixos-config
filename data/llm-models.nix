@@ -15,7 +15,7 @@ let
     ];
 
     reasoning = true;
-    thinking = rec {
+    thinking = {
       mode = "anthropic-adaptive";
       efforts = [
         "low"
@@ -28,7 +28,6 @@ let
       defaultLevel = "medium";
       requiresEffort = false;
       supportsDisplay = true;
-      apiEfforts.anthropic-messages = efforts;
     };
   };
 
@@ -44,7 +43,7 @@ let
     ];
 
     reasoning = true;
-    thinking = rec {
+    thinking = {
       mode = "effort";
       efforts = [
         "low"
@@ -57,16 +56,8 @@ let
       defaultLevel = "high";
       requiresEffort = false;
       supportsDisplay = false;
-      apiEfforts.openai-responses = efforts;
     };
   };
-
-  gptChatEfforts = [
-    "low"
-    "medium"
-    "high"
-    "xhigh"
-  ];
 
   geminiCommon = {
     vendor = "google";
@@ -84,7 +75,7 @@ let
     ];
 
     reasoning = true;
-    thinking = rec {
+    thinking = {
       mode = "effort";
       efforts = [
         "low"
@@ -95,8 +86,6 @@ let
       defaultLevel = "medium";
       requiresEffort = true;
       supportsDisplay = false;
-      apiEfforts.openai-chat-completions = efforts;
-      apiEfforts.openai-responses = efforts;
     };
   };
 
@@ -112,7 +101,7 @@ let
     ];
 
     reasoning = true;
-    thinking = rec {
+    thinking = {
       mode = "effort";
       efforts = [
         "low"
@@ -123,8 +112,6 @@ let
       defaultLevel = "high";
       requiresEffort = false;
       supportsDisplay = false;
-      apiEfforts.openai-chat-completions = efforts;
-      apiEfforts.openai-responses = efforts;
     };
 
     channelCost.local = {
@@ -217,17 +204,6 @@ in
 
     "gpt-6-astra" = gptCommon // {
       name = "GPT-6 Astra";
-      apis = [
-        "openai-chat-completions"
-        "openai-responses"
-      ];
-
-      thinking = gptCommon.thinking // {
-        apiEfforts = gptCommon.thinking.apiEfforts // {
-          openai-chat-completions = gptChatEfforts;
-        };
-      };
-
       channelId.openai = "openai/gpt-6-astra";
       channelCost.openai = {
         input = 10.0;
@@ -239,17 +215,6 @@ in
 
     "gpt-6.1-sol" = gptCommon // {
       name = "GPT-6.1 Sol";
-      apis = [
-        "openai-chat-completions"
-        "openai-responses"
-      ];
-
-      thinking = gptCommon.thinking // {
-        apiEfforts = gptCommon.thinking.apiEfforts // {
-          openai-chat-completions = gptChatEfforts;
-        };
-      };
-
       channelId.openai = "openai/gpt-6.1-sol";
       channelCost.openai = {
         input = 2.0;
