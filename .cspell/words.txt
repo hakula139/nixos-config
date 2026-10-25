@@ -156,6 +156,7 @@ litellm
 lldb
 localectl
 logit
+lowprio
 lualine
 malva
 marp

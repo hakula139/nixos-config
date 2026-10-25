@@ -40,8 +40,6 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     let
-      toml = pkgs.formats.toml { };
-
       # --------------------------------------------------------------------------------------------
       # Package wrapper
       # --------------------------------------------------------------------------------------------
@@ -57,31 +55,6 @@ in
         pkg = pkgs.oxide-code;
         bin = "ox";
       };
-
-      # --------------------------------------------------------------------------------------------
-      # Configuration files
-      # --------------------------------------------------------------------------------------------
-      configToml = toml.generate "ox-config.toml" {
-        permission.mode = "yolo";
-
-        tui = {
-          show_thinking = true;
-          status_line = [
-            "current-dir"
-            "git-branch"
-            "pull-request"
-            "pull-request-checks"
-            "model-with-effort"
-            "context-used"
-            "session-cost"
-            "five-hour-limit"
-            "weekly-limit"
-            "task-progress"
-            "run-state"
-            "thread-title"
-          ];
-        };
-      };
     in
     lib.mkMerge [
       profiles.config
@@ -95,7 +68,33 @@ in
         # ------------------------------------------------------------------------------------------
         # Configuration files
         # ------------------------------------------------------------------------------------------
-        xdg.configFile."ox/config.toml".source = configToml;
+        programs.oxide-code = {
+          enable = true;
+          # Config checks cannot load the runtime auth profile. Keep its wrapper first in home.path.
+          package = lib.lowPrio pkgs.oxide-code;
+
+          settings = {
+            permission.mode = "yolo";
+
+            tui = {
+              show_thinking = true;
+              status_line = [
+                "current-dir"
+                "git-branch"
+                "pull-request"
+                "pull-request-checks"
+                "model-with-effort"
+                "context-used"
+                "session-cost"
+                "five-hour-limit"
+                "weekly-limit"
+                "task-progress"
+                "run-state"
+                "thread-title"
+              ];
+            };
+          };
+        };
       }
     ]
   );
