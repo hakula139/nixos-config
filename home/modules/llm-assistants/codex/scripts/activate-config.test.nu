@@ -13,6 +13,67 @@ def command [command: string, extra: record = {}]: nothing -> record {
   {type: command, command: $command} | merge $extra
 }
 
+def "test MCP activation changes only servers and preserves mutable state" [] {
+  for existing in [false true] {
+    let dir = (mktemp --directory | path expand --strict)
+    let canonical = ($dir | path join config)
+    mkdir $canonical
+    let alias = ($dir | path join alias)
+    ^ln -s $canonical $alias
+    let target = ($canonical | path join config.toml)
+    let profile = ($canonical | path join profile.toml)
+    let keybindings_target = ($canonical | path join keybindings.json)
+    let config_file = ($dir | path join activation.json)
+    let current = {
+      model: live-model
+      model_provider: live-provider
+      model_providers: {live-provider: {base_url: 'https://live.example.test'}}
+      profiles: {work: {model: profile-model}}
+      projects: {'/project': {trust_level: trusted}}
+      tools: {custom: {enabled: true}}
+      hooks: {state: {reviewed: {trusted_hash: 'sha256:live', enabled: false}}}
+      mcp_servers: {retired: {command: /bin/old}}
+      custom_setting: preserved
+    }
+    let profile_text = ({model: stale-profile, custom_setting: stale} | to toml)
+    let keybindings_text = '[{"command":"hotkeyWindow","key":"Ctrl+Space"}]'
+    let servers = {browser: {command: /bin/browser, startup_timeout_sec: 120}}
+
+    if $existing { $current | to toml | save $target }
+    $profile_text | save $profile
+    $keybindings_text | save $keybindings_target
+    {
+      configDir: $alias
+      activeProfile: $profile
+      settings: {
+        model: managed-model
+        tools: {}
+        hooks: {Stop: [{hooks: [(command /bin/new-hook)]}]}
+        mcp_servers: $servers
+      }
+      keybindings: [{command: hotkeyWindow, key: "Command+Shift+Space"}]
+    } | to json | save $config_file
+
+    let run = (^$nu.current-exe --no-config-file $SCRIPT $config_file --mcp-only | complete)
+    assert equal $run.exit_code 0 $run.stderr
+
+    let expected = if $existing { $current | upsert mcp_servers $servers } else {
+      {mcp_servers: $servers}
+    }
+    assert equal (open $target) $expected
+    assert equal (open --raw $profile) $profile_text
+    assert equal (open --raw $keybindings_target) $keybindings_text
+
+    {configDir: $alias, settings: {mcp_servers: $servers}}
+    | to json
+    | save --force $config_file
+
+    let repeat = (^$nu.current-exe --no-config-file $SCRIPT $config_file --mcp-only | complete)
+    assert equal $repeat.exit_code 0 $repeat.stderr
+    assert equal (open $target) $expected
+  }
+}
+
 def "test activation records golden hook hashes and keeps other state" [] {
   let dir = (mktemp --directory | path expand --strict)
   let target = ($dir | path join config.toml)

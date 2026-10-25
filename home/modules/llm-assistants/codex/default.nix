@@ -170,6 +170,25 @@ in
         ];
       } (builtins.readFile ./scripts/activate-config.nu);
 
+      mcpActivationConfig = json.generate "codex-mcp-activation.json" {
+        configDir = codexConfigDir;
+        settings = { inherit (codexSettings) mcp_servers; };
+      };
+
+      activateMcp = pkgs.writers.writeNuBin "activate-codex-mcp" {
+        makeWrapperArgs = [
+          "--prefix"
+          "PATH"
+          ":"
+          (lib.makeBinPath [ pkgs.coreutils ])
+
+          "--add-flag"
+          "${mcpActivationConfig}"
+          "--add-flag"
+          "--mcp-only"
+        ];
+      } (builtins.readFile ./scripts/activate-config.nu);
+
       stopStaleDaemon = pkgs.writers.writeNu "stop-stale-codex-daemon" {
         makeWrapperArgs = [
           "--prefix"
@@ -201,6 +220,8 @@ in
           package = codexBin;
           context = instructions.codex;
         };
+
+        home.packages = [ activateMcp ];
 
         # ------------------------------------------------------------------------------------------
         # Configuration files

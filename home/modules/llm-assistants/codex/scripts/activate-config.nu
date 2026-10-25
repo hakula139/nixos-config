@@ -71,7 +71,7 @@ def trust-hooks [hooks: record, state: record, source: string]: nothing -> recor
 }
 
 # Apply managed settings while preserving Codex's mutable user state.
-def main [config_file: string] {
+def main [config_file: string, --mcp-only] {
   let config = (open $config_file)
   ^install -d -m 0700 $config.configDir
   let config_dir = ($config.configDir | path expand --strict)
@@ -80,6 +80,11 @@ def main [config_file: string] {
   mut current = if ($target | path exists) {
     open --raw $target | from toml
   } else { {} }
+
+  if $mcp_only {
+    save-config ($current | upsert mcp_servers $config.settings.mcp_servers | to toml) $target
+    return
+  }
 
   # Native profile files may contain project trust and hook review state.
   if ($config.activeProfile | path exists) {
