@@ -34,6 +34,7 @@ in
     onActivation = {
       autoUpdate = true;
       cleanup = "uninstall";
+      extraEnv.XDG_CONFIG_HOME = config.home-manager.users.${config.homebrew.user}.xdg.configHome;
       extraFlags = [ "--force-cleanup" ];
       upgrade = true;
     };
