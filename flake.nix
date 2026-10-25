@@ -388,6 +388,10 @@
           inherit modelCatalog;
         };
 
+        mcp = import ./home/modules/llm-assistants/shared/mcp/tests.nix {
+          pkgs = pkgsFor system;
+        };
+
         scripts = import ./lib/script-tests.nix {
           pkgs = pkgsFor system;
           root = ./.;
