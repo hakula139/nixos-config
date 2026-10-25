@@ -423,8 +423,7 @@
             # git-hooks.nix stores a hooks path relative to the main checkout, which linked
             # worktrees can't resolve (cachix/git-hooks.nix#688), so unset it to fall back to the
             # shared hooks directory. The lock keeps a concurrent load from setting it mid-install,
-            # which would send prek's hooks to that path. The script tests' Codex goes last on PATH,
-            # behind the host's wrapped Codex, which carries the proxy and the corp CA.
+            # which would send prek's hooks to that path.
             shellHook = ''
               if common=$(${git} rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
                 (
@@ -433,7 +432,6 @@
                   ${git} config --local --unset-all core.hooksPath || true
                 ) 9>"$common/git-hooks.lock"
               fi
-              export PATH="$PATH:${nixpkgs.lib.makeBinPath [ pkgs.codex ]}"
             '';
           };
 
