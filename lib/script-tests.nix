@@ -23,6 +23,8 @@ let
 in
 pkgs.runCommand "script-tests"
   {
+    PROXY_TEST_FIXTURES = import ./proxy-test-fixtures.nix { inherit pkgs; };
+
     nativeBuildInputs = [
       pkgs.file-formatter
       pkgs.git
