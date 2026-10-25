@@ -19,10 +19,7 @@ let
   gatewayHost = corpHosts.llmGateway;
   localPort = 8443;
 
-  # Cleanup matches only the owner prefix, so entries an earlier generation wrote under a different
-  # module name are still removed.
-  hostsOwner = "# nixos-config:";
-  hostsEntry = "127.0.0.1 ${gatewayHost} ${hostsOwner} corp-tunnel";
+  hostsScript = pkgs.writeShellScript "corp-tunnel-hosts" (builtins.readFile ./hosts.sh);
 
   tunnelScript = pkgs.writeShellScript "corp-tunnel" ''
     set -euo pipefail
@@ -58,10 +55,8 @@ in
       # --------------------------------------------------------------------------------------------
       system.activationScripts.postActivation.text = lib.mkAfter ''
         hostsTmp=$(mktemp)
-        grep -vF ${lib.escapeShellArg "${gatewayHost} ${hostsOwner}"} /etc/hosts >"$hostsTmp" || true
-        ${lib.optionalString cfg.enable ''
-          printf '%s\n' ${lib.escapeShellArg hostsEntry} >>"$hostsTmp"
-        ''}
+        ${hostsScript} /etc/hosts \
+          ${lib.escapeShellArg (lib.optionalString cfg.enable gatewayHost)} >"$hostsTmp"
         install -m 0644 -o root -g wheel "$hostsTmp" /etc/hosts
         rm -f "$hostsTmp"
       '';
