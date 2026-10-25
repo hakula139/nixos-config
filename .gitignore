@@ -1,8 +1,11 @@
 # Nix
-/.direnv/
+.direnv/
 /.pre-commit-config.yaml
-/result
-/result-*
+# `nix build` creates output links wherever it runs. Keep real source directories visible.
+result
+result-*
+!result/
+!result-*/
 
 # Python caches
 __pycache__/
@@ -16,10 +19,10 @@ __pycache__/
 .env
 .env.local
 
-# Editor / assistant local settings
-**/.agents/plans
+# Assistant local state
+**/.agents/plans/
 **/.agents/skills/*.local
 **/.claude/agent-memory-local
 **/.claude/plans
 **/.claude/settings.local.json
-.claude/worktrees
+.claude/worktrees/
