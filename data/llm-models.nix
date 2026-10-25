@@ -82,7 +82,10 @@ let
 
   geminiCommon = {
     vendor = "google";
-    apis = [ "openai-chat-completions" ];
+    apis = [
+      "openai-chat-completions"
+      "openai-responses"
+    ];
     contextWindow = 1048576;
     maxTokens = 65536;
     autoCompactTokens = 400000;
@@ -108,11 +111,20 @@ let
         "medium"
         "high"
       ];
+
+      apiEfforts.openai-responses = [
+        "low"
+        "medium"
+        "high"
+      ];
     };
   };
 
   localCommon = {
-    apis = [ "openai-chat-completions" ];
+    apis = [
+      "openai-chat-completions"
+      "openai-responses"
+    ];
     input = [
       "text"
       "image"
@@ -131,6 +143,12 @@ let
       requiresEffort = false;
       supportsDisplay = false;
       apiEfforts.openai-chat-completions = [
+        "low"
+        "high"
+        "max"
+      ];
+
+      apiEfforts.openai-responses = [
         "low"
         "high"
         "max"
