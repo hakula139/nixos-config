@@ -8,10 +8,10 @@ use std/assert
 use std-rfc/str
 
 const SCRIPT_DIR = path self .
-const SCRIPT = ($SCRIPT_DIR | path join hosts.sh)
+const SCRIPT = ($SCRIPT_DIR | path join hosts.nu)
 
 def rewrite [hosts_file: path, hostname: string]: nothing -> string {
-  let run = (^bash $SCRIPT $hosts_file $hostname | complete)
+  let run = (^$nu.current-exe --no-config-file $SCRIPT $hosts_file $hostname | complete)
   assert equal $run.exit_code 0 $run.stderr
 
   $run.stdout
@@ -33,10 +33,13 @@ def "test hostname transitions preserve unrelated entries and are idempotent" []
     "
     127.0.0.1 old-gateway.example.test # nixos-config: corp-tunnel
     127.0.0.1 legacy-gateway.example.test # nixos-config: earlier-tunnel
+
     "
     | str dedent
   )
   let new_entry = "127.0.0.1 new-gateway.example.test # nixos-config: corp-tunnel\n"
+  let mixed_lines = "192.0.2.1 unrelated.example.test\r\n"
+  let unterminated = "192.0.2.2 final.example.test"
   let cases = [
     {
       name: rename
@@ -56,8 +59,25 @@ def "test hostname transitions preserve unrelated entries and are idempotent" []
       hostname: new-gateway.example.test
       expected: ($unrelated + $new_entry)
     }
-    {name: remove_all, initial: $old_entries, hostname: "", expected: ""}
+    {
+      name: remove_all
+      initial: ($old_entries | str trim --right)
+      hostname: ""
+      expected: ""
+    }
     {name: empty, initial: "", hostname: new-gateway.example.test, expected: $new_entry}
+    {
+      name: line_endings
+      initial: ($mixed_lines + $old_entries + $unterminated)
+      hostname: new-gateway.example.test
+      expected: ($mixed_lines + $unterminated + (char nl) + $new_entry)
+    }
+    {
+      name: disabled_line_endings
+      initial: ($mixed_lines + $old_entries + $unterminated)
+      hostname: ""
+      expected: ($mixed_lines + $unterminated)
+    }
   ]
 
   for case in $cases {
@@ -78,7 +98,10 @@ def "test hostname transitions preserve unrelated entries and are idempotent" []
 def "test an unreadable hosts file does not produce a replacement entry" [] {
   let hosts_file = ((mktemp --directory) | path join missing)
 
-  let run = (^bash $SCRIPT $hosts_file new-gateway.example.test | complete)
+  let run = (
+    ^$nu.current-exe --no-config-file $SCRIPT $hosts_file new-gateway.example.test
+    | complete
+  )
 
   assert not equal $run.exit_code 0
   assert equal $run.stdout ""

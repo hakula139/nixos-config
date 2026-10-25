@@ -19,7 +19,7 @@ let
   gatewayHost = corpHosts.llmGateway;
   localPort = 8443;
 
-  hostsScript = pkgs.writeShellScript "corp-tunnel-hosts" (builtins.readFile ./hosts.sh);
+  hostsScript = pkgs.writers.writeNu "corp-tunnel-hosts" (builtins.readFile ./hosts.nu);
 
   tunnelScript = pkgs.writeShellScript "corp-tunnel" ''
     set -euo pipefail

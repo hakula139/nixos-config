@@ -27,7 +27,6 @@ pkgs.runCommand "script-tests"
       pkgs.codex
       pkgs.file-formatter
       pkgs.git
-      pkgs.gnugrep
       pkgs.nu-test
       tooling.scriptPython
     ];
