@@ -22,7 +22,7 @@ Samples were generated for a fixed set of Chinese writing tasks, shuffled, strip
 
 Six review rounds were run. Round 1 established a candidate pool across twelve models. Round 2 tested two-stage rewriting. Round 3 crossed five context frames against two models. Round 4 crossed six models against three tasks. Round 5 repeat-sampled the two frames whose difference the design depended on, five draws per arm. Round 6 compared seven rewriters on one shared draft.
 
-Rounds 4 and 5 replicated or crossed their conditions because round 3 showed that a single draw is unreliable: one condition re-sampled at 4.0 having scored 10.0 in round 1. Round 5 also carried a falsification threshold fixed in writing before the samples were read, so the result could not be rationalised after the fact.
+Rounds 4 and 5 replicated or crossed their conditions because round 3 showed that a single draw is unreliable: one condition re-sampled at 4.0 having scored 10.0 in round 1. Round 5 also carried a falsification threshold fixed in writing before the samples were read, so the result could not be rationalized after the fact.
 
 Absolute scores are comparable across rounds. The owner confirmed that a uniformly low-scoring round reflects uniformly worse text, since the reading does not tighten between rounds, and that is what makes the cross-round comparison in section 3.3 admissible.
 
@@ -47,7 +47,7 @@ Agreement of 10% to 22% is far below the 50% a coin would give, and the sign did
 
 One mechanism explains both halves. The judges reward dense metaphor and ornamented diction, which is exactly what the owner's annotations deduct for. Best-of-N against any of these judges would select reliably worse output, so that route is closed.
 
-### 3.2 Mechanical signals do not generalise
+### 3.2 Mechanical signals do not generalize
 
 A seven-feature composite correlated at $\rho = -0.459$ with human scores in round 1, and $\rho = -0.450$ after controlling for length. Only one feature, particle density, carried the composite, while two others pointed the wrong way.
 
