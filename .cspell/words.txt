@@ -71,6 +71,7 @@ duckdbrc
 dups
 e2fsprogs
 eamodio
+earlyoom
 ebusy
 elif
 env
