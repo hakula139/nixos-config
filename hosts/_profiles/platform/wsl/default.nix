@@ -44,6 +44,13 @@ in
   };
 
   # ------------------------------------------------------------------------------------------------
+  # Memory pressure
+  # ------------------------------------------------------------------------------------------------
+  # Once RAM fills, the WSL VM thrashes on its swap VHDX and stops answering wsl.exe long before the
+  # kernel OOM killer fires, so kill the largest process while the VM is still responsive.
+  services.earlyoom.enable = true;
+
+  # ------------------------------------------------------------------------------------------------
   # Networking
   # ------------------------------------------------------------------------------------------------
   networking = {
