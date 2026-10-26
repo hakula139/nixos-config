@@ -7,10 +7,12 @@ alsa
 anthropics
 aone
 apfs
+archiver
 ariang
 attrsets
 autocd
 autocmd
+awscli
 backblazeb2
 bdelete
 bframes
@@ -36,6 +38,7 @@ clippy
 cloudreve
 cncidr
 colmena
+commentish
 condarc
 coreutils
 cpp
@@ -84,6 +87,7 @@ fchownat
 feishu
 ffprobe
 findutils
+flushdns
 fmp4
 foldl
 forgejo
@@ -110,6 +114,7 @@ hookify
 horiz
 iface
 ikuncode
+imap
 indoc
 inetutils
 inodes
@@ -161,6 +166,7 @@ lowprio
 lualine
 malva
 marp
+martijn
 mcp
 mcpjson
 mdformat
@@ -190,6 +196,7 @@ nixsw
 nixup
 nlsv
 nofile
+nohlsearch
 npmjs
 nslookup
 nspr
@@ -199,6 +206,7 @@ numtide
 nuon
 nvcr
 nvim
+optimise
 osascript
 osc
 oxalica
@@ -212,6 +220,7 @@ pcup
 pcupb
 pcupd
 pcupdb
+pdfs
 pdftoppm
 peertube
 pgrep
@@ -242,16 +251,21 @@ pyright
 pytest
 qdisc
 qwen
+raine
 raku
 rclone
 recents
+recommendedoptimisation
 regen
 regenerable
 remux
+repoints
 rerere
 resolv
 resolvectl
+résumés
 retag
+retarget
 reuseaddr
 revealjs
 rlimit
@@ -299,9 +313,11 @@ toolsai
 tsdown
 tulanp
 ulimits
+umami
 unapprove
 undici
 unhinted
+unreviewed
 usernamehw
 utun
 vadimcn
@@ -318,6 +334,7 @@ waka
 wakatime
 whatpulse
 whereis
+whois
 wimpysworld
 wslpath
 wvous
