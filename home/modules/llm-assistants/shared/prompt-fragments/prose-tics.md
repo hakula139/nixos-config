@@ -11,7 +11,7 @@ Each ban states its reason because a bare rule gets satisfied on the surface whi
    - **A single Chinese semicolon `；`.**
    - **A separator between list items that themselves contain commas.**
 
-3. **Chinese punctuation overuse**: dashes and semicolons stacked across neighbouring clauses, as in `X——是 Y；Z——也只有 W`, or a colon or semicolon in most clauses.
+3. **Chinese punctuation overuse**: dashes and semicolons stacked across neighboring clauses, as in `X——是 Y；Z——也只有 W`, or a colon or semicolon in most clauses.
 
 4. **Antithesis by negated alternative**: defining something by what it is not. This includes the two-clause form ("This isn't about speed. It's about correctness."), the compact `, not`, the paraphrases `rather than`, `instead of`, `as opposed to`, and `X over Y`, as well as the Chinese "不是……而是……". The rejected position is one nobody held, so removing it loses nothing.
 
