@@ -34,7 +34,7 @@ Read the repository's contribution instructions before starting, and use its own
 
 ## Commits
 
-- Commit each logical chunk after its checks pass and before moving on.
+- Commit each logical chunk before moving on, once its fast checks such as pre-commit hooks pass. Push it to the task's PR / MR right away so the user can review and steer early, and run slow checks such as Nix host builds in parallel, fixing any failure in a follow-up commit before asking for merge approval.
 - Verify the current branch and inspect the diff, then stage only the intended files or hunks.
 - Before discarding a lockfile that a tool regenerated, check whether it corrects a stale lock, as `uv lock --check` reports. Keep a correction, publishing it separately when it falls outside the task.
 - Use `type(scope): description` in the imperative mood, with one logical change per commit. Types are `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, and `perf`. Infer the scope and granularity from comparable commits.
