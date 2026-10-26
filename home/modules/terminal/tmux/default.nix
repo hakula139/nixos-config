@@ -53,6 +53,9 @@ let
     set -g @catppuccin_date_time_text " %H:%M"
     source-file ${catppuccinPluginDir}/catppuccin_options_tmux.conf
     source-file ${catppuccinPluginDir}/catppuccin_tmux.conf
+
+    set -gF message-style "fg=#{@thm_teal},bg=terminal,fill=terminal"
+    set -gF message-command-style "fg=#{@thm_teal},bg=terminal,fill=terminal"
   '';
 
   # Continuum must inject its save command after the final status-right assignment.
