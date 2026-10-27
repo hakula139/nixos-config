@@ -25,6 +25,7 @@ A caller's set lifts its `inherit` entries into a leading block, then follows th
 - **Linting**: `statix`, `deadnix` (CI). `statix.toml` suppresses W20 `repeated_keys` because the flat-key style is intentional.
 - **Line width**: 100 columns for code and comments alike, counting the indent, in every language except Python, which follows ruff's 88. nixfmt does not reflow comments, so wrap them by hand.
 - **Multiline text**: use Nix indented strings for inline text, with literal line breaks and contents aligned with the surrounding code. Nix strips the common leading indentation while preserving relative indentation within the text. Keep longer prompts and prose in adjacent text files.
+- **Attribute names**: quote one only when Nix requires it, which is when it is a reserved word or does not match `[A-Za-z_][A-Za-z0-9_'-]*`. In a set where some names need quotes, quote them all so they read alike. Access paths follow the first rule regardless of how the set defines the name.
 - **`with pkgs;`**: use in package lists for brevity.
 - **`inherit` placement**: top of `let` blocks, like imports. Combine bindings from the same source: `inherit (pkgs.stdenv) isDarwin isLinux;`. Inside a set that supplies declared options or returns data, keep `inherit` in its logical position (e.g., `group` between `owner` and `path`).
 - **Format generators**: bind `json = pkgs.formats.json { };` (likewise `yaml` and `toml`) once in the `let` block that uses it, after the `inherit` bindings and `cfg`, then call `json.generate`. Avoid inline `(pkgs.formats.json { }).generate`.
