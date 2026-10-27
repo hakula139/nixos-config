@@ -19,6 +19,8 @@ Read this before adding a module, a package, or a host.
 
 A caller's set lifts its `inherit` entries into a leading block, then follows the order the callee declares. An `inherit` passes through a name the scope already has, so that block reads as context handed down, and lifting it stops an `inherit` from landing between two arguments that belong together. `specialArgs` and `extraSpecialArgs` order the same way. A set that assigns declared options keeps the declaration's order throughout, which is why `enable` stays first.
 
+Save `nix-instantiate --parse <file>` before the edit and diff it afterwards. The parser prints attributes, formals, and the names within an `inherit` in sorted order, so an empty diff proves a pure reordering of formals or an attribute set, which no build can show here. Grep the callee's name to find every call site that must follow a reordered declaration.
+
 ## Style
 
 - **Formatter**: `nixfmt` (enforced by pre-commit).

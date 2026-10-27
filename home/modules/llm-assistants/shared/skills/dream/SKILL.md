@@ -59,7 +59,7 @@ For each candidate, decide whether it adds, updates, or deletes a memory, or lea
 
 - Merge new signal into the existing file for its topic.
 - Resolve relative dates such as "yesterday" or "next Thursday" based on when the memory was written, using its text or, if that is unavailable, the file's modification time. Once the date has passed, check whether the expected event occurred. Delete the memory if it is done or no longer applies. Otherwise, rewrite it with the absolute date.
-- Delete or correct memories contradicted by the current repository or a later session.
+- Delete or correct memories contradicted by the current repository or a later session. Delete one whose triggering situation can no longer recur, such as a finished migration, a removed file, a one-off incident, or a measurement tied to a version that has since changed, even when its facts remain accurate. Keep a memory that still describes live behavior or a constraint, even when it began with an incident.
 - Save only information allowed by the host's memory rules, omitting facts already recorded in instruction files, code, or git history.
 - When a merge or rename retires a memory name, update every `[[name]]` link to it.
 - Re-read each file immediately before rewriting it, since concurrent sessions may write to the store.
