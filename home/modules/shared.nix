@@ -41,6 +41,13 @@ in
   # ------------------------------------------------------------------------------------------------
   services.ssh-agent.enable = lib.mkIf isLinux true;
 
+  systemd.user.services = lib.mkIf config.services.ssh-agent.enable {
+    ssh-agent.Service = repoLib.systemd.restart // {
+      # ssh-agent will not bind over a socket a killed agent leaves behind.
+      ExecStartPre = "${lib.getExe' pkgs.coreutils "rm"} -f %t/${config.services.ssh-agent.socket}";
+    };
+  };
+
   # ------------------------------------------------------------------------------------------------
   # Files (shared)
   # ------------------------------------------------------------------------------------------------

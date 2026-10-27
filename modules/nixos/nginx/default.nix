@@ -126,6 +126,7 @@ in
     # ----------------------------------------------------------------------------------------------
     security.acme = {
       acceptTerms = true;
+
       defaults = {
         email = "i@hakula.xyz";
         dnsProvider = "cloudflare";
@@ -142,6 +143,8 @@ in
     # ----------------------------------------------------------------------------------------------
     # Nginx service
     # ----------------------------------------------------------------------------------------------
+    systemd.services.nginx = repoLib.systemd.restartUnit;
+
     services.nginx = {
       enable = true;
       enableReload = true;
@@ -194,6 +197,7 @@ in
       # Default: Proxy to REALITY host (anti-fingerprint)
       virtualHosts."_" = baseVhostConfig // {
         default = true;
+
         locations."/" = {
           proxyPass = "https://$reality_upstream";
           extraConfig = ''
@@ -234,6 +238,7 @@ in
         cloudflareVhostConfig
         // {
           extraConfig = cloudflareVhostConfig.extraConfig + longTimeoutExtraConfig;
+
           locations."= /index.html" = {
             proxyPass = cloudreveUpstream;
             extraConfig = noCacheExtraConfig;
@@ -369,6 +374,7 @@ in
             cloudflareVhostConfig
             // {
               http2 = false;
+
               locations."/ws" = {
                 proxyPass = xrayWsUpstream;
                 proxyWebsockets = true;

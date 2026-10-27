@@ -44,13 +44,6 @@ in
   };
 
   # ------------------------------------------------------------------------------------------------
-  # Memory pressure
-  # ------------------------------------------------------------------------------------------------
-  # Once RAM fills, the WSL VM thrashes on its swap VHDX and stops answering wsl.exe long before the
-  # kernel OOM killer fires, so kill the largest process while the VM is still responsive.
-  services.earlyoom.enable = true;
-
-  # ------------------------------------------------------------------------------------------------
   # Networking
   # ------------------------------------------------------------------------------------------------
   networking = {
@@ -63,6 +56,11 @@ in
   # Home Manager installs rootless podman as a plain package, which reads its signature policy from
   # /etc/containers/policy.json and refuses to pull or build without one.
   virtualisation.containers.enable = true;
+
+  # ------------------------------------------------------------------------------------------------
+  # Services
+  # ------------------------------------------------------------------------------------------------
+  hakula.services.earlyoom.enable = true;
 
   # ------------------------------------------------------------------------------------------------
   # User session
@@ -79,6 +77,7 @@ in
     description = "Clear false-failed state on user@1000.service";
     wantedBy = [ "multi-user.target" ];
     after = [ "multi-user.target" ];
+
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${lib.getExe' pkgs.systemd "systemctl"} reset-failed user@1000.service";

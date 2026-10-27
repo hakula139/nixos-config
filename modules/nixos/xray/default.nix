@@ -61,9 +61,11 @@ in
               protocol = "vless";
 
               settings.decryption = "none";
+
               streamSettings = {
                 network = "tcp";
                 security = "reality";
+
                 realitySettings = {
                   dest = "127.0.0.1:8443";
                   serverNames = [ config.hakula.network.realitySniHost ];
@@ -78,6 +80,7 @@ in
             protocol = "vless";
 
             settings.decryption = "none";
+
             streamSettings = {
               network = "ws";
               wsSettings.path = "/ws";
@@ -122,9 +125,14 @@ in
         settingsFile = configFile;
       };
 
+      # The nixpkgs wrapper keeps `.xray-wrapped` as its comm.
+      hakula.services.earlyoom.ignoreComms = [ "[.]xray-wrapped" ];
+
       # --------------------------------------------------------------------------------------------
       # Systemd service
       # --------------------------------------------------------------------------------------------
+      systemd.services.xray = repoLib.systemd.restartUnit;
+
       # `requiredBy` also propagates restarts, so Xray reloads whenever the config is re-rendered.
       systemd.services.xray-config = {
         description = "Render Xray config from proxy users";
