@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "检查项", replace: "检查条目"}
+  ]
+  problem: 'the rewrite dropped the ATX heading "# 检查项" and added "# 检查条目"'
+}

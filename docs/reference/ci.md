@@ -1,11 +1,9 @@
 # CI
 
-[The GitHub Actions workflow](../../.github/workflows/ci.yml) runs on pushes to `main`, pull requests targeting `main`, a daily schedule and manual dispatch. A branch or MR that exists only on GitLab does not trigger it.
+[The GitHub Actions workflow](../../.github/workflows/ci.yml) runs only on GitHub, so a branch or MR that exists only on GitLab never triggers it.
 
-`Nix Flake Check` runs `nix flake check --all-systems` to validate the flake and run both its configured pre-commit hooks and the [script tests](../conventions/nushell.md#testing). Once that job passes, `Build` runs a separate job for each host target in its matrix. Verify the relevant host builds as well as the flake check.
-
-Server builds use `colmenaHive.nodes` through `nixosConfigurations`. Each server job compares its derivation with the Colmena deployment derivation and fails if they differ. Deployments can reuse the CI cache when their locked inputs and configuration sources match. Cache uploads to `hakula` are enabled on `main` or when the actor is `hakula139`.
-
-Build `macbook` on macOS, locally or through CI's macOS runner. The `devvm` job builds a complete Docker image and can take longer than the other targets, so check its result before treating CI as complete.
+- **Coverage**: the flake check also runs the pre-commit hooks and the [script tests](../conventions/nushell.md#testing), but it does not build hosts, so check the `Build` job for each affected target. `devvm` builds a full Docker image and finishes last.
+- **macOS**: build `macbook` on a Mac, either locally or through CI's macOS runner.
+- **Fixtures**: a path with a `fixtures` component is exempt from the pre-commit hooks, cspell, and git's line-ending conversion, so script-test fixtures keep exact bytes.
 
 See [verification](../../AGENTS.md#verification) for local checks before pushing.

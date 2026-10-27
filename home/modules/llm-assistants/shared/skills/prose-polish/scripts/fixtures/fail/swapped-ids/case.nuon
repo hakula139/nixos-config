@@ -1,0 +1,13 @@
+{
+  rules: [
+    {
+      reply: {
+        passages: [
+          {id: 1, text: "Run the flake check before you push, since it uses the same hooks as CI."}
+          {id: 0, text: "提交之前，需要检查配置。"}
+        ]
+      }
+    }
+  ]
+  stderr: "the model call failed"
+}

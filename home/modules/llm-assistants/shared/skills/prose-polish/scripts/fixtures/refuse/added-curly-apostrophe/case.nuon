@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "Don't", replace: "Don’t"}
+  ]
+  problem: 'the rewrite added the banned mark "’"'
+}

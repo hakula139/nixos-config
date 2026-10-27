@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "docs/notes.md", replace: "docs/other.md"}
+  ]
+  problem: 'the rewrite dropped the reference destination "docs/notes.md" and added "docs/other.md"'
+}

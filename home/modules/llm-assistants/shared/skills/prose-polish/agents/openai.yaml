@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Prose Polish'
+  short_description: 'Polish prose in any language with a chosen model'
+  default_prompt: 'Use $prose-polish to polish the prose in this document with the model I name.'

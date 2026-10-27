@@ -84,6 +84,7 @@ esac
 esbenp
 esbuild
 fchownat
+feff
 feishu
 ffprobe
 findutils
