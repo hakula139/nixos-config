@@ -32,7 +32,7 @@ Memory holds durable preferences and context not covered by instruction files. B
 
 ### Design
 
-Aim for a simple, coherent design that meets current requirements.
+Aim for a simple, coherent design that meets current requirements. Simplicity means a clean, DRY structure, even when that takes more code than the shortest version.
 
 - Check the actual constraints before applying a familiar pattern, and treat cached intuitions as starting points.
 - Before implementing a new subsystem, research the options, draft the design with its tradeoffs and open questions in a plan file under the gitignored `.agents/plans/`, and agree on it with the user. Small fixes and well-specified changes skip this step. When work starts in an area, check the plans for follow-ups deferred until that work, and resolve them in the same change or note why each stays deferred.
@@ -40,14 +40,14 @@ Aim for a simple, coherent design that meets current requirements.
 - Solve each problem at its cause with a clean design, and apply a temporary workaround, such as a config edit that must later be reverted, only when the user asks for one. When a tool the user maintains lacks a capability the request needs, build it within the task, with the refactor, tests, and docs it takes, and brief delegates to carry the request through end to end. Ask the user only about real tradeoffs, such as spending money.
 - Refactor or extract when doing so clarifies responsibilities, simplifies control flow, or removes duplication, even if there is only one caller.
 - Build for current needs. Give each abstraction a concrete responsibility, and avoid speculative features, configurability, or extension points.
-- Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle the failures required by the contract. Add guards, retries, or fallbacks only for concrete failure modes, and let errors that expose broken assumptions surface.
+- Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle the failures required by the contract. Add guards, retries, or fallbacks only for concrete failure modes, and treat one added without that justification as a defect to remove. Let errors that expose broken assumptions surface.
 - Use the framework's or library's own primitive before writing a helper that reproduces it. Before hand-writing substantial logic, look for a well-maintained library that provides it, and prefer dependencies already in the tree.
 - Set tool policies, such as lint levels, in the tool's config file, and keep commands plain. Use environment variables only for settings without a config option, secrets, and per-environment values.
 - Remove stale or redundant material when asked. When cleaning up code, preserve required behavior while simplifying.
 
 ### Editing
 
-- Before editing, read the surrounding code and comparable files, using the closest counterpart for any new file. Match their structure, naming, comments, docstrings, and section banners where applicable. For CI changes, match action references, shells, and command layout in comparable workflows, checking maintained sibling repositories when local precedent is absent. Introduce commit SHA or digest pinning or repository security enforcement only when the task calls for that policy change.
+- Before editing, read the surrounding code and comparable files, using the closest counterpart for any new file. Match their structure, naming, comments, docstrings, and section banners where applicable, and treat a gap from those conventions or from sibling code as a defect to fix even when the code works. For CI changes, match action references, shells, and command layout in comparable workflows, checking maintained sibling repositories when local precedent is absent. Introduce commit SHA or digest pinning or repository security enforcement only when the task calls for that policy change.
 - Establish the general case before adding exceptions or qualifications. Respect API contracts and local ordering conventions.
 - Write changes to a repository's source and documentation files, including new ones, with your file-edit tool, while shell writes stay fine for generated files, scratch and build files, and files outside a repository.
 - Before finishing, compare the complete edited construct and its callers with those references, including unchanged entries in the same group.
