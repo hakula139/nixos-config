@@ -121,7 +121,7 @@ def unchecked [problem: string]: nothing -> string {
   ))
 }
 
-# The verdict sits at the end of the reply, after findings that quote the text under judgement.
+# The verdict sits at the end of the reply, after findings that quote the text under judgment.
 # Reading from the last line backwards is what keeps a brace or an `ok:` inside a quoted span from
 # being mistaken for the verdict.
 def verdict [raw: string]: nothing -> record {

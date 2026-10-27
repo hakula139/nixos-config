@@ -20,7 +20,7 @@ Read this before writing or editing a `.nu` file. Nushell is the default for new
 
 ### Strings and arguments
 
-- **Bare words depend on context.** `if $x { green }` calls a command named `green`, so quote literal colour names in blocks. An untyped argument such as `1min` arrives as a duration, while a `: string` parameter coerces it to a string.
+- **Bare words depend on context.** `if $x { green }` calls a command named `green`, so quote literal color names in blocks. An untyped argument such as `1min` arrives as a duration, while a `: string` parameter coerces it to a string.
 - **Build dynamic regexes by concatenation.** Parentheses start interpolation in both `$"..."` and `$'...'`, and double-quoted strings interpret backslashes before the regex engine sees them. Keep the pattern in a single-quoted literal: `($label + ' (?<n>\d+)')`.
 - **Quote list elements containing commas.** `[--sort=-pcpu,-pmem]` passes two arguments, so `ps` receives a separate `-pmem` and selects different rows.
 - **String literals preserve source newlines and indentation.** Nushell has no backslash line continuation inside strings. Put prose in an adjacent Markdown file. For a multiline literal, indent it with the code and pipe it through `str dedent` from `std-rfc/str`, which strips the closing quote's indentation from every line. Lay it out as a multiline pipeline, with the opening quote, the content, and the closing quote at one column, `| str dedent` on the next line, and any enclosing parenthesis closing on its own line. For generated text, join explicit lines or fragments with the intended separator.
