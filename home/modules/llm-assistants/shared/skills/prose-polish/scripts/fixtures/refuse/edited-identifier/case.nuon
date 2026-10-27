@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "utf", replace: "utfx"}
+  ]
+  problem: 'the rewrite dropped the identifier "utf8" and added "utfx8"'
+}

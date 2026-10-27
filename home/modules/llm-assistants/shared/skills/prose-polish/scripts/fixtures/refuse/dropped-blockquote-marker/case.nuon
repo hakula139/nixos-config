@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "> ", replace: ""}
+  ]
+  problem: 'the rewrite dropped the blockquote marker "> "'
+}

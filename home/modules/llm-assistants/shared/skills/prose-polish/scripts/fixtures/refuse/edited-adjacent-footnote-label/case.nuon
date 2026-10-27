@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "[^note][^ref]", replace: "[^nota][^ref]"}
+  ]
+  problem: 'the rewrite dropped the bracketed span "[^note]" and added "[^nota]"'
+}

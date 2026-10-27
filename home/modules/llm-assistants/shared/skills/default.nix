@@ -4,12 +4,19 @@
 
 {
   config,
+  pkgs,
   lib,
   inputs,
+  modelCatalog,
   ...
 }:
 
 let
+  cfg = config.hakula.llm-assistants;
+
+  corpGateway = config.lib.llmAssistants.profileDefinitions.providers.corp-gateway;
+  corpGatewayEnabled = cfg.enable && cfg.auth.enableCorpGateway;
+
   anthropic = inputs.anthropics-skills + "/skills";
   openai = inputs.openai-skills + "/skills/.curated";
 
@@ -39,6 +46,14 @@ let
   }
   // lib.optionalAttrs config.hakula.ctx7.enable {
     find-docs = ./find-docs;
+  }
+  // lib.optionalAttrs corpGatewayEnabled {
+    prose-polish = import ./prose-polish {
+      inherit pkgs lib modelCatalog;
+      inherit (import ../prompt-fragments) phrasing;
+      mkNuCommand = import ../nu-command { inherit pkgs lib; };
+      modelCall = config.lib.llmAssistants.mkModelCall "prose-polish";
+    };
   };
 
   mkSkillFiles =
@@ -54,9 +69,14 @@ in
 {
   lib.llmAssistants.skills = sources;
 
+  # Cursor and OpenCode discover Claude's directory, so install shared skills once.
   home.file = lib.mkMerge [
-    # Cursor and OpenCode discover Claude's directory, so install shared skills once.
-    (lib.mkIf config.hakula.llm-assistants.enable (mkSkillFiles ".claude/skills"))
+    (lib.mkIf cfg.enable (mkSkillFiles ".claude/skills"))
     (lib.mkIf config.hakula.omp.enable (mkSkillFiles ".omp/agent/skills"))
   ];
+
+  hakula.secrets.required = lib.mkIf corpGatewayEnabled {
+    ${corpGateway.tokenSecretFor "prose-polish"} = { };
+    ${corpGateway.caSecret} = { };
+  };
 }

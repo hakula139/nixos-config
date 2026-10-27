@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: 'class="check"', replace: 'class="other"'}
+  ]
+  problem: 'the rewrite dropped the HTML tag "<span class=\"check\">" and added "<span class=\"other\">"; the rewrite dropped the quotation "\"check\"" and added "\"other\""'
+}

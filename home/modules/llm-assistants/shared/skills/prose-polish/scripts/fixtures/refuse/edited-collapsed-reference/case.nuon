@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "[笔记][]", replace: "[笔记页][]"}
+  ]
+  problem: 'the rewrite dropped the bracketed span "[笔记]" and added "[笔记页]"'
+}

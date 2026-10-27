@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "kbd", replace: "kdb"}
+  ]
+  problem: 'the rewrite dropped the HTML tag "<kbd>", "</kbd>" and added "<kdb>", "</kdb>"'
+}

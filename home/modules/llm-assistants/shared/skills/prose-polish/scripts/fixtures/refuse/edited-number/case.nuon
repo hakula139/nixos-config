@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "42", replace: "43"}
+  ]
+  problem: 'the rewrite dropped the number "42" and added "43"'
+}

@@ -1,0 +1,12 @@
+{
+  rules: [
+    {find: "对配置进行检查", replace: "检查配置"}
+  ]
+  sent: [
+    "提交之前，需要对配置进行检查。"
+    "Run the flake check before you push, since it utilizes the same hooks as CI."
+    "提交之前，需要对配置进行检查。\n合并之前，也需要对配置进行检查。"
+    "- 运行检查的步骤："
+    "- 合并之前也需要对配置进行检查。"
+  ]
+}

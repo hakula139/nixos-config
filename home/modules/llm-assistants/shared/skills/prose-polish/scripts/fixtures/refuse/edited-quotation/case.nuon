@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "原文", replace: "改文"}
+  ]
+  problem: 'the rewrite dropped the quotation "「原文」" and added "「改文」"'
+}

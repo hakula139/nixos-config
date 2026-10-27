@@ -24,6 +24,39 @@ let
   profileDefinitions = repoLib.llmAssistants.mkProfileDefinitions {
     inherit lib modelCatalog corpHosts;
   };
+
+  corpGateway = profileDefinitions.providers.corp-gateway;
+
+  gatewayFor = client: {
+    inherit (corpGateway) baseUrl;
+    tokenFile = secretPath (corpGateway.tokenSecretFor client);
+    caFile = secretPath corpGateway.caSecret;
+  };
+
+  timeouts = {
+    modelConnect = 5;
+    modelCall = 90;
+    # A hook outlives its model calls by this much, so it can still report one that timed out.
+    modelHookMargin = 10;
+    tool = 10;
+    # Auto-format runs `cargo clippy`, which may rebuild the crate after an edit.
+    postEdit = 120;
+  };
+
+  mkNuCommand = import ./nu-command { inherit pkgs lib; };
+
+  mkModelCall =
+    assistant:
+    import ./model-call {
+      inherit
+        pkgs
+        lib
+        assistant
+        mkNuCommand
+        timeouts
+        ;
+      gateway = gatewayFor assistant;
+    };
 in
 {
   imports = [
@@ -54,8 +87,8 @@ in
         lib
         corpHosts
         secretPath
+        corpGateway
         ;
-      corpGateway = profileDefinitions.providers.corp-gateway;
     };
 
     mcpSecrets = import ./mcp/secrets.nix;
@@ -67,14 +100,17 @@ in
       inherit
         pkgs
         lib
-        secretPath
         modelCatalog
         fileFormatter
+        timeouts
+        mkNuCommand
+        mkModelCall
         ;
       inherit (config.xdg) dataHome;
-      inherit (promptFragments) readPrompt phrasing;
-      corpGateway = profileDefinitions.providers.corp-gateway;
+      inherit (promptFragments) readPrompt;
     };
+
+    inherit mkModelCall;
 
     notify = import ./notify { inherit pkgs lib; };
 

@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "<!-- prettier-ignore -->", replace: ""}
+  ]
+  problem: 'the rewrite dropped the HTML comment "<!-- prettier-ignore -->"'
+}

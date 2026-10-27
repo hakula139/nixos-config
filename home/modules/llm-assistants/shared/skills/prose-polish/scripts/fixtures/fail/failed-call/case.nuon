@@ -1,0 +1,7 @@
+{
+  rules: [
+    {fail: "upstream refused"}
+  ]
+  stderr: "the model call failed"
+  forwarded: "upstream refused\n"
+}

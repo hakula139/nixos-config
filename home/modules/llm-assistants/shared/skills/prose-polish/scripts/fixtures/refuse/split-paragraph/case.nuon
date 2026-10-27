@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "，", replace: "，\n"}
+  ]
+  problem: "the rewrite holds 2 lines where the input holds 1, so a paragraph was split"
+}

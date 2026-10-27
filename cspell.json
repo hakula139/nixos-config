@@ -12,5 +12,11 @@
     }
   ],
   "dictionaries": ["project-words"],
-  "ignorePaths": ["**/*.patch", "data/corp-domain.nix", "flake.lock", "secrets/**/*.age"]
+  "ignorePaths": [
+    "**/*.patch",
+    "**/fixtures/**",
+    "data/corp-domain.nix",
+    "flake.lock",
+    "secrets/**/*.age"
+  ]
 }

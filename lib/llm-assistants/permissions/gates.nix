@@ -182,10 +182,10 @@
         Shell commands that create, overwrite, or modify a repository's source or documentation
         files, such as heredoc, `echo`, or `printf` redirects, `tee`, `sed -i`, `perl -i`, and
         Python or other scripts that write files. These changes go through the assistant's
-        file-edit tools, which run the edit hooks for prose polish, formatting, and comment
-        checks. This rule does not cover generated files, scratch files, files under /tmp,
-        gitignored build output, files outside a repository, Git operations, formatters and code
-        generators that rewrite files by their own rules, or restoring text an edit hook dropped.
+        file-edit tools, which run the formatting and comment-check hooks. This rule does not
+        cover generated files, scratch files, files under /tmp, gitignored build output, files
+        outside a repository, Git operations, or formatters and code generators that rewrite
+        files by their own rules.
       '';
     }
   ];
