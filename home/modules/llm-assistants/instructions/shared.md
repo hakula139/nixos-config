@@ -22,7 +22,7 @@ When agents share a working tree, commands such as `git stash`, `git checkout --
 
 - Brief every write-capable agent on file ownership and these risks. Read-only inspection is safe. Coordinate writes, and limit each agent's staging and commits to its own changes.
 - Give genuinely parallel writers their own git worktrees. Each worktree or scratch copy adds build output, often several gigabytes, so use an existing checkout of the required revision for builds and reviews when available.
-- Before aborting an agent mid-task, let it flush its edits to a patch file under `/tmp/`.
+- To end a session, let each running agent finish its current task before stopping it. Before aborting one mid-task, let it flush its edits to a patch file under `/tmp/`.
 
 ## Working Approach
 
@@ -157,6 +157,7 @@ When subagents or teammates are available, the top-level interactive agent coord
 - **Report files**: An agent that spawns another names an absolute report-file path, `/tmp/agent-reports/<repo>/<task>.md`, using the repository's directory name and a short task slug, and has that agent write its progress and final report there in addition to sending them, because messages and completion notifications are not always delivered.
 - **Waiting**: Wait for delegates through the client's completion notice or blocking wait. To wait on a report file, CI, or a remote operation, run one background command per condition that returns when the condition holds or a time limit passes, since each separate poll rereads the whole context. Never poll report files periodically. If the limit passes first, name the stranded agent in your own report.
 - **Shutdown**: Once the coordinator accepts an agent's work or no longer needs it, it stops the agent and closes its tmux pane or Workmux window without asking. It keeps an agent running only while that agent still owns an open PR / MR or already has its next task queued, and states which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
+- **Resuming**: Before continuing an earlier session's unfinished work, read the final reports in its subagent transcripts and reconcile them with `git status`, the branch, and any open PR / MR, since a worktree can look complete while a delegate's partial or uncommitted work survives only in its transcript.
 
 ### Model Selection
 
