@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "本地检查", replace: "本地校验"}
+  ]
+  problem: 'the rewrite dropped the setext heading "本地检查配置的方法\n=====" and added "本地校验配置的方法\n====="'
+}

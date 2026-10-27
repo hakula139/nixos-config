@@ -6,17 +6,17 @@ This file is an index. It holds only what applies to every task, while anything 
 
 ## Read before you edit
 
-| Touching                              | Read                                                               |
-| ------------------------------------- | ------------------------------------------------------------------ |
-| A module, package, or host            | [docs/conventions/nix.md](docs/conventions/nix.md)                 |
-| A `.sh` script or inline shell in Nix | [docs/conventions/shell.md](docs/conventions/shell.md)             |
-| A `.nu` script or a `.test.nu` file   | [docs/conventions/nushell.md](docs/conventions/nushell.md)         |
-| A secret or a recipient list          | [docs/guides/secrets.md](docs/guides/secrets.md)                   |
-| First-time setup on any platform      | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)               |
-| Host wiring, builders, or the layout  | [docs/reference/architecture.md](docs/reference/architecture.md)   |
-| The workflow or a failing check       | [docs/reference/ci.md](docs/reference/ci.md)                       |
-| Assistant proxy configuration         | [docs/reference/proxy.md](docs/reference/proxy.md)                 |
-| The prose polisher or its model       | [docs/reference/chinese-prose.md](docs/reference/chinese-prose.md) |
+| Touching                              | Read                                                                     |
+| ------------------------------------- | ------------------------------------------------------------------------ |
+| A module, package, or host            | [docs/conventions/nix.md](docs/conventions/nix.md)                       |
+| A `.sh` script or inline shell in Nix | [docs/conventions/shell.md](docs/conventions/shell.md)                   |
+| A `.nu` script or a `.test.nu` file   | [docs/conventions/nushell.md](docs/conventions/nushell.md)               |
+| A secret or a recipient list          | [docs/guides/secrets.md](docs/guides/secrets.md)                         |
+| First-time setup on any platform      | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)                     |
+| Host wiring, builders, or the layout  | [docs/reference/architecture.md](docs/reference/architecture.md)         |
+| The workflow or a failing check       | [docs/reference/ci.md](docs/reference/ci.md)                             |
+| Assistant proxy configuration         | [docs/reference/proxy.md](docs/reference/proxy.md)                       |
+| The prose polish skill or its model   | [docs/reference/prose-evaluation.md](docs/reference/prose-evaluation.md) |
 
 ## Repository safeguards
 

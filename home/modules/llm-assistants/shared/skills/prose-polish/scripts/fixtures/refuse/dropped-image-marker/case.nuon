@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "![图]", replace: "[图]"}
+  ]
+  problem: 'the rewrite dropped the image marker "!["'
+}
