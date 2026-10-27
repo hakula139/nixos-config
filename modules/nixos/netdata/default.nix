@@ -70,6 +70,7 @@ in
     services.netdata = {
       enable = true;
       package = netdataPkg;
+
       config = {
         global = {
           hostname = config.networking.hostName;
@@ -109,21 +110,25 @@ in
     # ----------------------------------------------------------------------------------------------
     # Systemd service
     # ----------------------------------------------------------------------------------------------
+    systemd.services.netdata = lib.mkMerge [
+      repoLib.systemd.restartUnit
+
+      {
+        path = [
+          pkgs.systemd
+          systemdCatNative
+          pkgs.msmtp
+          sendmail
+        ];
+
+        environment.NETDATA_PREFIX = "${netdataPkg}";
+      }
+    ];
+
     environment.systemPackages = [
       systemdCatNative
       sendmail
     ];
-
-    systemd.services.netdata = {
-      path = [
-        pkgs.systemd
-        systemdCatNative
-        pkgs.msmtp
-        sendmail
-      ];
-
-      environment.NETDATA_PREFIX = "${netdataPkg}";
-    };
 
     # ----------------------------------------------------------------------------------------------
     # Email notification

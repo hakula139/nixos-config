@@ -36,6 +36,8 @@ in
     # ----------------------------------------------------------------------------------------------
     # aria2 service
     # ----------------------------------------------------------------------------------------------
+    systemd.services.aria2 = repoLib.systemd.restartUnit;
+
     services.aria2 = {
       enable = true;
       rpcSecretFile = config.age.secrets.aria2-rpc-secret.path;
