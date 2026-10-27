@@ -31,6 +31,7 @@ in
     ./clash
     ./cloudcone
     ./cloudreve
+    ./earlyoom
     ./fhs-compat
     ./llm-assistants
     ./netdata
@@ -134,6 +135,7 @@ in
     # ----------------------------------------------------------------------------------------------
     networking = {
       domain = "hakula.xyz";
+
       firewall = {
         enable = true;
         allowPing = true;
@@ -164,10 +166,18 @@ in
     security.sudo.wheelNeedsPassword = false;
 
     # ----------------------------------------------------------------------------------------------
+    # Systemd
+    # ----------------------------------------------------------------------------------------------
+    # logind starts a user manager once while the user stays tracked, and linger keeps the user
+    # tracked, so only systemd can bring back a manager that dies.
+    systemd.services."user@" = repoLib.systemd.restartUnit;
+
+    # ----------------------------------------------------------------------------------------------
     # Shell & Environment
     # ----------------------------------------------------------------------------------------------
     programs.zsh.enable = true;
     environment.shells = [ pkgs.zsh ];
+
     environment.variables =
       defaults.localeSettings
       // lib.optionalAttrs config.security.pki.installCACerts {

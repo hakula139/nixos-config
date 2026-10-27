@@ -101,6 +101,7 @@ in
           enabled = true;
           inherit endpoint;
           force_path_style = true;
+
           # B2 doesn't support ACL headers. The bucket stays private and is served via the
           # Cloudflare Worker CDN.
           upload_acl = {
@@ -142,26 +143,33 @@ in
     # ----------------------------------------------------------------------------------------------
     # Systemd service
     # ----------------------------------------------------------------------------------------------
-    systemd.services.peertube = {
-      # The upstream NixOS module sets HOME to the read-only Nix store package path, which breaks
-      # pnpm (it tries to create $HOME/.local/ for its store).
-      environment.HOME = lib.mkForce "/var/lib/peertube";
+    systemd.services.peertube = lib.mkMerge [
+      repoLib.systemd.restartUnit
 
-      # Preload script to fix Node.js headersTimeout (see fix-timeouts.js)
-      environment.NODE_OPTIONS = "--require ${fixTimeoutsScript}";
+      {
+        # The upstream NixOS module sets HOME to the read-only Nix store package path, which breaks
+        # pnpm (it tries to create $HOME/.local/ for its store).
+        environment.HOME = lib.mkForce "/var/lib/peertube";
 
-      # PeerTube uses pnpm to install plugins, but the NixOS module only includes yarn in the
-      # service PATH.
-      path = [ pkgs.pnpm ];
+        # Preload script to fix Node.js headersTimeout (see fix-timeouts.js)
+        environment.NODE_OPTIONS = "--require ${fixTimeoutsScript}";
 
-      # pnpm's libuv worker calls chown / fchownat when extracting packages. The upstream module
-      # blocks these via SystemCallFilter, killing the process with SIGSYS. Safe to allow: the
-      # non-root service user can only chown files it already owns.
-      serviceConfig.SystemCallFilter = [
-        "chown"
-        "chown32"
-        "fchownat"
-      ];
-    };
+        # PeerTube uses pnpm to install plugins, but the NixOS module only includes yarn in the
+        # service PATH.
+        path = [ pkgs.pnpm ];
+
+        # pnpm's libuv worker calls chown / fchownat when extracting packages. The upstream module
+        # blocks these via SystemCallFilter, killing the process with SIGSYS. Safe to allow: the
+        # non-root service user can only chown files it already owns.
+        serviceConfig.SystemCallFilter = [
+          "chown"
+          "chown32"
+          "fchownat"
+        ];
+      }
+    ];
+
+    systemd.services.postgresql = repoLib.systemd.restartUnit;
+    systemd.services.redis-peertube = repoLib.systemd.restartUnit;
   };
 }
