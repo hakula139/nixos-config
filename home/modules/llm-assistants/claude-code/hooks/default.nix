@@ -16,7 +16,6 @@ let
     inherit enableCorpGateway;
     assistant = "claude-code";
     toolClasses = {
-      askQuestion = [ "AskUserQuestion" ];
       fileWrite = [
         "Edit"
         "Write"
@@ -36,7 +35,6 @@ let
     with sharedHooks.hooks;
     [
       autoDream
-      prosePolish
       autoFormat
       commentGate
       completeness

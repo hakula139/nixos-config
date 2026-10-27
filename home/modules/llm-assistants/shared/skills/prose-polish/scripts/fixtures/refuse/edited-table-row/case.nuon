@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "说明", replace: "描述"}
+  ]
+  problem: 'the rewrite dropped the table row "| 项目 | 说明 |" and added "| 项目 | 描述 |"'
+}

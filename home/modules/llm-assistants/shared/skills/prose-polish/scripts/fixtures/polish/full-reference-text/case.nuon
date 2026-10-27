@@ -1,0 +1,8 @@
+{
+  rules: [
+    {find: "[文档][notes]", replace: "[说明][notes]"}
+  ]
+  sent: [
+    "更完整的说明见 [文档][notes]。\n[notes]: docs/notes.md"
+  ]
+}

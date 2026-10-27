@@ -1,0 +1,12 @@
+{
+  rules: [
+    {
+      reply: {
+        passages: [
+          {id: 0, text: ""}
+        ]
+      }
+    }
+  ]
+  stderr: "the model call failed"
+}

@@ -8,13 +8,13 @@
 {
   pkgs,
   lib,
-  corpGateway,
-  secretPath,
   dataHome,
   modelCatalog,
   readPrompt,
-  phrasing,
   fileFormatter,
+  timeouts,
+  mkNuCommand,
+  mkModelCall,
 }:
 
 {
@@ -24,29 +24,8 @@
 }:
 
 let
-  json = pkgs.formats.json { };
-
-  gateway = {
-    inherit (corpGateway) baseUrl;
-    tokenFile = secretPath (corpGateway.tokenSecretFor assistant);
-    caFile = secretPath corpGateway.caSecret;
-  };
-
   # ------------------------------------------------------------------------------------------------
-  # Hook timeouts
-  # ------------------------------------------------------------------------------------------------
-  timeouts = {
-    modelConnect = 5;
-    modelCall = 90;
-    # A hook outlives its model calls by this much, so it can still report one that timed out.
-    modelHookMargin = 10;
-    tool = 10;
-    # Auto-format runs `cargo clippy`, which may rebuild the crate after an edit.
-    postEdit = 120;
-  };
-
-  # ------------------------------------------------------------------------------------------------
-  # Hook generation
+  # Hook command generation
   # ------------------------------------------------------------------------------------------------
   mkNuHook =
     {
@@ -54,49 +33,22 @@ let
       script,
       config,
     }:
-    let
-      configFile = json.generate "${assistant}-${slug}.json" config;
-      package = pkgs.writers.writeNuBin "${assistant}-${slug}" {
-        makeWrapperArgs = [
-          "--prefix"
-          "PATH"
-          ":"
-          (lib.makeBinPath [ pkgs.coreutils ])
-
-          "--add-flag"
-          "${configFile}"
-        ];
-      } (builtins.readFile script);
-    in
-    lib.getExe package;
+    lib.getExe (mkNuCommand {
+      name = "${assistant}-${slug}";
+      inherit script config;
+    });
 
   patchInput = pkgs.writers.writeNu "patch-input" { } (
     builtins.readFile ./lib/patch-input/patch-input.nu
   );
 
-  inherit
-    (import ./lib/model-call {
-      inherit
-        pkgs
-        lib
-        gateway
-        mkNuHook
-        timeouts
-        ;
-    })
-    modelCall
-    ;
+  modelCall = mkModelCall assistant;
 
   # ------------------------------------------------------------------------------------------------
   # Hook entries
   # ------------------------------------------------------------------------------------------------
   mkMatcher =
-    tools:
-    lib.concatStringsSep "|" (
-      lib.unique (
-        lib.concatMap (tool: if lib.hasPrefix "mcp__" tool then [ tool ] else toolClasses.${tool}) tools
-      )
-    );
+    tools: lib.concatStringsSep "|" (lib.unique (lib.concatMap (tool: toolClasses.${tool}) tools));
 
   handlerFields = [
     "type"
@@ -168,16 +120,5 @@ in
     };
 
     completeness = import ./completeness { inherit timeouts; };
-
-    prosePolish = import ./prose-polish {
-      inherit
-        lib
-        mkNuHook
-        timeouts
-        modelCall
-        modelCatalog
-        phrasing
-        ;
-    };
   };
 }

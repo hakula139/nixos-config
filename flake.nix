@@ -132,6 +132,7 @@
         git-hooks-nix.lib.${system}.run {
           src = ./.;
           package = pkgs.prek;
+          excludes = [ "(^|/)fixtures/" ];
           hooks = {
             check-added-large-files.enable = true;
 

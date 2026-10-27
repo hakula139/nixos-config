@@ -1,0 +1,6 @@
+{
+  rules: [
+    {find: "说明文档", replace: "https://example.com/path 的说明"}
+  ]
+  problem: 'the rewrite added the URL "https://example.com/path"'
+}

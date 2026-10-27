@@ -1,0 +1,9 @@
+{
+  rules: [
+    {
+      find: "1. 提交之前，需要对配置进行检查。\n2. 合并之前，也需要检查。"
+      replace: "2. 合并之前，也需要检查。\n1. 提交之前，需要对配置进行检查。"
+    }
+  ]
+  problem: "the rewrite reordered the list markers"
+}
