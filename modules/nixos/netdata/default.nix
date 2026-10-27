@@ -72,7 +72,7 @@ in
       package = netdataPkg;
       config = {
         global = {
-          "hostname" = config.networking.hostName;
+          hostname = config.networking.hostName;
         };
 
         directories = {
@@ -92,11 +92,11 @@ in
 
         plugins = {
           # These VMs have no IPMI interface or configured perf / ioping collectors.
-          "freeipmi" = "no";
-          "perf" = "no";
-          "ioping" = "no";
+          freeipmi = "no";
+          perf = "no";
+          ioping = "no";
           # Nixpkgs exposes a dangling wrapper for this unavailable plugin.
-          "logs-management" = "no";
+          logs-management = "no";
         };
 
         web = {
@@ -128,7 +128,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Email notification
     # ----------------------------------------------------------------------------------------------
-    environment.etc."msmtprc" = {
+    environment.etc.msmtprc = {
       mode = "0444";
       text = ''
         defaults

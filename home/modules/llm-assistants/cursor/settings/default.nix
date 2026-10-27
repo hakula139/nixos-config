@@ -104,7 +104,7 @@ let
 
     "nix.serverPath" = "nixd";
     "nix.serverSettings" = {
-      "nixd" = {
+      nixd = {
         formatting.command = [ "nixfmt" ];
       };
     };
@@ -121,7 +121,7 @@ let
 
     "nix.serverPath" = lib.getExe pkgs.nixd;
     "nix.serverSettings" = {
-      "nixd" = {
+      nixd = {
         formatting.command = [ (lib.getExe pkgs.nixfmt) ];
       }
       // nixdCompletions;
