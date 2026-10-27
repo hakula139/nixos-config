@@ -199,6 +199,7 @@ nofile
 nohlsearch
 npmjs
 nslookup
+nsncd
 nspr
 nufmt
 numpy
@@ -206,6 +207,7 @@ numtide
 nuon
 nvcr
 nvim
+oomd
 optimise
 osascript
 osc
@@ -328,6 +330,7 @@ vhost
 vimcmd
 virtio
 virtualenv
+vitest
 vlang
 vless
 waka
@@ -336,6 +339,7 @@ whatpulse
 whereis
 whois
 wimpysworld
+workerd
 wslpath
 wvous
 xclip

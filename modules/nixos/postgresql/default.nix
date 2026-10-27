@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  repoLib,
   ...
 }:
 
@@ -39,9 +40,12 @@ in
     # ----------------------------------------------------------------------------------------------
     # PostgreSQL service
     # ----------------------------------------------------------------------------------------------
+    systemd.services.postgresql = repoLib.systemd.restartUnit;
+
     services.postgresql = {
       enable = true;
       inherit (cfg) package;
+
       settings = {
         # Bind to all interfaces, since PostgreSQL silently skips the podman bridge address
         # (10.88.0.1) when the bridge does not exist yet at startup. The firewall (podman0 only) and
@@ -50,16 +54,6 @@ in
         inherit (cfg) port;
         password_encryption = "scram-sha-256";
       };
-    };
-
-    # ----------------------------------------------------------------------------------------------
-    # Crash-loop resilience
-    # ----------------------------------------------------------------------------------------------
-    # The stock 100ms RestartSec burns the 5-restart budget in under a second, latching
-    # start-limit-hit permanently even once the fault clears.
-    systemd.services.postgresql = {
-      serviceConfig.RestartSec = "5s";
-      unitConfig.StartLimitBurst = lib.mkForce 0;
     };
 
     # ----------------------------------------------------------------------------------------------

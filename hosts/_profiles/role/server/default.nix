@@ -35,9 +35,16 @@
   # ------------------------------------------------------------------------------------------------
   # Services
   # ------------------------------------------------------------------------------------------------
+  hakula.services.earlyoom = {
+    enable = true;
+    # A 2 GiB server thrashes long before its 4 GiB of swap fills.
+    freeSwapPercent = 50;
+  };
+
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
   hakula.services.openssh.enable = true;
+
   hakula.services.xray = {
     enable = true;
     ws.enable = true;

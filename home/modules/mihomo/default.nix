@@ -51,6 +51,7 @@ let
       "${updateConfig}"
     ];
   } (builtins.readFile ./mihomo-update.nu);
+
   updateScript = lib.getExe updatePackage;
 
   startScript = pkgs.writeShellScript "mihomo-start" ''
@@ -130,11 +131,9 @@ in
           Wants = [ "network-online.target" ];
         };
 
-        Service = {
+        Service = repoLib.systemd.restart // {
           Type = "simple";
           ExecStart = "${startScript}";
-          Restart = "on-failure";
-          RestartSec = "5s";
         };
 
         Install = {
@@ -170,6 +169,7 @@ in
     launchd.agents = lib.mkIf isDarwin {
       mihomo-update = {
         enable = true;
+
         config = {
           Label = "one.metacubex.mihomo-update";
           ProgramArguments = [ "${updateScript}" ];
@@ -187,6 +187,7 @@ in
 
       mihomo = {
         enable = true;
+
         config = {
           Label = "one.metacubex.mihomo";
           ProgramArguments = [ "${startScript}" ];

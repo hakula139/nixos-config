@@ -72,33 +72,35 @@ in
     # ----------------------------------------------------------------------------------------------
     # Systemd service
     # ----------------------------------------------------------------------------------------------
-    systemd.services.piclist = {
-      description = "PicList image upload server";
-      documentation = [ "https://github.com/Kuingsmile/PicList-Core" ];
+    systemd.services.piclist = lib.mkMerge [
+      repoLib.systemd.restartUnit
 
-      after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
+      {
+        description = "PicList image upload server";
+        documentation = [ "https://github.com/Kuingsmile/PicList-Core" ];
 
-      serviceConfig = repoLib.systemd.hardening // {
-        Type = "simple";
-        ExecStart = lib.getExe piclistServer;
-        Restart = "on-failure";
-        RestartSec = "5s";
-        User = "piclist";
-        Group = "piclist";
-        UMask = "0077";
-        StateDirectory = "%N";
-        StateDirectoryMode = "0750";
-        WorkingDirectory = "%S/%N";
-        Environment = [
-          "HOME=%S/%N"
+        after = [ "network.target" ];
+        wantedBy = [ "multi-user.target" ];
+
+        serviceConfig = repoLib.systemd.hardening // {
+          Type = "simple";
+          ExecStart = lib.getExe piclistServer;
+          User = "piclist";
+          Group = "piclist";
+          UMask = "0077";
+          StateDirectory = "%N";
+          StateDirectoryMode = "0750";
+          WorkingDirectory = "%S/%N";
+          Environment = [
+            "HOME=%S/%N"
+          ];
+        };
+
+        restartTriggers = [
+          config.age.secrets.piclist-config.file
+          config.age.secrets.piclist-token.file
         ];
-      };
-
-      restartTriggers = [
-        config.age.secrets.piclist-config.file
-        config.age.secrets.piclist-token.file
-      ];
-    };
+      }
+    ];
   };
 }
