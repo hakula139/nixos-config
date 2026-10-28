@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use std-rfc/str
 
 const SCRIPT_DIR = path self .
 const SCRIPT = ($SCRIPT_DIR | path join activity-digest.nu)
@@ -30,6 +31,16 @@ def claude-user [cwd: string, clock: string, text: string, extra: record = {}]: 
 
 def claude-prompt [cwd: string, clock: string, text: string]: nothing -> record {
   claude-user $cwd $clock $text $HUMAN
+}
+
+def claude-queued [
+  cwd: string
+  clock: string
+  text: string
+  kind: string = "human"
+]: nothing -> record {
+  let attachment = {type: queued_command, origin: {kind: $kind}, prompt: $text}
+  {type: attachment, cwd: $cwd, timestamp: (at $clock), attachment: $attachment}
 }
 
 def claude-notification [cwd: string, clock: string]: nothing -> record {
@@ -72,8 +83,11 @@ def omp-reply [clock: string, text: string = "done"]: nothing -> record {
   {type: message, timestamp: (at $clock), message: $message}
 }
 
-# Run the digest in UTC, so the fixtures' `Z` timestamps read as local times.
-def digest [dir: string, overrides: record = {}]: nothing -> record {
+def digest-run [
+  dir: string
+  overrides: record = {}
+  --excerpt-chars: int = 400
+]: nothing -> record {
   let config_file = ($dir | path join config.json)
   {
     context: personal
@@ -91,14 +105,30 @@ def digest [dir: string, overrides: record = {}]: nothing -> record {
   }
   | merge $overrides
   | to json
-  | save $config_file
+  | save --force $config_file
 
-  let run = (
-    with-env {TZ: UTC} { ^$nu.current-exe --no-config-file $SCRIPT $config_file $DAY | complete }
-  )
+  let args = [$config_file $DAY $"--excerpt-chars=($excerpt_chars)"]
+  with-env {TZ: UTC} { ^$nu.current-exe --no-config-file $SCRIPT ...$args | complete }
+}
+
+def digest-output [
+  dir: string
+  overrides: record = {}
+  --excerpt-chars: int = 400
+]: nothing -> record {
+  let run = (digest-run $dir $overrides --excerpt-chars=$excerpt_chars)
   assert equal $run.exit_code 0 $run.stderr
 
-  $run.stdout | from json | get days.0
+  $run.stdout | from json
+}
+
+# Run the digest in UTC, so the fixtures' `Z` timestamps read as local times.
+def digest-day [
+  dir: string
+  overrides: record = {}
+  --excerpt-chars: int = 400
+]: nothing -> record {
+  digest-output $dir $overrides --excerpt-chars=$excerpt_chars | get days.0
 }
 
 def "test only prompts a person typed count" [] {
@@ -106,10 +136,12 @@ def "test only prompts a person typed count" [] {
   let app = "/work/app"
   transcript $dir [claude projects app a.jsonl] [
     (claude-prompt $app "10:00" "fix the parser")
-    (claude-notification $app "11:00")
-    (claude-user $app "12:00" "Another Claude session sent a message:" {isMeta: true})
-    (claude-user $app "13:00" '<teammate-message teammate_id="a">hi</teammate-message>')
-    (claude-user $app "14:00" "<command-name>/review</command-name>")
+    (claude-user $app "11:00" "peer message" {origin: {kind: peer}, isMeta: true})
+    (claude-user $app "12:00" "From the lead: continue" {teamName: t})
+    (claude-user $app "13:00" "<command-name>/export</command-name>")
+    (claude-user $app "13:30" "/compact")
+    (claude-queued $app "13:45" "<task-notification>" task-notification)
+    (claude-prompt $app "14:00" "/review")
   ]
   codex-transcript $dir {id: user, cwd: $app, thread_source: user} (codex-turn "16:00" "check CI")
   codex-transcript $dir {id: import, cwd: $app} (codex-turn "17:00" "imported")
@@ -118,7 +150,7 @@ def "test only prompts a person typed count" [] {
     (omp-user "18:00" "plan it")
   ]
 
-  let day = (digest $dir)
+  let day = (digest-day $dir)
 
   assert equal ($day.sessions | each {|s| {tool: $s.tool, prompts: ($s.prompts | get at)} }) [
     {tool: claude, prompts: ["10:00" "14:00"]}
@@ -131,25 +163,27 @@ def "test sessions without a person add only agent time" [] {
   let dir = (mktemp --directory)
   let handback = {stop_reason: tool_use, content: [{type: tool_use, name: SubagentHandback}]}
   transcript $dir [claude projects app teammate.jsonl] [
-    (claude-user /work/app "10:00" "From the lead: continue" ($HUMAN | insert teamName t))
+    (claude-user /work/app "10:00" "From the lead: continue" {teamName: t})
     (claude-reply /work/app "10:30")
   ]
   transcript $dir [claude projects app lead subagents agent-a.jsonl] [
-    (claude-user /work/app/.claude/worktrees/agent-a "11:00" "Review it" {isSidechain: true})
+    (claude-user /work/app/.claude/worktrees/agent-a "11:00" "Review it" (
+      $HUMAN | insert isSidechain true
+    ))
     {type: assistant, timestamp: (at "11:30"), message: $handback}
   ]
   transcript $dir [claude projects lib headless.jsonl] [
     (claude-user /work/lib "13:00" "Reply with exactly: OK" {entrypoint: sdk-cli})
     (claude-reply /work/lib "13:15")
   ]
-  codex-transcript $dir {id: exec, cwd: /work/cli, thread_source: user, source: exec} [
-    ...(codex-turn "14:00" "probe" --done "14:30")
-  ]
-  codex-transcript $dir {id: sub, cwd: /work/cli, thread_source: subagent} [
-    ...(codex-turn "15:00" "review the diff" --done "15:30")
-  ]
+  codex-transcript $dir {id: exec, cwd: /work/cli, thread_source: user, source: exec} (
+    codex-turn "14:00" "probe" --done "14:30"
+  )
+  codex-transcript $dir {id: sub, cwd: /work/cli, thread_source: subagent} (
+    codex-turn "15:00" "review the diff" --done "15:30"
+  )
 
-  let day = (digest $dir)
+  let day = (digest-day $dir)
 
   assert equal $day.sessions []
   assert equal $day.hours {
@@ -171,7 +205,7 @@ def "test nested OMP advisors extend agent hours without human excerpts" [] {
     (omp-reply "11:00")
   ]
 
-  let day = (digest $dir)
+  let day = (digest-day $dir)
 
   assert equal $day.hours {
     human: {total: 0.67, projects: {app: 0.67}}
@@ -194,7 +228,7 @@ def "test worktrees count for their repository but Workmux workers earn only age
     (claude-reply $worker "11:30")
   ]
 
-  let day = (digest $dir)
+  let day = (digest-day $dir)
 
   assert equal ($day.sessions | select cwd project) [{cwd: $worktree, project: app}]
   assert equal $day.hours {
@@ -203,18 +237,21 @@ def "test worktrees count for their repository but Workmux workers earn only age
   }
 }
 
-def "test the host context covers every project except personal ones" [] {
+def "test sessions report project, context, and transcript, and personal projects are listed" [] {
   let dir = (mktemp --directory)
+  let root = ($dir | path join claude projects)
   transcript $dir [claude projects app a.jsonl] [(claude-prompt /work/app "10:00" "ship")]
   transcript $dir [claude projects cfg b.jsonl] [(claude-prompt /work/nixos-config "11:00" "tidy")]
   transcript $dir [claude projects notes c.jsonl] [(claude-prompt /work/notes "12:00" "file")]
 
-  let day = (digest $dir {context: work, personalProjects: [nixos-config notes]})
+  let output = (digest-output $dir {context: work, personalProjects: [nixos-config notes]})
+  let day = $output.days.0
 
-  assert equal ($day.sessions | select project context) [
-    {project: app, context: work}
-    {project: nixos-config, context: personal}
-    {project: notes, context: personal}
+  assert equal $output.personalProjects [nixos-config notes]
+  assert equal ($day.sessions | select project context transcript) [
+    {project: app, context: work, transcript: ($root | path join app a.jsonl)}
+    {project: nixos-config, context: personal, transcript: ($root | path join cfg b.jsonl)}
+    {project: notes, context: personal, transcript: ($root | path join notes c.jsonl)}
   ]
 }
 
@@ -236,27 +273,33 @@ def "test a prompt earns its turn and a reading allowance until the next prompt 
     (claude-prompt /work/lib "13:24" "review the API")
   ]
 
-  let day = (digest $dir {readingMinutes: 12})
+  let day = (digest-day $dir {readingMinutes: 12})
 
   assert equal $day.hours.human {total: 2.2, projects: {app: 2.0, lib: 0.2}}
+  assert equal ($day.sessions | each { get prompts.hours }) [[1.0 0.3 0.4 0.3] [0.2]]
 }
 
 def "test steering prompts and triggers share the first reply" [] {
   let dir = (mktemp --directory)
   transcript $dir [claude projects app a.jsonl] [
     (claude-prompt /work/app "10:00" "start")
-    (claude-prompt /work/app "10:05" "also check tests")
+    (claude-queued /work/app "10:05" "also check tests")
     (claude-notification /work/app "10:08")
     (claude-reply /work/app "10:30")
   ]
 
-  let day = (digest $dir)
+  let day = (digest-day $dir)
 
   assert equal $day.hours {
     human: {total: 0.67, projects: {app: 0.67}}
     agent: {total: 0.5, projects: {app: 0.5}}
   }
   assert equal $day.sessions.0.replies [{at: "10:30", text: done}]
+  assert equal ($day.sessions.0.prompts | select at text) [
+    {at: "10:00", text: start}
+    {at: "10:05", text: "also check tests"}
+  ]
+  assert equal ($day.sessions.0.prompts | get hours) [0.0833 0.5833]
 }
 
 def "test parallel agents on a project count once" [] {
@@ -275,7 +318,7 @@ def "test parallel agents on a project count once" [] {
     (claude-reply /work/lib "10:30")
   ]
 
-  let day = (digest $dir)
+  let day = (digest-day $dir)
 
   assert equal $day.hours.agent {total: 2.0, projects: {app: 1.5, lib: 0.5}}
 }
@@ -288,7 +331,7 @@ def "test a turn without a reply earns no agent time" [] {
     (claude-notification /work/app "11:00")
   ]
 
-  let day = (digest $dir)
+  let day = (digest-day $dir)
 
   assert equal $day.hours.agent {total: 0.5, projects: {app: 0.5}}
 }
@@ -300,7 +343,7 @@ def "test an agent turn earns at most the cap" [] {
     (claude-reply /work/app "13:00")
   ]
 
-  let day = (digest $dir {agentMaxMinutes: 90})
+  let day = (digest-day $dir {agentMaxMinutes: 90})
 
   assert equal $day.hours.agent {total: 1.5, projects: {app: 1.5}}
 }
@@ -314,7 +357,7 @@ def "test agent turns across midnight count only within the day" [] {
     (claude-reply /work/app "2026-10-16T01:00")
   ]
 
-  let day = (digest $dir)
+  let day = (digest-day $dir)
 
   assert equal $day.hours.agent {total: 1.5, projects: {app: 1.5}}
 }
@@ -332,7 +375,7 @@ def "test canceled Codex turns cannot borrow a later reply" [] {
     (codex-event "13:12" {type: task_complete, last_agent_message: final})
   ]
 
-  let day = (digest $dir)
+  let day = (digest-day $dir)
 
   assert equal $day.hours {
     human: {total: 0.17, projects: {app: 0.17}}
@@ -354,10 +397,143 @@ def "test a day keeps its final replies past midnight until the next prompt" [] 
     (claude-reply /work/app "2026-10-16T09:05" "tomorrow")
   ]
 
-  let day = (digest $dir)
+  let day = (digest-day $dir)
 
   assert equal ($day.sessions.0.replies | select at text) [
     {at: "10:12", text: started}
     {at: "00:30", text: merged}
   ]
+}
+
+def "test a prompt is cut by a prompt from another session after midnight" [] {
+  let dir = (mktemp --directory)
+  transcript $dir [claude projects app a.jsonl] [
+    (claude-prompt /work/app "2026-10-15T23:30" "late")
+    (claude-reply /work/app "2026-10-16T00:20")
+  ]
+  transcript $dir [claude projects lib b.jsonl] [
+    (claude-prompt /work/lib "2026-10-16T00:05" "early")
+    (claude-reply /work/lib "2026-10-16T00:10")
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal $day.hours.human {total: 0.58, projects: {app: 0.58}}
+  assert equal ($day.sessions | each { get prompts | get hours }) [[0.5833]]
+}
+
+def "test the excerpt length keeps whole text at zero and cuts at a custom limit" [] {
+  let dir = (mktemp --directory)
+  let long = (
+    $"
+    first
+    ("" | fill --character a --width 450)
+    "
+    | str dedent
+  )
+  transcript $dir [claude projects app a.jsonl] [
+    (claude-prompt /work/app "10:00" $long)
+    (claude-reply /work/app "10:30" $long)
+  ]
+
+  let excerpted = (digest-day $dir)
+  let short = (digest-day $dir --excerpt-chars 10)
+  let full = (digest-day $dir --excerpt-chars 0)
+
+  let excerpt = $"first ("" | fill --character a --width 394)..."
+  let short_excerpt = "first aaaa..."
+  let projected = {|day|
+    $day.sessions | each {|s| {prompt: $s.prompts.0.text, reply: $s.replies.0.text} }
+  }
+  assert equal (do $projected $excerpted) [{prompt: $excerpt, reply: $excerpt}]
+  assert equal (do $projected $short) [{prompt: $short_excerpt, reply: $short_excerpt}]
+  assert equal (do $projected $full) [{prompt: $long, reply: $long}]
+}
+
+def "test Codex request headings are stripped from prompts" [] {
+  let dir = (mktemp --directory)
+  let cases = [
+    {
+      name: "Desktop browser context"
+      clock: "11:00"
+      done: "11:30"
+      input: (
+        "
+        <in-app-browser-context source="ambient-ui-state">
+        page text
+        ## My request:
+        quoted earlier transcript
+        </in-app-browser-context>
+        ## My request:
+        summarize it
+        "
+        | str dedent
+      )
+      expected: "summarize it"
+    }
+    {
+      name: "Desktop IDE context"
+      clock: "12:00"
+      done: "12:30"
+      input: (
+        "
+        # Context from my IDE setup:
+        ## Active file: /work/app/main.nu
+        ## My request:
+        short form
+        "
+        | str dedent
+      )
+      expected: "short form"
+    }
+    {
+      name: "TUI IDE context"
+      clock: "13:00"
+      done: "13:30"
+      input: (
+        "
+        # Context from my IDE setup:
+
+        ## Active file: src/lib.rs
+
+        ## My request for Codex:
+        long form
+        "
+        | str dedent
+      )
+      expected: "long form"
+    }
+    {
+      name: "no heading"
+      clock: "14:00"
+      done: "14:30"
+      input: "no heading here"
+      expected: "no heading here"
+    }
+    {
+      name: "inline mention"
+      clock: "15:00"
+      done: "15:30"
+      input: "quote ## My request: tail"
+      expected: "tail"
+    }
+  ]
+  let records = ($cases | each {|c| codex-turn $c.clock $c.input --done $c.done } | flatten)
+  codex-transcript $dir {id: request, cwd: /work/app, thread_source: user} $records
+
+  let day = (digest-day $dir --excerpt-chars 0)
+  let prompts = ($day.sessions.0.prompts | get text)
+
+  for c in ($cases | enumerate) {
+    assert equal ($prompts | get $c.index) $c.item.expected $c.item.name
+  }
+}
+
+def "test a negative excerpt length is rejected" [] {
+  let dir = (mktemp --directory)
+
+  let run = (digest-run $dir --excerpt-chars=-1)
+
+  assert equal $run.exit_code 1
+  assert str contains $run.stderr "must be 0 or greater"
 }
