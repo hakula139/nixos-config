@@ -11,6 +11,8 @@
 }:
 
 let
+  esc = lib.escapeShellArg;
+
   cfg = config.hakula.services.backup;
   serviceName = "backup";
   resticServiceFor = name: "restic-backups-${name}";
@@ -23,6 +25,13 @@ let
   heartbeatTargets = lib.filterAttrs (_: t: t.heartbeatUrl != null) enabledTargets;
   restoreTargets = lib.filterAttrs (_: t: t.restoreSnapshot != null) enabledTargets;
   allExtraGroups = lib.unique (lib.flatten (lib.mapAttrsToList (_: t: t.extraGroups) enabledTargets));
+
+  heartbeatCurlArgs = lib.escapeShellArgs (
+    repoLib.curl.mkArgs {
+      connectTimeout = 10;
+      maxTime = 30;
+    }
+  );
 
   mkRepository =
     path: name:
@@ -299,9 +308,10 @@ in
 
             script = ''
               curl \
-                -fsSL \
-                -X POST \
-                ${lib.escapeShellArg heartbeatUrl} >/dev/null || true
+                ${heartbeatCurlArgs} \
+                --location \
+                --request POST \
+                ${esc heartbeatUrl} >/dev/null || true
             '';
           }
         )
@@ -330,16 +340,18 @@ in
 
             script = ''
               code="''${EXIT_STATUS:-fail}"
-              url="${lib.escapeShellArg heartbeatUrl}/$code"
+              url=${esc heartbeatUrl}/"$code"
               output="$(
-                journalctl -u ${lib.escapeShellArg resticUnit} -n 100 --no-pager 2>&1 \
+                journalctl -u ${esc resticUnit} -n 100 --no-pager 2>&1 \
                   | head -c 20000
               )"
-              curl \
-                -fsSL \
-                -X POST \
-                -d "$output" \
-                "$url" >/dev/null || true
+              printf '%s' "$output" \
+                | curl \
+                  ${heartbeatCurlArgs} \
+                  --location \
+                  --request POST \
+                  --data-binary @- \
+                  "$url" >/dev/null || true
             '';
           }
         )

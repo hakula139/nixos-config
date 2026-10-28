@@ -4,12 +4,17 @@
 
 {
   pkgs,
+  curlArgs,
   serverKeyFile,
-  ...
 }:
 
 let
   inherit (pkgs) lib;
+  json = pkgs.formats.json { };
+
+  agentConfig = json.generate "cloudcone-agent.json" {
+    inherit curlArgs serverKeyFile;
+  };
 
   # `inetutils` is deliberately absent: it ships a `ping` that rejects `-B`, and on PATH it would
   # shadow the one from `iputils`.
@@ -30,6 +35,6 @@ pkgs.writers.writeNuBin "cloudcone-agent" {
     (lib.makeBinPath runtimeInputs)
 
     "--add-flag"
-    serverKeyFile
+    "${agentConfig}"
   ];
 } (builtins.readFile ./agent.nu)
