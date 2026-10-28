@@ -8,7 +8,7 @@
 
 ## Function arguments
 
-- **Keep parameter lists small.** Access package dependencies through `pkgs`, such as `pkgs.nodejs_24`, instead of declaring each dependency as a parameter or adding aliases just to shorten its name. Declare only the context and task-specific values the function uses.
+- **Keep parameter lists small.** Access package dependencies through `pkgs`, such as `pkgs.nodejs_26`, instead of declaring each dependency as a parameter or adding aliases just to shorten its name. Declare only the context and task-specific values the function uses.
 - **Use `...` when the caller supplies a broader argument set.** NixOS and Home Manager module functions need it for framework arguments. Packages called through `callPackage` and ordinary helpers with explicitly constructed argument sets omit it, so unexpected arguments are caught. Keep open record patterns where accepting additional fields is part of the contract.
 - **Top-level attribute-set argument lists are multiline.** Put each argument and the `...` entry on its own line, even when the list fits on one line.
 - **Framework arguments lead, in the order `modulesPath`, `config`, `pkgs`, `lib`, `inputs`.** Whichever of them a file takes keep that relative order and precede everything else, a `packages/` derivation included, where `callPackage` supplies them from nixpkgs.

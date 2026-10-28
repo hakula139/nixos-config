@@ -23,7 +23,7 @@ pkgs.buildNpmPackage rec {
   nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
 
   postInstall = ''
-    makeWrapper "${lib.getExe pkgs.nodejs_24}" "$out/bin/mcp-server-gitlab" \
+    makeWrapper "${lib.getExe pkgs.nodejs_26}" "$out/bin/mcp-server-gitlab" \
       --add-flags "$out/lib/node_modules/@zereight/mcp-gitlab/build/index.js"
   '';
 

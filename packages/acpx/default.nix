@@ -26,8 +26,7 @@ pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
   };
 
   nativeBuildInputs = [
-    # tsdown excludes Node 25 from its supported versions.
-    pkgs.nodejs_24
+    pkgs.nodejs_26
     pkgs.pnpm
     pkgs.pnpmConfigHook
     pkgs.pnpmBuildHook
@@ -44,8 +43,8 @@ pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
 
     # Built-in adapters need npx. The resolved node binary lives in nodejs-slim, so acpx cannot find
     # npm beside process.execPath.
-    makeWrapper ${lib.getExe pkgs.nodejs_24} "$out/bin/acpx" \
-      --suffix PATH : "${lib.makeBinPath [ pkgs.nodejs_24 ]}" \
+    makeWrapper ${lib.getExe pkgs.nodejs_26} "$out/bin/acpx" \
+      --suffix PATH : "${lib.makeBinPath [ pkgs.nodejs_26 ]}" \
       --add-flags "$out/lib/acpx/dist/cli.js"
 
     runHook postInstall
