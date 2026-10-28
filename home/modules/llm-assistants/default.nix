@@ -130,6 +130,10 @@ in
         };
     }
 
+    (lib.mkIf cfg.auth.enableCorpGateway {
+      hakula.secrets.required."llm-assistants/corp-gateway/portal-token" = { };
+    })
+
     (lib.mkIf cfg.enable {
       hakula =
         lib.genAttrs cliAssistantNames (_: {
