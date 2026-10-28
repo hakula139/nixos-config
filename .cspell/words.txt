@@ -165,6 +165,7 @@ localectl
 logit
 lowprio
 lualine
+mainpid
 malva
 marp
 martijn
