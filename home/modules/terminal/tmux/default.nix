@@ -58,16 +58,23 @@ let
     set -gF message-command-style "fg=#{@thm_teal},bg=terminal,fill=terminal"
   '';
 
-  # Continuum must inject its save command after the final status-right assignment.
-  continuumConfig = ''
-    set -g @continuum-restore "on"
-    set -g @continuum-save-interval "10"
-    run-shell ${pkgs.tmuxPlugins.continuum.rtp}
-  '';
-
   nushellConfig = ''
     bind C-n split-window -h -c "#{pane_current_path}" "${lib.getExe pkgs.nushell}"
     bind N new-window -c "#{pane_current_path}" "${lib.getExe pkgs.nushell}"
+  '';
+
+  # Other sockets, such as `tmux -L <name>` test servers, must not restore or overwrite the saved
+  # sessions, and Continuum's own check never sees other servers because `ps` shows tmux by its
+  # store path. Continuum must inject its save command after the final status-right assignment.
+  persistenceConfig = ''
+    %if "#{==:#{b:socket_path},default}"
+    set -g @resurrect-capture-pane-contents "on"
+    run-shell ${pkgs.tmuxPlugins.resurrect.rtp}
+
+    set -g @continuum-restore "on"
+    set -g @continuum-save-interval "10"
+    run-shell ${pkgs.tmuxPlugins.continuum.rtp}
+    %endif
   '';
 in
 {
@@ -92,25 +99,13 @@ in
     terminal = "tmux-256color";
 
     # ----------------------------------------------------------------------------------------------
-    # Plugins
-    # ----------------------------------------------------------------------------------------------
-    plugins = with pkgs.tmuxPlugins; [
-      {
-        plugin = resurrect;
-        extraConfig = ''
-          set -g @resurrect-capture-pane-contents "on"
-        '';
-      }
-    ];
-
-    # ----------------------------------------------------------------------------------------------
     # Extra configuration
     # ----------------------------------------------------------------------------------------------
     extraConfig = lib.concatStringsSep "\n" [
       (lib.fileContents ./tmux.conf)
       nushellConfig
       catppuccinConfig
-      continuumConfig
+      persistenceConfig
     ];
   };
 }
