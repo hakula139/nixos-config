@@ -90,10 +90,9 @@ def digest-run [
 ]: nothing -> record {
   let config_file = ($dir | path join config.json)
   {
-    context: personal
     excludedDirs: ['/\.claude/worktrees/workmux/']
     worktreePatterns: ['/\.claude/worktrees/[^/]+.*$']
-    personalProjects: [nixos-config]
+    labels: {default: [work], projects: {nixos-config: [personal]}}
     readingMinutes: 10
     maxMinutes: 60
     agentMaxMinutes: 120
@@ -237,21 +236,45 @@ def "test worktrees count for their repository but Workmux workers earn only age
   }
 }
 
-def "test sessions report project, context, and transcript, and personal projects are listed" [] {
+def "test sessions report their full record and the digest lists project labels" [] {
   let dir = (mktemp --directory)
   let root = ($dir | path join claude projects)
   transcript $dir [claude projects app a.jsonl] [(claude-prompt /work/app "10:00" "ship")]
   transcript $dir [claude projects cfg b.jsonl] [(claude-prompt /work/nixos-config "11:00" "tidy")]
   transcript $dir [claude projects notes c.jsonl] [(claude-prompt /work/notes "12:00" "file")]
 
-  let output = (digest-output $dir {context: work, personalProjects: [nixos-config notes]})
+  let output = (
+    digest-output $dir {
+      labels: {default: [work], projects: {nixos-config: [personal], notes: [personal]}}
+    }
+  )
   let day = $output.days.0
 
-  assert equal $output.personalProjects [nixos-config notes]
-  assert equal ($day.sessions | select project context transcript) [
-    {project: app, context: work, transcript: ($root | path join app a.jsonl)}
-    {project: nixos-config, context: personal, transcript: ($root | path join cfg b.jsonl)}
-    {project: notes, context: personal, transcript: ($root | path join notes c.jsonl)}
+  assert equal ($output | reject days) {
+    labels: {default: [work], projects: {nixos-config: [personal], notes: [personal]}}
+  }
+  assert equal ($day.sessions | reject prompts replies) [
+    {
+      tool: claude
+      session: a
+      transcript: ($root | path join app a.jsonl)
+      cwd: /work/app
+      project: app
+    }
+    {
+      tool: claude
+      session: b
+      transcript: ($root | path join cfg b.jsonl)
+      cwd: /work/nixos-config
+      project: nixos-config
+    }
+    {
+      tool: claude
+      session: c
+      transcript: ($root | path join notes c.jsonl)
+      cwd: /work/notes
+      project: notes
+    }
   ]
 }
 

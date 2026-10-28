@@ -23,15 +23,15 @@ let
   json = pkgs.formats.json { };
 
   digestConfig = json.generate "activity-digest.json" {
-    context = hostType;
     inherit (cfg)
       excludedDirs
       worktreePatterns
-      personalProjects
+      labels
       readingMinutes
       maxMinutes
       agentMaxMinutes
       ;
+
     assistantDirs = {
       claude = "${homeDir}/.claude";
       codex =
@@ -78,10 +78,18 @@ in
       description = "Regexes stripped from a session's working directory to recover its repository";
     };
 
-    personalProjects = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ "nixos-config" ];
-      description = "Projects reported as personal on every host, regardless of the host's context";
+    labels = {
+      default = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ hostType ];
+        description = "Labels of a project without an entry in `labels.projects`";
+      };
+
+      projects = lib.mkOption {
+        type = lib.types.attrsOf (lib.types.listOf lib.types.str);
+        default = { };
+        description = "Labels of each project by directory name, replacing `labels.default`";
+      };
     };
 
     readingMinutes = lib.mkOption {
@@ -108,6 +116,8 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      # As an option default, this entry would vanish once a host lists another project.
+      hakula.activity-report.labels.projects.nixos-config = lib.mkDefault [ "personal" ];
       home.packages = [ digest ];
     })
 

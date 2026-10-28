@@ -208,10 +208,6 @@ def project-of [cfg: record, cwd: string]: nothing -> string {
   | path basename
 }
 
-def context-of [cfg: record, project: string]: nothing -> string {
-  if $project in $cfg.personalProjects { "personal" } else { $cfg.context }
-}
-
 def tally []: record -> record {
   {
     total: ($in | values | append 0.0 | math sum | math round --precision 2)
@@ -327,7 +323,6 @@ def day [
           transcript: $s.transcript
           cwd: $s.cwd
           project: $s.project
-          context: (context-of $cfg $s.project)
           prompts: ($prompts | each {|p| $p | stamp $excerpt_chars | insert hours $p.hours })
           replies: ($events | final-replies | each { stamp $excerpt_chars } | where text != "")
         }
@@ -342,14 +337,14 @@ def day [
 
 # Print the agent sessions on this host for a range of local dates as JSON.
 #
-# Each day lists its sessions with their transcript, project, context, the prompts a person typed
-# with the human hours each earned, and the final reply of each turn. Human hours credit each
-# prompt with the time until its turn ends plus a reading allowance, cut short by the next prompt
-# in any session and capped per prompt. Agent hours union each project's turns in every session,
-# from any user message to its reply and capped per turn. The host's `personalProjects` names the
-# projects with a personal context.
+# Each day lists its sessions with their transcript, project, the prompts a person typed with the
+# human hours each earned, and the final reply of each turn. Human hours credit each prompt with
+# the time until its turn ends plus a reading allowance, cut short by the next prompt in any
+# session and capped per prompt. Agent hours union each project's turns in every session, from any
+# user message to its reply and capped per turn. The top-level `labels` gives each project's labels
+# and the default for unlisted projects.
 def main [
-  config_file: string # JSON with the host's context, policy, and source directories
+  config_file: string # JSON with the host's labels, policy, and source directories
   from: string # First local date, as YYYY-MM-DD
   to?: string # Last local date, as YYYY-MM-DD, the first date by default
   --excerpt-chars: int = 400 # Characters kept per prompt and reply, or 0 to keep the text whole
@@ -369,8 +364,7 @@ def main [
   )
   let prompts = ($sessions | credit-prompts $cfg)
   {
-    context: $cfg.context
-    personalProjects: $cfg.personalProjects
+    labels: $cfg.labels
     days: ($days | each {|start| day $cfg $start $sessions $prompts $excerpt_chars })
   }
   | to json
