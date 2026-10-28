@@ -13,6 +13,7 @@ in
   inherit wrapPackage;
 
   aria2 = import ./aria2.nix;
+  curl = import ./curl.nix;
   llmAssistants = import ./llm-assistants { inherit lib; };
   packagesFor = pkgs: import ./packages.nix { inherit pkgs; };
   proxy = import ./proxy.nix { inherit lib wrapPackage; };
