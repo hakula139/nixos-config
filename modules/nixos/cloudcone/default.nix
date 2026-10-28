@@ -41,6 +41,12 @@ in
       secretName = "cloudcone-server-key";
       cloudconeAgent = import ./agent {
         inherit pkgs;
+
+        curlArgs = repoLib.curl.mkArgs {
+          connectTimeout = 10;
+          maxTime = 50;
+        };
+
         serverKeyFile = config.age.secrets.${secretName}.path;
       };
     in

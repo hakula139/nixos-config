@@ -7,17 +7,15 @@
   lib,
   assistant,
   gateway,
+  curlArgs,
   mkNuCommand,
-  timeouts,
 }:
 
 lib.getExe (mkNuCommand {
   name = "${assistant}-model-call";
   script = ./model-call.nu;
   config = {
-    inherit gateway;
+    inherit gateway curlArgs;
     curl = lib.getExe pkgs.curl;
-    connectTimeout = timeouts.modelConnect;
-    timeout = timeouts.modelCall;
   };
 })
