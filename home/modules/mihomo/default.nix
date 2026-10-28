@@ -14,17 +14,24 @@
 let
   inherit (pkgs) mihomo;
   inherit (pkgs.stdenv) isDarwin;
-  cfg = config.hakula.mihomo;
-  json = pkgs.formats.json { };
 
   esc = lib.escapeShellArg;
 
+  cfg = config.hakula.mihomo;
+  json = pkgs.formats.json { };
+
+  # ------------------------------------------------------------------------------------------------
+  # Paths
+  # ------------------------------------------------------------------------------------------------
   homeDir = config.home.homeDirectory;
   configDir = "${homeDir}/.config/mihomo";
 
   secretFile = secretPath "mihomo/secret";
   subscriptionUrlFile = secretPath "mihomo/subscription-url";
 
+  # ------------------------------------------------------------------------------------------------
+  # Config update
+  # ------------------------------------------------------------------------------------------------
   baseConfigFile = pkgs.writeText "mihomo-base.yaml" (
     builtins.replaceStrings
       [ "__PORT__" "__CONTROLLER_PORT__" ]
@@ -61,8 +68,24 @@ let
 
   updateScript = lib.getExe updatePackage;
 
+  # ------------------------------------------------------------------------------------------------
+  # Service
+  # ------------------------------------------------------------------------------------------------
+  mihomoLabel = "one.metacubex.mihomo";
+
+  updateReloadScript = pkgs.writeShellScript "mihomo-update-reload" ''
+    set -euo pipefail
+
+    ${updateScript}
+
+    /bin/launchctl kill SIGHUP "gui/$(id -u)/${mihomoLabel}"
+  '';
+
   startScript = pkgs.writeShellScript "mihomo-start" ''
     set -euo pipefail
+
+    # Ignored until mihomo's signal.Notify takes over. An early SIGHUP kills the wrapper or mihomo.
+    trap "" HUP
 
     echo "Updating config before start..."
     if ! ${updateScript}; then
@@ -134,6 +157,7 @@ in
         Service = {
           Type = "oneshot";
           ExecStart = "${updateScript}";
+          ExecStartPost = "${config.systemd.user.systemctlPath} --user try-reload-or-restart mihomo.service";
           RemainAfterExit = false;
         };
       };
@@ -148,6 +172,7 @@ in
         Service = repoLib.systemd.restart // {
           Type = "simple";
           ExecStart = "${startScript}";
+          ExecReload = "${lib.getExe' pkgs.coreutils "kill"} -HUP $MAINPID";
         };
 
         Install = {
@@ -186,7 +211,7 @@ in
 
         config = {
           Label = "one.metacubex.mihomo-update";
-          ProgramArguments = [ "${updateScript}" ];
+          ProgramArguments = [ "${updateReloadScript}" ];
           StartCalendarInterval = [
             {
               Hour = 4;
@@ -203,7 +228,7 @@ in
         enable = true;
 
         config = {
-          Label = "one.metacubex.mihomo";
+          Label = mihomoLabel;
           ProgramArguments = [ "${startScript}" ];
           RunAtLoad = true;
           KeepAlive = true;
