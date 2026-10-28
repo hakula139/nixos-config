@@ -43,6 +43,7 @@ in
   "llm-assistants/corp-gateway/omp-api-key.age".publicKeys = corpGatewayKeys;
   "llm-assistants/corp-gateway/opencode-api-key.age".publicKeys = corpGatewayKeys;
   "llm-assistants/corp-gateway/oxide-code-api-key.age".publicKeys = corpGatewayKeys;
+  "llm-assistants/corp-gateway/portal-token.age".publicKeys = corpGatewayKeys;
   "llm-assistants/corp-gateway/prose-polish-api-key.age".publicKeys = corpGatewayKeys;
 
   "llm-assistants/telegram-bot-token.age".publicKeys = allKeys;
