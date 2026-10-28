@@ -17,6 +17,8 @@ let
   cfg = config.hakula.mihomo;
   json = pkgs.formats.json { };
 
+  esc = lib.escapeShellArg;
+
   homeDir = config.home.homeDirectory;
   configDir = "${homeDir}/.config/mihomo";
 
@@ -38,6 +40,11 @@ let
       subscriptionUrlFile
       ;
     inherit (repoLib.proxy) proxyVars;
+
+    curlArgs = repoLib.curl.mkArgs {
+      connectTimeout = 10;
+      maxTime = 60;
+    };
   };
 
   updatePackage = pkgs.writers.writeNuBin "mihomo-update" {
@@ -58,10 +65,17 @@ let
     set -euo pipefail
 
     echo "Updating config before start..."
-    ${updateScript}
+    if ! ${updateScript}; then
+      if [[ -f ${esc configDir}/config.yaml ]]; then
+        echo >&2 "Warning: subscription update failed, starting mihomo from the previous config"
+      else
+        echo >&2 "Error: subscription update failed and no config exists in" ${esc configDir}
+        exit 1
+      fi
+    fi
 
     echo "Starting mihomo..."
-    exec ${lib.getExe mihomo} -d ${configDir}
+    exec ${lib.getExe mihomo} -d ${esc configDir}
   '';
 in
 {
@@ -203,7 +217,7 @@ in
     # Directory management
     # ----------------------------------------------------------------------------------------------
     home.activation.mihomoSetup = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      run install -d -m 0700 "${configDir}"
+      run install -d -m 0700 ${esc configDir}
     '';
   };
 }

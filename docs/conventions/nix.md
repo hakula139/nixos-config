@@ -8,6 +8,7 @@ Read this before adding a module, a package, or a host.
 - **Home Manager modules** in `home/modules/` live under `hakula.<name>`. Branch on `pkgs.stdenv.{isDarwin, isLinux}` for platform variants. The flags `isNixOS` / `isDesktop` are threaded by the host builders, so only consume them when the host actually sets them. A long-running user service merges `repoLib.systemd.restart` into its `Service` section.
 - **Custom packages** in `packages/` are registered through the overlay (`lib/overlays.nix`) and consumed via `pkgs.<name>`. Use `pkgs` for package dependencies and add `lib` only when used. `callPackage` supplies both.
 - **Hosts** in `hosts/` register through one of the five `mk*` builders in `lib/builders.nix`. Reuse profiles from `hosts/_profiles/` for shared hardware or container shapes.
+- **Unattended HTTP calls** from a service, timer, launchd agent, activation script, or hook take curl's common flags from `repoLib.curl.mkArgs`, with both timeouts chosen for the endpoint.
 
 ## Function arguments
 

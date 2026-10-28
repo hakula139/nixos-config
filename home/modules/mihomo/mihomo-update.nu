@@ -26,7 +26,7 @@ def main [config_file: string] {
 
   print "Fetching mihomo subscription"
   let url = (open --raw $config.subscriptionUrlFile | decode utf-8 | str trim)
-  let fetched = (^curl -fsSL $url | complete)
+  let fetched = (^curl ...$config.curlArgs --location $url | complete)
   if $fetched.exit_code != 0 {
     print --stderr $"Error: subscription fetch failed with exit ($fetched.exit_code)"
     exit 1
