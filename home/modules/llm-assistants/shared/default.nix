@@ -53,9 +53,13 @@ let
         lib
         assistant
         mkNuCommand
-        timeouts
         ;
       gateway = gatewayFor assistant;
+
+      curlArgs = repoLib.curl.mkArgs {
+        connectTimeout = timeouts.modelConnect;
+        maxTime = timeouts.modelCall;
+      };
     };
 in
 {

@@ -190,8 +190,9 @@ def collect-processes []: nothing -> string {
 # Main Collection
 # --------------------------------------------------------------------------------------------------
 
-def main [server_key_file: string]: nothing -> nothing {
-  let key_file = ($env.CLOUDCONE_SERVER_KEY_FILE? | default $server_key_file)
+def main [config_file: string]: nothing -> nothing {
+  let config = (open $config_file)
+  let key_file = ($env.CLOUDCONE_SERVER_KEY_FILE? | default $config.serverKeyFile)
   # If set to 1, print the payload to stdout without sending it to the gateway.
   let dry_run = ($env.CLOUDCONE_DRY_RUN? | default "0")
   # If set to 1, redact the server key from output. Defaults to the dry-run value.
@@ -282,21 +283,8 @@ def main [server_key_file: string]: nothing -> nothing {
 
   # The endpoint is third-party and best-effort, so a failure here must not leave a permanently
   # failed unit that blocks a deploy.
-  let sent = try {
-    (
-      $"data=($post)"
-      | ^curl
-        -m 50
-        -k
-        -s
-        -d @-
-        $GATEWAY
-      | complete
-    ).exit_code
-  } catch {
-    1
-  }
-  if $sent != 0 {
-    print -e "Warning: Failed to send metrics to CloudCone gateway"
+  let sent = ($"data=($post)" | ^curl ...$config.curlArgs --data @- $GATEWAY | complete)
+  if $sent.exit_code != 0 {
+    print -e $"Warning: Failed to send metrics to CloudCone gateway: ($sent.stderr | str trim)"
   }
 }

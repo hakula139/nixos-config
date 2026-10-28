@@ -10,6 +10,13 @@ const SCRIPT_DIR = path self .
 const SCRIPT = ($SCRIPT_DIR | path join model-call.nu)
 
 const TOKEN = "stub-gateway-token"
+const CURL_ARGS = [
+  --fail
+  --silent
+  --show-error
+  --connect-timeout "5"
+  --max-time "90"
+]
 
 # `run` is the completed model call, `calls` holds what each curl call received, and `token_file`
 # is the token's path.
@@ -23,8 +30,7 @@ def call [request: record, reply: record]: nothing -> record {
   {
     gateway: {baseUrl: "https://gateway.test", tokenFile: $token_file, caFile: "/ca.pem"}
     curl: ($env.NU_TEST_STUBS | path join curl)
-    connectTimeout: 5
-    timeout: 90
+    curlArgs: $CURL_ARGS
   }
   | to json
   | save $config_file
@@ -49,9 +55,8 @@ def "test a request passes the token by file and prints the reply" [] {
   assert equal $result.calls [
     {
       args: [
-        --ipv4 --silent --show-error --fail
-        --connect-timeout "5"
-        --max-time "90"
+        ...$CURL_ARGS
+        --ipv4
         --cacert /ca.pem
         --variable $"token@($result.token_file)"
         --expand-header "Authorization: Bearer {{token:trim}}"
