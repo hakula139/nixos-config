@@ -38,9 +38,8 @@ def main [config_file: string] {
   let run = (
     $shaped
     | to json
-    | ^$curl --ipv4 --silent --show-error --fail
-      --connect-timeout $config.connectTimeout
-      --max-time $config.timeout
+    | ^$curl ...$config.curlArgs
+      --ipv4
       --cacert $gateway.caFile
       --variable $"token@($gateway.tokenFile)"
       --expand-header "Authorization: Bearer {{token:trim}}"
