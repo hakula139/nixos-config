@@ -9,8 +9,9 @@
 {
   architect = {
     description = ''
-      Architecture review and design critique. Use when you need analysis of code structure, design
-      patterns, dependency relationships, or feedback on an approach before implementation.
+      Architecture review, design critique, and design proposals. Use when you need a design for a
+      new feature or significant change, feedback on an approach, or analysis of code structure,
+      design patterns, and dependency relationships.
     '';
 
     prompt = readPrompt ./prompts/architect.md;
@@ -77,8 +78,7 @@
   implementer = {
     description = ''
       Code writing, feature implementation, and refactoring. Use when you need to delegate a
-      self-contained coding task, including writing new features, applying changes, or refactoring
-      code.
+      self-contained coding task.
     '';
 
     prompt = readPrompt ./prompts/implementer.md;
@@ -209,8 +209,8 @@
 
   tester = {
     description = ''
-      Test writing and execution, failure analysis. Use when you need tests written for new code,
-      want to run existing tests, or need help diagnosing test failures.
+      Test writing, test execution, and failure analysis. Use when you need tests written for new
+      code, want to run existing tests, or need help diagnosing test failures.
     '';
 
     prompt = readPrompt ./prompts/tester.md;
@@ -235,9 +235,8 @@
 
   usability-reviewer = {
     description = ''
-      Usability and clarity review from a non-expert perspective. Use after implementation to
-      evaluate user-facing surfaces such as APIs, docs, CLI help text, error messages, and UI copy
-      for intuitiveness and clarity.
+      Usability and clarity review from a first-time user's perspective. Use after implementation to
+      evaluate user-facing surfaces such as APIs, docs, CLI help text, error messages, and UI copy.
     '';
 
     prompt = readPrompt ./prompts/usability-reviewer.md;

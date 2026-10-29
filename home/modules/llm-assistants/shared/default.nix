@@ -15,12 +15,23 @@
 }:
 
 let
+  # ------------------------------------------------------------------------------------------------
+  # Formatter
+  # ------------------------------------------------------------------------------------------------
   formatter = pkgs.file-formatter.override { inherit enableDevToolchains; };
   fileFormatter = lib.getExe formatter;
 
+  # ------------------------------------------------------------------------------------------------
+  # Instructions and agent roles
+  # ------------------------------------------------------------------------------------------------
   promptFragments = import ./prompt-fragments;
-  agentRoles = import ./agent-roles { inherit (promptFragments) readPrompt; };
+  roles = import ./agent-roles { inherit (promptFragments) readPrompt; };
+  toLine = text: lib.replaceStrings [ "\n" ] [ " " ] (lib.trim text);
+  agentRoles = lib.mapAttrs (_: role: role // { description = toLine role.description; }) roles;
 
+  # ------------------------------------------------------------------------------------------------
+  # Profiles and gateway
+  # ------------------------------------------------------------------------------------------------
   profileDefinitions = repoLib.llmAssistants.mkProfileDefinitions {
     inherit lib modelCatalog corpHosts;
   };
@@ -33,6 +44,9 @@ let
     caFile = secretPath corpGateway.caSecret;
   };
 
+  # ------------------------------------------------------------------------------------------------
+  # Timeouts
+  # ------------------------------------------------------------------------------------------------
   timeouts = {
     modelConnect = 5;
     modelCall = 90;
@@ -43,6 +57,9 @@ let
     postEdit = 120;
   };
 
+  # ------------------------------------------------------------------------------------------------
+  # Model calls
+  # ------------------------------------------------------------------------------------------------
   mkNuCommand = import ./nu-command { inherit pkgs lib; };
 
   mkModelCall =

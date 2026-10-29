@@ -9,18 +9,14 @@
 }:
 
 let
-  renderIndentedLines =
-    value: map (line: "  ${line}") (lib.filter (line: line != "") (lib.splitString "\n" value));
-
   renderFrontmatter =
     agent:
     let
       permission = agent.opencode.permission or { };
       frontmatterLines = [
-        "description: |"
+        "description: ${builtins.toJSON agent.description}"
+        "mode: subagent"
       ]
-      ++ renderIndentedLines agent.description
-      ++ [ "mode: subagent" ]
       ++ lib.optionals (permission != { }) (
         [ "permission:" ]
         ++ lib.mapAttrsToList (name: value: "  ${name}: ${builtins.toJSON value}") permission
