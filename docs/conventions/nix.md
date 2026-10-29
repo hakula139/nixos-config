@@ -1,13 +1,9 @@
 # Nix
 
-Read this before adding a module, a package, or a host.
-
 ## Module shape
 
-- **NixOS modules** in `modules/nixos/` are typically optionally enabled services. Define `options.hakula.services.<name>.enable`, gate with `config = lib.mkIf cfg.enable { ... }`, and enable from a host or profile. A long-running service merges `repoLib.systemd.restartUnit` into its `systemd.services.<name>` instead of setting `Restart=` or start limits itself.
-- **Home Manager modules** in `home/modules/` live under `hakula.<name>`. Branch on `pkgs.stdenv.{isDarwin, isLinux}` for platform variants. The flags `isNixOS` / `isDesktop` are threaded by the host builders, so only consume them when the host actually sets them. A long-running user service merges `repoLib.systemd.restart` into its `Service` section.
-- **Custom packages** in `packages/` are registered through the overlay (`lib/overlays.nix`) and consumed via `pkgs.<name>`. Use `pkgs` for package dependencies and add `lib` only when used. `callPackage` supplies both.
-- **Hosts** in `hosts/` register through one of the five `mk*` builders in `lib/builders.nix`. Reuse profiles from `hosts/_profiles/` for shared hardware or container shapes.
+- **Restart policy**: a long-running NixOS service merges `repoLib.systemd.restartUnit` into its `systemd.services.<name>`, and a Home Manager user service merges `repoLib.systemd.restart` into its `Service` section, instead of setting `Restart=` or start limits itself.
+- **Host flags**: NixOS modules receive `isDesktop` only, while Home Manager modules receive both `isDesktop` and `isNixOS`.
 - **Unattended HTTP calls** from a service, timer, launchd agent, activation script, or hook take curl's common flags from `repoLib.curl.mkArgs`, with both timeouts chosen for the endpoint.
 
 ## Function arguments
@@ -16,24 +12,20 @@ Read this before adding a module, a package, or a host.
 - **Use `...` when the caller supplies a broader argument set.** NixOS and Home Manager module functions need it for framework arguments. Packages called through `callPackage` and ordinary helpers with explicitly constructed argument sets omit it, so unexpected arguments are caught. Keep open record patterns where accepting additional fields is part of the contract.
 - **Top-level attribute-set argument lists are multiline.** Put each argument and the `...` entry on its own line, even when the list fits on one line.
 - **Framework arguments lead, in the order `modulesPath`, `config`, `pkgs`, `lib`, `inputs`.** Whichever of them a file takes keep that relative order and precede everything else, a `packages/` derivation included, where `callPackage` supplies them from nixpkgs.
-- **A default that mentions another argument follows it**, so `owner ? "root"` precedes `group ? owner` whatever the alphabet says. Everything else groups by concept under the ordering rule in [Style](#style).
+- **A default that mentions another argument follows it**, so `owner ? "root"` precedes `group ? owner` whatever the alphabet says.
 
-A caller's set lifts its `inherit` entries into a leading block, then follows the order the callee declares. An `inherit` passes through a name the scope already has, so that block reads as context handed down, and lifting it stops an `inherit` from landing between two arguments that belong together. `specialArgs` and `extraSpecialArgs` order the same way. A set that assigns declared options keeps the declaration's order throughout, which is why `enable` stays first.
+A call's argument set, `specialArgs` and `extraSpecialArgs` included, follows the callee's declared order after a leading `inherit` block.
 
-Save `nix-instantiate --parse <file>` before the edit and diff it afterwards. The parser prints attributes, formals, and the names within an `inherit` in sorted order, so an empty diff proves a pure reordering of formals or an attribute set, which no build can show here. Grep the callee's name to find every call site that must follow a reordered declaration.
+Diff `nix-instantiate --parse <file>` before and after a reordering. The parser sorts attributes, formals, and `inherit` names, so an empty diff proves a pure reordering.
 
 ## Style
 
-- **Formatter**: `nixfmt` (enforced by pre-commit).
-- **Linting**: `statix`, `deadnix` (CI). `statix.toml` suppresses W20 `repeated_keys` because the flat-key style is intentional.
-- **Line width**: 100 columns for code and comments alike, counting the indent, in every language except Python, which follows ruff's 88. nixfmt does not reflow comments, so wrap them by hand.
-- **Multiline text**: use Nix indented strings for inline text, with literal line breaks and contents aligned with the surrounding code. Nix strips the common leading indentation while preserving relative indentation within the text. Keep longer prompts and prose in adjacent text files.
-- **Attribute names**: quote one only when Nix requires it, which is when it is a reserved word or does not match `[A-Za-z_][A-Za-z0-9_'-]*`. In a set where some names need quotes, quote them all so they read alike. Access paths follow the first rule regardless of how the set defines the name.
+- **Embedded text**: keep substantial scripts and prose in adjacent files loaded with `builtins.readFile`, inlining only short wrappers or generated snippets. Name model-facing prose `prompt.md`, or `<role>-prompt.md` when there are several, so Markdown and prose checks see it.
+- **Attribute names**: quote one only when Nix requires it, and quote every name in a set where any needs quotes. Access paths follow the first rule.
 - **`with pkgs;`**: use in package lists for brevity.
-- **`inherit` placement**: top of `let` blocks, like imports. Combine bindings from the same source: `inherit (pkgs.stdenv) isDarwin isLinux;`. Inside a set that supplies declared options or returns data, keep `inherit` in its logical position (e.g., `group` between `owner` and `path`).
+- **`inherit` placement**: lead `let` blocks and call argument sets, combining names from one source (`inherit (pkgs.stdenv) isDarwin isLinux;`). A set that assigns declared options or returns data keeps the declaration's order, with `inherit` in place (`group` between `owner` and `path`).
 - **Format generators**: bind `json = pkgs.formats.json { };` (likewise `yaml` and `toml`) once in the `let` block that uses it, after the `inherit` bindings and `cfg`, then call `json.generate`. Avoid inline `(pkgs.formats.json { }).generate`.
 - **Wrapper arguments**: keep each wrapper option and its operands together, separating options in Nix lists with a blank line. Put environment setup before fixed command arguments. Preserve the order of environment transformations and pass fixed arguments in the callee's order.
-- **Ordering**: group related fields, then choose an order within each group that makes their relationships clear. Use alphabetical order when no stronger semantic order applies. Order a `let` block so a binding follows what it depends on.
 
 ## Section banners
 
@@ -52,7 +44,3 @@ Banners end at column 100, counting the indent. Use equals signs at the file hea
 A file description, in any language using these banners, goes inside the header banner after the title and is closed by a third rule of equals signs.
 
 Option-bearing modules use `Module options` and `Module config` banners before the top-level `options` and `config` assignments.
-
-## Comments
-
-Follow the global comment doctrine. The repo-specific addition is that _restyling_ an existing file means matching nearby style rather than blanket-adding or blanket-removing: a file already wearing banners gets one on the new section, a flat module stays flat, and comment density follows suit.

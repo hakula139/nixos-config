@@ -1,6 +1,6 @@
 # Architecture
 
-A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is the manifest: it holds inputs, special args, host registration, and outputs. Every host registers through one of the five `mk*` builders in `lib/builders.nix`.
+A flake-based NixOS / nix-darwin / system-manager configuration. Every host registers through one of the five `mk*` builders in `lib/builders.nix`.
 
 ## Hosts
 
@@ -21,12 +21,12 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 ├── hosts/
 │   ├── _profiles/
 │   │   ├── platform/           # Hardware / runtime shape (cloudcone-sc2, container, wsl, ...)
-│   │   └── role/               # System role (server, workstation)
-│   ├── servers/                # NixOS servers (us-1, us-4) — all personal
+│   │   └── role/               # System role (server, workstation), unused by system-manager hosts
+│   ├── servers/                # NixOS servers (us-1, us-4), all personal
 │   ├── workstations/
 │   │   ├── personal/           # macbook (Darwin)
 │   │   └── work/               # wsl (NixOS-WSL), wsl-non-nixos (System Manager)
-│   └── images/                 # Buildable images (devvm — work)
+│   └── images/                 # Buildable images (devvm, work)
 ├── data/                       # Static configuration and inventory
 │   ├── caches.nix              # Binary cache substituters and trusted public keys
 │   ├── corp-domain.nix         # Corp-internal domain
@@ -42,18 +42,18 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 │   ├── curl.nix                # Bounded curl arguments for unattended HTTP calls
 │   ├── overlays.nix            # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, custom packages)
 │   ├── packages.nix            # Base and font package groups for each package set
-│   ├── proxy.nix               # mkProxyOptions, mkProxyScript, wrapWithProxy, no_proxy rendering
+│   ├── proxy.nix               # Proxy options, wrappers, and environment scripts
 │   ├── script-tests.nix        # `checks.<system>.scripts`, running every `*.test.nu` under nu-test
-│   ├── secrets.nix             # mkSecret, mkRequiredUserSecrets, secretFile, secretPath
+│   ├── secrets.nix             # Secret declarations and path helpers
 │   ├── ssh.nix                 # Builder and SSH configuration from server inventory
-│   ├── systemd.nix             # Shared systemd hardening and restart policy
+│   ├── systemd.nix             # Shared systemd hardening and restart policies
 │   ├── tooling.nix             # Shared development tool groups
 │   ├── wrap-package.nix        # Package wrappers preserving upstream launcher identity
 │   ├── llm-assistants/         # Shared assistant options, permission policies, profile definitions
 │   └── wsl/                    # Windows interop helpers (windows-interop.nu)
 ├── modules/
-│   ├── nixos/                  # NixOS service modules (most carry an `enable` option)
 │   ├── darwin/                 # macOS-specific modules
+│   ├── nixos/                  # NixOS service modules (most carry an `enable` option)
 │   └── system-manager/         # System Manager activation, agenix port
 ├── home/
 │   ├── hakula.nix              # Home Manager entry point
@@ -64,7 +64,3 @@ A flake-based NixOS / nix-darwin / system-manager configuration. `flake.nix` is 
 ├── docs/                       # This knowledge base
 └── .github/workflows/ci.yml    # CI pipeline
 ```
-
-`repoLib` exposes reusable helpers through `lib/default.nix`. Inventories and policy defaults remain separate inputs. The LLM assistant modules share skills, instructions, MCP servers, and hook factories through `config.lib.llmAssistants`, populated by `home/modules/llm-assistants/shared`.
-
-`hosts/_profiles/` splits into `platform/` for hardware or runtime shape and `role/` for server against workstation.
