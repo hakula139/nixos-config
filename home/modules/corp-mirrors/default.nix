@@ -71,12 +71,6 @@ in
         UV_PYTHON_INSTALL_MIRROR = "${githubMirrorUrl}/astral-sh/python-build-standalone/releases/download";
 
         # ------------------------------------------------------------------------------------------
-        # Rust Development
-        # ------------------------------------------------------------------------------------------
-        RUSTUP_DIST_SERVER = "${artifactoryUrl}/mirrors-rust-lang-static/dist";
-        RUSTUP_UPDATE_ROOT = "${artifactoryUrl}/mirrors-rust-lang-static/rustup";
-
-        # ------------------------------------------------------------------------------------------
         # Playwright
         # ------------------------------------------------------------------------------------------
         PLAYWRIGHT_DOWNLOAD_HOST = "${artifactoryUrl}/mirrors-generic-playwright";
