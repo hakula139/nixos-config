@@ -77,10 +77,21 @@ let
           # structured replies that think.
           CLAUDE_CODE_MODEL_CAPABILITIES = "${mini.modelKey}=-rejects_disabled_thinking";
         };
+
+      # Only the gateway's Bedrock route is known to return `safeguard_results`, so on other routes
+      # Claude Code would hold the first checked action behind its auto-mode ineligibility notice.
+      autoModeServerOptOut =
+        profile.provider != null
+        && lib.any (workload: workload.channel != "anthropic") (builtins.attrValues workloads);
     in
     auth
     // {
-      extraEnv = aliasEnv // auth.extraEnv or { } // lib.optionalAttrs isCorpGateway corpGatewayEnv;
+      extraEnv =
+        aliasEnv
+        // auth.extraEnv or { }
+        // lib.optionalAttrs isCorpGateway corpGatewayEnv
+        // lib.optionalAttrs autoModeServerOptOut { CLAUDE_CODE_AUTO_MODE_SERVER = "0"; };
+
       nativeWebSearch = profile.nativeWebSearch && !isCorpGateway;
       sessionEffort = roles.default.effort;
       # Generic subagents and other requests without an effort take the session effort, which other
