@@ -66,11 +66,6 @@ in
         GOPROXY = goProxy;
 
         # ------------------------------------------------------------------------------------------
-        # Node.js Development
-        # ------------------------------------------------------------------------------------------
-        FNM_NODE_DIST_MIRROR = "${artifactoryUrl}/mirrors-generic-nodejs-dist";
-
-        # ------------------------------------------------------------------------------------------
         # Python Development
         # ------------------------------------------------------------------------------------------
         UV_PYTHON_INSTALL_MIRROR = "${githubMirrorUrl}/astral-sh/python-build-standalone/releases/download";
