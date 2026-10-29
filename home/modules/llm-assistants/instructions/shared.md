@@ -77,6 +77,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 - Write tests that fail for a plausible bug, and before keeping one, break the behavior it guards and confirm that it fails. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
 - Check that each new test covers something unique, and drop or merge tests whose coverage is subsumed by others.
 - For a script whose behavior depends on large external state, such as other tools' stores or databases, test its pure functions with tables and validate the rest with a real run.
+- Write test data with neutral, invented names, such as `/home/u/src/app` or `example.com`, never paths, repositories, hosts, or accounts from the user's own environment. When a case depends on a real value's shape, such as an underscore that `LIKE` would treat as a wildcard, keep the shape under a generic name.
 - Merge tests that differ only in their inputs and expected outputs into one table-driven test when the table makes the group's shared intent clearer, and keep tests separate when their setup or the behavior they check differs. Use the framework's parametrization where it exists, and otherwise loop over case records, naming the case in each assertion message so a failure shows which input broke.
 - Structure each test as arrange, act, and assert, with blank lines between the steps. Keep any check that the act succeeded beside the act.
 
