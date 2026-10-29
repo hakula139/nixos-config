@@ -36,7 +36,7 @@ nix build '.#systemConfigs.wsl-non-nixos'
 nix build '.#packages.x86_64-linux.devvm-docker'
 ```
 
-Host out paths change on every source edit because `home/modules/shared.nix` pins `inputs.self.outPath` into the Nix registry, so to confirm that a refactor preserves behavior, compare what it affects before and after, such as a `nix eval --json` of the changed attribute or a `diff -r --exclude=registry.json` of the built `home-manager-files`. Run `nix develop` once in a worktree under `.claude/worktrees/` to materialize the gitignored pre-commit symlink.
+Host out paths change on every source edit because `home/modules/shared.nix` pins `inputs.self.outPath` into the Nix registry, so to confirm that a refactor preserves behavior, compare what it affects before and after, such as a `nix eval --json` of the changed attribute or a `diff -r --exclude=registry.json` of the built `home-manager-files`. Run `nix develop` once in a worktree under `.claude/worktrees/` to materialize the gitignored pre-commit symlink, and rerun it after a rebase or merge that changes the hook configuration, since the shell hook relinks it only on shell entry.
 
 ## Documentation maintenance
 
