@@ -12,7 +12,7 @@
 }:
 
 let
-  version = "2.4.2";
+  version = "3.0.2";
 
   picgoServerBin = "node_modules/.bin/picgo-server";
   piclistPkgJson = "node_modules/piclist/package.json";
