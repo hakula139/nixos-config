@@ -7,7 +7,7 @@ description: Delegate a bounded task or consult Claude Code or Codex through ACP
 
 Use `acpx` to start or resume a configured assistant. Run `acpx config show` to see this host's targets, `claude` and `codex`. If a target is disabled, the output tells you which option enables it. Other names fall through to acpx's upstream registry and may launch an unmanaged agent.
 
-Delegates do not share your conversation, so provide the repository, relevant files, task scope, and expected result. For code changes, assign file ownership and follow the shared worktree rules.
+Delegates do not share your conversation, so provide the repository, relevant files, task scope, and expected result. For code changes, assign file ownership and follow the global Shared-Tree Safety rules.
 
 ## Single task
 
