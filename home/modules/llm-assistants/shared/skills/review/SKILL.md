@@ -24,7 +24,7 @@ For a branch comparison, refresh the relevant remote refs, then use `git merge-b
 
 ## Load the instructions
 
-Apply the global instructions, the repository's `AGENTS.md` / `CLAUDE.md` files, including nested files for touched paths, and every convention document they reference for the affected areas. Treat project review sections, such as a `## Code Review` checklist, as additional criteria. Repository rules for review format and severity take precedence over this skill's defaults.
+Apply the global instructions, the repository's `AGENTS.md` / `CLAUDE.md` files, including nested files for touched paths, and every convention document they reference for the affected areas. Treat project review sections, such as a `## Code Review` checklist, as additional criteria. Repository rules for review format and severity take precedence over this skill's defaults. Before a whole-repository review, also read the open issues and PRs / MRs.
 
 ## Review each dimension
 
@@ -65,6 +65,7 @@ These are not findings:
 - Issues reported by the project's formatter, linter, or type checker.
 - The contents of generated, vendored, lock, and minified files beyond what their changes imply, such as a dependency downgrade.
 - Patterns whose documented rationale in code, commits, or the PR discussion still applies, such as generated-file ignores or deliberate license exceptions. A stated reason does not exempt a workaround whose root cause can be fixed.
+- Findings that an open issue or PR / MR already tracks.
 - Security issues with no reachable untrusted input.
 - Personal preferences without a documented convention or established pattern behind them.
 
