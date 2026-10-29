@@ -4,7 +4,6 @@
 
 {
   config,
-  pkgs,
   lib,
   repoLib,
   ...
@@ -30,30 +29,9 @@ let
   cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
   netdataUpstream = "http://127.0.0.1:${toString config.hakula.services.netdata.port}";
   peertubeUpstream = "http://127.0.0.1:${toString config.hakula.services.peertube.port}";
-  piclistUpstream = "http://127.0.0.1:${toString config.hakula.services.piclist.port}";
   umamiUpstream = "http://127.0.0.1:${toString config.hakula.services.umami.port}";
   xrayRealityUpstream = "127.0.0.1:${toString config.hakula.services.xray.reality.port}";
   xrayWsUpstream = "http://127.0.0.1:${toString config.hakula.services.xray.ws.port}";
-
-  # ------------------------------------------------------------------------------------------------
-  # PicList
-  # ------------------------------------------------------------------------------------------------
-  piclistUploadKeyMap = "/run/nginx/piclist-upload-key.map";
-
-  piclistUploadKeyScript = pkgs.writers.writeNu "piclist-upload-key" {
-    makeWrapperArgs = [
-      "--prefix"
-      "PATH"
-      ":"
-      (lib.makeBinPath [ pkgs.coreutils ])
-
-      "--add-flag"
-      config.age.secrets.piclist-token.path
-
-      "--add-flag"
-      piclistUploadKeyMap
-    ];
-  } (builtins.readFile ./piclist-upload-key.nu);
 
   # ------------------------------------------------------------------------------------------------
   # Shared Configuration
@@ -142,13 +120,6 @@ in
       group = "acme";
     };
 
-    age.secrets.piclist-token = lib.mkIf config.hakula.services.piclist.enable (
-      repoLib.secrets.mkSecret {
-        name = "piclist/token";
-        owner = "nginx";
-      }
-    );
-
     # ----------------------------------------------------------------------------------------------
     # ACME (Let's Encrypt)
     # ----------------------------------------------------------------------------------------------
@@ -171,20 +142,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Nginx service
     # ----------------------------------------------------------------------------------------------
-    systemd.services.nginx = lib.mkMerge [
-      repoLib.systemd.restartUnit
-
-      (lib.mkIf config.hakula.services.piclist.enable {
-        serviceConfig = {
-          ExecStartPre = lib.mkBefore [ piclistUploadKeyScript ];
-          ExecReload = lib.mkBefore [ piclistUploadKeyScript ];
-        };
-      })
-    ];
-
-    systemd.services.nginx-config-reload.restartTriggers =
-      lib.mkIf config.hakula.services.piclist.enable
-        [ config.age.secrets.piclist-token.file ];
+    systemd.services.nginx = repoLib.systemd.restartUnit;
 
     services.nginx = {
       enable = true;
@@ -211,13 +169,6 @@ in
       commonHttpConfig = ''
         ${cloudflareRealIPConfig}
         real_ip_header CF-Connecting-IP;
-      '';
-
-      appendHttpConfig = lib.mkIf config.hakula.services.piclist.enable ''
-        map $arg_key $piclist_upload_authorized {
-          default 0;
-          include ${piclistUploadKeyMap};
-        }
       '';
 
       # Route by TLS Server Name Indication (SNI):
@@ -341,38 +292,6 @@ in
               };
             }
           );
-
-      # PicList image upload server
-      virtualHosts."static.hakula.xyz" = lib.mkIf config.hakula.services.piclist.enable (
-        cloudflareVhostConfig
-        // {
-          locations."= /upload" = {
-            proxyPass = piclistUpstream;
-            extraConfig = ''
-              default_type application/json;
-
-              if ($piclist_upload_authorized = 0) {
-                return 403 '{"success":false,"message":"Unauthorized access"}';
-              }
-
-              # picgo-server reads JSON `list` entries as local paths or URLs.
-              if ($content_type !~ "^multipart/form-data") {
-                return 415 '{"success":false,"message":"Only multipart uploads are accepted"}';
-              }
-
-              # Both logs would record the key from `?key=`.
-              access_log off;
-              error_log stderr crit;
-
-              ${noBufferingExtraConfig}
-            '';
-          };
-
-          locations."/" = {
-            return = "302 https://cloud.hakula.xyz";
-          };
-        }
-      );
 
       # Umami analytics
       virtualHosts."umami.hakula.xyz" = lib.mkIf config.hakula.services.umami.enable (
