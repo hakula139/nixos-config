@@ -158,10 +158,6 @@ Umami is enabled on `us-4`. Inspect host overrides before changing a default, si
 
 Review release notes for application and database migrations, then edit the tag and build the affected host. Nix builds validate the service configuration but do not fetch these container images or test their runtime. When deployment is requested, `colmena apply --on us-4` applies an Umami update. Podman resolves the configured image when starting the container.
 
-### PicList
-
-`modules/nixos/piclist/server/default.nix` pins the npm package version. Its startup script compares that value with the installed package and reinstalls on a mismatch or missing executable. Bump `version` and build the affected host, currently `us-4`. The npm install occurs at service start, so successful host builds do not validate package availability or runtime compatibility.
-
 ### Unpinned MCP wrappers
 
 The `npx` and `uvx` MCP wrappers in `home/modules/llm-assistants/shared/mcp/default.nix` float on each package's latest release, `uvx` through `@latest`, so they are outside this pin checker.
