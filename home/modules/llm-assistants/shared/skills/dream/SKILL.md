@@ -102,7 +102,7 @@ Read the target before promoting a rule. If it already states the rule, delete t
 
 ### Integrate
 
-Rewrite each rule to fit the target's structure, writing conventions, and documentation rules. Merge it with any neighboring rule it refines or generalizes so the section reads as a coherent set. Never paste memory text verbatim. Remove the **Why** and **How to apply** scaffolding, keeping only the reasoning readers need to apply the rule.
+Rewrite each rule to fit the target's structure, writing conventions, and documentation rules. Merge it with any neighboring rule it refines or generalizes so the section reads as a coherent set. Never paste memory text verbatim. Remove the **Why** and **How to apply** scaffolding, keeping only the reasoning readers need to apply the rule. Promote only what the memory's evidence supports, adding no cases or rows it lacks. Re-run each tool fact as the target words it, in the setting the target describes, such as the repository's own test runner, on the version now pinned. Drop any that does not reproduce, and correct its memory as Phase 3 describes. State the rule in terms visible from the target, without naming tools its readers cannot find, such as a local-only skill.
 
 ### Publish
 
