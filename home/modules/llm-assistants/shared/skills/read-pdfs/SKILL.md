@@ -7,7 +7,7 @@ description: >-
 
 # Read PDFs
 
-Read a PDF with the harness's native reader when it has one, such as Claude Code's Read tool, and use Poppler where that reader falls short. Keep source documents and extracted content local unless the user asks to share them.
+Read a PDF with the client's native reader when it has one, such as Claude Code's Read tool, and use Poppler where that reader falls short. Keep source documents and extracted content local unless the user asks to share them.
 
 ## Workflow
 
@@ -34,7 +34,7 @@ Read a PDF with the harness's native reader when it has one, such as Claude Code
 
 5. Cite page numbers where they help the user verify the result, and distinguish the document's statements from your inferences.
 
-## Failure handling
+## Failures
 
 - On an encryption error, ask the user for the password, and never try to bypass document security.
 - When fonts lack usable mappings, read the rendered pages. `pdffonts` may show `uni` as `no` even when Poppler still recovers the text.
