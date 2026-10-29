@@ -78,10 +78,6 @@ def gh-default-head [repo: string]: nothing -> string {
   gh-api $"repos/($repo)/commits?per_page=1" ".[0].sha"
 }
 
-def npm-latest [pkg: string]: nothing -> string {
-  http get $"https://registry.npmjs.org/($pkg)/latest" | get version
-}
-
 # --------------------------------------------------------------------------------------------------
 # Pin extraction
 # --------------------------------------------------------------------------------------------------
@@ -307,16 +303,6 @@ def registry [root: string]: nothing -> list<record> {
           pin: "umami"
           local: {|| image-tag $root "modules/nixos/umami/default.nix" }
           upstream: {|| gh-latest-release "umami-software/umami" | str replace -r '^v' '' }
-        }
-      ]
-    }
-    {
-      title: "Runtime-installed packages"
-      pins: [
-        {
-          pin: "piclist"
-          local: {|| nix-version $root "modules/nixos/piclist/server/default.nix" }
-          upstream: {|| npm-latest "piclist" }
         }
       ]
     }

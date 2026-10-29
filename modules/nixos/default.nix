@@ -39,7 +39,6 @@ in
     ./nix-daemon-proxy
     ./nix-gc
     ./peertube
-    ./piclist
     ./podman
     ./postgresql
     ./ssh
