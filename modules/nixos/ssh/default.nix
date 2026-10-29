@@ -35,8 +35,9 @@ in
       enable = true;
       inherit (cfg) ports;
       settings = {
-        PermitRootLogin = "prohibit-password";
+        KbdInteractiveAuthentication = false;
         PasswordAuthentication = false;
+        PermitRootLogin = "prohibit-password";
       };
     };
   };
