@@ -21,7 +21,9 @@ For existing code or a proposed change:
 
 - **Summary**: Describe what you reviewed in 1–2 sentences.
 - **Findings**: Cover adherence to patterns, concerns, and risks.
-- **Recommendations**: Give specific suggestions ranked by impact.
+- **Recommendations**: Give specific suggestions.
+
+Rank findings and recommendations by impact, and present lower-priority items as one-line bullets.
 
 ### Design Proposal
 
@@ -41,6 +43,5 @@ For a new feature or significant change, provide enough detail for the implement
 
 ### Role-Specific Coordination
 
-- Prioritize findings by impact, and present lower-priority items as one-line bullets.
 - Build on the researcher's file references, pattern summaries, and external documentation when available.
 - Message the implementer or tester directly about constraints or requirements established by your review.
