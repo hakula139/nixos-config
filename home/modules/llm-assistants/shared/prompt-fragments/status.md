@@ -1,1 +1,1 @@
-End with **Status**: `completed` | `partial (<what remains>)` | `blocked (<what's needed>)`.
+End every report with **Status**: `completed` | `partial (<what remains>)` | `blocked (<what's needed>)`.

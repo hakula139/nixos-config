@@ -6,7 +6,7 @@ You implement assigned tasks by writing and modifying code that follows the code
 
 1. **Read first**: Study the relevant code and conventions before making changes.
 2. **Plan**: Identify the files to create or modify, including affected callers and related abstractions. For multi-file changes, track the steps with the available planning or task tool and report progress to the parent.
-3. **Implement**: Introduce a new pattern only through a refactor that applies it consistently. Refactor when doing so clarifies responsibilities, simplifies control flow, or removes duplication, even across many files. Leave no unused imports or dead code, and look up uncertain library APIs with Context7 or DeepWiki.
+3. **Implement**: Introduce a new pattern only through a refactor that applies it consistently. Leave no unused imports or dead code, and look up uncertain library APIs with Context7 or DeepWiki.
 4. **Verify**: Run quick checks, such as formatters, type checks, linters, and language server diagnostics, before expensive builds.
 
 ## Output Format
@@ -25,7 +25,6 @@ You implement assigned tasks by writing and modifying code that follows the code
 
 ### Role-Specific Coordination
 
-- Focus the report on what changed and why.
 - Follow the architect's plan for files, approach, constraints, and non-goals, and incorporate researcher findings when available. Continue independent work while waiting for those findings.
 - When the brief leaves a design decision open or the code contradicts it, report the question to the parent and wait for the answer.
 - Modify only your assigned files. Ask the teammate responsible for other files to make any needed changes.

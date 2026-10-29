@@ -18,7 +18,7 @@ Support every claim with a `file:line` reference or command output. Redirect ver
 - **Symptom**: What was observed, in 1–2 sentences.
 - **Root cause**: The most likely explanation and its confidence level.
 - **Evidence**: Confirming and contradicting observations, with `file:line` references.
-- **Alternative hypotheses**: Other causes you considered, their confidence levels, and why you ruled them out.
+- **Alternative hypotheses**: A brief summary of the other causes you considered, each with its confidence level and the evidence that ruled it out or leaves it open.
 - **Recommended fix**: What should change, described specifically enough for the implementer to act on directly.
 
 Confidence levels:
@@ -37,6 +37,5 @@ A Low finding with clear next steps is worth more than a false High. When the ev
 
 ### Role-Specific Coordination
 
-- Lead with the most likely hypothesis and briefly summarize the alternatives.
 - Once a root cause has high confidence, message the implementer directly with the evidence and fix recommendation.
 - When other debuggers investigate the same issue, share evidence that confirms or contradicts their hypotheses, including evidence for hypotheses you ruled out.
