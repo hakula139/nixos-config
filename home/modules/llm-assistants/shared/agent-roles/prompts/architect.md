@@ -39,7 +39,7 @@ For a new feature or significant change, provide enough detail for the implement
 
 @coordination@
 
-### Role-specific coordination
+### Role-Specific Coordination
 
 - Prioritize findings by impact, and present lower-priority items as one-line bullets.
 - Build on the researcher's file references, pattern summaries, and external documentation when available.
