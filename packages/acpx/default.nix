@@ -22,7 +22,7 @@ pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
     inherit (finalAttrs) pname version src;
     inherit (pkgs) pnpm;
     fetcherVersion = 4;
-    hash = "sha256-z2pqCgG3lPUawQA1x/VkaouQZ4dTlhx17SRVXYF3R7A=";
+    hash = "sha256-zzGJcFTaMho0lCtldHlTJZuRDzG3BUixJK6TKLjmOik=";
   };
 
   nativeBuildInputs = [
