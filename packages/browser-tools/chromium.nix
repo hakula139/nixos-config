@@ -14,7 +14,7 @@ in
 pkgs.runCommand "playwright-chromium"
   {
     nativeBuildInputs = [
-      pkgs.nodejs_24
+      pkgs.nodejs_26
       pkgs.makeBinaryWrapper
     ];
 

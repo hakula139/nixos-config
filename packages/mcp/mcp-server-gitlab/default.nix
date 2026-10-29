@@ -19,19 +19,13 @@ pkgs.buildNpmPackage rec {
   };
 
   npmDepsHash = "sha256-I0/CbaADXGjZhzpR4KhNKCIs/16L1CifIV7lKtmRmnw=";
-
-  nativeBuildInputs = [ pkgs.makeBinaryWrapper ];
-
-  postInstall = ''
-    makeWrapper "${lib.getExe pkgs.nodejs_24}" "$out/bin/mcp-server-gitlab" \
-      --add-flags "$out/lib/node_modules/@zereight/mcp-gitlab/build/index.js"
-  '';
+  nodejs = pkgs.nodejs_26;
 
   meta = {
     description = "MCP server for GitLab API operations (@zereight/mcp-gitlab)";
     homepage = "https://github.com/zereight/gitlab-mcp";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
-    mainProgram = "mcp-server-gitlab";
+    mainProgram = "mcp-gitlab";
   };
 }

@@ -32,7 +32,7 @@ pkgs.runCommand "browser-tools"
     mkdir -p "$out/bin" "$out/lib/node_modules"
     ln -s ${driver} "$out/lib/node_modules/playwright"
     ln -s ${lib.getExe chromium} "$out/bin/chromium"
-    makeWrapper ${lib.getExe pkgs.nodejs_24} "$out/bin/playwright" \
+    makeWrapper ${lib.getExe pkgs.nodejs_26} "$out/bin/playwright" \
       --set PLAYWRIGHT_BROWSERS_PATH ${browsers} \
       --add-flags ${driver}/cli.js
   ''

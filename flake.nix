@@ -435,7 +435,7 @@
           browser = pkgs.mkShell {
             packages = [
               pkgs.browser-tools
-              pkgs.nodejs_24
+              pkgs.nodejs_26
               (pkgs.unstable.python3.withPackages (ps: [ ps.playwright ]))
             ]
             ++ basePackages;
