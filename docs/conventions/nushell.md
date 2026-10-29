@@ -1,10 +1,17 @@
 # Nushell
 
-Nushell is the default for new helper scripts, since most of them parse an external tool's JSON and reshape it. Substantial scripts live in adjacent `.nu` files loaded with `builtins.readFile`, same as [bash](shell.md).
+Nushell is the default for new helper scripts.
 
 - **Entry point**: `def main` with typed parameters, so Nushell checks arity and types.
 - **Script-relative resources**: bind `const SCRIPT_DIR = path self .` after the header and imports. It resolves at parse time from the defining file, so Nix must package those resources beside the script.
 - **Help**: keep the script header to its purpose and operating constraints, and document usage at each command and parameter so `--help` carries it. Point to it with `Run with --help for usage.` only when the header says something else.
+
+## What stays bash
+
+- Scripts that another shell evaluates, such as `makeWrapper --run` snippets and sourced files.
+- `exec` wrappers that only set a variable and hand off.
+
+When porting a hook, compare the old and new scripts on representative payloads first, since a hook error leaves the tool call running and silently disables the hook.
 
 ## Traps
 
@@ -33,9 +40,8 @@ Nushell is the default for new helper scripts, since most of them parse an exter
 
 - **String literals keep source newlines and indentation, with no line continuation.**
 
-  - Put prose in an adjacent Markdown file.
   - Indent a multiline literal with the code and pipe it through `str dedent` from `std-rfc/str`. Put the opening quote, content, and closing quote at one column, `| str dedent` on the next line, and an enclosing parenthesis on its own line.
-  - Keep a single-line message as one literal at any length, without `+`.
+  - Keep a single-line message as one literal, without `+`.
 
 - **Forwarding arguments needs `def --wrapped`.** A plain `def` parses flags in `...args` itself.
 
@@ -63,8 +69,6 @@ Nushell is the default for new helper scripts, since most of them parse an exter
   - Pass structured values as one JSON config file the same way.
   - Put executables on the wrapper's `PATH`.
 
-- **Prompts**: put model-facing prose in an adjacent `prompt.md`, or `<role>-prompt.md` when there are several, loaded with `builtins.readFile`, so Markdown and prose checks can see it.
-
 - **Shebang**: the writers prepend a store-path shebang, which demotes the script's `#!/usr/bin/env nu` to a comment. Keep that line for standalone runs and LSP checks, and commit the executable bit on helpers run from the checkout. Spawn Nushell from a generated script with `$nu.current-exe`.
 
 - **Modules**: a parse-time `use` target must resolve in both the source tree and the store. Without such a path, expose the helper as an executable.
@@ -84,17 +88,10 @@ Give a script a `<script>.test.nu` beside it when its output is easy to get subt
 
 - **Stubs**: a stand-in for an executable is `<executable>.stub.nu` beside the test, which the runner installs in `$env.NU_TEST_STUBS`. A stub that records calls appends JSON lines to `$env.STUB_LOG`, read back with `open $log | from json --objects`.
 
-- **Running**: `nu-test <file>...` runs each test in its own process. `checks.<system>.scripts` finds every `*.test.nu`, and a test needing tools beyond Nushell, bash, and coreutils adds them to the check's inputs.
+- **Running**: `nu-test <file>...` runs each test in its own process. A test needing tools beyond Nushell, bash, and coreutils adds them to the check's inputs.
 
 - **Guard check**: before keeping a test, break the behavior it guards and confirm that it fails.
 
 ## Linting
 
 `nu-check` wraps `nu --ide-check`, which catches delimiters and the arity of local `def`s but passes a mistyped command as an external call, so run the script once for real. `editorconfig-checker` owns indentation. Don't use `nufmt`, which reindents to four spaces.
-
-## What stays bash
-
-- Scripts that another shell evaluates, such as `makeWrapper --run` snippets and sourced files.
-- `exec` wrappers that only set a variable and hand off.
-
-When porting a hook, compare the old and new scripts on representative payloads first, since a hook error leaves the tool call running and silently disables the hook.
