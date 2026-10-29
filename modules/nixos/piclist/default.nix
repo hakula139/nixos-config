@@ -15,9 +15,8 @@ let
 
   piclistServer = import ./server {
     inherit pkgs lib;
-    inherit (cfg) nodejs;
+    inherit (cfg) nodejs port;
     configPath = config.age.secrets.piclist-config.path;
-    tokenPath = config.age.secrets.piclist-token.path;
   };
 in
 {
@@ -63,12 +62,6 @@ in
       group = "piclist";
     };
 
-    age.secrets.piclist-token = repoLib.secrets.mkSecret {
-      name = "piclist/token";
-      owner = "piclist";
-      group = "piclist";
-    };
-
     # ----------------------------------------------------------------------------------------------
     # Systemd service
     # ----------------------------------------------------------------------------------------------
@@ -98,7 +91,6 @@ in
 
         restartTriggers = [
           config.age.secrets.piclist-config.file
-          config.age.secrets.piclist-token.file
         ];
       }
     ];

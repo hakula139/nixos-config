@@ -220,6 +220,7 @@ pcall
 pcdn
 pcpu
 pcpull
+pcre
 pcup
 pcupb
 pcupd
