@@ -230,7 +230,6 @@ pdftoppm
 peertube
 pgrep
 phoityne
-picgo
 pipx
 pkgs
 pkief

@@ -36,7 +36,7 @@ let
     "rustc"
     "rustdoc"
 
-    "MainThread" # Node.js main thread (Cursor, MCP, piclist)
+    "MainThread" # Node.js main thread (Cursor, MCP)
     "node"
     "npm.*"
     "pytest"

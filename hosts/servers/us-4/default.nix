@@ -45,7 +45,6 @@
     };
   };
 
-  hakula.services.piclist.enable = true;
   hakula.services.postgresql.enable = true;
   hakula.services.umami.enable = true;
 
