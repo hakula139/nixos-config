@@ -26,6 +26,8 @@ Wrap code and comments at 100 columns, counting the indent (Python follows ruff'
 
 **Never let an agenix command overwrite a secret with empty or unintended plaintext.** Follow [docs/guides/secrets.md](docs/guides/secrets.md#editing-and-re-keying).
 
+**`data/corp-domain.nix` can differ from its committed content, and that is expected.** Never delete, restore (`git checkout`, `git restore`), or stage it.
+
 ## Verification
 
 `nix flake check` runs the structure checks, pre-commit hooks, and script tests from the dev shell (`nix develop -c zsh`), but builds no host, and its `checks.pre-commit` output alone does not evaluate host modules. For host changes, build each affected output directly, and build `macbook` on a Mac or through CI's macOS job:

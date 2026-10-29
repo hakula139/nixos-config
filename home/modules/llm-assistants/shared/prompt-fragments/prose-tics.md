@@ -26,3 +26,8 @@ Each ban states its reason because a bare rule gets satisfied on the surface whi
 7. **Orphaned last word**: in hard-wrapped text such as a code comment, a final line holding one short word means the wording is too long by a hair. Tighten the wording until it fits in one fewer line. Moving the break earlier only relocates the problem.
 
 8. **Absolutist claims about correctness**: "bug-free", "production-ready", "fully verified", "guaranteed", "bulletproof". State what you checked and how, then let the reader judge, since these words assert a completeness no test run establishes.
+
+9. **Asserted significance**: a clause that rates the text's own importance, as a tail (`, and that matters`, `which is important`), a head (`It is worth noting that`, `Crucially`, `The key insight here is`), or a standalone (`This is significant.`). The clause states a conclusion before the evidence that would justify it, so delete the span and check whether anything about the subject is lost.
+
+   - **Emphasis that carries its own reason inline stays**, as in `the choice matters because calibrating on essays sets the floor 2.8 points too low`.
+   - **An instruction to the reader stays**, as in `read this first, the result is discouraging`.
