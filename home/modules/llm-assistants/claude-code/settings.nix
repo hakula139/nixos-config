@@ -82,6 +82,8 @@
     CLAUDE_CODE_ENABLE_AUTO_MODE = "1";
     CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";
     CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
+    # Also stops the subagent progress summaries, which fork the subagent's context.
+    CLAUDE_CODE_FORK_SUBAGENT = "0";
     CLAUDE_CODE_SCROLL_SPEED = "1";
     CLAUDE_CODE_STOP_HOOK_BLOCK_CAP = "3";
     DISABLE_INSTALLATION_CHECKS = "1";
