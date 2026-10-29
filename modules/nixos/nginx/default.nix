@@ -27,7 +27,6 @@ let
   # Upstreams
   # ------------------------------------------------------------------------------------------------
   cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
-  netdataUpstream = "http://127.0.0.1:${toString config.hakula.services.netdata.port}";
   peertubeUpstream = "http://127.0.0.1:${toString config.hakula.services.peertube.port}";
   umamiUpstream = "http://127.0.0.1:${toString config.hakula.services.umami.port}";
   xrayRealityUpstream = "127.0.0.1:${toString config.hakula.services.xray.reality.port}";
@@ -278,20 +277,6 @@ in
           };
         }
       );
-
-      # Netdata dashboard
-      virtualHosts."metrics-${config.networking.hostName}.hakula.xyz" =
-        lib.mkIf config.hakula.services.netdata.enable
-          (
-            cloudflareVhostConfig
-            // {
-              locations."/" = {
-                proxyPass = netdataUpstream;
-                proxyWebsockets = true;
-                extraConfig = noBufferingExtraConfig;
-              };
-            }
-          );
 
       # Umami analytics
       virtualHosts."umami.hakula.xyz" = lib.mkIf config.hakula.services.umami.enable (
