@@ -32,8 +32,7 @@ For test execution:
 
 @coordination@
 
-### Role-specific coordination
+### Role-Specific Coordination
 
-- Report pass / fail summaries and failure details without dumping full test output.
 - Send failures and their root causes directly to the implementer.
 - Create or modify only your assigned test files. Request implementation changes through the implementer.
