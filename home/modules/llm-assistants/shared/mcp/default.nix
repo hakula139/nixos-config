@@ -29,7 +29,7 @@ let
   # Server wrappers
   # ------------------------------------------------------------------------------------------------
   # undici (Node's built-in fetch) needs --use-env-proxy to honor HTTP_PROXY.
-  nodejs = pkgs.nodejs_24;
+  nodejs = pkgs.nodejs_26;
   nodeSetup = ''
     export PATH="${nodejs}/bin:$PATH"
     export NODE_OPTIONS="''${NODE_OPTIONS:+$NODE_OPTIONS }--use-env-proxy"
