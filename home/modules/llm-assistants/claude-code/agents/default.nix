@@ -11,9 +11,6 @@
 }:
 
 let
-  renderIndentedLines =
-    value: map (line: "  ${line}") (lib.filter (line: line != "") (lib.splitString "\n" value));
-
   renderField =
     settings: field: lib.optional (settings ? ${field}) "${field}: ${toString settings.${field}}";
 
@@ -27,9 +24,8 @@ let
 
       frontmatterLines = [
         "name: ${name}"
-        "description: |"
+        "description: ${builtins.toJSON agent.description}"
       ]
-      ++ renderIndentedLines agent.description
       ++ lib.concatMap (renderField settings) [
         "color"
         "model"
