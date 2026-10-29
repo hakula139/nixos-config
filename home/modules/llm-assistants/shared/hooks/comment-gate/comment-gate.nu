@@ -171,6 +171,7 @@ def gate [config: record]: nothing -> any {
     "
     The comment gate flagged comments in the text you just wrote.
     Check each finding against surrounding code and comparable files before changing it.
+    Change only the flagged spans.
 
     {reason}
     "

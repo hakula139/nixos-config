@@ -41,6 +41,8 @@ The bundled script is the only way prose is polished here. It sends each eligibl
 
 4. Restore dropped claims with the assistant's file-edit tool, in the polished file or draft. Keep the wording the script produced wherever the claim survives.
 
+5. When a later revision changes part of the polished text, send only the revised fragment back through the script with the same model, then compare the result with that fragment as in step 3. Restoring claims in step 4 is not such a revision.
+
 ## Failures
 
 The script exits 1 when the model key is unknown, naming the valid keys, when the model call fails, or when the input cannot be read, whether the path is missing or a directory, or the bytes are not UTF-8 text, on a path or stdin. The file stays untouched in every case. On success it exits 0 and reports on stderr each passage it kept because its rewrite failed a check. A long document can exceed one call's time or output limit, which also fails the model call, so polish it in sections.

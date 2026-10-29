@@ -68,6 +68,7 @@ def "test a failing verdict hands the findings to the agent" [] {
     "
     The comment gate flagged comments in the text you just wrote.
     Check each finding against surrounding code and comparable files before changing it.
+    Change only the flagged spans.
 
     - Quote: `# Open the file and read it`
     ok: false
