@@ -1,1 +1,2 @@
+# W20 `repeated_keys` is suppressed because the flat-key style is intentional.
 disabled = ["repeated_keys"]

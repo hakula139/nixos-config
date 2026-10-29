@@ -10,17 +10,7 @@ NixOS servers partition their disks with [disko](https://github.com/nix-communit
 nix run github:nix-community/nixos-anywhere -- --flake '.#us-1' root@<host>
 ```
 
-Next, verify SSH access to the inventory hosts and run these commands from the repository checkout on a managed workstation:
-
-```bash
-nixdp
-nixdp --on us-4
-nixdp --on @cloudcone
-```
-
-`nixdp` is the shared Zsh alias for `colmena apply`, accepting Colmena flags to run deployments directly from the current checkout with normal Nix cache and build behavior. The pinned CLI is installed on managed hosts and accessible through `nix develop`.
-
-Inventory and deployment metadata live in `data/servers.nix`. Every proxy node is a deploy target, and activating one can restart its nginx or Xray, which cuts off a deployment whose SSH connection routes through that node. Before deploying a node, switch the workstation's proxy client to another node, then switch back after deployment finishes. When proxy credentials rotate, first deploy the subscription host `us-4` while routing through a node that has not yet been deployed. Then refresh the client's subscription before deploying the remaining nodes.
+Then deploy it from a managed workstation with `nixdp --on <host>` (see [Applying a configuration](../../README.md#applying-a-configuration)).
 
 ## NixOS-WSL workstation
 

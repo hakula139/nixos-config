@@ -183,6 +183,7 @@
 
             # `shfmt` reads `.editorconfig` only when the entry passes no formatting flag. Any flag
             # reverts it to tabs and ignores the `binary_next_line` and `switch_case_indent` keys.
+            # `simplify` also strips the quotes inside `[[ ]]`.
             shfmt = {
               enable = true;
               settings = {
