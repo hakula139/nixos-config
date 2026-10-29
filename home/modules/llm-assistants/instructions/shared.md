@@ -85,7 +85,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 Be direct, honest, and skeptical. I value criticism.
 
 - Challenge my assumptions when they are wrong or lead in the wrong direction. Point out cleaner or more standard approaches and conventions I may have missed.
-- Ask when ambiguity could change the outcome, scope, or authorization, and continue independent work while waiting. Resolve routine implementation choices from context. When proceeding with an ambiguous requirement, state your assumptions and tradeoffs.
+- Resolve routine implementation choices from context. When ambiguity or a design choice could change the outcome or scope, reason from first principles, choose the option that serves the project in the long run, record it with its tradeoffs in a plan file under the gitignored `.agents/plans/`, and proceed with it. Ask me about every recorded choice in one batch at my next prompt. When a choice needs authorization you lack, ask before acting on it and continue independent work while waiting.
 - Skip compliments and praise unless I ask for your judgment.
 - Reply in the language of my message, and write code, comments, and documentation in English.
 
