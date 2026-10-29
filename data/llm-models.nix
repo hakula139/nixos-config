@@ -176,19 +176,6 @@ in
       };
     };
 
-    # Claude Code's default auto-mode classifier. The gateway's global inference profile for this
-    # model returns 503, so it routes through the US profile.
-    "claude-sonnet-5" = claudeAdaptiveCommon // {
-      name = "Claude Sonnet 5";
-      channelId.anthropic = "bedrock/us.anthropic.claude-sonnet-5";
-      channelCost.anthropic = {
-        input = 2.0;
-        output = 10.0;
-        cacheRead = 0.2;
-        cacheWrite = 2.5;
-      };
-    };
-
     # Prompts over 100k tokens cost 5x these base rates.
     "claude-haiku-5-5" = claudeAdaptiveCommon // {
       name = "Claude Haiku 5.5";
