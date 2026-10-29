@@ -24,17 +24,17 @@ Trace searches dictionaries without reproducing filename overrides or identifier
 
 A linked worktree inside an ignored directory can silently check zero files, even with `"gitignoreRoot": "."`. Before changing filters, identify what owns the input inventory:
 
-- **Git-selected files**, such as `git ls-files` or pre-commit filenames: CSpell's Git-ignore pass can redundantly exclude the checkout itself. Setting `"useGitignore": false` is appropriate when every caller already supplies a safe inventory. Preserve the configured source exclusions.
-- **CSpell discovery or explicit edited files that may be untracked or ignored**: retain Git-ignore filtering unless the caller establishes an equivalent safe boundary. Inspect every caller before changing shared configuration, and avoid an unconditional `--no-gitignore` bypass.
+- **Git-selected files** (such as `git ls-files` or pre-commit filenames): CSpell's Git-ignore pass can redundantly exclude the checkout itself. Setting `"useGitignore": false` is appropriate when every caller already supplies a safe inventory. Preserve the configured source exclusions.
+- **CSpell discovery or explicit edited files that may be untracked or ignored**: Retain Git-ignore filtering unless the caller establishes an equivalent safe boundary. Inspect every caller before changing shared configuration, and avoid an unconditional `--no-gitignore` bypass.
 
 For a filtering repair, compare the actual processed-file inventories in ordinary and hidden worktrees at the same revision, requiring matching paths and nonzero native checked-file counts. Prove that a real tracked typo fails and that an ignored synthetic credential canary stays outside both the passed and processed inventories. Keep repository ignore rules intact unless their intended scope is itself wrong.
 
 Then classify the token:
 
-- **A new misspelling** in authored prose or identifiers: fix it when that is safe. For a historical API field, compatibility name, or path, inspect callers and migration requirements before renaming. Suggestions hint at corrections but do not prove a token is a word.
-- **An unfamiliar name or technical term:** verify it against its defining source or official documentation, checking identifier boundaries, neighboring uses, and the expected meaning. A token from an APK, generated source, or a dependency can still be an upstream typo.
-- **A fragment of a long name:** check existing language dictionaries and identifier splitting first, and never add every unknown substring a bulk extraction returns.
-- **A required misspelling:** preserve its exact bytes where changing them would break a contract, compatibility, source citation, path, or evidence record, including in project-owned names. Use the correct spelling in your explanation and record the source and intended correction where the exception needs maintaining.
+- **A new misspelling in authored prose or identifiers**: Fix it when that is safe. For a historical API field, compatibility name, or path, inspect callers and migration requirements before renaming. Suggestions hint at corrections but do not prove a token is a word.
+- **An unfamiliar name or technical term**: Verify it against its defining source or official documentation, checking identifier boundaries, neighboring uses, and the expected meaning. A token from an APK, generated source, or a dependency can still be an upstream typo.
+- **A fragment of a long name**: Check existing language dictionaries and identifier splitting first, and never add every unknown substring a bulk extraction returns.
+- **A required misspelling**: Preserve its exact bytes where changing them would break a contract, compatibility, source citation, path, or evidence record, including in project-owned names. Use the correct spelling in your explanation and record the source and intended correction where the exception needs maintaining.
 
 If the classification stays uncertain and affects the result, discuss it with the user before accepting the token.
 

@@ -26,7 +26,7 @@ Read the repository's contribution instructions before starting, and use its own
 - Keep the main checkout on the default branch, because several agents may work in the repository at once and editing it or switching its branch can collide with their work.
 - Create every task branch, including the coordinator's own, in a worktree under `.claude/worktrees/<name>`. Claude Code and Workmux (under `workmux/`) create their worktrees there too, so they all share one gitignored directory.
 
-## Ignore Rules
+## Ignore rules
 
 - Keep portable generated outputs and project-local private state in repository ignores. Put personal OS, editor, and optional assistant state in the global ignore. Check the configured producer before treating an artifact as optional. Contributor privacy must hold without the maintainer's global excludes.
 - Match generated directories wherever their producer can create them. Anchor paths only when the producer fixes their location. A trailing `/` matches directories, leaving same-named files and symlinks visible. Preserve source directories and workflow aliases when ignoring output links.
@@ -41,12 +41,12 @@ Read the repository's contribution instructions before starting, and use its own
 - For substantial changes, include a body explaining the problem, rationale, and relevant tradeoffs or validation without repeating the subject. Keep the body proportional to the change.
 - Name branches `<type>/<short-name>` using the same types, and keep an appropriate existing branch.
 
-## Pull / Merge Requests
+## Pull / merge requests
 
 ### Repository conventions
 
 - Before drafting, learn the conventions for titles, body structure, assignees, and labels from the PR / MR template and recent comparable, human-authored requests. Prefer those closest in scope and size, broaden the sample when they do not cover the change, and follow explicit repository rules where examples differ.
-- Record the chosen examples and the conventions they show, including heading names, hierarchy and order, prose or list structure, and validation format, and include these notes in any handoff.
+- Record the chosen examples and the conventions they show, including heading names, hierarchy and order, prose or list structure, and validation format, and include these notes in any brief.
 - Infer assignees from comparable requests, checking the authenticated identity when the convention is self-assignment.
 - Match labels to established usage and the available labels' descriptions. Commit types can inform the choice but do not imply a fixed label mapping.
 - If metadata remains ambiguous, ask a focused question. Never invent a rule or silently omit metadata.
@@ -63,26 +63,37 @@ Write within the recorded structure, for reviewers who have not seen the convers
 
 ### Publication
 
-- Never force-push a branch that someone else may push to. Land fixes there as new commits, using `git revert` for a pushed commit, and rewrite history only on branches you alone own. After pushing `HEAD:refs/heads/<branch>` from a detached worktree, fast-forward the local branch so later commits are not stranded on a stale ref.
+- Never force-push a branch that someone else may push to. Land fixes there as new commits, using `git revert` for a pushed commit, and rewrite history only on branches you alone own.
+- After pushing `HEAD:refs/heads/<branch>` from a detached worktree, fast-forward the local branch so later commits are not stranded on a stale ref.
 - Before pushing, verify the base branch, diff, and commit count. Before creating or updating a request, compare its complete title and body with the recorded conventions, fixing any difference in heading hierarchy, section order, or validation format.
 - If asked only to draft a title and body, return the text without publishing. A request for a draft PR / MR authorizes publishing it as a draft.
-- Set assignees and labels when creating a request. If no existing label fits, create one that follows the repository's label scheme. Pass multiline bodies through a file or structured argument, such as `gh pr create --body-file <file>`. Use `#N` for issues and GitHub PRs in the same repository, and `!N` for GitLab MRs.
+- Set assignees and labels when creating a request. If no existing label fits, create one that follows the repository's label scheme.
+- Pass multiline bodies through a file or structured argument, such as `gh pr create --body-file <file>`.
+- Use `#N` for issues and GitHub PRs in the same repository, and `!N` for GitLab MRs.
 - Read back each created or updated request, verifying its title, body, base, diff, assignees, and labels, and fix anything lost before reporting completion.
-- For an approved merge, delegate to the `operator` agent when one is available, quote the user's approval verbatim in its spawn prompt, and have it follow this procedure: confirm that the host reports the branch as mergeable at the head commit the approval names. Wait for CI to pass on that head. On GitHub, first wait (bounded) until `gh pr view <n> --json headRefOid,statusCheckRollup` shows that head with at least one check, because right after a push or branch update `gh pr checks` fails with `no checks reported` until GitHub registers the new head's checks. Next, wait for `gh pr checks <n> --watch --fail-fast`, then (bounded) for `gh pr view <n> --json mergeStateStatus` to read `CLEAN`, because some required checks, such as Codecov, are created only after the others finish. If it reads `BEHIND`, run `gh pr update-branch <n>` and repeat these waits on the new head. Rebase only if the branch conflicts. Then merge with the repository's merge method at that head, such as `gh pr merge <n> --squash --match-head-commit <sha>`. Never pass `--auto`, and pass `--admin` only where the repository documents it.
 - Finalize the title and body before merging, since a squash merge can copy them into the commit message, as GitHub's PR_BODY default and a GitLab `%{description}` template do, and an edit afterwards cannot change it.
-- After the merge, verify the remote state and confirm CI passes on the target branch. For GitHub squash merges, keep GitHub's default commit message. Report a merge queued by GitLab's default auto-merge as pending until it lands.
-- Stack a request that depends on or overlaps another open request on that request's branch, and name the base request in the description. After the base squash-merges, run `git rebase --onto <default-branch> <old-base-head> <branch>` to drop its pre-squash commits, then retarget the request to the default branch if the host has not.
+- For an approved merge, delegate to the `operator` agent when one is available, quote the user's approval verbatim in its spawn prompt, and have it follow [Merging](#merging).
+- Stack a request that depends on or overlaps another open request on that request's branch, and name the base request in the description. After the base squash-merges, run `git rebase --onto <default-branch> <old-base-head> <branch>` to drop its pre-squash commits, then retarget the request to the default branch if the forge has not.
 
-## Conflict Resolution
+### Merging
+
+1. Confirm that the forge reports the branch as mergeable at the head commit the approval names.
+2. Wait for CI to pass on that head. On GitHub, first wait (bounded) until `gh pr view <n> --json headRefOid,statusCheckRollup` shows that head with at least one check, because right after a push or branch update `gh pr checks` fails with `no checks reported` until GitHub registers the new head's checks.
+3. On GitHub, next wait for `gh pr checks <n> --watch --fail-fast`, then (bounded) for `gh pr view <n> --json mergeStateStatus` to read `CLEAN`, because some required checks, such as Codecov, are created only after the others finish.
+4. If `mergeStateStatus` reads `BEHIND`, run `gh pr update-branch <n>` and repeat steps 2 and 3 on the new head. Rebase only if the branch conflicts.
+5. Merge with the repository's merge method at that head, such as `gh pr merge <n> --squash --match-head-commit <sha>`. Never pass `--auto`, and pass `--admin` only where the repository documents it.
+6. After the merge, verify the remote state and confirm CI passes on the target branch. For GitHub squash merges, keep GitHub's default commit message. Report a merge queued by GitLab's default auto-merge as pending until it lands.
+
+## Conflict resolution
 
 Read the upstream PR / MR or commit message and the surrounding code to learn each side's intent, integrate both so each purpose survives without duplication or contradiction, keep local ordering conventions such as sorted lists and section order, then rerun the checks covering the conflicting files.
 
 ## Issues
 
-- **Description:** the current specification, covering the goal, acceptance criteria, decisions and scope, dependencies, and findings that shape the work. Edit it in place, marking criteria as they are met, so it shows the current state on its own.
-- **Comments:** only events watchers need, such as why an issue closes without a linked PR / MR or reopens, questions or discussion that need a reply, and brief pointers to material scope changes in the description. Skip progress updates and anything a linked PR / MR already shows.
-- **Working notes:** execution details, such as agent assignments, worktrees, in-flight branches, and private context, stay in the session or a gitignored plans directory.
-- **Existing comments:** fold a decision or finding that belongs in the spec into the description, and delete the comment only once the description covers everything it says.
+- **Description**: The current specification, covering the goal, acceptance criteria, decisions and scope, dependencies, and findings that shape the work. Edit it in place, marking criteria as they are met, so it shows the current state on its own.
+- **Comments**: Only events watchers need, such as why an issue closes without a linked PR / MR or reopens, questions or discussion that need a reply, and brief pointers to material scope changes in the description. Skip progress updates and anything a linked PR / MR already shows.
+- **Working notes**: Execution details, such as agent assignments, worktrees, in-flight branches, and private context, stay in the session or a gitignored plans directory.
+- **Existing comments**: Fold a decision or finding that belongs in the spec into the description, and delete the comment only once the description covers everything it says.
 
 Pass an edited body through a file or structured argument, then read the issue back.
 
@@ -90,7 +101,10 @@ Pass an edited body through a file or structured argument, then read the issue b
 
 When work finishes, clean up within the authorization above, and include the cleanup in the operator's spawn prompt after an approved merge when an `operator` agent is available.
 
-- Before removing a worktree, check it for uncommitted, untracked, and ignored files, preserve anything still needed, and confirm that no other agent or terminal is using it. A detached HEAD may be the only reference to its commits, so confirm they reached a remote branch, matching by subject as well as patch ID because conflict resolution changes patch IDs. Treat a denied or interrupted removal as an unknown outcome and reread `git worktree list` before retrying. Diff unique ignored content, such as agent memory directories, local settings, and notes, against its counterpart in the main checkout, and merge anything missing there.
+- Before removing a worktree, check it for uncommitted, untracked, and ignored files, preserve anything still needed, and confirm that no other agent or terminal is using it.
+- A detached HEAD may be the only reference to its commits, so confirm they reached a remote branch, matching by subject as well as patch ID because conflict resolution changes patch IDs.
+- Treat a denied or interrupted removal as an unknown outcome and reread `git worktree list` before retrying.
+- Diff unique ignored content, such as agent memory directories, local settings, and notes, against its counterpart in the main checkout, and merge anything missing there.
 - Remove the worktree and its local branch, then prune its remote-tracking ref. Use the repository's tooling or the `clean-gone` skill for merged branches. Delete a remote branch only when explicitly requested.
 - Delete completed plans and working notes from the plans directory, such as a gitignored `.agents/plans/`. Rewrite stale notes to show only the current state and remaining work.
 - Each agent removes the scratch copies and build directories it created, such as `git archive` exports and their `CARGO_TARGET_DIR`s under `/tmp`, and names in its report anything it leaves for someone else.
