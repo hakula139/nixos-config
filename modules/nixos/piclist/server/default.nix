@@ -6,9 +6,8 @@
   pkgs,
   lib,
   nodejs,
+  port,
   configPath,
-  tokenPath,
-  ...
 }:
 
 let
@@ -33,8 +32,7 @@ let
 
     install -m 0600 "${configPath}" config.json
 
-    SECRET_KEY=$(cat "${tokenPath}")
-    exec "./${picgoServerBin}" -c config.json -k "$SECRET_KEY"
+    exec "./${picgoServerBin}" -c config.json --host 127.0.0.1 -p ${toString port}
   '';
 in
 pkgs.writeShellApplication {
