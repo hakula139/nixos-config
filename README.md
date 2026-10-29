@@ -7,13 +7,9 @@ Personal Nix configuration for NixOS servers, WSL workstations, macOS, and devel
 
 ## Applying a configuration
 
-After initial setup, use `nixsw` to apply the local server or workstation configuration. Run it from the repository root in the managed Zsh environment.
+After initial setup, run `nixsw` from the repository root in the managed Zsh environment to apply the local configuration. `nixdp` aliases `colmena apply` and accepts its flags: `nixdp` deploys every server, and `nixdp --on us-4` or `nixdp --on @cloudcone` selects hosts.
 
-Deploy all servers with `nixdp`, or select a host:
-
-```bash
-nixdp --on us-4
-```
+Every proxy node in `data/servers.nix` is a deploy target, and activating one can restart its nginx or Xray, cutting off an SSH session routed through it. Switch the workstation's proxy client to another node before deploying a node. When proxy credentials rotate, deploy the subscription host `us-4` first through a node not yet deployed, then refresh the client's subscription before deploying the rest.
 
 ## Documentation
 

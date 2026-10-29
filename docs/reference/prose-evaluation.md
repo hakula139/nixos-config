@@ -134,7 +134,7 @@ and came back as:
 
 > 禁令只能限制表层的形式，管不住背后的表达动机。当模型被禁止使用某种标点或句式时，原本需要停顿、补充或转折的语意依然存在，它往往就会改用冒号、括号，甚至切成零碎的短句来替代。形式虽然被抹去了，底层的表达习惯还在，结果只能套进更别扭的结构里，反而平添一股生硬的断裂感。
 
-The largest measured gain is the shared draft from section 3.5, which the owner scored 3.5, noting "Punctuation is wrong, and sentences are still being clipped short". The round's top rewriter scored 9.0 on it. Both faults sit in the draft's third paragraph, which carries ten half-width commas and a shortest sentence of 12 characters:
+The largest measured gain is the shared draft from section 3.5, which the owner scored 3.5. The round's top rewriter scored 9.0 on it. Both faults sit in the draft's third paragraph, which carries ten half-width commas and a shortest sentence of 12 characters:
 
 > 还有一层是规则的表述方式。否定式的指令只画出边界,不给出落点,模型得自己猜什么算合格,猜的过程会占用它本该花在内容上的注意力,写出来的东西因此变得谨慎、拘谨、缺少推进感。更根本的是,那些让人不适的句式大多只是症状,底下的病因是一种把话说得像有力量的冲动——用形式上的对称、节奏上的顿挫来填补论证的空缺。症状被封住,冲动还在,它会找到新的出口。真正有用的约束通常是描述目标效果、给出正面样例、限定某类结构的出现上限,把判断权留在写作过程里面,而不是在外面砌一道墙。
 
@@ -150,7 +150,7 @@ After the Chinese rounds, a rewriter on Gemini 3.8 Flash, with a language-agnost
 
 ## 4. Principles
 
-The results support these principles for any change to the rewriting models, prompts, or code. Each cites the sections it rests on.
+The results support these principles for any change to the rewriting models, prompts, or code.
 
 1. **Validate quality only against blind human scores.** LLM judges ranked samples in reverse, and every surface statistic failed on held-out data (sections 3.1 and 3.2). Fix the falsification threshold before reading, and draw more than once, since one condition fell from 10.0 to 4.0 on a second draw (section 2).
 2. **Choose the model first.** Model identity moved scores about twice as much as the context frame, and a range of already-good models hides that spread (section 3.3). Measure rewriting separately from generation, since the two skills barely correlate (section 3.5).
@@ -158,18 +158,10 @@ The results support these principles for any change to the rewriting models, pro
 4. **State the fidelity constraint once.** Item-by-item preservation checklists made rewriters timid, Chinese rule checklists scored worst, and human sample paragraphs grafted the author's persona (sections 3.4 and 3.5).
 5. **Treat mechanical checks as fidelity guards.** Structure and literal checks can confirm that a rewrite kept its material, and surface metrics can confirm that a manipulation landed, but neither establishes writing quality (sections 3.2 and 3.4).
 6. **Review each rewrite against its source.** On English traffic the rewriter changed 78% of passages that carried no tic while lowering the tic share by only 1.3 percentage points (section 3.7), so keep a rewrite only where it repairs a fault.
+7. **Banning words or punctuation as a quality proxy.** The model can preserve the same weak reasoning with different tokens, while valid quoted or technical uses become false positives.
 
 ## 5. Limits
 
 The measurements reflect one reviewer's preferences on the sampled Chinese tasks. Each condition has between one and five samples. The frame comparison used five draws per arm and reached $p = 0.049$. The rewrite comparison used one shared draft, so its ranking provides limited evidence about performance on other texts, and the top score should be expected to regress on repeated sampling.
 
 The results apply to the tested models, prompts, and context frames. A model, prompt, or frame adopted later carries no measured quality until it is blind-reviewed itself. This record holds no blind review of English rewrites, so section 3.7 measures only tic counts, churn, and latency.
-
-## 6. Ruled out
-
-- **LLM judges as a reward or reranking signal.** Section 3.1, all six cells inverted.
-- **Detecting bad Chinese from surface statistics.** Section 3.2, no signal survived held-out testing.
-- **Banning words or punctuation as a quality proxy.** The model can preserve the same weak reasoning with different tokens, while valid quoted or technical uses become false positives.
-- **Selecting a model on Chinese quality among already-good models.** Section 3.3, six models across four vendors were statistically indistinguishable.
-- **Chinese style rules written as a checklist.** Section 3.4, worst of five frames on both models.
-- **Human sample paragraphs as a style anchor.** Section 3.4, effective but grafts the author's persona.
