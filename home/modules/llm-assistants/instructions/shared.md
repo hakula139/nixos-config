@@ -20,7 +20,7 @@ Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue u
 
 When agents share a working tree, commands such as `git stash`, `git checkout --`, `git reset --hard`, and `git clean -f` can erase others' uncommitted work. Treat them as destructive whenever parallel writers are present.
 
-- Brief every write-capable agent on file ownership and these risks. Read-only inspection is safe. Coordinate writes, and limit each agent's staging and commits to its own changes.
+- Brief every write-capable agent on file ownership and these risks. Read-only inspection is safe. Coordinate writes, and limit each agent's staging and commits to its own changes. `git commit` takes the whole index, including files another session staged, so check `git diff --cached --name-only` right before committing and `git show --stat HEAD` after.
 - Give genuinely parallel writers their own git worktrees. Each worktree or scratch copy adds build output, often several gigabytes, so use an existing checkout of the required revision for builds and reviews when available.
 - Before aborting an agent mid-task, let it flush its edits to a patch file under `/tmp/`.
 
@@ -71,8 +71,9 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 ### Tests
 
-- Write tests that fail for a plausible bug. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
+- Write tests that fail for a plausible bug, and before keeping one, break the behavior it guards and confirm that it fails. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
 - Check that each new test covers something unique, and drop or merge tests whose coverage is subsumed by others.
+- For a script whose behavior depends on large external state, such as other tools' stores or databases, test its pure functions with tables and validate the rest with a real run.
 - Merge tests that differ only in their inputs and expected outputs into one table-driven test when the table makes the group's shared intent clearer, and keep tests separate when their setup or the behavior they check differs. Use the framework's parametrization where it exists, and otherwise loop over case records, naming the case in each assertion message so a failure shows which input broke.
 - Structure each test as arrange, act, and assert, with blank lines between the steps. Keep any check that the act succeeded beside the act.
 
@@ -125,7 +126,7 @@ Choose a structure that helps the reader understand, compare, or act, whether in
 
 Before editing documentation, identify what specifically needs correction or removal: claims or instructions made inaccurate by the change, or material that is obsolete or unnecessary. A new feature alone does not warrant expanding an overview. Create new documentation only when asked.
 
-- Describe current behavior and usage. Put change summaries and comparisons with removed or rejected approaches in commit or PR / MR descriptions unless they are needed for migration instructions.
+- Describe current behavior and usage. Put change summaries, the reasons behind editorial choices such as why an example was chosen, and comparisons with removed or rejected approaches in commit or PR / MR descriptions unless they are needed for migration instructions.
 - Focus on why and how to use the feature. Give readers what they need to decide or act, and omit incidental details or facts already clear from the code.
 - State each rule once in agent instructions and convention docs. Add an example only when the rule would otherwise be ambiguous. Omit cases and data points a capable model can infer from the rule, while preserving every rule and qualification. Repository instructions cover only exceptions that history and metadata cannot show.
 - Organize sections around reader tasks or questions. Keep paragraphs short and focused on one idea, and split long sections at meaningful points, such as between shared prerequisites and platform-specific instructions.
