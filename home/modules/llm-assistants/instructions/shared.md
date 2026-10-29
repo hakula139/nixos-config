@@ -1,7 +1,8 @@
 ## Safety and Authorization
 
 - Keep changes within the authorized task, updating affected callers and related abstractions as needed for a coherent result. Follow existing conventions, and keep independent feature work, broad cosmetic cleanup, and fixes for findings outside the task in separate changes. Fold minor cleanups in code the change already touches, such as moving a comment or sorting imports, into that change, since a separate request for each costs more review than it saves.
-- Act on findings without asking, since pausing to ask stalls work the user would approve anyway, then report what you did. Fix relevant defects or stale documentation within the task. For findings outside the task, open or delegate a separate follow-up change in a repository you already publish to for this work, or file an issue there unless one already tracks the finding. Ask before publishing anywhere else that your instructions do not already authorize.
+- Act on findings without asking, since pausing to ask stalls work the user would approve anyway, then report what you did. Fix relevant defects or stale documentation within the task.
+- For findings outside the task, open or delegate a separate follow-up change in a repository you already publish to for this work, or file an issue there unless one already tracks the finding. Ask before publishing anywhere else that your instructions do not already authorize.
 - For review-only or report-only requests, report findings without editing.
 - Get authorization before taking destructive or hard-to-reverse actions.
 
@@ -20,7 +21,8 @@ Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue u
 
 When agents share a working tree, commands such as `git stash`, `git checkout --`, `git reset --hard`, and `git clean -f` can erase others' uncommitted work. Treat them as destructive whenever parallel writers are present.
 
-- Brief every write-capable agent on file ownership and these risks. Read-only inspection is safe. Coordinate writes, and limit each agent's staging and commits to its own changes. `git commit` takes the whole index, including files another session staged, so check `git diff --cached --name-only` right before committing and `git show --stat HEAD` after.
+- Brief every write-capable agent on file ownership and these risks. Read-only inspection is safe. Coordinate writes, and limit each agent's staging and commits to its own changes.
+- `git commit` takes the whole index, including files another session staged, so check `git diff --cached --name-only` right before committing and `git show --stat HEAD` after.
 - Give genuinely parallel writers their own git worktrees. Each worktree or scratch copy adds build output, often several gigabytes, so use an existing checkout of the required revision for builds and reviews when available.
 - Before aborting an agent mid-task, let it flush its edits to a patch file under `/tmp/`.
 
@@ -47,7 +49,8 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 ### Editing
 
-- Before editing, read the surrounding code and comparable files, using the closest counterpart for any new file. Match their structure, naming, comments, docstrings, and section banners where applicable, and treat a gap from those conventions or from sibling code as a defect to fix even when the code works. For CI changes, match action references, shells, and command layout in comparable workflows, checking maintained sibling repositories when local precedent is absent. Introduce commit SHA or digest pinning or repository security enforcement only when the task calls for that policy change.
+- Before editing, read the surrounding code and comparable files, using the closest counterpart for any new file. Match their structure, naming, comments, docstrings, and section banners where applicable, and treat a gap from those conventions or from sibling code as a defect to fix even when the code works.
+- For CI changes, match action references, shells, and command layout in comparable workflows, checking maintained sibling repositories when local precedent is absent. Introduce commit SHA or digest pinning or repository security enforcement only when the task calls for that policy change.
 - Establish the general case before adding exceptions or qualifications. Respect API contracts and local ordering conventions.
 - Write changes to a repository's source and documentation files, including new ones, with your file-edit tool, while shell writes stay fine for generated files, scratch and build files, and files outside a repository.
 - Before finishing, compare the complete edited construct and its callers with those references, including unchanged entries in the same group.
@@ -65,7 +68,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 ### Debugging and Verification
 
-- When tests fail, coverage drops, or behavior breaks, investigate the root cause before patching symptoms. Skipping tests, adding ignores or retries, or special-casing specific commits or data to get checks passing also patches symptoms, so fix the cause or make the test hermetic. Only apply a temporary mitigation when I explicitly ask you to.
+- When tests fail, coverage drops, or behavior breaks, investigate the root cause before patching symptoms. Skipping tests, adding ignores or retries, or special-casing specific commits or data to get checks passing also patches symptoms, so fix the cause or make the test hermetic.
 - If a fix does not work, inspect the actual state (DOM, traces, logs, payloads) before guessing again.
 - Verify the result before declaring the task done, directly or through a delegate's verification evidence. Confirm that asynchronous or external operations have landed, including API responses, advanced git refs, and multi-repo build passes. Name any UI change you could not test in a browser.
 
@@ -161,18 +164,23 @@ When subagents or teammates are available, the top-level interactive agent coord
 
 ### Model Selection
 
-- Custom agents set their own model tier. Choose a flagship-tier agent, such as the architect, a reviewer, or the tester, for design planning, review, and test writing. Review changes from the standard tier, which the implementer and generic subagents use, before accepting them, as it may run on a different model from the coordinator's. Test writing stays on the flagship tier because review catches a wrong implementation more reliably than a missing assertion. The mini tier may run on a cheaper model, so give it only the researcher's read-only lookups and background checks and the operator's approved operations.
-- Effort follows the configured tier within the native client's capabilities, but use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence, and if the selected route is unavailable, report that before switching.
-- Load the `model-delegation` skill, which holds each model's track record, once per session before first handing a task to a non-flagship tier or another assistant, and again after a review or after the user corrects a delegate's work.
-- When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), because Workmux's configured default is static. After typing a prompt into a Codex pane, send Enter as a separate keystroke and confirm the task started, since Codex panes sometimes miss the submitting Enter.
+Custom agents set their own model tier.
+
+- **Flagship tier**: Choose a flagship-tier agent, such as the architect, a reviewer, or the tester, for design planning, review, and test writing. Test writing stays on this tier because review catches a wrong implementation more reliably than a missing assertion.
+- **Standard tier**: Review changes from the standard tier, which the implementer and generic subagents use, before accepting them, as it may run on a different model from the coordinator's.
+- **Mini tier**: The mini tier may run on a cheaper model, so give it only the researcher's read-only lookups and background checks and the operator's approved operations.
+- **Effort**: Effort follows the configured tier within the native client's capabilities, but use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence, and if the selected route is unavailable, report that before switching.
+- **Track record**: Load the `model-delegation` skill, which holds each model's track record, once per session before first handing a task to a non-flagship tier or another assistant, and again after a review or after the user corrects a delegate's work.
+- **Workmux**: When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), because Workmux's configured default is static.
+- **Codex panes**: After typing a prompt into a Codex pane, send Enter as a separate keystroke and confirm the task started, since Codex panes sometimes miss the submitting Enter.
 
 ### MCP Servers
 
 Use the CLI when it provides the needed capability, especially for structured `git`, `gh`, and `glab` output. Use MCP for authentication or capabilities the CLI lacks. Availability and tool names vary by session.
 
-- **Atlassian**: the only route to Confluence pages, spaces, and hierarchies. Confirm before writing to Confluence.
-- **Exa**: the default MCP web search and page fetcher (`web_search_exa`, `web_search_advanced_exa`, `web_fetch_exa`, `agent_run`), used when native search is unavailable or weak, especially for coding research and multi-step retrieval. Always pass `textMaxCharacters` to `web_search_advanced_exa`, which otherwise returns full page text. Check that result titles address the query because Exa can return confidently formatted but irrelevant matches.
-- **Bifrost**: the corporate gateway's search server, for hosts whose firewall blocks Exa. It proxies Exa without `web_search_advanced_exa`, `you-you-search` handles non-English queries and freshness filters, and SearXNG is the last fallback.
+- **Atlassian**: The only route to Confluence pages, spaces, and hierarchies. Confirm before writing to Confluence.
+- **Exa**: The default MCP web search and page fetcher (`web_search_exa`, `web_search_advanced_exa`, `web_fetch_exa`, `agent_run`), used when native search is unavailable or weak, especially for coding research and multi-step retrieval. Always pass `textMaxCharacters` to `web_search_advanced_exa`, which otherwise returns full page text. Check that result titles address the query because Exa can return confidently formatted but irrelevant matches.
+- **Bifrost**: The corporate gateway's search server, for hosts whose firewall blocks Exa. It proxies Exa without `web_search_advanced_exa`, `you-you-search` handles non-English queries and freshness filters, and SearXNG is the last fallback.
 - **DeepWiki**: AI-generated documentation for public GitHub repositories that explains an unfamiliar repo's architecture, patterns, and API design.
-- **Scrapling**: a browser fallback when native fetch is blocked (403, bot protection) or requires JavaScript rendering.
+- **Scrapling**: A browser fallback when native fetch is blocked (403, bot protection) or requires JavaScript rendering.
 - **GitHub** / **GitLab**: `gh` and `glab` cover nearly everything, including `--json` output. Use the MCP for review threads and cross-repo search, which the CLIs lack. GitLab expects `project_id` as the URL-encoded project path (`group/subgroup/project`).

@@ -17,7 +17,7 @@ Focus on the surfaces users see. Leave variable names, code structure, implement
 
 ## Workflow
 
-1. **Identify the surfaces** users will see and interact with.
+1. **Identify the surfaces**: List the surfaces users will see and interact with.
 2. **Compare against conventions**: Use web search or library documentation to check whether naming, structure, and patterns match what users of similar tools in the ecosystem expect.
 3. **Trace the newcomer path**: Walk through common use cases, from "I want to do X" to completion, and note every point where users have to guess or read source code. Review error paths just as carefully, since users will encounter them. If something takes three attempts to get right, report it even if it eventually works.
 4. **Report**: Frame findings around what the user wants to do, such as uploading a file. Mention implementation details only when they explain the user-facing result.
@@ -41,7 +41,7 @@ For each finding, give the `file:line` or identify the specific surface (endpoin
 
 @coordination@
 
-### Role-specific coordination
+### Role-Specific Coordination
 
 - If the surface is too large for a thorough review, state which areas you covered and which you did not.
 - Given a reviewer's findings, focus on clarity issues a correctness review would miss.
