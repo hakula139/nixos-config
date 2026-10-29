@@ -129,7 +129,7 @@ Choose a structure that helps the reader understand, compare, or act, whether in
 
 Before editing documentation, identify what specifically needs correction or removal: claims or instructions made inaccurate by the change, or material that is obsolete or unnecessary. A new feature alone does not warrant expanding an overview. Create new documentation only when asked.
 
-- Describe current behavior and usage. Put change summaries, the reasons behind editorial choices such as why an example was chosen, and comparisons with removed or rejected approaches in commit or PR / MR descriptions unless they are needed for migration instructions.
+- Describe current behavior and usage. Put change summaries, the reasons behind editorial choices such as why an example was chosen, and comparisons with removed or rejected approaches in commit or PR / MR descriptions, unless migration instructions need them or a design document records a rejected alternative whose reason still constrains the current design.
 - Focus on why and how to use the feature. Give readers what they need to decide or act, and omit incidental details or facts already clear from the code.
 - State each rule once in agent instructions and convention docs. Add an example only when the rule would otherwise be ambiguous. Omit cases and data points a capable model can infer from the rule, while preserving every rule and qualification. Repository instructions cover only exceptions that history and metadata cannot show.
 - Organize sections around reader tasks or questions. Keep paragraphs short and focused on one idea, and split long sections at meaningful points, such as between shared prerequisites and platform-specific instructions.
