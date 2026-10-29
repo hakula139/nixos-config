@@ -16,14 +16,14 @@ A dream combines what recent sessions have learned into one project's memory sto
 
 The target is the current project's Claude Code auto-memory directory. It contains one fact per Markdown file and a `MEMORY.md` index. Resolve its location in this order:
 
-1. The memory directory named in the host's memory instructions, if any.
+1. The memory directory named in the client's memory instructions, if any.
 2. `~/.claude/projects/<slug>/memory/`, where `<slug>` is the main worktree's absolute path with every non-alphanumeric character replaced by `-`. All worktrees share one store, so identify the main worktree from the first `worktree` line in `git worktree list --porcelain`.
 
 If the directory does not exist, report that and stop. Before the first edit, copy the store to a new directory under `/tmp/` and report its path. The store is unversioned, so a bad merge cannot otherwise be undone.
 
-Use natively managed stores only as a source of context, and never edit them. Codex regenerates `~/.codex/memories/` through its own pipeline, and OMP stores memory in `~/.omp/agent/agent.db`. Manual edits are either overwritten or bypass the host's schema.
+Use natively managed stores only as a source of context, and never edit them. Codex regenerates `~/.codex/memories/` through its own pipeline, and OMP stores memory in `~/.omp/agent/agent.db`. Manual edits are either overwritten or bypass the client's schema.
 
-The host's memory instructions define the file format, memory types, and what is worth saving. If there are no such instructions, follow the frontmatter, body structure, and index lines in the existing files.
+The client's memory instructions define the file format, memory types, and what is worth saving. If there are no such instructions, follow the frontmatter, body structure, and index lines in the existing files.
 
 ## Phase 1: Orient
 
@@ -38,20 +38,23 @@ The host's memory instructions define the file format, memory types, and what is
 Look for new information worth persisting, in rough priority order:
 
 1. Daily logs under `logs/YYYY/MM/YYYY-MM-DD.md`, the append-only stream, if present.
+
 2. Drifted memories. Check every file, flag, option, command, and path named in a memory against the current repository, and correct any contradiction at its source.
+
 3. Transcripts touched since the last consolidation from every assistant that worked on this project or its worktrees. Match sessions using the working directories reported by `git worktree list --porcelain`, since some worktrees are outside the main checkout.
 
-- **Claude Code**: `~/.claude/projects/<slug>*/*.jsonl`, with one directory per worktree path.
-- **Codex**: `~/.codex/memories/rollout_summaries/*.md`, condensed summaries with a `cwd:` header line and a `rollout_path:` naming the raw transcript under `~/.codex/sessions/`.
-- **OMP**: `~/.omp/agent/sessions/*/*.jsonl`, where the `"type":"session"` line records `cwd`.
+   - **Claude Code**: `~/.claude/projects/<slug>*/*.jsonl`, with one directory per worktree path.
+   - **Codex**: `~/.codex/memories/rollout_summaries/*.md`, condensed summaries with a `cwd:` header line and a `rollout_path:` naming the raw transcript under `~/.codex/sessions/`.
+   - **OMP**: `~/.omp/agent/sessions/*/*.jsonl`, where the `"type":"session"` line records `cwd`.
+   - **OpenCode**: Skip it, since it stores sessions in SQLite.
 
-Skip OpenCode, which stores sessions in SQLite. Transcripts are large, so use `find <dir> -newer <store>/.consolidate-lock` to select files, then grep them for narrow terms:
+   Transcripts are large, so use `find <dir> -newer <store>/.consolidate-lock` to select files, then grep them for narrow terms:
 
-```bash
-grep -n '<narrow term>' <selected transcripts> | tail -50
-```
+   ```bash
+   grep -n '<narrow term>' <selected transcripts> | tail -50
+   ```
 
-Search only for suspected signal, such as user corrections, approaches the user confirmed, and failures that recurred across sessions. Never read transcripts exhaustively.
+   Search only for suspected signal, such as user corrections, approaches the user confirmed, and failures that recurred across sessions. Never read transcripts exhaustively.
 
 ## Phase 3: Consolidate
 
@@ -60,7 +63,7 @@ For each candidate, decide whether it adds, updates, or deletes a memory, or lea
 - Merge new signal into the existing file for its topic.
 - Resolve relative dates such as "yesterday" or "next Thursday" based on when the memory was written, using its text or, if that is unavailable, the file's modification time. Once the date has passed, check whether the expected event occurred. Delete the memory if it is done or no longer applies. Otherwise, rewrite it with the absolute date.
 - Delete or correct memories contradicted by the current repository or a later session. Delete one whose triggering situation can no longer recur, such as a finished migration, a removed file, a one-off incident, or a measurement tied to a version that has since changed, even when its facts remain accurate. Keep a memory that still describes live behavior or a constraint, even when it began with an incident.
-- Save only information allowed by the host's memory rules, omitting facts already recorded in instruction files, code, or git history.
+- Save only information allowed by the client's memory rules, omitting facts already recorded in instruction files, code, or git history.
 - When a merge or rename retires a memory name, update every `[[name]]` link to it.
 - Re-read each file immediately before rewriting it, since concurrent sessions may write to the store.
 
@@ -68,7 +71,7 @@ Keep durable rules that belong in an instruction file as memories during this ph
 
 ## Phase 4: Prune and index
 
-Keep `MEMORY.md` within the host's index limits, one line per memory and no content. Remove stale pointers, add new ones, and check that every file has exactly one pointer and every pointer resolves.
+Keep `MEMORY.md` within the client's index limits, one line per memory and no content. Remove stale pointers, add new ones, and check that every file has exactly one pointer and every pointer resolves.
 
 ## Phase 5: Promote
 
@@ -78,9 +81,9 @@ Every future session loads an instruction file, so promote only memories that ha
 
 A memory whose frontmatter includes `promotion: <URL>` has already been proposed. Check the request's state using the hosting service's CLI, such as `gh pr view <URL> --json state` or `glab mr view <URL>`:
 
-- **Merged**: delete the memory and its index line, then remove or reword every `[[name]]` link to it.
-- **Closed without merging**: keep the memory and its `promotion` URL. Never propose it again.
-- **Open**: leave the memory unchanged.
+- **Merged**: Delete the memory and its index line, then remove or reword every `[[name]]` link to it.
+- **Closed without merging**: Keep the memory and its `promotion` URL. Never propose it again.
+- **Open**: Leave the memory unchanged.
 
 ### Select candidates
 
@@ -94,9 +97,9 @@ A memory is a candidate only when all of these hold:
 
 Choose the most specific file that owns the rule:
 
-- **One repository**: the convention doc for the affected area, or `AGENTS.md` if no convention doc applies.
-- **Every project**: the global instruction sources in the nixos-config checkout, located as described in the `environment-repair` skill. `home/modules/llm-assistants/instructions/shared.md` contains rules for every assistant, and adjacent files such as `claude-code.md` contain additions for a single assistant. Sections rendered from an `@name@` placeholder live in `home/modules/llm-assistants/shared/prompt-fragments/`. Never edit generated files such as `~/.claude/CLAUDE.md` or `~/.codex/AGENTS.md`.
-- **One skill's procedure**: the skill's source `SKILL.md`. Shared skills live under `home/modules/llm-assistants/shared/skills/` in nixos-config. Skip any skill whose source cannot be traced to a repository.
+- **One repository**: The convention doc for the affected area, or `AGENTS.md` if no convention doc applies.
+- **Every project**: The global instruction sources in the nixos-config checkout, located as described in the `environment-repair` skill. `home/modules/llm-assistants/instructions/shared.md` contains rules for every assistant, and adjacent files such as `claude-code.md` contain additions for a single assistant. Sections rendered from an `@name@` placeholder live in `home/modules/llm-assistants/shared/prompt-fragments/`. Never edit generated files such as `~/.claude/CLAUDE.md` or `~/.codex/AGENTS.md`.
+- **One skill's procedure**: The skill's source `SKILL.md`. Shared skills live under `home/modules/llm-assistants/shared/skills/` in nixos-config. Skip any skill whose source cannot be traced to a repository.
 
 Read the target before promoting a rule. If it already states the rule, delete the memory and its index line. If its admission rules reject the rule, such as when a repository admits only constraints a reader cannot infer from its code, keep the memory.
 

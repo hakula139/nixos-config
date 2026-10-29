@@ -8,11 +8,11 @@ description: >-
 
 # ast-grep
 
-ast-grep matches tree-sitter patterns against the syntax tree, so whitespace and line breaks do not affect a match, and code inside comments or strings never matches. Use the harness's native structural search or edit tool instead when one exists.
+ast-grep matches tree-sitter patterns against the syntax tree, so whitespace and line breaks do not affect a match, and code inside comments or strings never matches. Use the client's native structural search or edit tool instead when one exists.
 
 Run `ast-grep`, never `sg`, which is shadow's group command on these hosts.
 
-## Choosing a tool
+## Choose a tool
 
 - `rg` for identifiers, literals, comments, configuration, prose, and file types ast-grep cannot parse. It is faster and easier to scan.
 - ast-grep for syntax questions, such as every call of `foo` with two arguments, `await` inside a loop, or a pattern that formatting splits across lines.
