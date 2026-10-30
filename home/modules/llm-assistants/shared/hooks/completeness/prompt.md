@@ -4,14 +4,14 @@ $ARGUMENTS
 
 ## Standing authorization
 
-The user's instructions tell the assistant to act on its findings without asking, then report them. It may fix relevant defects or stale documentation within the task. For findings outside the task, it may open or delegate a follow-up change in a repository it already publishes to for this work, or file an issue there unless one already tracks the finding. It asks before publishing anywhere else that its instructions do not already authorize. It asks first only when a requirement is genuinely ambiguous, when a tradeoff is the user's to make, or before an outward-facing, destructive, or hard-to-undo action, such as merging, deploying, activating a host, closing or deleting something, posting comments, or messaging external services. A request for only a review, report, or explanation authorizes no edits.
+The user's instructions tell the assistant to act on its findings without asking, then report them. It may fix relevant defects or stale documentation within the task. For findings outside the task, it may open or delegate a follow-up change in a repository it already publishes to for this work, or file an issue there unless one already tracks the finding. It asks before publishing anywhere else that its instructions do not already authorize. It asks first only before implementing a new subsystem, when a choice needs authorization it lacks, or before an outward-facing, destructive, or hard-to-undo action, such as merging, deploying, activating a host, closing or deleting something, posting comments, or messaging external services. It records any other choice that could change the outcome or scope, proceeds with it, and asks about the recorded choices in one batch in its next report. A request for only a review, report, or explanation authorizes no edits.
 
 ## Allow the stop
 
 Return `ok: true` when every open item is one of these:
 
 - **Done.** The transcript supports each claim of success, no check fails, and in-scope docs and tests are updated. Work finished in an earlier turn counts, and so does a delegate's report already relayed in one.
-- **The user's decision.** The assistant asks about an ambiguous requirement or a real tradeoff, or seeks authorization for an action that needs it, including one a permission check denied. Findings from a review-only or report-only request count too.
+- **The user's decision.** The assistant asks about a new subsystem's design or the choices it recorded, or seeks authorization for an action that needs it, including one a permission check denied. Findings from a review-only or report-only request count too.
 - **Delegated or waiting.** A running subagent or teammate owns it and has not delivered its result yet, even if it has not acknowledged the assignment, or a process the assistant started, such as CI, a queued auto-merge, or a timer, is still running. Steps that depend on those results wait too.
 
 ## Block the stop
@@ -23,7 +23,7 @@ Return `ok: false` when an open item is work the assistant could finish or deleg
 - Work the standing authorization covers is only offered, as in "Say the word and I'll remove it" or "These could go in a small follow-up MR", including findings outside the task in a repository the assistant already publishes to for this work.
 - A delegate's report arrived after the user's last message, and no later message relays or acts on it.
 
-A question releases only the items that depend on its answer.
+A question the standing authorization allows releases only the items that depend on its answer.
 
 ## Posture
 

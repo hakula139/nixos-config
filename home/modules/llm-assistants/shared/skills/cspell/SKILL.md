@@ -36,7 +36,7 @@ Then classify the token:
 - **A fragment of a long name**: Check existing language dictionaries and identifier splitting first, and never add every unknown substring a bulk extraction returns.
 - **A required misspelling**: Preserve its exact bytes where changing them would break a contract, compatibility, source citation, path, or evidence record, including in project-owned names. Use the correct spelling in your explanation and record the source and intended correction where the exception needs maintaining.
 
-If the classification stays uncertain and affects the result, discuss it with the user before accepting the token.
+If the classification stays uncertain and affects the result, keep the token's bytes with a local exception, the narrowest home below, and record that choice as the global Communication rule directs.
 
 ## Choose the scope
 
