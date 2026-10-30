@@ -61,7 +61,7 @@ def read-transcript [file: string]: nothing -> list {
 def turns [project: string]: list -> list {
   $in
   | reverse
-  | generate {|event, nextReply = null|
+  | generate {|event, nextReply: oneof<datetime, nothing> = null|
     match $event.kind {
       reply => {next: $event.ts}
       abort => {next: null}

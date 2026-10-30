@@ -52,7 +52,7 @@ def model-name [input: record, models: record]: nothing -> string {
 
   let large_context = (
     ($input.context_window?.context_window_size? | default 0) >= 1000000
-    or ($id | str downcase | str ends-with "[1m]")
+    or ($id | str lowercase | str ends-with "[1m]")
   )
   [
     $name

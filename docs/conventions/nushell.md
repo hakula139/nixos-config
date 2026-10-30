@@ -27,11 +27,13 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 
 - **Return annotations do not validate dynamic output.** A `-> record` function can return a list from an untyped helper, and `get -o` on an empty list returns `[]`, which `default` keeps.
 
+- **A `mut` or a defaulted closure parameter takes the type of its initial value.** Each later value is checked against that type, at parse time when its type is known and at runtime otherwise, so `mut current = null` rejects a record, `mut n = 0` rejects a float, and `generate {|row, acc = null| ... }` raises `Can't convert to nothing` once it passes `acc` a value. Annotate the union, as in `mut current: oneof<record, nothing> = null`, because `nu-check` misses the runtime case.
+
 - **YAML error messages hide the parser's detail.** Read `$e.rendered` in the catch block, since `$e.msg` says only `Error while parsing as yaml`.
 
 - **`math sum` errors on an empty list.** Use `| append 0 | math sum`.
 
-- **`open --raw` yields a byte stream, which collects to `binary` on invalid UTF-8.** A `: string` parameter then raises `can't convert binary to string` at the call site, while a `string ->` input accepts the binary. To require UTF-8, pipe the stream itself into `into string` inside `try`, which raises `Non-UTF8 string` on invalid bytes and on a UTF-16 BOM. `into string` rejects every collected `binary`, valid or not, so check bytes captured with `into binary` by comparing `$bytes | decode utf-8 | encode utf-8` with them after any leading UTF-8 BOM, since `decode utf-8` strips that BOM, replaces invalid bytes, and honors a UTF-16 BOM.
+- **`open --raw` yields a byte stream, which collects to `binary` on invalid UTF-8.** A `: string` parameter or a `string ->` input then raises a type error. To require UTF-8, pipe the stream itself into `into string` inside `try`, which raises `Non-UTF8 string` on invalid bytes and on a UTF-16 BOM. `into string` rejects every collected `binary`, valid or not, so check bytes captured with `into binary` by comparing `$bytes | decode utf-8 | encode utf-8` with them after any leading UTF-8 BOM, since `decode utf-8` strips that BOM, replaces invalid bytes, and honors a UTF-16 BOM.
 
 ### Strings and arguments
 

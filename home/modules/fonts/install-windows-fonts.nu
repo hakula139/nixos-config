@@ -10,7 +10,7 @@
 const FONT_EXTENSIONS = [ttf otf ttc otc]
 
 def extension [file: string]: nothing -> string {
-  $file | path parse | get extension | str downcase
+  $file | path parse | get extension | str lowercase
 }
 
 def font-files [dirs: list<string>]: nothing -> list<string> {

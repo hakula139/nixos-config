@@ -166,6 +166,7 @@
               enable = true;
               name = "nu-check";
               description = "Run nushell's diagnostic check on .nu files.";
+              package = pkgs.nushell;
               entry = "${pkgs.nu-check}";
               files = "\\.nu$";
               types = [ "file" ];

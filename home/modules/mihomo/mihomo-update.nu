@@ -1,15 +1,5 @@
 #!/usr/bin/env nu
 
-# `$e.msg` is always "Error while parsing as yaml", so the key comes from $e.rendered.
-def yaml_error [e: record]: nothing -> string {
-  let marker = "Could not load YAML: "
-  let hit = ($e.rendered | lines | where ($it | str contains $marker) | get -o 0)
-  if ($hit | is-empty) {
-    return $e.msg
-  }
-  $hit | str substring (($hit | str index-of $marker) + ($marker | str length))..
-}
-
 def main [config_file: string] {
   let config = (open $config_file)
   let target_file = ($config.configDir | path join "config.yaml")
@@ -17,8 +7,6 @@ def main [config_file: string] {
   # `open` only parses YAML when the extension says so, and the named duplicate-key error is worth
   # more than a generic one.
   let staging_file = ($config.configDir | path join "config.staging.yaml")
-
-  mkdir $config.configDir
 
   # The subscription fetch must not loop through mihomo itself, which is either down during initial
   # start or about to be replaced.
@@ -60,7 +48,8 @@ def main [config_file: string] {
     open $staging_file | ignore
   } catch { |e|
     rm --force $staging_file
-    print --stderr $"Error: merged config is not valid YAML, keeping previous config: (yaml_error $e)"
+    print --stderr "Error: merged config is not valid YAML, keeping previous config:"
+    print --stderr $e.rendered
     exit 1
   }
 

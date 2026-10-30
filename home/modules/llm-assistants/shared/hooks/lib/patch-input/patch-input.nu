@@ -7,7 +7,7 @@
 def parse-patch [command: string]: nothing -> list<record> {
   let lines = ($command | lines)
   mut files = []
-  mut current = null
+  mut current: oneof<record, nothing> = null
   for line in $lines {
     # apply_patch file operation headers
     let header = ($line | parse --regex '^\*\*\* (?<action>Add|Update|Delete) File: (?<path>.+)$')
