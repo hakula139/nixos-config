@@ -38,15 +38,23 @@ def "test activation records golden hook hashes and keeps other state" [] {
             matcher: $edits
             hooks: [(command /bin/format {timeout: 120, statusMessage: "Formatting edited files"})]
           }
-          {matcher: $edits, hooks: [(command /bin/gate {timeout: 100, statusMessage: "Checking"})]}
-          {hooks: [(command "/bin/status working")]}
+          {
+            matcher: $edits
+            hooks: [(command /bin/gate {timeout: 100, statusMessage: "Checking"})]
+          }
+          {
+            hooks: [(command "/bin/status working")]
+          }
         ]
         SessionStart: [
           {
             matcher: compact
             hooks: [(command /bin/restore {timeout: 10, statusMessage: "Restoring context"})]
           }
-          {matcher: "startup|resume|clear", hooks: [(command /bin/register)]}
+          {
+            matcher: "startup|resume|clear"
+            hooks: [(command /bin/register)]
+          }
         ]
         PermissionRequest: [
           {hooks: [(command "/bin/status waiting") (command /bin/instant {timeout: 0})]}
