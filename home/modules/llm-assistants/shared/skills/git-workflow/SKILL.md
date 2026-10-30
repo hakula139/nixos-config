@@ -49,7 +49,7 @@ Read the repository's contribution instructions before starting, and use its own
 - Record the chosen examples and the conventions they show, including heading names, hierarchy and order, prose or list structure, and validation format, and include these notes in any brief.
 - Infer assignees from comparable requests, checking the authenticated identity when the convention is self-assignment.
 - Match labels to established usage and the available labels' descriptions. Commit types can inform the choice but do not imply a fixed label mapping.
-- If metadata remains ambiguous, ask a focused question. Never invent a rule or silently omit metadata.
+- If metadata remains ambiguous, choose the closest established match and record it as the global Communication rule directs. Never invent a rule or silently omit metadata.
 - Keep each request focused on one purpose. Put unrelated changes, including dependency or lockfile churn, in separate requests, and fix every occurrence of the same problem within a repository in one request.
 
 ### Description
