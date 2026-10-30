@@ -63,7 +63,7 @@ let
     markdownlintConfig = whenDevPath ../../.markdownlint.jsonc;
     nixfmt = lib.getExe pkgs.nixfmt;
     nuCheck = "${pkgs.nu-check}";
-    prettier = whenDev pkgs.unstable.prettier;
+    prettier = whenDev pkgs.prettier;
     pyright = whenDev pkgs.pyright;
     ruff = whenDev pkgs.ruff;
     shellcheck = lib.getExe pkgs.shellcheck;

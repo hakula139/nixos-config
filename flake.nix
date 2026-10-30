@@ -96,7 +96,6 @@
     {
       self,
       nixpkgs,
-      nixpkgs-unstable,
       git-hooks-nix,
       ...
     }@inputs:
@@ -111,7 +110,7 @@
 
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
-      overlays = import ./lib/overlays.nix { inherit inputs nixpkgs-unstable; };
+      overlays = import ./lib/overlays.nix { inherit inputs; };
 
       pkgsFor =
         system:
@@ -131,6 +130,7 @@
         in
         git-hooks-nix.lib.${system}.run {
           src = ./.;
+          tools = import "${git-hooks-nix}/nix/call-tools.nix" pkgs;
           package = pkgs.prek;
           excludes = [ "(^|/)fixtures/" ];
           hooks = {
@@ -166,7 +166,6 @@
               enable = true;
               name = "nu-check";
               description = "Run nushell's diagnostic check on .nu files.";
-              package = pkgs.nushell;
               entry = "${pkgs.nu-check}";
               files = "\\.nu$";
               types = [ "file" ];
