@@ -66,7 +66,6 @@ in
   "backup/env.age".publicKeys = allServers;
   "backup/restic-password.age".publicKeys = allServers;
   "cloudflare/credentials.age".publicKeys = allServers;
-  "netdata/qq-smtp-authcode.age".publicKeys = allServers;
   "xray/reality-private-key.age".publicKeys = allServers;
   "xray/users.json.age".publicKeys = allServers;
 
