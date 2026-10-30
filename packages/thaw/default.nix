@@ -9,11 +9,11 @@
 
 pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "thaw";
-  version = "3.0.0-alpha.7";
+  version = "3.0.0-alpha.11";
 
   src = pkgs.fetchurl {
     url = "https://github.com/thaw-app/Thaw/releases/download/${finalAttrs.version}/Thaw_${finalAttrs.version}.zip";
-    hash = "sha256-dANNgipCGnQwQgzb3Ir6LUPhQZ7jZLZO42h9DBqNDfE=";
+    hash = "sha256-966LNyHB4mgXCe6JZdjUtZDbEDq61AJeVGNvIjaPtJo=";
   };
 
   sourceRoot = ".";
