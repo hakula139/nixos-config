@@ -221,7 +221,6 @@ def read-ccusage []: nothing -> record {
 
   let data = (current-usage)
   try {
-    mkdir ($CCUSAGE_CACHE | path dirname)
     $data | save --force $CCUSAGE_CACHE
   }
   $data

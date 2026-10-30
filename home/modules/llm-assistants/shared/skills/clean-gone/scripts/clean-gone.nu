@@ -102,7 +102,7 @@ def branch-is-integrated [branch: string, base_ref: string]: nothing -> bool {
   # `:(literal)` keeps a path containing `*` or `[` from being read as a glob.
   let pathspecs = ($changed | each {|p| ":\(literal)" + $p })
   let candidates = (
-    git-out "rev-list" "--first-parent" $base_ref $"^($merge_base)" | lines | where $it != ""
+    git-out "rev-list" "--first-parent" $base_ref $"^($merge_base)" | lines
   )
 
   for candidate in $candidates {
