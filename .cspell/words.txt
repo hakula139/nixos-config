@@ -53,6 +53,7 @@ darkhttpd
 davidanson
 dbaeumer
 dbengine
+dbname
 dbus
 debugpy
 devvm
