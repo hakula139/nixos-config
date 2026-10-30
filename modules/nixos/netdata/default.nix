@@ -14,28 +14,6 @@ let
   cfg = config.hakula.services.netdata;
 
   netdataPkg = pkgs.netdata;
-
-  systemdCatNative = pkgs.writeShellScriptBin "systemd-cat-native" ''
-    tag=""
-    out=()
-    for arg in "$@"; do
-      if [ "$arg" = "--log-as-netdata" ]; then
-        tag="netdata"
-      else
-        out+=("$arg")
-      fi
-    done
-
-    if [ -n "$tag" ]; then
-      exec ${lib.getExe' pkgs.systemd "systemd-cat"} -t "$tag" "''${out[@]}"
-    else
-      exec ${lib.getExe' pkgs.systemd "systemd-cat"} "''${out[@]}"
-    fi
-  '';
-
-  sendmail = pkgs.writeShellScriptBin "sendmail" ''
-    exec ${lib.getExe pkgs.msmtp} "$@"
-  '';
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -54,15 +32,6 @@ in
     # ----------------------------------------------------------------------------------------------
     # Nixpkgs adds podman whenever it is enabled, and its socket is root-equivalent.
     users.users.netdata.extraGroups = lib.mkForce [ ];
-
-    # ----------------------------------------------------------------------------------------------
-    # Secrets
-    # ----------------------------------------------------------------------------------------------
-    age.secrets.qq-smtp-authcode = repoLib.secrets.mkSecret {
-      name = "netdata/qq-smtp-authcode";
-      owner = "netdata";
-      group = "netdata";
-    };
 
     # ----------------------------------------------------------------------------------------------
     # Netdata service
@@ -118,49 +87,17 @@ in
       repoLib.systemd.restartUnit
 
       {
-        path = [
-          pkgs.systemd
-          systemdCatNative
-          pkgs.msmtp
-          sendmail
-        ];
+        path = [ netdataPkg ];
 
         environment.NETDATA_PREFIX = "${netdataPkg}";
       }
     ];
 
-    environment.systemPackages = [
-      systemdCatNative
-      sendmail
-    ];
-
     # ----------------------------------------------------------------------------------------------
-    # Email notification
+    # Alerts
     # ----------------------------------------------------------------------------------------------
-    environment.etc.msmtprc = {
-      mode = "0444";
-      text = ''
-        defaults
-        auth on
-        tls on
-        tls_starttls off
-        tls_trust_file ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
-
-        account qq
-        host smtp.qq.com
-        port 465
-        from hakula139@qq.com
-        user hakula139@qq.com
-        passwordeval "cat ${config.age.secrets.qq-smtp-authcode.path}"
-
-        account default : qq
-      '';
-    };
-
     services.netdata.configDir."health_alarm_notify.conf" = pkgs.writeText "health_alarm_notify.conf" ''
-      SEND_EMAIL="YES"
-      DEFAULT_RECIPIENT_EMAIL="hakula139@qq.com"
-      EMAIL_SENDER="hakula139@qq.com"
+      SEND_EMAIL="NO"
     '';
   };
 }
