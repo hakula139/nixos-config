@@ -180,8 +180,6 @@ mihomo
 mkcd
 mkhl
 msdos
-msmtp
-msmtprc
 myip
 mypy
 nbsp
