@@ -5,6 +5,7 @@
 - **Restart policy**: a long-running NixOS service merges `repoLib.systemd.restartUnit` into its `systemd.services.<name>`, and a Home Manager user service merges `repoLib.systemd.restart` into its `Service` section, instead of setting `Restart=` or start limits itself.
 - **Host flags**: NixOS modules receive `isDesktop` only, while Home Manager modules receive both `isDesktop` and `isNixOS`.
 - **Unattended HTTP calls** from a service, timer, launchd agent, activation script, or hook take curl's common flags from `repoLib.curl.mkArgs`, with both timeouts chosen for the endpoint.
+- **Unstable packages**: take a package from `pkgs.unstable` only when the stable branch lacks a version you need, and pick it at the call site. When something reads `pkgs.<name>` implicitly, such as a nixpkgs writer, a module's package default, or a git-hooks.nix hook, pin it in the overlay, unless stable packages compile against it, as they do against a language toolchain.
 
 ## Function arguments
 

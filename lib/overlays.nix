@@ -4,7 +4,6 @@
 
 {
   inputs,
-  nixpkgs-unstable,
 }:
 
 [
@@ -15,10 +14,12 @@
     # ----------------------------------------------------------------------------------------------
     # Nixpkgs channels
     # ----------------------------------------------------------------------------------------------
-    unstable = import nixpkgs-unstable {
+    unstable = import inputs.nixpkgs-unstable {
       localSystem = final.stdenv.hostPlatform.system;
       config.allowUnfree = true;
     };
+
+    inherit (final.unstable) nushell;
 
     # ----------------------------------------------------------------------------------------------
     # Flake-input CLIs
@@ -41,8 +42,6 @@
     # ----------------------------------------------------------------------------------------------
     # Toolchains
     # ----------------------------------------------------------------------------------------------
-    nushell = final.unstable.nushell;
-
     rustToolchain = final.rust-bin.stable.latest.default.override {
       extensions = [
         "llvm-tools-preview"

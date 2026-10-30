@@ -44,6 +44,8 @@ Update a selected input with `nix flake update <input>`. An explicit tag or rele
 
 Package attributes such as `nodejs_26` and `postgresql_17` select majors within nixpkgs. Their patch versions follow the lockfile. Changing PostgreSQL's major requires a database migration. `python3` follows nixpkgs' default Python version. These choices require review separately from the checker's version comparisons.
 
+A NixOS release upgrade rechecks each `pkgs.unstable` pick and overlay pin against the [unstable packages rule](../../../docs/conventions/nix.md#module-shape).
+
 `peertube` and `peertube-runner` use the version, source hash, and pnpm dependency hash pinned in `packages/peertube/default.nix`, with the package definition from `nixpkgs-unstable`. When upgrading, validate the three local PeerTube patches and the runner override in `packages/peertube/runner.nix`. Review release-specific migration requirements before changing the pin. Run required manual migrations during deployment and verify their results. Keep one-time migration services out of the persistent configuration.
 
 ## Claude Code plugin marketplaces
@@ -125,10 +127,7 @@ nix build --no-link --print-out-paths --impure --expr '
     f = builtins.getFlake (toString ./.);
     p = import f.inputs.nixpkgs {
       system = "x86_64-linux";
-      overlays = import ./lib/overlays.nix {
-        inherit (f) inputs;
-        nixpkgs-unstable = f.inputs.nixpkgs-unstable;
-      };
+      overlays = import ./lib/overlays.nix { inherit (f) inputs; };
       config.allowUnfree = true;
     };
   in
