@@ -2,79 +2,57 @@
 name: pinned-versions
 description: >-
   Audit or upgrade manually pinned dependencies in nixos-config, including plugin revisions, custom
-  packages, flake release tags, container images, GitHub Actions, runtime packages, and Cloudflare
-  IP ranges. Use for stale dependency sweeps or hash mismatches after version bumps.
+  packages, flake release tags, container images, runtime packages, and Cloudflare IP ranges, and
+  review Renovate's GitHub Actions updates. Use for stale dependency sweeps or hash
+  mismatches after version bumps.
 ---
 
 # Pinned Versions
 
-Locate pins, compare upstream versions, and update the relevant source and hashes. Run commands from the repository root. A version audit requires no changes. When upgrading, keep unrelated pins and lockfile inputs outside the change, and deploy only when the requested scope includes activation.
+Locate pins through `scripts/check-pins.nu`, compare upstream versions, and update the relevant source and hashes. Run commands from the repository root. An audit only reports drift, while the update steps apply to a request that asks for upgrades. When upgrading, keep unrelated pins and lockfile inputs outside the change, and deploy only when the requested scope includes activation. Skip a pin that another open request owns, and name that request in the upgrade request's description.
 
-Before bumping a pin, check whether upstream has made local overrides or patches unnecessary. Remove patches whose fixes are included upstream and drop version / hash overrides once the locked dependency supplies the required release. Keep any remaining behavior overrides and update the checker registry and affected instructions to match.
+Before bumping a pin, check whether upstream has made local overrides or patches unnecessary. Remove patches whose fixes are included upstream. Keep any remaining behavior overrides and update the checker registry and affected instructions to match.
 
 ## Check for drift
 
 ```bash
-.agents/skills/pinned-versions/scripts/check-pins.nu list     # list the registry without network calls
-.agents/skills/pinned-versions/scripts/check-pins.nu          # compare registered pins with upstream
+.agents/skills/pinned-versions/scripts/check-pins.nu
 ```
 
-Listing the registry requires Nushell and Git. Upstream comparisons also require GitHub CLI (`gh`) authenticated to `github.com`. `nix develop` supplies Nushell but does not install `gh`. Its registry covers the pins below. For a repository-wide audit, also inspect new packages, inputs, service defaults, and workflow references that may not have been added to the checker.
+`list` prints the registry without network calls and needs Nushell and Git. Comparison also needs Nix for the override rows, plus `gh` authenticated to `github.com`, which `nix develop` does not supply. `UNKNOWN` means a lookup failed, usually from a transient fetch failure, so rerun before acting on it. `STALE` means the registered value differs from upstream, so inspect the upstream target before deciding to upgrade. On an override row, `version pin superseded` means `nixpkgs-unstable` ships the latest upstream release at or above the pinned version. `override redundant` means the row has no version pin, and its derivation and platforms match `nixpkgs-unstable`. `ok (tracks nixpkgs)` means the override differs from `nixpkgs-unstable` in more than its version, through patches, build overrides, or platforms. The checker compares registered values only, so it does not validate hashes, compatibility, or deployed versions.
 
-| Exit code | Meaning                                                     |
-| --------- | ----------------------------------------------------------- |
-| 0         | No drift detected among the compared pins                   |
-| 1         | At least one registered pin differs from its upstream value |
-| 2         | A prerequisite, extraction, or upstream query failed        |
+To update an override of a nixpkgs package, find its latest upstream release first. If `nixpkgs-unstable` already ships that release at or above the pin, drop the `version`, its `src` hash override, and any dependency hashes that exist only for the bump, keeping patches, build overrides, and meta. Otherwise bump the override to that release. Delete the package only when nothing else remains, and deleting it also means removing its overlay line, pointing its consumers at `pkgs.unstable.<name>`, and dropping its Cachix pin in `.github/workflows/ci.yml`. After a bump or a partial deletion, build the package, since remaining patches and platform additions must still apply to the new upstream version.
 
-`UNKNOWN` leaves the comparison incomplete, including when a pin group extracts nothing. `STALE` means the compared values differ, so inspect the upstream target before deciding to upgrade. The checker does not validate hashes, compatibility, or deployed versions. Entries marked `renovate` delegate their source to `flake.lock` and are not queried individually.
+The registry can lag the repository. For a repository-wide audit, also inspect new packages, flake inputs, service defaults, and workflow references.
 
 ## Locked inputs and release selectors
 
-`.github/renovate.json` enables only the `nix` manager and extends the shared `.github/renovate-preset.json`, which groups flake inputs into automerged `chore(flake)` PRs and schedules daily lockfile maintenance in Asia/Shanghai time. GitHub Actions and the manual pins below are outside that manager.
-
-Update a selected input with `nix flake update <input>`. An explicit tag or release branch in `flake.nix` constrains what a lockfile refresh can select:
-
-- `listenbrainz-scrobbler` and `oxide-code` use release tags. Choose a release from `hakula139/listenbrainz-scrobbler` or `hakula139/oxide-code`, update its URL, then run `nix flake update <input>`. The checker compares `oxide-code` with its newest release, pre-releases included.
-- `nixpkgs`, `nixos-wsl`, `nix-darwin`, `home-manager`, and `system-manager` select the 26.05 release branches. Review these selectors together for a NixOS release upgrade. The checker compares only the two release tags.
-- Assistant CLIs, ACP adapters, `ccusage`, and `workmux` come from `llm-agents` through `lib/overlays.nix`. Use `nix flake update llm-agents` to refresh that source.
-- `anthropics-skills` and `openai-skills` are non-flake inputs whose revisions also live in `flake.lock`.
+Renovate manages `flake.lock` inputs and GitHub Actions, so a manual sweep leaves those alone, including rolling inputs such as `llm-agents`. Update a selected input with `nix flake update <input>` only when its selector changes in `flake.nix`. An input pinned to a release tag selects nothing newer than that tag, so change the tag first. The inputs that select NixOS release branches need review together for a release upgrade, and the checker does not compare them.
 
 ### Nixpkgs package selections
 
-Package attributes such as `nodejs_26` and `postgresql_17` select majors within nixpkgs. Their patch versions follow the lockfile. Changing PostgreSQL's major requires a database migration. `python3` follows nixpkgs' default Python version. These choices require review separately from the checker's version comparisons.
+Package attributes that select a major, such as `postgresql_17`, follow the lockfile for patch versions, and they need review separately from the checker's comparisons. Changing PostgreSQL's major requires a database migration.
 
 A NixOS release upgrade rechecks each `pkgs.unstable` pick and overlay pin against the [unstable packages rule](../../../docs/conventions/nix.md#module-shape).
 
-`peertube` and `peertube-runner` use the version, source hash, and pnpm dependency hash pinned in `packages/peertube/default.nix`, with the package definition from `nixpkgs-unstable`. When upgrading, validate the three local PeerTube patches and the runner override in `packages/peertube/runner.nix`. Review release-specific migration requirements before changing the pin. Run required manual migrations during deployment and verify their results. Keep one-time migration services out of the persistent configuration.
-
-`netdata` uses the same arrangement, pinning the source version on the `nixpkgs-unstable` definition in `packages/netdata/default.nix`. Drop the override once `nixpkgs-unstable` ships the override's version or newer, then point the Netdata module back at `pkgs.unstable.netdata`.
+`peertube` and `peertube-runner` pin a version, source hash, and pnpm dependency hash against the `nixpkgs-unstable` definition, with three local patches and a runner override that need validating on every bump. Review release-specific migration requirements before changing the pin, run required manual migrations during deployment and verify their results, and keep one-time migration services out of the persistent configuration.
 
 ## Claude Code plugin marketplaces
 
-Manual marketplace pins live in the `marketplaces` attrset in `home/modules/llm-assistants/claude-code/plugins.nix`:
-
-| Marketplace               | Upstream                             | Revision selection            |
-| ------------------------- | ------------------------------------ | ----------------------------- |
-| `claude-plugins-official` | `anthropics/claude-plugins-official` | Default branch, dated comment |
-
-Each row stores a commit `rev` and extracted-tree `hash`. The checker compares revision prefixes with the default branch head. It reads the pinned revision from code, so an inaccurate date comment cannot make a stale source appear current. The Workmux marketplace uses `pkgs.workmux.src` from the locked `llm-agents` input. Common skills use the separate `anthropics-skills` and `openai-skills` inputs.
-
-These revisions control the prebuilt Claude Code cache when `hakula.claude-code.plugins.bundle` is enabled, currently in `devvm`. Bundling sets `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL`. Unbundled Claude Code fetches the configured marketplaces at runtime, so editing these hashes does not pin its runtime cache.
+The manual marketplace revisions control the prebuilt Claude Code cache only when `hakula.claude-code.plugins.bundle` is enabled, currently in `devvm`. Unbundled Claude Code fetches its marketplaces at runtime, so these hashes do not pin that cache.
 
 To update a manual marketplace:
 
-1. Resolve the default branch to a commit. Update `rev` and its date comment together.
+1. Resolve the default branch to a commit. Update `rev` and its date comment together, since the checker reads the revision from code.
 
 2. Obtain the extracted-tree hash. `fetchFromGitHub` requires `--unpack` when prefetching an archive:
 
    ```bash
-   nix hash convert --hash-algo sha256 --to sri "$(
-     nix-prefetch-url --unpack 'https://github.com/<owner>/<repo>/archive/<rev>.tar.gz'
-   )"
+   nix store prefetch-file --json --unpack \
+     'https://github.com/<owner>/<repo>/archive/<rev>.tar.gz'
    ```
 
-   Check this invocation against the existing revision and hash when using a different archive URL or fetch method.
+   The output carries the SRI hash. Check this invocation against the existing revision and hash when using a different archive URL or fetch method.
 
 3. Validate each changed source with the module's fetcher, substituting the marketplace values:
 
@@ -92,38 +70,24 @@ To update a manual marketplace:
    '
    ```
 
-4. Build `.#packages.x86_64-linux.devvm-docker` to check the assembled Claude Code cache.
+4. Build `.#packages.x86_64-linux.devvm-docker` to check the assembled cache.
 
 ## Nix-built packages and fetched helpers
 
 ### Overlay packages
 
-These packages are registered in `lib/overlays.nix`. The MCP packages are grouped under `packages/mcp/`:
+Update the package's `version` and source hash, staying on the release channel the pin already uses (alpha, beta, or rc) unless a stable release at or above it exists. Commit-pinned packages such as `zsh-hist` need `src.rev`, `src.hash`, and the date in their `0-unstable-YYYY-MM-DD` version changed together.
 
-| Package             | Location                                     | Upstream                                |
-| ------------------- | -------------------------------------------- | --------------------------------------- |
-| `acpx`              | `packages/acpx/default.nix`                  | `openclaw/acpx` releases                |
-| `cloudreve`         | `packages/cloudreve/default.nix`             | `cloudreve/cloudreve` releases          |
-| `mcp-server-github` | `packages/mcp/mcp-server-github/default.nix` | `github/github-mcp-server` releases     |
-| `mcp-server-gitlab` | `packages/mcp/mcp-server-gitlab/default.nix` | `zereight/gitlab-mcp` releases          |
-| `netdata`           | `packages/netdata/default.nix`               | `netdata/netdata` releases              |
-| `peertube`          | `packages/peertube/default.nix`              | `Chocobozzz/PeerTube` releases          |
-| `wakatime-cli`      | `packages/wakatime-cli/default.nix`          | `wakatime/wakatime-cli` releases        |
-| `zsh-hist`          | `packages/zsh-hist/default.nix`              | `marlonrichert/zsh-hist` default branch |
+Dependencies beyond the source need these hashes:
 
-Update the package's `version` and source hash, preserving its upstream tag convention. `zsh-hist` uses a commit pin, so update `src.rev`, `src.hash`, and the date in its `0-unstable-YYYY-MM-DD` version together.
+- `acpx` needs `pnpmDeps.hash`, and `wakatime-cli` needs `vendorHash`.
+- `mcp-server-gitlab` needs `npmDepsHash`. Rebuild to validate dependency hashes even when the upstream lockfile appears unchanged.
+- `cloudreve` and `mcp-server-github` fetch release archives with `fetchurl`. Prefetch their bytes without `--unpack`, and update every platform entry, including those unavailable locally.
+- `netdata` needs the GitHub source hash. Its Go module and cargo vendor hashes come from the `nixpkgs-unstable` expression and are named after `version`, so a bump that changes them fails with an FOD mismatch and they must then be overridden in `packages/netdata/default.nix`.
 
-Hash requirements depend on the fetcher:
+Use `lib.fakeHash` temporarily to obtain a hash from a Nix mismatch error, resolving dependency hashes after the source hash. `fetchPnpmDeps` recomputes the whole dependency tree, which takes a full build here, and the mismatched fixed-output derivation is discarded, so the package build repeats the fetch. Never leave a placeholder hash in the final change.
 
-- `acpx` needs both the GitHub source hash and `pnpmDeps.hash` from `fetchPnpmDeps`.
-- `netdata` needs the GitHub source hash. Its Go module hashes (`passthru.netdata-go-modules`, `passthru.nd-mcp`) and cargo vendor hashes (`cargoDeps`) come from the nixpkgs expression and are named after `version`, so a bump that changes them fails with an FOD mismatch and they must then be overridden in `packages/netdata/default.nix`.
-- `wakatime-cli` needs both the GitHub source hash and `vendorHash`.
-- `mcp-server-gitlab` needs the GitHub source hash and `npmDepsHash`. Rebuild to validate dependency hashes even when the upstream lockfile appears unchanged.
-- `cloudreve` and `mcp-server-github` use `fetchurl` for release archives. Update every entry in `sources`, including platforms unavailable locally. Prefetch their archive bytes without `--unpack`. Cloudreve currently supports `x86_64-linux`. The GitHub server also supports `aarch64-darwin`.
-
-Use `lib.fakeHash` temporarily when obtaining a hash from a Nix mismatch error. Build again with the reported hash, resolving dependency hashes after the source hash. Never leave a placeholder hash in the final change.
-
-The custom packages are overlay attributes and are not exposed as individual flake package outputs. Build through the overlay, replacing `p.acpx` with the desired attribute and selecting a supported system:
+The custom packages are overlay attributes rather than flake outputs, so build them through the overlay:
 
 ```bash
 nix build --no-link --print-out-paths --impure --expr '
@@ -139,50 +103,36 @@ nix build --no-link --print-out-paths --impure --expr '
 '
 ```
 
-For executable packages, run a supported `--version` or `--help` command from the resulting store path to catch wrapper, entry-point, or loader failures. `zsh-hist` installs a Zsh plugin under `share/zsh-hist` and has no executable. Verify its loading and `hist` command in an isolated Zsh session without modifying the user's history.
+For executable packages, run a supported `--version` or `--help` from the store path to catch wrapper, entry-point, or loader failures. `zsh-hist` has no executable, so verify its loading and `hist` command in an isolated Zsh session without modifying the user's history.
 
 ### Windows notification helper
 
-`toasty` is a local binding in `home/modules/llm-assistants/shared/notify/default.nix`, fetched from `shanselman/toasty`. Update the release tag in its URL and the `fetchurl` hash together. The checker selects the newest release with `toasty-x64.exe`, since some releases omit that asset.
-
-This helper is not exported as an overlay attribute. Build a Linux host that enables assistant notifications, such as `wsl`, to validate the fetch and wrapper. Runtime notification verification requires Windows interoperability in WSL.
+`toasty` is a local binding, so the overlay build above does not produce it. Update its release tag and `fetchurl` hash together, then build a Linux host that enables assistant notifications, such as `wsl`, to validate the fetch and wrapper. Runtime notification verification requires Windows interoperability in WSL.
 
 ## Container images and runtime packages
 
 ### Container images
 
-The default `image` options contain the tags checked by the script:
-
-| Service | Location                          | Upstream                        |
-| ------- | --------------------------------- | ------------------------------- |
-| `umami` | `modules/nixos/umami/default.nix` | `umami-software/umami` releases |
-
-Umami is enabled on `us-4`. Inspect host overrides before changing a default, since the checker does not evaluate effective host image options.
-
-Review release notes for application and database migrations, then edit the tag and build the affected host. Nix builds validate the service configuration but do not fetch these container images or test their runtime. When deployment is requested, `colmena apply --on us-4` applies an Umami update. Podman resolves the configured image when starting the container.
+Review release notes for application and database migrations, then edit the tag and build the affected host. Nix builds validate the service configuration but do not fetch the container image or test its runtime. Umami runs on `us-4`. Inspect host overrides before changing a default, since the checker does not evaluate effective host image options. `colmena apply --on us-4` deploys an Umami update, and Podman resolves the configured image when starting the container.
 
 ### Unpinned MCP wrappers
 
-The `npx` and `uvx` MCP wrappers in `home/modules/llm-assistants/shared/mcp/default.nix` float on each package's latest release, `uvx` through `@latest`, so they are outside this pin checker.
+The `npx` and `uvx` MCP wrappers float on each package's latest release, so they stay outside the checker.
 
 ## GitHub Actions
 
-External actions use major tags in `.github/workflows/` and `.github/actions/setup-nix/action.yml`: `actions/checkout`, `anthropics/claude-code-action`, `cachix/cachix-action`, `cachix/install-nix-action`, and `wimpysworld/nothing-but-nix`.
-
-The checker reads workflow jobs, their steps, and composite-action steps from YAML. Major tags compare with the major component of the latest release, while full `vMAJOR.MINOR.PATCH` tags compare with the full release tag. Other GitHub refs, such as commit hashes or branch names, report `UNKNOWN` and need manual review. Local actions and Docker action references are outside this comparison.
-
-Review breaking changes before editing `uses:`. Upstream can move an existing major tag without a repository change. Run local workflow checks, then verify an actual GitHub Actions run for runtime behavior. A GitLab-only MR does not trigger GitHub CI. See [CI](../../../docs/reference/ci.md) for triggers.
+Renovate owns these refs. Review its PRs for breaking changes, and run local workflow checks. Upstream can move an existing major tag without a PR, so verify an actual GitHub Actions run for runtime behavior. GitHub CI runs only on GitHub, so a GitLab-only MR triggers none. See [CI](../../../docs/reference/ci.md) for triggers.
 
 ## Cloudflare IP ranges
 
-`modules/nixos/cloudflare/ips.nix` snapshots the ranges used by nginx's real IP configuration. The checker compares the range sets, using the `Last updated` comment only as the displayed local value.
+The Cloudflare range snapshot feeds nginx's real IP configuration, and the checker compares the range sets while treating the `Last updated` comment as the displayed local value. Fetch both lists, then update both and the date once both requests succeeded:
 
 ```bash
 curl -fsS https://www.cloudflare.com/ips-v4
 curl -fsS https://www.cloudflare.com/ips-v6
 ```
 
-Update both lists and the date after confirming both requests succeeded. Every server enables nginx through `hosts/_profiles/role/server`, so the affected configuration spans the server fleet. Validate server builds. When a fleet deployment is requested, `colmena apply` applies the change.
+Every server enables nginx through `hosts/_profiles/role/server`, so the change spans the server fleet. Validate server builds, and when a fleet deployment is requested, `colmena apply` applies it.
 
 ## Verification
 

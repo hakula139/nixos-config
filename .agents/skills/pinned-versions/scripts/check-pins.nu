@@ -4,13 +4,18 @@
 # Pinned Version Drift Check
 # ==================================================================================================
 # Compare the registered manual pins against their upstream values and report which ones have
-# drifted. Renovate-managed pins (flake.lock) are out of scope. See ../SKILL.md for why.
+# drifted. Renovate-managed pins (flake.lock inputs and GitHub Actions) are out of scope. See
+# ../SKILL.md for why.
 #
 # Run with --help for usage.
 # ==================================================================================================
 
 const PLUGINS_NIX = "home/modules/llm-assistants/claude-code/plugins.nix"
 const CF_IPS_NIX = "modules/nixos/cloudflare/ips.nix"
+
+# The overlay applies the custom packages to every host, so one host's package set covers each
+# override and the channel it overrides.
+const EVAL_PKGS = "nixosConfigurations.us-1.pkgs"
 
 const CF_IPS_V4_URL = "https://www.cloudflare.com/ips-v4"
 const CF_IPS_V6_URL = "https://www.cloudflare.com/ips-v6"
@@ -35,12 +40,55 @@ def repo-root []: nothing -> string {
 }
 
 # A failed lookup leaves no comparable value, so the caller reports UNKNOWN.
-def query [closure: closure]: nothing -> string {
-  try { do $closure | into string | str trim } catch { "" }
+def query [pin: string, closure: closure]: nothing -> string {
+  try { do $closure | into string | str trim } catch {|err|
+    print -e $"  ($pin): ($err.msg)"
+    ""
+  }
 }
 
 def abbrev [rev: string]: nothing -> string {
   if ($rev | str length) <= $REV_ABBREV { $rev } else { $rev | str substring 0..<$REV_ABBREV }
+}
+
+# Evaluate a field of an attribute through the flake at `root`, capturing stderr so evaluation
+# warnings stay off the terminal. A failure prints the first `error:` line, falling back to the
+# last line, and returns "".
+def flake-attr [root: string, attr: string, field: string, --json]: nothing -> string {
+  let mode = if $json { "--json" } else { "--raw" }
+  let result = (^nix eval $mode $"($root)#($attr).($field)" | complete)
+  if $result.exit_code != 0 {
+    let lines = ($result.stderr | lines | where {|line| $line | is-not-empty })
+    let error_line = ($lines | where {|line| $line | str starts-with "error:" } | first)
+    let detail = ($error_line | default ($lines | last | default ""))
+
+    print -e $"  cannot evaluate ($attr).($field): ($detail)"
+    ""
+  } else {
+    $result.stdout | str trim
+  }
+}
+
+# Whether the left version is at or above the right one. The release core compares first, and a
+# final release ranks above the same core's pre-release.
+def version-at-least [left: string, right: string]: nothing -> bool {
+  let left_core = ($left | split row "-" | first | str replace -r '^v' '')
+  let right_core = ($right | split row "-" | first | str replace -r '^v' '')
+  let left_suffix = ($left | split row "-" | skip 1 | str join "-")
+  let right_suffix = ($right | split row "-" | skip 1 | str join "-")
+
+  if $left_core != $right_core {
+    ([$left_core $right_core] | sort --natural | last) == $left_core
+  } else if ($left_suffix | is-empty) != ($right_suffix | is-empty) {
+    $left_suffix | is-empty
+  } else {
+    ([$left_suffix $right_suffix] | sort --natural | last) == $left_suffix
+  }
+}
+
+# Whether the left version is below the right one.
+def version-older [left: string, right: string]: nothing -> bool {
+  not (version-at-least $left $right)
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -60,8 +108,17 @@ def gh-newest-release [repo: string]: nothing -> string {
   gh-api $"repos/($repo)/releases?per_page=1" ".[0].tag_name"
 }
 
-def gh-latest-release-head [repo: string]: nothing -> string {
-  let tag = (gh-latest-release $repo)
+def gh-newest-tag [repo: string]: nothing -> string {
+  ^gh api --hostname github.com $"repos/($repo)/tags" --paginate --jq ".[].name"
+  | lines
+  | where {|tag| $tag =~ '^v?[0-9]+(\.[0-9]+)*$' }
+  | reduce --fold "" {|tag, newest|
+    if ($newest | is-empty) or (version-at-least $tag $newest) { $tag } else { $newest }
+  }
+}
+
+def gh-newest-tag-head [repo: string]: nothing -> string {
+  let tag = (gh-newest-tag $repo)
   gh-api $"repos/($repo)/commits/($tag)" ".sha"
 }
 
@@ -177,21 +234,66 @@ def cloudflare-drift [root: string]: nothing -> string {
 # Pin registry
 # --------------------------------------------------------------------------------------------------
 
-def action-pin [pin: string]: nothing -> record {
-  # GitHub repository action or reusable workflow, with an optional subpath.
-  let target = ($pin | parse -r '^(?<repo>[^/]+/[^/@]+)(?:/[^@]+)?@(?<ref>[^@]+)$' | first)
-  {
-    pin: ($pin | split row "@" | first)
-    local: {|| $target.ref }
-    upstream: {||
-      if $target.ref =~ '^v[0-9]+$' {
-        gh-latest-release $target.repo | split row "." | first
-      } else if $target.ref =~ '^v[0-9]+\.[0-9]+\.[0-9]+$' {
-        gh-latest-release $target.repo
-      } else {
-        error make {msg: $"Unsupported action reference: ($target.ref)"}
+# One row per override package, pairing its evaluated version and derivation with the latest
+# upstream release and the version `nixpkgs-unstable` ships.
+def override-rows [root: string, overrides: list<record>]: nothing -> list<record> {
+  $overrides | each {|override|
+    let name = $override.name
+    let file = $"packages/($name)/default.nix"
+    let local_attr = $"($EVAL_PKGS).($name)"
+    let unstable_attr = $"($EVAL_PKGS).unstable.($name)"
+
+    {
+      pin: $name
+      local: {|| flake-attr $root $local_attr "version" }
+      upstream: {|| gh-latest-release $override.repo | str replace -r '^v' '' }
+      status: {|pinned, latest|
+        if not ([$root $file] | path join | path exists) {
+          print -e $"  ($name): ($file) is missing"
+          "UNKNOWN"
+        } else {
+          let unstable = (flake-attr $root $unstable_attr "version")
+          let pinned_in_file = (try { nix-version $root $file } catch { "" })
+
+          if ($unstable | is-empty) {
+            "UNKNOWN"
+          } else if ($pinned_in_file | is-not-empty) {
+            if (version-at-least $unstable $latest) and (version-at-least $unstable $pinned) {
+              "version pin superseded"
+            } else if (version-older $pinned $latest) {
+              "STALE"
+            } else {
+              "ok"
+            }
+          } else {
+            let local_drv = (flake-attr $root $local_attr "drvPath")
+            let unstable_drv = (flake-attr $root $unstable_attr "drvPath")
+            let local_platforms = (flake-attr $root $local_attr "meta.platforms" --json)
+            let unstable_platforms = (flake-attr $root $unstable_attr "meta.platforms" --json)
+            let evaluated = [$local_drv $unstable_drv $local_platforms $unstable_platforms]
+
+            if (version-older $unstable $latest) {
+              "STALE"
+            } else if ($evaluated | any {|value| $value | is-empty }) {
+              "UNKNOWN"
+            } else if ($local_drv == $unstable_drv) and ($local_platforms == $unstable_platforms) {
+              "override redundant"
+            } else {
+              "ok (tracks nixpkgs)"
+            }
+          }
+        }
       }
     }
+  }
+}
+
+# Renovate's github-actions manager updates these refs, so the row delegates.
+def action-pin [pin: string]: nothing -> record {
+  {
+    pin: ($pin | split row "@" | first)
+    local: {|| $pin | split row "@" | last }
+    delegated: "renovate"
   }
 }
 
@@ -226,6 +328,7 @@ def registry [root: string]: nothing -> list<record> {
         }
         {
           pin: "workmux"
+          local: {|| "flake.lock" }
           delegated: "renovate"
         }
       ]
@@ -239,7 +342,8 @@ def registry [root: string]: nothing -> list<record> {
             let file = "home/modules/llm-assistants/omp/extensions.nix"
             abbrev (nix-attr $root $file 'rev = "(?<v>[0-9a-f]+)"')
           }
-          upstream: {|| abbrev (gh-latest-release-head "TerrifiedBug/omp-telegram") }
+          # Upstream publishes tags without GitHub release objects.
+          upstream: {|| abbrev (gh-newest-tag-head "TerrifiedBug/omp-telegram") }
         }
       ]
     }
@@ -267,19 +371,9 @@ def registry [root: string]: nothing -> list<record> {
           upstream: {|| gh-latest-release "zereight/gitlab-mcp" }
         }
         {
-          pin: "netdata"
-          local: {|| nix-version-v $root "packages/netdata/default.nix" }
-          upstream: {|| gh-latest-release "netdata/netdata" }
-        }
-        {
-          pin: "peertube"
-          local: {|| nix-version-v $root "packages/peertube/default.nix" }
-          upstream: {|| gh-latest-release "Chocobozzz/PeerTube" }
-        }
-        {
-          pin: "wakatime-cli"
-          local: {|| nix-version-v $root "packages/wakatime-cli/default.nix" }
-          upstream: {|| gh-latest-release "wakatime/wakatime-cli" }
+          pin: "thaw"
+          local: {|| nix-version $root "packages/thaw/default.nix" }
+          upstream: {|| gh-newest-release "thaw-app/Thaw" }
         }
         {
           pin: "zsh-hist"
@@ -290,6 +384,16 @@ def registry [root: string]: nothing -> list<record> {
           upstream: {|| abbrev (gh-default-head "marlonrichert/zsh-hist") }
         }
       ]
+    }
+    {
+      title: "Repo overrides of nixpkgs packages"
+      pins: (
+        override-rows $root [
+          {name: "netdata", repo: "netdata/netdata"}
+          {name: "peertube", repo: "Chocobozzz/PeerTube"}
+          {name: "wakatime-cli", repo: "wakatime/wakatime-cli"}
+        ]
+      )
     }
     {
       title: "Windows notification helper"
@@ -315,7 +419,7 @@ def registry [root: string]: nothing -> list<record> {
       ]
     }
     {
-      title: "GitHub Actions (Renovate github-actions manager is disabled)"
+      title: "GitHub Actions"
       pins: (try { action-pins $root | each {|pin| action-pin $pin } } catch { [] })
     }
     {
@@ -326,7 +430,7 @@ def registry [root: string]: nothing -> list<record> {
           local: {|| nix-attr $root $CF_IPS_NIX 'Last updated: (?<v>\S+)' }
           upstream: {|| cloudflare-drift $root }
           # The pinned column is a date and the upstream one a verdict, so they are not comparable.
-          status: {|upstream| match $upstream { "same ranges" => "ok", _ => "STALE" } }
+          status: {|_pinned, upstream| match $upstream { "same ranges" => "ok", _ => "STALE" } }
         }
       ]
     }
@@ -337,20 +441,19 @@ def registry [root: string]: nothing -> list<record> {
 # Reporting
 # --------------------------------------------------------------------------------------------------
 
-# A pin delegated to Renovate reports its own status, since comparing the two `flake.lock`
-# placeholders would otherwise mark it a current manual pin.
 def resolve []: list<record> -> list<record> {
   par-each --keep-order {|row|
     if ($row.delegated? | is-not-empty) {
-      return {pin: $row.pin, pinned: "flake.lock", upstream: "flake.lock", status: $row.delegated}
+      let pinned = (query $row.pin $row.local)
+      return {pin: $row.pin, pinned: $pinned, upstream: "renovate", status: $row.delegated}
     }
 
-    let pinned = (query $row.local)
-    let upstream = (query $row.upstream)
+    let pinned = (query $row.pin $row.local)
+    let upstream = (query $row.pin $row.upstream)
     let status = if ($pinned | is-empty) or ($upstream | is-empty) {
       "UNKNOWN"
     } else if ($row.status? | is-not-empty) {
-      do $row.status $upstream
+      do $row.status $pinned $upstream
     } else if $pinned == $upstream {
       "ok"
     } else {
@@ -369,6 +472,7 @@ def resolve []: list<record> -> list<record> {
 def resolve-group [group: record]: nothing -> record {
   let rows = if ($group.pins | is-empty) {
     # An empty group would print as a clean sweep, indistinguishable from every pin being current.
+    print -e $"  ($group.title): no pins matched"
     [{pin: $group.title, pinned: "?", upstream: "?", status: "UNKNOWN"}]
   } else {
     $group.pins | resolve
@@ -402,12 +506,16 @@ def "main check" [] {
   }
   let rows = ($groups | get rows | flatten)
 
-  let stale = ($rows | where status == "STALE" | length)
+  let stale = (
+    $rows
+    | where {|row| $row.status in ["STALE" "version pin superseded" "override redundant"] }
+    | length
+  )
   let unknown = ($rows | where status == "UNKNOWN" | length)
 
   print $"\n($stale) stale, ($unknown) unknown."
   if $unknown > 0 {
-    print "UNKNOWN means extraction or an upstream query failed. Re-check those by hand."
+    print "UNKNOWN means a lookup failed. Rerun, and fix the printed cause if it persists."
     exit 2
   }
   if $stale > 0 {
@@ -422,7 +530,7 @@ def "main list" [] {
     print $"\n($group.title)"
     for pin in $group.pins { print $"  ($pin.pin)" }
   }
-  print "\nRenovate updates flake.lock separately within the configured input refs."
+  print "\nRenovate owns the flake.lock inputs and the GitHub Actions refs."
 }
 
 # Check registered manual pins for upstream drift by default.
