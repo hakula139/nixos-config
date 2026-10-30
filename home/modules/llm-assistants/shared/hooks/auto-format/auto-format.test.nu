@@ -57,7 +57,10 @@ def run-event [
 
 def "test edits forward paths and checks once from event cwd" [] {
   let cases = [
-    {input: {tool_name: Write, tool_input: {file_path: notes.md}}, paths: [notes.md]}
+    {
+      input: {tool_name: Write, tool_input: {file_path: notes.md}}
+      paths: [notes.md]
+    }
     {
       input: {
         tool_name: apply_patch

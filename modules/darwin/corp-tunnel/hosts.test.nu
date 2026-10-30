@@ -66,7 +66,12 @@ def "test hostname transitions preserve unrelated entries and are idempotent" []
       hostname: ""
       expected: ""
     }
-    {name: empty, initial: "", hostname: new-gateway.example.test, expected: $new_entry}
+    {
+      name: empty
+      initial: ""
+      hostname: new-gateway.example.test
+      expected: $new_entry
+    }
     {
       name: line_endings
       initial: ($mixed_lines + $old_entries + $unterminated)

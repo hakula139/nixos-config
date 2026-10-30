@@ -224,7 +224,10 @@ def registry [root: string]: nothing -> list<record> {
           local: {|| abbrev (plugin-rev $root "claude-plugins-official") }
           upstream: {|| abbrev (gh-default-head "anthropics/claude-plugins-official") }
         }
-        {pin: "workmux", delegated: "renovate"}
+        {
+          pin: "workmux"
+          delegated: "renovate"
+        }
       ]
     }
     {

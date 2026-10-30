@@ -99,9 +99,21 @@ def write-file [path: string]: nothing -> string {
 
 def "test each extension runs its tools with their flags" [] {
   let cases = [
-    {ext: sh, tools: [], calls: [[shfmt ["-w"]] [shellcheck ["--format" "gcc"]]]}
-    {ext: nix, tools: [], calls: [[nixfmt []]]}
-    {ext: nu, tools: [], calls: [[nuCheck []]]}
+    {
+      ext: sh
+      tools: []
+      calls: [[shfmt ["-w"]] [shellcheck ["--format" "gcc"]]]
+    }
+    {
+      ext: nix
+      tools: []
+      calls: [[nixfmt []]]
+    }
+    {
+      ext: nu
+      tools: []
+      calls: [[nuCheck []]]
+    }
     {
       ext: py
       tools: []
@@ -119,10 +131,26 @@ def "test each extension runs its tools with their flags" [] {
         [cargo ["clippy" "--all-targets" "--quiet" "--" "-D" "warnings"] false]
       ]
     }
-    {ext: go, tools: [goimports gofmt], calls: [[goimports ["-w"]]]}
-    {ext: go, tools: [gofmt], calls: [[gofmt ["-w"]]]}
-    {ext: toml, tools: [], calls: [[taplo ["fmt"]]]}
-    {ext: ts, tools: [], calls: [[prettier ["--log-level" "warn" "--write"]]]}
+    {
+      ext: go
+      tools: [goimports gofmt]
+      calls: [[goimports ["-w"]]]
+    }
+    {
+      ext: go
+      tools: [gofmt]
+      calls: [[gofmt ["-w"]]]
+    }
+    {
+      ext: toml
+      tools: []
+      calls: [[taplo ["fmt"]]]
+    }
+    {
+      ext: ts
+      tools: []
+      calls: [[prettier ["--log-level" "warn" "--write"]]]
+    }
     {
       ext: md
       tools: []
@@ -132,11 +160,35 @@ def "test each extension runs its tools with their flags" [] {
         [cspell ["--no-progress" "--no-must-find-files"]]
       ]
     }
-    {ext: txt, tools: [], calls: []}
-    {ext: sh, checks: false, tools: [], calls: [[shfmt ["-w"]]]}
-    {ext: nu, checks: false, tools: [], calls: []}
-    {ext: py, checks: false, tools: [], calls: [[ruff ["format"]]]}
-    {ext: rs, checks: false, tools: [cargo], calls: [[cargo ["fmt" "--all" "--quiet"] false]]}
+    {
+      ext: txt
+      tools: []
+      calls: []
+    }
+    {
+      ext: sh
+      checks: false
+      tools: []
+      calls: [[shfmt ["-w"]]]
+    }
+    {
+      ext: nu
+      checks: false
+      tools: []
+      calls: []
+    }
+    {
+      ext: py
+      checks: false
+      tools: []
+      calls: [[ruff ["format"]]]
+    }
+    {
+      ext: rs
+      checks: false
+      tools: [cargo]
+      calls: [[cargo ["fmt" "--all" "--quiet"] false]]
+    }
     {
       ext: md
       checks: false
