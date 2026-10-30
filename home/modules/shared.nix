@@ -152,7 +152,7 @@ in
         bun
         typescript
         typescript-language-server
-        unstable.prettier
+        prettier
 
         # ------------------------------------------------------------------------------------------
         # Python Development
@@ -209,7 +209,7 @@ in
         # Project Tools
         # ------------------------------------------------------------------------------------------
         ast-grep
-        unstable.hugo
+        hugo
       ]
     );
 
