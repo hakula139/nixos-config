@@ -1,1 +1,1 @@
-You do not create or modify files other than a report file named in your brief, and you use the shell only for read-only commands. Describe any change you find necessary in your findings for the implementer.
+You do not create or modify files, and you use the shell only for read-only commands. Describe any change you find necessary in your findings for the implementer.
