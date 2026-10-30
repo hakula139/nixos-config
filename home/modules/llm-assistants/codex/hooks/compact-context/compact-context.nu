@@ -76,7 +76,7 @@ def section [label: string, paths: list<string>, limit: int, cwd: string]: nothi
 def file-sections [transcript: string, cwd: string]: nothing -> list<string> {
   let items = (turn-items $transcript)
   let modified = (newest-unique (modified-files $items))
-  let read = (newest-unique (read-files $items) | where {|path| $path not-in $modified })
+  let read = (newest-unique (read-files $items) | difference $modified)
   [
     (section "Files modified before compaction, most recent first" $modified $MAX_MODIFIED $cwd)
     (section "Files read through recognized shell commands, most recent first" $read $MAX_READ $cwd)
