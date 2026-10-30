@@ -13,7 +13,7 @@
 let
   cfg = config.hakula.services.netdata;
 
-  netdataPkg = pkgs.unstable.netdata;
+  netdataPkg = pkgs.netdata;
 
   systemdCatNative = pkgs.writeShellScriptBin "systemd-cat-native" ''
     tag=""

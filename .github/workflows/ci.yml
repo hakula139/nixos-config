@@ -44,6 +44,7 @@ jobs:
             runner: ubuntu-latest
             target: .#nixosConfigurations.us-1.config.system.build.toplevel
             cachix_pins:
+              netdata-x86_64-linux: .#nixosConfigurations.us-1.pkgs.netdata
               peertube-x86_64-linux: .#nixosConfigurations.us-1.pkgs.peertube
           - id: us-4
             deploy: true

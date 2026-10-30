@@ -48,6 +48,8 @@ A NixOS release upgrade rechecks each `pkgs.unstable` pick and overlay pin again
 
 `peertube` and `peertube-runner` use the version, source hash, and pnpm dependency hash pinned in `packages/peertube/default.nix`, with the package definition from `nixpkgs-unstable`. When upgrading, validate the three local PeerTube patches and the runner override in `packages/peertube/runner.nix`. Review release-specific migration requirements before changing the pin. Run required manual migrations during deployment and verify their results. Keep one-time migration services out of the persistent configuration.
 
+`netdata` uses the same arrangement, pinning the source version on the `nixpkgs-unstable` definition in `packages/netdata/default.nix`. Drop the override once `nixpkgs-unstable` ships the override's version or newer, then point the Netdata module back at `pkgs.unstable.netdata`.
+
 ## Claude Code plugin marketplaces
 
 Manual marketplace pins live in the `marketplaces` attrset in `home/modules/llm-assistants/claude-code/plugins.nix`:
@@ -104,6 +106,7 @@ These packages are registered in `lib/overlays.nix`. The MCP packages are groupe
 | `cloudreve`         | `packages/cloudreve/default.nix`             | `cloudreve/cloudreve` releases          |
 | `mcp-server-github` | `packages/mcp/mcp-server-github/default.nix` | `github/github-mcp-server` releases     |
 | `mcp-server-gitlab` | `packages/mcp/mcp-server-gitlab/default.nix` | `zereight/gitlab-mcp` releases          |
+| `netdata`           | `packages/netdata/default.nix`               | `netdata/netdata` releases              |
 | `peertube`          | `packages/peertube/default.nix`              | `Chocobozzz/PeerTube` releases          |
 | `wakatime-cli`      | `packages/wakatime-cli/default.nix`          | `wakatime/wakatime-cli` releases        |
 | `zsh-hist`          | `packages/zsh-hist/default.nix`              | `marlonrichert/zsh-hist` default branch |
@@ -113,6 +116,7 @@ Update the package's `version` and source hash, preserving its upstream tag conv
 Hash requirements depend on the fetcher:
 
 - `acpx` needs both the GitHub source hash and `pnpmDeps.hash` from `fetchPnpmDeps`.
+- `netdata` needs the GitHub source hash. Its Go module hashes (`passthru.netdata-go-modules`, `passthru.nd-mcp`) and cargo vendor hashes (`cargoDeps`) come from the nixpkgs expression and are named after `version`, so a bump that changes them fails with an FOD mismatch and they must then be overridden in `packages/netdata/default.nix`.
 - `wakatime-cli` needs both the GitHub source hash and `vendorHash`.
 - `mcp-server-gitlab` needs the GitHub source hash and `npmDepsHash`. Rebuild to validate dependency hashes even when the upstream lockfile appears unchanged.
 - `cloudreve` and `mcp-server-github` use `fetchurl` for release archives. Update every entry in `sources`, including platforms unavailable locally. Prefetch their archive bytes without `--unpack`. Cloudreve currently supports `x86_64-linux`. The GitHub server also supports `aarch64-darwin`.
