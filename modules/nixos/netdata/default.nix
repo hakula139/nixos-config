@@ -13,7 +13,7 @@
 let
   cfg = config.hakula.services.netdata;
 
-  netdataPkg = pkgs.unstable.netdataCloud; # with Cloud UI bundled
+  netdataPkg = pkgs.unstable.netdata;
 
   systemdCatNative = pkgs.writeShellScriptBin "systemd-cat-native" ''
     tag=""
@@ -43,18 +43,18 @@ in
   # ------------------------------------------------------------------------------------------------
   options.hakula.services.netdata = {
     enable = lib.mkEnableOption "Netdata monitoring system";
-
-    port = lib.mkOption {
-      type = lib.types.port;
-      default = 19999;
-      description = "Port for Netdata web interface";
-    };
   };
 
   # ------------------------------------------------------------------------------------------------
   # Module config
   # ------------------------------------------------------------------------------------------------
   config = lib.mkIf cfg.enable {
+    # ----------------------------------------------------------------------------------------------
+    # Users & Groups
+    # ----------------------------------------------------------------------------------------------
+    # Nixpkgs adds podman whenever it is enabled, and its socket is root-equivalent.
+    users.users.netdata.extraGroups = lib.mkForce [ ];
+
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
@@ -70,14 +70,11 @@ in
     services.netdata = {
       enable = true;
       package = netdataPkg;
+      python.enable = false;
 
       config = {
         global = {
           hostname = config.networking.hostName;
-        };
-
-        directories = {
-          "web files directory" = "${netdataPkg}/share/netdata/web";
         };
 
         db = {
@@ -92,17 +89,24 @@ in
         };
 
         plugins = {
-          # These VMs have no IPMI interface or configured perf / ioping collectors.
-          freeipmi = "no";
-          perf = "no";
-          ioping = "no";
+          # These KVM guests have no IPMI or ioping targets, and nothing here uses perf counters.
+          "freeipmi" = "no";
+          "perf" = "no";
+          "ioping" = "no";
           # Nixpkgs exposes a dangling wrapper for this unavailable plugin.
-          logs-management = "no";
+          "logs-management" = "no";
+          # No NetFlow, OTLP, StatsD, tc, or Nagios sources, and no charts.d or python.d jobs.
+          "charts.d" = "no";
+          "netflow" = "no";
+          "otel" = "no";
+          "python.d" = "no";
+          "scripts.d" = "no";
+          "statsd" = "no";
+          "tc" = "no";
         };
 
         web = {
-          "bind to" = "127.0.0.1:${toString cfg.port}";
-          "enable gzip compression" = "yes";
+          "bind to" = "unix:/run/netdata/netdata.sock";
         };
       };
     };
