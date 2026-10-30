@@ -197,6 +197,7 @@
         "read"
         "web_search"
       ];
+      spawns = "reviewer";
     };
 
     opencode = {
