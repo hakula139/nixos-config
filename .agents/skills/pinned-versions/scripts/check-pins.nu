@@ -267,6 +267,11 @@ def registry [root: string]: nothing -> list<record> {
           upstream: {|| gh-latest-release "zereight/gitlab-mcp" }
         }
         {
+          pin: "netdata"
+          local: {|| nix-version-v $root "packages/netdata/default.nix" }
+          upstream: {|| gh-latest-release "netdata/netdata" }
+        }
+        {
           pin: "peertube"
           local: {|| nix-version-v $root "packages/peertube/default.nix" }
           upstream: {|| gh-latest-release "Chocobozzz/PeerTube" }

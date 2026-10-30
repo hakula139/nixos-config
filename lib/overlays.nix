@@ -59,6 +59,7 @@
     file-formatter = final.callPackage ../packages/file-formatter { };
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };
     mcp-server-gitlab = final.callPackage ../packages/mcp/mcp-server-gitlab { };
+    netdata = final.callPackage ../packages/netdata { };
     nu-check = final.callPackage ../packages/nu-check { };
     nu-test = final.callPackage ../packages/nu-test { };
     peertube = final.callPackage ../packages/peertube { };
