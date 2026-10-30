@@ -21,8 +21,8 @@ let
         repo = "claude-plugins-official";
       };
 
-      rev = "ea0a38e1d671aa18a30431c9160e31193dc9860b"; # 2026-09-17
-      hash = "sha256-Jcbbc+mOXg9ca1dBO+gXXEpJ2SDqqjyKbqvipiTDR4k=";
+      rev = "f8c5e7a1dcb71b10cb74586224b5401f3de5db28"; # 2026-10-27
+      hash = "sha256-lmJbRtHsAN/rxqzm5hzxxu8lx+iiqRCtocJ7YET03Lg=";
       pluginsDir = "plugins";
     };
 
