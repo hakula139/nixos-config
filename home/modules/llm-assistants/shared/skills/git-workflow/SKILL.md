@@ -54,11 +54,12 @@ Read the repository's contribution instructions before starting, and use its own
 
 ### Description
 
-Write within the recorded structure, for reviewers who have not seen the conversation, and preserve the established headings and validation format while removing repetition.
+Write within the recorded structure for reviewers who have not seen the conversation, without repeating a point across its sections.
 
 - Open with the concrete problem or goal and the resulting behavior.
-- Give reviewers what they need to assess the change, such as rationale, tradeoffs, measurements, or migration steps, and report the checks you ran with their results, distinguishing verified behavior from untested limits.
-- Fold review fixes into the description, and update it without asking whenever later pushes make any part of it inaccurate. Omit implementation history, commit inventories, and abandoned approaches unless they explain a current tradeoff, and omit boilerplate sections, generated-by attributions, and emojis unless requested.
+- Give reviewers what they need to assess the change, such as rationale, tradeoffs, measurements, or migration steps.
+- Report each check you ran on the final head with its result, distinguishing verified behavior from untested limits. Give only the output a reviewer needs to trust it, without commit SHAs or incidental store paths and hashes.
+- Update the description without asking whenever later pushes, including review fixes, change what it should say. Omit implementation history, such as commit inventories, rebase proofs, and abandoned approaches, unless it explains a current tradeoff, and omit boilerplate sections, generated-by attributions, and emojis unless requested.
 - Keep local-only paths and internal information, including internal URLs and plain-text references, out of commits and descriptions.
 
 ### Publication
@@ -66,7 +67,7 @@ Write within the recorded structure, for reviewers who have not seen the convers
 - Rebase task branches onto the current target branch whenever integrating upstream changes. Never merge the target branch into a task branch or use an Update branch action.
 - Coordinate exclusive ownership before rewriting a shared or bot-managed branch. Until ownership is established, publish fixes as new commits and use `git revert` for pushed changes. Before rebasing a published branch, verify that the observed remote head is an ancestor of the local tip. Push rebased history with `--force-with-lease=refs/heads/<branch>:<observed-remote-head>`. If the lease fails, inspect and integrate remote changes before retrying. Never use a blind force push.
 - After pushing `HEAD:refs/heads/<branch>` from a detached worktree, synchronize the owned local branch to the published head. Fast-forward when possible. After a rebase, verify that no other worktree or agent owns the branch, then use `git update-ref refs/heads/<branch> <published-head> <pre-rebase-local-head>`. If the expected old tip changed or another worktree owns the branch, coordinate with its owner before updating it.
-- Before pushing, verify the base branch, diff, and commit count. Before creating or updating a request, compare its complete title and body with the recorded conventions, fixing any difference in heading hierarchy, section order, or validation format.
+- Before pushing, verify the base branch, diff, and commit count. Before creating or updating a request, compare its complete title and body with the recorded conventions and fix any difference.
 - If asked only to draft a title and body, return the text without publishing. A request for a draft PR / MR authorizes publishing it as a draft.
 - Set assignees and labels when creating a request. If no existing label fits, create one that follows the repository's label scheme.
 - Pass multiline bodies through a file or structured argument, such as `gh pr create --body-file <file>`.
