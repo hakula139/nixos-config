@@ -41,6 +41,8 @@
     # ----------------------------------------------------------------------------------------------
     # Toolchains
     # ----------------------------------------------------------------------------------------------
+    nushell = final.unstable.nushell;
+
     rustToolchain = final.rust-bin.stable.latest.default.override {
       extensions = [
         "llvm-tools-preview"
