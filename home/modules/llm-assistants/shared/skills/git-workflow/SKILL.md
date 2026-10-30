@@ -18,7 +18,7 @@ Read the repository's contribution instructions before starting, and use its own
 - **Publish completed changes by default.** For requested work and incidental environment repairs, commit the verified changes on a task branch, push them, and create or update a PR / MR before reporting completion, reusing the task's existing branch and request when appropriate.
 - **Clean up finished work by default.** You may remove a merged branch, or an abandoned branch whose commits all exist on a remote, together with its worktree once that worktree is verified clean. You may also delete plans and notes when a closed issue or merged PR / MR confirms the work is complete. Ask before deleting abandoned work with commits missing from every remote, or notes whose completion you cannot confirm.
 - **Honor narrower authorization.** Review-only and draft-text-only requests do not authorize publication. Follow instructions to keep work local, avoid pushing, or omit a PR / MR. Create tags and backup refs only when explicitly requested.
-- **Get explicit approval before merging each PR / MR.** Blanket approval given earlier does not cover requests opened later in the session. Share the URL and wait for `lgtm` or `merge` referring to that specific PR / MR. A request to review and merge authorizes merging each PR / MR covered by the review, including requests opened for its fixes, once the review reports no remaining findings.
+- **Get explicit approval before merging each PR / MR.** Blanket approval given earlier does not cover requests opened later in the session. Share the URL and wait for `lgtm` or `merge` referring to that specific PR / MR. A request to review and merge authorizes merging each PR / MR covered by the review, including requests opened for its fixes, once every finding is fixed and the fixes are verified.
 - **Approve a PR / MR on the user's behalf only when the user explicitly allows it.** Authorization to review or merge a request does not extend to approving it.
 
 ## Worktrees
@@ -72,9 +72,10 @@ Write within the recorded structure, for reviewers who have not seen the convers
 - Pass multiline bodies through a file or structured argument, such as `gh pr create --body-file <file>`.
 - Use `#N` for issues and GitHub PRs in the same repository, and `!N` for GitLab MRs.
 - Read back each created or updated request, verifying its title, body, base, diff, assignees, and labels, and fix anything lost before reporting completion.
+- Request review once per PR / MR, and do not re-request it after later pushes. Fix every finding, including suggestions, and verify the fixes. The request then needs no second review round and is ready to merge once the user approves it, as [Authorization](#authorization) requires.
 - Finalize the title and body before merging, since a squash merge can copy them into the commit message, as GitHub's PR_BODY default and a GitLab `%{description}` template do, and an edit afterwards cannot change it.
 - For an approved merge, delegate to the `operator` agent when one is available, quote the user's approval verbatim in its spawn prompt, and have it follow [Merging](#merging).
-- Stack a request that depends on or overlaps another open request on that request's branch, and name the base request in the description. After the base squash-merges, run `git rebase --onto <default-branch> <old-base-head> <branch>` to drop its pre-squash commits, then retarget the request to the default branch if the forge has not.
+- Stack a request that depends on or overlaps another open request on that request's branch, and name the base request in the description. Keep dependent requests in one stack of at most three unmerged requests, and once three are open, land the bottom one before opening another. After the base squash-merges, run `git rebase --onto <default-branch> <old-base-head> <branch>` to drop its pre-squash commits, then retarget the request to the default branch if the forge has not.
 
 ### Merging
 
