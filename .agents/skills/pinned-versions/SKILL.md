@@ -35,7 +35,7 @@ Package attributes that select a major, such as `postgresql_17`, follow the lock
 
 A NixOS release upgrade rechecks each `pkgs.unstable` pick and overlay pin against the [unstable packages rule](../../../docs/conventions/nix.md#module-shape).
 
-`peertube` and `peertube-runner` pin a version, source hash, and pnpm dependency hash against the `nixpkgs-unstable` definition, with three local patches and a runner override that need validating on every bump. Review release-specific migration requirements before changing the pin, run required manual migrations during deployment and verify their results, and keep one-time migration services out of the persistent configuration.
+`peertube` follows the `nixpkgs-unstable` version, with three local patches and an `aarch64-darwin` platforms addition on the package itself. `peertube-runner` is a build override in `packages/peertube/runner.nix` that derives from it, and a version move can break it. A sweep pins a version again only when upstream is ahead of `nixpkgs-unstable`. Review release-specific migration requirements before changing the version, run required manual migrations during deployment and verify their results, and keep one-time migration services out of the persistent configuration.
 
 ## Claude Code plugin marketplaces
 

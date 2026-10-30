@@ -500,16 +500,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1792915166,
-        "narHash": "sha256-mpQaK7ATimDz/cj4UM5QFAMP2ibqJT8Folc3NAfDZqA=",
+        "lastModified": 1792935242,
+        "narHash": "sha256-yPkl3jVt5+gOYbbyOh3FkkvmPzXlGlr9ysODhf7xWp0=",
         "owner": "hakula139",
         "repo": "oxide-code",
-        "rev": "9e3c2693182550eb8fbf21d82313383293b3ffec",
+        "rev": "f8180cb5081425d99f0293e90bbf0308ebe7b23e",
         "type": "github"
       },
       "original": {
         "owner": "hakula139",
-        "ref": "v0.1.0-alpha.8",
+        "ref": "v0.1.0-alpha.9",
         "repo": "oxide-code",
         "type": "github"
       }

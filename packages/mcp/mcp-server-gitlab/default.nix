@@ -9,16 +9,16 @@
 
 pkgs.buildNpmPackage rec {
   pname = "mcp-server-gitlab";
-  version = "2.1.46";
+  version = "2.3.16";
 
   src = pkgs.fetchFromGitHub {
     owner = "zereight";
     repo = "gitlab-mcp";
     rev = "v${version}";
-    hash = "sha256-HpGo60cnRVzbUDxjYeqE82KFVUuJp3EuRE3jQTnnVj0=";
+    hash = "sha256-b6vJDMCViyt5H/MJWPR2yaJLwLOLu1swDIn3WBGuO6o=";
   };
 
-  npmDepsHash = "sha256-I0/CbaADXGjZhzpR4KhNKCIs/16L1CifIV7lKtmRmnw=";
+  npmDepsHash = "sha256-xnfLS38nbH1l17O0ScLdDq47BfT0LoaNbAE7NaCcf7E=";
   nodejs = pkgs.nodejs_26;
 
   meta = {

@@ -9,20 +9,20 @@
 
 pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "acpx";
-  version = "0.15.1";
+  version = "0.21.1";
 
   src = pkgs.fetchFromGitHub {
     owner = "openclaw";
     repo = "acpx";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-EMr/7/JcEvoULwLYjGR0iy0aYyfnOTnwAxijZXxQnFc=";
+    hash = "sha256-NUmbOZtOSK6drpydUwP1eNnAXmOJ4U/3J0i1AiBQPlc=";
   };
 
   pnpmDeps = pkgs.fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     inherit (pkgs) pnpm;
     fetcherVersion = 4;
-    hash = "sha256-zzGJcFTaMho0lCtldHlTJZuRDzG3BUixJK6TKLjmOik=";
+    hash = "sha256-8/rFAjUX8MbEuTl+UvfDTPMR8D2HWmxVUAQImPhDyFw=";
   };
 
   nativeBuildInputs = [
