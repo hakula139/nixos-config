@@ -3,7 +3,7 @@
 # ==================================================================================================
 # Nushell Diagnostic Check
 # ==================================================================================================
-# Wraps `nu --ide-check`, which reports diagnostics as JSON on stdout but always exits 0.
+# Wraps `nu --ide-check`, which reports diagnostics as JSON on stdout and exits 0 despite errors.
 # Indentation is the `editorconfig-checker` hook's job.
 # ==================================================================================================
 

@@ -73,7 +73,7 @@ def payload [input: record, config: record]: nothing -> list<record> {
 }
 
 def commentish [path: string, text: string]: nothing -> bool {
-  let extension = ($path | path parse | get extension | str downcase)
+  let extension = ($path | path parse | get extension | str lowercase)
   let openers = ($OPENERS | get -o $extension | default [])
   if ($openers | is-empty) {
     return false
@@ -130,7 +130,7 @@ def verdict [raw: string]: nothing -> record {
     # A trailing `ok` verdict, with or without JSON or Markdown decoration
     let hit = ($line | parse --regex '(?i)"?\bok"?\s*[:=]\s*\**\s*(?<value>true|false)')
     if ($hit | is-not-empty) {
-      return {ok: (($hit | get -o 0.value | default "true" | str downcase) == "true")}
+      return {ok: (($hit | get -o 0.value | default "true" | str lowercase) == "true")}
     }
   }
   {}
