@@ -267,7 +267,7 @@ def main [config_file: string]: nothing -> nothing {
     [ping_latency (get-ping-latency)]
 
     # Session / uptime metrics
-    [ssh_sessions ((sh who | lines | where ($it | is-not-empty) | length) | into string)]
+    [ssh_sessions ((sh who | lines | length) | into string)]
     [uptime ((fields (slurp /proc/uptime)) | get -o 0 | default "0")]
 
     # Process list

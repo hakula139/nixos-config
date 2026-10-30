@@ -166,7 +166,7 @@ def cloudflare-drift [root: string]: nothing -> string {
     error make {msg: "Cloudflare IP ranges are incomplete"}
   }
 
-  if $pinned == ($fetched | str join "\n" | lines | where $it != "" | sort) {
+  if $pinned == ($fetched | str join "\n" | lines --skip-empty | sort) {
     "same ranges"
   } else {
     "ranges differ"
