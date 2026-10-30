@@ -40,7 +40,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── aria2.nix               # Shared aria2 download and RPC settings
 │   ├── builders.nix            # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL
 │   ├── curl.nix                # Bounded curl arguments for unattended HTTP calls
-│   ├── overlays.nix            # nixpkgs overlay (channels, flake-input CLIs, upstream overrides, custom packages)
+│   ├── overlays.nix            # nixpkgs overlay (channels, flake-input CLIs, toolchains, custom packages)
 │   ├── packages.nix            # Base and font package groups for each package set
 │   ├── proxy.nix               # Proxy options, wrappers, and environment scripts
 │   ├── script-tests.nix        # `checks.<system>.scripts`, running every `*.test.nu` under nu-test
