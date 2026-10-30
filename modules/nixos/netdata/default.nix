@@ -45,6 +45,17 @@ in
     users.users.netdata.extraGroups = lib.mkForce [ ];
 
     # ----------------------------------------------------------------------------------------------
+    # PostgreSQL
+    # ----------------------------------------------------------------------------------------------
+    services.postgresql.ensureUsers = lib.mkIf config.services.postgresql.enable [
+      { name = "netdata"; }
+    ];
+
+    systemd.services.postgresql-setup.postStart = lib.mkIf config.services.postgresql.enable ''
+      psql -tAc 'GRANT pg_monitor TO netdata'
+    '';
+
+    # ----------------------------------------------------------------------------------------------
     # Netdata service
     # ----------------------------------------------------------------------------------------------
     services.netdata = {
@@ -70,6 +81,28 @@ in
               url = "http://127.0.0.1:${toString config.hakula.services.umami.port}/api/heartbeat";
             };
         };
+
+        "go.d/nginx.conf" = lib.mkIf config.services.nginx.statusPage (
+          yaml.generate "nginx.conf" {
+            jobs = [
+              {
+                name = "local";
+                url = "http://127.0.0.1/nginx_status";
+              }
+            ];
+          }
+        );
+
+        "go.d/postgres.conf" = lib.mkIf config.services.postgresql.enable (
+          yaml.generate "postgres.conf" {
+            jobs = [
+              {
+                name = "local";
+                dsn = "host=/run/postgresql dbname=postgres user=netdata";
+              }
+            ];
+          }
+        );
 
         "go.d/x509check.conf" = yaml.generate "x509check.conf" {
           jobs = [
