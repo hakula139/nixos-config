@@ -294,6 +294,7 @@ socat
 spack
 specialfs
 statix
+statsd
 stdenv
 subcmd
 subme
