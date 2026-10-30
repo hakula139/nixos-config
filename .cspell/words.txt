@@ -72,6 +72,7 @@ dscacheutil
 duckdb
 duckdbrc
 dups
+dyncfg
 e2fsprogs
 eamodio
 earlyoom
@@ -290,6 +291,7 @@ showcmd
 signup
 sigsys
 smol
+snmp
 socat
 spack
 specialfs
