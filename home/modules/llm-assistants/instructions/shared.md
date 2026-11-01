@@ -60,6 +60,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 - Keep closely related code and single-line siblings together, separating distinct logical blocks and groups of siblings with a blank line. Where it makes the boundaries easier to see, set off a multiline statement, field, or entry with a blank line after it, and before it unless a related single-line sibling leads into it. Omit these separators in a short record that reads as one unit.
 - Order parameters and fields for readability: group related items, place dependencies before dependents, and order each group to make relationships clear. Use alphabetical order when no stronger relationship applies. Follow API requirements and project conventions.
+- Keep standalone helper programs, test support programs, and code templates in separate files with their language's extension so formatters and linters can check them.
 - Write multiline prompts, messages, and embedded documents with literal line breaks so their structure is readable in the source. Encoding paragraphs with `\n` or assembling them from fragments obscures their structure. Escapes are fine for delimiters and programmatic string operations.
 - Indent multiline string contents to match the surrounding code, then strip that indentation with native support or a standard helper such as Rust's `indoc`. Preserve intentional relative indentation, such as nested lists and code blocks.
 
@@ -69,14 +70,15 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 ### Debugging and Verification
 
+- Keep task-specific validation in scratch commands.
 - When tests fail, coverage drops, or behavior breaks, investigate the root cause before patching symptoms. Skipping tests, adding ignores or retries, or special-casing specific commits or data to get checks passing also patches symptoms, so fix the cause or make the test hermetic.
 - If a fix does not work, inspect the actual state (DOM, traces, logs, payloads) before guessing again.
 - Verify the result before declaring the task done, directly or through a delegate's verification evidence. Confirm that asynchronous or external operations have landed, including API responses, advanced git refs, and multi-repo build passes. Name any UI change you could not test in a browser.
 
 ### Tests
 
-- Write tests that fail for a plausible bug, and before keeping one, break the behavior it guards and confirm that it fails. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
-- Check that each new test covers something unique, and drop or merge tests whose coverage is subsumed by others.
+- Add a permanent test only for a concrete regression risk or non-obvious contract that existing coverage does not protect. Before keeping it, break the behavior it guards and confirm that it fails. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
+- Drop or merge tests whose coverage is subsumed by others.
 - For a script whose behavior depends on large external state, such as other tools' stores or databases, test its pure functions with tables and validate the rest with a real run.
 - Write test data with neutral, invented names, such as `/home/u/src/app` or `example.com`, never paths, repositories, hosts, or accounts from the user's own environment. When a case depends on a real value's shape, such as an underscore that `LIKE` would treat as a wildcard, keep the shape under a generic name.
 - Merge tests that differ only in their inputs and expected outputs into one table-driven test when the table makes the group's shared intent clearer, and keep tests separate when their setup or the behavior they check differs. Use the framework's parametrization where it exists, and otherwise loop over case records, naming the case in each assertion message so a failure shows which input broke.
