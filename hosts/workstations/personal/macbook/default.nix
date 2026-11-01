@@ -39,6 +39,7 @@
   };
 
   hakula.services.openssh.enable = true;
+
   hakula.services.tailscale = {
     enable = true;
     userspaceNetworking = true;
@@ -52,12 +53,14 @@
   home-manager.users.hakula = {
     hakula.claude-code.auth.defaultProfile = "official";
     hakula.nix.configPath = "/Users/hakula/GitHub/nixos-config";
+
     hakula.rclone = {
       enable = true;
       mounts = {
         Hakula-Cloud.remote = "hakula_cloud:";
         BMS.remote = "bms:";
         Images.remote = "images:";
+
         B2 = {
           remote = "b2:hakula";
           cacheMode = "full";

@@ -6,6 +6,7 @@
 
 def --wrapped main [...args: string] {
   {command: launchctl, args: $args} | to json --raw | $"($in)\n" | save --append $env.STUB_LOG
+
   let reply = (
     $env.STUB_REPLIES
     | from json
