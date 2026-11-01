@@ -13,7 +13,9 @@
 let
   json = pkgs.formats.json { };
 
-  pythonEnv = pkgs.python3.withPackages (ps: [ ps.jinja2 ]);
+  pythonEnv = pkgs.python3.withPackages (ps: [
+    ps.jinja2
+  ]);
   generator = pkgs.copyPathToStore ./generator.py;
   template = pkgs.copyPathToStore ./template.yaml.j2;
   serversFile = json.generate "clash-servers.json" (

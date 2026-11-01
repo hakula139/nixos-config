@@ -87,7 +87,9 @@ in
             };
           };
 
-          outbounds = [ { protocol = "freedom"; } ];
+          outbounds = [
+            { protocol = "freedom"; }
+          ];
         };
 
         clientFlows.vless-reality = "xtls-rprx-vision";
@@ -126,7 +128,9 @@ in
       };
 
       # The nixpkgs wrapper keeps `.xray-wrapped` as its comm.
-      hakula.services.earlyoom.ignoreComms = [ "[.]xray-wrapped" ];
+      hakula.services.earlyoom.ignoreComms = [
+        "[.]xray-wrapped"
+      ];
 
       # --------------------------------------------------------------------------------------------
       # Systemd service
@@ -136,9 +140,15 @@ in
       # `requiredBy` also propagates restarts, so Xray reloads whenever the config is re-rendered.
       systemd.services.xray-config = {
         description = "Render Xray config from proxy users";
-        after = [ "agenix.service" ];
-        before = [ "xray.service" ];
-        requiredBy = [ "xray.service" ];
+        after = [
+          "agenix.service"
+        ];
+        before = [
+          "xray.service"
+        ];
+        requiredBy = [
+          "xray.service"
+        ];
 
         serviceConfig = repoLib.systemd.hardening // {
           Type = "oneshot";

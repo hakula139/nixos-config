@@ -18,7 +18,9 @@ pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
 
   sourceRoot = ".";
 
-  nativeBuildInputs = [ pkgs.unzip ];
+  nativeBuildInputs = [
+    pkgs.unzip
+  ];
 
   dontConfigure = true;
   dontBuild = true;

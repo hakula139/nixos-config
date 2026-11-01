@@ -69,7 +69,9 @@ let
     nativeFamily = "gpt";
     hybridBase = "corp-gateway-anthropic";
 
-    providers = [ "corp-gateway" ];
+    providers = [
+      "corp-gateway"
+    ];
     channels = [
       "anthropic"
       "openai"

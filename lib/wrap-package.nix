@@ -39,7 +39,9 @@ in
 pkgs.symlinkJoin {
   inherit name;
   paths = [ pkg ];
-  nativeBuildInputs = [ pkgs.makeWrapper ];
+  nativeBuildInputs = [
+    pkgs.makeWrapper
+  ];
   postBuild = ''
     # Renaming a shell launcher can change the argv[0] it forwards.
     rm "$out/bin/"${esc bin}
