@@ -46,7 +46,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 - Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle the failures required by the contract. Add guards, retries, or fallbacks only for concrete failure modes, and treat one added without that justification as a defect to remove. Let errors that expose broken assumptions surface.
 - Use the framework's or library's own primitive before writing a helper that reproduces it. Before hand-writing substantial logic, look for a well-maintained library that provides it, and prefer dependencies already in the tree.
 - A permanent helper script or hook needs a demonstrated ongoing responsibility that existing tools cannot meet cleanly. Perform task-specific validation with scratch commands.
-- Prefer Nushell for justified helper scripts and follow the managed nixos-config Nushell conventions.
+- Prefer Nushell for justified helper scripts.
 - Set tool policies, such as lint levels, in the tool's config file, and keep commands plain. Use environment variables only for settings without a config option, secrets, and per-environment values.
 - Remove stale or redundant material when asked. When cleaning up code, preserve required behavior while simplifying.
 
