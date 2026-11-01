@@ -486,7 +486,9 @@
     "webSearch"
   ];
 
-  paths = [ "/tmp" ];
+  paths = [
+    "/tmp"
+  ];
 
   policies = [
     {

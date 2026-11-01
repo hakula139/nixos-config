@@ -38,9 +38,15 @@ in
   config = lib.mkIf cfg.enable {
     systemd.services.nix-daemon-proxy-env = {
       description = "Render nix-daemon HTTP proxy environment file";
-      before = [ "nix-daemon.service" ];
-      requiredBy = [ "nix-daemon.service" ];
-      after = [ "agenix-install-secrets.service" ];
+      before = [
+        "nix-daemon.service"
+      ];
+      requiredBy = [
+        "nix-daemon.service"
+      ];
+      after = [
+        "agenix-install-secrets.service"
+      ];
 
       serviceConfig = {
         Type = "oneshot";
