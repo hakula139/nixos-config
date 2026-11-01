@@ -8,7 +8,10 @@
 const HOSTS_OWNER = "# nixos-config:"
 
 # Rewrite the owned mappings, removing them when the hostname is empty.
-def main [hosts_file: path, hostname: string] {
+def main [
+  hosts_file: path # Existing hosts file to read without modifying
+  hostname: string # Gateway hostname, or empty to remove owned entries
+] {
   # Owned lines, including their trailing newline when present.
   let pattern = ('^.*' + $HOSTS_OWNER + '.*\n?')
   let retained = (
@@ -22,6 +25,6 @@ def main [hosts_file: path, hostname: string] {
     if ($retained | is-not-empty) and not ($retained | str ends-with (char nl)) {
       print ""
     }
-    print $"127.0.0.1 ($hostname) ($HOSTS_OWNER) corp-tunnel"
+    print $"127.0.0.1 ($hostname) ($HOSTS_OWNER) tunnel"
   }
 }
