@@ -35,14 +35,18 @@ in
       autoUpdate = true;
       cleanup = "uninstall";
       extraEnv.XDG_CONFIG_HOME = config.home-manager.users.${config.homebrew.user}.xdg.configHome;
-      extraFlags = [ "--force-cleanup" ];
+      extraFlags = [
+        "--force-cleanup"
+      ];
       upgrade = true;
     };
 
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    taps = [ "whatpulse/whatpulse" ];
+    taps = [
+      "whatpulse/whatpulse"
+    ];
     brews = [ ];
     casks = [
       "altserver"
@@ -95,7 +99,11 @@ in
   # ------------------------------------------------------------------------------------------------
   system.activationScripts.homebrew.text = lib.mkForce ''
     run_homebrew_bundle() {
-      PATH=${esc "${config.homebrew.prefix}/bin:${lib.makeBinPath [ masInstallOnly ]}"}:"$PATH" \
+      PATH=${esc "${config.homebrew.prefix}/bin:${
+        lib.makeBinPath [
+          masInstallOnly
+        ]
+      }"}:"$PATH" \
         sudo \
           --preserve-env=PATH \
           --user=${esc config.homebrew.user} \

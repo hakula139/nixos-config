@@ -21,7 +21,14 @@ let
         intro
         sharedBody
       ]
-      ++ (if body == null then [ ] else [ (builtins.readFile body) ])
+      ++ (
+        if body == null then
+          [ ]
+        else
+          [
+            (builtins.readFile body)
+          ]
+      )
     );
 in
 {

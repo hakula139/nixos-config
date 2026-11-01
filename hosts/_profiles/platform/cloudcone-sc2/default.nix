@@ -24,7 +24,9 @@
   # and a legacy grub.conf. We shim this with a static grub.conf pointing to our NixOS kernel.
   boot.loader.grub = {
     enable = true;
-    devices = lib.mkForce [ "/dev/vda" ];
+    devices = lib.mkForce [
+      "/dev/vda"
+    ];
     configurationLimit = 5;
 
     extraInstallCommands = ''

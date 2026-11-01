@@ -91,7 +91,9 @@ in
       extraGroups = [
         redisGroup
       ]
-      ++ lib.optionals cfg.aria2.enable [ "aria2" ];
+      ++ lib.optionals cfg.aria2.enable [
+        "aria2"
+      ];
     };
 
     users.groups.${serviceName} = { };
@@ -100,7 +102,9 @@ in
     # PostgreSQL
     # ----------------------------------------------------------------------------------------------
     services.postgresql = {
-      ensureDatabases = [ dbName ];
+      ensureDatabases = [
+        dbName
+      ];
       ensureUsers = [
         {
           name = serviceName;
@@ -131,7 +135,9 @@ in
 
       {
         description = "Cloudreve file management and sharing system";
-        documentation = [ "https://docs.cloudreve.org" ];
+        documentation = [
+          "https://docs.cloudreve.org"
+        ];
 
         after = [
           "network.target"
@@ -153,7 +159,9 @@ in
           "backup-restore-cloudreve.service"
         ];
 
-        wantedBy = [ "multi-user.target" ];
+        wantedBy = [
+          "multi-user.target"
+        ];
 
         preStart = ''
           install -m 0755 ${lib.getExe pkgs.cloudreve} "$STATE_DIRECTORY/cloudreve"
@@ -173,7 +181,9 @@ in
           ReadWritePaths = [
             "%S/%N"
           ]
-          ++ lib.optionals cfg.aria2.enable [ config.services.aria2.settings.dir ];
+          ++ lib.optionals cfg.aria2.enable [
+            config.services.aria2.settings.dir
+          ];
         };
       }
     ];

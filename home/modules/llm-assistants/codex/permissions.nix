@@ -43,7 +43,15 @@ let
     entry:
     let
       name = entry.name or "`${entry.command}`";
-      reason = lib.replaceStrings [ "\n" ] [ "\n  " ] (lib.trim entry.reason);
+      reason =
+        lib.replaceStrings
+          [
+            "\n"
+          ]
+          [
+            "\n  "
+          ]
+          (lib.trim entry.reason);
     in
     "- ${name}: ${reason}"
   );

@@ -44,15 +44,23 @@ let
   # Map each MCP server to the secret it needs at runtime. Servers absent from this attrset do not
   # require any decrypted file.
   mcpServerSecrets = {
-    atlassian = [ "llm-assistants/mcp/confluence-pat" ];
+    atlassian = [
+      "llm-assistants/mcp/confluence-pat"
+    ];
     bifrost = [
       "llm-assistants/corp-gateway/claude-code-api-key"
       "llm-assistants/corp-gateway/cachain.crt"
     ];
 
-    braveSearch = [ "llm-assistants/mcp/brave-api-key" ];
-    exa = [ "llm-assistants/mcp/exa-api-key" ];
-    gitlab = [ "gitlab/pat" ];
+    braveSearch = [
+      "llm-assistants/mcp/brave-api-key"
+    ];
+    exa = [
+      "llm-assistants/mcp/exa-api-key"
+    ];
+    gitlab = [
+      "gitlab/pat"
+    ];
   };
 
   activeServers = lib.unique (
@@ -140,9 +148,17 @@ in
           enable = lib.mkDefault true;
           proxy = lib.mkIf cfg.proxy.enable assistantProxy;
         })
-        // lib.genAttrs [ "acp" "ccusage" "ctx7" "workmux" ] (_: {
-          enable = lib.mkDefault true;
-        })
+        //
+          lib.genAttrs
+            [
+              "acp"
+              "ccusage"
+              "ctx7"
+              "workmux"
+            ]
+            (_: {
+              enable = lib.mkDefault true;
+            })
         // {
           activity-report.enable = lib.mkDefault isDesktop;
         };

@@ -22,7 +22,9 @@ let
           if server.type == "stdio" then
             {
               type = "local";
-              command = [ server.command ];
+              command = [
+                server.command
+              ];
             }
           else
             {

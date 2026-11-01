@@ -141,7 +141,9 @@ in
         # ------------------------------------------------------------------------------------------
         # Program configuration
         # ------------------------------------------------------------------------------------------
-        home.packages = [ ompBin ];
+        home.packages = [
+          ompBin
+        ];
 
         # ------------------------------------------------------------------------------------------
         # Secrets
@@ -164,10 +166,16 @@ in
           ".omp/agent/lsp.json".source = json.generate "omp-lsp.json" {
             servers.dprint = {
               command = lib.getExe pkgs.dprint;
-              args = [ "lsp" ];
-              fileTypes = [ ".md" ];
+              args = [
+                "lsp"
+              ];
+              fileTypes = [
+                ".md"
+              ];
               languageId = "markdown";
-              rootMarkers = [ "." ];
+              rootMarkers = [
+                "."
+              ];
               isLinter = true;
             };
           };

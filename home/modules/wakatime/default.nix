@@ -46,7 +46,9 @@ in
       # --------------------------------------------------------------------------------------------
       # Packages
       # --------------------------------------------------------------------------------------------
-      home.packages = [ wakatime-cli ];
+      home.packages = [
+        wakatime-cli
+      ];
     })
 
     (lib.mkIf (isDesktop && !isDarwin) {
@@ -57,7 +59,9 @@ in
         wakatime-sync-ai-activity = {
           Unit = {
             Description = "Sync AI assistant activity to WakaTime";
-            After = [ "network-online.target" ];
+            After = [
+              "network-online.target"
+            ];
           };
 
           Service = {
@@ -82,7 +86,9 @@ in
           };
 
           Install = {
-            WantedBy = [ "timers.target" ];
+            WantedBy = [
+              "timers.target"
+            ];
           };
         };
       };
@@ -96,7 +102,9 @@ in
         enable = true;
         config = {
           Label = "com.wakatime.sync-ai-activity";
-          ProgramArguments = [ "${syncScript}" ];
+          ProgramArguments = [
+            "${syncScript}"
+          ];
           StartInterval = 60;
           StandardOutPath = "${homeDir}/Library/Logs/wakatime-sync-ai-activity.log";
           StandardErrorPath = "${homeDir}/Library/Logs/wakatime-sync-ai-activity.log";

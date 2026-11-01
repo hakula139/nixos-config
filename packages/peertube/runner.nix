@@ -8,7 +8,9 @@
 
 pkgs.peertube.overrideAttrs (old: {
   pname = "peertube-runner";
-  outputs = [ "out" ];
+  outputs = [
+    "out"
+  ];
 
   # Pin to upstream's pnpm fetch, since the `pname` rename would otherwise re-derive it via
   # `finalAttrs.pname` and trigger an identical-content refetch.

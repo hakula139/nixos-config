@@ -141,7 +141,9 @@
           src = ./.;
           tools = import "${git-hooks-nix}/nix/call-tools.nix" pkgs;
           package = pkgs.prek;
-          excludes = [ "(^|/)fixtures/" ];
+          excludes = [
+            "(^|/)fixtures/"
+          ];
           hooks = {
             check-added-large-files.enable = true;
 
@@ -161,12 +163,16 @@
 
             end-of-file-fixer = {
               enable = true;
-              excludes = [ "\\.age$" ];
+              excludes = [
+                "\\.age$"
+              ];
             };
 
             markdownlint = {
               enable = true;
-              args = [ "--fix" ];
+              args = [
+                "--fix"
+              ];
             };
 
             nixfmt.enable = true;
@@ -177,7 +183,9 @@
               description = "Run nushell's diagnostic check on .nu files.";
               entry = "${pkgs.nu-check}";
               files = "\\.nu$";
-              types = [ "file" ];
+              types = [
+                "file"
+              ];
             };
 
             prettier = {
@@ -211,7 +219,9 @@
             trim-trailing-whitespace = {
               enable = true;
               # Preserve Markdown's two-trailing-space hard-break syntax.
-              args = [ "--markdown-linebreak-ext=md" ];
+              args = [
+                "--markdown-linebreak-ext=md"
+              ];
               excludes = [
                 "\\.age$"
                 "\\.patch$"
@@ -340,7 +350,9 @@
             targetHost = server.displayName;
             targetUser = "hakula";
             buildOnTarget = true;
-            tags = [ (nixpkgs.lib.toLower server.provider) ];
+            tags = [
+              (nixpkgs.lib.toLower server.provider)
+            ];
           };
         }
       ) servers;
@@ -397,7 +409,9 @@
           "peertube"
         ];
 
-        wsl = mkCachixPins self.nixosConfigurations.wsl.pkgs [ "wakatime-cli" ];
+        wsl = mkCachixPins self.nixosConfigurations.wsl.pkgs [
+          "wakatime-cli"
+        ];
 
         macbook = mkCachixPins self.darwinConfigurations.macbook.pkgs [
           "peertube-runner"
@@ -463,7 +477,9 @@
             packages = [
               pkgs.browser-tools
               pkgs.nodejs_26
-              (pkgs.unstable.python3.withPackages (ps: [ ps.playwright ]))
+              (pkgs.unstable.python3.withPackages (ps: [
+                ps.playwright
+              ]))
             ]
             ++ basePackages;
 

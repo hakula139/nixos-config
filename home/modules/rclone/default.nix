@@ -26,7 +26,9 @@ let
       "--prefix"
       "PATH"
       ":"
-      (lib.makeBinPath [ config.programs.rclone.package ])
+      (lib.makeBinPath [
+        config.programs.rclone.package
+      ])
     ];
   } (builtins.readFile ./refresh.nu);
 
@@ -166,7 +168,13 @@ in
     # Directory management
     # ----------------------------------------------------------------------------------------------
     home.activation.rcloneDirectories =
-      lib.hm.dag.entryBetween [ "setupLaunchAgents" ] [ "writeBoundary" ]
+      lib.hm.dag.entryBetween
+        [
+          "setupLaunchAgents"
+        ]
+        [
+          "writeBoundary"
+        ]
         ''
           run install -d -m 0700 ${
             lib.escapeShellArgs [
@@ -176,7 +184,10 @@ in
           }
           run mkdir -p ${
             lib.escapeShellArgs (
-              [ mountRoot ] ++ lib.mapAttrsToList (name: _: "${mountRoot}/${name}") cfg.mounts
+              [
+                mountRoot
+              ]
+              ++ lib.mapAttrsToList (name: _: "${mountRoot}/${name}") cfg.mounts
             )
           }
         '';

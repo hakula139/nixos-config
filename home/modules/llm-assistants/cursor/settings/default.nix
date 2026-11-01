@@ -28,7 +28,9 @@ let
   # ------------------------------------------------------------------------------------------------
   terminalProfiles = {
     bash = {
-      args = [ "-l" ];
+      args = [
+        "-l"
+      ];
       icon = "terminal-bash";
       path = "bash";
     };
@@ -105,7 +107,9 @@ let
     "nix.serverPath" = "nixd";
     "nix.serverSettings" = {
       nixd = {
-        formatting.command = [ "nixfmt" ];
+        formatting.command = [
+          "nixfmt"
+        ];
       };
     };
 
@@ -122,7 +126,9 @@ let
     "nix.serverPath" = lib.getExe pkgs.nixd;
     "nix.serverSettings" = {
       nixd = {
-        formatting.command = [ (lib.getExe pkgs.nixfmt) ];
+        formatting.command = [
+          (lib.getExe pkgs.nixfmt)
+        ];
       }
       // nixdCompletions;
     };

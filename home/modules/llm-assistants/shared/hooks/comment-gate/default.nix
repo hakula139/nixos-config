@@ -14,7 +14,9 @@
 {
   event = "PostToolUse";
   type = "command";
-  tools = [ "fileWrite" ];
+  tools = [
+    "fileWrite"
+  ];
   usesGateway = true;
   timeout = timeouts.modelCall + timeouts.modelHookMargin;
   statusMessage = "Checking comments";

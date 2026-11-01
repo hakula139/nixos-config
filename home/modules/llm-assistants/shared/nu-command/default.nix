@@ -26,7 +26,9 @@ pkgs.writers.writeNuBin name {
     "--prefix"
     "PATH"
     ":"
-    (lib.makeBinPath [ pkgs.coreutils ])
+    (lib.makeBinPath [
+      pkgs.coreutils
+    ])
     "--add-flag"
     "${configFile}"
   ];

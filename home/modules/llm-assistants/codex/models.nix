@@ -89,9 +89,13 @@ let
   local =
     pkgs.runCommand "codex-corp-local-models.json"
       {
-        nativeBuildInputs = [ pkgs.jq ];
+        nativeBuildInputs = [
+          pkgs.jq
+        ];
         modelMetadata = builtins.toJSON localModelMetadata;
-        passAsFile = [ "modelMetadata" ];
+        passAsFile = [
+          "modelMetadata"
+        ];
       }
       ''
         jq --rawfile instructions \

@@ -25,11 +25,16 @@ let
 in
 {
   # Codex 0.153.4 skips Home Manager's symlinked skills during discovery.
-  activation = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    run install -d -m 0700 ${lib.escapeShellArg "${configDir}/skills/nixos-config"}
-    run ${lib.getExe pkgs.rsync} -rpL --delete --chmod=u=rwX,go= \
-      ${skillBundle}/ ${lib.escapeShellArg "${configDir}/skills/nixos-config/"}
-  '';
+  activation =
+    lib.hm.dag.entryAfter
+      [
+        "linkGeneration"
+      ]
+      ''
+        run install -d -m 0700 ${lib.escapeShellArg "${configDir}/skills/nixos-config"}
+        run ${lib.getExe pkgs.rsync} -rpL --delete --chmod=u=rwX,go= \
+          ${skillBundle}/ ${lib.escapeShellArg "${configDir}/skills/nixos-config/"}
+      '';
 
   settings = {
     bundled.enabled = true;

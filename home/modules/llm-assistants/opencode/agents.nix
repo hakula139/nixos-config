@@ -18,11 +18,21 @@ let
         "mode: subagent"
       ]
       ++ lib.optionals (permission != { }) (
-        [ "permission:" ]
+        [
+          "permission:"
+        ]
         ++ lib.mapAttrsToList (name: value: "  ${name}: ${builtins.toJSON value}") permission
       );
     in
-    lib.concatStringsSep "\n" ([ "---" ] ++ frontmatterLines ++ [ "---" ]);
+    lib.concatStringsSep "\n" (
+      [
+        "---"
+      ]
+      ++ frontmatterLines
+      ++ [
+        "---"
+      ]
+    );
 
   renderAgent = _name: agent: ''
     ${renderFrontmatter agent}

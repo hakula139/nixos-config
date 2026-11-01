@@ -122,7 +122,10 @@ in
     users.users.${serviceName} = {
       isSystemUser = true;
       group = serviceName;
-      extraGroups = [ "systemd-journal" ] ++ allExtraGroups;
+      extraGroups = [
+        "systemd-journal"
+      ]
+      ++ allExtraGroups;
     };
 
     users.groups.${serviceName} = { };
@@ -157,7 +160,13 @@ in
         environmentFile = config.age.secrets.backup-env.path;
         passwordFile = config.age.secrets.backup-restic-password.path;
 
-        paths = if targetCfg.paths != [ ] then targetCfg.paths else [ stateDir ];
+        paths =
+          if targetCfg.paths != [ ] then
+            targetCfg.paths
+          else
+            [
+              stateDir
+            ];
 
         extraBackupArgs = [
           "--tag"
@@ -243,8 +252,12 @@ in
           {
             description = "Restore ${name} from Restic backup";
 
-            after = [ "network-online.target" ];
-            wants = [ "network-online.target" ];
+            after = [
+              "network-online.target"
+            ];
+            wants = [
+              "network-online.target"
+            ];
 
             serviceConfig = {
               Type = "oneshot";
@@ -364,8 +377,12 @@ in
         name: _:
         lib.nameValuePair (resticServiceFor name) {
           unitConfig = {
-            OnSuccess = [ "backup-heartbeat-succeeded-${name}.service" ];
-            OnFailure = [ "backup-heartbeat-failed-${name}.service" ];
+            OnSuccess = [
+              "backup-heartbeat-succeeded-${name}.service"
+            ];
+            OnFailure = [
+              "backup-heartbeat-failed-${name}.service"
+            ];
           };
         }
       ) heartbeatTargets)

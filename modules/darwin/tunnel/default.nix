@@ -109,7 +109,9 @@ in
         # ------------------------------------------------------------------------------------------
         hakula.llm-assistants = {
           auth.enableCorpGateway = lib.mkDefault true;
-          proxy.noProxy = [ gatewayHost ];
+          proxy.noProxy = [
+            gatewayHost
+          ];
         };
 
         # ------------------------------------------------------------------------------------------
@@ -119,7 +121,9 @@ in
           enable = true;
           config = {
             Label = "com.hakula.tunnel";
-            ProgramArguments = [ "${tunnelScript}" ];
+            ProgramArguments = [
+              "${tunnelScript}"
+            ];
             RunAtLoad = false;
             KeepAlive = false;
             ProcessType = "Background";

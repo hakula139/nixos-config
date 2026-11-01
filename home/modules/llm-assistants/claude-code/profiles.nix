@@ -158,7 +158,9 @@ let
     {
       field = "baseUrl";
       isSet = p: p.baseUrl != null;
-      required = [ "api-key" ];
+      required = [
+        "api-key"
+      ];
       forbidden = [
         "oauth-token"
         "subscription"
@@ -172,12 +174,16 @@ let
         "api-key"
       ];
 
-      forbidden = [ "subscription" ];
+      forbidden = [
+        "subscription"
+      ];
     }
     {
       field = "extraSecretEnv";
       isSet = p: p.extraSecretEnv != { };
-      forbidden = [ "subscription" ];
+      forbidden = [
+        "subscription"
+      ];
     }
   ];
 
@@ -257,14 +263,18 @@ let
           inherit (profile) modelOverrides;
         }
         // lib.optionalAttrs (!profile.nativeWebSearch) {
-          permissions.deny = [ "WebSearch" ];
+          permissions.deny = [
+            "WebSearch"
+          ];
         }
       );
 
       envScript = pkgs.writeShellScript "claude-profile-${name}" (
         lib.concatStringsSep "\n" (
           anthropicProfiles.mkEnvLines { label = "claude"; } profile
-          ++ [ "__claude_settings=${esc settings}" ]
+          ++ [
+            "__claude_settings=${esc settings}"
+          ]
         )
       );
     in
@@ -303,9 +313,14 @@ let
   # Process wrapper
   # ------------------------------------------------------------------------------------------------
   processWrapper = pkgs.writeShellScript "claude-process-wrapper" (
-    builtins.replaceStrings [ "@profileLoader@" ] [ "${profileLoader}" ] (
-      builtins.readFile ./scripts/process-wrapper.sh
-    )
+    builtins.replaceStrings
+      [
+        "@profileLoader@"
+      ]
+      [
+        "${profileLoader}"
+      ]
+      (builtins.readFile ./scripts/process-wrapper.sh)
   );
 in
 {
@@ -356,7 +371,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    home.packages = [ switch.package ];
+    home.packages = [
+      switch.package
+    ];
 
     # ----------------------------------------------------------------------------------------------
     # Profile files
@@ -368,9 +385,14 @@ in
     # ----------------------------------------------------------------------------------------------
     # Activation
     # ----------------------------------------------------------------------------------------------
-    home.activation.claudeCodeProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      run ${lib.getExe switch.package} --initialize
-    '';
+    home.activation.claudeCodeProfile =
+      lib.hm.dag.entryAfter
+        [
+          "linkGeneration"
+        ]
+        ''
+          run ${lib.getExe switch.package} --initialize
+        '';
   };
 
   # ------------------------------------------------------------------------------------------------

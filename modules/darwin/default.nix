@@ -69,7 +69,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
+    age.identityPaths = [
+      "${userConfig.home}/.ssh/id_ed25519"
+    ];
 
     age.secrets = {
       builder-ssh-key = repoLib.secrets.mkDarwinUserSecret userName {
@@ -90,7 +92,9 @@ in
       settings =
         defaults.nixSettings
         // {
-          extra-trusted-users = [ "hakula" ];
+          extra-trusted-users = [
+            "hakula"
+          ];
           builders-use-substitutes = true;
         }
         // lib.optionalAttrs config.hakula.cachix.enable {
@@ -176,13 +180,17 @@ in
     # Shell & Environment
     # ----------------------------------------------------------------------------------------------
     programs.zsh.enable = true;
-    environment.shells = [ pkgs.zsh ];
+    environment.shells = [
+      pkgs.zsh
+    ];
     environment.variables = defaults.localeSettings;
 
     # ----------------------------------------------------------------------------------------------
     # Fonts & Packages
     # ----------------------------------------------------------------------------------------------
     fonts.packages = packages.fonts;
-    environment.systemPackages = packages.base ++ [ pkgs.thaw ];
+    environment.systemPackages = packages.base ++ [
+      pkgs.thaw
+    ];
   };
 }

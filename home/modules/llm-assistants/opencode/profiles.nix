@@ -61,7 +61,9 @@ let
 
       modalities = {
         inherit (model) input;
-        output = [ "text" ];
+        output = [
+          "text"
+        ];
       };
       inherit (model) reasoning;
       options = mkReasoningOptions api model model.thinking.defaultLevel;
@@ -168,7 +170,9 @@ let
       nativeFamily = "gpt";
       hybridBase = "corp-gateway-anthropic";
 
-      providers = [ "corp-gateway" ];
+      providers = [
+        "corp-gateway"
+      ];
       channels = [
         "anthropic"
         "openai"
@@ -206,7 +210,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Assertions
     # ----------------------------------------------------------------------------------------------
-    assertions = [ switch.assertion ];
+    assertions = [
+      switch.assertion
+    ];
 
     # ----------------------------------------------------------------------------------------------
     # Secrets
@@ -219,7 +225,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    home.packages = [ switch.package ];
+    home.packages = [
+      switch.package
+    ];
 
     # ----------------------------------------------------------------------------------------------
     # Profile files
@@ -229,9 +237,14 @@ in
     # ----------------------------------------------------------------------------------------------
     # Activation
     # ----------------------------------------------------------------------------------------------
-    home.activation.opencodeAuthProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      run ${lib.getExe switch.package} --initialize
-    '';
+    home.activation.opencodeAuthProfile =
+      lib.hm.dag.entryAfter
+        [
+          "linkGeneration"
+        ]
+        ''
+          run ${lib.getExe switch.package} --initialize
+        '';
   };
 
   # ------------------------------------------------------------------------------------------------

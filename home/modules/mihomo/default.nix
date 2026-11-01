@@ -34,8 +34,14 @@ let
   # ------------------------------------------------------------------------------------------------
   baseConfigFile = pkgs.writeText "mihomo-base.yaml" (
     builtins.replaceStrings
-      [ "__PORT__" "__CONTROLLER_PORT__" ]
-      [ (toString cfg.port) (toString cfg.controllerPort) ]
+      [
+        "__PORT__"
+        "__CONTROLLER_PORT__"
+      ]
+      [
+        (toString cfg.port)
+        (toString cfg.controllerPort)
+      ]
       (builtins.readFile ./config.yaml)
   );
 
@@ -59,7 +65,9 @@ let
       "--prefix"
       "PATH"
       ":"
-      (lib.makeBinPath [ pkgs.curl ])
+      (lib.makeBinPath [
+        pkgs.curl
+      ])
 
       "--add-flag"
       "${updateConfig}"
@@ -142,7 +150,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    home.packages = [ mihomo ];
+    home.packages = [
+      mihomo
+    ];
 
     # ----------------------------------------------------------------------------------------------
     # Systemd services (Linux)
@@ -151,7 +161,9 @@ in
       mihomo-update = {
         Unit = {
           Description = "Update mihomo subscription config";
-          After = [ "network-online.target" ];
+          After = [
+            "network-online.target"
+          ];
         };
 
         Service = {
@@ -165,8 +177,12 @@ in
       mihomo = {
         Unit = {
           Description = "Mihomo proxy service";
-          After = [ "network-online.target" ];
-          Wants = [ "network-online.target" ];
+          After = [
+            "network-online.target"
+          ];
+          Wants = [
+            "network-online.target"
+          ];
         };
 
         Service = repoLib.systemd.restart // {
@@ -176,7 +192,9 @@ in
         };
 
         Install = {
-          WantedBy = [ "default.target" ];
+          WantedBy = [
+            "default.target"
+          ];
         };
       };
     };
@@ -197,7 +215,9 @@ in
         };
 
         Install = {
-          WantedBy = [ "timers.target" ];
+          WantedBy = [
+            "timers.target"
+          ];
         };
       };
     };
@@ -211,7 +231,9 @@ in
 
         config = {
           Label = "one.metacubex.mihomo-update";
-          ProgramArguments = [ "${updateReloadScript}" ];
+          ProgramArguments = [
+            "${updateReloadScript}"
+          ];
           StartCalendarInterval = [
             {
               Hour = 4;
@@ -229,7 +251,9 @@ in
 
         config = {
           Label = mihomoLabel;
-          ProgramArguments = [ "${startScript}" ];
+          ProgramArguments = [
+            "${startScript}"
+          ];
           RunAtLoad = true;
           KeepAlive = true;
           StandardOutPath = "${homeDir}/Library/Logs/mihomo.log";
@@ -241,8 +265,13 @@ in
     # ----------------------------------------------------------------------------------------------
     # Directory management
     # ----------------------------------------------------------------------------------------------
-    home.activation.mihomoSetup = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      run install -d -m 0700 ${esc configDir}
-    '';
+    home.activation.mihomoSetup =
+      lib.hm.dag.entryAfter
+        [
+          "writeBoundary"
+        ]
+        ''
+          run install -d -m 0700 ${esc configDir}
+        '';
   };
 }

@@ -24,8 +24,12 @@ let
 in
 {
   # The unstable package renames go.d.plugin, and only its matching module wraps it back.
-  disabledModules = [ "services/monitoring/netdata.nix" ];
-  imports = [ "${inputs.nixpkgs-unstable}/nixos/modules/services/monitoring/netdata.nix" ];
+  disabledModules = [
+    "services/monitoring/netdata.nix"
+  ];
+  imports = [
+    "${inputs.nixpkgs-unstable}/nixos/modules/services/monitoring/netdata.nix"
+  ];
 
   # ------------------------------------------------------------------------------------------------
   # Module options
@@ -63,7 +67,9 @@ in
       package = netdataPkg;
       python.enable = false;
 
-      extraPluginPaths = [ systemdUnitsPlugin ];
+      extraPluginPaths = [
+        systemdUnitsPlugin
+      ];
 
       configDir = {
         "go.d/httpcheck.conf" = yaml.generate "httpcheck.conf" {
@@ -165,7 +171,9 @@ in
       repoLib.systemd.restartUnit
 
       {
-        path = [ netdataPkg ];
+        path = [
+          netdataPkg
+        ];
         environment.NETDATA_PREFIX = "${netdataPkg}";
       }
     ];

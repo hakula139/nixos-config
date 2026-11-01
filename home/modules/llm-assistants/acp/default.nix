@@ -71,14 +71,18 @@ let
       enable = config.hakula.claude-code.enable;
       option = "hakula.claude-code.enable";
       package = claudeAdapter;
-      argv = [ (profileBin "claude-agent-acp") ];
+      argv = [
+        (profileBin "claude-agent-acp")
+      ];
     };
 
     codex = {
       enable = config.hakula.codex.enable;
       option = "hakula.codex.enable";
       package = codexAdapter;
-      argv = [ (profileBin "codex-acp") ];
+      argv = [
+        (profileBin "codex-acp")
+      ];
     };
   };
 
@@ -96,7 +100,13 @@ let
     '';
 
   agents = lib.mapAttrs (name: agent: {
-    argv = if agent.enable then agent.argv else [ "${mkUnavailable name agent}" ];
+    argv =
+      if agent.enable then
+        agent.argv
+      else
+        [
+          "${mkUnavailable name agent}"
+        ];
   }) managedAgents;
 
   defaultAgent = if config.hakula.codex.enable then "codex" else "claude";
@@ -126,7 +136,10 @@ in
       }
     ];
 
-    home.packages = [ acpxBin ] ++ lib.mapAttrsToList (_: agent: agent.package) enabledAgents;
+    home.packages = [
+      acpxBin
+    ]
+    ++ lib.mapAttrsToList (_: agent: agent.package) enabledAgents;
 
     home.file.".acpx/config.json".source = configFile;
   };

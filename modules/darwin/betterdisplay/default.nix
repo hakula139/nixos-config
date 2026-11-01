@@ -28,7 +28,9 @@ in
   # ------------------------------------------------------------------------------------------------
   # Packages
   # ------------------------------------------------------------------------------------------------
-  homebrew.casks = [ "betterdisplay" ];
+  homebrew.casks = [
+    "betterdisplay"
+  ];
 
   # ------------------------------------------------------------------------------------------------
   # Secrets
@@ -43,7 +45,9 @@ in
   home-manager.users.${userName}.launchd.agents.betterdisplay-license = {
     enable = true;
     config = {
-      ProgramArguments = [ "${activateLicense}" ];
+      ProgramArguments = [
+        "${activateLicense}"
+      ];
       RunAtLoad = true;
       WatchPaths = [
         "/Applications/BetterDisplay.app"

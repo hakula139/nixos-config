@@ -120,15 +120,21 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
+    age.identityPaths = [
+      "${userConfig.home}/.ssh/id_ed25519"
+    ];
 
     age.secrets = repoLib.secrets.mkRequiredUserSecrets {
       inherit homeConfig userConfig;
     };
 
     systemd.services."home-manager-${cfg.user.name}" = lib.mkIf (config.age.secrets != { }) {
-      after = [ "agenix-install-secrets.service" ];
-      requires = [ "agenix-install-secrets.service" ];
+      after = [
+        "agenix-install-secrets.service"
+      ];
+      requires = [
+        "agenix-install-secrets.service"
+      ];
     };
   };
 }

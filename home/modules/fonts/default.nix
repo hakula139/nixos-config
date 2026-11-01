@@ -41,6 +41,8 @@ in
   config = lib.mkIf cfg.windowsSync.enable {
     # Home Manager activation can run outside the interactive WSL session where Windows interop
     # works. Expose the command and let nixsw trigger it.
-    home.packages = [ installWindowsFonts ];
+    home.packages = [
+      installWindowsFonts
+    ];
   };
 }

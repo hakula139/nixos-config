@@ -19,7 +19,9 @@ let
     };
 
     # Language plugins would also rewrite fenced examples inside Markdown.
-    plugins = [ "${pkgs.dprint-plugins.dprint-plugin-markdown}/plugin.wasm" ];
+    plugins = [
+      "${pkgs.dprint-plugins.dprint-plugin-markdown}/plugin.wasm"
+    ];
   };
 
   dprintConfigDir = pkgs.linkFarm "markdown-dprint-config" [
@@ -76,7 +78,9 @@ in
     "--prefix"
     "PATH"
     ":"
-    (lib.makeBinPath [ pkgs.coreutils ])
+    (lib.makeBinPath [
+      pkgs.coreutils
+    ])
 
     "--add-flag"
     "${configFile}"

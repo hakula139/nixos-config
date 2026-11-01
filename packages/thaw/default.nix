@@ -18,7 +18,9 @@ pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
 
   sourceRoot = ".";
 
-  nativeBuildInputs = [ pkgs.unzip ];
+  nativeBuildInputs = [
+    pkgs.unzip
+  ];
 
   dontConfigure = true;
   dontBuild = true;
@@ -38,6 +40,8 @@ pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
     homepage = "https://github.com/thaw-app/Thaw";
     license = lib.licenses.gpl3Only;
     platforms = lib.platforms.darwin;
-    sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
+    sourceProvenance = [
+      lib.sourceTypes.binaryNativeCode
+    ];
   };
 })

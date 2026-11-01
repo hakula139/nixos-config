@@ -61,7 +61,9 @@ in
 
       inherit (backupUmamiCfg) schedule;
 
-      paths = [ stateDir ];
+      paths = [
+        stateDir
+      ];
 
       extraBackupArgs = [
         "--tag"

@@ -90,7 +90,10 @@ let
     mkServer (
       server
       // {
-        command = [ (lib.getExe' pkgs.uv "uvx") ] ++ server.command;
+        command = [
+          (lib.getExe' pkgs.uv "uvx")
+        ]
+        ++ server.command;
       }
     );
 
@@ -99,7 +102,9 @@ let
   # ------------------------------------------------------------------------------------------------
   atlassianBin = mkUvServer {
     name = "atlassian";
-    command = [ "mcp-atlassian@latest" ];
+    command = [
+      "mcp-atlassian@latest"
+    ];
     envFiles.CONFLUENCE_PERSONAL_TOKEN = secretPath "llm-assistants/mcp/confluence-pat";
     envVars.CONFLUENCE_URL = wikiUrl;
     # mcp-atlassian ignores NO_PROXY, so unset proxies for internal Confluence.
@@ -128,7 +133,9 @@ let
   # ------------------------------------------------------------------------------------------------
   braveSearchBin = mkNpmServer {
     name = "brave-search";
-    command = [ "@brave/brave-search-mcp-server" ];
+    command = [
+      "@brave/brave-search-mcp-server"
+    ];
     envFiles.BRAVE_API_KEY = secretPath "llm-assistants/mcp/brave-api-key";
   };
 
@@ -142,7 +149,9 @@ let
       "--executable-path=${lib.getExe pkgs.browser-tools.chromium}"
       "--isolated"
     ]
-    ++ lib.optionals (!pkgs.stdenv.isDarwin) [ "--headless" ];
+    ++ lib.optionals (!pkgs.stdenv.isDarwin) [
+      "--headless"
+    ];
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -150,7 +159,9 @@ let
   # ------------------------------------------------------------------------------------------------
   exaBin = mkNpmServer {
     name = "exa";
-    command = [ "exa-mcp-server" ];
+    command = [
+      "exa-mcp-server"
+    ];
     envFiles.EXA_API_KEY = secretPath "llm-assistants/mcp/exa-api-key";
     envVars.ENABLED_TOOLS = "web_search_exa,web_fetch_exa,web_search_advanced_exa,agent_run";
   };
@@ -191,7 +202,9 @@ let
 
   gitlabBin = mkServer {
     name = "gitlab";
-    command = [ (lib.getExe pkgs.mcp-server-gitlab) ];
+    command = [
+      (lib.getExe pkgs.mcp-server-gitlab)
+    ];
     envVars.GITLAB_TOOLSETS = gitlabToolsets;
     setup = ''
       if host=$(${esc glabBin} config get host 2>/dev/null) && [[ -n "$host" ]] \

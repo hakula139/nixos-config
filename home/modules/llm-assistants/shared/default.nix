@@ -26,7 +26,16 @@ let
   # ------------------------------------------------------------------------------------------------
   promptFragments = import ./prompt-fragments;
   roles = import ./agent-roles { inherit (promptFragments) readPrompt; };
-  toLine = text: lib.replaceStrings [ "\n" ] [ " " ] (lib.trim text);
+  toLine =
+    text:
+    lib.replaceStrings
+      [
+        "\n"
+      ]
+      [
+        " "
+      ]
+      (lib.trim text);
   agentRoles = lib.mapAttrs (_: role: role // { description = toLine role.description; }) roles;
 
   # ------------------------------------------------------------------------------------------------

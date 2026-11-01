@@ -21,10 +21,18 @@ let
   inherit (keys.workstations) macbook wsl;
 
   # Common groupings
-  allServersAndMacbook = allServers ++ [ macbook ];
-  corpGatewayKeys = allWorkstations ++ [ devvm ];
-  us1Only = allUsers ++ [ us-1 ];
-  us4Only = allUsers ++ [ us-4 ];
+  allServersAndMacbook = allServers ++ [
+    macbook
+  ];
+  corpGatewayKeys = allWorkstations ++ [
+    devvm
+  ];
+  us1Only = allUsers ++ [
+    us-1
+  ];
+  us4Only = allUsers ++ [
+    us-4
+  ];
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -58,7 +66,9 @@ in
   # ------------------------------------------------------------------------------------------------
   "builders/ssh-key.age".publicKeys = allServersAndMacbook;
   "cachix/auth-token.age".publicKeys = allKeys;
-  "devvm/proxy-url.age".publicKeys = allWorkstations ++ [ devvm ];
+  "devvm/proxy-url.age".publicKeys = allWorkstations ++ [
+    devvm
+  ];
 
   # ------------------------------------------------------------------------------------------------
   # All-server secrets
@@ -86,10 +96,20 @@ in
   "mihomo/subscription-url.age".publicKeys = allWorkstations;
   "wakatime/config.age".publicKeys = allWorkstations;
 
-  "aria2/rpc-config-macbook.age".publicKeys = [ macbook ];
-  "betterdisplay/license.age".publicKeys = [ macbook ];
-  "drivedx/license.age".publicKeys = [ macbook ];
-  "rclone/config.age".publicKeys = [ macbook ];
+  "aria2/rpc-config-macbook.age".publicKeys = [
+    macbook
+  ];
+  "betterdisplay/license.age".publicKeys = [
+    macbook
+  ];
+  "drivedx/license.age".publicKeys = [
+    macbook
+  ];
+  "rclone/config.age".publicKeys = [
+    macbook
+  ];
 
-  "feishu/caldav.age".publicKeys = [ wsl ];
+  "feishu/caldav.age".publicKeys = [
+    wsl
+  ];
 }

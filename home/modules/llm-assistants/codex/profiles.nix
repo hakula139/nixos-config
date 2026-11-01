@@ -73,7 +73,9 @@ let
     profileDefinitions.mkProfiles {
       inherit (cfg) enableCorpGateway;
       nativeFamily = "gpt";
-      providers = [ "corp-gateway" ];
+      providers = [
+        "corp-gateway"
+      ];
       channels = [
         "openai"
         "local"
@@ -116,7 +118,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Assertions
     # ----------------------------------------------------------------------------------------------
-    assertions = [ switch.assertion ];
+    assertions = [
+      switch.assertion
+    ];
 
     # ----------------------------------------------------------------------------------------------
     # Secrets
@@ -129,7 +133,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    home.packages = [ switch.package ];
+    home.packages = [
+      switch.package
+    ];
 
     # ----------------------------------------------------------------------------------------------
     # Profile files
@@ -164,7 +170,9 @@ in
 
       auth = {
         command = lib.getExe' pkgs.coreutils "cat";
-        args = [ tokenFile ];
+        args = [
+          tokenFile
+        ];
       };
     };
   };

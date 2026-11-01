@@ -134,7 +134,9 @@ in
 
       certs."hakula.xyz" = {
         domain = "*.hakula.xyz";
-        extraDomainNames = [ "hakula.xyz" ];
+        extraDomainNames = [
+          "hakula.xyz"
+        ];
       };
     };
 
@@ -211,7 +213,10 @@ in
 
       # Status page for Netdata (nixpkgs binds it to every interface)
       virtualHosts.localhost = lib.mkIf config.services.nginx.statusPage {
-        listenAddresses = [ "127.0.0.1" ] ++ lib.optional config.networking.enableIPv6 "[::1]";
+        listenAddresses = [
+          "127.0.0.1"
+        ]
+        ++ lib.optional config.networking.enableIPv6 "[::1]";
       };
 
       # Clash subscriptions
