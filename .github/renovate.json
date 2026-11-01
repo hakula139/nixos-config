@@ -1,5 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>hakula139/nixos-config//.github/renovate-preset"],
-  "enabledManagers": ["github-actions", "nix"]
+  "enabledManagers": ["github-actions", "nix"],
+  "automerge": false,
+  "lockFileMaintenance": {
+    "automerge": false
+  },
+  "packageRules": [
+    {
+      "matchPackageNames": ["*"],
+      "automerge": false
+    }
+  ]
 }
