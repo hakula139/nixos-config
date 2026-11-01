@@ -45,6 +45,8 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 - Build for current needs. Give each abstraction a concrete responsibility, and avoid speculative features, configurability, or extension points.
 - Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle the failures required by the contract. Add guards, retries, or fallbacks only for concrete failure modes, and treat one added without that justification as a defect to remove. Let errors that expose broken assumptions surface.
 - Use the framework's or library's own primitive before writing a helper that reproduces it. Before hand-writing substantial logic, look for a well-maintained library that provides it, and prefer dependencies already in the tree.
+- A permanent helper script or hook needs a demonstrated ongoing responsibility that existing tools cannot meet cleanly. Perform task-specific validation with scratch commands.
+- Prefer Nushell for justified helper scripts and follow the managed nixos-config Nushell conventions.
 - Set tool policies, such as lint levels, in the tool's config file, and keep commands plain. Use environment variables only for settings without a config option, secrets, and per-environment values.
 - Remove stale or redundant material when asked. When cleaning up code, preserve required behavior while simplifying.
 
@@ -60,6 +62,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 - Keep closely related code and single-line siblings together, separating distinct logical blocks and groups of siblings with a blank line. Where it makes the boundaries easier to see, set off a multiline statement, field, or entry with a blank line after it, and before it unless a related single-line sibling leads into it. Omit these separators in a short record that reads as one unit.
 - Order parameters and fields for readability: group related items, place dependencies before dependents, and order each group to make relationships clear. Use alphabetical order when no stronger relationship applies. Follow API requirements and project conventions.
+- Keep executable Python helpers and test support programs in separate `.py` files so formatters and linters can check them.
 - Write multiline prompts, messages, and embedded documents with literal line breaks so their structure is readable in the source. Encoding paragraphs with `\n` or assembling them from fragments obscures their structure. Escapes are fine for delimiters and programmatic string operations.
 - Indent multiline string contents to match the surrounding code, then strip that indentation with native support or a standard helper such as Rust's `indoc`. Preserve intentional relative indentation, such as nested lists and code blocks.
 
@@ -75,8 +78,9 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 ### Tests
 
-- Write tests that fail for a plausible bug, and before keeping one, break the behavior it guards and confirm that it fails. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
+- Add a permanent test only for a concrete regression risk or non-obvious contract that existing coverage does not protect. Before keeping it, break the behavior it guards and confirm that it fails. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
 - Check that each new test covers something unique, and drop or merge tests whose coverage is subsumed by others.
+- Use pytest for Python tests.
 - For a script whose behavior depends on large external state, such as other tools' stores or databases, test its pure functions with tables and validate the rest with a real run.
 - Write test data with neutral, invented names, such as `/home/u/src/app` or `example.com`, never paths, repositories, hosts, or accounts from the user's own environment. When a case depends on a real value's shape, such as an underscore that `LIKE` would treat as a wildcard, keep the shape under a generic name.
 - Merge tests that differ only in their inputs and expected outputs into one table-driven test when the table makes the group's shared intent clearer, and keep tests separate when their setup or the behavior they check differs. Use the framework's parametrization where it exists, and otherwise loop over case records, naming the case in each assertion message so a failure shows which input broke.
