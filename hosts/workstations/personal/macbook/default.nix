@@ -38,12 +38,13 @@
     webUi.enable = true;
   };
 
-  hakula.services.corpTunnel.enable = true;
   hakula.services.openssh.enable = true;
   hakula.services.tailscale = {
     enable = true;
     userspaceNetworking = true;
   };
+
+  hakula.services.tunnel.enable = true;
 
   # ------------------------------------------------------------------------------------------------
   # Home Manager Overrides

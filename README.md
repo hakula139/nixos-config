@@ -11,8 +11,6 @@ After initial setup, run `nixsw` from the repository root in the managed Zsh env
 
 Every proxy node in `data/servers.nix` is a deploy target, and activating one can restart its nginx or Xray, cutting off an SSH session routed through it. Switch the workstation's proxy client to another node before deploying a node. When proxy credentials rotate, deploy the subscription host `us-4` first through a node not yet deployed, then refresh the client's subscription before deploying the rest.
 
-On macOS, the corporate tunnel starts on demand with `sudo corp-tunnel up` after Tailscale is connected. Run `sudo corp-tunnel down` to stop both services and `corp-tunnel status` to inspect their process state. Neither service starts automatically at boot or login. If the SSH connection fails, run `sudo corp-tunnel up` to reconnect. Its hosts-file mapping remains in place while stopped, so gateway requests fail locally.
-
 ## Documentation
 
 - [Bootstrap](docs/guides/bootstrap.md): First-time installation and Docker image builds.
