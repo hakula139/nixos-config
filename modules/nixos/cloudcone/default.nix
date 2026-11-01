@@ -83,8 +83,12 @@ in
       # --------------------------------------------------------------------------------------------
       systemd.services.cloudcone-agent = {
         description = "CloudCone monitoring agent";
-        after = [ "network-online.target" ];
-        wants = [ "network-online.target" ];
+        after = [
+          "network-online.target"
+        ];
+        wants = [
+          "network-online.target"
+        ];
         serviceConfig = repoLib.systemd.hardening // {
           Type = "oneshot";
           ExecStart = lib.getExe cloudconeAgent;
@@ -102,7 +106,9 @@ in
       # Systemd timer
       # --------------------------------------------------------------------------------------------
       systemd.timers.cloudcone-agent = {
-        wantedBy = [ "timers.target" ];
+        wantedBy = [
+          "timers.target"
+        ];
         timerConfig = {
           Unit = "cloudcone-agent.service";
           OnBootSec = "2m";

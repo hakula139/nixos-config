@@ -90,7 +90,9 @@ in
       settings =
         defaults.nixSettings
         // {
-          extra-trusted-users = [ "hakula" ];
+          extra-trusted-users = [
+            "hakula"
+          ];
           builders-use-substitutes = true;
         }
         // lib.optionalAttrs config.hakula.cachix.enable {
@@ -176,7 +178,9 @@ in
     # Shell & Environment
     # ----------------------------------------------------------------------------------------------
     programs.zsh.enable = true;
-    environment.shells = [ pkgs.zsh ];
+    environment.shells = [
+      pkgs.zsh
+    ];
     environment.variables = defaults.localeSettings;
 
     # ----------------------------------------------------------------------------------------------
