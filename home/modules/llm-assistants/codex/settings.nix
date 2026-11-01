@@ -33,9 +33,7 @@
   # ------------------------------------------------------------------------------------------------
   # Project context
   # ------------------------------------------------------------------------------------------------
-  project_doc_fallback_filenames = [
-    "CLAUDE.md"
-  ];
+  project_doc_fallback_filenames = [ "CLAUDE.md" ];
 
   # ------------------------------------------------------------------------------------------------
   # History / memory
@@ -87,9 +85,7 @@
   ];
 
   tui = {
-    notifications = [
-      "plan-mode-prompt"
-    ];
+    notifications = [ "plan-mode-prompt" ];
     status_line = [
       "current-dir"
       "git-branch"

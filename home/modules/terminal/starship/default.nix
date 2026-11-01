@@ -93,12 +93,8 @@
         style = "green";
         symbol = " ";
         detect_extensions = [ ];
-        detect_files = [
-          "package.json"
-        ];
-        detect_folders = [
-          "node_modules"
-        ];
+        detect_files = [ "package.json" ];
+        detect_folders = [ "node_modules" ];
       };
 
       # --------------------------------------------------------------------------------------------
@@ -163,9 +159,7 @@
         disabled = false;
         detect_files = [ ];
         detect_folders = [ ];
-        detect_env_vars = [
-          "KUBECONFIG"
-        ];
+        detect_env_vars = [ "KUBECONFIG" ];
         contexts = [
           {
             context_pattern = ".*prod.*";

@@ -44,9 +44,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Script Tests
   # ------------------------------------------------------------------------------------------------
-  scriptPython = pkgs.python3.withPackages (ps: [
-    ps.jinja2
-  ]);
+  scriptPython = pkgs.python3.withPackages (ps: [ ps.jinja2 ]);
 in
 {
   inherit

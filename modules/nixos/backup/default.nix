@@ -243,12 +243,8 @@ in
           {
             description = "Restore ${name} from Restic backup";
 
-            after = [
-              "network-online.target"
-            ];
-            wants = [
-              "network-online.target"
-            ];
+            after = [ "network-online.target" ];
+            wants = [ "network-online.target" ];
 
             serviceConfig = {
               Type = "oneshot";

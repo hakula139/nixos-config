@@ -31,12 +31,8 @@ pkgs.stdenv.mkDerivation {
 
   sourceRoot = ".";
 
-  nativeBuildInputs = [
-    pkgs.autoPatchelfHook
-  ];
-  buildInputs = [
-    pkgs.stdenv.cc.cc.lib
-  ];
+  nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+  buildInputs = [ pkgs.stdenv.cc.cc.lib ];
 
   installPhase = ''
     runHook preInstall

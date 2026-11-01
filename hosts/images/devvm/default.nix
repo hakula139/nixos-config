@@ -20,9 +20,7 @@ let
   ];
 
   proxyUrlSecret = "devvm/proxy-url";
-  proxyNoProxy = [
-    wildcardDomain
-  ];
+  proxyNoProxy = [ wildcardDomain ];
 in
 {
   imports = [

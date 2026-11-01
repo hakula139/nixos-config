@@ -14,8 +14,6 @@ pkgs.unstable.peertube.overrideAttrs (old: {
   ];
 
   meta = old.meta // {
-    platforms = old.meta.platforms ++ [
-      "aarch64-darwin"
-    ];
+    platforms = old.meta.platforms ++ [ "aarch64-darwin" ];
   };
 })

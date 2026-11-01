@@ -5,9 +5,7 @@
 let
   claudeAdaptiveCommon = {
     vendor = "anthropic";
-    apis = [
-      "anthropic-messages"
-    ];
+    apis = [ "anthropic-messages" ];
 
     contextWindow = 1000000;
     maxTokens = 128000;
@@ -35,9 +33,7 @@ let
 
   gptCommon = {
     vendor = "openai";
-    apis = [
-      "openai-responses"
-    ];
+    apis = [ "openai-responses" ];
 
     contextWindow = 1050000;
     maxTokens = 128000;

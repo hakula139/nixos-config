@@ -37,12 +37,8 @@ pkgs.stdenv.mkDerivation {
 
   sourceRoot = ".";
 
-  nativeBuildInputs = lib.optionals isLinux [
-    pkgs.autoPatchelfHook
-  ];
-  buildInputs = lib.optionals isLinux [
-    pkgs.stdenv.cc.cc.lib
-  ];
+  nativeBuildInputs = lib.optionals isLinux [ pkgs.autoPatchelfHook ];
+  buildInputs = lib.optionals isLinux [ pkgs.stdenv.cc.cc.lib ];
 
   installPhase = ''
     runHook preInstall

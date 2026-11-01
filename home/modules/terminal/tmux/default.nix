@@ -78,9 +78,7 @@ let
   '';
 in
 {
-  home.packages = [
-    taskName
-  ];
+  home.packages = [ taskName ];
 
   programs.tmux = {
     enable = true;

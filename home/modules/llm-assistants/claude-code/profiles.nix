@@ -158,9 +158,7 @@ let
     {
       field = "baseUrl";
       isSet = p: p.baseUrl != null;
-      required = [
-        "api-key"
-      ];
+      required = [ "api-key" ];
       forbidden = [
         "oauth-token"
         "subscription"
@@ -174,16 +172,12 @@ let
         "api-key"
       ];
 
-      forbidden = [
-        "subscription"
-      ];
+      forbidden = [ "subscription" ];
     }
     {
       field = "extraSecretEnv";
       isSet = p: p.extraSecretEnv != { };
-      forbidden = [
-        "subscription"
-      ];
+      forbidden = [ "subscription" ];
     }
   ];
 
@@ -263,9 +257,7 @@ let
           inherit (profile) modelOverrides;
         }
         // lib.optionalAttrs (!profile.nativeWebSearch) {
-          permissions.deny = [
-            "WebSearch"
-          ];
+          permissions.deny = [ "WebSearch" ];
         }
       );
 
@@ -364,9 +356,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    home.packages = [
-      switch.package
-    ];
+    home.packages = [ switch.package ];
 
     # ----------------------------------------------------------------------------------------------
     # Profile files

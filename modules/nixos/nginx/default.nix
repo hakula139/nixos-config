@@ -134,9 +134,7 @@ in
 
       certs."hakula.xyz" = {
         domain = "*.hakula.xyz";
-        extraDomainNames = [
-          "hakula.xyz"
-        ];
+        extraDomainNames = [ "hakula.xyz" ];
       };
     };
 

@@ -120,12 +120,8 @@ in
 
     systemd.services.${serviceName} = {
       description = "Install age secrets";
-      wantedBy = [
-        "system-manager.target"
-      ];
-      before = [
-        "system-manager.target"
-      ];
+      wantedBy = [ "system-manager.target" ];
+      before = [ "system-manager.target" ];
 
       path = [
         pkgs.coreutils

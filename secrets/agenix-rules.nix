@@ -89,11 +89,7 @@ in
   "aria2/rpc-config-macbook.age".publicKeys = [ macbook ];
   "betterdisplay/license.age".publicKeys = [ macbook ];
   "drivedx/license.age".publicKeys = [ macbook ];
-  "rclone/config.age".publicKeys = [
-    macbook
-  ];
+  "rclone/config.age".publicKeys = [ macbook ];
 
-  "feishu/caldav.age".publicKeys = [
-    wsl
-  ];
+  "feishu/caldav.age".publicKeys = [ wsl ];
 }

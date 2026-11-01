@@ -68,17 +68,13 @@ in
     excludedDirs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       # Workmux workers take their prompts from the agent that launched them.
-      default = [
-        "/\\.claude/worktrees/workmux/"
-      ];
+      default = [ "/\\.claude/worktrees/workmux/" ];
       description = "Regexes matching session directories excluded from human hours and excerpts";
     };
 
     worktreePatterns = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [
-        "/\\.claude/worktrees/[^/]+.*$"
-      ];
+      default = [ "/\\.claude/worktrees/[^/]+.*$" ];
       description = "Regexes stripped from a session's working directory to recover its repository";
     };
 
@@ -121,12 +117,8 @@ in
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
       # As an option default, this entry would vanish once a host lists another project.
-      hakula.activity-report.labels.projects.nixos-config = lib.mkDefault [
-        "personal"
-      ];
-      home.packages = [
-        digest
-      ];
+      hakula.activity-report.labels.projects.nixos-config = lib.mkDefault [ "personal" ];
+      home.packages = [ digest ];
     })
 
     (lib.mkIf (cfg.enable && isWork) {

@@ -142,9 +142,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    home.packages = [
-      mihomo
-    ];
+    home.packages = [ mihomo ];
 
     # ----------------------------------------------------------------------------------------------
     # Systemd services (Linux)
@@ -153,9 +151,7 @@ in
       mihomo-update = {
         Unit = {
           Description = "Update mihomo subscription config";
-          After = [
-            "network-online.target"
-          ];
+          After = [ "network-online.target" ];
         };
 
         Service = {
@@ -169,12 +165,8 @@ in
       mihomo = {
         Unit = {
           Description = "Mihomo proxy service";
-          After = [
-            "network-online.target"
-          ];
-          Wants = [
-            "network-online.target"
-          ];
+          After = [ "network-online.target" ];
+          Wants = [ "network-online.target" ];
         };
 
         Service = repoLib.systemd.restart // {
@@ -184,9 +176,7 @@ in
         };
 
         Install = {
-          WantedBy = [
-            "default.target"
-          ];
+          WantedBy = [ "default.target" ];
         };
       };
     };
@@ -207,9 +197,7 @@ in
         };
 
         Install = {
-          WantedBy = [
-            "timers.target"
-          ];
+          WantedBy = [ "timers.target" ];
         };
       };
     };

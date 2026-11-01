@@ -62,12 +62,8 @@ in
       # --------------------------------------------------------------------------------------------
       systemd.services.clash-generator = {
         description = "Generate Clash subscription configs from user data";
-        after = [
-          "agenix.service"
-        ];
-        wantedBy = [
-          "multi-user.target"
-        ];
+        after = [ "agenix.service" ];
+        wantedBy = [ "multi-user.target" ];
         serviceConfig = repoLib.systemd.hardening // {
           Type = "oneshot";
           ExecStart = clashGenerator;
@@ -79,9 +75,7 @@ in
           WorkingDirectory = "%S/%N";
         };
 
-        restartTriggers = [
-          config.age.secrets.clash-users.file
-        ];
+        restartTriggers = [ config.age.secrets.clash-users.file ];
       };
     }
   );

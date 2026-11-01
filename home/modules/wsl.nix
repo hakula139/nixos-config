@@ -31,9 +31,7 @@ in
     # ----------------------------------------------------------------------------------------------
     hakula.llm-assistants = {
       enable = lib.mkDefault true;
-      proxy.noProxy = lib.mkDefault [
-        wildcardDomain
-      ];
+      proxy.noProxy = lib.mkDefault [ wildcardDomain ];
     };
 
     hakula.claude-code.auth.defaultProfile = "corp-gateway-anthropic";

@@ -141,9 +141,7 @@
           src = ./.;
           tools = import "${git-hooks-nix}/nix/call-tools.nix" pkgs;
           package = pkgs.prek;
-          excludes = [
-            "(^|/)fixtures/"
-          ];
+          excludes = [ "(^|/)fixtures/" ];
           hooks = {
             check-added-large-files.enable = true;
 
@@ -163,9 +161,7 @@
 
             end-of-file-fixer = {
               enable = true;
-              excludes = [
-                "\\.age$"
-              ];
+              excludes = [ "\\.age$" ];
             };
 
             markdownlint = {
@@ -469,9 +465,7 @@
             packages = [
               pkgs.browser-tools
               pkgs.nodejs_26
-              (pkgs.unstable.python3.withPackages (ps: [
-                ps.playwright
-              ]))
+              (pkgs.unstable.python3.withPackages (ps: [ ps.playwright ]))
             ]
             ++ basePackages;
 
