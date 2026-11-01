@@ -12,7 +12,11 @@ const SCRIPT = ($SCRIPT_DIR | path join control.nu)
 const RELAY = "system/org.nixos.tunnel"
 const SSH = "gui/502/com.hakula.tunnel"
 
-def control [action: string, replies: list<record> = [], state: string = "Running"]: nothing -> record {
+def control [
+  action: string
+  replies: list<record> = []
+  state: string = "Running"
+]: nothing -> record {
   let log = (mktemp)
   let run = with-env {
     PATH: ($env.PATH | prepend $env.NU_TEST_STUBS)
