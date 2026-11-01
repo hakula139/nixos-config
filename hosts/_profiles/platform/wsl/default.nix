@@ -8,11 +8,20 @@
   lib,
   inputs,
   repo,
+  repoLib,
   ...
 }:
 
 let
   userName = config.hakula.user.name;
+  windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
+
+  dockerCredentialDesktop = pkgs.writeShellScriptBin "docker-credential-desktop.exe" ''
+    set -euo pipefail
+    # Windows interop must not consume the credential helper's stdin.
+    program_files=$(${windowsInterop} ProgramFiles </dev/null)
+    exec "$program_files/Docker/Docker/resources/bin/docker-credential-desktop.exe" "$@"
+  '';
 in
 {
   imports = [
@@ -53,6 +62,8 @@ in
   # ------------------------------------------------------------------------------------------------
   # Containers
   # ------------------------------------------------------------------------------------------------
+  environment.systemPackages = lib.optional config.wsl.docker-desktop.enable dockerCredentialDesktop;
+
   # Home Manager installs rootless podman as a plain package, which reads its signature policy from
   # /etc/containers/policy.json and refuses to pull or build without one.
   virtualisation.containers.enable = true;
