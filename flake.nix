@@ -120,6 +120,15 @@
           config.allowUnfree = true;
         };
 
+      mkCachixPins =
+        pkgs: names:
+        nixpkgs.lib.genAttrs names (
+          name:
+          pkgs.linkFarm "cachix-pin-${name}-${pkgs.stdenv.hostPlatform.system}" {
+            package = pkgs.${name};
+          }
+        );
+
       # --------------------------------------------------------------------------------------------
       # Pre-commit checks
       # --------------------------------------------------------------------------------------------
@@ -377,6 +386,24 @@
           enableDevToolchains = true;
           username = "root";
         };
+      };
+
+      # --------------------------------------------------------------------------------------------
+      # Cachix pins
+      # --------------------------------------------------------------------------------------------
+      cachixPins = {
+        us-1 = mkCachixPins self.nixosConfigurations.us-1.pkgs [
+          "netdata"
+          "peertube"
+        ];
+
+        wsl = mkCachixPins self.nixosConfigurations.wsl.pkgs [ "wakatime-cli" ];
+
+        macbook = mkCachixPins self.darwinConfigurations.macbook.pkgs [
+          "peertube-runner"
+          "thaw"
+          "wakatime-cli"
+        ];
       };
 
       # --------------------------------------------------------------------------------------------
