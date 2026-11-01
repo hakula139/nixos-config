@@ -45,8 +45,6 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 - Build for current needs. Give each abstraction a concrete responsibility, and avoid speculative features, configurability, or extension points.
 - Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle the failures required by the contract. Add guards, retries, or fallbacks only for concrete failure modes, and treat one added without that justification as a defect to remove. Let errors that expose broken assumptions surface.
 - Use the framework's or library's own primitive before writing a helper that reproduces it. Before hand-writing substantial logic, look for a well-maintained library that provides it, and prefer dependencies already in the tree.
-- A permanent helper script or hook needs a demonstrated ongoing responsibility that existing tools cannot meet cleanly. Perform task-specific validation with scratch commands.
-- Prefer Nushell for justified helper scripts.
 - Set tool policies, such as lint levels, in the tool's config file, and keep commands plain. Use environment variables only for settings without a config option, secrets, and per-environment values.
 - Remove stale or redundant material when asked. When cleaning up code, preserve required behavior while simplifying.
 
@@ -72,6 +70,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 ### Debugging and Verification
 
+- Keep task-specific validation in scratch commands.
 - When tests fail, coverage drops, or behavior breaks, investigate the root cause before patching symptoms. Skipping tests, adding ignores or retries, or special-casing specific commits or data to get checks passing also patches symptoms, so fix the cause or make the test hermetic.
 - If a fix does not work, inspect the actual state (DOM, traces, logs, payloads) before guessing again.
 - Verify the result before declaring the task done, directly or through a delegate's verification evidence. Confirm that asynchronous or external operations have landed, including API responses, advanced git refs, and multi-repo build passes. Name any UI change you could not test in a browser.
@@ -80,7 +79,6 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 - Add a permanent test only for a concrete regression risk or non-obvious contract that existing coverage does not protect. Before keeping it, break the behavior it guards and confirm that it fails. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
 - Drop or merge tests whose coverage is subsumed by others.
-- Use pytest for Python tests.
 - For a script whose behavior depends on large external state, such as other tools' stores or databases, test its pure functions with tables and validate the rest with a real run.
 - Write test data with neutral, invented names, such as `/home/u/src/app` or `example.com`, never paths, repositories, hosts, or accounts from the user's own environment. When a case depends on a real value's shape, such as an underscore that `LIKE` would treat as a wildcard, keep the shape under a generic name.
 - Merge tests that differ only in their inputs and expected outputs into one table-driven test when the table makes the group's shared intent clearer, and keep tests separate when their setup or the behavior they check differs. Use the framework's parametrization where it exists, and otherwise loop over case records, naming the case in each assertion message so a failure shows which input broke.
