@@ -444,10 +444,8 @@
             ]
             ++ basePackages;
 
-            # git-hooks.nix stores a hooks path relative to the main checkout, which linked
-            # worktrees can't resolve (cachix/git-hooks.nix#688), so unset it to fall back to the
-            # shared hooks directory. The lock keeps a concurrent load from setting it mid-install,
-            # which would send prek's hooks to that path.
+            # git-hooks.nix stores a main-checkout-relative path that linked worktrees cannot
+            # resolve (cachix/git-hooks.nix#688). Serialize installation before clearing it.
             shellHook = ''
               if common=$(${git} rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
                 (
