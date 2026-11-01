@@ -63,8 +63,9 @@ Write within the recorded structure, for reviewers who have not seen the convers
 
 ### Publication
 
-- Never force-push a branch that someone else may push to. Land fixes there as new commits, using `git revert` for a pushed commit, and rewrite history only on branches you alone own.
-- After pushing `HEAD:refs/heads/<branch>` from a detached worktree, fast-forward the local branch so later commits are not stranded on a stale ref.
+- Rebase task branches onto the current target branch whenever integrating upstream changes. Never merge the target branch into a task branch or use an Update branch action.
+- Coordinate exclusive ownership before rewriting a shared or bot-managed branch. Until ownership is established, publish fixes as new commits and use `git revert` for pushed changes. Before rebasing a published branch, verify that the observed remote head is an ancestor of the local tip. Push rebased history with `--force-with-lease=refs/heads/<branch>:<observed-remote-head>`. If the lease fails, inspect and integrate remote changes before retrying. Never use a blind force push.
+- After pushing `HEAD:refs/heads/<branch>` from a detached worktree, synchronize the owned local branch to the published head. Fast-forward when possible. After a rebase, verify that no other worktree or agent owns the branch, then use `git update-ref refs/heads/<branch> <published-head> <pre-rebase-local-head>`. If the expected old tip changed or another worktree owns the branch, coordinate with its owner before updating it.
 - Before pushing, verify the base branch, diff, and commit count. Before creating or updating a request, compare its complete title and body with the recorded conventions, fixing any difference in heading hierarchy, section order, or validation format.
 - If asked only to draft a title and body, return the text without publishing. A request for a draft PR / MR authorizes publishing it as a draft.
 - Set assignees and labels when creating a request. If no existing label fits, create one that follows the repository's label scheme.
@@ -80,7 +81,7 @@ Write within the recorded structure, for reviewers who have not seen the convers
 1. Confirm that the forge reports the branch as mergeable at the head commit the approval names.
 2. Wait for CI to pass on that head. On GitHub, first wait (bounded) until `gh pr view <n> --json headRefOid,statusCheckRollup` shows that head with at least one check, because right after a push or branch update `gh pr checks` fails with `no checks reported` until GitHub registers the new head's checks.
 3. On GitHub, next wait for `gh pr checks <n> --watch --fail-fast`, then (bounded) for `gh pr view <n> --json mergeStateStatus` to read `CLEAN`, because some required checks, such as Codecov, are created only after the others finish.
-4. If `mergeStateStatus` reads `BEHIND`, run `gh pr update-branch <n>` and repeat steps 2 and 3 on the new head. Rebase only if the branch conflicts.
+4. If `mergeStateStatus` reads `BEHIND`, refresh the target branch and rebase the request branch onto it, following the ownership and push safeguards in [Publication](#publication). Repeat steps 2 and 3 on the new head.
 5. Merge with the repository's merge method at that head, such as `gh pr merge <n> --squash --match-head-commit <sha>`. Never pass `--auto`, and pass `--admin` only where the repository documents it.
 6. After the merge, verify the remote state and confirm CI passes on the target branch. For GitHub squash merges, keep GitHub's default commit message. Report a merge queued by GitLab's default auto-merge as pending until it lands.
 
