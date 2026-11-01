@@ -47,6 +47,7 @@ let
     atlassian = [
       "llm-assistants/mcp/confluence-pat"
     ];
+
     bifrost = [
       "llm-assistants/corp-gateway/claude-code-api-key"
       "llm-assistants/corp-gateway/cachain.crt"
@@ -55,9 +56,11 @@ let
     braveSearch = [
       "llm-assistants/mcp/brave-api-key"
     ];
+
     exa = [
       "llm-assistants/mcp/exa-api-key"
     ];
+
     gitlab = [
       "gitlab/pat"
     ];
