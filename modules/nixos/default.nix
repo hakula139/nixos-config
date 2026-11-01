@@ -153,9 +153,7 @@ in
     users.defaultUserShell = pkgs.zsh;
 
     users.users = {
-      root.openssh.authorizedKeys.keys = sshCfg.authorizedKeys ++ [
-        keys.builder
-      ];
+      root.openssh.authorizedKeys.keys = sshCfg.authorizedKeys ++ [ keys.builder ];
     }
     // lib.optionalAttrs (cfg.user.name != "root") {
       ${cfg.user.name} = {

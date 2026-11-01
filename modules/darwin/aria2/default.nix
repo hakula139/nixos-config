@@ -88,12 +88,8 @@ in
         launchd.agents.aria2 = lib.mkIf cfg.enable {
           enable = true;
           config = {
-            ProgramArguments = [
-              "${startScript}"
-            ];
-            EnvironmentVariables.PATH = lib.makeBinPath [
-              pkgs.coreutils
-            ];
+            ProgramArguments = [ "${startScript}" ];
+            EnvironmentVariables.PATH = lib.makeBinPath [ pkgs.coreutils ];
             RunAtLoad = true;
             KeepAlive.SuccessfulExit = false;
             ProcessType = "Background";

@@ -25,9 +25,7 @@ in
 
   # Agenix needs an identity path for secret decryption. Containers don't run openssh, so we use a
   # dedicated key stored in the persistent Docker volume.
-  age.identityPaths = [
-    "/root/.config/agenix/identity"
-  ];
+  age.identityPaths = [ "/root/.config/agenix/identity" ];
 
   # ------------------------------------------------------------------------------------------------
   # Networking

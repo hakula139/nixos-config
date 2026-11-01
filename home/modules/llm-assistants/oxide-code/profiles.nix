@@ -122,14 +122,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Activation
     # ----------------------------------------------------------------------------------------------
-    home.activation.oxideCodeProfile =
-      lib.hm.dag.entryAfter
-        [
-          "linkGeneration"
-        ]
-        ''
-          run ${lib.getExe switch.package} --initialize
-        '';
+    home.activation.oxideCodeProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      run ${lib.getExe switch.package} --initialize
+    '';
   };
 
   # ------------------------------------------------------------------------------------------------

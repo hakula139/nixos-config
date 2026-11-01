@@ -170,9 +170,7 @@ in
 
       auth = {
         command = lib.getExe' pkgs.coreutils "cat";
-        args = [
-          tokenFile
-        ];
+        args = [ tokenFile ];
       };
     };
   };

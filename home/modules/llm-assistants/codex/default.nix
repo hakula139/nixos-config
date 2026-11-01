@@ -121,9 +121,7 @@ in
             "--suffix"
             "PATH"
             ":"
-            (lib.makeBinPath [
-              pkgs.bubblewrap
-            ])
+            (lib.makeBinPath [ pkgs.bubblewrap ])
           ]
           ++ lib.optionals cfg.proxy.enable [
             "--run"
@@ -165,9 +163,7 @@ in
           "--prefix"
           "PATH"
           ":"
-          (lib.makeBinPath [
-            pkgs.coreutils
-          ])
+          (lib.makeBinPath [ pkgs.coreutils ])
 
           "--add-flag"
           "${activationConfig}"
@@ -179,9 +175,7 @@ in
           "--prefix"
           "PATH"
           ":"
-          (lib.makeBinPath [
-            codexBin
-          ])
+          (lib.makeBinPath [ codexBin ])
 
           "--add-flag"
           "${pkgs.codex}"
@@ -225,23 +219,13 @@ in
         # ------------------------------------------------------------------------------------------
         home.activation.codexSkills = skills.activation;
 
-        home.activation.codexMutableConfig =
-          lib.hm.dag.entryAfter
-            [
-              "writeBoundary"
-            ]
-            ''
-              run ${activateConfig}
-            '';
+        home.activation.codexMutableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          run ${activateConfig}
+        '';
 
-        home.activation.codexDaemon =
-          lib.hm.dag.entryAfter
-            [
-              "codexAuthProfile"
-            ]
-            ''
-              run ${stopStaleDaemon}
-            '';
+        home.activation.codexDaemon = lib.hm.dag.entryAfter [ "codexAuthProfile" ] ''
+          run ${stopStaleDaemon}
+        '';
       }
     ]
   );

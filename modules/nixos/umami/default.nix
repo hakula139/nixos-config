@@ -65,9 +65,7 @@ in
     # PostgreSQL
     # ----------------------------------------------------------------------------------------------
     services.postgresql = {
-      ensureDatabases = [
-        dbName
-      ];
+      ensureDatabases = [ dbName ];
       ensureUsers = [
         {
           name = serviceName;

@@ -34,14 +34,8 @@ let
   # ------------------------------------------------------------------------------------------------
   baseConfigFile = pkgs.writeText "mihomo-base.yaml" (
     builtins.replaceStrings
-      [
-        "__PORT__"
-        "__CONTROLLER_PORT__"
-      ]
-      [
-        (toString cfg.port)
-        (toString cfg.controllerPort)
-      ]
+      [ "__PORT__" "__CONTROLLER_PORT__" ]
+      [ (toString cfg.port) (toString cfg.controllerPort) ]
       (builtins.readFile ./config.yaml)
   );
 
@@ -65,9 +59,7 @@ let
       "--prefix"
       "PATH"
       ":"
-      (lib.makeBinPath [
-        pkgs.curl
-      ])
+      (lib.makeBinPath [ pkgs.curl ])
 
       "--add-flag"
       "${updateConfig}"
@@ -231,9 +223,7 @@ in
 
         config = {
           Label = "one.metacubex.mihomo-update";
-          ProgramArguments = [
-            "${updateReloadScript}"
-          ];
+          ProgramArguments = [ "${updateReloadScript}" ];
           StartCalendarInterval = [
             {
               Hour = 4;
@@ -251,9 +241,7 @@ in
 
         config = {
           Label = mihomoLabel;
-          ProgramArguments = [
-            "${startScript}"
-          ];
+          ProgramArguments = [ "${startScript}" ];
           RunAtLoad = true;
           KeepAlive = true;
           StandardOutPath = "${homeDir}/Library/Logs/mihomo.log";
@@ -265,13 +253,8 @@ in
     # ----------------------------------------------------------------------------------------------
     # Directory management
     # ----------------------------------------------------------------------------------------------
-    home.activation.mihomoSetup =
-      lib.hm.dag.entryAfter
-        [
-          "writeBoundary"
-        ]
-        ''
-          run install -d -m 0700 ${esc configDir}
-        '';
+    home.activation.mihomoSetup = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run install -d -m 0700 ${esc configDir}
+    '';
   };
 }

@@ -38,9 +38,7 @@ let
 in
 pkgs.symlinkJoin {
   inherit name;
-  paths = [
-    pkg
-  ];
+  paths = [ pkg ];
   nativeBuildInputs = [
     pkgs.makeWrapper
   ];

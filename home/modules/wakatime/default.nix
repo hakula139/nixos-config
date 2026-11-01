@@ -102,9 +102,7 @@ in
         enable = true;
         config = {
           Label = "com.wakatime.sync-ai-activity";
-          ProgramArguments = [
-            "${syncScript}"
-          ];
+          ProgramArguments = [ "${syncScript}" ];
           StartInterval = 60;
           StandardOutPath = "${homeDir}/Library/Logs/wakatime-sync-ai-activity.log";
           StandardErrorPath = "${homeDir}/Library/Logs/wakatime-sync-ai-activity.log";

@@ -157,24 +157,14 @@ in
     # OMP reloads its static model registry only when models.yml's stat mtime changes, and a
     # home-manager store symlink keeps the store's epoch mtime forever, so catalog updates never
     # reach long-running sessions. Install a regular file so activation bumps the mtime.
-    home.activation.ompModelsYaml =
-      lib.hm.dag.entryAfter
-        [
-          "linkGeneration"
-        ]
-        ''
-          run install -m 0600 ${modelsYaml} ${configDir}/models.yml
-        '';
+    home.activation.ompModelsYaml = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      run install -m 0600 ${modelsYaml} ${configDir}/models.yml
+    '';
 
     # Keep config.yml writable for profile switching and OMP settings updates.
-    home.activation.ompAuthProfile =
-      lib.hm.dag.entryAfter
-        [
-          "linkGeneration"
-        ]
-        ''
-          run ${lib.getExe switch.package} --initialize
-        '';
+    home.activation.ompAuthProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      run ${lib.getExe switch.package} --initialize
+    '';
   };
 
   # ------------------------------------------------------------------------------------------------

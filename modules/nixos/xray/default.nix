@@ -68,9 +68,7 @@ in
 
                 realitySettings = {
                   dest = "127.0.0.1:8443";
-                  serverNames = [
-                    config.hakula.network.realitySniHost
-                  ];
+                  serverNames = [ config.hakula.network.realitySniHost ];
                 };
               };
             }

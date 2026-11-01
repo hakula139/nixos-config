@@ -16,12 +16,7 @@ let
     [ -r /etc/set-environment ] && . /etc/set-environment
 
     for p in ${
-      lib.concatMapStringsSep " " (p: ''"${p}"'') (
-        systemManagerPaths
-        ++ [
-          "$HOME/.nix-profile/bin"
-        ]
-      )
+      lib.concatMapStringsSep " " (p: ''"${p}"'') (systemManagerPaths ++ [ "$HOME/.nix-profile/bin" ])
     }; do
       case ":$PATH:" in
         *":$p:"*) ;;

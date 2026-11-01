@@ -21,7 +21,7 @@ Diff `nix-instantiate --parse <file>` before and after a reordering. The parser 
 
 ## Style
 
-- **Lists**: put every nonempty list on multiple lines, with one element per line, including single-element lists. Keep empty lists inline.
+- **Lists**: use one element per line for lists expected to gain or lose entries, including singletons. Keep short fixed lists compact within expressions.
 - **Embedded text**: keep substantial scripts and prose in adjacent files loaded with `builtins.readFile`, inlining only short wrappers or generated snippets. Name model-facing prose `prompt.md`, or `<role>-prompt.md` when there are several, so Markdown and prose checks see it.
 - **Attribute names**: quote one only when Nix requires it, and quote every name in a set where any needs quotes. Access paths follow the first rule.
 - **`with pkgs;`**: use in package lists for brevity.

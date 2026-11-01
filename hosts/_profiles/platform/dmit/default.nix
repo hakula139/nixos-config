@@ -21,9 +21,7 @@
   # ------------------------------------------------------------------------------------------------
   boot.loader.grub = {
     enable = true;
-    devices = lib.mkForce [
-      "/dev/vda"
-    ];
+    devices = lib.mkForce [ "/dev/vda" ];
     configurationLimit = 5;
   };
 

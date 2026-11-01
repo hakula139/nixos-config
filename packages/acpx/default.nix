@@ -44,11 +44,7 @@ pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
     # Built-in adapters need npx. The resolved node binary lives in nodejs-slim, so acpx cannot find
     # npm beside process.execPath.
     makeWrapper ${lib.getExe pkgs.nodejs_26} "$out/bin/acpx" \
-      --suffix PATH : "${
-        lib.makeBinPath [
-          pkgs.nodejs_26
-        ]
-      }" \
+      --suffix PATH : "${lib.makeBinPath [ pkgs.nodejs_26 ]}" \
       --add-flags "$out/lib/acpx/dist/cli.js"
 
     runHook postInstall

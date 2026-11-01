@@ -272,9 +272,7 @@ let
       envScript = pkgs.writeShellScript "claude-profile-${name}" (
         lib.concatStringsSep "\n" (
           anthropicProfiles.mkEnvLines { label = "claude"; } profile
-          ++ [
-            "__claude_settings=${esc settings}"
-          ]
+          ++ [ "__claude_settings=${esc settings}" ]
         )
       );
     in
@@ -313,14 +311,9 @@ let
   # Process wrapper
   # ------------------------------------------------------------------------------------------------
   processWrapper = pkgs.writeShellScript "claude-process-wrapper" (
-    builtins.replaceStrings
-      [
-        "@profileLoader@"
-      ]
-      [
-        "${profileLoader}"
-      ]
-      (builtins.readFile ./scripts/process-wrapper.sh)
+    builtins.replaceStrings [ "@profileLoader@" ] [ "${profileLoader}" ] (
+      builtins.readFile ./scripts/process-wrapper.sh
+    )
   );
 in
 {
@@ -385,14 +378,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Activation
     # ----------------------------------------------------------------------------------------------
-    home.activation.claudeCodeProfile =
-      lib.hm.dag.entryAfter
-        [
-          "linkGeneration"
-        ]
-        ''
-          run ${lib.getExe switch.package} --initialize
-        '';
+    home.activation.claudeCodeProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      run ${lib.getExe switch.package} --initialize
+    '';
   };
 
   # ------------------------------------------------------------------------------------------------

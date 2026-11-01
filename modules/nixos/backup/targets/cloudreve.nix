@@ -67,9 +67,7 @@ in
 
       inherit (backupCloudreveCfg) schedule;
 
-      paths = [
-        stateDir
-      ];
+      paths = [ stateDir ];
 
       extraBackupArgs = [
         "--tag"

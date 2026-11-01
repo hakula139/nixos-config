@@ -64,9 +64,7 @@ let
     lib.optionalAttrs (hook ? matcher) { inherit (hook) matcher; }
     // lib.optionalAttrs (hook ? tools) { matcher = mkMatcher hook.tools; }
     // {
-      hooks = [
-        (lib.filterAttrs (name: _: lib.elem name handlerFields) hook)
-      ];
+      hooks = [ (lib.filterAttrs (name: _: lib.elem name handlerFields) hook) ];
     };
 
   # ------------------------------------------------------------------------------------------------

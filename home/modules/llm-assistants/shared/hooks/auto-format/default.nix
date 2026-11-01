@@ -12,9 +12,7 @@
 {
   event = "PostToolUse";
   type = "command";
-  tools = [
-    "fileWrite"
-  ];
+  tools = [ "fileWrite" ];
   timeout = timeouts.postEdit;
   statusMessage = "Formatting edited files";
   command = mkNuHook {

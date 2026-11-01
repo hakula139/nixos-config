@@ -93,9 +93,7 @@ let
           pkgs.jq
         ];
         modelMetadata = builtins.toJSON localModelMetadata;
-        passAsFile = [
-          "modelMetadata"
-        ];
+        passAsFile = [ "modelMetadata" ];
       }
       ''
         jq --rawfile instructions \

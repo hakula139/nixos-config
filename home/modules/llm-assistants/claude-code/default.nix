@@ -103,12 +103,7 @@ in
           lib.concatLists (
             lib.mapAttrsToList (
               id: model:
-              map (name: lib.nameValuePair name model.name) (
-                [
-                  id
-                ]
-                ++ builtins.attrValues model.channelId
-              )
+              map (name: lib.nameValuePair name model.name) ([ id ] ++ builtins.attrValues model.channelId)
             ) modelCatalog.models
           )
         );
@@ -119,9 +114,7 @@ in
           "--prefix"
           "PATH"
           ":"
-          (lib.makeBinPath [
-            pkgs.ccusage
-          ])
+          (lib.makeBinPath [ pkgs.ccusage ])
 
           "--add-flag"
           "${statusLineConfig}"

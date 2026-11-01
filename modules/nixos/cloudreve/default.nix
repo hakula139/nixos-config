@@ -91,9 +91,7 @@ in
       extraGroups = [
         redisGroup
       ]
-      ++ lib.optionals cfg.aria2.enable [
-        "aria2"
-      ];
+      ++ lib.optionals cfg.aria2.enable [ "aria2" ];
     };
 
     users.groups.${serviceName} = { };
@@ -102,9 +100,7 @@ in
     # PostgreSQL
     # ----------------------------------------------------------------------------------------------
     services.postgresql = {
-      ensureDatabases = [
-        dbName
-      ];
+      ensureDatabases = [ dbName ];
       ensureUsers = [
         {
           name = serviceName;
@@ -181,9 +177,7 @@ in
           ReadWritePaths = [
             "%S/%N"
           ]
-          ++ lib.optionals cfg.aria2.enable [
-            config.services.aria2.settings.dir
-          ];
+          ++ lib.optionals cfg.aria2.enable [ config.services.aria2.settings.dir ];
         };
       }
     ];

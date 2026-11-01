@@ -14,14 +14,8 @@ let
 
   wrapper = pkgs.writeShellScript "tmux-wrapper" (
     builtins.replaceStrings
-      [
-        "@direnv@"
-        "@tmux@"
-      ]
-      [
-        (esc (lib.getExe config.programs.direnv.package))
-        (esc (lib.getExe pkgs.tmux))
-      ]
+      [ "@direnv@" "@tmux@" ]
+      [ (esc (lib.getExe config.programs.direnv.package)) (esc (lib.getExe pkgs.tmux)) ]
       (builtins.readFile ./wrapper.sh)
   );
 
@@ -46,9 +40,7 @@ let
       "--prefix"
       "PATH"
       ":"
-      (lib.makeBinPath [
-        pkgs.tmux
-      ])
+      (lib.makeBinPath [ pkgs.tmux ])
     ];
   } (builtins.readFile ./task-name.nu);
 

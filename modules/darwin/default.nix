@@ -69,9 +69,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.identityPaths = [
-      "${userConfig.home}/.ssh/id_ed25519"
-    ];
+    age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
 
     age.secrets = {
       builder-ssh-key = repoLib.secrets.mkDarwinUserSecret userName {

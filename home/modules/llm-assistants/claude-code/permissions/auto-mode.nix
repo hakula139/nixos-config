@@ -13,16 +13,7 @@ let
     the conversation. Otherwise, block it even if an allow rule would permit it.
   '';
 
-  toLine =
-    text:
-    lib.replaceStrings
-      [
-        "\n"
-      ]
-      [
-        " "
-      ]
-      (lib.trim text);
+  toLine = text: lib.replaceStrings [ "\n" ] [ " " ] (lib.trim text);
 
   toProseRules =
     entries:
@@ -48,10 +39,7 @@ in
     "Source control: github.com/hakula139 and all repos under it"
   ];
 
-  allow = [
-    "$defaults"
-  ]
-  ++ toProseRules policy.allows.policies;
+  allow = [ "$defaults" ] ++ toProseRules policy.allows.policies;
   soft_deny = [
     "$defaults"
   ]

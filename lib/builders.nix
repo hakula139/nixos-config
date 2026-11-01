@@ -77,9 +77,7 @@ let
       isDesktop = false;
       isNixOS = true;
     }
-    ++ [
-      disko.nixosModules.disko
-    ];
+    ++ [ disko.nixosModules.disko ];
 
   # ------------------------------------------------------------------------------------------------
   # Server (NixOS)
@@ -101,9 +99,7 @@ let
             hostType
             ;
         }
-        ++ [
-          hostModule
-        ];
+        ++ [ hostModule ];
     };
 
   # ------------------------------------------------------------------------------------------------
@@ -138,9 +134,7 @@ let
         isDesktop = true;
         isNixOS = true;
       }
-      ++ [
-        hostModule
-      ];
+      ++ [ hostModule ];
     };
 
   # ------------------------------------------------------------------------------------------------
@@ -259,22 +253,16 @@ let
           isDesktop = false;
           isNixOS = true;
         }
-        ++ [
-          hostModule
-        ];
+        ++ [ hostModule ];
       };
       inherit (nixosConfig.config.system.build) toplevel;
     in
     pkgs.dockerTools.buildLayeredImageWithNixDb {
       name = hostName;
       inherit tag;
-      contents = [
-        toplevel
-      ];
+      contents = [ toplevel ];
       config = {
-        Cmd = [
-          "${toplevel}/init"
-        ];
+        Cmd = [ "${toplevel}/init" ];
       };
     };
 in

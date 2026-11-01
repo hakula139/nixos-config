@@ -38,15 +38,7 @@ let
       ++ lib.optional (settings ? background) "background: ${lib.boolToString settings.background}"
       ++ lib.optional (settings ? tools) "tools: ${lib.concatStringsSep ", " settings.tools}";
     in
-    lib.concatStringsSep "\n" (
-      [
-        "---"
-      ]
-      ++ frontmatterLines
-      ++ [
-        "---"
-      ]
-    );
+    lib.concatStringsSep "\n" ([ "---" ] ++ frontmatterLines ++ [ "---" ]);
 
   renderAgent = name: agent: ''
     ${renderFrontmatter name agent}

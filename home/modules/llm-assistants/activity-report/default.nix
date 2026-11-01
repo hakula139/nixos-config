@@ -85,9 +85,7 @@ in
     labels = {
       default = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [
-          hostType
-        ];
+        default = [ hostType ];
         description = "Labels of a project without an entry in `labels.projects`";
       };
 

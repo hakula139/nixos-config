@@ -170,9 +170,7 @@
 
             markdownlint = {
               enable = true;
-              args = [
-                "--fix"
-              ];
+              args = [ "--fix" ];
             };
 
             nixfmt.enable = true;
@@ -183,9 +181,7 @@
               description = "Run nushell's diagnostic check on .nu files.";
               entry = "${pkgs.nu-check}";
               files = "\\.nu$";
-              types = [
-                "file"
-              ];
+              types = [ "file" ];
             };
 
             prettier = {
@@ -219,9 +215,7 @@
             trim-trailing-whitespace = {
               enable = true;
               # Preserve Markdown's two-trailing-space hard-break syntax.
-              args = [
-                "--markdown-linebreak-ext=md"
-              ];
+              args = [ "--markdown-linebreak-ext=md" ];
               excludes = [
                 "\\.age$"
                 "\\.patch$"
@@ -350,9 +344,7 @@
             targetHost = server.displayName;
             targetUser = "hakula";
             buildOnTarget = true;
-            tags = [
-              (nixpkgs.lib.toLower server.provider)
-            ];
+            tags = [ (nixpkgs.lib.toLower server.provider) ];
           };
         }
       ) servers;

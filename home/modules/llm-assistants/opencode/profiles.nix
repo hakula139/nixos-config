@@ -61,9 +61,7 @@ let
 
       modalities = {
         inherit (model) input;
-        output = [
-          "text"
-        ];
+        output = [ "text" ];
       };
       inherit (model) reasoning;
       options = mkReasoningOptions api model model.thinking.defaultLevel;
@@ -237,14 +235,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Activation
     # ----------------------------------------------------------------------------------------------
-    home.activation.opencodeAuthProfile =
-      lib.hm.dag.entryAfter
-        [
-          "linkGeneration"
-        ]
-        ''
-          run ${lib.getExe switch.package} --initialize
-        '';
+    home.activation.opencodeAuthProfile = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      run ${lib.getExe switch.package} --initialize
+    '';
   };
 
   # ------------------------------------------------------------------------------------------------
