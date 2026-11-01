@@ -73,7 +73,9 @@ let
     profileDefinitions.mkProfiles {
       inherit (cfg) enableCorpGateway;
       nativeFamily = "gpt";
-      providers = [ "corp-gateway" ];
+      providers = [
+        "corp-gateway"
+      ];
       channels = [
         "openai"
         "local"

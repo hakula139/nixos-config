@@ -131,7 +131,9 @@ in
 
       {
         description = "Cloudreve file management and sharing system";
-        documentation = [ "https://docs.cloudreve.org" ];
+        documentation = [
+          "https://docs.cloudreve.org"
+        ];
 
         after = [
           "network.target"
@@ -153,7 +155,9 @@ in
           "backup-restore-cloudreve.service"
         ];
 
-        wantedBy = [ "multi-user.target" ];
+        wantedBy = [
+          "multi-user.target"
+        ];
 
         preStart = ''
           install -m 0755 ${lib.getExe pkgs.cloudreve} "$STATE_DIRECTORY/cloudreve"

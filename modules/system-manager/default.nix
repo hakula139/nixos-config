@@ -127,8 +127,12 @@ in
     };
 
     systemd.services."home-manager-${cfg.user.name}" = lib.mkIf (config.age.secrets != { }) {
-      after = [ "agenix-install-secrets.service" ];
-      requires = [ "agenix-install-secrets.service" ];
+      after = [
+        "agenix-install-secrets.service"
+      ];
+      requires = [
+        "agenix-install-secrets.service"
+      ];
     };
   };
 }

@@ -29,6 +29,8 @@ let
   ]) allows.paths;
 
   # The built-in IDE server is outside the shared MCP registry.
-  builtinRules = [ "mcp__ide" ];
+  builtinRules = [
+    "mcp__ide"
+  ];
 in
 commandRules ++ mcpRules ++ toolRules ++ pathRules ++ builtinRules

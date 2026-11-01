@@ -63,7 +63,9 @@ in
       package = netdataPkg;
       python.enable = false;
 
-      extraPluginPaths = [ systemdUnitsPlugin ];
+      extraPluginPaths = [
+        systemdUnitsPlugin
+      ];
 
       configDir = {
         "go.d/httpcheck.conf" = yaml.generate "httpcheck.conf" {
@@ -165,7 +167,9 @@ in
       repoLib.systemd.restartUnit
 
       {
-        path = [ netdataPkg ];
+        path = [
+          netdataPkg
+        ];
         environment.NETDATA_PREFIX = "${netdataPkg}";
       }
     ];

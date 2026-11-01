@@ -257,7 +257,9 @@ let
           inherit (profile) modelOverrides;
         }
         // lib.optionalAttrs (!profile.nativeWebSearch) {
-          permissions.deny = [ "WebSearch" ];
+          permissions.deny = [
+            "WebSearch"
+          ];
         }
       );
 
