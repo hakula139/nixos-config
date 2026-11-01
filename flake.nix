@@ -141,7 +141,9 @@
           src = ./.;
           tools = import "${git-hooks-nix}/nix/call-tools.nix" pkgs;
           package = pkgs.prek;
-          excludes = [ "(^|/)fixtures/" ];
+          excludes = [
+            "(^|/)fixtures/"
+          ];
           hooks = {
             check-added-large-files.enable = true;
 
@@ -161,7 +163,9 @@
 
             end-of-file-fixer = {
               enable = true;
-              excludes = [ "\\.age$" ];
+              excludes = [
+                "\\.age$"
+              ];
             };
 
             markdownlint = {
@@ -397,7 +401,9 @@
           "peertube"
         ];
 
-        wsl = mkCachixPins self.nixosConfigurations.wsl.pkgs [ "wakatime-cli" ];
+        wsl = mkCachixPins self.nixosConfigurations.wsl.pkgs [
+          "wakatime-cli"
+        ];
 
         macbook = mkCachixPins self.darwinConfigurations.macbook.pkgs [
           "peertube-runner"
@@ -461,7 +467,9 @@
             packages = [
               pkgs.browser-tools
               pkgs.nodejs_26
-              (pkgs.unstable.python3.withPackages (ps: [ ps.playwright ]))
+              (pkgs.unstable.python3.withPackages (ps: [
+                ps.playwright
+              ]))
             ]
             ++ basePackages;
 

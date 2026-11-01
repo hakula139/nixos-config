@@ -86,7 +86,9 @@ in
 
     i18n = {
       defaultLocale = "en_US.UTF-8";
-      supportedLocales = [ "en_US.UTF-8/UTF-8" ];
+      supportedLocales = [
+        "en_US.UTF-8/UTF-8"
+      ];
       extraLocaleSettings.LC_ALL = "en_US.UTF-8";
     };
 
@@ -156,7 +158,9 @@ in
     // lib.optionalAttrs (cfg.user.name != "root") {
       ${cfg.user.name} = {
         isNormalUser = true;
-        extraGroups = [ "wheel" ];
+        extraGroups = [
+          "wheel"
+        ];
         openssh.authorizedKeys.keys = sshCfg.authorizedKeys;
         linger = true;
       };
@@ -175,7 +179,9 @@ in
     # Shell & Environment
     # ----------------------------------------------------------------------------------------------
     programs.zsh.enable = true;
-    environment.shells = [ pkgs.zsh ];
+    environment.shells = [
+      pkgs.zsh
+    ];
 
     environment.variables =
       defaults.localeSettings
