@@ -25,20 +25,20 @@ def "test hostname transitions preserve unrelated entries and are idempotent" []
     ::1 localhost
 
     192.0.2.1 unrelated.example.test # managed elsewhere
-    192.0.2.2 similar.example.test # nixos-config-other: corp-tunnel
+    192.0.2.2 similar.example.test # nixos-config-other: tunnel
 
     "
     | str dedent
   )
   let old_entries = (
     "
-    127.0.0.1 old-gateway.example.test # nixos-config: corp-tunnel
+    127.0.0.1 old-gateway.example.test # nixos-config: legacy-tunnel
     127.0.0.1 legacy-gateway.example.test # nixos-config: earlier-tunnel
 
     "
     | str dedent
   )
-  let new_entry = "127.0.0.1 new-gateway.example.test # nixos-config: corp-tunnel\n"
+  let new_entry = "127.0.0.1 new-gateway.example.test # nixos-config: tunnel\n"
   let mixed_lines = "192.0.2.1 unrelated.example.test\r\n"
   let unterminated = "192.0.2.2 final.example.test"
   let cases = [

@@ -1,5 +1,5 @@
 # ==================================================================================================
-# Corporation Network Tunnel
+# Network Tunnel
 # ==================================================================================================
 
 {
@@ -11,7 +11,7 @@
 }:
 
 let
-  cfg = config.hakula.services.corpTunnel;
+  cfg = config.hakula.services.tunnel;
 
   userName = config.hakula.user.name;
   homeDir = config.users.users.${userName}.home;
@@ -19,9 +19,27 @@ let
   gatewayHost = corpHosts.llmGateway;
   localPort = 8443;
 
-  hostsScript = pkgs.writers.writeNu "corp-tunnel-hosts" (builtins.readFile ./hosts.nu);
+  hostsScript = pkgs.writers.writeNu "tunnel-hosts" (builtins.readFile ./hosts.nu);
 
-  tunnelScript = pkgs.writeShellScript "corp-tunnel" ''
+  controlPackage = pkgs.writers.writeNuBin "tunnel" {
+    makeWrapperArgs = [
+      "--prefix"
+      "PATH"
+      ":"
+      (lib.makeBinPath [
+        pkgs.coreutils
+        config.services.tailscale.package
+      ])
+
+      "--add-flag"
+      "--user-name"
+
+      "--add-flag"
+      userName
+    ];
+  } (builtins.readFile ./control.nu);
+
+  tunnelScript = pkgs.writeShellScript "tunnel" ''
     set -euo pipefail
 
     exec ${lib.getExe' pkgs.openssh "ssh"} \
@@ -39,8 +57,8 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options.hakula.services.corpTunnel = {
-    enable = lib.mkEnableOption "corp LLM gateway tunnel through Tailscale";
+  options.hakula.services.tunnel = {
+    enable = lib.mkEnableOption "LLM gateway tunnel through Tailscale";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -64,21 +82,25 @@ in
 
     (lib.mkIf cfg.enable {
       # --------------------------------------------------------------------------------------------
+      # Packages
+      # --------------------------------------------------------------------------------------------
+      environment.systemPackages = [ controlPackage ];
+
+      # --------------------------------------------------------------------------------------------
       # Launchd daemons (macOS)
       # --------------------------------------------------------------------------------------------
-      launchd.daemons.corp-tunnel.serviceConfig = {
+      launchd.daemons.tunnel.serviceConfig = {
         ProgramArguments = [
           (lib.getExe pkgs.socat)
           "TCP-LISTEN:443,bind=127.0.0.1,reuseaddr,fork"
           "TCP:127.0.0.1:${toString localPort}"
         ];
 
-        RunAtLoad = true;
-        KeepAlive = true;
+        RunAtLoad = false;
+        KeepAlive = false;
         ProcessType = "Background";
-        ThrottleInterval = 30;
-        StandardOutPath = "/var/log/corp-tunnel.log";
-        StandardErrorPath = "/var/log/corp-tunnel.log";
+        StandardOutPath = "/var/log/tunnel.log";
+        StandardErrorPath = "/var/log/tunnel.log";
       };
 
       home-manager.users.${userName} = {
@@ -93,17 +115,16 @@ in
         # ------------------------------------------------------------------------------------------
         # Launchd agents (macOS)
         # ------------------------------------------------------------------------------------------
-        launchd.agents.corp-tunnel = {
+        launchd.agents.tunnel = {
           enable = true;
           config = {
-            Label = "com.hakula.corp-tunnel";
+            Label = "com.hakula.tunnel";
             ProgramArguments = [ "${tunnelScript}" ];
-            RunAtLoad = true;
-            KeepAlive.SuccessfulExit = false;
+            RunAtLoad = false;
+            KeepAlive = false;
             ProcessType = "Background";
-            ThrottleInterval = 30;
-            StandardOutPath = "${homeDir}/Library/Logs/corp-tunnel.log";
-            StandardErrorPath = "${homeDir}/Library/Logs/corp-tunnel.log";
+            StandardOutPath = "${homeDir}/Library/Logs/tunnel.log";
+            StandardErrorPath = "${homeDir}/Library/Logs/tunnel.log";
           };
         };
       };
