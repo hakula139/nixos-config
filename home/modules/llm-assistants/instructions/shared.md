@@ -79,7 +79,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 ### Tests
 
 - Add a permanent test only for a concrete regression risk or non-obvious contract that existing coverage does not protect. Before keeping it, break the behavior it guards and confirm that it fails. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
-- Check that each new test covers something unique, and drop or merge tests whose coverage is subsumed by others.
+- Drop or merge tests whose coverage is subsumed by others.
 - Use pytest for Python tests.
 - For a script whose behavior depends on large external state, such as other tools' stores or databases, test its pure functions with tables and validate the rest with a real run.
 - Write test data with neutral, invented names, such as `/home/u/src/app` or `example.com`, never paths, repositories, hosts, or accounts from the user's own environment. When a case depends on a real value's shape, such as an underscore that `LIKE` would treat as a wildcard, keep the shape under a generic name.
