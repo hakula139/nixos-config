@@ -33,12 +33,12 @@ in
 
     ./aria2
     ./betterdisplay
-    ./corp-tunnel
     ./drivedx
     ./keka
     ./llm-assistants
     ./ssh
     ./tailscale
+    ./tunnel
   ];
 
   # ------------------------------------------------------------------------------------------------
