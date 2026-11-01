@@ -21,6 +21,21 @@ let
 
   hostsScript = pkgs.writers.writeNu "corp-tunnel-hosts" (builtins.readFile ./hosts.nu);
 
+  controlPackage = pkgs.writers.writeNuBin "corp-tunnel" {
+    makeWrapperArgs = [
+      "--prefix"
+      "PATH"
+      ":"
+      (lib.makeBinPath [
+        pkgs.coreutils
+        config.services.tailscale.package
+      ])
+
+      "--add-flag"
+      userName
+    ];
+  } (builtins.readFile ./control.nu);
+
   tunnelScript = pkgs.writeShellScript "corp-tunnel" ''
     set -euo pipefail
 
@@ -64,6 +79,11 @@ in
 
     (lib.mkIf cfg.enable {
       # --------------------------------------------------------------------------------------------
+      # Packages
+      # --------------------------------------------------------------------------------------------
+      environment.systemPackages = [ controlPackage ];
+
+      # --------------------------------------------------------------------------------------------
       # Launchd daemons (macOS)
       # --------------------------------------------------------------------------------------------
       launchd.daemons.corp-tunnel.serviceConfig = {
@@ -73,10 +93,9 @@ in
           "TCP:127.0.0.1:${toString localPort}"
         ];
 
-        RunAtLoad = true;
-        KeepAlive = true;
+        RunAtLoad = false;
+        KeepAlive = false;
         ProcessType = "Background";
-        ThrottleInterval = 30;
         StandardOutPath = "/var/log/corp-tunnel.log";
         StandardErrorPath = "/var/log/corp-tunnel.log";
       };
@@ -98,10 +117,9 @@ in
           config = {
             Label = "com.hakula.corp-tunnel";
             ProgramArguments = [ "${tunnelScript}" ];
-            RunAtLoad = true;
-            KeepAlive.SuccessfulExit = false;
+            RunAtLoad = false;
+            KeepAlive = false;
             ProcessType = "Background";
-            ThrottleInterval = 30;
             StandardOutPath = "${homeDir}/Library/Logs/corp-tunnel.log";
             StandardErrorPath = "${homeDir}/Library/Logs/corp-tunnel.log";
           };
