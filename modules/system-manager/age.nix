@@ -62,7 +62,7 @@ let
     target=${lib.escapeShellArg secret.path}
     tmp="$target.tmp"
 
-    echo "decrypting ${lib.escapeShellArg secret.name} to $target"
+    echo "decrypting" ${lib.escapeShellArg secret.name} "to $target"
     target_dir="$(dirname "$target")"
     if [[ ! -d "$target_dir" ]]; then
       install \
@@ -150,7 +150,7 @@ in
         done
 
         if [[ "''${#identityArgs[@]}" -eq 0 ]]; then
-          echo "error: no readable age identities found in: ${lib.concatStringsSep " " cfg.identityPaths}" >&2
+          echo "error: no readable age identities found in:" ${lib.escapeShellArgs cfg.identityPaths} >&2
           exit 1
         fi
 
