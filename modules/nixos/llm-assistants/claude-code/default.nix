@@ -29,8 +29,8 @@ in
       default = "official";
       description = ''
         Default Claude Code auth profile to activate on first build. Bridges to
-        `home-manager.users.<user>.hakula.claude-code.auth.defaultProfile` via
-        `lib.mkDefault`, so HM-level assignments still take precedence.
+        `home-manager.users.<user>.hakula.claude-code.auth.defaultProfile` via `lib.mkDefault`, so
+        HM-level assignments still take precedence.
       '';
     };
   };
