@@ -58,7 +58,7 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 - **Inputs**: keep checked-in Nushell valid on its own.
 
   - Pass one or two scalars as typed `main` arguments with `makeWrapperArgs` and `--add-flag`.
-  - Pass structured values as one JSON config file the same way.
+  - Pass structured values as one JSON config file through a typed `--config` flag, and wrap the bare `writeNuBin` script with `repoLib.wrapPackage`, since `makeWrapperArgs` renames the script that `--help` names.
   - Put executables on the wrapper's `PATH`.
 
 - **Shebang**: the writers prepend a store-path shebang, which demotes the script's `#!/usr/bin/env nu` to a comment. Keep that line for standalone runs and LSP checks, and commit the executable bit on helpers run from the checkout. Spawn Nushell from a generated script with `$nu.current-exe`.
