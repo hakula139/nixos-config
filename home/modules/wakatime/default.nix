@@ -6,8 +6,8 @@
   config,
   pkgs,
   lib,
-  isDesktop ? false,
-  enableDevToolchains ? false,
+  enableDevToolchains,
+  isDesktop,
   ...
 }:
 

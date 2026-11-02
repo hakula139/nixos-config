@@ -7,7 +7,7 @@
   pkgs,
   lib,
   caches,
-  isNixOS ? false,
+  isNixOS,
   ...
 }:
 

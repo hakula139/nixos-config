@@ -6,9 +6,9 @@
   pkgs,
   lib,
   inputs,
-  username ? "hakula",
-  isDesktop ? false,
-  isNixOS ? false,
+  isDesktop,
+  isNixOS,
+  username,
   ...
 }:
 

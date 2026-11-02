@@ -7,10 +7,10 @@
   pkgs,
   lib,
   flakeConfigName,
+  isDesktop,
+  isNixOS,
   repoLib,
   systemManagerPaths,
-  isDesktop ? false,
-  isNixOS ? false,
   ...
 }:
 

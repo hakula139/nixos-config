@@ -7,10 +7,10 @@
   pkgs,
   lib,
   corpHosts,
+  enableDevToolchains,
   modelCatalog,
   repoLib,
   secretPath,
-  enableDevToolchains ? false,
   ...
 }:
 

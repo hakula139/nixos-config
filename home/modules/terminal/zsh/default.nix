@@ -7,9 +7,9 @@
   pkgs,
   lib,
   flakeConfigName,
+  isNixOS,
   platformSettings,
-  username ? "hakula",
-  isNixOS ? false,
+  username,
   ...
 }:
 
