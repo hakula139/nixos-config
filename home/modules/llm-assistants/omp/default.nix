@@ -6,9 +6,9 @@
   config,
   pkgs,
   lib,
+  enableDevToolchains,
   repoLib,
   secretPath,
-  enableDevToolchains ? false,
   ...
 }:
 
