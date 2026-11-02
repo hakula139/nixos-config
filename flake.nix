@@ -214,13 +214,19 @@
 
             prettier = {
               enable = true;
-              # Markdown keeps the auto-format hook's dprint style, which Prettier would rewrite.
-              files = "\\.(js|json|jsonc|ya?ml)$";
+              # Markdown stays out of Prettier, which drops the blank line before nested items.
+              files = "\\.(js|json|jsonc|ts|ya?ml)$";
             };
 
             ruff.enable = true;
 
             ruff-format.enable = true;
+
+            shellcheck = {
+              enable = true;
+              # ShellCheck has no zsh dialect.
+              excludes = [ "\\.zsh$" ];
+            };
 
             # `shfmt` reads `.editorconfig` only when the entry passes no formatting flag. Any flag
             # reverts it to tabs and ignores the `binary_next_line` and `switch_case_indent` keys.
@@ -461,7 +467,6 @@
           default = pkgs.mkShell {
             packages = [
               preCommitCheck.config.package
-              pkgs.file-formatter
               tooling.scriptPython
             ]
             ++ basePackages;

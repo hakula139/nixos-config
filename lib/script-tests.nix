@@ -12,27 +12,34 @@ let
 
   tooling = import ./tooling.nix { inherit pkgs; };
 
-  tests = lib.fileset.toList (lib.fileset.fileFilter (file: lib.hasSuffix ".test.nu" file.name) root);
+  testsWith =
+    suffix: lib.fileset.toList (lib.fileset.fileFilter (file: lib.hasSuffix suffix file.name) root);
+
+  nuTests = testsWith ".test.nu";
+  tsTests = testsWith ".test.ts";
 
   src = lib.fileset.toSource {
     inherit root;
-    fileset = lib.fileset.unions (map dirOf tests);
+    fileset = lib.fileset.unions (map dirOf (nuTests ++ tsTests));
   };
 
-  testPaths = map (test: lib.path.removePrefix root test) tests;
+  testPaths = map (lib.path.removePrefix root);
 in
 pkgs.runCommand "script-tests"
   {
     nativeBuildInputs = [
-      pkgs.file-formatter
+      pkgs.direnv
       pkgs.git
-      pkgs.nu-test
+      pkgs.nixfmt
+      pkgs.prek
       pkgs.zstd
       tooling.scriptPython
-    ];
+    ]
+    ++ tooling.testRunners;
   }
   ''
     cd ${src}
-    nu-test ${lib.escapeShellArgs testPaths}
+    nu-test ${lib.escapeShellArgs (testPaths nuTests)}
+    bun test ${lib.escapeShellArgs (testPaths tsTests)}
     touch "$out"
   ''
