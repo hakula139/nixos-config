@@ -13,6 +13,12 @@
 
 let
   userName = config.hakula.user.name;
+
+  # Docker Desktop's distro integration installs its credential helper in /usr/bin, which NixOS
+  # sessions outside WSL init (such as SSH) lack on PATH.
+  dockerCredentialDesktop = pkgs.linkFarm "docker-credential-desktop" {
+    "bin/docker-credential-desktop.exe" = "/usr/bin/docker-credential-desktop.exe";
+  };
 in
 {
   imports = [
@@ -53,6 +59,10 @@ in
   # ------------------------------------------------------------------------------------------------
   # Containers
   # ------------------------------------------------------------------------------------------------
+  environment.systemPackages = [
+    dockerCredentialDesktop
+  ];
+
   # Home Manager installs rootless podman as a plain package, which reads its signature policy from
   # /etc/containers/policy.json and refuses to pull or build without one.
   virtualisation.containers.enable = true;
