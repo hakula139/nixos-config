@@ -9,11 +9,17 @@
   # Inputs
   # ------------------------------------------------------------------------------------------------
   inputs = {
+    # ----------------------------------------------------------------------------------------------
+    # Nixpkgs
+    # ----------------------------------------------------------------------------------------------
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    nixos-wsl = {
-      url = "github:nix-community/NixOS-WSL/release-26.05";
+    # ----------------------------------------------------------------------------------------------
+    # System frameworks
+    # ----------------------------------------------------------------------------------------------
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -22,13 +28,21 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    home-manager = {
-      url = "github:nix-community/home-manager/release-26.05";
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     system-manager = {
       url = "github:numtide/system-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # ----------------------------------------------------------------------------------------------
+    # Deployment and secrets
+    # ----------------------------------------------------------------------------------------------
+    agenix = {
+      url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -43,11 +57,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    agenix = {
-      url = "github:ryantm/agenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
+    # ----------------------------------------------------------------------------------------------
+    # Development tools
+    # ----------------------------------------------------------------------------------------------
     git-hooks-nix = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -56,6 +68,34 @@
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # ----------------------------------------------------------------------------------------------
+    # LLM agents and skills
+    # ----------------------------------------------------------------------------------------------
+    llm-agents.url = "github:numtide/llm-agents.nix";
+
+    anthropics-skills = {
+      url = "github:anthropics/skills";
+      flake = false;
+    };
+
+    openai-skills = {
+      url = "github:openai/skills";
+      flake = false;
+    };
+
+    # ----------------------------------------------------------------------------------------------
+    # Hakula's flakes
+    # ----------------------------------------------------------------------------------------------
+    agent-project-move = {
+      url = "github:hakula139/agent-project-move/v0.1.0";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-unstable.follows = "nixpkgs-unstable";
+        home-manager.follows = "home-manager";
+        git-hooks-nix.follows = "git-hooks-nix";
+      };
     };
 
     listenbrainz-scrobbler = {
@@ -67,8 +107,6 @@
       };
     };
 
-    llm-agents.url = "github:numtide/llm-agents.nix";
-
     oxide-code = {
       url = "github:hakula139/oxide-code/v0.1.0-alpha.9";
       inputs = {
@@ -76,16 +114,6 @@
         home-manager.follows = "home-manager";
         git-hooks-nix.follows = "git-hooks-nix";
       };
-    };
-
-    anthropics-skills = {
-      url = "github:anthropics/skills";
-      flake = false;
-    };
-
-    openai-skills = {
-      url = "github:openai/skills";
-      flake = false;
     };
   };
 

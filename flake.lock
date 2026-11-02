@@ -20,6 +20,36 @@
         "type": "github"
       }
     },
+    "agent-project-move": {
+      "inputs": {
+        "git-hooks-nix": [
+          "git-hooks-nix"
+        ],
+        "home-manager": [
+          "home-manager"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-unstable": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793591327,
+        "narHash": "sha256-TFT81B2OzHQoQfNo/1u7rc1Ipzq8S+KwoLNHJ3QwsZI=",
+        "owner": "hakula139",
+        "repo": "agent-project-move",
+        "rev": "8b492dac3f28ecfa7e4fc3083a45057aef46dd2e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hakula139",
+        "ref": "v0.1.0",
+        "repo": "agent-project-move",
+        "type": "github"
+      }
+    },
     "anthropics-skills": {
       "flake": false,
       "locked": {
@@ -545,6 +575,7 @@
     "root": {
       "inputs": {
         "agenix": "agenix",
+        "agent-project-move": "agent-project-move",
         "anthropics-skills": "anthropics-skills",
         "colmena": "colmena",
         "disko": "disko",
