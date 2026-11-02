@@ -389,7 +389,6 @@ def registry [root: string]: nothing -> list<record> {
       title: "Repo overrides of nixpkgs packages"
       pins: (
         override-rows $root [
-          {name: "netdata", repo: "netdata/netdata"}
           {name: "peertube", repo: "Chocobozzz/PeerTube"}
           {name: "wakatime-cli", repo: "wakatime/wakatime-cli"}
         ]
