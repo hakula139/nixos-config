@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  repoLib,
   hostType,
   secretPath,
   ...
@@ -40,8 +41,13 @@ let
     };
   };
 
-  digest = pkgs.writers.writeNuBin "activity-digest" {
-    makeWrapperArgs = [
+  digestScript = pkgs.writers.writeNuBin "activity-digest" (builtins.readFile ./activity-digest.nu);
+
+  digest = repoLib.wrapPackage {
+    inherit pkgs;
+    pkg = digestScript;
+
+    wrapArgs = [
       "--prefix"
       "PATH"
       ":"
@@ -51,9 +57,12 @@ let
       ])
 
       "--add-flag"
+      "--config"
+
+      "--add-flag"
       "${digestConfig}"
     ];
-  } (builtins.readFile ./activity-digest.nu);
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Calendar

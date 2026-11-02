@@ -214,7 +214,7 @@ def digest-run [
   | save --force $config_file
 
   let args = (
-    ([$config_file ($from | default $DAY) $to] | compact)
+    (["--config" $config_file ($from | default $DAY) $to] | compact)
     ++ [$"--excerpt-chars=($excerpt_chars)"]
   )
   with-env {TZ: $tz} { ^$nu.current-exe --no-config-file $SCRIPT ...$args | complete }

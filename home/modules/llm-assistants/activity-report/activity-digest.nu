@@ -841,12 +841,15 @@ def repositories [repos: record, names: list<string>]: nothing -> record {
 # The top-level `labels` gives each repository's labels and the default for unlisted ones, and
 # `repositories` gives each repository's root.
 def main [
-  config_file: string # Wrapper-supplied JSON with the host's labels, policy, and source directories
   from: string # First local date, as YYYY-MM-DD
   to?: string # Last local date, as YYYY-MM-DD, the first date by default
+  --config: path # Wrapper-supplied JSON with the host's labels, policy, and source directories
   --excerpt-chars: int = 400 # Characters kept per prompt and reply, or 0 to keep the text whole
 ]: nothing -> nothing {
-  let cfg = (open $config_file)
+  if $config == null {
+    error make {msg: "--config <path> is required"}
+  }
+  let cfg = (open $config)
   let to = ($to | default $from)
   if $to < $from {
     error make {msg: $"Last date ($to) precedes first date ($from)"}
