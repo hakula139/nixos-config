@@ -251,28 +251,15 @@
 
       repoLib = import ./lib { inherit (nixpkgs) lib; };
 
-      backblaze = import ./data/backblaze.nix;
-      caches = import ./data/caches.nix;
-      corpHosts = import ./data/corp-hosts.nix;
-      defaults = import ./data/defaults.nix;
-      modelCatalog = import ./data/llm-models.nix;
-      servers = import ./data/servers.nix;
-      systemManagerPaths = (import ./data/system-manager.nix).systemPaths;
+      data = import ./data;
 
       keys = import ./secrets/keys.nix;
 
-      commonSpecialArgs = {
+      commonSpecialArgs = data // {
         inherit
           inputs
           repo
           repoLib
-          backblaze
-          caches
-          corpHosts
-          defaults
-          modelCatalog
-          servers
-          systemManagerPaths
           keys
           ;
       };
@@ -321,7 +308,7 @@
           nodeSpecialArgs = builtins.mapAttrs (_: server: {
             hostName = server.name;
             hostType = "personal";
-          }) servers;
+          }) data.servers;
         };
 
         # Colmena uses eval-config directly, so retain nixosSystem's flake metadata.
@@ -349,7 +336,7 @@
             tags = [ (nixpkgs.lib.toLower server.provider) ];
           };
         }
-      ) servers;
+      ) data.servers;
 
       colmenaHive = inputs.colmena.lib.makeHive self.colmena;
 
