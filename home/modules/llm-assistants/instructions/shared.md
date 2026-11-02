@@ -58,7 +58,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 ### Code Layout
 
-- Keep closely related code and single-line siblings together, separating distinct logical blocks and groups of siblings with a blank line. Where it makes the boundaries easier to see, set off a multiline statement, field, or entry with a blank line after it, and before it unless a related single-line sibling leads into it. Omit these separators in a short record that reads as one unit.
+- Keep closely related code and single-line siblings together, separating distinct logical blocks and groups of siblings with a blank line. In a long sequence, where the boundaries would otherwise blur, set off a multiline statement, field, or entry with a blank line after it, and before it unless a related single-line sibling leads into it. Keep a short set or list in one block even when one entry spans a few lines.
 - Order parameters and fields for readability: group related items, place dependencies before dependents, and order each group to make relationships clear. Use alphabetical order when no stronger relationship applies. Follow API requirements and project conventions.
 - Keep standalone helper programs, test support programs, and code templates in separate files with their language's extension so formatters and linters can check them.
 - Write multiline prompts, messages, and embedded documents with literal line breaks so their structure is readable in the source. Encoding paragraphs with `\n` or assembling them from fragments obscures their structure. Escapes are fine for delimiters and programmatic string operations.
@@ -82,6 +82,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 - For a script whose behavior depends on large external state, such as other tools' stores or databases, test its pure functions with tables and validate the rest with a real run.
 - Write test data with neutral, invented names, such as `/home/u/src/app` or `example.com`, never paths, repositories, hosts, or accounts from the user's own environment. When a case depends on a real value's shape, such as an underscore that `LIKE` would treat as a wildcard, keep the shape under a generic name.
 - Merge tests that differ only in their inputs and expected outputs into one table-driven test when the table makes the group's shared intent clearer, and keep tests separate when their setup or the behavior they check differs. Use the framework's parametrization where it exists, and otherwise loop over case records, naming the case in each assertion message so a failure shows which input broke.
+- Write a test in the language of the code it tests, using that ecosystem's runner.
 - Structure each test as arrange, act, and assert, with blank lines between the steps. Keep any check that the act succeeded beside the act.
 
 ## Communication
