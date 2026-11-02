@@ -2,7 +2,7 @@
 
 Nushell is the default for new helper scripts.
 
-- **Entry point**: `def main` with typed parameters, so Nushell checks arity and types.
+- **Entry point**: `def main` with typed parameters.
 - **Script-relative resources**: bind `const SCRIPT_DIR = path self .` after the header and imports. It resolves at parse time from the defining file, so Nix must package those resources beside the script.
 - **Help**: keep the script header to its purpose and operating constraints, and document usage at each command and parameter so `--help` carries it. Point to it with `Run with --help for usage.` only when the header says something else.
 - **Multiline strings**: indent the literal with the code, with the opening quote, content, and closing quote at one column, then `| str dedent` from `std-rfc/str` on the next line and any enclosing parenthesis on its own line.
@@ -38,12 +38,11 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 ### Strings and arguments
 
 - **Bare words depend on context.** `if $x { green }` calls a command named `green`, `where after != before` compares the `after` column with the string `"before"` (write `where after != $it.before`), and an untyped `1min` arrives as a duration while a `: string` parameter coerces it.
-
+- **A binary operator continues an expression only inside parentheses.** A line starting `and ($b)` calls a command named `and`, and `["a" + $x]` holds three elements.
 - **List elements containing commas need quotes.** `[--sort=-pcpu,-pmem]` passes two arguments.
-
 - **Dynamic regexes need single-quoted pieces.** Parentheses interpolate in both `$"..."` and `$'...'`, and double quotes consume backslashes, so concatenate: `($label + ' (?<n>\d+)')`.
-
 - **Forwarding arguments needs `def --wrapped`.** A plain `def` parses flags in `...args` itself.
+- **`url encode` escapes characters a file URI keeps.** To match the `file://` URIs Codex builds with the url crate, pass only non-ASCII characters and the crate's escape set (controls, space, `"#%<>?{}`, the backtick, and `\`) through `url encode --all`.
 
 ### External commands
 
@@ -72,11 +71,13 @@ Give a script a `<script>.test.nu` beside it when its output is easy to get subt
 
 - **Tests**: commands named `test <behavior>` in plain words, asserting with `std/assert`.
 
+- **Structured inputs**: write JSON and JSONL test inputs as Nushell records and lists, serialized with `to json`, or with `to json --raw` per line for JSONL.
+
 - **Fixtures**: when several cases differ only in document-like or byte-sensitive inputs, make them golden files under `fixtures/<group>/<case>/`.
 
-  - A `case.nuon` holds what the files cannot express. Write structured payloads in it as records, and single-quote strings that contain `"`. Write line breaks in its strings as `\n`. Lay it out like Nushell source, with each list item on its own line and a record broken one field per line when it would pass 100 columns.
+  - A `case.nuon` holds what the files cannot express. Single-quote strings in it that contain `"`. Write a line break as `\n`, except in a string that is itself text of several lines, which reads better as a multiline literal whose continuation lines start at column 0, since NUON keeps indentation as content. Lay it out like Nushell source, with each list item on its own line.
   - Small structured inputs, such as argv lists and payload records, stay inline in the test.
-  - Copy each input into a `mktemp` directory before running the script, so the script never writes to a fixture. The runner confines `mktemp` to a scratch `TMPDIR`.
+  - Copy each input into a `mktemp` directory before running the script. The runner confines `mktemp` to a scratch `TMPDIR`.
   - Store fixtures are read-only and `cp` keeps the mode, so `chmod u+w` a copy the script writes.
 
 - **Stubs**: a stand-in for an executable is `<executable>.stub.nu` beside the test, which the runner installs in `$env.NU_TEST_STUBS`. A stub that records calls appends JSON lines to `$env.STUB_LOG`, read back with `open $log | from json --objects`.

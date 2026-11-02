@@ -28,8 +28,7 @@ def main [...files: string] {
       continue
     }
 
-    # `open --raw` yields a byte stream, and the `-> string` signature below rejects invalid UTF-8
-    # with a trace naming this script instead of the file.
+    # `--ide-check` passes invalid UTF-8 in a comment.
     let text = (try { open --raw $file | into string } catch { null })
     if $text == null {
       print -e $"($file): not valid UTF-8"
@@ -44,6 +43,7 @@ def main [...files: string] {
       $failed = true
     }
   }
+
   if $failed {
     exit 1
   }
