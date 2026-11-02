@@ -25,6 +25,7 @@ let
     [System]
     Mode = master
     Listen = :${toString cfg.port}
+    LogLevel = warning
 
     [Database]
     Type = postgres
