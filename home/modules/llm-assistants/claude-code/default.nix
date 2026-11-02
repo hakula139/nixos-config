@@ -138,8 +138,8 @@ in
         name = "claude-code-${pkgs.claude-code.version}";
         bin = "claude";
         envVars = {
-          # Restores the upstream default, since nixpkgs narrows it to `system`, which loads only
-          # a few Keychain roots in macOS SSH sessions.
+          # Restores the upstream default, since nixpkgs narrows it to `system`, which loads only a
+          # few Keychain roots in macOS SSH sessions.
           CLAUDE_CODE_CERT_STORE = "bundled,system";
         }
         // lib.optionalAttrs cfg.plugins.bundle {

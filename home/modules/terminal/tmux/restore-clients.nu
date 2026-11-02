@@ -4,8 +4,8 @@
 # tmux Restore Clients
 # ==================================================================================================
 # Continuum's restore switches the current or best client to the session active in the snapshot.
-# While it runs, this records the first session id seen for every attached client, then returns
-# each surviving client to it.
+# While it runs, this records the first session id seen for every attached client, then returns each
+# surviving client to it.
 # ==================================================================================================
 
 const FORMAT = '#{client_name}|#{session_id}'

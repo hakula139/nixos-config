@@ -3,9 +3,9 @@
 # ==================================================================================================
 # direnv Stub
 # ==================================================================================================
-# Stands in for `direnv exec /` in the wrapper tests. Each call appends its arguments to
-# `STUB_LOG`, then runs the command without the direnv-injected `DIRENV_DIFF` and `IN_NIX_SHELL`,
-# as reverting a nix-direnv shell does.
+# Stands in for `direnv exec /` in the wrapper tests. Each call appends its arguments to `STUB_LOG`,
+# then runs the command without the direnv-injected `DIRENV_DIFF` and `IN_NIX_SHELL`, as reverting a
+# nix-direnv shell does.
 # ==================================================================================================
 
 def --wrapped main [...args: string] {

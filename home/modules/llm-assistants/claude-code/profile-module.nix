@@ -50,8 +50,7 @@ lib.types.submodule {
       type = lib.types.nullOr lib.types.str;
       default = null;
       description = ''
-        API base URL (required for `api-key`, forbidden for `oauth-token` and
-        `subscription`).
+        API base URL (required for `api-key`, forbidden for `oauth-token` and `subscription`)
       '';
     };
 
@@ -59,8 +58,8 @@ lib.types.submodule {
       type = lib.types.nullOr lib.types.str;
       default = null;
       description = ''
-        Name of the agenix secret containing the auth token (required for
-        `oauth-token` and `api-key`, forbidden for `subscription`).
+        Name of the agenix secret containing the auth token (required for `oauth-token` and
+        `api-key`, forbidden for `subscription`)
       '';
     };
 
@@ -80,9 +79,8 @@ lib.types.submodule {
       type = lib.types.attrsOf lib.types.str;
       default = { };
       description = ''
-        Environment variables whose values are absolute paths to provisioned
-        secrets. Keys are env var names, values are secret names; referenced
-        secrets are auto-provisioned. Forbidden for `subscription`.
+        Environment variables holding absolute paths to provisioned secrets. Keys name env vars and
+        values name secrets. Referenced secrets are auto-provisioned. Forbidden for `subscription`.
       '';
     };
 
