@@ -121,6 +121,7 @@ def codex-transcript [
   meta: record
   records: list<record>
   --archived
+  --compressed
 ]: nothing -> nothing {
   let path = (
     if $archived {
@@ -130,6 +131,9 @@ def codex-transcript [
     }
   )
   transcript $dir $path ([{type: session_meta, payload: $meta}] ++ $records)
+  if $compressed {
+    ^zstd --quiet --force --rm ($dir | path join ...$path)
+  }
 }
 
 def codex-event [clock: string, payload: record]: nothing -> record {
@@ -505,38 +509,49 @@ def "test Claude subagents, forks, and teammates credit the prompt whose turn st
 }
 
 def "test Codex subagents and guardian reviews credit the prompt that started them" [] {
-  let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let lib = (git-repo $dir lib)
-  codex-transcript $dir {id: lead, cwd: $app, thread_source: user} (
-    codex-turn "11:00" "review it" --done "11:10"
-  )
-  let changes = (
-    [($lib | path join x.rs)] | reduce --fold {} {|path, acc| $acc | insert $path {type: add} }
-  )
-  let spawn = {parent_thread_id: lead, depth: 1, agent_nickname: x, agent_role: y}
-  codex-transcript $dir {
-    id: sub
-    session_id: lead
-    parent_thread_id: lead
-    cwd: $app
-    thread_source: subagent
-    source: {subagent: {thread_spawn: $spawn}}
-  } ((codex-turn "11:02" "fix it" --done "11:06") ++ [(codex-file-change "11:04" $changes)])
-  codex-transcript $dir {
-    id: guardian
-    session_id: sub
-    parent_thread_id: sub
-    cwd: $app
-    thread_source: guardian_review
-    source: {subagent: {other: guardian}}
-  } ((codex-turn "11:05" --done "11:20") ++ [(codex-model "11:15")])
+  for compressed in [false true] {
+    let dir = (mktemp --directory)
+    let app = (git-repo $dir app)
+    let lib = (git-repo $dir lib)
+    let form = if $compressed { "compressed" } else { "plain" }
+    codex-transcript $dir {id: lead, cwd: $app, thread_source: user} (
+      codex-turn "11:00" "review it" --done "11:10"
+    ) --compressed=$compressed
+    let changes = (
+      [($lib | path join x.rs)] | reduce --fold {} {|path, acc| $acc | insert $path {type: add} }
+    )
+    let spawn = {parent_thread_id: lead, depth: 1, agent_nickname: x, agent_role: y}
+    let sub_records = (
+      (codex-turn "11:02" "fix it" --done "11:06")
+      ++ [(codex-file-change "11:04" $changes)]
+    )
+    codex-transcript $dir {
+      id: sub
+      session_id: lead
+      parent_thread_id: lead
+      cwd: $app
+      thread_source: subagent
+      source: {subagent: {thread_spawn: $spawn}}
+    } $sub_records --compressed=$compressed
+    let guardian_records = (
+      (codex-turn "11:05" --done "11:20")
+      ++ [(codex-model "11:15")]
+    )
+    codex-transcript $dir {
+      id: guardian
+      session_id: sub
+      parent_thread_id: sub
+      cwd: $app
+      thread_source: guardian_review
+      source: {subagent: {other: guardian}}
+    } $guardian_records --compressed=$compressed
 
-  let day = (digest-day $dir)
+    let day = (digest-day $dir)
 
-  assert equal $day.sessions.0.prompts.0.repos {lib: 1.0}
-  assert equal $day.sessions.0.prompts.0.agent 0.4828
-  assert equal $day.runs []
+    assert equal $day.sessions.0.prompts.0.repos {lib: 1.0} $form
+    assert equal $day.sessions.0.prompts.0.agent 0.4828 $form
+    assert equal $day.runs [] $form
+  }
 }
 
 def "test a Codex turn starts at its prompt" [] {
@@ -553,26 +568,43 @@ def "test a Codex turn starts at its prompt" [] {
 }
 
 def "test a Codex subagent finds its parent in archived sessions" [] {
+  for compressed in [false true] {
+    let dir = (mktemp --directory)
+    let app = (git-repo $dir app)
+    let lib = (git-repo $dir lib)
+    let form = if $compressed { "compressed" } else { "plain" }
+    codex-transcript $dir {id: lead, cwd: $app, thread_source: user} (
+      codex-turn "11:00" "review it" --done "11:10"
+    ) --archived --compressed=$compressed
+    let changes = (
+      [($lib | path join x.rs)] | reduce --fold {} {|path, acc| $acc | insert $path {type: add} }
+    )
+    codex-transcript $dir {
+      id: sub
+      cwd: $app
+      thread_source: subagent
+      parent_thread_id: lead
+    } ((codex-turn "11:02" "fix it" --done "11:06") ++ [(codex-file-change "11:04" $changes)])
+
+    let day = (digest-day $dir)
+
+    assert equal $day.sessions.0.prompts.0.repos {lib: 1.0} $form
+    assert equal $day.runs [] $form
+  }
+}
+
+def "test both forms of an archived Codex session read once" [] {
   let dir = (mktemp --directory)
   let app = (git-repo $dir app)
-  let lib = (git-repo $dir lib)
-  codex-transcript $dir {id: lead, cwd: $app, thread_source: user} (
-    codex-turn "11:00" "review it" --done "11:10"
-  ) --archived
-  let changes = (
-    [($lib | path join x.rs)] | reduce --fold {} {|path, acc| $acc | insert $path {type: add} }
-  )
-  codex-transcript $dir {
-    id: sub
-    cwd: $app
-    thread_source: subagent
-    parent_thread_id: lead
-  } ((codex-turn "11:02" "fix it" --done "11:06") ++ [(codex-file-change "11:04" $changes)])
+  let meta = {id: both, cwd: $app, thread_source: user}
+  let records = (codex-turn "11:00" "review it" --done "11:10")
+  codex-transcript $dir $meta $records --archived --compressed
+  codex-transcript $dir $meta $records --archived
 
   let day = (digest-day $dir)
 
-  assert equal $day.sessions.0.prompts.0.repos {lib: 1.0}
-  assert equal $day.runs []
+  assert equal ($day.sessions | length) 1
+  assert equal $day.sessions.0.prompts.0.agent 0.1664
 }
 
 def "test OMP subagents and advisors credit the prompt that started them" [] {
