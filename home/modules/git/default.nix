@@ -113,11 +113,9 @@ in
 
       # Assistant local state
       "**/.agents/plans/"
-      "**/.claude/agent-memory-local"
-      "**/.claude/plans"
+      "**/.claude/agent-memory-local/"
       "**/.claude/settings.local.json"
       "**/.claude/worktrees/"
-      "**/.cursor/plans"
     ];
   };
 
