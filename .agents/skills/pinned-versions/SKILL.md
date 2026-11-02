@@ -83,7 +83,6 @@ Dependencies beyond the source need these hashes:
 - `acpx` needs `pnpmDeps.hash`, and `wakatime-cli` needs `vendorHash`.
 - `mcp-server-gitlab` needs `npmDepsHash`. Rebuild to validate dependency hashes even when the upstream lockfile appears unchanged.
 - `cloudreve` and `mcp-server-github` fetch release archives with `fetchurl`. Prefetch their bytes without `--unpack`, and update every platform entry, including those unavailable locally.
-- `netdata` needs the GitHub source hash. Its Go module and cargo vendor hashes come from the `nixpkgs-unstable` expression and are named after `version`, so a bump that changes them fails with an FOD mismatch and they must then be overridden in `packages/netdata/default.nix`.
 
 Use `lib.fakeHash` temporarily to obtain a hash from a Nix mismatch error, resolving dependency hashes after the source hash, then confirm each dependency hash with `nix build --rebuild` of the package's own fixed-output derivation, because Nix keeps a mismatched fetch under its real hash and a later build reuses it. `fetchPnpmDeps` refetches the whole dependency tree, so the confirmation costs a second full fetch. Never leave a placeholder hash in the final change.
 

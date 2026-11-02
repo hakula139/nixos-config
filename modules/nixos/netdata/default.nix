@@ -14,7 +14,7 @@
 let
   cfg = config.hakula.services.netdata;
 
-  netdataPkg = pkgs.netdata;
+  netdataPkg = pkgs.unstable.netdata;
   yaml = pkgs.formats.yaml { };
 
   # Nixpkgs renames this plugin to .org for a wrapper that neither module creates.
