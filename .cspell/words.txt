@@ -126,6 +126,7 @@ ints
 ioping
 ipcidr
 iputils
+ipynb
 isort
 jieba
 jnoortheen
