@@ -110,8 +110,9 @@ in
           jobs = [
             {
               name = "hakula_xyz";
-              # nginx's default server presents the wildcard ACME certificate.
-              source = "https://127.0.0.1:8443";
+              # An IP source sends no SNI, so the stream default reaches nginx's default server
+              # and its ACME certificate.
+              source = "https://127.0.0.1:443";
               tls_skip_verify = true;
             }
           ];

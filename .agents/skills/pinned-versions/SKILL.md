@@ -2,9 +2,8 @@
 name: pinned-versions
 description: >-
   Audit or upgrade manually pinned dependencies in nixos-config, including plugin revisions, custom
-  packages, flake release tags, container images, runtime packages, and Cloudflare IP ranges, and
-  review Renovate's GitHub Actions updates. Use for stale dependency sweeps or hash
-  mismatches after version bumps.
+  packages, flake release tags, container images, and runtime packages, and review Renovate's
+  GitHub Actions updates. Use for stale dependency sweeps or hash mismatches after version bumps.
 ---
 
 # Pinned Versions
@@ -121,17 +120,6 @@ The `npx` and `uvx` MCP wrappers float on each package's latest release, so they
 ## GitHub Actions
 
 Renovate owns these refs. Review its PRs for breaking changes, and run local workflow checks. Upstream can move an existing major tag without a PR, so verify an actual GitHub Actions run for runtime behavior. GitHub CI runs only on GitHub, so a GitLab-only MR triggers none. See [CI](../../../docs/reference/ci.md) for triggers.
-
-## Cloudflare IP ranges
-
-The Cloudflare range snapshot feeds nginx's real IP configuration, and the checker compares the range sets while treating the `Last updated` comment as the displayed local value. Fetch both lists, then update both and the date once both requests succeeded:
-
-```bash
-curl -fsS https://www.cloudflare.com/ips-v4
-curl -fsS https://www.cloudflare.com/ips-v6
-```
-
-Every server enables nginx through `hosts/_profiles/role/server`, so the change spans the server fleet. Validate server builds, and when a fleet deployment is requested, `colmena apply` applies it.
 
 ## Verification
 
