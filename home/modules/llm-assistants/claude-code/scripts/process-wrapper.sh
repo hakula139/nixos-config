@@ -10,6 +10,7 @@
 
 set -euo pipefail
 
+# shellcheck source=/dev/null
 source @profileLoader@
 
 exec "$@"

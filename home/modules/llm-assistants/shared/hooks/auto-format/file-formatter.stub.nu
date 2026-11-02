@@ -10,7 +10,7 @@ def --wrapped main [...args: string] {
   | $"($in)\n"
   | save --append $env.STUB_LOG
 
-  print $env.STUB_REPORTS
+  print --no-newline $env.STUB_OUTPUT
   if ($env.STUB_STDERR | is-not-empty) { print --stderr $env.STUB_STDERR }
   exit ($env.STUB_EXIT | into int)
 }

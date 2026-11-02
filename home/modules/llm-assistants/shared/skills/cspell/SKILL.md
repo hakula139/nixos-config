@@ -66,7 +66,6 @@ Put the directive in the file it covers. Use a filename override with `ignoreWor
 - `cspell:disable-next-line` suppresses the next content line. Place it directly above the target without a blank line, unless the formatter requires one.
 - `cspell:ignore` accepts the listed tokens throughout the file while keeping surrounding words checked, so review their other occurrences in that file. Prefer it, or an exact literal pattern, to a line directive when nearby prose still needs checking.
 
-<!-- dprint-ignore -->
 ```markdown
 ### recieve <!-- cspell:disable-line -->
 

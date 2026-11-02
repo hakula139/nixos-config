@@ -45,7 +45,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── overlays.nix                # nixpkgs overlay (channels, flake-input CLIs, toolchains, custom packages)
 │   ├── packages.nix                # Base and font package groups for each package set
 │   ├── proxy.nix                   # Proxy options, wrappers, and environment scripts
-│   ├── script-tests.nix            # `checks.<system>.scripts`, running every `*.test.nu` under nu-test
+│   ├── script-tests.nix            # `checks.<system>.scripts`, `*.test.nu` under nu-test and `*.test.ts` under bun
 │   ├── secrets.nix                 # Secret declarations and path helpers
 │   ├── ssh.nix                     # Builder and SSH configuration from server inventory
 │   ├── systemd.nix                 # Shared systemd hardening and restart policies

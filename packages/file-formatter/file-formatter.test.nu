@@ -9,500 +9,329 @@ use std-rfc/str
 
 const SCRIPT_DIR = path self .
 const SCRIPT = ($SCRIPT_DIR | path join file-formatter.nu)
-const TOOLS = [
-  cspell
-  dprint
-  markdownlint
-  nixfmt
-  nuCheck
-  prettier
-  pyright
-  ruff
-  shellcheck
-  shfmt
-  taplo
-]
+const REPORT_PREFIX = "The pre-commit hooks reported problems in the edited files."
 
-# Copies the tool stub to `target` and returns `target`, the path the stub logs as its `bin`.
-def install-stub [target: string]: nothing -> string {
-  mkdir ($target | path dirname)
-  cp ($env.NU_TEST_STUBS | path join tool) $target
-  $target
+# A gate in which each hook record runs its `entry` on files matching its `files`.
+def gate [...hooks: record]: nothing -> string {
+  let hooks = ($hooks | each {|hook| $hook | merge {name: $hook.id, language: system} })
+  {repos: [{repo: local, hooks: $hooks}]} | to yaml
 }
 
-# Only tool stubs and the `--path` directories are available to the formatter.
-def run-files [
-  paths: list<string>
-  cwd: string
-  --path: list<string> = []
-  --checks
-  --fail: string = ""
-  --direnv
-  --export: record = {}
-  --exit-code: int = 0
-]: nothing -> record {
-  let dir = (mktemp --directory | path expand)
-  let bin = ($dir | path join bin)
-  let log = ($dir | path join calls.jsonl)
-  let config_file = ($dir | path join config.json)
+source $SCRIPT
 
-  mkdir $bin
-  let base = {
-    direnv: (if $direnv { install-stub ($bin | path join direnv) } else { "" })
-    dprintConfigDir: ""
-    git: (which git | get 0.path)
-    markdownlintConfig: ""
+# Creates a repository with gate `config` and a Git hook unless `--no-hook` or `--no-config`.
+def make-repo [dir: string, config: string, --no-hook, --no-config]: nothing -> string {
+  mkdir $dir
+  ^git -C $dir init --quiet
+  if not $no_config {
+    $config | save --force ($dir | path join .pre-commit-config.yaml)
   }
-  $TOOLS
-  | reduce --fold $base {|tool, config|
-    $config | insert $tool (install-stub ($bin | path join $tool))
+  if not $no_hook {
+    touch ($dir | path join .git hooks pre-commit)
   }
-  | to json
-  | save $config_file
-
-  let args = if $checks { ["--checks" ...$paths] } else { $paths }
-  let run = with-env {
-    STUB_LOG: $log
-    STUB_FAIL: $fail
-    STUB_EXPORT: ($export | to json --raw)
-    PATH: ([$bin ...$path] | str join ":")
-  } {
-    cd $cwd
-    ^$nu.current-exe --no-config-file $SCRIPT $config_file ...$args | complete
-  }
-  assert equal $run.exit_code $exit_code $run.stderr
-
-  {
-    bin: $bin
-    calls: (if ($log | path exists) { open $log | from json --objects } else { [] })
-    run: $run
-  }
+  $dir
 }
 
-def file-calls [file: string, cwd: string, --path: list<string> = []]: nothing -> list<record> {
-  (run-files [$file] $cwd --path $path --checks).calls
-}
-
-def cargo-calls [cargo: string, root: string]: nothing -> list<record> {
-  [
-    {bin: $cargo, cwd: $root, args: ["fmt" "--all" "--quiet"]}
-    {bin: $cargo, cwd: $root, args: ["clippy" "--all-targets" "--quiet" "--" "-D" "warnings"]}
-  ]
-}
-
-# Writes a file at `path`, creating its parent directories, and returns `path`.
-def write-file [path: string]: nothing -> string {
-  mkdir ($path | path dirname)
-  "content\n" | save $path
-  $path
-}
-
-def "test each extension runs its tools with their flags" [] {
-  let cases = [
-    {
-      ext: sh
-      tools: []
-      calls: [[shfmt ["-w"]] [shellcheck ["--format" "gcc"]]]
-    }
-    {
-      ext: nix
-      tools: []
-      calls: [[nixfmt []]]
-    }
-    {
-      ext: nu
-      tools: []
-      calls: [[nuCheck []]]
-    }
-    {
-      ext: py
-      tools: []
-      calls: [
-        [ruff ["format"]]
-        [ruff ["check" "--fix" "--output-format" "concise"]]
-        [pyright ["--warnings"]]
-      ]
-    }
-    {
-      ext: rs
-      tools: [cargo]
-      calls: [
-        [cargo ["fmt" "--all" "--quiet"] false]
-        [cargo ["clippy" "--all-targets" "--quiet" "--" "-D" "warnings"] false]
-      ]
-    }
-    {
-      ext: go
-      tools: [goimports gofmt]
-      calls: [[goimports ["-w"]]]
-    }
-    {
-      ext: go
-      tools: [gofmt]
-      calls: [[gofmt ["-w"]]]
-    }
-    {
-      ext: toml
-      tools: []
-      calls: [[taplo ["fmt"]]]
-    }
-    {
-      ext: ts
-      tools: []
-      calls: [[prettier ["--log-level" "warn" "--write"]]]
-    }
-    {
-      ext: md
-      tools: []
-      calls: [
-        [dprint ["fmt" "--allow-no-files"]]
-        [markdownlint ["--config" "" "--fix"]]
-        [cspell ["--no-progress" "--no-must-find-files"]]
-      ]
-    }
-    {
-      ext: txt
-      tools: []
-      calls: []
-    }
-    {
-      ext: sh
-      checks: false
-      tools: []
-      calls: [[shfmt ["-w"]]]
-    }
-    {
-      ext: nu
-      checks: false
-      tools: []
-      calls: []
-    }
-    {
-      ext: py
-      checks: false
-      tools: []
-      calls: [[ruff ["format"]]]
-    }
-    {
-      ext: rs
-      checks: false
-      tools: [cargo]
-      calls: [[cargo ["fmt" "--all" "--quiet"] false]]
-    }
-    {
-      ext: md
-      checks: false
-      tools: []
-      calls: [[dprint ["fmt" "--allow-no-files"]]]
-    }
-  ]
-
-  for case in $cases {
-    let dir = (mktemp --directory | path expand)
-    let tools = ($dir | path join tools)
-    mkdir $tools
-    $case.tools | each {|tool| install-stub ($tools | path join $tool) }
-    let file = (write-file ($dir | path join $"file.($case.ext)"))
-
-    let checks = ($case | get --optional checks | default true)
-
-    let result = (run-files [$file] $dir --path [$tools] --checks=$checks)
-
-    let expected = (
-      $case.calls
-      | each {|call|
-        let takes_path = ($call | get --optional 2 | default true)
-        {bin: $call.0, args: (if $takes_path { [...$call.1 $file] } else { $call.1 })}
-      }
-    )
-    let actual = (
-      $result.calls
-      | each {|call| {bin: ($call.bin | path basename), args: $call.args} }
-    )
-    assert equal $actual $expected $"extension ($case.ext) with ($case.tools), checks ($checks)"
-    assert equal $result.run.stdout "[]\n"
-  }
-}
-
-def "test tools run from the repository root of the edited file" [] {
-  let repo = (mktemp --directory | path expand)
-  ^git -C $repo init --quiet
-  let tools = ($repo | path join tools)
-  install-stub ($tools | path join cargo)
-  let file = (write-file ($repo | path join crate src lib.rs))
-
-  let calls = (file-calls $file (mktemp --directory) --path [$tools])
-
-  assert equal ($calls | get cwd) [$repo $repo]
-}
-
-def "test tools outside a repository run from the directory of the edited file" [] {
-  let dir = (mktemp --directory | path expand)
-  let file = (write-file ($dir | path join docs notes.md))
-
-  let calls = (file-calls $file (mktemp --directory))
-
-  let docs = ($dir | path join docs)
-  assert equal ($calls | get cwd) [$docs $docs $docs]
-}
-
-def "test worktree markdown discovers config locally and runs checks from its root" [] {
-  let repo = (mktemp --directory | path expand)
-  ^git -C $repo init --quiet
-  ^git -C $repo -c user.name=test -c user.email=test@test commit --quiet --allow-empty -m init
-  let worktree = ($repo | path join .claude worktrees wt)
-  ^git -C $repo worktree add --quiet --detach $worktree
-  let file = (write-file ($worktree | path join docs notes.md))
-
-  let calls = (file-calls $file $repo)
-
-  assert equal ($calls | get cwd) [($file | path dirname) $worktree $worktree]
-}
-
-def "test paths are normalized and cargo runs once per root" [] {
-  let repo = (mktemp --directory | path expand)
-  ^git -C $repo init --quiet
-  let tools = ($repo | path join tools)
-  let cargo = (install-stub ($tools | path join cargo))
-  write-file ($repo | path join "--a.rs")
-  let nix = (write-file ($repo | path join b.nix))
-  write-file ($repo | path join c.rs)
-  let shell = (write-file ($repo | path join d.sh))
-  mkdir ($repo | path join directory.nix)
-  let paths = [c.rs ./--a.rs b.nix ././--a.rs ./b.nix d.sh missing.nix directory.nix]
-
-  let result = (run-files $paths $repo --path [$tools] --checks)
-
-  let bin = $result.bin
-  let expected = (cargo-calls $cargo $repo | append [
-    {bin: ($bin | path join nixfmt), cwd: $repo, args: [$nix]}
-    {bin: ($bin | path join shfmt), cwd: $repo, args: ["-w" $shell]}
-    {bin: ($bin | path join shellcheck), cwd: $repo, args: ["--format" "gcc" $shell]}
-  ])
-  assert equal $result.calls $expected
-  assert equal $result.run.stdout "[]\n"
-}
-
-def "test rust roots stay distinct across repositories and linked worktrees" [] {
-  let dir = (mktemp --directory | path expand)
-  let repo = ($dir | path join a-repo)
-  let other = ($dir | path join b-repo)
-  mkdir $repo $other
-  ^git -C $repo init --quiet
-  ^git -C $other init --quiet
-  ^git -C $repo -c user.name=test -c user.email=test@test commit --quiet --allow-empty -m init
-  let worktree = ($repo | path join .claude worktrees wt)
-  ^git -C $repo worktree add --quiet --detach $worktree
-  let cargo = (install-stub ($dir | path join tools cargo))
-  let files = ([
-    ($repo | path join a.rs)
-    ($repo | path join z.rs)
-    ($worktree | path join a.rs)
-    ($worktree | path join z.rs)
-    ($other | path join a.rs)
-    ($other | path join z.rs)
-  ] | each {|path| write-file $path })
-
-  let result = (run-files $files $dir --path [($cargo | path dirname)] --checks)
-
-  let expected = (
-    cargo-calls $cargo $worktree
-    | append (cargo-calls $cargo $repo)
-    | append (cargo-calls $cargo $other)
-  )
-  assert equal $result.calls $expected
-}
-
-def "test rust roots outside git keep their directory fallback" [] {
-  let dir = (mktemp --directory | path expand)
-  let cargo = (install-stub ($dir | path join tools cargo))
-  let first = ($dir | path join a)
-  let second = ($dir | path join b)
-  let files = ([
-    ($first | path join a.rs)
-    ($first | path join z.rs)
-    ($second | path join a.rs)
-    ($second | path join z.rs)
-  ] | each {|path| write-file $path })
-
-  let result = (run-files $files $dir --path [($cargo | path dirname)] --checks)
-
-  let expected = (cargo-calls $cargo $first | append (cargo-calls $cargo $second))
-  assert equal $result.calls $expected
-}
-
-def "test missing cargo leaves file checks running" [] {
-  let dir = (mktemp --directory | path expand)
-  let rust = (write-file ($dir | path join a.rs))
-  let nix = (write-file ($dir | path join b.nix))
-
-  let result = (run-files [$rust $nix] $dir --checks)
-
-  let nixfmt = ($result.bin | path join nixfmt)
-  assert equal $result.calls [{bin: $nixfmt, cwd: $dir, args: [$nix]}]
-  assert equal $result.run.stdout "[]\n"
-}
-
-def "test cargo failures report once per root and continue all checks" [] {
-  let dir = (mktemp --directory | path expand)
-  let cargo = (install-stub ($dir | path join tools cargo))
-  let first = ($dir | path join a)
-  let second = ($dir | path join b)
-  let files = ([
-    ($first | path join a.rs)
-    ($first | path join z.rs)
-    ($second | path join a.rs)
-  ] | each {|path| write-file $path })
-  let cargo_dir = ($cargo | path dirname)
-  let failure = "cargo fmt --all --quiet"
-
-  let result = (run-files $files $dir --path [$cargo_dir] --checks --fail $failure --exit-code 1)
-
-  let expected = (cargo-calls $cargo $first | append (cargo-calls $cargo $second))
-  assert equal $result.calls $expected
-  let reports = [
-    $"cargo exited with 7 on ($first | path join a.rs):\nstub failure"
-    $"cargo exited with 7 on ($second | path join a.rs):\nstub failure"
-  ]
-  assert equal ($result.run.stdout | from json) $reports
-}
-
-def "test project environment loads once from invocation cwd before checks" [] {
-  let dir = (mktemp --directory | path expand)
-  let repo = ($dir | path join repo)
-  mkdir $repo
-  ^git -C $repo init --quiet
-  let cargo = (install-stub ($dir | path join tools cargo))
-  let file = (write-file ($repo | path join src lib.rs))
-  let exported = {PATH: ($cargo | path dirname), STUB_FAIL: null}
-  let failure = "cargo fmt --all --quiet"
-
-  let result = (run-files [$file] $dir --checks --direnv --export $exported --fail $failure)
-
-  let direnv = ($result.bin | path join direnv)
-  let expected = (
-    [{bin: $direnv, cwd: $dir, args: [export json]}]
-    | append (cargo-calls $cargo $repo)
-  )
-  assert equal $result.calls $expected
-  assert equal $result.run.stdout "[]\n"
-}
-
-def "test failed environment loading stops checks" [] {
-  let dir = (mktemp --directory | path expand)
-  let file = (write-file ($dir | path join file.nix))
-
-  let result = (run-files [$file] $dir --checks --direnv --fail "direnv export json" --exit-code 1)
-
-  let direnv = ($result.bin | path join direnv)
-  assert equal $result.calls [{bin: $direnv, cwd: $dir, args: [export json]}]
-  assert equal ($result.run.stdout | from json) ["direnv exited with 7:\nstub failure"]
-}
-
-def "test project tools use the nearest executable including ancestors" [] {
-  let cases = [
-    {tool: prettier, ext: ts, args: ["--log-level" "warn" "--write"]}
-    {tool: cspell, ext: md, args: ["--no-progress" "--no-must-find-files"]}
-  ]
-
-  for case in $cases {
-    for local in [false true] {
-      let dir = (mktemp --directory | path expand)
-      let parent = (install-stub ($dir | path join node_modules .bin $case.tool))
-      let nearest = if $local {
-        install-stub ($dir | path join docs node_modules .bin $case.tool)
-      } else {
-        $parent
-      }
-      let file = (write-file ($dir | path join docs $"notes.($case.ext)"))
-
-      let calls = (file-calls $file $dir)
-
-      let selected = ($calls | where ($it.bin | path basename) == $case.tool)
-      assert equal $selected [
-        {bin: $nearest, cwd: ($file | path dirname), args: [...$case.args $file]}
-      ] $"($case.tool) for ($case.ext) with local executable ($local)"
-    }
-  }
-}
-
-def "test markdown aligns tables and preserves fenced examples" [] {
-  let formatter = (which file-formatter | get 0.path)
-  let dir = (mktemp --directory | path expand)
-  install-stub ($dir | path join node_modules .bin prettier)
-  let log = ($dir | path join prettier.jsonl)
-  let file = ($dir | path join notes.md)
+# Writes the hook script that checks the marker the `.envrc` exports.
+def write-marker-script [repo: string]: nothing -> nothing {
   (
-    '
-    _Emphasis_
-
-    | Name | Value |
-    | --- | --- |
-    | a | longer |
-
-    ```json
-    {"a":1,"b":[2,3]}
-    ```
-
-    - Example:
-
-      ```ts
-      const x={a:1,b:[2,3]}
-      ```
-    '
+    r#'
+    #!/bin/sh
+    test "$GATE_MARKER" = loaded
+    '#
     | str dedent
-  ) | save $file
-
-  let run = with-env {DPRINT_CACHE_DIR: ($dir | path join cache), STUB_LOG: $log} {
-    cd $dir
-    ^$formatter $file | complete
-  }
-  assert equal $run.exit_code 0 $run.stderr
-
-  assert equal (open --raw $file) (
-    '
-    _Emphasis_
-
-    | Name | Value  |
-    | ---- | ------ |
-    | a    | longer |
-
-    ```json
-    {"a":1,"b":[2,3]}
-    ```
-
-    - Example:
-
-      ```ts
-      const x={a:1,b:[2,3]}
-      ```
-
-    '
-    | str dedent
-  )
-  assert equal $run.stdout "[]\n"
-  assert (not ($log | path exists))
+  ) | save --force ($repo | path join marker.sh)
 }
 
-def "test formatter failures report and keep later checks running" [] {
+# Writes the `.envrc` that exports the marker.
+def write-marker-envrc [repo: string]: nothing -> nothing {
+  "export GATE_MARKER=loaded\n" | save ($repo | path join .envrc)
+}
+
+# Allows the `.envrc` in `dir`.
+def allow-envrc [dir: string]: nothing -> nothing {
+  let allowed = (
+    with-env { XDG_DATA_HOME: ($env.TMPDIR | path join data) } { ^direnv allow $dir | complete }
+  )
+  assert equal $allowed.exit_code 0 $allowed.stderr
+}
+
+def run-formatter [cwd: string, ...paths: string]: nothing -> record {
+  let run = (
+    with-env {
+      XDG_CACHE_HOME: ($env.TMPDIR | path join cache)
+      XDG_DATA_HOME: ($env.TMPDIR | path join data)
+    } {
+      cd $cwd
+      ^$nu.current-exe --no-config-file $SCRIPT ...$paths | complete
+    }
+  )
+  {
+    run: $run
+    report: ($run.stdout | str trim)
+  }
+}
+
+def "test failed hook blocks keep failures and drop formatter rewrites" [] {
+  let long = (
+    ["a...Failed" "- exit code: 1"]
+    | append (1..25 | each {|n| $"line ($n)" })
+    | str join "\n"
+  )
+  let truncated = (
+    ["a...Failed" "- exit code: 1"]
+    | append (1..18 | each {|n| $"line ($n)" })
+    | str join "\n"
+  )
   let cases = [
-    {ext: sh, failure: "shfmt -w", tools: [shfmt shellcheck]}
-    {ext: py, failure: "ruff format", tools: [ruff ruff pyright]}
-    {ext: md, failure: "dprint fmt --allow-no-files", tools: [dprint markdownlint cspell]}
+    {
+      name: "no output"
+      output: ""
+      reports: [""]
+    }
+    {
+      name: "formatter only"
+      output: (
+        r#'
+        nixfmt...Failed
+        - hook id: nixfmt
+        - files were modified by this hook
+        '#
+        | str dedent
+      )
+      reports: []
+    }
+    {
+      name: "failed and formatting hooks"
+      output: (
+        r#'
+        a...Failed
+        - exit code: 1
+        x
+        b...Failed
+        - files were modified by this hook
+        c...Failed
+        - exit code: 2
+        y
+        '#
+        | str dedent
+      )
+      reports: [
+        (
+          r#'
+          a...Failed
+          - exit code: 1
+          x
+          '#
+          | str dedent
+        )
+        (
+          r#'
+          c...Failed
+          - exit code: 2
+          y
+          '#
+          | str dedent
+        )
+      ]
+    }
+    {
+      name: "long block truncates"
+      output: $long
+      reports: [$truncated]
+    }
   ]
 
   for case in $cases {
-    for checks in [false true] {
-      let dir = (mktemp --directory | path expand)
-      let file = (write-file ($dir | path join $"notes.($case.ext)"))
-      let failure = $"($case.failure) ($file)"
+    assert equal (failed-blocks $case.output) $case.reports $case.name
+  }
+}
 
-      let result = (run-files [$file] $dir --checks=$checks --fail $failure --exit-code 1)
+def "test a fixer hook that rewrites a file is not reported" [] {
+  let config = (gate {id: fixer, entry: "bash fix.sh", files: '\.txt$'})
+  let repo = (make-repo ($env.TMPDIR | path join repo-fixer) $config)
+  (
+    r#'
+    #!/bin/sh
+    changed=0
+    for f in "$@"; do
+      if [ -n "$(tail -c 1 "$f")" ]; then
+        printf '\n' >> "$f"
+        changed=1
+      fi
+    done
+    exit $changed
+    '#
+    | str dedent
+  ) | save --force ($repo | path join fix.sh)
+  let file = ($repo | path join notes.txt)
+  "content" | save $file
 
-      let tools = if $checks { $case.tools } else { $case.tools | first 1 }
-      let report = $"($case.tools.0) exited with 7 on ($file):\nstub failure"
-      assert equal ($result.calls | get bin | path basename) $tools $case.ext
-      assert equal ($result.run.stdout | from json) [$report] $case.ext
+  let result = (run-formatter $repo $file)
+
+  assert equal (open --raw $file) "content\n"
+  assert equal $result.run.exit_code 0
+  assert equal $result.report ""
+}
+
+def "test a failing hook is reported" [] {
+  let repo = (
+    make-repo ($env.TMPDIR | path join repo-lint) (gate
+      {id: lint, entry: "bash lint.sh", files: '\.txt$'}
+      {id: ok, entry: "true", files: '\.txt$'}
+    )
+  )
+  (
+    r#'
+    #!/bin/sh
+    echo lint-bad-pattern
+    exit 1
+    '#
+    | str dedent
+  ) | save --force ($repo | path join lint.sh)
+  let file = ($repo | path join notes.txt)
+  "content\n" | save $file
+
+  let result = (run-formatter $repo $file)
+
+  assert equal $result.run.exit_code 1
+  assert ($result.report | str starts-with $REPORT_PREFIX)
+  assert ($result.report | str contains "- exit code: 1")
+  assert ($result.report | str contains "lint-bad-pattern")
+  assert not ($result.report | str contains "Passed")
+}
+
+def "test repositories without an installed hook or a gate config are skipped" [] {
+  let config = (gate {id: nixfmt, entry: "nixfmt", files: '\.nix$'})
+  let cases = [
+    {
+      name: "no installed hook"
+      repo: (make-repo ($env.TMPDIR | path join repo-without-hook) $config --no-hook)
+    }
+    {
+      name: "no gate config"
+      repo: (make-repo ($env.TMPDIR | path join repo-without-config) $config --no-config)
+    }
+  ]
+
+  for case in $cases {
+    let file = ($case.repo | path join bad.nix)
+    "{a=1;}" | save $file
+
+    let result = (run-formatter $case.repo $file)
+
+    assert equal $result.run.exit_code 0 $case.name
+    assert equal $result.report "" $case.name
+    assert equal (open --raw $file) "{a=1;}" $case.name
+  }
+}
+
+def "test a broken pre-commit config is reported" [] {
+  let repo = (make-repo ($env.TMPDIR | path join repo-broken) "repos: [\n")
+  let file = ($repo | path join notes.txt)
+  "content\n" | save $file
+
+  let result = (run-formatter $repo $file)
+
+  assert equal $result.run.exit_code 1
+  assert ($result.report | str starts-with $REPORT_PREFIX)
+  assert ($result.report | str contains "Failed to parse")
+}
+
+def "test paths from two repositories, an outside path and a deleted path" [] {
+  let base = ($env.TMPDIR | path join repo-pair)
+  let config = (gate {id: nixfmt, entry: "nixfmt", files: '\.nix$'})
+  let first = (make-repo ($base | path join first) $config)
+  let second = (make-repo ($base | path join second) $config)
+  let sub = ($first | path join sub)
+  mkdir $sub
+  let a = ($first | path join a.nix)
+  let b = ($second | path join b.nix)
+  let outside = ($base | path join outside c.nix)
+  let deleted = ($first | path join deleted.nix)
+  let dash = "-s.nix"
+  let dash_file = ($sub | path join $dash)
+  mkdir ($base | path join outside)
+  "{a=1;}" | save $a
+  "{b=2;}" | save $b
+  "{c=3;}" | save $outside
+  "{s=4;}" | save $dash_file
+
+  let result = (run-formatter $sub ../a.nix $dash $b $outside $deleted)
+
+  assert equal (open --raw $a) "{ a = 1; }\n"
+  assert equal (open --raw $b) "{ b = 2; }\n"
+  assert equal (open --raw $dash_file) "{ s = 4; }\n"
+  assert equal (open --raw $outside) "{c=3;}"
+  assert equal $result.run.exit_code 0
+  assert equal $result.report ""
+}
+
+def "test an allowed, blocked, or absent envrc decides the gate environment" [] {
+  let config = (gate {id: marker, entry: "bash marker.sh", files: '\.txt$'})
+  let allowed = (make-repo ($env.TMPDIR | path join repo-envrc-allowed) $config)
+  let blocked = (make-repo ($env.TMPDIR | path join repo-envrc-blocked) $config)
+  let none = (make-repo ($env.TMPDIR | path join repo-envrc-none) $config)
+  for repo in [$allowed $blocked $none] {
+    write-marker-script $repo
+  }
+  write-marker-envrc $allowed
+  write-marker-envrc $blocked
+  allow-envrc $allowed
+
+  let cases = [
+    {name: "allowed", repo: $allowed, exit_code: 0}
+    {name: "blocked", repo: $blocked, exit_code: 1}
+    {name: "absent", repo: $none, exit_code: 1}
+  ]
+  for case in $cases {
+    let file = ($case.repo | path join notes.txt)
+    "content\n" | save $file
+
+    let result = (run-formatter $case.repo $file)
+
+    assert equal $result.run.exit_code $case.exit_code $case.name
+    if $case.exit_code == 0 {
+      assert equal $result.report "" $case.name
+    } else {
+      assert ($result.report | str contains "- exit code: 1") $case.name
     }
   }
+}
+
+def "test a caller direnv diff that hides prek still runs the gate" [] {
+  let prek_dir = (which prek | get 0.path | path dirname)
+  let caller = ($env.TMPDIR | path join caller)
+  mkdir $caller
+  $'export PATH="($prek_dir):$PATH"' | save ($caller | path join .envrc)
+  allow-envrc $caller
+
+  let generated = (
+    with-env {
+      DIRENV_DIFF: null
+      DIRENV_DIR: null
+      DIRENV_FILE: null
+      DIRENV_WATCHES: null
+      PATH: ($env.PATH | where $it != $prek_dir | str join ":")
+      XDG_DATA_HOME: ($env.TMPDIR | path join data)
+    } {
+      ^direnv exec $caller $nu.current-exe --no-config-file -c 'print $env.DIRENV_DIFF' | complete
+    }
+  )
+  assert equal $generated.exit_code 0 $generated.stderr
+  let diff = ($generated.stdout | str trim)
+  assert ($diff | is-not-empty)
+
+  let config = (gate {id: marker, entry: "bash marker.sh", files: '\.txt$'})
+  let repo = (make-repo ($env.TMPDIR | path join repo-envrc-diff) $config)
+  write-marker-envrc $repo
+  write-marker-script $repo
+  let file = ($repo | path join notes.txt)
+  "content\n" | save $file
+  allow-envrc $repo
+
+  let result = (with-env { DIRENV_DIFF: $diff } { run-formatter $env.TMPDIR $file })
+
+  assert equal $result.run.exit_code 0 $result.run.stderr
+  assert equal $result.report ""
 }

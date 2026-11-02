@@ -7,7 +7,6 @@
   pkgs,
   lib,
   corpHosts,
-  enableDevToolchains,
   modelCatalog,
   repoLib,
   secretPath,
@@ -15,12 +14,6 @@
 }:
 
 let
-  # ------------------------------------------------------------------------------------------------
-  # Formatter
-  # ------------------------------------------------------------------------------------------------
-  formatter = pkgs.file-formatter.override { inherit enableDevToolchains; };
-  fileFormatter = lib.getExe formatter;
-
   # ------------------------------------------------------------------------------------------------
   # Instructions and agent roles
   # ------------------------------------------------------------------------------------------------
@@ -45,15 +38,17 @@ let
   };
 
   # ------------------------------------------------------------------------------------------------
-  # Timeouts
+  # Hooks
   # ------------------------------------------------------------------------------------------------
+  fileFormatter = lib.getExe pkgs.file-formatter;
+
   timeouts = {
     modelConnect = 5;
     modelCall = 90;
     # A hook outlives its model calls by this much, so it can still report one that timed out.
     modelHookMargin = 10;
     tool = 10;
-    # Auto-format runs `cargo clippy`, which may rebuild the crate after an edit.
+    # Auto-format runs the repository's gate, and a first run may install hook environments.
     postEdit = 120;
   };
 
@@ -131,7 +126,7 @@ in
       inherit (promptFragments) readPrompt;
     };
 
-    inherit mkModelCall;
+    inherit fileFormatter mkModelCall;
 
     notify = import ./notify { inherit pkgs lib; };
 

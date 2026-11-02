@@ -119,12 +119,7 @@
   # Editing
   # ------------------------------------------------------------------------------------------------
   astGrep.enabled = true;
-
-  lsp = {
-    formatOnWrite = true;
-    diagnosticsOnEdit = true;
-  };
-
+  lsp.diagnosticsOnEdit = true;
   github.enabled = true;
 
   # ------------------------------------------------------------------------------------------------
