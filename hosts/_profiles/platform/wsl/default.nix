@@ -13,6 +13,7 @@
 
 let
   userName = config.hakula.user.name;
+  userManagerUnit = "user@${toString config.users.users.${userName}.uid}.service";
 
   # Docker Desktop's distro integration installs its credential helper in /usr/bin, which NixOS
   # sessions outside WSL init (such as SSH) lack on PATH.
@@ -79,14 +80,14 @@ in
   # user@<uid>.service, so the user manager stays dead and `wsl.exe` fails to attach to a session.
   # Pull it into multi-user.target to start it unconditionally at boot.
   systemd.targets.multi-user.wants = [
-    "user@1000.service"
+    userManagerUnit
   ];
 
   # systemd 258 + WSL2 sd-executor returns spurious EBUSY on user@<uid>.service despite the user
   # manager actually running. Clear the false-failed state.
   # Upstream: microsoft/WSL#13826, nix-community/NixOS-WSL#888.
   systemd.services.reset-user-manager-failed = {
-    description = "Clear false-failed state on user@1000.service";
+    description = "Clear false-failed state on ${userManagerUnit}";
     wantedBy = [
       "multi-user.target"
     ];
@@ -96,7 +97,7 @@ in
 
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${lib.getExe' pkgs.systemd "systemctl"} reset-failed user@1000.service";
+      ExecStart = "${lib.getExe' pkgs.systemd "systemctl"} reset-failed ${userManagerUnit}";
     };
   };
 
