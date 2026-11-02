@@ -11,14 +11,10 @@
 # ==================================================================================================
 
 const PLUGINS_NIX = "home/modules/llm-assistants/claude-code/plugins.nix"
-const CF_IPS_NIX = "modules/nixos/cloudflare/ips.nix"
 
 # The overlay applies the custom packages to every host, so one host's package set covers each
 # override and the channel it overrides.
 const EVAL_PKGS = "nixosConfigurations.us-1.pkgs"
-
-const CF_IPS_V4_URL = "https://www.cloudflare.com/ips-v4"
-const CF_IPS_V6_URL = "https://www.cloudflare.com/ips-v6"
 
 # Commit prefix length used by the plugin bundle.
 const REV_ABBREV = 12
@@ -199,35 +195,6 @@ def action-pins [root: string]: nothing -> list<string> {
   }
   | uniq
   | sort
-}
-
-# --------------------------------------------------------------------------------------------------
-# Cloudflare comparison
-# --------------------------------------------------------------------------------------------------
-
-# The IP list carries no version, so drift means the ranges themselves differ.
-def cloudflare-drift [root: string]: nothing -> string {
-  let pinned = (
-    open --raw ([$root $CF_IPS_NIX] | path join)
-    | parse --regex '"(?<v>[0-9a-f.:]+/[0-9]+)'
-    | get v
-    | sort
-  )
-  let fetched = (
-    [$CF_IPS_V4_URL $CF_IPS_V6_URL]
-    | each {|url| http get --raw $url | str trim }
-  )
-
-  # An empty half would otherwise surface as drift against the half we did fetch.
-  if ($pinned | is-empty) or ($fetched | any {|r| $r | is-empty }) {
-    error make {msg: "Cloudflare IP ranges are incomplete"}
-  }
-
-  if $pinned == ($fetched | str join "\n" | lines --skip-empty | sort) {
-    "same ranges"
-  } else {
-    "ranges differ"
-  }
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -427,18 +394,6 @@ def registry [root: string]: nothing -> list<record> {
     {
       title: "GitHub Actions"
       pins: (try { action-pins $root | each {|pin| action-pin $pin } } catch { [] })
-    }
-    {
-      title: "Drifting upstream data"
-      pins: [
-        {
-          pin: "cloudflare-ips"
-          local: {|| nix-attr $root $CF_IPS_NIX 'Last updated: (?<v>\S+)' }
-          upstream: {|| cloudflare-drift $root }
-          # The pinned column is a date and the upstream one a verdict, so they are not comparable.
-          status: {|_pinned, upstream| match $upstream { "same ranges" => "ok", _ => "STALE" } }
-        }
-      ]
     }
   ]
 }

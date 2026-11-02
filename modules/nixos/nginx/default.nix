@@ -11,16 +11,11 @@
 
 let
   cfg = config.hakula.services.nginx;
-  inherit (config.hakula.network) realitySniHost;
+  inherit (config.hakula.network) internalHttpsSocket internalRealitySocket realitySniHost;
 
   # ------------------------------------------------------------------------------------------------
   # Cloudflare
   # ------------------------------------------------------------------------------------------------
-  cloudflareIPs = import ../cloudflare/ips.nix;
-  cloudflareRealIPConfig = lib.concatMapStringsSep "\n" (ip: "set_real_ip_from ${ip};") (
-    cloudflareIPs.ipv4 ++ cloudflareIPs.ipv6
-  );
-
   cloudflareOriginCA = ../cloudflare/origin-pull-ca.pem;
 
   # ------------------------------------------------------------------------------------------------
@@ -29,7 +24,6 @@ let
   cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
   peertubeUpstream = "http://127.0.0.1:${toString config.hakula.services.peertube.port}";
   umamiUpstream = "http://127.0.0.1:${toString config.hakula.services.umami.port}";
-  xrayRealityUpstream = "127.0.0.1:${toString config.hakula.services.xray.reality.port}";
   xrayWsUpstream = "http://127.0.0.1:${toString config.hakula.services.xray.ws.port}";
 
   # ------------------------------------------------------------------------------------------------
@@ -41,9 +35,9 @@ let
     http2 = true;
     listen = [
       {
-        addr = "127.0.0.1";
-        port = 8443;
+        addr = "unix:${internalHttpsSocket}";
         ssl = true;
+        proxyProtocol = true;
       }
     ];
 
@@ -56,6 +50,7 @@ let
     extraConfig = baseVhostConfig.extraConfig + ''
       ssl_client_certificate ${cloudflareOriginCA};
       ssl_verify_client on;
+      real_ip_header CF-Connecting-IP;
     '';
   };
 
@@ -143,7 +138,14 @@ in
     # ----------------------------------------------------------------------------------------------
     # Nginx service
     # ----------------------------------------------------------------------------------------------
-    systemd.services.nginx = repoLib.systemd.restartUnit;
+    systemd.services.nginx = lib.mkMerge [
+      repoLib.systemd.restartUnit
+
+      {
+        # Xray's DynamicUser must traverse the runtime directory to reach the socket.
+        serviceConfig.RuntimeDirectoryMode = lib.mkForce "0755";
+      }
+    ];
 
     services.nginx = {
       enable = true;
@@ -167,19 +169,35 @@ in
         multi_accept on;
       '';
 
-      # Cloudflare real IP detection
       commonHttpConfig = ''
-        ${cloudflareRealIPConfig}
-        real_ip_header CF-Connecting-IP;
+        set_real_ip_from unix:;
+        real_ip_header proxy_protocol;
+
+        map $host $log_host {
+          _ -;
+          default $host;
+        }
+
+        map $remote_addr $log_addr {
+          unix: $proxy_protocol_addr;
+          default $remote_addr;
+        }
+
+        log_format main
+          '$log_host:443 $log_addr - $remote_user [$time_local] "$request" '
+          '$status $body_bytes_sent "$http_referer" "$http_user_agent" '
+          '$request_length $request_time $upstream_response_time $proxy_protocol_addr';
+        access_log /var/log/nginx/access.log main;
       '';
 
       # Route by TLS Server Name Indication (SNI):
       # - REALITY → Xray
-      # - Everything else → nginx HTTPS (port 8443)
+      # - Everything else → nginx HTTPS (Unix socket)
+      # `proxy_protocol` applies to every backend, so each must accept the PROXY header.
       streamConfig = ''
         map $ssl_preread_server_name $backend {
-          ${realitySniHost} ${xrayRealityUpstream};
-          default 127.0.0.1:8443;
+          ${realitySniHost} unix:${internalRealitySocket};
+          default unix:${internalHttpsSocket};
         }
 
         server {
@@ -188,6 +206,7 @@ in
           error_log /var/log/nginx/stream-error.log crit;
           ssl_preread on;
           preread_timeout 5s;
+          proxy_protocol on;
           proxy_pass $backend;
         }
       '';
@@ -214,6 +233,7 @@ in
       # Status page for Netdata (nixpkgs binds it to every interface)
       virtualHosts.localhost = lib.mkIf config.services.nginx.statusPage {
         listenAddresses = [ "127.0.0.1" ] ++ lib.optional config.networking.enableIPv6 "[::1]";
+        extraConfig = "access_log off;";
       };
 
       # Clash subscriptions

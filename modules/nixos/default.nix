@@ -57,13 +57,31 @@ in
   };
 
   options.hakula.network = {
+    internalHttpsSocket = lib.mkOption {
+      type = lib.types.str;
+      default = "/run/nginx/https.sock";
+      readOnly = true;
+      description = ''
+        Unix socket for nginx HTTPS and REALITY's `dest`, whose listeners trust the PROXY header.
+      '';
+    };
+
+    internalRealitySocket = lib.mkOption {
+      type = lib.types.str;
+      default = "/run/xray/reality.sock";
+      readOnly = true;
+      description = ''
+        Unix socket for the REALITY inbound, which trusts the PROXY header from the stream server.
+      '';
+    };
+
     realitySniHost = lib.mkOption {
       type = lib.types.str;
       default = "hakula.xyz";
       description = ''
         REALITY SNI host used for TLS camouflage in Xray and SNI-based routing in nginx.
-        Steal-oneself: this is our own domain, so Xray's REALITY `dest` borrows the
-        local nginx cert (127.0.0.1:8443) instead of a third-party site.
+        Steal-oneself: this is our own domain, so Xray's REALITY `dest` borrows the local nginx
+        certificate instead of a third-party site.
       '';
     };
   };
@@ -122,8 +140,8 @@ in
     # Disk Optimization
     # ----------------------------------------------------------------------------------------------
     services.journald.extraConfig = ''
-      SystemMaxUse=200M
-      MaxRetentionSec=7day
+      SystemMaxUse=500M
+      MaxRetentionSec=14day
     '';
 
     # The daily tmpfiles aging of /tmp ages by atime, so any read-only traversal (du, ripgrep, a

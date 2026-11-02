@@ -261,6 +261,7 @@ raku
 rclone
 recents
 recommendedoptimisation
+referer
 regen
 regenerable
 remux
@@ -353,6 +354,7 @@ xhigh
 xsel
 xtls
 xtype
+xver
 yzhang
 zereight
 zstd

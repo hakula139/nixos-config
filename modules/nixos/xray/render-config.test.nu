@@ -20,7 +20,7 @@ const SETTINGS = {
     {
       tag: vless-reality
       settings: {decryption: none}
-      streamSettings: {security: reality, realitySettings: {dest: "127.0.0.1:8443"}}
+      streamSettings: {security: reality, realitySettings: {dest: "/run/nginx/https.sock"}}
     }
     {
       tag: vless-ws
@@ -64,7 +64,7 @@ def "test an admin server admits only admins" [] {
   let ws = ($config.inbounds | where tag == vless-ws | first)
   assert equal $reality.settings.clients [{id: alice-uuid, flow: xtls-rprx-vision}]
   assert equal $reality.streamSettings.realitySettings {
-    dest: "127.0.0.1:8443"
+    dest: "/run/nginx/https.sock"
     privateKey: private-key
     shortIds: [a1]
   }

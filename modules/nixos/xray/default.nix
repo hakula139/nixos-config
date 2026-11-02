@@ -22,12 +22,6 @@ in
   options.hakula.services.xray = {
     enable = lib.mkEnableOption "Xray proxy server";
 
-    reality.port = lib.mkOption {
-      type = lib.types.port;
-      default = 8444;
-      description = "Port for Xray REALITY inbound";
-    };
-
     ws = {
       enable = lib.mkEnableOption "VLESS + WebSocket mode";
 
@@ -51,23 +45,29 @@ in
       # Clients, short IDs, and the private key are filled in at runtime from the secrets.
       renderConfig = json.generate "xray-render.json" {
         settings = {
-          log.loglevel = "warning";
+          log = {
+            loglevel = "warning";
+            access = "none";
+          };
 
           inbounds = [
             {
               tag = "vless-reality";
-              listen = "127.0.0.1";
-              inherit (cfg.reality) port;
+              # The suffix is Xray's octal socket mode, applied with chmod after bind.
+              listen = "${config.hakula.network.internalRealitySocket},0666";
               protocol = "vless";
 
               settings.decryption = "none";
 
               streamSettings = {
                 network = "tcp";
+                tcpSettings.acceptProxyProtocol = true;
                 security = "reality";
 
                 realitySettings = {
-                  dest = "127.0.0.1:8443";
+                  dest = config.hakula.network.internalHttpsSocket;
+                  # nginx's listener requires a PROXY header, so omitting it breaks the fallback.
+                  xver = 1;
                   serverNames = [ config.hakula.network.realitySniHost ];
                 };
               };
@@ -140,7 +140,17 @@ in
       # --------------------------------------------------------------------------------------------
       # Systemd service
       # --------------------------------------------------------------------------------------------
-      systemd.services.xray = repoLib.systemd.restartUnit;
+      systemd.services.xray = lib.mkMerge [
+        repoLib.systemd.restartUnit
+
+        {
+          # nginx runs as its own user and must traverse this directory to reach the socket.
+          serviceConfig = {
+            RuntimeDirectory = "xray";
+            RuntimeDirectoryMode = "0755";
+          };
+        }
+      ];
 
       # `requiredBy` also propagates restarts, so Xray reloads whenever the config is re-rendered.
       systemd.services.xray-config = {
