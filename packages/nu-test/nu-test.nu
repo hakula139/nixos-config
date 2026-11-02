@@ -22,6 +22,7 @@ def install-stubs [file: string, dir: string]: nothing -> nothing {
     open --raw $stub
     | str replace --regex '^#!.*' $"#!($nu.current-exe) --no-config-file"
     | save $target
+
     ^chmod +x $target
   }
 }
@@ -33,6 +34,7 @@ def run-file [file: string]: nothing -> list<record> {
   if $found.exit_code != 0 {
     return [{file: $file, name: "(load)", run: $found}]
   }
+
   $found.stdout | from json | each {|name| {file: $file, name: $name, run: (nu-run $path $name)} }
 }
 
