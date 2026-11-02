@@ -254,24 +254,6 @@
         "type": "github"
       }
     },
-    "flake-utils_2": {
-      "inputs": {
-        "systems": "systems_4"
-      },
-      "locked": {
-        "lastModified": 1791914995,
-        "narHash": "sha256-Zf/xfQEAasnwnmEfHqW/4hjDE/s44yn2hD4RuVIZRjA=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "b7a79d3fea1e214f6d668d521cecec0c01e26544",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
     "git-hooks-nix": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -517,7 +499,6 @@
     },
     "oxide-code": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
         "git-hooks-nix": [
           "git-hooks-nix"
         ],
@@ -530,16 +511,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1792935242,
-        "narHash": "sha256-yPkl3jVt5+gOYbbyOh3FkkvmPzXlGlr9ysODhf7xWp0=",
+        "lastModified": 1793538382,
+        "narHash": "sha256-DVi/Vf4anj58FTOpnrrzBoSNVa0TNapciAXBWMIQnpw=",
         "owner": "hakula139",
         "repo": "oxide-code",
-        "rev": "f8180cb5081425d99f0293e90bbf0308ebe7b23e",
+        "rev": "399ecdd7a1989f08778c9da494de3010f5539f08",
         "type": "github"
       },
       "original": {
         "owner": "hakula139",
-        "ref": "v0.1.0-alpha.9",
+        "ref": "v0.1.0-alpha.10",
         "repo": "oxide-code",
         "type": "github"
       }
@@ -601,11 +582,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792825530,
-        "narHash": "sha256-aphXA2IFNd3q48++TKmfuuvDDjkrgGdJDnDIhij9684=",
+        "lastModified": 1793348683,
+        "narHash": "sha256-qv+P8z2xS5Xdws5Kigvr/WKJiaJSa6Ke8iH7ozmO53w=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "5b9f1198b59bcb31c5c3250b332e7d77590e6306",
+        "rev": "96a0986b0486341fbc163fa2fabc6d3b44cdcbf1",
         "type": "github"
       },
       "original": {
@@ -717,21 +698,6 @@
         "type": "github"
       }
     },
-    "systems_5": {
-      "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
-        "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-systems",
-        "repo": "default",
-        "type": "github"
-      }
-    },
     "treefmt-nix": {
       "inputs": {
         "nixpkgs": [
@@ -765,7 +731,7 @@
           "nixpkgs"
         ],
         "pre-commit-hooks-nix": "pre-commit-hooks-nix",
-        "systems": "systems_5"
+        "systems": "systems_4"
       },
       "locked": {
         "lastModified": 1770377964,
