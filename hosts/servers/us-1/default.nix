@@ -74,11 +74,6 @@
     };
   };
 
-  hakula.services.cloudconeAgent = {
-    enable = true;
-    serverKeyAgeFile = lib.path.append repo.root "secrets/cloudcone/server-key-${hostName}.age";
-  };
-
   hakula.services.peertube = {
     enable = true;
     b2Bucket = "hakula-videos";
