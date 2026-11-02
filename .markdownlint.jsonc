@@ -1,16 +1,14 @@
 {
   "default": true,
   "code-block-style": { "style": "fenced" },
+  "code-fence-style": { "style": "backtick" },
+  "emphasis-style": { "style": "underscore" },
   // Skill and agent files open with YAML front matter, and prompt files open with prose.
   "first-line-heading": false,
+  "heading-style": { "style": "atx" },
   "line-length": false,
   "no-duplicate-heading": { "siblings_only": true },
   "ol-prefix": { "style": "ordered" },
-
-  // The auto-format hook runs dprint before this linter, so these match its output.
-  "code-fence-style": { "style": "backtick" },
-  "emphasis-style": { "style": "underscore" },
-  "heading-style": { "style": "atx" },
   "strong-style": { "style": "asterisk" },
   "ul-style": { "style": "dash" },
 }

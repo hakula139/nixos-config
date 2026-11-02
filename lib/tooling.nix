@@ -38,7 +38,6 @@ let
   # also writes the config files its LSP needs.
   shell = with pkgs; [
     nushell
-    nu-test
   ];
 
   # ------------------------------------------------------------------------------------------------
@@ -47,6 +46,11 @@ let
   scriptPython = pkgs.python3.withPackages (ps: [
     ps.jinja2
   ]);
+
+  testRunners = with pkgs; [
+    bun
+    nu-test
+  ];
 in
 {
   inherit
@@ -54,7 +58,8 @@ in
     secrets
     shell
     scriptPython
+    testRunners
     ;
 
-  all = nix ++ secrets ++ shell;
+  all = nix ++ secrets ++ shell ++ testRunners;
 }
