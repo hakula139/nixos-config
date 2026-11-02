@@ -25,11 +25,11 @@ let
   digestConfig = json.generate "activity-digest.json" {
     inherit (cfg)
       excludedDirs
-      worktreePatterns
       labels
       readingMinutes
       maxMinutes
       agentMaxMinutes
+      agentIdleMinutes
       ;
 
     assistantDirs = {
@@ -42,6 +42,11 @@ let
 
   digest = pkgs.writers.writeNuBin "activity-digest" {
     makeWrapperArgs = [
+      "--prefix"
+      "PATH"
+      ":"
+      (lib.makeBinPath [ pkgs.git ])
+
       "--add-flag"
       "${digestConfig}"
     ];
@@ -74,14 +79,6 @@ in
       description = "Regexes matching session directories excluded from human hours and excerpts";
     };
 
-    worktreePatterns = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [
-        "/\\.claude/worktrees/[^/]+.*$"
-      ];
-      description = "Regexes stripped from a session's working directory to recover its repository";
-    };
-
     labels = {
       default = lib.mkOption {
         type = lib.types.listOf lib.types.str;
@@ -112,6 +109,12 @@ in
       type = lib.types.ints.positive;
       default = 120;
       description = "Most agent minutes a single turn can earn";
+    };
+
+    agentIdleMinutes = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 30;
+      description = "Longest gap in minutes between an agent turn's records before the rest of the turn earns no time";
     };
   };
 
