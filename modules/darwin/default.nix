@@ -7,8 +7,8 @@
   pkgs,
   lib,
   caches,
-  defaults,
   keys,
+  platformSettings,
   repoLib,
   servers,
   ...
@@ -88,7 +88,7 @@ in
       enable = true;
 
       settings =
-        defaults.nixSettings
+        platformSettings.nix
         // {
           extra-trusted-users = [
             "hakula"
@@ -106,7 +106,7 @@ in
     };
 
     launchd.daemons.nh-clean = {
-      command = "${lib.getExe pkgs.nh} clean all ${defaults.nixCleanArgs}";
+      command = "${lib.getExe pkgs.nh} clean all ${platformSettings.nhCleanArgs}";
       path = [
         config.nix.package
         "/usr/sbin"
@@ -181,7 +181,7 @@ in
     environment.shells = [
       pkgs.zsh
     ];
-    environment.variables = defaults.localeSettings;
+    environment.variables = platformSettings.locale;
 
     # ----------------------------------------------------------------------------------------------
     # Fonts & Packages

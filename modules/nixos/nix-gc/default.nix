@@ -3,7 +3,7 @@
 # ==================================================================================================
 
 {
-  defaults,
+  platformSettings,
   ...
 }:
 
@@ -13,6 +13,6 @@
   programs.nh.clean = {
     enable = true;
     dates = "daily";
-    extraArgs = defaults.nixCleanArgs;
+    extraArgs = platformSettings.nhCleanArgs;
   };
 }

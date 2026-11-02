@@ -7,7 +7,7 @@
   config,
   pkgs,
   lib,
-  defaults,
+  platformSettings,
   repoLib,
   systemManagerPaths,
   ...
@@ -82,7 +82,7 @@ in
     # ----------------------------------------------------------------------------------------------
     nix = {
       enable = true;
-      settings = defaults.nixSettings // {
+      settings = platformSettings.nix // {
         trusted-users = [
           "root"
           cfg.user.name
@@ -97,7 +97,7 @@ in
     # Shell & Environment
     # ----------------------------------------------------------------------------------------------
     programs.zsh.enable = true;
-    environment.variables = defaults.localeSettings;
+    environment.variables = platformSettings.locale;
 
     # Nix-built zsh reads /etc/zprofile for login shells, the only hook system-manager has for
     # injecting the system PATH.

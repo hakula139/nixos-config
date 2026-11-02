@@ -17,51 +17,52 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 
 ```text
 .
-├── flake.nix                   # Inputs, special args, host registration, outputs
+├── flake.nix                       # Inputs, special args, host registration, outputs
 ├── hosts/
 │   ├── _profiles/
-│   │   ├── platform/           # Hardware / runtime shape (cloudcone-sc2, container, wsl, ...)
-│   │   └── role/               # System role (server, workstation), unused by system-manager hosts
-│   ├── servers/                # NixOS servers (us-1, us-4), all personal
+│   │   ├── platform/               # Hardware / runtime shape (cloudcone-sc2, container, wsl, ...)
+│   │   └── role/                   # System role (server, workstation), unused by system-manager hosts
+│   ├── servers/                    # NixOS servers (us-1, us-4), all personal
 │   ├── workstations/
-│   │   ├── personal/           # macbook (Darwin)
-│   │   └── work/               # wsl (NixOS-WSL), wsl-non-nixos (System Manager)
-│   └── images/                 # Buildable images (devvm, work)
-├── data/                       # Static configuration and inventory
-│   ├── backblaze.nix           # Backblaze B2 S3 endpoint
-│   ├── caches.nix              # Binary cache substituters and trusted public keys
-│   ├── corp-domain.nix         # Corp-internal domain
-│   ├── corp-hosts.nix          # Corp-internal hostnames and URLs
-│   ├── defaults.nix            # Cross-platform locale and Nix policy
-│   ├── llm-models.nix          # Shared model catalog and defaults
-│   ├── servers.nix             # Server inventory (IP, port, provider, host keys, builder config)
-│   └── system-manager.nix      # Runtime PATH entries provisioned by system-manager activation
-├── lib/                        # Pure helpers and framework code
-│   ├── default.nix             # Repository helper namespace exposed as repoLib
-│   ├── aria2.nix               # Shared aria2 download and RPC settings
-│   ├── builders.nix            # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL
-│   ├── curl.nix                # Bounded curl arguments for unattended HTTP calls
-│   ├── overlays.nix            # nixpkgs overlay (channels, flake-input CLIs, toolchains, custom packages)
-│   ├── packages.nix            # Base and font package groups for each package set
-│   ├── proxy.nix               # Proxy options, wrappers, and environment scripts
-│   ├── script-tests.nix        # `checks.<system>.scripts`, running every `*.test.nu` under nu-test
-│   ├── secrets.nix             # Secret declarations and path helpers
-│   ├── ssh.nix                 # Builder and SSH configuration from server inventory
-│   ├── systemd.nix             # Shared systemd hardening and restart policies
-│   ├── tooling.nix             # Shared development tool groups
-│   ├── wrap-package.nix        # Package wrappers preserving upstream launcher identity
-│   ├── llm-assistants/         # Shared assistant options, permission policies, profile definitions
-│   └── wsl/                    # Windows interop helpers (windows-interop.nu)
+│   │   ├── personal/               # macbook (Darwin)
+│   │   └── work/                   # wsl (NixOS-WSL), wsl-non-nixos (System Manager)
+│   └── images/                     # Buildable images (devvm, work)
+├── data/                           # Static configuration and inventory
+│   ├── default.nix                 # Index of shared data sets passed as special args
+│   ├── backblaze.nix               # Backblaze B2 S3 endpoint
+│   ├── caches.nix                  # Binary cache substituters and trusted public keys
+│   ├── corp-domain.nix             # Corp-internal domain
+│   ├── corp-hosts.nix              # Corp-internal hostnames and URLs
+│   ├── llm-models.nix              # Shared model catalog and defaults
+│   ├── platform-settings.nix       # Cross-platform locale, Nix, and GC settings
+│   ├── servers.nix                 # Server inventory (IP, port, provider, host keys, builder config)
+│   └── system-manager-paths.nix    # PATH entries provisioned by system-manager activation
+├── lib/                            # Pure helpers and framework code
+│   ├── default.nix                 # Repository helper namespace exposed as repoLib
+│   ├── aria2.nix                   # Shared aria2 download and RPC settings
+│   ├── builders.nix                # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL
+│   ├── curl.nix                    # Bounded curl arguments for unattended HTTP calls
+│   ├── overlays.nix                # nixpkgs overlay (channels, flake-input CLIs, toolchains, custom packages)
+│   ├── packages.nix                # Base and font package groups for each package set
+│   ├── proxy.nix                   # Proxy options, wrappers, and environment scripts
+│   ├── script-tests.nix            # `checks.<system>.scripts`, running every `*.test.nu` under nu-test
+│   ├── secrets.nix                 # Secret declarations and path helpers
+│   ├── ssh.nix                     # Builder and SSH configuration from server inventory
+│   ├── systemd.nix                 # Shared systemd hardening and restart policies
+│   ├── tooling.nix                 # Shared development tool groups
+│   ├── wrap-package.nix            # Package wrappers preserving upstream launcher identity
+│   ├── llm-assistants/             # Shared assistant options, permission policies, profile definitions
+│   └── wsl/                        # Windows interop helpers (windows-interop.nu)
 ├── modules/
-│   ├── darwin/                 # macOS-specific modules
-│   ├── nixos/                  # NixOS service modules (most carry an `enable` option)
-│   └── system-manager/         # System Manager activation, agenix port
+│   ├── darwin/                     # macOS-specific modules
+│   ├── nixos/                      # NixOS service modules (most carry an `enable` option)
+│   └── system-manager/             # System Manager activation, agenix port
 ├── home/
-│   ├── hakula.nix              # Home Manager entry point
-│   └── modules/                # Home Manager modules (incl. `wsl.nix` workstation bundle)
-├── packages/                   # Custom package definitions (callPackage targets in lib/overlays.nix)
-├── secrets/                    # agenix-encrypted secrets and recipient rules
-├── agenix-rules.nix            # Root-level agenix entry point for recipient rules
-├── docs/                       # This knowledge base
-└── .github/workflows/ci.yml    # CI pipeline
+│   ├── hakula.nix                  # Home Manager entry point
+│   └── modules/                    # Home Manager modules (incl. `wsl.nix` workstation bundle)
+├── packages/                       # Custom package definitions (callPackage targets in lib/overlays.nix)
+├── secrets/                        # agenix-encrypted secrets and recipient rules
+├── agenix-rules.nix                # Root-level agenix entry point for recipient rules
+├── docs/                           # This knowledge base
+└── .github/workflows/ci.yml        # CI pipeline
 ```

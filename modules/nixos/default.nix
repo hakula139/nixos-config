@@ -7,8 +7,8 @@
   pkgs,
   lib,
   caches,
-  defaults,
   keys,
+  platformSettings,
   isDesktop,
   repoLib,
   ...
@@ -99,7 +99,7 @@ in
     # ----------------------------------------------------------------------------------------------
     nix = {
       settings =
-        defaults.nixSettings
+        platformSettings.nix
         // lib.optionalAttrs config.hakula.cachix.enable {
           inherit (caches) substituters trusted-public-keys;
         };
@@ -184,7 +184,7 @@ in
     ];
 
     environment.variables =
-      defaults.localeSettings
+      platformSettings.locale
       // lib.optionalAttrs config.security.pki.installCACerts {
         # uv's Python builds use upstream OpenSSL paths instead of the NixOS CA bundle.
         SSL_CERT_FILE = lib.mkDefault "\${SSL_CERT_FILE-${config.security.pki.caBundle}}";
