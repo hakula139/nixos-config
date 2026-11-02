@@ -54,7 +54,9 @@ def strip-request-prefix []: string -> string {
 
 # A transcript may end in a partial line while its session is still being written.
 def read-transcript [file: string]: nothing -> list {
-  let text = (open --raw $file)
+  let text = (
+    if ($file | str ends-with ".zst") { ^zstd -dc $file } else { open --raw $file }
+  )
   try {
     $text | from json --objects
   } catch {
@@ -118,6 +120,9 @@ def read-sessions [
   | each {|pattern| glob ($cfg.assistantDirs | get $tool | path join $pattern) }
   | flatten
   | where {|file| (ls $file | get 0.modified) >= $since }
+  | each {|file| {file: $file, stem: ($file | str replace --regex '\.zst$' '')} }
+  | uniq-by stem
+  | get file
   | each {|file|
     let records = (read-transcript $file)
     let session = (do $parse $records $file)
@@ -285,14 +290,21 @@ def codex-parent [cfg: record, meta: record]: nothing -> any {
     let base = $cfg.assistantDirs.codex
     (
       (glob $"($base)/sessions/*/*/*/rollout-*-($id).jsonl")
+      ++ (glob $"($base)/sessions/*/*/*/rollout-*-($id).jsonl.zst")
       ++ (glob $"($base)/archived_sessions/rollout-*-($id).jsonl")
+      ++ (glob $"($base)/archived_sessions/rollout-*-($id).jsonl.zst")
     )
     | get -o 0
   }
 }
 
 def codex-sessions [cfg: record, since: datetime]: nothing -> list {
-  read-sessions $cfg $since codex [sessions/*/*/*/*.jsonl archived_sessions/*.jsonl] {|records|
+  read-sessions $cfg $since codex [
+    sessions/*/*/*/*.jsonl
+    sessions/*/*/*/*.jsonl.zst
+    archived_sessions/*.jsonl
+    archived_sessions/*.jsonl.zst
+  ] {|records|
     let meta = ($records | get -o 0.payload)
     # Codex Desktop imports of other assistants' sessions carry no thread source.
     if $meta.thread_source? == null {
