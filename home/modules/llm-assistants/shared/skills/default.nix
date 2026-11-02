@@ -44,6 +44,9 @@ let
   // lib.optionalAttrs config.hakula.activity-report.enable {
     activity-report = ./activity-report;
   }
+  // lib.optionalAttrs config.hakula.agent-project-move.enable {
+    agent-project-move = "${config.programs.agent-project-move.package}/share/skills/agent-project-move";
+  }
   // lib.optionalAttrs config.hakula.ctx7.enable {
     find-docs = ./find-docs;
   }

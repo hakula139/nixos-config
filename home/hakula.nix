@@ -25,6 +25,7 @@ let
 in
 {
   imports = [
+    inputs.agent-project-move.homeModules.default
     inputs.listenbrainz-scrobbler.homeManagerModules.default
     inputs.oxide-code.homeModules.default
 
