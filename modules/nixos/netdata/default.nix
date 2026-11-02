@@ -41,8 +41,8 @@ in
     # ----------------------------------------------------------------------------------------------
     # Users & Groups
     # ----------------------------------------------------------------------------------------------
-    # Nixpkgs adds podman whenever it is enabled, and its socket is root-equivalent.
-    # The stock web_log job reads nginx's 0640 access log.
+    # Nixpkgs adds podman whenever it is enabled, and its socket is root-equivalent. The stock
+    # web_log job reads nginx's 0640 access log.
     users.users.netdata.extraGroups = lib.mkForce (
       lib.optional config.services.nginx.enable config.services.nginx.group
     );
@@ -113,8 +113,8 @@ in
           jobs = [
             {
               name = "hakula_xyz";
-              # An IP source sends no SNI, so the stream default reaches nginx's default server
-              # and its ACME certificate.
+              # An IP source sends no SNI, so the stream default reaches nginx's default server and
+              # its ACME certificate.
               source = "https://127.0.0.1:443";
               tls_skip_verify = true;
             }

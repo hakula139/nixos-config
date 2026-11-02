@@ -86,8 +86,8 @@ in
       type = lib.types.ints.between 1 100;
       default = 10;
       description = ''
-        Available memory percentage at or below which earlyoom kills, once free swap is also at
-        or below its percentage.
+        Available memory percentage at or below which earlyoom kills, once free swap is also at or
+        below its percentage
       '';
     };
 
@@ -95,8 +95,8 @@ in
       type = lib.types.ints.between 1 100;
       default = 10;
       description = ''
-        Available swap percentage at or below which earlyoom kills, once available memory is also
-        at or below its percentage.
+        Available swap percentage at or below which earlyoom kills, once available memory is also at
+        or below its percentage
       '';
     };
 
@@ -105,8 +105,8 @@ in
       default = [ ];
       description = ''
         Additional comm patterns for the ignore list. Each entry is one POSIX ERE alternative
-        matched against comm, truncated to 15 bytes. Ignore entries match a prefix. Write
-        literal metacharacters as bracket expressions, because systemd drops backslashes.
+        matched against comm, truncated to 15 bytes. Ignore entries match a prefix. Write literal
+        metacharacters as bracket expressions, because systemd drops backslashes.
       '';
     };
   };
@@ -139,9 +139,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Kernel OOM killer
     # ----------------------------------------------------------------------------------------------
-    # The kernel otherwise kills the session daemons first, and an unprivileged manager cannot
-    # lower their OOMScoreAdjust. Continue keeps a kernel kill inside one user unit, which matters
-    # most for tmux's non-delegated scopes.
+    # The kernel otherwise kills the session daemons first, and an unprivileged manager cannot lower
+    # their OOMScoreAdjust. Continue keeps a kernel kill inside one user unit, which matters most
+    # for tmux's non-delegated scopes.
     systemd.services."user@".serviceConfig.OOMScoreAdjust = 0;
     systemd.user.extraConfig = ''
       DefaultOOMScoreAdjust=0

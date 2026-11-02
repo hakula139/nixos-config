@@ -77,7 +77,7 @@ in
     enable = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Populate /bin and /usr/bin with FHS-style shims for portable scripts.";
+      description = "Populate /bin and /usr/bin with FHS-style shims for portable scripts";
     };
   };
 

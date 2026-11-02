@@ -3,8 +3,8 @@
 # ==================================================================================================
 # Tool Stub
 # ==================================================================================================
-# Stands in for every tool the formatter runs. Each call appends the stub's own path, its
-# working directory, and its arguments to `STUB_LOG`, one JSON line per call.
+# Stands in for every tool the formatter runs. Each call appends the stub's own path, its working
+# directory, and its arguments to `STUB_LOG`, one JSON line per call.
 # ==================================================================================================
 
 def --wrapped main [...args: string] {
