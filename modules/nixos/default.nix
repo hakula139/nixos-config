@@ -29,7 +29,6 @@ in
     ./builders
     ./cachix
     ./clash
-    ./cloudcone
     ./cloudreve
     ./earlyoom
     ./fhs-compat
