@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  backblaze,
   repoLib,
   ...
 }:
@@ -15,16 +16,33 @@ let
 
   cfg = config.hakula.services.backup;
   serviceName = "backup";
-  resticServiceFor = name: "restic-backups-${name}";
-  resticUnitFor = name: "${resticServiceFor name}.service";
+
   baseStateDir = "/var/lib/backups";
   stateDirFor = name: "${baseStateDir}/${name}";
+
+  resticServiceFor = name: "restic-backups-${name}";
+  heartbeatServiceFor = result: name: "backup-heartbeat-${result}-${name}";
+  restoreServiceFor = name: "backup-restore-${name}";
 
   targetModule = import ./target-module.nix { inherit lib; };
   enabledTargets = lib.filterAttrs (_: t: t.enable) cfg.targets;
   heartbeatTargets = lib.filterAttrs (_: t: t.heartbeatUrl != null) enabledTargets;
   restoreTargets = lib.filterAttrs (_: t: t.restoreSnapshot != null) enabledTargets;
   allExtraGroups = lib.unique (lib.flatten (lib.mapAttrsToList (_: t: t.extraGroups) enabledTargets));
+
+  repositoryFor =
+    name:
+    "s3:https://${backblaze.s3Endpoint}/${cfg.b2Bucket}/${
+      lib.concatStringsSep "/" (
+        lib.filter (p: p != "") [
+          cfg.backupPath
+          name
+        ]
+      )
+    }";
+
+  # Above restic's 15-minute backend retry window, so only a stalled run hits it.
+  resticTimeout = "1h";
 
   heartbeatCurlArgs = lib.escapeShellArgs (
     repoLib.curl.mkArgs {
@@ -33,18 +51,11 @@ let
     }
   );
 
-  mkRepository =
-    path: name:
-    "b2:${cfg.b2Bucket}:${
-      lib.concatStringsSep "/" (
-        lib.filter (p: p != "") [
-          path
-          name
-        ]
-      )
-    }";
-
-  repositoryFor = mkRepository cfg.backupPath;
+  heartbeatServiceConfig = {
+    Type = "oneshot";
+    User = serviceName;
+    Group = serviceName;
+  };
 in
 {
   imports = [
@@ -143,6 +154,16 @@ in
     };
 
     # ----------------------------------------------------------------------------------------------
+    # Filesystem layout (for each target)
+    # ----------------------------------------------------------------------------------------------
+    systemd.tmpfiles.rules = [
+      "d ${baseStateDir} 0750 ${serviceName} ${serviceName} -"
+    ]
+    ++ lib.mapAttrsToList (
+      name: _: "d ${stateDirFor name} 0700 ${serviceName} ${serviceName} -"
+    ) enabledTargets;
+
+    # ----------------------------------------------------------------------------------------------
     # Restic backups (for each target)
     # ----------------------------------------------------------------------------------------------
     services.restic.backups = lib.mapAttrs (
@@ -208,103 +229,35 @@ in
     ) enabledTargets;
 
     # ----------------------------------------------------------------------------------------------
-    # Filesystem layout (for each target)
-    # ----------------------------------------------------------------------------------------------
-    systemd.tmpfiles.rules = [
-      "d ${baseStateDir} 0750 ${serviceName} ${serviceName} -"
-    ]
-    ++ lib.mapAttrsToList (
-      name: _: "d ${stateDirFor name} 0700 ${serviceName} ${serviceName} -"
-    ) enabledTargets;
-
-    # ----------------------------------------------------------------------------------------------
     # Systemd services (for each target)
     # ----------------------------------------------------------------------------------------------
     systemd.services = lib.mkMerge [
       # --------------------------------------------------------------------------------------------
-      # Restore services
+      # Backup units
       # --------------------------------------------------------------------------------------------
       (lib.mapAttrs' (
         name: targetCfg:
-        lib.nameValuePair "backup-restore-${name}" (
-          let
-            stateDir = stateDirFor name;
-            restoreDir = "${stateDir}/restore";
-            repository = repositoryFor name;
-            runtimePath = lib.makeBinPath (
-              [
-                pkgs.coreutils
-                pkgs.restic
-                pkgs.util-linux
-              ]
-              ++ targetCfg.runtimeInputs
-            );
-          in
-          {
-            description = "Restore ${name} from Restic backup";
-
-            after = [
-              "network-online.target"
-            ];
-            wants = [
-              "network-online.target"
-            ];
-
-            serviceConfig = {
-              Type = "oneshot";
-              UMask = "0077";
-              EnvironmentFile = config.age.secrets.backup-env.path;
-            };
-
-            path = [
-              pkgs.coreutils
-              pkgs.restic
-              pkgs.util-linux
-            ]
-            ++ targetCfg.runtimeInputs;
-
-            environment = {
-              RESTIC_REPOSITORY = repository;
-              RESTIC_PASSWORD_FILE = config.age.secrets.backup-restic-password.path;
-            };
-
-            script = ''
-              set -euo pipefail
-              export PATH="${runtimePath}:$PATH"
-
-              rm -rf ${restoreDir}
-              install -d -m 0700 -o ${serviceName} -g ${serviceName} ${restoreDir}
-
-              echo "==> Restoring snapshot ${targetCfg.restoreSnapshot} from Restic..."
-              restic restore ${targetCfg.restoreSnapshot} \
-                --target ${restoreDir} \
-                --path ${stateDir}
-
-              echo "==> Running restore command..."
-              ${targetCfg.restoreCommand}
-
-              echo "==> Restore complete for ${name}!"
-            '';
-          }
-        )
-      ) restoreTargets)
+        lib.nameValuePair (resticServiceFor name) {
+          serviceConfig.TimeoutStartSec = resticTimeout;
+          unitConfig = lib.optionalAttrs (targetCfg.heartbeatUrl != null) {
+            OnSuccess = [ "${heartbeatServiceFor "succeeded" name}.service" ];
+            OnFailure = [ "${heartbeatServiceFor "failed" name}.service" ];
+          };
+        }
+      ) enabledTargets)
 
       # --------------------------------------------------------------------------------------------
       # Heartbeat services
       # --------------------------------------------------------------------------------------------
       (lib.mapAttrs' (
         name: targetCfg:
-        lib.nameValuePair "backup-heartbeat-succeeded-${name}" (
+        lib.nameValuePair (heartbeatServiceFor "succeeded" name) (
           let
             inherit (targetCfg) heartbeatUrl;
           in
           {
             description = "Report backup success for ${name} to heartbeat URL";
-            serviceConfig = {
-              Type = "oneshot";
-              User = serviceName;
-              Group = serviceName;
-            };
+            serviceConfig = heartbeatServiceConfig;
 
             path = [
               pkgs.curl
@@ -323,18 +276,13 @@ in
 
       (lib.mapAttrs' (
         name: targetCfg:
-        lib.nameValuePair "backup-heartbeat-failed-${name}" (
+        lib.nameValuePair (heartbeatServiceFor "failed" name) (
           let
             inherit (targetCfg) heartbeatUrl;
-            resticUnit = resticUnitFor name;
           in
           {
             description = "Report backup failure for ${name} to heartbeat URL";
-            serviceConfig = {
-              Type = "oneshot";
-              User = serviceName;
-              Group = serviceName;
-            };
+            serviceConfig = heartbeatServiceConfig;
 
             path = [
               pkgs.coreutils
@@ -343,10 +291,16 @@ in
             ];
 
             script = ''
-              code="''${EXIT_STATUS:-fail}"
-              url=${esc heartbeatUrl}/"$code"
+              # init.scope mirrors -u's PID 1 match
+              match=(
+                _SYSTEMD_INVOCATION_ID="$MONITOR_INVOCATION_ID"
+                +
+                INVOCATION_ID="$MONITOR_INVOCATION_ID"
+                _SYSTEMD_CGROUP=/init.scope
+              )
+
               output="$(
-                journalctl -u ${esc resticUnit} -n 100 --no-pager 2>&1 \
+                journalctl "''${match[@]}" -n 100 --no-pager 2>&1 \
                   | head -c 20000
               )"
               printf '%s' "$output" \
@@ -355,24 +309,70 @@ in
                   --location \
                   --request POST \
                   --data-binary @- \
-                  "$url" >/dev/null || true
+                  ${esc "${heartbeatUrl}/fail"} >/dev/null || true
             '';
           }
         )
       ) heartbeatTargets)
 
       # --------------------------------------------------------------------------------------------
-      # Unit dependencies for heartbeat services
+      # Restore services
       # --------------------------------------------------------------------------------------------
       (lib.mapAttrs' (
-        name: _:
-        lib.nameValuePair (resticServiceFor name) {
-          unitConfig = {
-            OnSuccess = [ "backup-heartbeat-succeeded-${name}.service" ];
-            OnFailure = [ "backup-heartbeat-failed-${name}.service" ];
-          };
-        }
-      ) heartbeatTargets)
+        name: targetCfg:
+        lib.nameValuePair (restoreServiceFor name) (
+          let
+            stateDir = stateDirFor name;
+            restoreDir = "${stateDir}/restore";
+          in
+          {
+            description = "Restore ${name} from Restic backup";
+
+            after = [
+              "network-online.target"
+            ];
+            wants = [
+              "network-online.target"
+            ];
+
+            serviceConfig = {
+              Type = "oneshot";
+              UMask = "0077";
+              EnvironmentFile = config.age.secrets.backup-env.path;
+              TimeoutStartSec = resticTimeout;
+            };
+
+            path = [
+              pkgs.coreutils
+              pkgs.restic
+              pkgs.util-linux
+            ]
+            ++ targetCfg.runtimeInputs;
+
+            environment = {
+              RESTIC_REPOSITORY = repositoryFor name;
+              RESTIC_PASSWORD_FILE = config.age.secrets.backup-restic-password.path;
+            };
+
+            script = ''
+              set -euo pipefail
+
+              rm -rf ${restoreDir}
+              install -d -m 0700 -o ${serviceName} -g ${serviceName} ${restoreDir}
+
+              echo "==> Restoring snapshot ${targetCfg.restoreSnapshot} from Restic..."
+              restic restore ${targetCfg.restoreSnapshot} \
+                --target ${restoreDir} \
+                --path ${stateDir}
+
+              echo "==> Running restore command..."
+              ${targetCfg.restoreCommand}
+
+              echo "==> Restore complete for ${name}!"
+            '';
+          }
+        )
+      ) restoreTargets)
     ];
   };
 }
