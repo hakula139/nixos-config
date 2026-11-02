@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  backblaze,
   repoLib,
   ...
 }:
@@ -14,7 +15,6 @@ let
   cfg = config.hakula.services.peertube;
 
   domain = "v.hakula.xyz";
-  endpoint = "s3.us-west-004.backblazeb2.com";
   cdnBaseUrl = "https://b2.hakula.xyz";
 
   fixTimeoutsScript = ./fix-timeouts.js;
@@ -99,7 +99,7 @@ in
       settings = {
         object_storage = {
           enabled = true;
-          inherit endpoint;
+          endpoint = backblaze.s3Endpoint;
           force_path_style = true;
 
           # B2 doesn't support ACL headers. The bucket stays private and is served via the
