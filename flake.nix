@@ -251,6 +251,7 @@
 
       repoLib = import ./lib { inherit (nixpkgs) lib; };
 
+      backblaze = import ./data/backblaze.nix;
       caches = import ./data/caches.nix;
       corpHosts = import ./data/corp-hosts.nix;
       defaults = import ./data/defaults.nix;
@@ -265,6 +266,7 @@
           inputs
           repo
           repoLib
+          backblaze
           caches
           corpHosts
           defaults

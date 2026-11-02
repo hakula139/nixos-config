@@ -28,6 +28,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   │   └── work/               # wsl (NixOS-WSL), wsl-non-nixos (System Manager)
 │   └── images/                 # Buildable images (devvm, work)
 ├── data/                       # Static configuration and inventory
+│   ├── backblaze.nix           # Backblaze B2 S3 endpoint
 │   ├── caches.nix              # Binary cache substituters and trusted public keys
 │   ├── corp-domain.nix         # Corp-internal domain
 │   ├── corp-hosts.nix          # Corp-internal hostnames and URLs
