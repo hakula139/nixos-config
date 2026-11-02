@@ -27,6 +27,7 @@ pkgs.runCommand "script-tests"
       pkgs.file-formatter
       pkgs.git
       pkgs.nu-test
+      pkgs.zstd
       tooling.scriptPython
     ];
   }
