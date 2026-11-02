@@ -41,7 +41,9 @@ Look for new information worth persisting, in rough priority order:
 
 2. Drifted memories. Check every file, flag, option, command, and path named in a memory against the current repository, and correct any contradiction at its source.
 
-3. Transcripts touched since the last consolidation from every assistant that worked on this project or its worktrees. Match sessions using the working directories reported by `git worktree list --porcelain`, since some worktrees are outside the main checkout.
+3. Memories staged under `<store>/incoming/*/`. Treat each file as a candidate with the same scrutiny as any other signal, and a staged `MEMORY.md` as an index. Merge what survives into the store, then delete `incoming/` once every staged file has been consolidated.
+
+4. Transcripts touched since the last consolidation from every assistant that worked on this project or its worktrees. Match sessions using the working directories reported by `git worktree list --porcelain`, since some worktrees are outside the main checkout.
 
    - **Claude Code**: `~/.claude/projects/<slug>*/*.jsonl`, with one directory per worktree path.
    - **Codex**: `~/.codex/memories/rollout_summaries/*.md`, condensed summaries with a `cwd:` header line and a `rollout_path:` naming the raw transcript under `~/.codex/sessions/`.
