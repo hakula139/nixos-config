@@ -72,7 +72,6 @@ in
   # ------------------------------------------------------------------------------------------------
   # Host-specific secrets (grouped by host scope)
   # ------------------------------------------------------------------------------------------------
-  "cloudcone/server-key-us-1.age".publicKeys = us1Only;
   "peertube/env.age".publicKeys = us1Only;
   "peertube/secret.age".publicKeys = us1Only;
 
