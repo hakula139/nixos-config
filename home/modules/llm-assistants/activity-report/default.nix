@@ -45,7 +45,10 @@ let
       "--prefix"
       "PATH"
       ":"
-      (lib.makeBinPath [ pkgs.git ])
+      (lib.makeBinPath [
+        pkgs.git
+        pkgs.zstd
+      ])
 
       "--add-flag"
       "${digestConfig}"
