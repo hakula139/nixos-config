@@ -9,7 +9,7 @@
 
 let
   secretsRoot = ../secrets;
-  secretFile = name: "${secretsRoot}/${name}.age";
+  secretFile = name: lib.path.append secretsRoot "${name}.age";
   secretPath = name: "${secretsDir}/${name}";
   mkSecret =
     {
@@ -32,7 +32,6 @@ let
 in
 {
   inherit
-    secretFile
     secretPath
     mkSecret
     ;
