@@ -13,7 +13,7 @@ const PATCH_INPUT = ($SCRIPT_DIR | path join .. lib patch-input patch-input.nu)
 def run-event [
   input: any
   cwd: string
-  --reports: list<string> = []
+  --report: string = ""
   --exit-code: int = 0
   --stderr: string = ""
 ]: nothing -> record {
@@ -41,7 +41,7 @@ def run-event [
   let run = with-env {
     PATH: $bin
     STUB_LOG: $log
-    STUB_REPORTS: ($reports | to json --raw)
+    STUB_OUTPUT: $report
     STUB_EXIT: $exit_code
     STUB_STDERR: $stderr
   } {
@@ -55,7 +55,7 @@ def run-event [
   }
 }
 
-def "test edits forward paths and checks once from event cwd" [] {
+def "test edits forward paths from the event cwd" [] {
   let cases = [
     {
       input: {tool_name: Write, tool_input: {file_path: notes.md}}
@@ -75,7 +75,7 @@ def "test edits forward paths and checks once from event cwd" [] {
           ] | str join "\n")
         }
       }
-      paths: [./--notes.md ./notes.md added.md]
+      paths: [--notes.md ./notes.md added.md]
     }
     {
       input: {
@@ -94,28 +94,25 @@ def "test edits forward paths and checks once from event cwd" [] {
     let expected = if ($case.paths | is-empty) {
       []
     } else {
-      [{cwd: $cwd, args: [--checks ...$case.paths]}]
+      [{cwd: $cwd, args: $case.paths}]
     }
     assert equal $result.calls $expected ($case | to nuon)
     assert equal $result.run.stdout ""
   }
 }
 
-def "test failed formatter diagnostics reach the hook response" [] {
+def "test failed hook reports reach the hook response" [] {
   let cwd = (mktemp --directory | path expand)
   let input = {tool_name: Edit, tool_input: {file_path: notes.md}}
-  let reports = ["first problem" "second problem"]
+  let report = "runner text one\n\nrunner text two"
 
-  let result = (run-event $input $cwd --reports $reports --exit-code 7 --stderr "formatter warning")
+  let result = (run-event $input $cwd --report $report --exit-code 7 --stderr "formatter warning")
 
-  assert equal $result.calls [{cwd: $cwd, args: [--checks notes.md]}]
+  assert equal $result.calls [{cwd: $cwd, args: [notes.md]}]
   assert equal ($result.run.stdout | from json) {
     hookSpecificOutput: {
       hookEventName: PostToolUse
-      additionalContext: (
-        ["Formatters and linters reported problems in the edited files." ...$reports]
-        | str join "\n\n"
-      )
+      additionalContext: $report
     }
   }
   assert equal $result.run.stderr "formatter warning\n"

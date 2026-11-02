@@ -350,6 +350,7 @@ wslpath
 wvous
 xclip
 xcrun
+xdev
 xhigh
 xsel
 xtls

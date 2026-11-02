@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  enableDevToolchains,
   repoLib,
   secretPath,
   ...
@@ -16,11 +15,8 @@ let
   cfg = config.hakula.opencode;
   shared = config.lib.llmAssistants;
 
-  inherit (shared) agentRoleOptions instructions;
+  inherit (shared) agentRoleOptions fileFormatter instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
-
-  formatter = pkgs.file-formatter.override { inherit enableDevToolchains; };
-  fileFormatter = lib.getExe formatter;
 
   profiles = import ./profiles.nix {
     inherit
@@ -196,8 +192,35 @@ in
               shfmt.disabled = true;
               uv.disabled = true;
 
-              shared = {
-                inherit (formatter) extensions;
+              file-formatter = {
+                # OpenCode matches by final extension and has no wildcard, so the list names the
+                # extensions in the repositories with a gate, including the empty string for
+                # extensionless files.
+                extensions = [
+                  ""
+                  ".astro"
+                  ".css"
+                  ".html"
+                  ".j2"
+                  ".js"
+                  ".json"
+                  ".jsonc"
+                  ".jsx"
+                  ".md"
+                  ".mjs"
+                  ".nix"
+                  ".nu"
+                  ".py"
+                  ".sh"
+                  ".toml"
+                  ".ts"
+                  ".tsx"
+                  ".txt"
+                  ".vue"
+                  ".yaml"
+                  ".yml"
+                  ".zsh"
+                ];
 
                 command = [
                   fileFormatter
