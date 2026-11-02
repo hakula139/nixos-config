@@ -6,10 +6,10 @@
   config,
   lib,
   options,
+  enableDevToolchains,
   hostType,
+  isDesktop,
   repoLib,
-  enableDevToolchains ? false,
-  isDesktop ? false,
   ...
 }:
 
