@@ -99,7 +99,7 @@
     };
 
     listenbrainz-scrobbler = {
-      url = "github:hakula139/listenbrainz-scrobbler/v0.2.0";
+      url = "github:hakula139/listenbrainz-scrobbler/v0.3.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         home-manager.follows = "home-manager";

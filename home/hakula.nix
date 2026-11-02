@@ -26,7 +26,7 @@ in
 {
   imports = [
     inputs.agent-project-move.homeModules.default
-    inputs.listenbrainz-scrobbler.homeManagerModules.default
+    inputs.listenbrainz-scrobbler.homeModules.default
     inputs.oxide-code.homeModules.default
 
     ./modules/shared.nix
