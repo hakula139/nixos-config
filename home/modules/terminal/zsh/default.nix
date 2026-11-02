@@ -6,8 +6,8 @@
   config,
   pkgs,
   lib,
-  defaults,
   flakeConfigName,
+  platformSettings,
   username ? "hakula",
   isNixOS ? false,
   ...
@@ -184,7 +184,7 @@ in
       # Nix aliases
       nixdp = "colmena apply";
       nixup = "nix flake update";
-      nixgc = "nh clean all ${defaults.nixCleanArgs}";
+      nixgc = "nh clean all ${platformSettings.nhCleanArgs}";
       nixopt = "nix-store --optimise";
 
       # Git extras
