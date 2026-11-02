@@ -108,7 +108,7 @@
     };
 
     oxide-code = {
-      url = "github:hakula139/oxide-code/v0.1.0-alpha.9";
+      url = "github:hakula139/oxide-code/v0.1.0-alpha.10";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         home-manager.follows = "home-manager";
