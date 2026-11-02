@@ -102,6 +102,11 @@ in
 
       renderScript = pkgs.writers.writeNu "xray-render-config" {
         makeWrapperArgs = [
+          "--prefix"
+          "PATH"
+          ":"
+          (lib.makeBinPath [ pkgs.coreutils ])
+
           "--add-flag"
           "${renderConfig}"
         ];
