@@ -7,9 +7,9 @@
   pkgs,
   lib,
   inputs,
+  enableDevToolchains,
   repo,
   repoLib,
-  enableDevToolchains ? false,
   ...
 }:
 
