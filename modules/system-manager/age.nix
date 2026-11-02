@@ -78,7 +78,7 @@ let
       --decrypt \
       "''${identityArgs[@]}" \
       -o "$tmp" \
-      ${lib.escapeShellArg secret.file}
+      ${lib.escapeShellArg "${secret.file}"}
     chmod ${lib.escapeShellArg secret.mode} "$tmp"
     chown ${lib.escapeShellArg "${secret.owner}:${secret.group}"} "$tmp"
     mv -f "$tmp" "$target"
