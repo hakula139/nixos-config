@@ -399,7 +399,6 @@
       # --------------------------------------------------------------------------------------------
       cachixPins = {
         us-1 = mkCachixPins self.nixosConfigurations.us-1.pkgs [
-          "netdata"
           "peertube"
         ];
 
