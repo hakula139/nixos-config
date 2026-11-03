@@ -2,8 +2,9 @@
 name: review
 description: >-
   Review a repository, pull or merge requests, branches, commit ranges, or local changes from first
-  principles for correctness, conventions, design, tests, documentation, and security. Use for code
-  review and audit requests, including requests to fix the findings or merge the reviewed PRs / MRs.
+  principles for conventions, simplicity, design, correctness, tests, documentation, and security.
+  Use for code review and audit requests, including requests to fix the findings or merge the
+  reviewed PRs / MRs.
 ---
 
 # Review
@@ -28,19 +29,21 @@ Apply the global instructions, the repository's `AGENTS.md` / `CLAUDE.md` files,
 
 ## Review each dimension
 
+Cover every dimension below in every review, even when a brief names only some of them. Scrutinize conventions, simplicity, layout, and comments more closely than correctness.
+
 A whole-repository review covers existing code and design, so challenge choices that a better design could replace. A diff review also covers the code around the change: read each touched file in full, review its callers, siblings, and touched modules for defects, and propose more concise or elegant designs there even when one takes a large refactor. Trace every changed contract through its callers, tests, configuration, and documentation. For DRY, consistency, and integration checks, include sibling repositories the project integrates with, such as downstream consumers checked out nearby.
 
-- **Correctness and edge cases**: Broken assumptions, empty or boundary inputs, paths, permissions, data shapes, concurrency, and resource lifecycles.
-- **Error handling**: Swallowed or merely logged errors, overly broad catches, fallbacks that hide failures, and unhelpful messages.
-- **Types, invariants, and API surface**: Invalid states the API permits, construction paths that bypass invariants, and visibility broader than callers need.
 - **Conventions**: Every rule in the loaded instructions, checked against the complete changed construct.
-- **Simplicity**: Unnecessary abstractions, speculative configurability, dead code, and logic with a shorter idiomatic form.
+- **Simplicity**: Unnecessary abstractions, speculative configurability, passthrough or derivable arguments, hard-coded values that belong in configuration or an input, dead code, and logic with a shorter idiomatic form.
 - **DRY**: Logic duplicated across modules or related repositories that an extraction would remove.
 - **Cross-file consistency**: Parallel types, files, and modules that differ in structure, naming, ordering, or derived traits.
 - **Ordering and grouping**: The order of fields, parameters, match arms, imports, tests, sections, and documentation bullets, and their blank-line grouping, judged by semantic relationships and project conventions with alphabetical order as the fallback. Reviews often miss this, so check every changed group explicitly.
 - **Comments and prose**: Comments, docstrings, and documentation that restate code, narrate history, exceed the constraint they explain, have gone stale, or break the writing rules.
 - **Idioms and existing primitives**: Non-idiomatic language or standard library use, and handwritten logic that a dependency, framework primitive, or established library already provides.
-- **Tests and coverage**: Missing behavioral coverage of new branches and error paths, assertions that would pass despite a plausible bug, and real personal data in fixtures. Run the project's coverage tool on the changed lines, such as `cargo llvm-cov`, read the PR's Codecov comment if any, and list each uncovered changed line with its reason.
+- **Correctness and edge cases**: Broken assumptions, empty or boundary inputs, paths, permissions, data shapes, concurrency, and resource lifecycles.
+- **Error handling**: Swallowed or merely logged errors, overly broad catches, fallbacks that hide failures, and unhelpful messages.
+- **Types, invariants, and API surface**: Invalid states the API permits, construction paths that bypass invariants, and visibility broader than callers need.
+- **Tests**: Missing tests for a concrete regression risk or a non-obvious contract that existing coverage does not protect, tests that guard neither or that another test subsumes, inline test programs in embedded strings, per-case fixtures that a table-driven test would merge, assertions that would pass despite a plausible bug, and real personal data in fixtures.
 - **Documentation**: README feature lists, roadmaps, layout trees, and usage instructions the target makes inaccurate, and user-facing docs that include implementation detail or outgrow their sibling entries.
 - **Security and secrets**: Secret exposure, authorization boundaries, injection from untrusted input, and destructive behavior.
 - **Dependencies, CI, release, and deployment**: Dependency downgrades, dropped build outputs, and versions or pins that drift between packages and downstream consumers. Exercise the affected build, packaging, and publish paths without relying on stubbed tests. For a deployed site, check the preview deployment before merge and production after it.
@@ -54,9 +57,11 @@ Then reread the target from these perspectives:
 
 ## Fan out and verify
 
-Review a small target in one pass. For a whole repository, a large diff, or several PRs, delegate dimension groups to parallel `reviewer` agents, which load this skill themselves, and split large diffs further by file locality while keeping tests with their implementation. Add a `usability-reviewer` for user-facing surfaces such as CLI help, error messages, and documentation, then map its categories to severity levels when aggregating findings. Each brief should name the target and revision, the dimensions to review, and any command results the reviewer needs. Reviewer roles may lack a shell, so run coverage, builds, and other commands yourself.
+Review a small target in one pass. For a whole repository, a large diff, or several PRs, delegate target slices to parallel `reviewer` agents, which load this skill themselves, splitting large diffs by file locality while keeping tests with their implementation, then merge their findings, check duplication and consistency across slices, and remove duplicate findings. Add a `usability-reviewer` for user-facing surfaces such as CLI help, error messages, and documentation, then map its categories to severity levels when aggregating findings. Each brief should name the target, its revision, and any command results the reviewer needs. Reviewer roles may lack a shell, so run coverage, builds, and other commands yourself.
 
-A delegated reviewer covers only the scope in its brief, edits no files, and runs no mutating commands. When its scope warrants it, it fans out as the paragraph above describes, briefs each further `reviewer` with its slice and the same limits, then merges their findings, removes duplicates, and returns one report as text in the [report](#report) format.
+A delegated reviewer edits no files and runs no mutating commands. When its target warrants it, it fans out and merges as the paragraph above describes, returning one report as text in the [report](#report) format.
+
+In Fix mode, and in a re-review the user asks for, cover the whole changed construct and its surroundings again.
 
 Verify each candidate finding before reporting it. Reproduce its trigger or trace it to quoted lines, check guards and callers that could invalidate it, and confirm platform behavior from documentation or source. Mark it **confirmed** if you demonstrate the trigger, or **plausible** if it depends on a realistic state you cannot fully construct. Drop it if the code provably prevents the trigger. An impact claim about other code must name that code, and a convention finding must quote both the rule and the violating line. Once findings are verified, make a fresh pass for defects the list missed, such as moved code that lost a guard, a flipped default, or setup without matching teardown.
 
@@ -76,21 +81,19 @@ If the repository ignores the plans directory `.agents/plans/`, save the review 
 Each finding needs a `file:line` reference, the triggering condition, the resulting failure or maintenance cost, a suggested fix, and its verification mark. Use the repository's severity scheme if it has one. Otherwise, use:
 
 - **Critical**: Bugs that break core behavior, builds, or deployment, as well as security vulnerabilities and data loss.
-- **Warning**: Edge-case failures with a named trigger, missing error handling or behavioral coverage, and maintainability problems with a concrete cost.
-- **Suggestion**: Issues with conventions, consistency, ordering, or readability.
-
-When in doubt, choose the lower severity. Avoid generic requests to add tests.
+- **Warning**: Edge-case failures with a named trigger, missing error handling, and maintainability problems with a concrete cost, including violations of documented convention, layout, and comment rules and missed simpler idioms.
+- **Suggestion**: Improvements with no concrete failure or maintenance cost.
 
 ## Choose the mode
 
 - **Review (default)**: Report findings without editing files, committing, or posting comments. Post PR / MR comments only when asked.
-- **Fix**: Resolve every verified finding in the same round, including Suggestions and pre-existing issues, such as those in the code around a diff. Do not defer any to follow-up PRs or TODOs. Fix findings specific to a PR on its branch, and put pre-existing issues and repository-review fixes in scoped PRs / MRs. Resolve design questions from first principles and record each decision with its rationale in the PR / MR description. Rerun checks and review the fixed areas until no findings remain, then commit and publish through `git-workflow`.
+- **Fix**: Resolve every verified finding in the same round, including Suggestions and pre-existing issues, such as those in the code around a diff. Do not defer any to follow-up PRs or TODOs. Fix findings specific to a PR on its branch, and put pre-existing issues and repository-review fixes in scoped PRs / MRs. Resolve design questions from first principles and record each decision with its rationale in the PR / MR description. Rerun checks and re-review until no findings remain, then commit and publish through `git-workflow`.
 - **Merge**: Once no findings remain, merge each reviewed PR / MR through `git-workflow`, which hands the merge to the `operator` agent when one is available, quoting the user's review-and-merge request verbatim as the approval. Then update pins or submodules that track the merged commit, and clean up as the `git-workflow` skill's Cleanup section describes.
 
 ## Report
 
-For the top-level review, use the client's findings-report tool when available, such as Claude Code's `ReportFindings`. Otherwise, start with the reviewed revision and scope, a merge-readiness verdict, and finding counts by severity. Then list findings by severity and impact, grouping pre-existing issues separately. When Critical and Warning findings already make the report long, summarize Suggestions as a count with one-line bullets.
+For the top-level review, use the client's findings-report tool when available, such as Claude Code's `ReportFindings`. Otherwise, start with the reviewed revision and scope, a merge-readiness verdict, and finding counts by severity. Then list findings by severity and impact, grouping pre-existing issues separately. When the report would otherwise be long, summarize Suggestions as a count with one-line bullets.
 
 Write each finding as one short, matter-of-fact paragraph. State the triggering scenario first so the author can grasp the issue at a glance, and quote no more than three lines of code. Anchor any posted inline comment to the shortest diff range that shows the problem.
 
-Close with the checks you ran and their results, including changed-line coverage, consequential assumptions, anything left unverified, and any area the review did not cover. If there are no findings, say so. In fix and merge modes, also report the fixes, final checks, PR / MR states, and any actions only the user can take.
+Close with the checks you ran and their results, including any coverage or build results the findings rely on, consequential assumptions, anything left unverified, and any area the review did not cover. If there are no findings, say so. In fix and merge modes, also report the fixes, final checks, PR / MR states, and any actions only the user can take.
