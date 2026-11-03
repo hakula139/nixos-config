@@ -41,11 +41,8 @@ in
     # ----------------------------------------------------------------------------------------------
     # Users & Groups
     # ----------------------------------------------------------------------------------------------
-    # Nixpkgs adds podman whenever it is enabled, and its socket is root-equivalent. The stock
-    # web_log job reads nginx's 0640 access log.
-    users.users.netdata.extraGroups = lib.mkForce (
-      lib.optional config.services.nginx.enable config.services.nginx.group
-    );
+    # Nixpkgs adds podman whenever it is enabled, and its socket is root-equivalent.
+    users.users.netdata.extraGroups = lib.mkForce [ ];
 
     # ----------------------------------------------------------------------------------------------
     # PostgreSQL
@@ -104,6 +101,20 @@ in
               {
                 name = "local";
                 dsn = "host=/run/postgresql dbname=postgres user=netdata";
+              }
+            ];
+          }
+        );
+
+        "go.d/web_log.conf" = lib.mkIf config.hakula.services.nginx.enable (
+          yaml.generate "web_log.conf" {
+            jobs = [
+              {
+                name = "nginx";
+                path = "/var/log/nginx/access.log";
+                log_type = "json";
+                # The check needs a JSON line, which a freshly rotated log lacks.
+                autodetection_retry = 60;
               }
             ];
           }
