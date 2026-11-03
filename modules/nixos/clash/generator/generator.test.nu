@@ -49,26 +49,27 @@ def subscriptions [output: string]: nothing -> list<string> {
 
 def "test each user gets the servers their level admits" [] {
   let result = (generate {
-    alice: {uuid: alice-uuid, shortId: a1, level: admin}
-    bob: {uuid: bob-uuid, shortId: b2}
-    eve: {uuid: eve-uuid, shortId: e5, level: root}
+    alice: {uuid: "alice-uuid", shortId: "00", level: admin}
+    bob: {uuid: "0123", shortId: "b2"}
+    eve: {uuid: "eve-uuid", shortId: "e5", level: root}
   })
   assert equal $result.run.exit_code 0 $result.run.stderr
 
-  let alice = (subscription $result.output alice-uuid)
+  let alice = (subscription $result.output "alice-uuid")
   let reality = ($alice.proxies | where network == tcp)
   assert equal ($reality | get server) [us-1.hakula.xyz us-2.hakula.xyz sg-1.hakula.xyz]
-  assert equal ($reality | get reality-opts.short-id | uniq) [a1]
+  assert equal ($reality | get reality-opts.short-id | uniq) ["00"]
   assert equal ($reality | get servername | uniq) [sni.example.com]
-  assert equal ($alice.proxies | get uuid | uniq) [alice-uuid]
+  assert equal ($alice.proxies | get uuid | uniq) ["alice-uuid"]
   assert equal $alice.proxy-groups.0.proxies ($alice.proxies | get name)
 
-  let bob = (subscription $result.output bob-uuid)
+  let bob = (subscription $result.output "0123")
   assert equal ($bob.proxies | where network == tcp | get server) [us-2.hakula.xyz sg-1.hakula.xyz]
+  assert equal ($bob.proxies | get uuid | uniq) ["0123"]
 
   # A user with an unknown level is skipped, and subscriptions for departed users are removed.
-  assert equal (subscriptions $result.output) [alice-uuid.yaml bob-uuid.yaml]
-  assert equal (ls -l ($result.output | path join alice-uuid.yaml) | get 0.mode) "rw-r-----"
+  assert equal (subscriptions $result.output) ["0123.yaml" "alice-uuid.yaml"]
+  assert equal (ls -l ($result.output | path join "alice-uuid.yaml") | get 0.mode) "rw-r-----"
 }
 
 def "test every subscription sends the whole fleet direct" [] {
