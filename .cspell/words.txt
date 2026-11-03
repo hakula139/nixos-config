@@ -316,6 +316,7 @@ tmp
 tmpfiles
 tmpfs
 tmutil
+tojson
 tomlkit
 tomlq
 toolsai
