@@ -183,6 +183,7 @@
                 "--no-progress"
                 "--no-must-find-files"
               ];
+              raw.alias = "skip-on-edit";
             };
 
             deadnix.enable = true;
