@@ -63,7 +63,6 @@ def run-gate [
     --quiet
     --no-progress
     --color never
-    --skip skip-on-edit
     --cd $root
     --files ...$paths
   ]
@@ -114,8 +113,7 @@ def format-paths [paths: list<string>]: nothing -> list<string> {
   | flatten
 }
 
-# Report the hooks that fail on the given files. The gate always skips a hook whose id or alias is
-# `skip-on-edit`, so a repository can tag a hook that is too slow to run on every edit.
+# Report the hooks that fail on the given files.
 def --wrapped main [
   ...paths: string # Files to check.
 ] {
