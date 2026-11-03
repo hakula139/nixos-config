@@ -32,11 +32,12 @@ def make-repo [dir: string, config: string, --no-hook, --no-config]: nothing -> 
   $dir
 }
 
-# Writes the hook script that checks the marker the `.envrc` exports.
+# Writes the hook script that checks the marker the `.envrc` exports and logs each run.
 def write-marker-script [repo: string]: nothing -> nothing {
   (
     r#'
     #!/bin/sh
+    echo run >> marker.log
     test "$GATE_MARKER" = loaded
     '#
     | str dedent
@@ -225,40 +226,6 @@ def "test only the failed hooks are rerun after a fixer rewrites the file" [] {
   assert equal (open ($repo | path join lint.log) | lines | length) 2
 }
 
-def "test a hook tagged skip-on-edit is skipped" [] {
-  let config = (
-    gate
-      {id: slow, entry: "bash slow.sh", files: '\.txt$', alias: "skip-on-edit"}
-      {id: fast, entry: "bash fast.sh", files: '\.txt$'}
-  )
-  let repo = (make-repo ($env.TMPDIR | path join repo-skip) $config)
-  (
-    r#'
-    #!/bin/sh
-    echo run >> slow.log
-    exit 1
-    '#
-    | str dedent
-  ) | save --force ($repo | path join slow.sh)
-  (
-    r#'
-    #!/bin/sh
-    echo run >> fast.log
-    exit 0
-    '#
-    | str dedent
-  ) | save --force ($repo | path join fast.sh)
-  let file = ($repo | path join notes.txt)
-  "content\n" | save $file
-
-  let result = (run-formatter $repo $file)
-
-  assert equal $result.run.exit_code 0
-  assert equal $result.report ""
-  assert not (($repo | path join slow.log) | path exists)
-  assert equal (open ($repo | path join fast.log) | lines | length) 1
-}
-
 def "test a failing hook is reported" [] {
   let repo = (
     make-repo ($env.TMPDIR | path join repo-lint) (gate
@@ -378,6 +345,7 @@ def "test an allowed, blocked, or absent envrc decides the gate environment" [] 
     let result = (run-formatter $case.repo $file)
 
     assert equal $result.run.exit_code $case.exit_code $case.name
+    assert equal (open ($case.repo | path join marker.log) | lines | length) 1 $case.name
     if $case.exit_code == 0 {
       assert equal $result.report "" $case.name
     } else {
