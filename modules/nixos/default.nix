@@ -61,18 +61,21 @@ in
       type = lib.types.str;
       default = "/run/nginx/https.sock";
       readOnly = true;
-      description = ''
-        Unix socket for nginx HTTPS and REALITY's `dest`, whose listeners trust the PROXY header.
-      '';
+      description = "Unix socket for nginx HTTPS";
     };
 
     internalRealitySocket = lib.mkOption {
       type = lib.types.str;
       default = "/run/xray/reality.sock";
       readOnly = true;
-      description = ''
-        Unix socket for the REALITY inbound, which trusts the PROXY header from the stream server.
-      '';
+      description = "Unix socket for the Xray REALITY inbound";
+    };
+
+    internalWsSocket = lib.mkOption {
+      type = lib.types.str;
+      default = "/run/xray/ws.sock";
+      readOnly = true;
+      description = "Unix socket for the Xray WebSocket inbound";
     };
 
     realitySniHost = lib.mkOption {
