@@ -174,6 +174,91 @@ def "test a fixer hook that rewrites a file is not reported" [] {
   assert equal $result.report ""
 }
 
+def "test only the failed hooks are rerun after a fixer rewrites the file" [] {
+  let config = (
+    gate
+      {id: check, entry: "bash check.sh", files: '\.txt$'}
+      {id: fix, entry: "bash fix.sh", files: '\.txt$'}
+      {id: lint, entry: "bash lint.sh", files: '\.txt$'}
+  )
+  let repo = (make-repo ($env.TMPDIR | path join repo-rerun) $config)
+  (
+    r#'
+    #!/bin/sh
+    echo run >> check.log
+    exit 0
+    '#
+    | str dedent
+  ) | save --force ($repo | path join check.sh)
+  (
+    r#'
+    #!/bin/sh
+    echo run >> fix.log
+    if [ -n "$(tail -c 1 "$1")" ]; then
+      printf '\n' >> "$1"
+      exit 1
+    fi
+    exit 0
+    '#
+    | str dedent
+  ) | save --force ($repo | path join fix.sh)
+  (
+    r#'
+    #!/bin/sh
+    echo run >> lint.log
+    echo lint-bad
+    exit 1
+    '#
+    | str dedent
+  ) | save --force ($repo | path join lint.sh)
+  let file = ($repo | path join notes.txt)
+  "content" | save $file
+
+  let result = (run-formatter $repo $file)
+
+  assert equal (open --raw $file) "content\n"
+  assert equal $result.run.exit_code 1
+  assert ($result.report | str contains "lint-bad")
+  assert not ($result.report | str contains "- hook id: fix")
+  assert equal (open ($repo | path join check.log) | lines | length) 1
+  assert equal (open ($repo | path join fix.log) | lines | length) 2
+  assert equal (open ($repo | path join lint.log) | lines | length) 2
+}
+
+def "test a hook tagged skip-on-edit is skipped" [] {
+  let config = (
+    gate
+      {id: slow, entry: "bash slow.sh", files: '\.txt$', alias: "skip-on-edit"}
+      {id: fast, entry: "bash fast.sh", files: '\.txt$'}
+  )
+  let repo = (make-repo ($env.TMPDIR | path join repo-skip) $config)
+  (
+    r#'
+    #!/bin/sh
+    echo run >> slow.log
+    exit 1
+    '#
+    | str dedent
+  ) | save --force ($repo | path join slow.sh)
+  (
+    r#'
+    #!/bin/sh
+    echo run >> fast.log
+    exit 0
+    '#
+    | str dedent
+  ) | save --force ($repo | path join fast.sh)
+  let file = ($repo | path join notes.txt)
+  "content\n" | save $file
+
+  let result = (run-formatter $repo $file)
+
+  assert equal $result.run.exit_code 0
+  assert equal $result.report ""
+  assert not (($repo | path join slow.log) | path exists)
+  assert equal (open ($repo | path join fast.log) | lines | length) 1
+}
+
 def "test a failing hook is reported" [] {
   let repo = (
     make-repo ($env.TMPDIR | path join repo-lint) (gate
@@ -184,6 +269,7 @@ def "test a failing hook is reported" [] {
   (
     r#'
     #!/bin/sh
+    echo run >> lint.log
     echo lint-bad-pattern
     exit 1
     '#
@@ -199,6 +285,7 @@ def "test a failing hook is reported" [] {
   assert ($result.report | str contains "- exit code: 1")
   assert ($result.report | str contains "lint-bad-pattern")
   assert not ($result.report | str contains "Passed")
+  assert equal (open ($repo | path join lint.log) | lines | length) 1
 }
 
 def "test repositories without an installed hook or a gate config are skipped" [] {

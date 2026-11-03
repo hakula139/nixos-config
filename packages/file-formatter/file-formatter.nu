@@ -47,12 +47,26 @@ def failed-blocks [output: string]: nothing -> list<string> {
   | each {|block| $block | str trim | lines | first $MAX_LINES | str join "\n" }
 }
 
-# Run the gate in `root` through direnv when the repository's `.envrc` is allowed, so
-# `language: system` hooks see the dev shell a human commit would. `direnv exec` restores the
-# caller's pre-direnv PATH, dropping this wrapper's entries too, so call prek by its resolved path.
-def run-gate [root: string, paths: list<string>, --via-direnv]: nothing -> record {
+# Run `hooks`, or every hook when the list is empty, on `paths` in `root`. The run goes through
+# direnv when the repository's `.envrc` is allowed, so `language: system` hooks see the dev shell a
+# human commit would. `direnv exec` restores the caller's pre-direnv PATH, dropping this wrapper's
+# entries too, so call prek by its resolved path.
+def run-gate [
+  root: string
+  paths: list<string>
+  hooks: list<string>
+  --via-direnv
+]: nothing -> record {
   let prek = (which prek | get 0.path)
-  let args = [run --quiet --no-progress --color never --cd $root --files ...$paths]
+  let args = [
+    run ...$hooks
+    --quiet
+    --no-progress
+    --color never
+    --skip skip-on-edit
+    --cd $root
+    --files ...$paths
+  ]
   if $via_direnv {
     ^direnv exec $root $prek ...$args | complete
   } else {
@@ -60,21 +74,33 @@ def run-gate [root: string, paths: list<string>, --via-direnv]: nothing -> recor
   }
 }
 
-# The hooks that fail on `paths` after a confirming rerun.
+# A digest per file path, so a rerun can tell whether a hook rewrote one.
+def path-digests [paths: list<string>]: nothing -> list<string> {
+  $paths
+  | where {|path| ($path | path type) == "file" }
+  | each {|path| open --raw $path | hash sha256 }
+}
+
+# The ids of the hooks that failed in `output`.
+def failed-hooks [output: string]: nothing -> list<string> {
+  $output
+  | parse --regex '(?m)^- hook id: (?<id>.+)$'
+  | get id
+}
+
+# The hooks that fail on `paths`.
 def check [root: string, paths: list<string>]: nothing -> list<string> {
   let status = (do { cd $root; ^direnv status --json } | from json)
   let allowed = ($status.state.foundRC?.allowed? == 0)
-  let gate = {||
-    let run = (run-gate $root $paths --via-direnv=$allowed)
-    if $run.exit_code == 0 {
-      []
-    } else {
-      failed-blocks ($run.stderr + $run.stdout)
-    }
-  }
-  if (do $gate | is-empty) { return [] }
-  # Fixers such as end-of-file-fixer exit nonzero after a rewrite, so a second run confirms.
-  do $gate
+  let before = (path-digests $paths)
+  let first = (run-gate $root $paths [] --via-direnv=$allowed)
+  if $first.exit_code == 0 { return [] }
+  let output = ($first.stderr + $first.stdout)
+  if (path-digests $paths) == $before { return (failed-blocks $output) }
+  # A fixer such as end-of-file-fixer exits nonzero after a rewrite, so rerun the hooks that failed
+  # to confirm the result.
+  let confirm = (run-gate $root $paths (failed-hooks $output) --via-direnv=$allowed)
+  if $confirm.exit_code == 0 { [] } else { failed-blocks ($confirm.stderr + $confirm.stdout) }
 }
 
 # The failed hooks across the repositories holding `paths`. A path outside a repository, or in one
@@ -88,7 +114,8 @@ def format-paths [paths: list<string>]: nothing -> list<string> {
   | flatten
 }
 
-# Report the hooks that fail on the given files.
+# Report the hooks that fail on the given files. The gate always skips a hook whose id or alias is
+# `skip-on-edit`, so a repository can tag a hook that is too slow to run on every edit.
 def --wrapped main [
   ...paths: string # Files to check.
 ] {
