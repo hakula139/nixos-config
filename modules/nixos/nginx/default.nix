@@ -188,10 +188,24 @@ in
           default $remote_addr;
         }
 
-        log_format main
-          '$log_host:443 $log_addr - $remote_user [$time_local] "$request" '
-          '$status $body_bytes_sent "$http_referer" "$http_user_agent" '
-          '$request_length $request_time $upstream_response_time $proxy_protocol_addr';
+        # Netdata's web_log reads the keys named after its fields.
+        log_format main escape=json '${
+          builtins.toJSON {
+            time = "$time_iso8601";
+            host = "$log_host";
+            remote_addr = "$log_addr";
+            proxy_protocol_addr = "$proxy_protocol_addr";
+            remote_user = "$remote_user";
+            request = "$request";
+            status = "$status";
+            body_bytes_sent = "$body_bytes_sent";
+            request_length = "$request_length";
+            request_time = "$request_time";
+            upstream_response_time = "$upstream_response_time";
+            http_referer = "$http_referer";
+            http_user_agent = "$http_user_agent";
+          }
+        }';
         access_log /var/log/nginx/access.log main;
       '';
 
