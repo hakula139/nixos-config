@@ -21,6 +21,7 @@ let
   serversFile = json.generate "clash-servers.json" (
     map (server: {
       id = server.name;
+      inherit (server) ip;
       level = server.proxyLevel;
     }) (lib.attrValues servers)
   );

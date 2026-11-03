@@ -10,9 +10,9 @@ const SCRIPT_DIR = path self .
 const SCRIPT = ($SCRIPT_DIR | path join generator.py)
 
 const SERVERS = [
-  {id: sg-1, level: user}
-  {id: us-2, level: user}
-  {id: us-1, level: admin}
+  {id: sg-1, ip: "192.0.2.10", level: user}
+  {id: us-2, ip: "2001:db8::20", level: user}
+  {id: us-1, ip: "198.51.100.30", level: admin}
 ]
 
 # The output directory starts with a stale subscription.
@@ -69,6 +69,27 @@ def "test each user gets the servers their level admits" [] {
   # A user with an unknown level is skipped, and subscriptions for departed users are removed.
   assert equal (subscriptions $result.output) [alice-uuid.yaml bob-uuid.yaml]
   assert equal (ls -l ($result.output | path join alice-uuid.yaml) | get 0.mode) "rw-r-----"
+}
+
+def "test every subscription sends the whole fleet direct" [] {
+  let result = (generate {
+    alice: {uuid: alice-uuid, shortId: a1, level: admin}
+    bob: {uuid: bob-uuid, shortId: b2}
+  })
+  assert equal $result.run.exit_code 0 $result.run.stderr
+
+  let alice = (subscription $result.output alice-uuid)
+  let bob = (subscription $result.output bob-uuid)
+  let payload = [
+    "DOMAIN-SUFFIX,hakula.xyz"
+    "IP-CIDR,198.51.100.30/32"
+    "IP-CIDR,2001:db8::20/128"
+    "IP-CIDR,192.0.2.10/32"
+  ]
+
+  assert equal ($alice.rules | first) "RULE-SET,Hakula,DIRECT,no-resolve"
+  assert equal $alice.rule-providers.Hakula.payload $payload
+  assert equal $bob.rule-providers.Hakula.payload $payload
 }
 
 def "test no valid users fails and keeps existing subscriptions" [] {

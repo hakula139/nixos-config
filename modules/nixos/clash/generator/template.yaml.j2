@@ -39,6 +39,14 @@ proxy-groups:
 {%- endfor %}
 
 rule-providers:
+  Hakula:
+    type: inline
+    behavior: classical
+    payload:
+      - DOMAIN-SUFFIX,hakula.xyz
+{%- for rule in fleet_rules %}
+      - {{ rule }}
+{%- endfor %}
   Telemetry:
     type: inline
     behavior: domain
@@ -111,7 +119,7 @@ rule-providers:
     interval: 86400
 
 rules:
-  - DOMAIN-SUFFIX,hakula.xyz,DIRECT
+  - RULE-SET,Hakula,DIRECT,no-resolve
   - RULE-SET,Telemetry,REJECT
   - RULE-SET,Reject,REJECT
   - RULE-SET,iCloud,DIRECT
