@@ -123,7 +123,7 @@ def read-sessions [
   | each {|file| {file: $file, stem: ($file | str replace --regex '\.zst$' '')} }
   | uniq-by stem
   | get file
-  | each {|file|
+  | par-each --keep-order {|file|
     let records = (read-transcript $file)
     let session = (do $parse $records $file)
     if $session == null {
@@ -143,8 +143,7 @@ def read-sessions [
       $session | insert transcript $file | update events { append $pauses }
     }
   }
-  | compact
-  | each {|s|
+  | par-each --keep-order {|s|
     let events = (
       $s.events
       | update ts { into datetime | date to-timezone local }
