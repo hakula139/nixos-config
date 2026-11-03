@@ -24,7 +24,7 @@ let
   configFile = pkgs.writeText "cloudreve-conf.ini" ''
     [System]
     Mode = master
-    Listen = :${toString cfg.port}
+    Listen = 127.0.0.1:${toString cfg.port}
     LogLevel = warning
 
     [Database]

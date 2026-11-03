@@ -22,15 +22,7 @@ in
   options.hakula.services.xray = {
     enable = lib.mkEnableOption "Xray proxy server";
 
-    ws = {
-      enable = lib.mkEnableOption "VLESS + WebSocket mode";
-
-      port = lib.mkOption {
-        type = lib.types.port;
-        default = 8445;
-        description = "Port for Xray WebSocket inbound";
-      };
-    };
+    ws.enable = lib.mkEnableOption "VLESS + WebSocket mode";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -75,8 +67,7 @@ in
           ]
           ++ lib.optional cfg.ws.enable {
             tag = "vless-ws";
-            listen = "127.0.0.1";
-            inherit (cfg.ws) port;
+            listen = "${config.hakula.network.internalWsSocket},0666";
             protocol = "vless";
 
             settings.decryption = "none";
@@ -144,8 +135,43 @@ in
         repoLib.systemd.restartUnit
 
         {
-          # nginx runs as its own user and must traverse this directory to reach the socket.
           serviceConfig = {
+            # Inbounds are Unix sockets, and CAP_NET_ADMIN could route around the deny list.
+            AmbientCapabilities = lib.mkForce "";
+            CapabilityBoundingSet = lib.mkForce "";
+
+            # Ensures resolution survives an nscd outage.
+            Environment = "LD_LIBRARY_PATH=${config.system.nssModules.path}";
+
+            IPAddressDeny = [
+              "link-local"
+              "multicast"
+              "0.0.0.0/8"
+              "10.0.0.0/8"
+              "100.64.0.0/10"
+              "172.16.0.0/12"
+              "192.0.0.0/24"
+              "192.0.2.0/24"
+              "192.168.0.0/16"
+              "198.18.0.0/15"
+              "198.51.100.0/24"
+              "203.0.113.0/24"
+              "240.0.0.0/4"
+              "64:ff9b:1::/48"
+              "100::/64"
+              "100:0:0:1::/64"
+              "2001:2::/48"
+              "2001:db8::/32"
+              "3fff::/20"
+              "5f00::/16"
+              "fc00::/7"
+              "fe80::/10"
+            ];
+
+            # Traffic to any address the host owns, RA-assigned ones included, is delivered over lo.
+            RestrictNetworkInterfaces = "~lo";
+
+            # nginx runs as its own user and must traverse this directory to reach the sockets.
             RuntimeDirectory = "xray";
             RuntimeDirectoryMode = "0755";
           };
