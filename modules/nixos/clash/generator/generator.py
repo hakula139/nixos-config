@@ -1,4 +1,5 @@
 import argparse
+import ipaddress
 import json
 import logging
 import sys
@@ -36,6 +37,7 @@ class UserConfig(TypedDict):
 
 class ServerConfig(TypedDict):
     id: str
+    ip: str
     name: str
     min_level: UserLevel
 
@@ -50,11 +52,12 @@ def region_of(server_id: str) -> str:
     return server_id.rsplit('-', 1)[0]
 
 
-def build_server_config(server_id: str, min_level: UserLevel) -> ServerConfig:
+def build_server_config(server_id: str, ip: str, min_level: UserLevel) -> ServerConfig:
     flag = REGION_FLAGS.get(region_of(server_id), '🏳️')
 
     return {
         'id': server_id,
+        'ip': ip,
         'name': f'{flag} {server_id.upper()}',
         'min_level': min_level,
     }
@@ -65,7 +68,9 @@ def load_servers(path: Path) -> list[ServerConfig]:
         data = cast(list[dict[str, str]], json.load(f))
 
     servers = [
-        build_server_config(server['id'], UserLevel[server['level'].upper()])
+        build_server_config(
+            server['id'], server['ip'], UserLevel[server['level'].upper()]
+        )
         for server in data
     ]
     regions = list(REGION_FLAGS)
@@ -82,6 +87,10 @@ def servers_for_level(
     servers: list[ServerConfig], level: UserLevel
 ) -> list[ServerConfig]:
     return [s for s in servers if level >= s['min_level']]
+
+
+def build_fleet_rules(servers: list[ServerConfig]) -> list[str]:
+    return [f'IP-CIDR,{ipaddress.ip_network(server["ip"])}' for server in servers]
 
 
 def parse_args() -> argparse.Namespace:
@@ -192,6 +201,7 @@ def main() -> int:
         return 1
 
     servers = load_servers(args.servers_path)
+    fleet_rules = build_fleet_rules(servers)
 
     template = load_template(args.template_path)
     if template is None:
@@ -205,6 +215,7 @@ def main() -> int:
         try:
             config = template.render(
                 servers=user_servers,
+                fleet_rules=fleet_rules,
                 uuid=user['uuid'],
                 short_id=user['shortId'],
                 sni_host=args.sni_host,
