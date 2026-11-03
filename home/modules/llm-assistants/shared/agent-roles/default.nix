@@ -168,8 +168,8 @@
 
   reviewer = {
     description = ''
-      Code quality review, security analysis, and bug detection. Use after implementation to get a
-      focused review of recent changes, or to audit existing code for issues.
+      Convention, simplicity, and correctness review across every dimension. Use after
+      implementation or before a merge to review recent changes, or to audit existing code.
     '';
 
     prompt = readPrompt ./prompts/reviewer.md;
