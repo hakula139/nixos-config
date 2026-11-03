@@ -4,7 +4,7 @@ proxies:
     type: vless
     server: {{ server.id }}.hakula.xyz
     port: 443
-    uuid: {{ uuid }}
+    uuid: {{ uuid | tojson }}
     network: tcp
     tls: true
     udp: true
@@ -12,13 +12,13 @@ proxies:
     servername: {{ sni_host }}
     reality-opts:
       public-key: bHzc9AjLZiUGoZBGvDmo7XBcewkh9Vqukvzb8CTBnVQ
-      short-id: {{ short_id }}
+      short-id: {{ short_id | tojson }}
     client-fingerprint: chrome
   - name: {{ server.name }} (WS + CDN)
     type: vless
     server: {{ server.id }}-cdn.hakula.xyz
     port: 443
-    uuid: {{ uuid }}
+    uuid: {{ uuid | tojson }}
     network: ws
     tls: true
     udp: true
