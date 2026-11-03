@@ -11,7 +11,12 @@
 
 let
   cfg = config.hakula.services.nginx;
-  inherit (config.hakula.network) internalHttpsSocket internalRealitySocket realitySniHost;
+  inherit (config.hakula.network)
+    internalHttpsSocket
+    internalRealitySocket
+    internalWsSocket
+    realitySniHost
+    ;
 
   # ------------------------------------------------------------------------------------------------
   # Cloudflare
@@ -24,7 +29,7 @@ let
   cloudreveUpstream = "http://127.0.0.1:${toString config.hakula.services.cloudreve.port}";
   peertubeUpstream = "http://127.0.0.1:${toString config.hakula.services.peertube.port}";
   umamiUpstream = "http://127.0.0.1:${toString config.hakula.services.umami.port}";
-  xrayWsUpstream = "http://127.0.0.1:${toString config.hakula.services.xray.ws.port}";
+  xrayWsUpstream = "http://unix:${internalWsSocket}";
 
   # ------------------------------------------------------------------------------------------------
   # Shared Configuration

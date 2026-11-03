@@ -201,6 +201,7 @@ nlsv
 nofile
 nohlsearch
 npmjs
+nscd
 nslookup
 nsncd
 nspr
@@ -323,6 +324,7 @@ tulanp
 ulimits
 umami
 unapprove
+undeployed
 undici
 unhinted
 unreviewed
