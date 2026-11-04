@@ -9,11 +9,12 @@ use std/assert
 const SCRIPT_DIR = path self .
 const SCRIPT = ($SCRIPT_DIR | path join control.nu)
 
+const HOST = "bastion"
 const RELAY = "system/org.nixos.tunnel"
 const SSH = "gui/502/com.hakula.tunnel"
 
 def control [
-  action: string
+  argv: list<string>
   replies: list<record> = []
   state: string = "Running"
   --requested
@@ -21,7 +22,7 @@ def control [
   let log = (mktemp)
   let up_flag = (mktemp --directory | path join tunnel.up)
   if $requested {
-    touch $up_flag
+    $HOST | save $up_flag
   }
 
   let run = with-env {
@@ -35,7 +36,7 @@ def control [
       ^$nu.current-exe --no-config-file $SCRIPT
         --user-name example-user
         --up-flag $up_flag
-        $action
+        ...$argv
       | complete
     )
   }
@@ -56,7 +57,7 @@ def launchctl-calls [result: record]: nothing -> list<record> {
 
 def "test a stopped Tailscale backend cannot start either tunnel service" [] {
   for state in [Stopped NeedsLogin] {
-    let result = (control up [] $state)
+    let result = (control [up $HOST] [] $state)
 
     assert not equal $result.run.exit_code 0 $state
     assert str contains $result.run.stderr $state $state
@@ -71,7 +72,7 @@ def "test startup targets the configured account and checks Tailscale first" [] 
     args: [-u example-user]
   }
 
-  let result = (control up)
+  let result = (control [up $HOST])
   assert equal $result.run.exit_code 0 $result.run.stderr
 
   assert ($id_call in $result.calls)
@@ -91,11 +92,22 @@ def "test startup targets the configured account and checks Tailscale first" [] 
   ]
 }
 
-def "test startup creates the up flag before starting either service" [] {
-  let result = (control up)
+def "test startup writes the host to the up flag before starting either service" [] {
+  let result = (control [up $HOST])
   assert equal $result.run.exit_code 0 $result.run.stderr
 
-  assert equal ($result.calls | where command == launchctl | get up_flag) [true true]
+  assert equal ($result.calls | where command == launchctl | get up_host) [$HOST $HOST]
+}
+
+def "test startup without a host starts nothing" [] {
+  for argv in [[up] [up ""]] {
+    let result = (control $argv)
+
+    assert not equal $result.run.exit_code 0 ($argv | to nuon)
+    assert str contains $result.run.stderr "SSH host" ($argv | to nuon)
+    assert equal ($result.calls | where command != id) [] ($argv | to nuon)
+    assert not $result.up_flag ($argv | to nuon)
+  }
 }
 
 def "test a startup failure reports the affected component and how to stop partial startup" [] {
@@ -109,7 +121,7 @@ def "test a startup failure reports the affected component and how to stop parti
       }
     ]
 
-    let result = (control up $replies)
+    let result = (control [up $HOST] $replies)
 
     assert not equal $result.run.exit_code 0 $target
     assert str contains $result.run.stderr "service disabled" $target
@@ -140,7 +152,7 @@ def "test stopping tolerates an already stopped process for either service" [] {
       }
     ]
 
-    let result = (control down $replies)
+    let result = (control [down] $replies)
     assert equal $result.run.exit_code 0 $"($case.name): ($result.run.stderr)"
 
     assert equal (launchctl-calls $result) [
@@ -157,10 +169,10 @@ def "test stopping tolerates an already stopped process for either service" [] {
 }
 
 def "test stopping removes the up flag before stopping either service" [] {
-  let result = (control --requested down)
+  let result = (control --requested [down])
   assert equal $result.run.exit_code 0 $result.run.stderr
 
-  assert equal ($result.calls | where command == launchctl | get up_flag) [false false]
+  assert equal ($result.calls | where command == launchctl | get up_host) [null null]
 }
 
 def "test an unexpected stop failure is reported after both services are attempted" [] {
@@ -174,7 +186,7 @@ def "test an unexpected stop failure is reported after both services are attempt
       }
     ]
 
-    let result = (control down $replies)
+    let result = (control [down] $replies)
 
     assert not equal $result.run.exit_code 0 $target
     assert str contains $result.run.stderr "permission denied" $target
@@ -205,7 +217,7 @@ def "test status preserves the launchd details of both components" [] {
     }
   ]
 
-  let result = (control status $replies)
+  let result = (control [status] $replies)
   assert equal $result.run.exit_code 0 $result.run.stderr
 
   for reply in $replies {

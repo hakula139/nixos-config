@@ -47,23 +47,13 @@ let
     ];
   } (builtins.readFile ./control.nu);
 
-  # The gate exits 0, which ends launchd's restarts after tunnel down.
-  mkGatedScript =
-    name: command:
-    pkgs.writeShellScript name ''
-      set -euo pipefail
-
-      [[ -e ${lib.escapeShellArg upFlag} ]] || exit 0
-      exec ${lib.escapeShellArgs command}
-    '';
-
-  relayScript = mkGatedScript "tunnel-relay" [
+  relayCommand = [
     (lib.getExe pkgs.socat)
     "TCP-LISTEN:443,bind=127.0.0.1,reuseaddr,fork"
     "TCP:127.0.0.1:${toString localPort}"
   ];
 
-  tunnelScript = mkGatedScript "tunnel" [
+  sshCommand = [
     (lib.getExe' pkgs.openssh "ssh")
 
     "-N"
@@ -85,9 +75,24 @@ let
 
     "-L"
     "127.0.0.1:${toString localPort}:${gatewayHost}:443"
-
-    "Hakula-Work"
   ];
+
+  # The gate exits 0, which ends launchd's restarts after tunnel down.
+  mkGatedScript =
+    name: body:
+    pkgs.writeShellScript name ''
+      set -euo pipefail
+
+      [[ -e ${lib.escapeShellArg upFlag} ]] || exit 0
+      ${body}
+    '';
+
+  relayScript = mkGatedScript "tunnel-relay" "exec ${lib.escapeShellArgs relayCommand}";
+
+  tunnelScript = mkGatedScript "tunnel" ''
+    host=$(<${lib.escapeShellArg upFlag})
+    exec ${lib.escapeShellArgs sshCommand} -- "$host"
+  '';
 in
 {
   # ------------------------------------------------------------------------------------------------

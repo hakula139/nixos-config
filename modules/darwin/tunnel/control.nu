@@ -8,11 +8,16 @@
 # restarts a failed service until tunnel down or a reboot.
 def main [
   action: string # up, down, or status. Run up and down with sudo.
+  host?: string # SSH configuration entry that up connects through
   --user-name: string # Account that owns the SSH agent
-  --up-flag: path # File both services require to run
+  --up-flag: path # File both services require to run, holding the SSH host
 ] {
   if $action not-in [up down status] {
     error make {msg: "Expected up, down, or status"}
+  }
+
+  if $action == "up" and ($host | is-empty) {
+    error make {msg: "Expected an SSH host: sudo tunnel up <host>"}
   }
 
   if $action != "status" and (^id -u | into int) != 0 {
@@ -38,7 +43,7 @@ def main [
         error make {msg: $"Tailscale is ($state). Run sudo tailscale up first."}
       }
 
-      touch $up_flag
+      $host | save --force $up_flag
 
       for service in $targets {
         let result = (^launchctl kickstart $service.target | complete)
