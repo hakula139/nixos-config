@@ -53,7 +53,7 @@ let
     "TCP:127.0.0.1:${toString localPort}"
   ];
 
-  sshCommand = [
+  tunnelCommand = [
     (lib.getExe' pkgs.openssh "ssh")
 
     "-N"
@@ -83,7 +83,7 @@ let
     pkgs.writeShellScript name ''
       set -euo pipefail
 
-      [[ -e ${lib.escapeShellArg upFlag} ]] || exit 0
+      [[ -s ${lib.escapeShellArg upFlag} ]] || exit 0
       ${body}
     '';
 
@@ -91,7 +91,7 @@ let
 
   tunnelScript = mkGatedScript "tunnel" ''
     host=$(<${lib.escapeShellArg upFlag})
-    exec ${lib.escapeShellArgs sshCommand} -- "$host"
+    exec ${lib.escapeShellArgs tunnelCommand} -- "$host"
   '';
 in
 {
