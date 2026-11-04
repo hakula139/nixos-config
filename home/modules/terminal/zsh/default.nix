@@ -50,7 +50,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # System Manager switch commands
   # ------------------------------------------------------------------------------------------------
-  systemManagerProfile = "/nix/var/nix/profiles/system-manager-profiles";
+  systemManagerProfile = "/nix/var/nix/profiles/system-manager-profiles/system-manager";
   systemManagerHealthCheck = "system-manager-health-check agenix-install-secrets.service home-manager-${username}.service";
 
   systemManagerNixswScript = pkgs.writeShellScript "nixsw" ''
@@ -62,8 +62,9 @@ let
 
   systemManagerNixrollScript = pkgs.writeShellScript "nixroll" ''
     set -euo pipefail
-    sudo nix-env --profile ${systemManagerProfile} --rollback
-    system-manager activate --sudo
+    sudo nix profile rollback --profile ${lib.escapeShellArg systemManagerProfile}
+    system-manager activate --sudo \
+      --store-path "$(readlink -f ${lib.escapeShellArg systemManagerProfile})"
     ${systemManagerHealthCheck}
     ${postSwitchCommands}
   '';
@@ -185,7 +186,7 @@ in
       nixdp = "colmena apply";
       nixup = "nix flake update";
       nixgc = "nh clean all ${platformSettings.nhCleanArgs}";
-      nixopt = "nix-store --optimise";
+      nixopt = "nix store optimise";
 
       # Git extras
       gls = ''
@@ -239,29 +240,29 @@ in
       zln = "zmv -L";
       reload = "exec zsh";
     }
-    // lib.optionalAttrs isNixOS {
-      # Nix aliases
-      nixlist = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
-    }
     // lib.optionalAttrs (isNixOS && flakeConfigName != null) {
       # Aliases that target a flake attribute. Skipped on images like devvm that have no
       # nixosConfigurations entry to switch to.
       nixsw = if hasPostSwitchCommands then "${nixosNixswScript}" else "${nixosNixswCommand}";
+      nixroll = if hasPostSwitchCommands then "${nixosNixrollScript}" else "${nixosNixrollCommand}";
       nixtest = "nh os test '.#${flakeConfigName}'";
       nixboot = "nh os boot '.#${flakeConfigName}'";
-      nixroll = if hasPostSwitchCommands then "${nixosNixrollScript}" else "${nixosNixrollCommand}";
+    }
+    // lib.optionalAttrs isNixOS {
+      # Nix aliases
+      nixlist = "nixos-rebuild list-generations";
     }
     // lib.optionalAttrs (isLinux && !isNixOS) {
       # Nix aliases
       nixsw = "${systemManagerNixswScript}";
       nixroll = "${systemManagerNixrollScript}";
-      nixlist = "sudo nix-env --profile ${systemManagerProfile} --list-generations";
+      nixlist = "sudo nix-env --list-generations --profile ${lib.escapeShellArg systemManagerProfile}";
     }
     // lib.optionalAttrs isDarwin {
       # Nix aliases
       nixsw = "nh darwin switch --show-activation-logs '.#${flakeConfigName}'";
-      nixlist = "sudo darwin-rebuild --list-generations";
       nixroll = "sudo darwin-rebuild switch --rollback";
+      nixlist = "sudo darwin-rebuild --list-generations";
 
       # System aliases
       nproc = "sysctl -n hw.logicalcpu";
