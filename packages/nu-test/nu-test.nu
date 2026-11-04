@@ -22,7 +22,7 @@ def install-stubs [file: string, dir: string]: nothing -> nothing {
   for stub in (ls $source | where name ends-with ".stub.nu" | get name) {
     let target = ($dir | path join ($stub | path basename | str replace ".stub.nu" ""))
     open --raw $stub
-    | str replace --regex '^#!.*' $"#!($nu.current-exe) --no-config-file"
+    | str replace --regex "^#!.*" $"#!($nu.current-exe) --no-config-file"
     | save $target
 
     ^chmod +x $target
@@ -34,7 +34,7 @@ def install-stubs [file: string, dir: string]: nothing -> nothing {
 def plan-file [file: string]: nothing -> record {
   let path = ($file | path expand)
   let scratch = (mktemp --directory)
-  let stubs = ($scratch | path join stubs)
+  let stubs = ($scratch | path join "stubs")
   install-stubs $file $stubs
   let query = "scope commands | where name starts-with 'test ' | get name | to json"
   let found = (nu-run $path $query $scratch $stubs)

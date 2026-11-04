@@ -12,14 +12,14 @@ const REPORT_PREFIX = "The pre-commit hooks reported problems in the edited file
 def gate-root [path: string]: nothing -> string {
   let dir = ($path | path dirname)
   let query = (
-    ^git -C $dir rev-parse --path-format=absolute --show-toplevel --git-path hooks/pre-commit
+    ^git -C $dir rev-parse --path-format=absolute --show-toplevel --git-path "hooks/pre-commit"
     | complete
   )
   if $query.exit_code != 0 { return "" }
   let lines = ($query.stdout | lines)
   let root = $lines.0
   let hook = $lines.1
-  let configs = [.pre-commit-config.yaml .pre-commit-config.yml prek.toml]
+  let configs = [".pre-commit-config.yaml" ".pre-commit-config.yml" "prek.toml"]
   if ($hook | path exists) and ($configs | any {|name| $root | path join $name | path exists }) {
     $root
   } else {
@@ -40,7 +40,7 @@ def failed-blocks [output: string]: nothing -> list<string> {
     if ($blocks | is-empty) {
       [$output]
     } else {
-      $blocks | where $it =~ '(?m)^- exit code:'
+      $blocks | where $it =~ "(?m)^- exit code:"
     }
   )
   $failed
@@ -83,7 +83,7 @@ def path-digests [paths: list<string>]: nothing -> list<string> {
 # The ids of the hooks that failed in `output`.
 def failed-hooks [output: string]: nothing -> list<string> {
   $output
-  | parse --regex '(?m)^- hook id: (?<id>.+)$'
+  | parse --regex "(?m)^- hook id: (?<id>.+)$"
   | get id
 }
 
