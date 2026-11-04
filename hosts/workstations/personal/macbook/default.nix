@@ -54,6 +54,7 @@
   # ------------------------------------------------------------------------------------------------
   home-manager.users.hakula = {
     hakula.claude-code.auth.defaultProfile = "official";
+    hakula.llm-assistants.proxy.enable = true;
     hakula.nix.configPath = "/Users/hakula/GitHub/nixos-config";
 
     hakula.rclone = {
