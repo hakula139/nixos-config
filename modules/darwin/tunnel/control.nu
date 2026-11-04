@@ -10,14 +10,14 @@ def main [
   action: string # up, down, or status. Run up and down with sudo.
   host?: string # SSH configuration entry that up connects through
   --user-name: string # Account that owns the SSH agent
-  --up-flag: path # File both services require to run, holding the SSH host
+  --up-flag: path # File holding the SSH host, which both services require to be non-empty
 ] {
   if $action not-in ["up" "down" "status"] {
     error make {msg: "Expected up, down, or status"}
   }
 
   if $action == "up" and ($host | is-empty) {
-    error make {msg: "Expected an SSH host: sudo tunnel up <host>"}
+    error make {msg: "Expected an SSH host. Run sudo tunnel up <host>."}
   }
 
   if $action != "status" and (^id -u | into int) != 0 {
@@ -46,7 +46,7 @@ def main [
       $host | save --force $up_flag
 
       for service in $targets {
-        let result = (^launchctl kickstart $service.target | complete)
+        let result = (^launchctl kickstart -k $service.target | complete)
         if $result.exit_code != 0 {
           error make {
             msg: $"Could not start ($service.name): ($result.stderr | str trim). Run sudo tunnel down to stop both services."
@@ -76,6 +76,11 @@ def main [
     }
 
     "status" => {
+      let host = (if ($up_flag | path exists) { open --raw $up_flag })
+      if ($host | is-not-empty) {
+        print $"host: ($host)"
+      }
+
       for service in $targets {
         print $"($service.name):"
         ^launchctl print $service.target

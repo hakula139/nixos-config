@@ -17,12 +17,12 @@ def control [
   argv: list<string>
   replies: list<record> = []
   state: string = "Running"
-  --requested
+  --flag: string
 ]: nothing -> record {
   let log = (mktemp)
   let up_flag = (mktemp --directory | path join "tunnel.up")
-  if $requested {
-    $HOST | save $up_flag
+  if $flag != null {
+    $flag | save $up_flag
   }
 
   let run = with-env {
@@ -83,11 +83,11 @@ def "test startup targets the configured account and checks Tailscale first" [] 
   assert equal (launchctl-calls $result) [
     {
       command: "launchctl"
-      args: [kickstart $SSH]
+      args: [kickstart -k $SSH]
     }
     {
       command: "launchctl"
-      args: [kickstart $RELAY]
+      args: [kickstart -k $RELAY]
     }
   ]
 }
@@ -99,14 +99,22 @@ def "test startup writes the host to the up flag before starting either service"
   assert equal ($result.calls | where command == "launchctl" | get up_host) [$HOST $HOST]
 }
 
+def "test rerunning startup replaces the host in the up flag" [] {
+  let result = (control --flag $HOST [up "other-host"])
+  assert equal $result.run.exit_code 0 $result.run.stderr
+
+  assert equal ($result.calls | where command == "launchctl" | get up_host) ["other-host" "other-host"]
+}
+
 def "test startup without a host starts nothing" [] {
   for argv in [["up"] ["up" ""]] {
+    let name = ($argv | to nuon)
     let result = (control $argv)
 
-    assert not equal $result.run.exit_code 0 ($argv | to nuon)
-    assert str contains $result.run.stderr "SSH host" ($argv | to nuon)
-    assert equal ($result.calls | where command != "id") [] ($argv | to nuon)
-    assert not $result.up_flag ($argv | to nuon)
+    assert not equal $result.run.exit_code 0 $name
+    assert str contains $result.run.stderr "SSH host" $name
+    assert equal ($result.calls | where command != "id") [] $name
+    assert not $result.up_flag $name
   }
 }
 
@@ -169,7 +177,7 @@ def "test stopping tolerates an already stopped process for either service" [] {
 }
 
 def "test stopping removes the up flag before stopping either service" [] {
-  let result = (control --requested [down])
+  let result = (control --flag $HOST [down])
   assert equal $result.run.exit_code 0 $result.run.stderr
 
   assert equal ($result.calls | where command == "launchctl" | get up_host) [null null]
@@ -233,4 +241,20 @@ def "test status preserves the launchd details of both components" [] {
       args: [print $RELAY]
     }
   ]
+}
+
+def "test status names the host only while the up flag holds one" [] {
+  let cases = [
+    [flag stdout];
+    [$HOST $"host: ($HOST)\nssh:\nrelay:\n"]
+    ["" "ssh:\nrelay:\n"]
+    [null "ssh:\nrelay:\n"]
+  ]
+
+  for case in $cases {
+    let result = (control --flag $case.flag [status])
+    assert equal $result.run.exit_code 0 $result.run.stderr
+
+    assert equal $result.run.stdout $case.stdout $"flag: ($case.flag | to nuon)"
+  }
 }
