@@ -37,7 +37,7 @@ unset peertube_credentials
 export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
 ```
 
-Decryption requires the corresponding agenix identity at the path shown. The repository's root `secrets.nix` maps these paths to the recipient rules. See [secrets](../../../docs/guides/secrets.md) for execution from other directories.
+Decryption requires the corresponding agenix identity at the path shown. The repository's root `agenix-rules.nix` maps these paths to the recipient rules. See [secrets](../../../docs/guides/secrets.md) for execution from other directories.
 
 ## Prepare the rendition
 
