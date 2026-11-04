@@ -82,7 +82,7 @@ Give a script a `<script>.test.nu` beside it when its output is easy to get subt
 
 - **Stubs**: a stand-in for an executable is `<executable>.stub.nu` beside the test, which the runner installs in `$env.NU_TEST_STUBS`. A stub that records calls appends JSON lines to `$env.STUB_LOG`, read back with `open $log | from json --objects`.
 
-- **Running**: `nu-test <file>...` runs each test in its own process. A test needing tools beyond Nushell, bash, and coreutils adds them to the check's inputs.
+- **Running**: `nu-test <file>...` runs every test concurrently, each in its own process and `TMPDIR`. A test needing tools beyond Nushell, bash, and coreutils adds them to the check's inputs.
 
 - **Refactors and ports**: diff every fixture's or representative payload's output from the old script (`git show HEAD:<path>`) against the rewrite, running both under the wrapper's runtime `PATH` so a pre-existing bug does not read as a regression. Do this before porting a hook, since a hook error leaves the tool call running and silently disables the hook.
 
