@@ -1,6 +1,6 @@
 # AGENTS.md: nixos-config
 
-Project-specific rules for any coding assistant working in this repository, limited to what applies to every task. `CLAUDE.md` is a symlink to this file.
+Project-specific rules for any coding assistant working in this repository. `CLAUDE.md` is a symlink to this file.
 
 ## Read before you edit
 
@@ -18,7 +18,7 @@ Project-specific rules for any coding assistant working in this repository, limi
 
 ## Layout
 
-Wrap code and comments at 100 columns including the indent (Python follows ruff's 88), and keep a single-line string literal on one line at any length. nixfmt does not reflow comments. Every language uses the [section banners](docs/conventions/nix.md#section-banners).
+Wrap code and comments at 100 columns including the indent (Python follows ruff's 88), and keep a single-line string literal whole at any length. nixfmt does not reflow comments. Every language uses the [section banners](docs/conventions/nix.md#section-banners).
 
 ## Repository safeguards
 
@@ -38,13 +38,13 @@ nix build '.#packages.x86_64-linux.devvm-docker'
 
 Host out paths change on every source edit because `home/modules/shared.nix` pins `inputs.self.outPath` into the Nix registry. To show that a refactor preserves behavior, compare the attributes or built files it affects before and after, excluding `registry.json` when diffing `home-manager-files`.
 
-Because the shell hook relinks the gitignored pre-commit hook only on shell entry, run `nix develop` once in a worktree under `.claude/worktrees/` to link it, and again after any rebase or merge that changes the hook configuration.
+Because the shell hook links the gitignored `.pre-commit-config.yaml` only on shell entry, run `nix develop` once in a worktree under `.claude/worktrees/`, and again after any rebase or merge that changes the hook configuration.
 
 ## Documentation maintenance
 
-Each rule has one home that other pages link to. Add a constraint to `AGENTS.md` or `docs/` only if it is invisible, is destructive, or has already cost someone a debugging session, and leave out anything a model can infer from the code, tool behavior, or `git log`. State each rule once as a principle, explain why only when the reason is not obvious, and include an example only if the rule would be ambiguous without one.
+Each rule has one home that other pages link to. Add a constraint to `AGENTS.md` or `docs/` only if it is invisible, is destructive, or has already cost someone a debugging session, and leave out anything a model can infer from the code, tool behavior, or `git log`.
 
 - `README.md` is for a human evaluating or operating the repo, so keep internal progress out of it.
-- `AGENTS.md` and `docs/` are for whoever is changing the code.
+- `AGENTS.md` and `docs/` are for whoever is changing the code, with `AGENTS.md` limited to what applies to every task.
 - Keep the Layout tree in [docs/reference/architecture.md](docs/reference/architecture.md) accurate at its current depth, and add prose below it only for knowledge every module author needs.
-- When a change affects host wiring or commands, update the architecture's host table or the README's usage instructions.
+- Update the architecture's host table when host wiring changes, and the README's usage instructions when commands change.
