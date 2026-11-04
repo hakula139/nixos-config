@@ -5,6 +5,13 @@
 # ==================================================================================================
 
 def --wrapped main [...args: string] {
-  {command: tailscale, args: $args} | to json --raw | $"($in)\n" | save --append $env.STUB_LOG
+  {
+    command: tailscale
+    args: $args
+  }
+  | to json --raw
+  | $"($in)\n"
+  | save --append $env.STUB_LOG
+
   {BackendState: $env.STUB_TAILSCALE_STATE} | to json --raw | print
 }

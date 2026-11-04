@@ -5,7 +5,14 @@
 # ==================================================================================================
 
 def --wrapped main [...args: string] {
-  {command: launchctl, args: $args} | to json --raw | $"($in)\n" | save --append $env.STUB_LOG
+  {
+    command: launchctl
+    args: $args
+    up_flag: ($env.STUB_UP_FLAG | path exists)
+  }
+  | to json --raw
+  | $"($in)\n"
+  | save --append $env.STUB_LOG
 
   let reply = (
     $env.STUB_REPLIES

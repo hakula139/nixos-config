@@ -19,6 +19,8 @@ let
   gatewayHost = corpHosts.llmGateway;
   localPort = 8443;
 
+  upFlag = "/var/run/tunnel.up";
+
   hostsScript = pkgs.writers.writeNu "tunnel-hosts" (builtins.readFile ./hosts.nu);
 
   controlPackage = pkgs.writers.writeNuBin "tunnel" {
@@ -36,22 +38,56 @@ let
 
       "--add-flag"
       userName
+
+      "--add-flag"
+      "--up-flag"
+
+      "--add-flag"
+      upFlag
     ];
   } (builtins.readFile ./control.nu);
 
-  tunnelScript = pkgs.writeShellScript "tunnel" ''
-    set -euo pipefail
+  # The gate exits 0, which ends launchd's restarts after tunnel down.
+  mkGatedScript =
+    name: command:
+    pkgs.writeShellScript name ''
+      set -euo pipefail
 
-    exec ${lib.getExe' pkgs.openssh "ssh"} \
-      -N \
-      -o BatchMode=yes \
-      -o ConnectTimeout=10 \
-      -o ExitOnForwardFailure=yes \
-      -o ForwardAgent=no \
-      -o ServerAliveInterval=30 \
-      -L 127.0.0.1:${toString localPort}:${gatewayHost}:443 \
-      Hakula-Work
-  '';
+      [[ -e ${lib.escapeShellArg upFlag} ]] || exit 0
+      exec ${lib.escapeShellArgs command}
+    '';
+
+  relayScript = mkGatedScript "tunnel-relay" [
+    (lib.getExe pkgs.socat)
+    "TCP-LISTEN:443,bind=127.0.0.1,reuseaddr,fork"
+    "TCP:127.0.0.1:${toString localPort}"
+  ];
+
+  tunnelScript = mkGatedScript "tunnel" [
+    (lib.getExe' pkgs.openssh "ssh")
+
+    "-N"
+
+    "-o"
+    "BatchMode=yes"
+
+    "-o"
+    "ConnectTimeout=10"
+
+    "-o"
+    "ExitOnForwardFailure=yes"
+
+    "-o"
+    "ForwardAgent=no"
+
+    "-o"
+    "ServerAliveInterval=30"
+
+    "-L"
+    "127.0.0.1:${toString localPort}:${gatewayHost}:443"
+
+    "Hakula-Work"
+  ];
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -92,15 +128,11 @@ in
       # Launchd daemons (macOS)
       # --------------------------------------------------------------------------------------------
       launchd.daemons.tunnel.serviceConfig = {
-        ProgramArguments = [
-          (lib.getExe pkgs.socat)
-          "TCP-LISTEN:443,bind=127.0.0.1,reuseaddr,fork"
-          "TCP:127.0.0.1:${toString localPort}"
-        ];
-
-        RunAtLoad = false;
-        KeepAlive = false;
+        ProgramArguments = [ "${relayScript}" ];
+        RunAtLoad = true;
+        KeepAlive.SuccessfulExit = false;
         ProcessType = "Background";
+        ThrottleInterval = 30;
         StandardOutPath = "/var/log/tunnel.log";
         StandardErrorPath = "/var/log/tunnel.log";
       };
@@ -124,9 +156,10 @@ in
           config = {
             Label = "com.hakula.tunnel";
             ProgramArguments = [ "${tunnelScript}" ];
-            RunAtLoad = false;
-            KeepAlive = false;
+            RunAtLoad = true;
+            KeepAlive.SuccessfulExit = false;
             ProcessType = "Background";
+            ThrottleInterval = 30;
             StandardOutPath = "${homeDir}/Library/Logs/tunnel.log";
             StandardErrorPath = "${homeDir}/Library/Logs/tunnel.log";
           };

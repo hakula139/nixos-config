@@ -4,10 +4,12 @@
 # Network Tunnel Control
 # ==================================================================================================
 
-# Start or stop both tunnel services. Startup requires Tailscale to be connected.
+# Start or stop both tunnel services. Startup requires Tailscale to be connected, and launchd then
+# restarts a failed service until tunnel down or a reboot.
 def main [
   action: string # up, down, or status. Run up and down with sudo.
   --user-name: string # Account that owns the SSH agent
+  --up-flag: path # File both services require to run
 ] {
   if $action not-in [up down status] {
     error make {msg: "Expected up, down, or status"}
@@ -19,8 +21,14 @@ def main [
 
   let uid = (^id -u $user_name | str trim)
   let targets = [
-    {name: "ssh", target: $"gui/($uid)/com.hakula.tunnel"}
-    {name: "relay", target: "system/org.nixos.tunnel"}
+    {
+      name: "ssh"
+      target: $"gui/($uid)/com.hakula.tunnel"
+    }
+    {
+      name: "relay"
+      target: "system/org.nixos.tunnel"
+    }
   ]
 
   match $action {
@@ -29,6 +37,8 @@ def main [
       if $state != "Running" {
         error make {msg: $"Tailscale is ($state). Run sudo tailscale up first."}
       }
+
+      touch $up_flag
 
       for service in $targets {
         let result = (^launchctl kickstart $service.target | complete)
@@ -41,7 +51,10 @@ def main [
 
       print "Tunnel startup requested. Use tunnel status to inspect the services."
     }
+
     "down" => {
+      rm --force $up_flag
+
       mut failures = []
       for service in $targets {
         let result = (^launchctl kill SIGTERM $service.target | complete)
@@ -56,6 +69,7 @@ def main [
 
       print "Tunnel services stopped."
     }
+
     "status" => {
       for service in $targets {
         print $"($service.name):"
