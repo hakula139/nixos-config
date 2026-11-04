@@ -32,6 +32,7 @@
   # Home Manager Overrides
   # ------------------------------------------------------------------------------------------------
   home-manager.users.${config.hakula.user.name} = {
+    hakula.llm-assistants.proxy.enable = true;
     hakula.wsl.enable = true;
   };
 
