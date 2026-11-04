@@ -22,6 +22,11 @@ let
 
   installWindowsFonts = pkgs.writers.writeNuBin "install-windows-fonts" {
     makeWrapperArgs = [
+      "--prefix"
+      "PATH"
+      ":"
+      (lib.makeBinPath [ pkgs.iconv ])
+
       "--add-flag"
       "${fontConfig}"
     ];
