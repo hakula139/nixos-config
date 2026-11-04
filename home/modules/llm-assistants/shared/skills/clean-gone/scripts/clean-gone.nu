@@ -13,20 +13,20 @@
 # --------------------------------------------------------------------------------------------------
 
 # Exit code alone, for the git plumbing commands used as predicates.
-def git-succeeds [...args: string]: nothing -> bool {
+def --wrapped git-succeeds [...args: string]: nothing -> bool {
   (^git ...$args | complete).exit_code == 0
 }
 
-def git-out [...args: string]: nothing -> string {
+def --wrapped git-out [...args: string]: nothing -> string {
   let r = (^git ...$args | complete)
   if $r.exit_code == 0 { $r.stdout | str trim } else { "" }
 }
 
 def commit-exists [ref: string]: nothing -> bool {
-  git-succeeds "rev-parse" "--verify" "--quiet" $"($ref)^{commit}"
+  git-succeeds rev-parse --verify --quiet $"($ref)^{commit}"
 }
 
-def nul-list [...args: string]: nothing -> list<string> {
+def --wrapped nul-list [...args: string]: nothing -> list<string> {
   ^git ...$args | split row (char nul) | where $it != ""
 }
 
@@ -67,7 +67,7 @@ def resolve-base [remote: string, base_override: string]: nothing -> string {
     return $base_override
   }
 
-  let head = (git-out "symbolic-ref" "--quiet" $"refs/remotes/($remote)/HEAD")
+  let head = (git-out symbolic-ref --quiet $"refs/remotes/($remote)/HEAD")
   if ($head | is-not-empty) and (commit-exists $head) {
     return $head
   }
@@ -84,17 +84,17 @@ def resolve-base [remote: string, base_override: string]: nothing -> string {
 def branch-is-integrated [branch: string, base_ref: string]: nothing -> bool {
   let branch_ref = $"refs/heads/($branch)"
 
-  if (git-succeeds "merge-base" "--is-ancestor" $branch_ref $base_ref) {
+  if (git-succeeds merge-base --is-ancestor $branch_ref $base_ref) {
     return true
   }
 
-  let merge_base = (git-out "merge-base" $base_ref $branch_ref)
+  let merge_base = (git-out merge-base $base_ref $branch_ref)
   if ($merge_base | is-empty) {
     return false
   }
 
   # An empty net diff (an add later reverted) is integrated by definition.
-  let changed = (nul-list "diff" "--name-only" "--no-renames" "-z" $merge_base $branch_ref)
+  let changed = (nul-list diff --name-only --no-renames -z $merge_base $branch_ref)
   if ($changed | is-empty) {
     return true
   }
@@ -102,11 +102,11 @@ def branch-is-integrated [branch: string, base_ref: string]: nothing -> bool {
   # `:(literal)` keeps a path containing `*` or `[` from being read as a glob.
   let pathspecs = ($changed | each {|p| ":\(literal)" + $p })
   let candidates = (
-    git-out "rev-list" "--first-parent" $base_ref $"^($merge_base)" | lines
+    git-out rev-list --first-parent $base_ref $"^($merge_base)" | lines
   )
 
   for candidate in $candidates {
-    if (git-succeeds "diff" "--quiet" $branch_ref $candidate "--" ...$pathspecs) {
+    if (git-succeeds diff --quiet $branch_ref $candidate -- ...$pathspecs) {
       return true
     }
   }
@@ -123,7 +123,7 @@ def main [
   --apply # Perform the reported removals instead of only printing them
   --base: string = "" # Override the remote default branch used as the integration base
 ] {
-  let repo_root = (git-out "rev-parse" "--show-toplevel")
+  let repo_root = (git-out rev-parse --show-toplevel)
   if ($repo_root | is-empty) {
     die "run this script inside a Git worktree"
   }
@@ -135,7 +135,9 @@ def main [
   let worktrees = (worktree-map)
 
   let gone = (
-    ^git for-each-ref --format='%(refname:strip=2)%09%(upstream:track)%09%(upstream:remotename)' refs/heads/
+    ^git for-each-ref
+      --format="%(refname:strip=2)%09%(upstream:track)%09%(upstream:remotename)"
+      refs/heads/
     | lines
     | parse "{branch}\t{tracking}\t{remote}"
     | where ($it.tracking | str contains "gone")
@@ -209,7 +211,7 @@ def main [
       continue
     }
 
-    if ($worktree | is-not-empty) and (not (git-succeeds "worktree" "remove" $worktree)) {
+    if ($worktree | is-not-empty) and (not (git-succeeds worktree remove $worktree)) {
       print -e $"SKIP ($branch): failed to remove worktree ($worktree)"
       $skipped += 1
       continue

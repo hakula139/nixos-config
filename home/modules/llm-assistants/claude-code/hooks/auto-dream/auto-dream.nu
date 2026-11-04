@@ -17,7 +17,7 @@ const NUDGE_DIR = $nu.cache-dir | path join "claude-code" "auto-dream"
 
 # Claude Code's project directory name for a path
 def project-slug [path: string]: nothing -> string {
-  $path | str replace --all --regex '[^a-zA-Z0-9]' '-'
+  $path | str replace --all --regex "[^a-zA-Z0-9]" "-"
 }
 
 # All worktrees of a repository share the main worktree's memory store.
@@ -40,7 +40,7 @@ def memories [store: string]: nothing -> list<string> {
   }
 
   ls $store
-  | where type == file and ($it.name | str ends-with ".md")
+  | where type == "file" and ($it.name | str ends-with ".md")
   | get name
   | where ($it | path basename) != "MEMORY.md"
 }
@@ -48,10 +48,10 @@ def memories [store: string]: nothing -> list<string> {
 # Worktree and subdirectory sessions keep transcripts in directories whose names extend the slug.
 def sessions-since [slug: string, since: datetime, current: string]: nothing -> int {
   ls $PROJECTS_DIR
-  | where type == dir and ($it.name | path basename | str starts-with $slug)
+  | where type == "dir" and ($it.name | path basename | str starts-with $slug)
   | each {|dir| ls $dir.name }
   | flatten
-  | where type == file and ($it.name | str ends-with ".jsonl") and $it.modified > $since
+  | where type == "file" and ($it.name | str ends-with ".jsonl") and $it.modified > $since
   | where ($it.name | path parse | get stem) != $current
   | length
 }
@@ -84,10 +84,10 @@ def nudge [config: record, input: record]: nothing -> any {
   let last = if $since == (0 | into datetime) { "none recorded" } else { $since | format date "%Y-%m-%d" }
   let context = (
     $config.prompt
-    | str replace --all '@model@' $config.model
-    | str replace --all '@sessions@' ($sessions | into string)
-    | str replace --all '@since@' $last
-    | str replace --all '@store@' $store
+    | str replace --all "@model@" $config.model
+    | str replace --all "@sessions@" ($sessions | into string)
+    | str replace --all "@since@" $last
+    | str replace --all "@store@" $store
   )
 
   # SessionStart feeds `additionalContext` to the model, while `systemMessage` reaches only the user.

@@ -6,8 +6,8 @@
 
 use std/assert
 
-const SCRIPT_DIR = path self .
-const SCRIPT = ($SCRIPT_DIR | path join control.nu)
+const SCRIPT_DIR = path self "."
+const SCRIPT = ($SCRIPT_DIR | path join "control.nu")
 
 const HOST = "bastion"
 const RELAY = "system/org.nixos.tunnel"
@@ -20,7 +20,7 @@ def control [
   --requested
 ]: nothing -> record {
   let log = (mktemp)
-  let up_flag = (mktemp --directory | path join tunnel.up)
+  let up_flag = (mktemp --directory | path join "tunnel.up")
   if $requested {
     $HOST | save $up_flag
   }
@@ -50,13 +50,13 @@ def control [
 
 def launchctl-calls [result: record]: nothing -> list<record> {
   $result.calls
-  | where command == launchctl
+  | where command == "launchctl"
   | select command args
   | sort-by {|call| $call.args | last}
 }
 
 def "test a stopped Tailscale backend cannot start either tunnel service" [] {
-  for state in [Stopped NeedsLogin] {
+  for state in ["Stopped" "NeedsLogin"] {
     let result = (control [up $HOST] [] $state)
 
     assert not equal $result.run.exit_code 0 $state
@@ -68,7 +68,7 @@ def "test a stopped Tailscale backend cannot start either tunnel service" [] {
 
 def "test startup targets the configured account and checks Tailscale first" [] {
   let id_call = {
-    command: id
+    command: "id"
     args: [-u example-user]
   }
 
@@ -76,17 +76,17 @@ def "test startup targets the configured account and checks Tailscale first" [] 
   assert equal $result.run.exit_code 0 $result.run.stderr
 
   assert ($id_call in $result.calls)
-  assert equal ($result.calls | where command != id | first) {
-    command: tailscale
+  assert equal ($result.calls | where command != "id" | first) {
+    command: "tailscale"
     args: [status --json]
   }
   assert equal (launchctl-calls $result) [
     {
-      command: launchctl
+      command: "launchctl"
       args: [kickstart $SSH]
     }
     {
-      command: launchctl
+      command: "launchctl"
       args: [kickstart $RELAY]
     }
   ]
@@ -96,16 +96,16 @@ def "test startup writes the host to the up flag before starting either service"
   let result = (control [up $HOST])
   assert equal $result.run.exit_code 0 $result.run.stderr
 
-  assert equal ($result.calls | where command == launchctl | get up_host) [$HOST $HOST]
+  assert equal ($result.calls | where command == "launchctl" | get up_host) [$HOST $HOST]
 }
 
 def "test startup without a host starts nothing" [] {
-  for argv in [[up] [up ""]] {
+  for argv in [["up"] ["up" ""]] {
     let result = (control $argv)
 
     assert not equal $result.run.exit_code 0 ($argv | to nuon)
     assert str contains $result.run.stderr "SSH host" ($argv | to nuon)
-    assert equal ($result.calls | where command != id) [] ($argv | to nuon)
+    assert equal ($result.calls | where command != "id") [] ($argv | to nuon)
     assert not $result.up_flag ($argv | to nuon)
   }
 }
@@ -114,7 +114,7 @@ def "test a startup failure reports the affected component and how to stop parti
   for target in [$SSH $RELAY] {
     let replies = [
       {
-        action: kickstart
+        action: "kickstart"
         target: $target
         exit_code: 5
         stderr: "service disabled"
@@ -133,20 +133,20 @@ def "test a startup failure reports the affected component and how to stop parti
 def "test stopping tolerates an already stopped process for either service" [] {
   let cases = [
     [name relay ssh];
-    [both_stopped 3 3]
-    [ssh_stopped 0 3]
-    [relay_stopped 3 0]
+    ["both_stopped" 3 3]
+    ["ssh_stopped" 0 3]
+    ["relay_stopped" 3 0]
   ]
 
   for case in $cases {
     let replies = [
       {
-        action: kill
+        action: "kill"
         target: $RELAY
         exit_code: $case.relay
       }
       {
-        action: kill
+        action: "kill"
         target: $SSH
         exit_code: $case.ssh
       }
@@ -157,11 +157,11 @@ def "test stopping tolerates an already stopped process for either service" [] {
 
     assert equal (launchctl-calls $result) [
       {
-        command: launchctl
+        command: "launchctl"
         args: [kill SIGTERM $SSH]
       }
       {
-        command: launchctl
+        command: "launchctl"
         args: [kill SIGTERM $RELAY]
       }
     ] $case.name
@@ -172,14 +172,14 @@ def "test stopping removes the up flag before stopping either service" [] {
   let result = (control --requested [down])
   assert equal $result.run.exit_code 0 $result.run.stderr
 
-  assert equal ($result.calls | where command == launchctl | get up_host) [null null]
+  assert equal ($result.calls | where command == "launchctl" | get up_host) [null null]
 }
 
 def "test an unexpected stop failure is reported after both services are attempted" [] {
   for target in [$RELAY $SSH] {
     let replies = [
       {
-        action: kill
+        action: "kill"
         target: $target
         exit_code: 5
         stderr: "permission denied"
@@ -192,11 +192,11 @@ def "test an unexpected stop failure is reported after both services are attempt
     assert str contains $result.run.stderr "permission denied" $target
     assert equal (launchctl-calls $result) [
       {
-        command: launchctl
+        command: "launchctl"
         args: [kill SIGTERM $SSH]
       }
       {
-        command: launchctl
+        command: "launchctl"
         args: [kill SIGTERM $RELAY]
       }
     ] $target
@@ -206,12 +206,12 @@ def "test an unexpected stop failure is reported after both services are attempt
 def "test status preserves the launchd details of both components" [] {
   let replies = [
     {
-      action: print
+      action: "print"
       target: $RELAY
       stdout: "relay: state = not running\nlast exit code = 0"
     }
     {
-      action: print
+      action: "print"
       target: $SSH
       stdout: "ssh: state = running\npid = 1234"
     }
@@ -225,11 +225,11 @@ def "test status preserves the launchd details of both components" [] {
   }
   assert equal (launchctl-calls $result) [
     {
-      command: launchctl
+      command: "launchctl"
       args: [print $SSH]
     }
     {
-      command: launchctl
+      command: "launchctl"
       args: [print $RELAY]
     }
   ]

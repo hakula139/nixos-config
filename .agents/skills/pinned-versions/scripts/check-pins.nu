@@ -68,8 +68,8 @@ def flake-attr [root: string, attr: string, field: string, --json]: nothing -> s
 # Whether the left version is at or above the right one. The release core compares first, and a
 # final release ranks above the same core's pre-release.
 def version-at-least [left: string, right: string]: nothing -> bool {
-  let left_core = ($left | split row "-" | first | str replace -r '^v' '')
-  let right_core = ($right | split row "-" | first | str replace -r '^v' '')
+  let left_core = ($left | split row "-" | first | str replace -r "^v" "")
+  let right_core = ($right | split row "-" | first | str replace -r "^v" "")
   let left_suffix = ($left | split row "-" | skip 1 | str join "-")
   let right_suffix = ($right | split row "-" | skip 1 | str join "-")
 
@@ -164,7 +164,7 @@ def nix-version-v [root: string, file: string]: nothing -> string {
 def image-tag [root: string, file: string]: nothing -> string {
   open --raw ([$root $file] | path join)
   | lines
-  | skip until {|l| $l =~ 'image = lib.mkOption' }
+  | skip until {|l| $l =~ "image = lib.mkOption" }
   | take until {|l| $l =~ '^\s*};\s*$' }
   | str join "\n"
   | parse --regex 'default = "[^"]*:(?<v>[^"]+)"'
@@ -176,7 +176,7 @@ def action-pins [root: string]: nothing -> list<string> {
   | each {|dir| glob ([$root $dir "**" "*"] | path join) }
   | flatten
   | where {|p|
-    ($p | path type) == "file" and ($p | path parse | get extension) in [yml yaml]
+    ($p | path type) == "file" and ($p | path parse | get extension) in ["yml" "yaml"]
   }
   | each {|p|
     let doc = (open $p)
@@ -212,14 +212,14 @@ def override-rows [root: string, overrides: list<record>]: nothing -> list<recor
 
     {
       pin: $name
-      local: {|| flake-attr $root $local_attr "version" }
-      upstream: {|| gh-latest-release $override.repo | str replace -r '^v' '' }
+      local: {|| flake-attr $root $local_attr version }
+      upstream: {|| gh-latest-release $override.repo | str replace -r "^v" "" }
       status: {|pinned, latest|
         if not ([$root $file] | path join | path exists) {
           print -e $"  ($name): ($file) is missing"
           "UNKNOWN"
         } else {
-          let unstable = (flake-attr $root $unstable_attr "version")
+          let unstable = (flake-attr $root $unstable_attr version)
           let pinned_in_file = (try { nix-version $root $file } catch { "" })
 
           if ($unstable | is-empty) {
@@ -233,10 +233,10 @@ def override-rows [root: string, overrides: list<record>]: nothing -> list<recor
               "ok"
             }
           } else {
-            let local_drv = (flake-attr $root $local_attr "drvPath")
-            let unstable_drv = (flake-attr $root $unstable_attr "drvPath")
-            let local_platforms = (flake-attr $root $local_attr "meta.platforms" --json)
-            let unstable_platforms = (flake-attr $root $unstable_attr "meta.platforms" --json)
+            let local_drv = (flake-attr $root $local_attr drvPath)
+            let unstable_drv = (flake-attr $root $unstable_attr drvPath)
+            let local_platforms = (flake-attr $root $local_attr meta.platforms --json)
+            let unstable_platforms = (flake-attr $root $unstable_attr meta.platforms --json)
             let evaluated = [$local_drv $unstable_drv $local_platforms $unstable_platforms]
 
             if (version-older $unstable $latest) {
@@ -276,19 +276,19 @@ def registry [root: string]: nothing -> list<record> {
           local: {||
             nix-attr $root "flake.nix" 'github:hakula139/agent-project-move/(?<v>[^"]+)'
           }
-          upstream: {|| gh-latest-release "hakula139/agent-project-move" }
+          upstream: {|| gh-latest-release hakula139/agent-project-move }
         }
         {
           pin: "listenbrainz-scrobbler"
           local: {||
             nix-attr $root "flake.nix" 'github:hakula139/listenbrainz-scrobbler/(?<v>[^"]+)'
           }
-          upstream: {|| gh-latest-release "hakula139/listenbrainz-scrobbler" }
+          upstream: {|| gh-latest-release hakula139/listenbrainz-scrobbler }
         }
         {
           pin: "oxide-code"
           local: {|| nix-attr $root "flake.nix" 'github:hakula139/oxide-code/(?<v>[^"]+)' }
-          upstream: {|| gh-newest-release "hakula139/oxide-code" }
+          upstream: {|| gh-newest-release hakula139/oxide-code }
         }
       ]
     }
@@ -297,8 +297,8 @@ def registry [root: string]: nothing -> list<record> {
       pins: [
         {
           pin: "claude-plugins-official"
-          local: {|| abbrev (plugin-rev $root "claude-plugins-official") }
-          upstream: {|| abbrev (gh-default-head "anthropics/claude-plugins-official") }
+          local: {|| abbrev (plugin-rev $root claude-plugins-official) }
+          upstream: {|| abbrev (gh-default-head anthropics/claude-plugins-official) }
         }
         {
           pin: "workmux"
@@ -317,7 +317,7 @@ def registry [root: string]: nothing -> list<record> {
             abbrev (nix-attr $root $file 'rev = "(?<v>[0-9a-f]+)"')
           }
           # Upstream publishes tags without GitHub release objects.
-          upstream: {|| abbrev (gh-newest-tag-head "TerrifiedBug/omp-telegram") }
+          upstream: {|| abbrev (gh-newest-tag-head TerrifiedBug/omp-telegram) }
         }
       ]
     }
@@ -327,27 +327,27 @@ def registry [root: string]: nothing -> list<record> {
         {
           pin: "acpx"
           local: {|| nix-version-v $root "packages/acpx/default.nix" }
-          upstream: {|| gh-latest-release "openclaw/acpx" }
+          upstream: {|| gh-latest-release openclaw/acpx }
         }
         {
           pin: "cloudreve"
           local: {|| nix-version $root "packages/cloudreve/default.nix" }
-          upstream: {|| gh-latest-release "cloudreve/cloudreve" }
+          upstream: {|| gh-latest-release cloudreve/cloudreve }
         }
         {
           pin: "mcp-server-github"
           local: {|| nix-version-v $root "packages/mcp/mcp-server-github/default.nix" }
-          upstream: {|| gh-latest-release "github/github-mcp-server" }
+          upstream: {|| gh-latest-release github/github-mcp-server }
         }
         {
           pin: "mcp-server-gitlab"
           local: {|| nix-version-v $root "packages/mcp/mcp-server-gitlab/default.nix" }
-          upstream: {|| gh-latest-release "zereight/gitlab-mcp" }
+          upstream: {|| gh-latest-release zereight/gitlab-mcp }
         }
         {
           pin: "thaw"
           local: {|| nix-version $root "packages/thaw/default.nix" }
-          upstream: {|| gh-newest-release "thaw-app/Thaw" }
+          upstream: {|| gh-newest-release thaw-app/Thaw }
         }
         {
           pin: "zsh-hist"
@@ -355,7 +355,7 @@ def registry [root: string]: nothing -> list<record> {
             let file = "packages/zsh-hist/default.nix"
             abbrev (nix-attr $root $file 'rev = "(?<v>[0-9a-f]+)"')
           }
-          upstream: {|| abbrev (gh-default-head "marlonrichert/zsh-hist") }
+          upstream: {|| abbrev (gh-default-head marlonrichert/zsh-hist) }
         }
       ]
     }
@@ -375,9 +375,9 @@ def registry [root: string]: nothing -> list<record> {
           pin: "toasty"
           local: {||
             let file = "home/modules/llm-assistants/shared/notify/default.nix"
-            nix-attr $root $file 'download/(?<v>v?[0-9.]+)'
+            nix-attr $root $file "download/(?<v>v?[0-9.]+)"
           }
-          upstream: {|| gh-latest-release-with-asset "shanselman/toasty" "toasty-x64.exe" }
+          upstream: {|| gh-latest-release-with-asset shanselman/toasty "toasty-x64.exe" }
         }
       ]
     }
@@ -387,7 +387,7 @@ def registry [root: string]: nothing -> list<record> {
         {
           pin: "umami"
           local: {|| image-tag $root "modules/nixos/umami/default.nix" }
-          upstream: {|| gh-latest-release "umami-software/umami" | str replace -r '^v' '' }
+          upstream: {|| gh-latest-release umami-software/umami | str replace -r "^v" "" }
         }
       ]
     }

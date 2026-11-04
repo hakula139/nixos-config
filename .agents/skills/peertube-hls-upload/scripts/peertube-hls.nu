@@ -9,7 +9,7 @@
 # Run with --help for usage.
 # ==================================================================================================
 
-const SCRIPT_DIR = path self .
+const SCRIPT_DIR = path self "."
 
 # --------------------------------------------------------------------------------------------------
 # Configuration
@@ -31,11 +31,11 @@ const X264_PROFILE = "high"
 const X264_B_STRATEGY = "1"
 const X264_BF = "16"
 
-const CREDENTIAL_HINT = "B2 credentials not set. Run in Bash from the repository root:
+const CREDENTIAL_HINT = 'B2 credentials not set. Run in Bash from the repository root:
   peertube_credentials=$(agenix -d secrets/peertube/env.age -i ~/.ssh/CloudCone/id_ed25519) || exit 1
-  eval \"$peertube_credentials\"
+  eval "$peertube_credentials"
   unset peertube_credentials
-  export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY"
+  export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY'
 
 # --------------------------------------------------------------------------------------------------
 # Queries
@@ -91,13 +91,13 @@ def die [msg: string] {
 }
 
 def require-uuid [value: string] {
-  if not ($value =~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') {
+  if not ($value =~ "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$") {
     die $"invalid UUID: ($value)"
   }
 }
 
 def require-int [value: string] {
-  if not ($value =~ '^[0-9]+$') {
+  if not ($value =~ "^[0-9]+$") {
     die $"invalid integer: ($value)"
   }
 }
@@ -211,13 +211,13 @@ def "main transcode" [
   let m3u8 = (m3u8-path $file_uuid $resolution)
 
   let hls_args = [
-    "-f" "hls"
-    "-hls_time" "4"
-    "-hls_list_size" "0"
-    "-hls_playlist_type" "vod"
-    "-hls_segment_type" "fmp4"
-    "-hls_flags" "single_file"
-    "-hls_segment_filename" $fmp4
+    -f hls
+    -hls_time "4"
+    -hls_list_size "0"
+    -hls_playlist_type vod
+    -hls_segment_type fmp4
+    -hls_flags single_file
+    -hls_segment_filename $fmp4
   ]
 
   match $mode {
@@ -339,14 +339,14 @@ def "main db-update-meta" [file_id: string, file_uuid: string, resolution: strin
 # Print the x264 encoding parameters recorded in a local file or remote URL.
 def "main verify" [target: string] {
   let output = (
-    if ($target =~ '^https?://') {
+    if ($target =~ "^https?://") {
       print "Fetching first 256 KB from remote..."
-      http get --raw --headers [Range bytes=0-262143] $target | ^strings
+      http get --raw --headers ["Range" "bytes=0-262143"] $target | ^strings
     } else {
       require-file $target "file not found"
       ^strings -- $target
     }
-    | ^grep 'x264.*options:'
+    | ^grep "x264.*options:"
     | complete
   )
 

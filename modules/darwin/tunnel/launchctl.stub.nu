@@ -6,7 +6,7 @@
 
 def --wrapped main [...args: string] {
   {
-    command: launchctl
+    command: "launchctl"
     args: $args
     up_host: (if ($env.STUB_UP_FLAG | path exists) { open --raw $env.STUB_UP_FLAG })
   }

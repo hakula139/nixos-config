@@ -9,7 +9,7 @@
 # ==================================================================================================
 
 def --wrapped main [...args: string] {
-  {tool: direnv, args: $args} | to json --raw | $"($in)\n" | save --append $env.STUB_LOG
+  {tool: "direnv", args: $args} | to json --raw | $"($in)\n" | save --append $env.STUB_LOG
 
   hide-env DIRENV_DIFF
   hide-env --ignore-errors IN_NIX_SHELL

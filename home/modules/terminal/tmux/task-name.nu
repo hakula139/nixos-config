@@ -11,9 +11,9 @@
 # The session name comes last because it may contain the separator. An unknown pane prints empty
 # fields, since display-message tolerates a missing target.
 const FORMAT = ([
-  '#{pane_id}' '#{session_id}' '#{session_windows}' '#{window_panes}' '#{@workmux_token}'
-  '#{session_name}'
-] | str join '|')
+  "#{pane_id}" "#{session_id}" "#{session_windows}" "#{window_panes}" "#{@workmux_token}"
+  "#{session_name}"
+] | str join "|")
 
 # A line of FORMAT output
 const FIELDS = (
@@ -48,7 +48,7 @@ def main [
     skip "Workmux manages its window"
   } else {
     ^tmux rename-session -t $session.id $name
-    let renamed = ^tmux display-message -p -t $pane '#{session_name}' | str trim
+    let renamed = ^tmux display-message -p -t $pane "#{session_name}" | str trim
     if $renamed != $name {
       error make {msg: $"session ($session.id) is named '($renamed)' after renaming to '($name)'"}
     }

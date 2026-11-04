@@ -16,7 +16,7 @@ def main [package: string] {
   if $daemon.backend? == null { return }
 
   let selected = ($daemon.managedCodexPath | path expand)
-  if $selected == ($package | path join 'libexec/codex/bin/codex' | path expand) { return }
+  if $selected == ($package | path join "libexec/codex/bin/codex" | path expand) { return }
 
   ^codex app-server daemon stop
 }

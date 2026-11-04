@@ -7,8 +7,8 @@
 use std/assert
 use std-rfc/str
 
-const SCRIPT_DIR = path self .
-const SCRIPT = ($SCRIPT_DIR | path join patch-input.nu)
+const SCRIPT_DIR = path self "."
+const SCRIPT = ($SCRIPT_DIR | path join "patch-input.nu")
 
 def parse-patch [patch: string]: nothing -> list<record> {
   $patch | ^$nu.current-exe --no-config-file $SCRIPT | from json
@@ -38,8 +38,8 @@ def "test reports each file with only its added lines" [] {
   # editorconfig-checker-enable
 
   assert equal (parse-patch $patch) [
-    {action: Add, path: docs/new.md, added: ["# Title" "" Body]}
-    {action: Update, path: src/new.rs, added: ["let added = 3;"]}
-    {action: Delete, path: src/gone.rs, added: []}
+    {action: "Add", path: "docs/new.md", added: ["# Title" "" "Body"]}
+    {action: "Update", path: "src/new.rs", added: ["let added = 3;"]}
+    {action: "Delete", path: "src/gone.rs", added: []}
   ]
 }

@@ -8,7 +8,7 @@
 # surviving client to it.
 # ==================================================================================================
 
-const FORMAT = '#{client_name}|#{session_id}'
+const FORMAT = "#{client_name}|#{session_id}"
 
 # Move every client still attached after a restore back to its recorded session.
 def main [
@@ -17,7 +17,7 @@ def main [
   mut recorded = []
   let restore = (job spawn { ^$restore_script | ignore })
   loop {
-    for row in (^tmux list-clients -F $FORMAT | lines | parse '{client}|{session}') {
+    for row in (^tmux list-clients -F $FORMAT | lines | parse "{client}|{session}") {
       if not ($recorded | any {|entry| $entry.client == $row.client }) {
         $recorded = ($recorded | append {client: $row.client, session: $row.session})
       }
@@ -28,7 +28,7 @@ def main [
     sleep 50ms
   }
 
-  let surviving = (^tmux list-clients -F '#{client_name}' | lines)
+  let surviving = (^tmux list-clients -F "#{client_name}" | lines)
   for entry in $recorded {
     if $entry.client in $surviving {
       try { ^tmux switch-client -c $entry.client -t $entry.session }

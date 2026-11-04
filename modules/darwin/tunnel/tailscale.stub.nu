@@ -6,7 +6,7 @@
 
 def --wrapped main [...args: string] {
   {
-    command: tailscale
+    command: "tailscale"
     args: $args
   }
   | to json --raw

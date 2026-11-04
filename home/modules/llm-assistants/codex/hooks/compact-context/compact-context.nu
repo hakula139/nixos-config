@@ -44,7 +44,7 @@ def read-files [items: list<record>]: nothing -> list<string> {
   $items
   | where {|item| $item.type == "CommandExecution" and $item.status? == "completed" }
   | each {|item|
-    let cwd = ($item.cwd | str replace --regex '^file://' '' | url decode)
+    let cwd = ($item.cwd | str replace --regex "^file://" "" | url decode)
     $item.parsed_cmd | where type == "read" | each {|cmd|
       let path = if ($cmd.path | str starts-with "~") { $cmd.path | path expand } else { $cmd.path }
       $cwd | path join $path
@@ -93,7 +93,7 @@ def restore [config: record]: nothing -> any {
     return null
   }
 
-  let pointer = ($config.prompt | str replace '@transcriptPath@' $transcript | str trim)
+  let pointer = ($config.prompt | str replace "@transcriptPath@" $transcript | str trim)
   let sections = (try { file-sections $transcript $input.cwd } catch { [] })
   {
     hookSpecificOutput: {

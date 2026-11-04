@@ -7,8 +7,8 @@
 use std/assert
 use std-rfc/str
 
-const SCRIPT_DIR = path self .
-const SCRIPT = ($SCRIPT_DIR | path join hosts.nu)
+const SCRIPT_DIR = path self "."
+const SCRIPT = ($SCRIPT_DIR | path join "hosts.nu")
 
 def rewrite [hosts_file: path, hostname: string]: nothing -> string {
   let run = (^$nu.current-exe --no-config-file $SCRIPT $hosts_file $hostname | complete)
@@ -43,43 +43,43 @@ def "test hostname transitions preserve unrelated entries and are idempotent" []
   let unterminated = "192.0.2.2 final.example.test"
   let cases = [
     {
-      name: rename
+      name: "rename"
       initial: ($unrelated + $old_entries)
-      hostname: new-gateway.example.test
+      hostname: "new-gateway.example.test"
       expected: ($unrelated + $new_entry)
     }
     {
-      name: disable
+      name: "disable"
       initial: ($unrelated + $old_entries + $new_entry)
       hostname: ""
       expected: $unrelated
     }
     {
-      name: enable
+      name: "enable"
       initial: $unrelated
-      hostname: new-gateway.example.test
+      hostname: "new-gateway.example.test"
       expected: ($unrelated + $new_entry)
     }
     {
-      name: remove_all
+      name: "remove_all"
       initial: ($old_entries | str trim --right)
       hostname: ""
       expected: ""
     }
     {
-      name: empty
+      name: "empty"
       initial: ""
-      hostname: new-gateway.example.test
+      hostname: "new-gateway.example.test"
       expected: $new_entry
     }
     {
-      name: line_endings
+      name: "line_endings"
       initial: ($mixed_lines + $old_entries + $unterminated)
-      hostname: new-gateway.example.test
+      hostname: "new-gateway.example.test"
       expected: ($mixed_lines + $unterminated + (char nl) + $new_entry)
     }
     {
-      name: disabled_line_endings
+      name: "disabled_line_endings"
       initial: ($mixed_lines + $old_entries + $unterminated)
       hostname: ""
       expected: ($mixed_lines + $unterminated)
@@ -102,7 +102,7 @@ def "test hostname transitions preserve unrelated entries and are idempotent" []
 }
 
 def "test an unreadable hosts file does not produce a replacement entry" [] {
-  let hosts_file = ((mktemp --directory) | path join missing)
+  let hosts_file = ((mktemp --directory) | path join "missing")
 
   let run = (
     ^$nu.current-exe --no-config-file $SCRIPT $hosts_file new-gateway.example.test

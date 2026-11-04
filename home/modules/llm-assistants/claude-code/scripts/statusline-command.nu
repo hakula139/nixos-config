@@ -9,7 +9,15 @@
 
 const CCUSAGE_CACHE = $nu.cache-dir | path join "claude-code" "statusline-usage.json"
 const CCUSAGE_TTL = 30sec
-const CCUSAGE_FIELDS = [date, has_block, has_daily, block_cost, remaining_minutes, burn_rate, daily_cost]
+const CCUSAGE_FIELDS = [
+  "date"
+  "has_block"
+  "has_daily"
+  "block_cost"
+  "remaining_minutes"
+  "burn_rate"
+  "daily_cost"
+]
 
 # --------------------------------------------------------------------------------------------------
 # Helpers
@@ -24,7 +32,7 @@ def paint [text: string, color: string]: nothing -> string {
 }
 
 def labeled [label: string, value: string, color: string = "green"]: nothing -> string {
-  $"(dim ($label + ':')) (paint $value $color)"
+  $"(dim ($label + ":")) (paint $value $color)"
 }
 
 def usd [amount: float]: nothing -> string {
@@ -38,12 +46,12 @@ def usd [amount: float]: nothing -> string {
 def model-name [input: record, models: record]: nothing -> string {
   let id = ($input.model?.id? | default "")
   # Claude's model ID can carry a context-window suffix.
-  let model_id = ($id | str replace --regex '(?i)\[1m\]$' '')
+  let model_id = ($id | str replace --regex '(?i)\[1m\]$' "")
   let display_name = ($input.model?.display_name? | default $id | str trim)
   let fallback = if $display_name == $id {
-    $model_id | split row '/' | last
+    $model_id | split row "/" | last
   } else {
-    $display_name | str replace '(1M context)' '(1M)'
+    $display_name | str replace "(1M context)" "(1M)"
   }
   let name = ($models | get -o $model_id | default $fallback)
   if ($name | is-empty) {
@@ -136,7 +144,7 @@ def format-git-info [cwd: string]: nothing -> string {
     | str join
   )
 
-  $" (paint $branch.branch "green")(paint $marks "yellow") "
+  $" (paint $branch.branch green)(paint $marks yellow) "
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -146,7 +154,7 @@ def format-git-info [cwd: string]: nothing -> string {
 def format-claude-info [input: record]: nothing -> record<ctx: string, sess: string> {
   let usage = ($input.context_window?.current_usage? | default {})
   let used = (
-    [input_tokens cache_creation_input_tokens cache_read_input_tokens]
+    ["input_tokens" "cache_creation_input_tokens" "cache_read_input_tokens"]
     | each {|key| $usage | get -o $key | default 0 }
     | math sum
   )
@@ -243,11 +251,13 @@ def format-ccusage-info [data: record]: nothing -> record<block: string, daily: 
     | compact --empty
     | str join ", "
   )
-  let suffix = if ($details | is-empty) { "" } else { " " + (paint $"\(($details)\)" "yellow") }
+  let suffix = if ($details | is-empty) { "" } else { " " + (paint $"\(($details)\)" yellow) }
 
   {
-    block: (if $data.has_block { $"(labeled 'Block' (usd $data.block_cost) 'cyan')($suffix)" } else { "" })
-    daily: (if $data.has_daily { labeled "Today" (usd $data.daily_cost) "cyan" } else { "" })
+    block: (if $data.has_block {
+      $"(labeled "Block" (usd $data.block_cost) cyan)($suffix)"
+    } else { "" })
+    daily: (if $data.has_daily { labeled "Today" (usd $data.daily_cost) cyan } else { "" })
   }
 }
 
@@ -263,7 +273,7 @@ def main [config_file: string] {
   let cwd = $input.workspace.current_dir
 
   let dir_name = if $cwd == $nu.home-dir { "~" } else { $cwd | path basename }
-  let row1 = $"(paint $dir_name 'blue_bold')(format-git-info $cwd)"
+  let row1 = $"(paint $dir_name blue_bold)(format-git-info $cwd)"
 
   let model = (model-name $input $config.models)
   let claude = (format-claude-info $input)
@@ -271,7 +281,7 @@ def main [config_file: string] {
 
   let row2 = (
     [
-      (if ($model | is-not-empty) { paint $model "cyan" })
+      (if ($model | is-not-empty) { paint $model cyan })
       $claude.ctx
       $claude.sess
       $ccusage.block
@@ -279,7 +289,7 @@ def main [config_file: string] {
       (dim (date now | format date "%H:%M"))
     ]
     | compact --empty
-    | str join $" (dim '|') "
+    | str join $" (dim "|") "
   )
 
   print --no-newline $"($row1)\n($row2)"

@@ -8,12 +8,12 @@
 # ==================================================================================================
 
 const PROPERTIES = [
-  ActiveState
-  ExecMainStartTimestampMonotonic
-  ExecMainStatus
-  LoadState
-  Result
-  Type
+  "ActiveState"
+  "ExecMainStartTimestampMonotonic"
+  "ExecMainStatus"
+  "LoadState"
+  "Result"
+  "Type"
 ]
 
 # A unit name systemd cannot parse makes systemctl print nothing, and the callers below all read

@@ -7,19 +7,19 @@
 use std/assert
 use std-rfc/str
 
-const SCRIPT_DIR = path self .
-const SCRIPT = ($SCRIPT_DIR | path join comment-gate.nu)
+const SCRIPT_DIR = path self "."
+const SCRIPT = ($SCRIPT_DIR | path join "comment-gate.nu")
 
 # The context the hook hands the agent, or null when it stays silent.
 def gate [env_vars: record]: nothing -> any {
   let dir = (mktemp --directory)
-  let config_file = ($dir | path join config.json)
+  let config_file = ($dir | path join "config.json")
 
-  let model_call = ($env.NU_TEST_STUBS | path join model-call)
-  {modelCall: $model_call, model: stub, prompt: "", patchInput: ""} | to json | save $config_file
+  let model_call = ($env.NU_TEST_STUBS | path join "model-call")
+  {modelCall: $model_call, model: "stub", prompt: "", patchInput: ""} | to json | save $config_file
 
   let payload = {
-    tool_name: Write
+    tool_name: "Write"
     tool_input: {
       file_path: "/repo/load.py"
       content: (

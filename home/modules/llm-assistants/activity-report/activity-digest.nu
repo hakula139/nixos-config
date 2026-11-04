@@ -7,7 +7,7 @@
 # ==================================================================================================
 
 # Mirrors how Codex Desktop extracts the request from a prompt.
-const REQUEST_HEADING = '## My request( for Codex)?:'
+const REQUEST_HEADING = "## My request( for Codex)?:"
 
 # --------------------------------------------------------------------------------------------------
 # Text
@@ -31,7 +31,7 @@ def excerpt [chars: int]: string -> string {
   } else {
     let flat = (
       $text
-      | str replace --all --regex '\s+' ' '
+      | str replace --all --regex '\s+' " "
       | str trim
     )
     if ($flat | str length --grapheme-clusters) > $chars {
@@ -79,11 +79,11 @@ def turns []: list -> list {
       model: null
     }|
     match $event.kind {
-      reply => {next: ($state | update reply $event.ts)}
-      abort => {next: ($state | update reply null)}
-      write => {next: ($state | update paths { append $event.paths })}
-      model => {next: ($state | update model ($state.model | default $event.ts))}
-      pause => {next: ($state | update cut $event.ts)}
+      "reply" => {next: ($state | update reply $event.ts)}
+      "abort" => {next: ($state | update reply null)}
+      "write" => {next: ($state | update paths { append $event.paths })}
+      "model" => {next: ($state | update model ($state.model | default $event.ts))}
+      "pause" => {next: ($state | update cut $event.ts)}
       _ => {
         let turn = ($event | merge {
           end: ($state.reply | default $state.model | default $event.ts)
@@ -120,7 +120,7 @@ def read-sessions [
   | each {|pattern| glob ($cfg.assistantDirs | get $tool | path join $pattern) }
   | flatten
   | where {|file| (ls $file | get 0.modified) >= $since }
-  | each {|file| {file: $file, stem: ($file | str replace --regex '\.zst$' '')} }
+  | each {|file| {file: $file, stem: ($file | str replace --regex '\.zst$' "")} }
   | uniq-by stem
   | get file
   | par-each --keep-order {|file|
@@ -138,7 +138,7 @@ def read-sessions [
         | sort
         | window 2
         | where {|w| ($w.1 - $w.0) > $gap }
-        | each {|w| {kind: pause, ts: $w.0} }
+        | each {|w| {kind: "pause", ts: $w.0} }
       )
       $session | insert transcript $file | update events { append $pauses }
     }
@@ -166,7 +166,7 @@ def read-sessions [
 def claude-parent [cfg: record, records: list, file: string]: nothing -> any {
   let dir = ($file | path dirname)
   if ($dir | path basename) == "subagents" {
-    let meta_file = ($file | str replace --regex '\.jsonl$' '.meta.json')
+    let meta_file = ($file | str replace --regex '\.jsonl$' ".meta.json")
     let meta = (open --raw $meta_file | from json)
     let parent_agent = ($meta | get -o parentAgentId)
     if $parent_agent != null {
@@ -200,7 +200,7 @@ def claude-question [r: record]: nothing -> any {
     null
   } else {
     let text = ($answers | items {|question, answer| $"($question): ($answer)" } | str join "\n")
-    {kind: prompt, ts: $r.timestamp, text: $text}
+    {kind: "prompt", ts: $r.timestamp, text: $text}
   }
 }
 
@@ -212,7 +212,11 @@ def claude-reply [r: record]: nothing -> bool {
 # Absolute paths a Claude record wrote: Edit and Write name a file, NotebookEdit a notebook.
 def claude-writes [r: record]: nothing -> list<string> {
   let part = ($r.message.content | get -o 0)
-  if $part == null or $part.type? != "tool_use" or $part.name not-in [Edit Write NotebookEdit] {
+  if (
+    $part == null
+    or $part.type? != "tool_use"
+    or $part.name not-in ["Edit" "Write" "NotebookEdit"]
+  ) {
     return []
   }
   if $part.name == "NotebookEdit" {
@@ -223,7 +227,7 @@ def claude-writes [r: record]: nothing -> list<string> {
 }
 
 def claude-sessions [cfg: record, since: datetime]: nothing -> list {
-  let globs = [projects/*/*.jsonl projects/*/*/subagents/*.jsonl]
+  let globs = ["projects/*/*.jsonl" "projects/*/*/subagents/*.jsonl"]
   read-sessions $cfg $since claude $globs {|records, file|
     let cwd = ($records | get -o cwd | compact | get -o 0)
     if $cwd == null {
@@ -244,21 +248,21 @@ def claude-sessions [cfg: record, since: datetime]: nothing -> list {
             and $r.attachment.type? == "queued_command"
             and (claude-human $r.attachment)
           ) {
-            {kind: prompt, ts: $r.timestamp, text: ($r.attachment.prompt | content-text)}
+            {kind: "prompt", ts: $r.timestamp, text: ($r.attachment.prompt | content-text)}
           } else if $r.type == "user" {
             claude-question $r
           } else if $r.type == "assistant" {
             let paths = (claude-writes $r)
             if ($paths | is-not-empty) {
-              {kind: write, ts: $r.timestamp, paths: $paths}
+              {kind: "write", ts: $r.timestamp, paths: $paths}
             } else if (claude-reply $r) {
-              {kind: reply, ts: $r.timestamp, text: ($r.message.content | content-text)}
+              {kind: "reply", ts: $r.timestamp, text: ($r.message.content | content-text)}
             }
           }
         )
         let model = (
           if $r.type == "assistant" or $r.isCompactSummary? == true {
-            {kind: model, ts: $r.timestamp}
+            {kind: "model", ts: $r.timestamp}
           }
         )
         [$event $model]
@@ -299,10 +303,10 @@ def codex-parent [cfg: record, meta: record]: nothing -> any {
 
 def codex-sessions [cfg: record, since: datetime]: nothing -> list {
   read-sessions $cfg $since codex [
-    sessions/*/*/*/*.jsonl
-    sessions/*/*/*/*.jsonl.zst
-    archived_sessions/*.jsonl
-    archived_sessions/*.jsonl.zst
+    "sessions/*/*/*/*.jsonl"
+    "sessions/*/*/*/*.jsonl.zst"
+    "archived_sessions/*.jsonl"
+    "archived_sessions/*.jsonl.zst"
   ] {|records|
     let meta = ($records | get -o 0.payload)
     # Codex Desktop imports of other assistants' sessions carry no thread source.
@@ -318,16 +322,16 @@ def codex-sessions [cfg: record, since: datetime]: nothing -> list {
           } else {
             let p = $r.payload
             if $p.type == "task_started" {
-              {kind: trigger, ts: $r.timestamp, text: ""}
+              {kind: "trigger", ts: $r.timestamp, text: ""}
             } else if $p.type == "turn_aborted" {
-              {kind: abort, ts: $r.timestamp}
+              {kind: "abort", ts: $r.timestamp}
             } else if $p.type == "item_completed" and $p.item.type? == "UserMessage" {
               let text = ($p.item.content | content-text | strip-request-prefix)
-              {kind: prompt, ts: $r.timestamp, text: $text}
+              {kind: "prompt", ts: $r.timestamp, text: $text}
             } else if $p.type == "item_completed" and $p.item.type? == "FileChange" {
-              {kind: write, ts: $r.timestamp, paths: ($p.item.changes? | default {} | columns)}
+              {kind: "write", ts: $r.timestamp, paths: ($p.item.changes? | default {} | columns)}
             } else if $p.type == "task_complete" and $p.last_agent_message? != null {
-              {kind: reply, ts: $r.timestamp, text: $p.last_agent_message}
+              {kind: "reply", ts: $r.timestamp, text: $p.last_agent_message}
             }
           }
         )
@@ -335,12 +339,12 @@ def codex-sessions [cfg: record, since: datetime]: nothing -> list {
           if (
             $r.type == "response_item"
             and (
-              $r.payload.type? in [agent_message reasoning function_call custom_tool_call]
+              $r.payload.type? in ["agent_message" "reasoning" "function_call" "custom_tool_call"]
               or $r.payload.type? == "compaction"
               or $r.payload.role? == "assistant"
             )
           ) {
-            {kind: model, ts: $r.timestamp}
+            {kind: "model", ts: $r.timestamp}
           }
         )
         [$event $model]
@@ -349,7 +353,7 @@ def codex-sessions [cfg: record, since: datetime]: nothing -> list {
       | compact
     )
     # Subagents and reviewers carry other thread sources. `codex exec` and MCP runs are headless.
-    let attended = ($meta.thread_source == "user" and $meta.source? not-in [exec mcp])
+    let attended = ($meta.thread_source == "user" and $meta.source? not-in ["exec" "mcp"])
     {
       id: $meta.id
       cwd: $meta.cwd
@@ -375,7 +379,7 @@ def omp-paths [cwd: string, call: record]: nothing -> list<string> {
 }
 
 def omp-sessions [cfg: record, since: datetime]: nothing -> list {
-  read-sessions $cfg $since omp [sessions/**/*.jsonl] {|records, file|
+  read-sessions $cfg $since omp ["sessions/**/*.jsonl"] {|records, file|
     let meta = ($records | where type == "session" | first)
     let cwd = $meta.cwd
     let events = (
@@ -390,23 +394,23 @@ def omp-sessions [cfg: record, since: datetime]: nothing -> list {
               let kind = if $m.attribution? == "user" { "prompt" } else { "trigger" }
               {kind: $kind, ts: $r.timestamp, text: ($m.content | content-text)}
             } else if $m.role == "assistant" and $m.stopReason? == "stop" {
-              {kind: reply, ts: $r.timestamp, text: ($m.content | content-text)}
+              {kind: "reply", ts: $r.timestamp, text: ($m.content | content-text)}
             } else if $m.role == "assistant" {
               let paths = (
                 $m.content
-                | where {|part| $part.type? == "toolCall" and $part.name in [write edit] }
+                | where {|part| $part.type? == "toolCall" and $part.name in ["write" "edit"] }
                 | each {|part| omp-paths $cwd $part }
                 | flatten
               )
               if ($paths | is-not-empty) {
-                {kind: write, ts: $r.timestamp, paths: $paths}
+                {kind: "write", ts: $r.timestamp, paths: $paths}
               }
             }
           }
         )
         let model = (
           if $r.type == "message" and $r.message.role? == "assistant" {
-            {kind: model, ts: $r.timestamp}
+            {kind: "model", ts: $r.timestamp}
           }
         )
         [$event $model]
@@ -687,7 +691,7 @@ def stamp [excerpt_chars: int]: record -> record {
 
 # A turn's final reply is the last one before the next prompt.
 def final-replies []: list -> list {
-  let events = ($in | where kind in [prompt reply])
+  let events = ($in | where kind in ["prompt" "reply"])
   $events
   | enumerate
   | where {|e|

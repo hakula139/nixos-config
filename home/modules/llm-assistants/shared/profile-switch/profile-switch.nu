@@ -48,7 +48,7 @@ def write-config [config: record, profile: path] {
   }
   let directory = ($config.configFile | path dirname)
   mkdir $directory
-  let temporary = (^mktemp $"--tmpdir=($directory)" '.profile-config.XXXXXXXXXX' | str trim)
+  let temporary = (^mktemp $"--tmpdir=($directory)" ".profile-config.XXXXXXXXXX" | str trim)
 
   try {
     $serialized | save --force $temporary

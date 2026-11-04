@@ -12,7 +12,7 @@ def main [
   --user-name: string # Account that owns the SSH agent
   --up-flag: path # File both services require to run, holding the SSH host
 ] {
-  if $action not-in [up down status] {
+  if $action not-in ["up" "down" "status"] {
     error make {msg: "Expected up, down, or status"}
   }
 
