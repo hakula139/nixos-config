@@ -8,7 +8,7 @@ def --wrapped main [...args: string] {
   {
     command: launchctl
     args: $args
-    up_flag: ($env.STUB_UP_FLAG | path exists)
+    up_host: (if ($env.STUB_UP_FLAG | path exists) { open --raw $env.STUB_UP_FLAG })
   }
   | to json --raw
   | $"($in)\n"
