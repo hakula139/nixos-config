@@ -6,7 +6,7 @@ Nushell is the default for new helper scripts.
 - **Script-relative resources**: bind `const SCRIPT_DIR = path self "."` after the header and imports. It resolves at parse time from the defining file, so Nix must package those resources beside the script.
 - **Help**: keep the script header to its purpose and operating constraints, and document usage at each command and parameter so `--help` carries it. Point to it with `Run with --help for usage.` only when the header says something else.
 - **Multiline strings**: indent the literal with the code, with the opening quote, content, and closing quote at one column, then `| str dedent` from `std-rfc/str` on the next line and any enclosing parenthesis on its own line.
-- **Quoting**: quote string values, paths included, so they read as data, and leave names, flags, and subcommands bare, as in `^git -C $dir add ".gitignore"`. Leave a glob meant to expand bare, and build a home path from `$nu.home-dir`, since a quoted `~` stays literal. Keep the quotes any word needs to stay a literal string, as `"0700"` does. Use double quotes, and single quotes when the text holds a literal backslash or double quote.
+- **Quoting**: quote string values, paths included, so they read as data, and leave names, flags, and subcommands bare, as in `^git -C $dir add ".gitignore"`. Leave a glob meant to expand bare, and build a home path from `$nu.home-dir`, since a quoted `~` stays literal. Keep the quotes any word needs to stay a literal string, as `"0700"` and `"1min"` do. Use double quotes, and single quotes when the text holds a literal backslash or double quote.
 
 ## What stays bash
 
@@ -25,7 +25,7 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 - **A `mut` or a defaulted closure parameter takes the type of its initial value.** Each later value is checked against that type, at parse time when its type is known and at runtime otherwise, so `mut current = null` rejects a record, and `generate {|row, acc = null| ... }` raises `Can't convert to nothing` once it passes `acc` a value. Annotate the union, as in `mut current: oneof<record, nothing> = null`, because `nu-check` misses the runtime case.
 - **YAML error messages hide the parser's detail.** Read `$e.rendered` in the catch block, since `$e.msg` says only `Error while parsing as yaml`.
 - **`math sum` errors on an empty list.** Use `| append 0 | math sum`.
-- **`open --raw` yields a byte stream, which collects to `binary` on invalid UTF-8**, so a `: string` parameter or a `string ->` input raises a type error. To require UTF-8, pipe the stream itself into `into string` inside `try`, which raises `Non-UTF8 string` on invalid bytes and on a UTF-16 BOM. `into string` rejects every collected `binary`, valid or not, so check bytes captured with `into binary` by comparing them, after any leading UTF-8 BOM, with `$bytes | decode utf-8 | encode utf-8`, since `decode utf-8` strips that BOM, replaces invalid bytes, and honors a UTF-16 BOM.
+- **`open --raw` yields a byte stream, which collects to `binary` on invalid UTF-8**, so a `: string` parameter or a `string ->` input raises a type error. To require UTF-8, pipe the stream itself into `into string` inside `try`, which raises `Non-UTF8 string` on invalid bytes and on a UTF-16 BOM. `into string` rejects every collected `binary`, valid or not.
 
 ### Strings and arguments
 
@@ -33,7 +33,6 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 - **A binary operator continues an expression only inside parentheses.** A line starting `and ($b)` calls a command named `and`, and `["a" + $x]` holds three elements.
 - **Dynamic regexes need single-quoted pieces.** Parentheses interpolate in both `$"..."` and `$'...'`, and double quotes consume backslashes, so concatenate: `($label + ' (?<n>\d+)')`.
 - **Forwarding arguments needs `def --wrapped`.** A plain `def` parses flags in `...args` itself.
-- **`url encode` escapes characters a file URI keeps.** To match the `file://` URIs Codex builds with the url crate, pass only non-ASCII characters and the crate's escape set (controls, space, `"#%<>?{}`, the backtick, and `\`) through `url encode --all`.
 
 ### External commands
 
@@ -48,7 +47,7 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 
 ## Testing
 
-Give a script a `<script>.test.nu` beside it when its output is easy to get subtly wrong, as a parser's is. Drive it the way its caller does, and skip tests that only restate the code or need the external tools the script exists to call.
+Give a script a `<script>.test.nu` beside it when its output is easy to get subtly wrong. Drive it the way its caller does, and skip tests that only restate the code or need the external tools the script exists to call.
 
 - **Tests**: commands named `test <behavior>` in plain words, asserting with `std/assert`.
 
