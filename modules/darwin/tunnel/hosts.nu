@@ -13,7 +13,7 @@ def main [
   hostname: string # Gateway hostname, or empty to remove owned entries
 ] {
   # Owned lines, including their trailing newline when present.
-  let pattern = ('^.*' + $HOSTS_OWNER + '.*\n?')
+  let pattern = ("^.*" + $HOSTS_OWNER + '.*\n?')
   let retained = (
     open --raw $hosts_file
     | default ""
