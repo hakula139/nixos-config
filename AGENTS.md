@@ -1,8 +1,6 @@
 # AGENTS.md: nixos-config
 
-Project-specific rules for any coding assistant working in this repository. `CLAUDE.md` is a symlink to this file.
-
-This file is an index. It holds only what applies to every task, while anything needed for one kind of change lives in `docs/`, to be read when you touch that area.
+Project-specific rules for any coding assistant working in this repository, limited to what applies to every task. `CLAUDE.md` is a symlink to this file.
 
 ## Read before you edit
 
@@ -20,7 +18,7 @@ This file is an index. It holds only what applies to every task, while anything 
 
 ## Layout
 
-Wrap code and comments at 100 columns, counting the indent (Python follows ruff's 88), and keep a single-line string literal whole at any length. nixfmt does not reflow comments. Every language uses the [section banners](docs/conventions/nix.md#section-banners).
+Wrap code and comments at 100 columns including the indent (Python follows ruff's 88), and keep a single-line string literal on one line at any length. nixfmt does not reflow comments. Every language uses the [section banners](docs/conventions/nix.md#section-banners).
 
 ## Repository safeguards
 
@@ -30,7 +28,7 @@ Wrap code and comments at 100 columns, counting the indent (Python follows ruff'
 
 ## Verification
 
-`nix flake check` runs the structure checks, pre-commit hooks, and script tests from the dev shell (`nix develop -c zsh`), but builds no host, and its `checks.pre-commit` output alone does not evaluate host modules. For host changes, build each affected output directly, and build `macbook` on a Mac or through CI's macOS job:
+`nix flake check` runs the structure checks, pre-commit hooks, and script tests from the dev shell (`nix develop -c zsh`), but it builds no host and its `checks.pre-commit` output alone does not evaluate host modules. For host changes, build each affected output directly, and build `macbook` on a Mac or through CI's macOS job:
 
 ```bash
 nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
@@ -38,13 +36,15 @@ nix build '.#systemConfigs.wsl-non-nixos'
 nix build '.#packages.x86_64-linux.devvm-docker'
 ```
 
-Host out paths change on every source edit because `home/modules/shared.nix` pins `inputs.self.outPath` into the Nix registry, so to confirm that a refactor preserves behavior, compare what it affects before and after, such as a `nix eval --json` of the changed attribute or a `diff -r --exclude=registry.json` of the built `home-manager-files`. Run `nix develop` once in a worktree under `.claude/worktrees/` to materialize the gitignored pre-commit symlink, and rerun it after a rebase or merge that changes the hook configuration, since the shell hook relinks it only on shell entry.
+Host out paths change on every source edit because `home/modules/shared.nix` pins `inputs.self.outPath` into the Nix registry. To show that a refactor preserves behavior, compare the attributes or built files it affects before and after, excluding `registry.json` when diffing `home-manager-files`.
+
+Because the shell hook relinks the gitignored pre-commit hook only on shell entry, run `nix develop` once in a worktree under `.claude/worktrees/` to link it, and again after any rebase or merge that changes the hook configuration.
 
 ## Documentation maintenance
 
-Each rule has one home, which other pages link to. Add to `AGENTS.md` or `docs/` only a constraint that is invisible, destructive, or already cost someone a debugging session, and leave out whatever a model can read off `flake.nix`, a representative module, `ls`, or `git log`.
+Each rule has one home that other pages link to. Add a constraint to `AGENTS.md` or `docs/` only if it is invisible, is destructive, or has already cost someone a debugging session, and leave out anything a model can infer from the code, tool behavior, or `git log`. State each rule once as a principle, explain why only when the reason is not obvious, and include an example only if the rule would be ambiguous without one.
 
-- `README.md` is for a human evaluating or operating the repo: what it manages, how to run it. Keep internal progress out.
+- `README.md` is for a human evaluating or operating the repo, so keep internal progress out of it.
 - `AGENTS.md` and `docs/` are for whoever is changing the code.
-- In [docs/reference/architecture.md](docs/reference/architecture.md), keep the Layout tree accurate at its current depth, and add prose below it only for knowledge every module author needs.
-- Check documentation affected by the change, including the architecture's host table when host wiring changes and the README's usage instructions when commands change.
+- Keep the Layout tree in [docs/reference/architecture.md](docs/reference/architecture.md) accurate at its current depth, and add prose below it only for knowledge every module author needs.
+- When a change affects host wiring or commands, update the architecture's host table or the README's usage instructions.
