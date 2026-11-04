@@ -1,7 +1,7 @@
 # Shell
 
-New helper scripts default to [nushell](nushell.md), which also records why each remaining bash script stays bash.
+Write new helper scripts in [nushell](nushell.md) by default, and check that page for what stays in bash.
 
-- Multi-line layout for non-trivial flow (`if/else`, multi-arg `printf`, process substitutions). One-line invocations stay on one line.
-- Quote variables, including inside `[[ ]]`. Use `set -euo pipefail` at the top of every script that runs more than one command.
-- Use `lib.escapeShellArg` / `lib.escapeShellArgs` when interpolating Nix values into shell.
+- Split non-trivial control flow and long calls across lines so each step is easy to read and diff on its own.
+- Quote variables, even inside `[[ ]]`, and start every multi-command script with `set -euo pipefail`.
+- Interpolate Nix values into shell strings with `lib.escapeShellArg` or `lib.escapeShellArgs`.
