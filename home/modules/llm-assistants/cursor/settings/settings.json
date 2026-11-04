@@ -252,6 +252,7 @@
   "markdown-preview-enhanced.enableHTML5Embed": true,
   "markdown-preview-enhanced.enableLinkify": false,
   "markdown-preview-enhanced.imageUploader": "sm.ms",
+  "markdown-preview-enhanced.mermaidTheme": "dark",
   "markdown-preview-enhanced.previewTheme": "github-dark.css",
   "markdown-preview-enhanced.printBackground": true,
   "markdown-preview-enhanced.revealjsTheme": "night.css",
