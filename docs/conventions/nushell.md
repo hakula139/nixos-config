@@ -6,11 +6,11 @@ Nushell is the default for new helper scripts.
 - **Script-relative resources**: bind `const SCRIPT_DIR = path self "."` after the header and imports. It resolves at parse time from the defining file, so Nix must package those resources beside the script.
 - **Help**: keep the script header to its purpose and operating constraints, and document usage at each command and parameter so `--help` carries it. Point to it with `Run with --help for usage.` only when the header says something else.
 - **Multiline strings**: indent the literal with the code, with the opening quote, content, and closing quote at one column, then `| str dedent` from `std-rfc/str` on the next line and any enclosing parenthesis on its own line.
-- **Quoting**: quote string values, paths included, and leave names, flags, and subcommands bare (`^git -C $dir add ".gitignore"`, `path join "tmux"`, `str starts-with "error:"`, `ansi reset`). Leave a glob meant to expand bare, and build a home path from `$nu.home-dir`, since a quoted `~` stays literal. Keep the quotes a word needs to stay a literal string anywhere, as `"0700"`, `"1min"`, or a glob meant literally does. Use double quotes, and single quotes when the text holds a backslash or double quote meant literally, as `'\d+'` does.
+- **Quoting**: quote string values, paths included, so they read as data, and leave names, flags, and subcommands bare, as in `^git -C $dir add ".gitignore"`. Leave a glob meant to expand bare, and build a home path from `$nu.home-dir`, since a quoted `~` stays literal. Keep the quotes any word needs to stay a literal string, as `"0700"` does. Use double quotes, and single quotes when the text holds a literal backslash or double quote.
 
 ## What stays bash
 
-- Scripts that another shell evaluates, such as `makeWrapper --run` snippets and sourced files.
+- Scripts that another shell evaluates or sources, as with `makeWrapper --run` snippets.
 - `exec` wrappers that only set a variable and hand off.
 
 ## Traps
@@ -19,22 +19,13 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 
 ### Parsing and data
 
-- **`from json` accepts some plain text, so `try` cannot validate JSON.**
-
-  - `open` on an empty JSON, YAML, or NUON file returns null, while truncated JSON raises.
-  - Check the shape (`$j | describe | str starts-with "record"`) before reading a field.
-
+- **`from json` accepts some plain text, so `try` cannot validate JSON.** `open` on an empty JSON, YAML, or NUON file returns null, while truncated JSON raises, so check the shape (`$j | describe | str starts-with "record"`) before reading a field.
 - **`get -o` raises on rows that are not records.** It tolerates a missing column but fails on a list of strings or a scalar, so wrap it in `try` when the shape is unverified.
-
 - **Return annotations do not validate dynamic output.** A `-> record` function can return a list from an untyped helper, and `get -o` on an empty list returns `[]`, which `default` keeps.
-
-- **A `mut` or a defaulted closure parameter takes the type of its initial value.** Each later value is checked against that type, at parse time when its type is known and at runtime otherwise, so `mut current = null` rejects a record, `mut n = 0` rejects a float, and `generate {|row, acc = null| ... }` raises `Can't convert to nothing` once it passes `acc` a value. Annotate the union, as in `mut current: oneof<record, nothing> = null`, because `nu-check` misses the runtime case.
-
+- **A `mut` or a defaulted closure parameter takes the type of its initial value.** Each later value is checked against that type, at parse time when its type is known and at runtime otherwise, so `mut current = null` rejects a record, and `generate {|row, acc = null| ... }` raises `Can't convert to nothing` once it passes `acc` a value. Annotate the union, as in `mut current: oneof<record, nothing> = null`, because `nu-check` misses the runtime case.
 - **YAML error messages hide the parser's detail.** Read `$e.rendered` in the catch block, since `$e.msg` says only `Error while parsing as yaml`.
-
 - **`math sum` errors on an empty list.** Use `| append 0 | math sum`.
-
-- **`open --raw` yields a byte stream, which collects to `binary` on invalid UTF-8.** A `: string` parameter or a `string ->` input then raises a type error. To require UTF-8, pipe the stream itself into `into string` inside `try`, which raises `Non-UTF8 string` on invalid bytes and on a UTF-16 BOM. `into string` rejects every collected `binary`, valid or not, so check bytes captured with `into binary` by comparing `$bytes | decode utf-8 | encode utf-8` with them after any leading UTF-8 BOM, since `decode utf-8` strips that BOM, replaces invalid bytes, and honors a UTF-16 BOM.
+- **`open --raw` yields a byte stream, which collects to `binary` on invalid UTF-8**, so a `: string` parameter or a `string ->` input raises a type error. To require UTF-8, pipe the stream itself into `into string` inside `try`, which raises `Non-UTF8 string` on invalid bytes and on a UTF-16 BOM. `into string` rejects every collected `binary`, valid or not, so check bytes captured with `into binary` by comparing them, after any leading UTF-8 BOM, with `$bytes | decode utf-8 | encode utf-8`, since `decode utf-8` strips that BOM, replaces invalid bytes, and honors a UTF-16 BOM.
 
 ### Strings and arguments
 
@@ -47,27 +38,17 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 ### External commands
 
 - **A nonzero external exit ends the script with that code and prints nothing.** Tolerate it with `try` or `| complete` and `.exit_code`.
-
-- **Stdin needs `^cat`.**
-
-  - `$in` is empty under the generated shebang, which lacks `--stdin`, and reopening `/dev/stdin` fails with ENXIO on a socket, as Node's `spawn` supplies.
-  - Text capture strips one trailing newline, so use `^cat | into binary` for byte-identical round trips.
+- **Stdin needs `^cat`.** `$in` is empty under the generated shebang, which lacks `--stdin`, and reopening `/dev/stdin` fails with ENXIO on a socket, as Node's `spawn` supplies. Text capture strips one trailing newline, so use `^cat | into binary` for byte-identical round trips.
 
 ## In Nix
 
-- **Inputs**: keep checked-in Nushell valid on its own.
-
-  - Pass one or two scalars as typed `main` arguments with `makeWrapperArgs` and `--add-flag`.
-  - Pass structured values as one JSON config file through a typed `--config` flag, and wrap the bare `writeNuBin` script with `repoLib.wrapPackage`, since `makeWrapperArgs` renames the script that `--help` names.
-  - Put executables on the wrapper's `PATH`.
-
+- **Inputs**: keep checked-in Nushell valid on its own. Pass a few scalars as typed `main` arguments through `makeWrapperArgs` and `--add-flag`. Pass structured values as one JSON config file through a typed `--config` flag, and wrap the bare `writeNuBin` script with `repoLib.wrapPackage`, since `makeWrapperArgs` renames the script that `--help` names. Put executables on the wrapper's `PATH`.
 - **Shebang**: the writers prepend a store-path shebang, which demotes the script's `#!/usr/bin/env nu` to a comment. Keep that line for standalone runs and LSP checks, and commit the executable bit on helpers run from the checkout. Spawn Nushell from a generated script with `$nu.current-exe`.
-
 - **Modules**: a parse-time `use` target must resolve in both the source tree and the store. Without such a path, expose the helper as an executable.
 
 ## Testing
 
-Give a script a `<script>.test.nu` beside it when its output is easy to get subtly wrong, such as a parser, an access decision, or a rewrite of user text. Drive it the way its caller does, and skip tests that only restate the code or need the external tools the script exists to call.
+Give a script a `<script>.test.nu` beside it when its output is easy to get subtly wrong, as a parser's is. Drive it the way its caller does, and skip tests that only restate the code or need the external tools the script exists to call.
 
 - **Tests**: commands named `test <behavior>` in plain words, asserting with `std/assert`.
 
@@ -88,4 +69,4 @@ Give a script a `<script>.test.nu` beside it when its output is easy to get subt
 
 ## Linting
 
-`nu-check` wraps `nu --ide-check`, which catches delimiters and the arity of local `def`s but passes a mistyped command as an external call, so run the script once for real. `editorconfig-checker` owns indentation. Don't use `nufmt`, which reindents to four spaces.
+`nu-check` wraps `nu --ide-check`, which catches delimiters and the arity of local `def`s, but it passes a mistyped command as an external call, so run the script once for real. `editorconfig-checker` owns indentation. Don't use `nufmt`, which reindents to four spaces.
