@@ -26,7 +26,7 @@ hls=.agents/skills/peertube-hls-upload/scripts/peertube-hls.nu
 
 The script targets `v.hakula.xyz`, database `peertube`, and bucket `hakula-videos` at `https://s3.us-west-004.backblazeb2.com`. Objects live under `streaming-playlists/hls/<VIDEO_UUID>/`, served through `https://b2.hakula.xyz/hakula-videos/`. Check these constants against the target before using the helper for another server.
 
-Local commands need Nushell, Python 3, FFmpeg / ffprobe, and Nix. `verify` also uses `strings` and `grep`. Database commands require SSH access to `CloudCone-US-1` and `sudo -u peertube psql -d peertube`. The upload helper obtains `awscli2` through `nix-shell`.
+Local commands need Nushell, Python 3, FFmpeg / ffprobe, and Nix. `verify` also uses `strings` and `grep`. Database commands require SSH access to `CloudCone-US-1` and `sudo -u peertube psql -d peertube`. The upload helper obtains `awscli2` through `nix shell`.
 
 For S3 reads and uploads, decrypt credentials directly into the shell without printing them or enabling shell tracing:
 
@@ -37,7 +37,7 @@ unset peertube_credentials
 export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
 ```
 
-The export lets credentials reach the `nix-shell` subprocess. It requires the corresponding agenix identity at the path shown. The repository's root `secrets.nix` maps these paths to the recipient rules. See [secrets](../../../docs/guides/secrets.md) for execution from other directories.
+Decryption requires the corresponding agenix identity at the path shown. The repository's root `secrets.nix` maps these paths to the recipient rules. See [secrets](../../../docs/guides/secrets.md) for execution from other directories.
 
 ## Prepare the rendition
 
@@ -75,14 +75,14 @@ Read the current master and SHA256 JSON from S3 to avoid starting from a stale C
 
 ```bash
 mkdir -p /tmp/peertube-hls
-nix-shell -p awscli2 --run "aws s3 cp \
+nix shell nixpkgs#awscli2 --command aws s3 cp \
   's3://hakula-videos/streaming-playlists/hls/<VIDEO_UUID>/<MASTER_FILENAME>' \
   /tmp/peertube-hls/master.m3u8 \
-  --endpoint-url https://s3.us-west-004.backblazeb2.com"
-nix-shell -p awscli2 --run "aws s3 cp \
+  --endpoint-url https://s3.us-west-004.backblazeb2.com
+nix shell nixpkgs#awscli2 --command aws s3 cp \
   's3://hakula-videos/streaming-playlists/hls/<VIDEO_UUID>/<SHA256_FILENAME>' \
   /tmp/peertube-hls/segments-sha256.json \
-  --endpoint-url https://s3.us-west-004.backblazeb2.com"
+  --endpoint-url https://s3.us-west-004.backblazeb2.com
 ```
 
 Adapt the same S3 read command for existing media and rendition playlists. Do not start an empty hash manifest for a video with other renditions: their entries must survive the repair.
