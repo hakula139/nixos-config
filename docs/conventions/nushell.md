@@ -3,9 +3,10 @@
 Nushell is the default for new helper scripts.
 
 - **Entry point**: `def main` with typed parameters.
-- **Script-relative resources**: bind `const SCRIPT_DIR = path self .` after the header and imports. It resolves at parse time from the defining file, so Nix must package those resources beside the script.
+- **Script-relative resources**: bind `const SCRIPT_DIR = path self "."` after the header and imports. It resolves at parse time from the defining file, so Nix must package those resources beside the script.
 - **Help**: keep the script header to its purpose and operating constraints, and document usage at each command and parameter so `--help` carries it. Point to it with `Run with --help for usage.` only when the header says something else.
 - **Multiline strings**: indent the literal with the code, with the opening quote, content, and closing quote at one column, then `| str dedent` from `std-rfc/str` on the next line and any enclosing parenthesis on its own line.
+- **Quoting**: quote string values, paths included, and leave names, flags, and subcommands bare (`^git -C $dir add ".gitignore"`, `path join "tmux"`, `str starts-with "error:"`, `ansi reset`). Leave a glob meant to expand bare, and build a home path from `$nu.home-dir`, since a quoted `~` stays literal. Keep the quotes a word needs to stay a literal string anywhere, as `"0700"`, `"1min"`, or a glob meant literally does. Use double quotes, and single quotes when the text holds a backslash or double quote meant literally, as `'\d+'` does.
 
 ## What stays bash
 
@@ -37,9 +38,8 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 
 ### Strings and arguments
 
-- **Bare words depend on context.** `if $x { green }` calls a command named `green`, `where after != before` compares the `after` column with the string `"before"` (write `where after != $it.before`), and an untyped `1min` arrives as a duration while a `: string` parameter coerces it.
+- **Bare words depend on context.** `where after != before` compares the `after` column with the string `"before"` (write `where after != $it.before`), and a comma splits a list item, so `[--sort=-pcpu,-pmem]` holds two.
 - **A binary operator continues an expression only inside parentheses.** A line starting `and ($b)` calls a command named `and`, and `["a" + $x]` holds three elements.
-- **List elements containing commas need quotes.** `[--sort=-pcpu,-pmem]` passes two arguments.
 - **Dynamic regexes need single-quoted pieces.** Parentheses interpolate in both `$"..."` and `$'...'`, and double quotes consume backslashes, so concatenate: `($label + ' (?<n>\d+)')`.
 - **Forwarding arguments needs `def --wrapped`.** A plain `def` parses flags in `...args` itself.
 - **`url encode` escapes characters a file URI keeps.** To match the `file://` URIs Codex builds with the url crate, pass only non-ASCII characters and the crate's escape set (controls, space, `"#%<>?{}`, the backtick, and `\`) through `url encode --all`.
@@ -75,7 +75,7 @@ Give a script a `<script>.test.nu` beside it when its output is easy to get subt
 
 - **Fixtures**: when several cases differ only in document-like or byte-sensitive inputs, make them golden files under `fixtures/<group>/<case>/`.
 
-  - A `case.nuon` holds what the files cannot express. Single-quote strings in it that contain `"`. Write a line break as `\n`, except in a string that is itself text of several lines, which reads better as a multiline literal whose continuation lines start at column 0, since NUON keeps indentation as content. Lay it out like Nushell source, with each list item on its own line.
+  - A `case.nuon` holds what the files cannot express. Write a line break as `\n`, except in a string that is itself text of several lines, which reads better as a multiline literal whose continuation lines start at column 0, since NUON keeps indentation as content. Lay it out like Nushell source, with each list item on its own line.
   - Small structured inputs, such as argv lists and payload records, stay inline in the test.
   - Copy each input into a `mktemp` directory before running the script. The runner confines `mktemp` to a scratch `TMPDIR`.
   - Store fixtures are read-only and `cp` keeps the mode, so `chmod u+w` a copy the script writes.

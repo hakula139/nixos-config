@@ -6,8 +6,8 @@
 
 use std/assert
 
-const SCRIPT_DIR = path self .
-const SCRIPT = ($SCRIPT_DIR | path join model-call.nu)
+const SCRIPT_DIR = path self "."
+const SCRIPT = ($SCRIPT_DIR | path join "model-call.nu")
 
 const TOKEN = "stub-gateway-token"
 const CURL_ARGS = [
@@ -22,14 +22,14 @@ const CURL_ARGS = [
 # is the token's path.
 def call [request: record, reply: record]: nothing -> record {
   let dir = (mktemp --directory)
-  let config_file = ($dir | path join config.json)
-  let token_file = ($dir | path join token)
-  let log = ($dir | path join calls.jsonl)
+  let config_file = ($dir | path join "config.json")
+  let token_file = ($dir | path join "token")
+  let log = ($dir | path join "calls.jsonl")
 
   $"($TOKEN)\n" | save $token_file
   {
     gateway: {baseUrl: "https://gateway.test", tokenFile: $token_file, caFile: "/ca.pem"}
-    curl: ($env.NU_TEST_STUBS | path join curl)
+    curl: ($env.NU_TEST_STUBS | path join "curl")
     curlArgs: $CURL_ARGS
   }
   | to json
@@ -46,7 +46,7 @@ def reply [content: string, finish: string]: nothing -> record {
 }
 
 def "test a request passes the token by file and prints the reply" [] {
-  let request = {model: stub, maxTokens: 64, system: "Judge.", user: "Text.", json: true}
+  let request = {model: "stub", maxTokens: 64, system: "Judge.", user: "Text.", json: true}
 
   let result = (call $request (reply "ok: true" stop))
   assert equal $result.run.exit_code 0 $result.run.stderr
@@ -57,7 +57,7 @@ def "test a request passes the token by file and prints the reply" [] {
       args: [
         ...$CURL_ARGS
         --ipv4
-        --cacert /ca.pem
+        --cacert "/ca.pem"
         --variable $"token@($result.token_file)"
         --expand-header "Authorization: Bearer {{token:trim}}"
         --header "content-type: application/json"
@@ -65,19 +65,19 @@ def "test a request passes the token by file and prints the reply" [] {
         https://gateway.test/v1/chat/completions
       ]
       body: {
-        model: stub
+        model: "stub"
         max_tokens: 64
         stream: false
-        tool_choice: none
-        messages: [{role: system, content: "Judge."}, {role: user, content: "Text."}]
-        response_format: {type: json_object}
+        tool_choice: "none"
+        messages: [{role: "system", content: "Judge."}, {role: "user", content: "Text."}]
+        response_format: {type: "json_object"}
       }
     }
   ]
 }
 
 def "test a reply cut short fails with its finish reason" [] {
-  let request = {model: stub, maxTokens: 64, system: "Judge.", user: "Text."}
+  let request = {model: "stub", maxTokens: 64, system: "Judge.", user: "Text."}
 
   let result = (call $request (reply "ok:" length))
 

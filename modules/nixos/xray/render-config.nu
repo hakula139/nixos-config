@@ -4,7 +4,7 @@
 # Xray Config Renderer
 # ==================================================================================================
 
-const LEVELS = [user admin]
+const LEVELS = ["user" "admin"]
 
 # Fill an inbound's clients, adding REALITY short IDs and the private key to a REALITY inbound.
 def render-inbound [

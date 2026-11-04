@@ -6,9 +6,9 @@
 
 use std/assert
 
-const SCRIPT_DIR = path self .
-const SCRIPT = ($SCRIPT_DIR | path join auto-format.nu)
-const PATCH_INPUT = ($SCRIPT_DIR | path join .. lib patch-input patch-input.nu)
+const SCRIPT_DIR = path self "."
+const SCRIPT = ($SCRIPT_DIR | path join "auto-format.nu")
+const PATCH_INPUT = ($SCRIPT_DIR | path join ".." "lib" "patch-input" "patch-input.nu")
 
 def run-event [
   input: any
@@ -18,18 +18,18 @@ def run-event [
   --stderr: string = ""
 ]: nothing -> record {
   let dir = (mktemp --directory)
-  let bin = ($dir | path join bin)
-  let log = ($dir | path join calls.jsonl)
-  let config_file = ($dir | path join config.json)
-  let parser = ($bin | path join patch-input)
+  let bin = ($dir | path join "bin")
+  let log = ($dir | path join "calls.jsonl")
+  let config_file = ($dir | path join "config.json")
+  let parser = ($bin | path join "patch-input")
 
   mkdir $bin
-  ^ln -s (which cat | get 0.path) ($bin | path join cat)
+  ^ln -s (which cat | get 0.path) ($bin | path join "cat")
   open --raw $PATCH_INPUT
-  | str replace --regex '^#!.*' $"#!($nu.current-exe) --no-config-file"
+  | str replace --regex "^#!.*" $"#!($nu.current-exe) --no-config-file"
   | save $parser
   ^chmod +x $parser
-  {fileFormatter: ($env.NU_TEST_STUBS | path join file-formatter), patchInput: $parser}
+  {fileFormatter: ($env.NU_TEST_STUBS | path join "file-formatter"), patchInput: $parser}
   | to json
   | save $config_file
 
@@ -58,12 +58,12 @@ def run-event [
 def "test edits forward paths from the event cwd" [] {
   let cases = [
     {
-      input: {tool_name: Write, tool_input: {file_path: notes.md}}
-      paths: [notes.md]
+      input: {tool_name: "Write", tool_input: {file_path: "notes.md"}}
+      paths: ["notes.md"]
     }
     {
       input: {
-        tool_name: apply_patch
+        tool_name: "apply_patch"
         tool_input: {
           command: ([
             "*** Begin Patch"
@@ -75,11 +75,11 @@ def "test edits forward paths from the event cwd" [] {
           ] | str join "\n")
         }
       }
-      paths: [--notes.md ./notes.md added.md]
+      paths: ["--notes.md" "./notes.md" "added.md"]
     }
     {
       input: {
-        tool_name: apply_patch
+        tool_name: "apply_patch"
         tool_input: {command: "*** Begin Patch\n*** Delete File: deleted.md\n*** End Patch"}
       }
       paths: []
@@ -103,15 +103,15 @@ def "test edits forward paths from the event cwd" [] {
 
 def "test failed hook reports reach the hook response" [] {
   let cwd = (mktemp --directory | path expand)
-  let input = {tool_name: Edit, tool_input: {file_path: notes.md}}
+  let input = {tool_name: "Edit", tool_input: {file_path: "notes.md"}}
   let report = "runner text one\n\nrunner text two"
 
   let result = (run-event $input $cwd --report $report --exit-code 7 --stderr "formatter warning")
 
-  assert equal $result.calls [{cwd: $cwd, args: [notes.md]}]
+  assert equal $result.calls [{cwd: $cwd, args: ["notes.md"]}]
   assert equal ($result.run.stdout | from json) {
     hookSpecificOutput: {
-      hookEventName: PostToolUse
+      hookEventName: "PostToolUse"
       additionalContext: $report
     }
   }
@@ -119,7 +119,7 @@ def "test failed hook reports reach the hook response" [] {
 }
 
 def "test malformed input exits cleanly without calling the formatter" [] {
-  for input in ["not json" {tool_name: Write, tool_input: {}}] {
+  for input in ["not json" {tool_name: "Write", tool_input: {}}] {
     let cwd = (mktemp --directory | path expand)
 
     let result = (run-event $input $cwd)

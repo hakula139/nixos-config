@@ -6,43 +6,43 @@
 
 use std/assert
 
-const SCRIPT_DIR = path self .
-const SCRIPT = ($SCRIPT_DIR | path join render-config.nu)
+const SCRIPT_DIR = path self "."
+const SCRIPT = ($SCRIPT_DIR | path join "render-config.nu")
 
 const USERS = {
-  alice: {uuid: alice-uuid, shortId: a1, level: admin}
-  bob: {uuid: bob-uuid, shortId: b2, level: user}
-  carol: {uuid: carol-uuid, shortId: c3}
+  alice: {uuid: "alice-uuid", shortId: "a1", level: "admin"}
+  bob: {uuid: "bob-uuid", shortId: "b2", level: "user"}
+  carol: {uuid: "carol-uuid", shortId: "c3"}
 }
 
 const SETTINGS = {
   inbounds: [
     {
-      tag: vless-reality
-      settings: {decryption: none}
-      streamSettings: {security: reality, realitySettings: {dest: "/run/nginx/https.sock"}}
+      tag: "vless-reality"
+      settings: {decryption: "none"}
+      streamSettings: {security: "reality", realitySettings: {dest: "/run/nginx/https.sock"}}
     }
     {
-      tag: vless-ws
-      settings: {decryption: none}
-      streamSettings: {network: ws}
+      tag: "vless-ws"
+      settings: {decryption: "none"}
+      streamSettings: {network: "ws"}
     }
   ]
-  outbounds: [{protocol: freedom}]
+  outbounds: [{protocol: "freedom"}]
 }
 
 def render [min_level: string]: nothing -> record {
   let dir = (mktemp --directory)
-  let users_file = ($dir | path join users.json)
-  let key_file = ($dir | path join private-key)
-  let config_file = ($dir | path join render.json)
-  let output = ($dir | path join config.json)
+  let users_file = ($dir | path join "users.json")
+  let key_file = ($dir | path join "private-key")
+  let config_file = ($dir | path join "render.json")
+  let output = ($dir | path join "config.json")
 
   $USERS | to json | save $users_file
   "private-key\n" | save $key_file
   {
     settings: $SETTINGS
-    clientFlows: {vless-reality: xtls-rprx-vision}
+    clientFlows: {vless-reality: "xtls-rprx-vision"}
     minLevel: $min_level
     usersFile: $users_file
     privateKeyFile: $key_file
@@ -60,16 +60,16 @@ def "test an admin server admits only admins" [] {
   assert equal $result.run.exit_code 0 $result.run.stderr
 
   let config = (open $result.output)
-  let reality = ($config.inbounds | where tag == vless-reality | first)
-  let ws = ($config.inbounds | where tag == vless-ws | first)
-  assert equal $reality.settings.clients [{id: alice-uuid, flow: xtls-rprx-vision}]
+  let reality = ($config.inbounds | where tag == "vless-reality" | first)
+  let ws = ($config.inbounds | where tag == "vless-ws" | first)
+  assert equal $reality.settings.clients [{id: "alice-uuid", flow: "xtls-rprx-vision"}]
   assert equal $reality.streamSettings.realitySettings {
     dest: "/run/nginx/https.sock"
-    privateKey: private-key
-    shortIds: [a1]
+    privateKey: "private-key"
+    shortIds: ["a1"]
   }
-  assert equal $ws.settings.clients [{id: alice-uuid}]
-  assert equal $ws.streamSettings {network: ws}
+  assert equal $ws.settings.clients [{id: "alice-uuid"}]
+  assert equal $ws.streamSettings {network: "ws"}
   assert equal $config.outbounds $SETTINGS.outbounds
   assert equal (ls -l $result.output | get 0.mode) "rw-------"
 }
@@ -78,9 +78,9 @@ def "test a user server admits every level, reading a missing level as user" [] 
   let result = (render user)
   assert equal $result.run.exit_code 0 $result.run.stderr
 
-  let reality = (open $result.output | get inbounds | where tag == vless-reality | first)
-  assert equal ($reality.settings.clients | get id | sort) [alice-uuid bob-uuid carol-uuid]
-  assert equal ($reality.streamSettings.realitySettings.shortIds | sort) [a1 b2 c3]
+  let reality = (open $result.output | get inbounds | where tag == "vless-reality" | first)
+  assert equal ($reality.settings.clients | get id | sort) ["alice-uuid" "bob-uuid" "carol-uuid"]
+  assert equal ($reality.streamSettings.realitySettings.shortIds | sort) ["a1" "b2" "c3"]
 }
 
 def "test an unknown minimum level fails without writing a config" [] {

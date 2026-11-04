@@ -6,7 +6,7 @@
 
 def --wrapped main [...args: string] {
   {
-    command: id
+    command: "id"
     args: $args
   }
   | to json --raw

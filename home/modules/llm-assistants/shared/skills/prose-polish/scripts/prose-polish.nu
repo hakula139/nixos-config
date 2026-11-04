@@ -15,14 +15,14 @@ const FRONT = '(?s)\A(?<m>(?:---|\+\+\+)\r?\n.*?\r?\n(?:---|\+\+\+)(?:\r?\n|\z))
 
 # Compared by count, so a passage keeps whatever it arrived with and only the rewriter is held to
 # the ban. Chinese prose takes the fullwidth `；`.
-const BANNED_MARKS = ['—' '--' '…' ';' '‘' '’' '“' '”']
+const BANNED_MARKS = ["—" "--" "…" ";" "‘" "’" "“" "”"]
 
 # Ordered spans are compared in source order, since moving a heading or list item changes the
 # document. The rest compare as a multiset, because merging or reordering two sentences that each
 # carry a quotation must stay allowed while losing or editing one must not.
 const CHECKS = [
   [kind ordered pattern];
-  ["ATX heading" true '(?m)^(?<m>#{1,6} .*)$']
+  ["ATX heading" true "(?m)^(?<m>#{1,6} .*)$"]
   ["setext heading" true '(?m)^(?<m>.+\n[=-]{2,}\s*)$']
   ["list marker" true '(?m)^(?<m>\s*(?:[-*+]|\d+\.) )']
   ["blockquote marker" true '(?m)^(?<m>[ \t]*>[> \t]*)']
@@ -33,7 +33,7 @@ const CHECKS = [
   ["image marker" false '(?<m>!\[)']
   ["bracketed span" false '(?<m>\[\^[^\[\]\n]+\]|\[[^\[\]\n]+\](?!\(|\[[^\]\n]))']
   ["HTML tag" false '(?<m></?[A-Za-z][^>\n]*>)']
-  ["HTML comment" false '(?s)(?<m><!--.*?-->)']
+  ["HTML comment" false "(?s)(?<m><!--.*?-->)"]
   ["URL" false '(?<m>https?://[^\s)>]+)']
   ["identifier" false '(?<m>(?<![A-Za-z0-9_])(?=[A-Za-z0-9_.:/+-]*[A-Za-z])(?=[A-Za-z0-9_.:/+-]*\d)[A-Za-z0-9_](?:[A-Za-z0-9_.:/+-]*[A-Za-z0-9_])?(?![A-Za-z0-9_]))']
   ["number" false '(?<m>[-+]?\d+(?:\.\d+)*(?:%|[A-Za-z]+)?)']
@@ -381,7 +381,7 @@ def gateway-model [config: record, key: any]: nothing -> string {
   }
   let model = ($config.models | get -o $key)
   if $model == null {
-    fail $"unknown model ($key). The catalog lists ($config.models | columns | str join ', ')."
+    fail $"unknown model ($key). The catalog lists ($config.models | columns | str join ", ")."
   }
   $model
 }

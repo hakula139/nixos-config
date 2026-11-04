@@ -9,7 +9,7 @@
 # ==================================================================================================
 
 def --wrapped main [...args: string] {
-  {tool: tmux, args: $args, path: ([$env.PATH] | flatten | str join ":")}
+  {tool: "tmux", args: $args, path: ([$env.PATH] | flatten | str join ":")}
   | to json --raw
   | $"($in)\n"
   | save --append $env.STUB_LOG

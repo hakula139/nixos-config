@@ -7,7 +7,7 @@
 # one under the HKCU Fonts registry key.
 # ==================================================================================================
 
-const FONT_EXTENSIONS = [ttf otf ttc otc]
+const FONT_EXTENSIONS = ["ttf" "otf" "ttc" "otc"]
 
 const FONTS_KEY = 'HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
 
@@ -23,7 +23,7 @@ def font-files [dirs: list<string>]: nothing -> list<string> {
 }
 
 def font-type [file: string]: nothing -> string {
-  if (extension $file) in [otf otc] { "OpenType" } else { "TrueType" }
+  if (extension $file) in ["otf" "otc"] { "OpenType" } else { "TrueType" }
 }
 
 def registry-document [fonts: list<string>, win_font_dir: string]: nothing -> string {
@@ -32,7 +32,7 @@ def registry-document [fonts: list<string>, win_font_dir: string]: nothing -> st
       let name = ($font | path basename)
       let value = $"($font | path parse | get stem) \((font-type $font))"
       let data = ([$win_font_dir $name] | str join '\' | str replace --all '\' '\\')
-      $"\"($value)\"=\"($data)\""
+      $'"($value)"="($data)"'
     }
   )
   [

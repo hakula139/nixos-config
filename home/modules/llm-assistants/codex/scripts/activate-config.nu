@@ -5,7 +5,7 @@
 # ==================================================================================================
 
 def save-config [content: string, target: string] {
-  let temporary = (^mktemp $"--tmpdir=($target | path dirname)" '.config.XXXXXXXXXX' | str trim)
+  let temporary = (^mktemp $"--tmpdir=($target | path dirname)" ".config.XXXXXXXXXX" | str trim)
 
   try {
     $content | save --force $temporary
@@ -21,13 +21,13 @@ def save-config [content: string, target: string] {
 # SHA-256 of the key-sorted JSON identity of the event, its matcher, and the handler with its
 # defaults filled in.
 def hook-hash [event: string, matcher: any, handler: record]: nothing -> string {
-  let timeout = if $event in [session_end interrupt] {
+  let timeout = if $event in ["session_end" "interrupt"] {
     [([($handler | get -o timeout | default 1) 3] | math min) 1] | math max
   } else {
     [($handler | get -o timeout | default 600) 1] | math max
   }
   let normalized = {
-    type: command
+    type: "command"
     command: $handler.command
     timeout: $timeout
     async: ($handler | get -o async | default false)
@@ -51,10 +51,10 @@ def trust-hooks [hooks: record, state: record, source: string]: nothing -> recor
   | each {|entry|
     let event = ($entry.event | str snake-case)
     # Codex ignores the matcher on these events.
-    let matcherless = ($event in [user_prompt_submit stop interrupt])
+    let matcherless = ($event in ["user_prompt_submit" "stop" "interrupt"])
     $entry.groups | enumerate | each {|group|
       let matcher = if $matcherless { null } else { $group.item | get -o matcher }
-      $group.item.hooks | enumerate | where item.type == command | each {|handler|
+      $group.item.hooks | enumerate | where item.type == "command" | each {|handler|
         {
           key: $"($source):($event):($group.index):($handler.index)"
           hash: (hook-hash $event $matcher $handler.item)
@@ -75,7 +75,7 @@ def main [config_file: string] {
   let config = (open $config_file)
   ^install -d -m 0700 $config.configDir
   let config_dir = ($config.configDir | path expand --strict)
-  let target = ($config_dir | path join 'config.toml')
+  let target = ($config_dir | path join "config.toml")
 
   mut current = if ($target | path exists) {
     open --raw $target | from toml
@@ -101,7 +101,7 @@ def main [config_file: string] {
   save-config ($settings | to toml) $target
 
   if not ($config.keybindings | is-empty) {
-    let keybindings_target = ($config_dir | path join 'keybindings.json')
+    let keybindings_target = ($config_dir | path join "keybindings.json")
     let current_keybindings = if ($keybindings_target | path exists) {
       open $keybindings_target
     } else { [] }
