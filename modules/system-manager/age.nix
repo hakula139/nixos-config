@@ -10,7 +10,10 @@
 }:
 
 let
+  esc = lib.escapeShellArg;
+
   cfg = config.age;
+  identityPathArgs = lib.escapeShellArgs cfg.identityPaths;
   serviceName = "agenix-install-secrets";
   secretsDir = "/run/agenix";
   ageBin = lib.getExe pkgs.age;
@@ -59,28 +62,22 @@ let
   );
 
   decryptSecret = secret: ''
-    target=${lib.escapeShellArg secret.path}
+    target=${esc secret.path}
     tmp="$target.tmp"
 
-    echo "decrypting" ${lib.escapeShellArg secret.name} "to $target"
+    echo "decrypting" ${esc secret.name} "to $target"
     target_dir="$(dirname "$target")"
     if [[ ! -d "$target_dir" ]]; then
-      install \
-        -d \
-        -m 0700 \
-        -o ${lib.escapeShellArg secret.owner} \
-        -g ${lib.escapeShellArg secret.group} \
+      install -dm0700 \
+        -o ${esc secret.owner} \
+        -g ${esc secret.group} \
         "$target_dir"
     fi
     rm -f "$tmp"
 
-    ${ageBin} \
-      --decrypt \
-      "''${identityArgs[@]}" \
-      -o "$tmp" \
-      ${lib.escapeShellArg "${secret.file}"}
-    chmod ${lib.escapeShellArg secret.mode} "$tmp"
-    chown ${lib.escapeShellArg "${secret.owner}:${secret.group}"} "$tmp"
+    ${ageBin} --decrypt "''${identityArgs[@]}" -o "$tmp" ${esc "${secret.file}"}
+    chmod ${esc secret.mode} "$tmp"
+    chown ${esc "${secret.owner}:${secret.group}"} "$tmp"
     mv -f "$tmp" "$target"
   '';
 
@@ -141,7 +138,7 @@ in
         set -euo pipefail
 
         identityArgs=()
-        for identity in ${lib.escapeShellArgs cfg.identityPaths}; do
+        for identity in ${identityPathArgs}; do
           if [[ -r "$identity" && -s "$identity" ]]; then
             identityArgs+=(-i "$identity")
           else
@@ -150,13 +147,13 @@ in
         done
 
         if [[ "''${#identityArgs[@]}" -eq 0 ]]; then
-          echo "error: no readable age identities found in:" ${lib.escapeShellArgs cfg.identityPaths} >&2
+          echo "error: no readable age identities found in:" ${identityPathArgs} >&2
           exit 1
         fi
 
         ${lib.concatStringsSep "\n" (map decryptSecret (lib.attrValues cfg.secrets))}
 
-        manifest=${lib.escapeShellArg managedPathsFile}
+        manifest=${esc managedPathsFile}
         desired=${desiredManifest}
 
         if [[ -f "$manifest" ]]; then
@@ -167,8 +164,8 @@ in
           done <"$manifest"
         fi
 
-        install -d -m 0755 "$(dirname "$manifest")"
-        install -m 0644 "$desired" "$manifest"
+        install -dm0755 "$(dirname "$manifest")"
+        install -m0644 "$desired" "$manifest"
       '';
     };
   };

@@ -18,7 +18,7 @@ let
   renderScript = pkgs.writeShellScript "nix-daemon-proxy-env" (
     ''
       set -euo pipefail
-      install -d -m 0700 "$(dirname ${lib.escapeShellArg envFile})"
+      install -dm0700 "$(dirname ${lib.escapeShellArg envFile})"
     ''
     + repoLib.proxy.mkProxyEnvFileScript {
       proxyCfg = cfg;

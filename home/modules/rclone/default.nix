@@ -167,12 +167,13 @@ in
     home.activation.rcloneDirectories =
       lib.hm.dag.entryBetween [ "setupLaunchAgents" ] [ "writeBoundary" ]
         ''
-          run install -d -m 0700 ${
+          run install -dm0700 ${
             lib.escapeShellArgs [
               stateDir
               logDir
             ]
           }
+
           run mkdir -p ${
             lib.escapeShellArgs (
               [ mountRoot ] ++ lib.mapAttrsToList (name: _: "${mountRoot}/${name}") cfg.mounts

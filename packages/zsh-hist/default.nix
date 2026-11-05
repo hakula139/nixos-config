@@ -23,9 +23,10 @@ pkgs.stdenvNoCC.mkDerivation {
 
   installPhase = ''
     runHook preInstall
-    install -Dm644 zsh-hist.plugin.zsh -t $out/share/zsh-hist
-    install -Dm644 _hist -t $out/share/zsh-hist
-    cp -r functions $out/share/zsh-hist/functions
+    install -Dm0644 \
+      -t "$out/share/zsh-hist" \
+      zsh-hist.plugin.zsh _hist
+    cp -r functions "$out/share/zsh-hist/functions"
     runHook postInstall
   '';
 

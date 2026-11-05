@@ -44,12 +44,18 @@ let
   # Above restic's 15-minute backend retry window, so only a stalled run hits it.
   resticTimeout = "1h";
 
-  heartbeatCurlArgs = lib.escapeShellArgs (
-    repoLib.curl.mkArgs {
-      connectTimeout = 10;
-      maxTime = 30;
-    }
-  );
+  heartbeatCurlArgs = lib.escapeShellArgs [
+    "-fsSL"
+
+    "--connect-timeout"
+    "10"
+
+    "--max-time"
+    "30"
+
+    "--request"
+    "POST"
+  ];
 
   heartbeatServiceConfig = {
     Type = "oneshot";
@@ -200,7 +206,10 @@ in
             export PATH="${runtimePath}:$PATH"
 
             rm -rf ${stateDir}
-            install -d -m 0700 -o ${serviceName} -g ${serviceName} ${stateDir}
+            install -dm0700 \
+              -o ${serviceName} \
+              -g ${serviceName} \
+              ${stateDir}
 
             ${targetCfg.prepareCommand}
 
@@ -264,11 +273,7 @@ in
             ];
 
             script = ''
-              curl \
-                ${heartbeatCurlArgs} \
-                --location \
-                --request POST \
-                ${esc heartbeatUrl} >/dev/null || true
+              curl ${esc heartbeatUrl} ${heartbeatCurlArgs} >/dev/null || true
             '';
           }
         )
@@ -300,16 +305,18 @@ in
               )
 
               output="$(
-                journalctl "''${match[@]}" -n 100 --no-pager 2>&1 \
+                journalctl "''${match[@]}" \
+                  -n 100 \
+                  --no-pager \
+                  2>&1 \
                   | head -c 20000
               )"
+
               printf '%s' "$output" \
-                | curl \
+                | curl ${esc "${heartbeatUrl}/fail"} \
                   ${heartbeatCurlArgs} \
-                  --location \
-                  --request POST \
                   --data-binary @- \
-                  ${esc "${heartbeatUrl}/fail"} >/dev/null || true
+                  >/dev/null || true
             '';
           }
         )
@@ -358,7 +365,10 @@ in
               set -euo pipefail
 
               rm -rf ${restoreDir}
-              install -d -m 0700 -o ${serviceName} -g ${serviceName} ${restoreDir}
+              install -dm0700 \
+                -o ${serviceName} \
+                -g ${serviceName} \
+                ${restoreDir}
 
               echo "==> Restoring snapshot ${targetCfg.restoreSnapshot} from Restic..."
               restic restore ${targetCfg.restoreSnapshot} \
