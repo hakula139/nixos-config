@@ -34,10 +34,10 @@ def is-installed [unit: record]: nothing -> bool {
 # timestamp is 0 until the unit has actually run.
 def ran-successfully [unit: record]: nothing -> bool {
   (
-    ($unit.Type? == "oneshot") and
-    ($unit.Result? == "success") and
-    ($unit.ExecMainStatus? == "0") and
-    (($unit.ExecMainStartTimestampMonotonic? | default "0") != "0")
+    ($unit.Type? == "oneshot")
+    and ($unit.Result? == "success")
+    and ($unit.ExecMainStatus? == "0")
+    and (($unit.ExecMainStartTimestampMonotonic? | default "0") != "0")
   )
 }
 
@@ -63,7 +63,11 @@ def main [...services: string] {
     print -e $"service '($service)' is not active"
     # `systemctl status` exits non-zero for an inactive unit, which would otherwise abort the loop
     # before the remaining services are checked.
-    ^systemctl status --no-pager $service | complete | get stdout | str trim | print -e
+    ^systemctl status --no-pager $service
+    | complete
+    | get stdout
+    | str trim
+    | print -e
     $failed = true
   }
 

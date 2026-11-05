@@ -47,7 +47,11 @@ const CHECKS = [
 # The delimiter a line opens a fence with, or null when the line opens none.
 def fence-delimiter [line: string]: nothing -> any {
   let parsed = ($line | parse --regex $OPENER)
-  if ($parsed | is-empty) { null } else { $parsed | get 0.d }
+  if ($parsed | is-empty) {
+    null
+  } else {
+    $parsed | get 0.d
+  }
 }
 
 # Whether a line closes the fence `delimiter` opened. CommonMark lets a closer use the same
@@ -69,9 +73,11 @@ def closes-fence [line: string, delimiter: string]: nothing -> bool {
 def pieces [text: string]: nothing -> list<record> {
   # Front matter goes in whole and never counts as prose, whatever blank lines it holds.
   let front = ($text | parse --regex $FRONT | get -o 0.m | default "")
-  mut out = (
-    if ($front | is-empty) { [] } else { [{block: $front, sep: "", prose: false}] }
-  )
+  mut out = if ($front | is-empty) {
+    []
+  } else {
+    [{block: $front, sep: "", prose: false}]
+  }
 
   mut delimiter = ""
   for piece in (
@@ -100,7 +106,9 @@ def pieces [text: string]: nothing -> list<record> {
 # `reframe` measures margins with `\s`, which matches an ideographic space, so a rewrite must lose
 # the same set.
 def trim-margins [text: string]: nothing -> string {
-  $text | str replace --regex '(?s)\A\s+' "" | str replace --regex '(?s)\s+\z' ""
+  $text
+  | str replace --regex '(?s)\A\s+' ""
+  | str replace --regex '(?s)\s+\z' ""
 }
 
 def reframe [before: string, after: string]: nothing -> string {
@@ -157,7 +165,9 @@ def holds-code [text: string]: nothing -> bool {
 
 # A piece made only of headings or table rows can only be refused, so it never reaches the model.
 def structural-only [text: string]: nothing -> bool {
-  $text | lines | all {|line|
+  $text
+  | lines
+  | all {|line|
     let trimmed = ($line | str trim)
     $trimmed == "" or ($trimmed | parse --regex '^(?:#{1,6} .*|\|.*\|)$' | is-not-empty)
   }
@@ -287,13 +297,22 @@ def call-model [
   }
 
   let caller = $config.modelCall
-  let run = ($request | to json | ^$caller | complete)
+  let run = (
+    $request
+    | to json
+    | ^$caller
+    | complete
+  )
   if $run.exit_code != 0 {
     print --stderr --no-newline $run.stderr
     return []
   }
 
-  let parsed = (try { $run.stdout | from json } catch { null })
+  let parsed = try {
+    $run.stdout | from json
+  } catch {
+    null
+  }
   if (not ($parsed | describe | str starts-with "record")) {
     return []
   }
@@ -301,7 +320,11 @@ def call-model [
   # passage's slot would corrupt both.
   let rewritten = ($parsed | get -o passages | default [])
   # `get -o` errors when an item is not a record.
-  let ids = (try { $rewritten | get -o id } catch { null })
+  let ids = try {
+    $rewritten | get -o id
+  } catch {
+    null
+  }
   if $ids != ($passages | get id) {
     return []
   }
@@ -333,13 +356,21 @@ def repair [pending: list<record>, config: record]: nothing -> list<string> {
 # Each target graded with its final rewrite in `after` and any remaining fault in `problem`, or
 # null when the opening model call fails.
 def rewrite [found: list<record>, config: record]: nothing -> any {
-  let passages = ($found | enumerate | each {|slot| {id: $slot.index, text: $slot.item.before} })
+  let passages = (
+    $found
+    | enumerate
+    | each {|slot| {id: $slot.index, text: $slot.item.before} }
+  )
   let opening = (call-model $passages [] $config)
   if ($opening | is-empty) {
     return null
   }
 
-  mut graded = ($found | zip $opening | each {|pair| grade $pair.0 $pair.1 })
+  mut graded = (
+    $found
+    | zip $opening
+    | each {|pair| grade $pair.0 $pair.1 }
+  )
 
   for _ in 0..<$config.maxRepairs {
     let pending = ($graded | enumerate | where item.problem != "")
@@ -401,9 +432,11 @@ def main [
   let config = (open $config_file)
   let config = ($config | update model (gateway-model $config $model))
 
-  let raw = (
-    if $path == null { ^cat | into binary } else { open --raw $path | into binary }
-  )
+  let raw = if $path == null {
+    ^cat | into binary
+  } else {
+    open --raw $path | into binary
+  }
 
   let bom = ($raw | bytes starts-with 0x[ef bb bf])
   let body = ($raw | bytes at (if $bom { 3 } else { 0 })..)
@@ -415,7 +448,11 @@ def main [
   }
 
   let found = (document-targets $text)
-  let graded = if ($found | is-empty) { [] } else { rewrite $found $config }
+  let graded = if ($found | is-empty) {
+    []
+  } else {
+    rewrite $found $config
+  }
   if $graded == null {
     fail "the model call failed"
   }
@@ -425,10 +462,16 @@ def main [
   }
 
   let result = (assemble $text (accepted $graded))
-  let out = (if $bom { "\u{feff}" + $result } else { $result })
+  let out = if $bom {
+    "\u{feff}" + $result
+  } else {
+    $result
+  }
   if $path == null {
     print --no-newline $out
   } else if $result != $text {
-    $out | encode utf-8 | save --force --raw $path
+    $out
+    | encode utf-8
+    | save --force --raw $path
   }
 }

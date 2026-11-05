@@ -30,5 +30,7 @@ def parse-patch [command: string]: nothing -> list<record> {
 # Read an apply_patch payload from stdin and emit file changes as JSON.
 def main [] {
   let command = (^cat)
-  parse-patch $command | to json --raw | print
+  parse-patch $command
+  | to json --raw
+  | print
 }

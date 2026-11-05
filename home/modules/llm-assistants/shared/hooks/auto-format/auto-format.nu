@@ -7,7 +7,11 @@
 def collect-paths [input: record, parser: string]: nothing -> list<string> {
   let args = $input.tool_input
   if $input.tool_name == "apply_patch" {
-    $args.command | ^$parser | from json | where action != "Delete" | get path
+    $args.command
+    | ^$parser
+    | from json
+    | where action != "Delete"
+    | get path
   } else {
     [$args.file_path]
   }
@@ -35,6 +39,10 @@ def format-edited [config: record]: nothing -> any {
 }
 
 def main [config_file: string] {
-  let out = (try { format-edited (open $config_file) } catch { null })
+  let out = try {
+    format-edited (open $config_file)
+  } catch {
+    null
+  }
   if $out != null { print $out }
 }

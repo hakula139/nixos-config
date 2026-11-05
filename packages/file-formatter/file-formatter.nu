@@ -12,7 +12,12 @@ const REPORT_PREFIX = "The pre-commit hooks reported problems in the edited file
 def gate-root [path: string]: nothing -> string {
   let dir = ($path | path dirname)
   let query = (
-    ^git -C $dir rev-parse --path-format=absolute --show-toplevel --git-path "hooks/pre-commit"
+    ^git
+      -C $dir
+      rev-parse
+        --path-format=absolute
+        --show-toplevel
+        --git-path "hooks/pre-commit"
     | complete
   )
   if $query.exit_code != 0 { return "" }
@@ -36,13 +41,11 @@ def failed-blocks [output: string]: nothing -> list<string> {
     | split row --regex '(?m)^(?=\S.*\.{3,}Failed$)'
     | skip 1
   )
-  let failed = (
-    if ($blocks | is-empty) {
-      [$output]
-    } else {
-      $blocks | where $it =~ "(?m)^- exit code:"
-    }
-  )
+  let failed = if ($blocks | is-empty) {
+    [$output]
+  } else {
+    $blocks | where $it =~ "(?m)^- exit code:"
+  }
   $failed
   | each {|block| $block | str trim | lines | first $MAX_LINES | str join "\n" }
 }
@@ -60,11 +63,11 @@ def run-gate [
   let prek = (which prek | get 0.path)
   let args = [
     run ...$hooks
-    --quiet
-    --no-progress
-    --color never
-    --cd $root
-    --files ...$paths
+      --quiet
+      --no-progress
+      --color never
+      --cd $root
+      --files ...$paths
   ]
   if $via_direnv {
     ^direnv exec $root $prek ...$args | complete
@@ -99,7 +102,11 @@ def check [root: string, paths: list<string>]: nothing -> list<string> {
   # A fixer such as end-of-file-fixer exits nonzero after a rewrite, so rerun the hooks that failed
   # to confirm the result.
   let confirm = (run-gate $root $paths (failed-hooks $output) --via-direnv=$allowed)
-  if $confirm.exit_code == 0 { [] } else { failed-blocks ($confirm.stderr + $confirm.stdout) }
+  if $confirm.exit_code == 0 {
+    []
+  } else {
+    failed-blocks ($confirm.stderr + $confirm.stdout)
+  }
 }
 
 # The failed hooks across the repositories holding `paths`. A path outside a repository, or in one

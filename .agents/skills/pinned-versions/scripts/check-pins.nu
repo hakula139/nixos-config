@@ -30,21 +30,29 @@ def die [msg: string] {
 }
 
 def repo-root []: nothing -> string {
-  try { ^git rev-parse --show-toplevel | str trim } catch {
+  try {
+    ^git rev-parse --show-toplevel | str trim
+  } catch {
     die "cannot find the repository root. Run inside the nixos-config checkout."
   }
 }
 
 # A failed lookup leaves no comparable value, so the caller reports UNKNOWN.
 def query [pin: string, closure: closure]: nothing -> string {
-  try { do $closure | into string | str trim } catch {|err|
+  try {
+    do $closure | into string | str trim
+  } catch {|err|
     print -e $"  ($pin): ($err.msg)"
     ""
   }
 }
 
 def abbrev [rev: string]: nothing -> string {
-  if ($rev | str length) <= $REV_ABBREV { $rev } else { $rev | str substring 0..<$REV_ABBREV }
+  if ($rev | str length) <= $REV_ABBREV {
+    $rev
+  } else {
+    $rev | str substring 0..<$REV_ABBREV
+  }
 }
 
 # Evaluate a field of an attribute through the flake at `root`, capturing stderr so evaluation
@@ -92,7 +100,12 @@ def version-older [left: string, right: string]: nothing -> bool {
 # --------------------------------------------------------------------------------------------------
 
 def gh-api [path: string, jq: string]: nothing -> string {
-  ^gh api --hostname github.com $path --jq $jq | str trim
+  (
+    ^gh api $path
+      --hostname github.com
+      --jq $jq
+    | str trim
+  )
 }
 
 def gh-latest-release [repo: string]: nothing -> string {
@@ -105,12 +118,17 @@ def gh-newest-release [repo: string]: nothing -> string {
 }
 
 def gh-newest-tag [repo: string]: nothing -> string {
-  ^gh api --hostname github.com $"repos/($repo)/tags" --paginate --jq ".[].name"
-  | lines
-  | where {|tag| $tag =~ '^v?[0-9]+(\.[0-9]+)*$' }
-  | reduce --fold "" {|tag, newest|
-    if ($newest | is-empty) or (version-at-least $tag $newest) { $tag } else { $newest }
-  }
+  (
+    ^gh api $"repos/($repo)/tags"
+      --hostname github.com
+      --paginate
+      --jq ".[].name"
+    | lines
+    | where {|tag| $tag =~ '^v?[0-9]+(\.[0-9]+)*$' }
+    | reduce --fold "" {|tag, newest|
+      if ($newest | is-empty) or (version-at-least $tag $newest) { $tag } else { $newest }
+    }
+  )
 }
 
 def gh-newest-tag-head [repo: string]: nothing -> string {
@@ -173,7 +191,7 @@ def image-tag [root: string, file: string]: nothing -> string {
 
 def action-pins [root: string]: nothing -> list<string> {
   [".github/workflows" ".github/actions"]
-  | each {|dir| glob ([$root $dir "**" "*"] | path join) }
+  | each {|dir| glob ([$root $dir "**/*"] | path join) }
   | flatten
   | where {|p|
     ($p | path type) == "file" and ($p | path parse | get extension) in ["yml" "yaml"]
@@ -220,7 +238,11 @@ def override-rows [root: string, overrides: list<record>]: nothing -> list<recor
           "UNKNOWN"
         } else {
           let unstable = (flake-attr $root $unstable_attr version)
-          let pinned_in_file = (try { nix-version $root $file } catch { "" })
+          let pinned_in_file = try {
+            nix-version $root $file
+          } catch {
+            ""
+          }
 
           if ($unstable | is-empty) {
             "UNKNOWN"
@@ -393,7 +415,11 @@ def registry [root: string]: nothing -> list<record> {
     }
     {
       title: "GitHub Actions"
-      pins: (try { action-pins $root | each {|pin| action-pin $pin } } catch { [] })
+      pins: (try {
+        action-pins $root | each {|pin| action-pin $pin }
+      } catch {
+        []
+      })
     }
   ]
 }

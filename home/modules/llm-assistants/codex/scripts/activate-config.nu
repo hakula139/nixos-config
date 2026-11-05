@@ -39,7 +39,11 @@ def hook-hash [event: string, matcher: any, handler: record]: nothing -> string 
     $normalized | insert statusMessage $status
   }
   let identity = {event_name: $event, hooks: [($described | sort)]}
-  let keyed = if $matcher == null { $identity } else { $identity | insert matcher $matcher }
+  let keyed = if $matcher == null {
+    $identity
+  } else {
+    $identity | insert matcher $matcher
+  }
   $"sha256:($keyed | sort | to json --raw | hash sha256)"
 }
 
@@ -52,9 +56,18 @@ def trust-hooks [hooks: record, state: record, source: string]: nothing -> recor
     let event = ($entry.event | str snake-case)
     # Codex ignores the matcher on these events.
     let matcherless = ($event in ["user_prompt_submit" "stop" "interrupt"])
-    $entry.groups | enumerate | each {|group|
-      let matcher = if $matcherless { null } else { $group.item | get -o matcher }
-      $group.item.hooks | enumerate | where item.type == "command" | each {|handler|
+    $entry.groups
+    | enumerate
+    | each {|group|
+      let matcher = if $matcherless {
+        null
+      } else {
+        $group.item | get -o matcher
+      }
+      $group.item.hooks
+      | enumerate
+      | where item.type == "command"
+      | each {|handler|
         {
           key: $"($source):($event):($group.index):($handler.index)"
           hash: (hook-hash $event $matcher $handler.item)
@@ -73,13 +86,20 @@ def trust-hooks [hooks: record, state: record, source: string]: nothing -> recor
 # Apply managed settings while preserving Codex's mutable user state.
 def main [config_file: string] {
   let config = (open $config_file)
-  ^install -d -m 0700 $config.configDir
+  (
+    ^install
+      -d
+      -m 0700
+      $config.configDir
+  )
   let config_dir = ($config.configDir | path expand --strict)
   let target = ($config_dir | path join "config.toml")
 
   mut current = if ($target | path exists) {
     open --raw $target | from toml
-  } else { {} }
+  } else {
+    {}
+  }
 
   # Native profile files may contain project trust and hook review state.
   if ($config.activeProfile | path exists) {
@@ -89,9 +109,11 @@ def main [config_file: string] {
     }
   }
 
-  mut settings = ($current
+  mut settings = (
+    $current
     | merge deep --strategy overwrite $config.settings
-    | merge ($config.settings | select tools mcp_servers hooks))
+    | merge ($config.settings | select tools mcp_servers hooks)
+  )
   let prior_state = ($current | get -o hooks.state | default {})
   let hook_state = (trust-hooks $config.settings.hooks $prior_state $target)
   if not ($hook_state | is-empty) {
@@ -104,11 +126,15 @@ def main [config_file: string] {
     let keybindings_target = ($config_dir | path join "keybindings.json")
     let current_keybindings = if ($keybindings_target | path exists) {
       open $keybindings_target
-    } else { [] }
+    } else {
+      []
+    }
 
-    let keybindings = ($current_keybindings
+    let keybindings = (
+      $current_keybindings
       | where {|binding| $binding.command not-in $config.keybindings.command }
-      | append $config.keybindings)
+      | append $config.keybindings
+    )
     save-config ($keybindings | to json) $keybindings_target
   }
 }

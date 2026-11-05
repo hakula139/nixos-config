@@ -38,8 +38,12 @@ def render [min_level: string]: nothing -> record {
   let config_file = ($dir | path join "render.json")
   let output = ($dir | path join "config.json")
 
-  $USERS | to json | save $users_file
+  $USERS
+  | to json
+  | save $users_file
+
   "private-key\n" | save $key_file
+
   {
     settings: $SETTINGS
     clientFlows: {vless-reality: "xtls-rprx-vision"}
