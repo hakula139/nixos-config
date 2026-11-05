@@ -91,6 +91,19 @@ def "test edits forward paths from the event cwd" [] {
     {
       input: {
         tool_name: "apply_patch"
+        tool_input: {
+          command: ([
+            "*** Begin Patch"
+            "*** Update File: --x;print INJECTED"
+            "*** End Patch"
+          ] | str join "\n")
+        }
+      }
+      paths: ["--x;print INJECTED"]
+    }
+    {
+      input: {
+        tool_name: "apply_patch"
         tool_input: {command: "*** Begin Patch\n*** Delete File: deleted.md\n*** End Patch"}
       }
       paths: []
@@ -105,7 +118,7 @@ def "test edits forward paths from the event cwd" [] {
     let expected = if ($case.paths | is-empty) {
       []
     } else {
-      [{cwd: $cwd, args: $case.paths}]
+      [{cwd: $cwd, args: ($case.paths | each {|path| $cwd | path join $path | path expand })}]
     }
     assert equal $result.calls $expected ($case | to nuon)
     assert equal $result.run.stdout ""
@@ -124,7 +137,7 @@ def "test failed hook reports reach the hook response" [] {
       --stderr "formatter warning"
   )
 
-  assert equal $result.calls [{cwd: $cwd, args: ["notes.md"]}]
+  assert equal $result.calls [{cwd: $cwd, args: [($cwd | path join "notes.md" | path expand)]}]
   assert equal ($result.run.stdout | from json) {
     hookSpecificOutput: {
       hookEventName: "PostToolUse"

@@ -2,6 +2,8 @@
 // OMP File Formatter Extension
 // =================================================================================================
 
+import { resolve } from 'node:path';
+
 import type { ExtensionAPI } from '@oh-my-pi/pi-coding-agent';
 
 const formatter = '@fileFormatter@';
@@ -24,17 +26,19 @@ function editedPaths(toolName: string, input: any, details: any): string[] {
 }
 
 export default function (pi: ExtensionAPI) {
-  pi.on('tool_result', async (event) => {
+  pi.on('tool_result', async (event, ctx) => {
     if (event.isError) {
       return;
     }
 
-    const paths = editedPaths(event.toolName, event.input, event.details);
+    const paths = editedPaths(event.toolName, event.input, event.details).map((path) =>
+      resolve(ctx.cwd, path),
+    );
     if (paths.length === 0) {
       return;
     }
 
-    const run = await pi.exec(formatter, paths);
+    const run = await pi.exec(formatter, ['--', ...paths]);
     const report = run.stdout.trim();
     if (report.length === 0) {
       return;

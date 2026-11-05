@@ -25,21 +25,7 @@ const cases: Case[] = [
     toolName: 'write',
     input: { path: 'a.md' },
     details: { resolvedPath: '/home/u/src/app/a.md' },
-    calls: [[formatter, '/home/u/src/app/a.md']],
-    context: null,
-  },
-  {
-    name: 'an edit carries its paths list',
-    toolName: 'edit',
-    input: { paths: ['a.md', 'b.md'] },
-    calls: [[formatter, 'a.md', 'b.md']],
-    context: null,
-  },
-  {
-    name: 'an edit carries its single path',
-    toolName: 'edit',
-    input: { path: 'a.md' },
-    calls: [[formatter, 'a.md']],
+    calls: [[formatter, '--', '/home/u/src/app/a.md']],
     context: null,
   },
   {
@@ -57,7 +43,7 @@ const cases: Case[] = [
       },
     },
     report: 'runner report',
-    calls: [[formatter, 'x.ts']],
+    calls: [[formatter, '--', '/home/u/src/app/x.ts']],
     context: 'runner report',
   },
   {
@@ -95,12 +81,17 @@ const cases: Case[] = [
     context: null,
   },
   {
-    name: 'an errored result is ignored',
-    toolName: 'write',
+    name: 'an edit carries its paths list',
+    toolName: 'edit',
+    input: { paths: ['a.md', 'b.md'] },
+    calls: [[formatter, '--', '/home/u/src/app/a.md', '/home/u/src/app/b.md']],
+    context: null,
+  },
+  {
+    name: 'an edit carries its single path',
+    toolName: 'edit',
     input: { path: 'a.md' },
-    details: { resolvedPath: '/home/u/src/app/a.md' },
-    isError: true,
-    calls: [],
+    calls: [[formatter, '--', '/home/u/src/app/a.md']],
     context: null,
   },
   {
@@ -111,11 +102,20 @@ const cases: Case[] = [
     calls: [],
     context: null,
   },
+  {
+    name: 'an errored result is ignored',
+    toolName: 'write',
+    input: { path: 'a.md' },
+    details: { resolvedPath: '/home/u/src/app/a.md' },
+    isError: true,
+    calls: [],
+    context: null,
+  },
 ];
 
 test.each(cases)('$name', async (item) => {
   const calls: string[][] = [];
-  let handler: (event: unknown) => Promise<unknown> = async () => undefined;
+  let handler: (event: unknown, ctx: unknown) => Promise<unknown> = async () => undefined;
   const pi = {
     on(_event: string, registered: typeof handler) {
       handler = registered;
@@ -127,12 +127,15 @@ test.each(cases)('$name', async (item) => {
   };
 
   extension(pi as never);
-  const result = await handler({
-    toolName: item.toolName,
-    input: item.input,
-    details: item.details,
-    isError: item.isError ?? false,
-  });
+  const result = await handler(
+    {
+      toolName: item.toolName,
+      input: item.input,
+      details: item.details,
+      isError: item.isError ?? false,
+    },
+    { cwd: '/home/u/src/app' },
+  );
 
   expect(calls).toEqual(item.calls);
   expect(result).toEqual(item.context == null ? undefined : { additionalContext: item.context });
