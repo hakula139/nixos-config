@@ -20,9 +20,8 @@ let
   inherit (repoLib.llmAssistants) mcpOptions;
 
   mcp = import ./mcp.nix {
-    inherit pkgs mcpOptions;
+    inherit pkgs mcpOptions shared;
     enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
-    mcpServers = shared.mcp.servers;
   };
 
   # `--mcp-config` is variadic, so only the `=` form keeps it from swallowing the prompt.
@@ -33,12 +32,11 @@ let
       config
       pkgs
       lib
+      shared
       modelCatalog
       mcpFlag
       ;
     inherit (cfg.agents) enabledAgents;
-    inherit (shared) profileDefinitions anthropicProfiles mkProfileSwitch;
-    sharedAgents = shared.agentRoles;
   };
 in
 {
@@ -76,10 +74,8 @@ in
       # Module imports
       # --------------------------------------------------------------------------------------------
       hooks = import ./hooks {
-        inherit pkgs lib;
-        inherit (shared) mkHooks notify;
+        inherit pkgs lib shared;
         inherit (cfg.auth) enableCorpGateway;
-        modelAliases = shared.profileDefinitions.modelAliases.claude;
       };
 
       permissionSettings = import ./permissions {
@@ -152,9 +148,8 @@ in
             hooks
             permissionSettings
             plugins
+            shared
             ;
-          inherit (shared) preferences;
-          inherit (shared.mcp) timeouts;
           bundlePlugins = cfg.plugins.bundle;
           profileSettings = profiles.settings;
         }

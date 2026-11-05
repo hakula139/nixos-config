@@ -6,9 +6,8 @@
   config,
   pkgs,
   lib,
-  profileDefinitions,
+  shared,
   secretPath,
-  mkProfileSwitch,
 }:
 
 let
@@ -17,7 +16,7 @@ let
   configDir = "${config.home.homeDirectory}/.omp/agent";
   stateDir = "${config.xdg.stateHome}/omp";
 
-  corpGateway = profileDefinitions.providers.corp-gateway;
+  corpGateway = shared.profileDefinitions.providers.corp-gateway;
   caFile = secretPath corpGateway.caSecret;
 
   # ------------------------------------------------------------------------------------------------
@@ -64,7 +63,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile definitions
   # ------------------------------------------------------------------------------------------------
-  enabledProfiles = profileDefinitions.mkProfiles {
+  enabledProfiles = shared.profileDefinitions.mkProfiles {
     inherit (cfg) enableCorpGateway;
     nativeFamily = "gpt";
     hybridBase = "corp-gateway-anthropic";
@@ -86,9 +85,9 @@ let
     inherit
       pkgs
       lib
-      profileDefinitions
       secretPath
       ;
+    inherit (shared) profileDefinitions;
     profiles = lib.filterAttrs (_: profile: profile.provider != null) enabledProfiles;
   };
 
@@ -97,7 +96,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile switcher
   # ------------------------------------------------------------------------------------------------
-  switch = mkProfileSwitch {
+  switch = shared.mkProfileSwitch {
     inherit stateDir;
     inherit (cfg) defaultProfile;
     name = "omp-switch";
@@ -115,7 +114,7 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options = profileDefinitions.mkOptions {
+  options = shared.profileDefinitions.mkOptions {
     defaultProfile = if cfg.enableCorpGateway then "corp-gateway-anthropic" else "official";
     enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
   };

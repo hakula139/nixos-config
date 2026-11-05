@@ -3,11 +3,11 @@
 # ==================================================================================================
 
 {
-  readPrompt,
+  promptFragments,
 }:
 
 let
-  sharedBody = readPrompt ./shared.md;
+  sharedBody = promptFragments.readPrompt ./shared.md;
 
   render =
     {

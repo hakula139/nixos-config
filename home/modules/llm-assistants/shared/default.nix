@@ -18,7 +18,7 @@ let
   # Instructions and agent roles
   # ------------------------------------------------------------------------------------------------
   promptFragments = import ./prompt-fragments;
-  roles = import ./agent-roles { inherit (promptFragments) readPrompt; };
+  roles = import ./agent-roles { inherit promptFragments; };
   toLine = text: lib.replaceStrings [ "\n" ] [ " " ] (lib.trim text);
   agentRoles = lib.mapAttrs (_: role: role // { description = toLine role.description; }) roles;
 
@@ -58,14 +58,14 @@ let
   mkModelCall =
     assistant:
     import ./model-call {
-      inherit pkgs lib assistant;
-      inherit (repoLib) mkNuCommand;
+      inherit
+        pkgs
+        lib
+        assistant
+        repoLib
+        timeouts
+        ;
       gateway = gatewayFor assistant;
-
-      curlArgs = repoLib.curl.mkArgs {
-        connectTimeout = timeouts.modelConnect;
-        maxTime = timeouts.modelCall;
-      };
     };
 in
 {
@@ -78,7 +78,7 @@ in
     # Instructions and agent roles
     # ----------------------------------------------------------------------------------------------
     inherit agentRoles;
-    instructions = import ../instructions { inherit (promptFragments) readPrompt; };
+    instructions = import ../instructions { inherit promptFragments; };
     agentRoleOptions = import ./agent-roles/options.nix { inherit lib agentRoles; };
 
     # ----------------------------------------------------------------------------------------------
@@ -94,11 +94,11 @@ in
         config
         pkgs
         lib
-        corpHosts
-        secretPath
         corpGateway
+        corpHosts
+        repoLib
+        secretPath
         ;
-      inherit (repoLib.proxy) clearProxyEnv;
     };
 
     mcpSecrets = import ./mcp/secrets.nix;
@@ -111,20 +111,19 @@ in
         pkgs
         lib
         modelCatalog
+        promptFragments
         fileFormatter
         timeouts
+        repoLib
         mkModelCall
         ;
-      inherit (repoLib) mkNuCommand;
       inherit (config.xdg) dataHome;
-      inherit (promptFragments) readPrompt;
     };
 
     inherit fileFormatter mkModelCall;
 
     notify = import ./notify {
-      inherit pkgs lib;
-      inherit (repoLib) mkNuCommand;
+      inherit pkgs lib repoLib;
     };
 
     # ----------------------------------------------------------------------------------------------
@@ -138,8 +137,7 @@ in
     };
 
     mkProfileSwitch = import ./profile-switch {
-      inherit pkgs lib;
-      inherit (repoLib) mkNuCommand;
+      inherit pkgs lib repoLib;
     };
   };
 }

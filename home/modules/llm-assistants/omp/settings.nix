@@ -3,8 +3,7 @@
 # ==================================================================================================
 
 {
-  preferences,
-  sharedAgents,
+  shared,
 }:
 
 {
@@ -65,7 +64,7 @@
   followUpMode = "all";
   steeringMode = "all";
 
-  ask.timeout = preferences.askTimeout;
+  ask.timeout = shared.preferences.askTimeout;
 
   # ------------------------------------------------------------------------------------------------
   # Providers
@@ -79,7 +78,7 @@
   # ------------------------------------------------------------------------------------------------
   # Plan
   # ------------------------------------------------------------------------------------------------
-  plan.autosaveDir = preferences.plansDir;
+  plan.autosaveDir = shared.preferences.plansDir;
 
   # ------------------------------------------------------------------------------------------------
   # Memory
@@ -99,8 +98,8 @@
 
   task = {
     agentModelOverrides = {
-      scout = "@${sharedAgents.researcher.workload}";
-      security-reviewer = "@${sharedAgents.reviewer.workload}";
+      scout = "@${shared.agentRoles.researcher.workload}";
+      security-reviewer = "@${shared.agentRoles.reviewer.workload}";
       sonic = "@standard";
       task = "@task";
     };

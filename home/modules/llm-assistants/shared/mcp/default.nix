@@ -8,7 +8,7 @@
   lib,
   corpGateway,
   corpHosts,
-  clearProxyEnv,
+  repoLib,
   secretPath,
 }:
 
@@ -108,7 +108,7 @@ let
     envFiles.CONFLUENCE_PERSONAL_TOKEN = secretPath "llm-assistants/mcp/confluence-pat";
     envVars.CONFLUENCE_URL = wikiUrl;
     # mcp-atlassian ignores NO_PROXY, so unset proxies for internal Confluence.
-    setup = clearProxyEnv;
+    setup = repoLib.proxy.clearProxyEnv;
   };
 
   # ------------------------------------------------------------------------------------------------

@@ -8,10 +8,10 @@
 {
   pkgs,
   lib,
-  mkNuCommand,
   modelCall,
   modelCatalog,
-  phrasing,
+  promptFragments,
+  repoLib,
 }:
 
 let
@@ -20,7 +20,7 @@ let
     _: model: lib.head (builtins.attrValues model.channelId)
   ) modelCatalog.models;
 
-  command = mkNuCommand {
+  command = repoLib.mkNuCommand {
     inherit pkgs;
     name = "prose-polish";
     script = ./scripts/prose-polish.nu;
@@ -28,10 +28,10 @@ let
 
     config = {
       inherit
-        phrasing
         models
         modelCall
         ;
+      inherit (promptFragments) phrasing;
       maxRepairs = 3;
       model = models.gemini-4-argon;
       prompt = builtins.readFile ./scripts/prompt.md;

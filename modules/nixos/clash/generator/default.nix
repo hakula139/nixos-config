@@ -7,7 +7,6 @@
   pkgs,
   lib,
   servers,
-  realitySniHost,
 }:
 
 let
@@ -35,6 +34,6 @@ pkgs.writeShellScript "clash-generator" ''
     -u "${config.age.secrets.clash-users.path}" \
     -S "${serversFile}" \
     -t "${template}" \
-    -s "${realitySniHost}" \
+    -s "${config.hakula.network.realitySniHost}" \
     -o "$outputDir"
 ''

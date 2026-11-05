@@ -29,11 +29,10 @@ let
       config
       pkgs
       lib
+      shared
       secretPath
       ;
     inherit (cfg.agents) enabledAgents;
-    inherit (shared) profileDefinitions mkProfileSwitch;
-    sharedAgents = shared.agentRoles;
     configDir = codexConfigDir;
   };
 in
@@ -72,8 +71,7 @@ in
       };
 
       hooks = import ./hooks {
-        inherit pkgs lib;
-        inherit (shared) mkHooks;
+        inherit pkgs lib shared;
         inherit (cfg.auth) enableCorpGateway;
       };
 
@@ -83,11 +81,9 @@ in
       };
 
       mcp = import ./mcp.nix {
-        inherit lib mcpOptions;
+        inherit lib mcpOptions shared;
         inherit (permissions) mcpApprovals;
-        inherit (shared.mcp) timeouts;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
-        mcpServers = shared.mcp.servers;
       };
 
       plugins = import ./plugins.nix {
@@ -99,9 +95,9 @@ in
           config
           pkgs
           lib
+          shared
           ;
         configDir = codexConfigDir;
-        sharedSkills = shared.skills;
       };
 
       # --------------------------------------------------------------------------------------------

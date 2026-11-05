@@ -23,11 +23,10 @@ let
       config
       pkgs
       lib
+      shared
       secretPath
       ;
     inherit (cfg.agents) enabledAgents;
-    inherit (shared) profileDefinitions mkProfileSwitch;
-    sharedAgents = shared.agentRoles;
   };
 in
 {
@@ -71,18 +70,15 @@ in
       # Module imports
       # --------------------------------------------------------------------------------------------
       agents = import ./agents.nix {
-        inherit lib;
+        inherit lib shared;
         inherit (cfg.agents) enabledAgents;
-        sharedAgents = shared.agentRoles;
       };
 
       commands = import ./commands;
 
       mcp = import ./mcp.nix {
-        inherit mcpOptions;
-        inherit (shared.mcp) timeouts;
+        inherit mcpOptions shared;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
-        mcpServers = shared.mcp.servers;
       };
 
       permissions = import ./permissions.nix {

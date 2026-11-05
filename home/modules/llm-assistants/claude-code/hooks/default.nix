@@ -5,14 +5,12 @@
 {
   pkgs,
   lib,
-  mkHooks,
+  shared,
   enableCorpGateway,
-  modelAliases,
-  notify,
 }:
 
 let
-  sharedHooks = mkHooks {
+  sharedHooks = shared.mkHooks {
     inherit enableCorpGateway;
     assistant = "claude-code";
     toolClasses = {
@@ -23,12 +21,11 @@ let
     };
   };
 
-  projectNotify = "${notify.mkProjectNotifyScript} 'Claude Code'";
+  projectNotify = "${shared.notify.mkProjectNotifyScript} 'Claude Code'";
 
   autoDream = import ./auto-dream {
-    inherit pkgs lib;
-    inherit (sharedHooks) mkNuHook timeouts;
-    model = modelAliases.flagship;
+    inherit pkgs lib sharedHooks;
+    model = shared.profileDefinitions.modelAliases.claude.flagship;
   };
 
   teammateIdle = import ./teammate-idle { inherit pkgs lib; };

@@ -19,8 +19,8 @@ let
       config
       pkgs
       lib
+      shared
       ;
-    inherit (shared) profileDefinitions anthropicProfiles mkProfileSwitch;
   };
 in
 {

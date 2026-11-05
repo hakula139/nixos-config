@@ -4,8 +4,7 @@
 
 {
   lib,
-  instructions,
-  sharedAgents,
+  shared,
   enabledAgents,
 }:
 
@@ -31,11 +30,11 @@ let
 
     ${lib.trim agent.prompt}
 
-    ${lib.trim instructions}
+    ${lib.trim shared.instructions.omp}
   '';
 in
 {
   homeFiles = lib.mapAttrs' (
     name: agent: lib.nameValuePair ".omp/agent/agents/${name}.md" { text = renderAgent name agent; }
-  ) (lib.filterAttrs (name: _: lib.elem name enabledAgents) sharedAgents);
+  ) (lib.filterAttrs (name: _: lib.elem name enabledAgents) shared.agentRoles);
 }

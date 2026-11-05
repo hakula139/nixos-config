@@ -7,7 +7,7 @@
   timeouts,
   modelCall,
   modelCatalog,
-  readPrompt,
+  promptFragments,
   patchInput,
 }:
 
@@ -24,7 +24,7 @@
     config = {
       inherit modelCall patchInput;
       model = modelCatalog.models.${modelCatalog.defaults.gemini.mini}.channelId.google;
-      prompt = readPrompt ./prompt.md;
+      prompt = promptFragments.readPrompt ./prompt.md;
     };
   };
 }

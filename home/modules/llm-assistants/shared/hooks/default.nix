@@ -10,10 +10,10 @@
   lib,
   dataHome,
   modelCatalog,
-  readPrompt,
+  promptFragments,
   fileFormatter,
   timeouts,
-  mkNuCommand,
+  repoLib,
   mkModelCall,
 }:
 
@@ -33,11 +33,13 @@ let
       script,
       config,
     }:
-    lib.getExe (mkNuCommand {
-      inherit pkgs script config;
-      name = "${assistant}-${slug}";
-      runtimeInputs = [ pkgs.coreutils ];
-    });
+    lib.getExe (
+      repoLib.mkNuCommand {
+        inherit pkgs script config;
+        name = "${assistant}-${slug}";
+        runtimeInputs = [ pkgs.coreutils ];
+      }
+    );
 
   patchInput = lib.getExe (
     pkgs.writers.writeNuBin "patch-input" (builtins.readFile ./lib/patch-input/patch-input.nu)
@@ -115,7 +117,7 @@ in
         timeouts
         modelCall
         modelCatalog
-        readPrompt
+        promptFragments
         patchInput
         ;
     };

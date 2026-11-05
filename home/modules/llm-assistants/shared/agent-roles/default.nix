@@ -3,9 +3,12 @@
 # ==================================================================================================
 
 {
-  readPrompt,
+  promptFragments,
 }:
 
+let
+  inherit (promptFragments) readPrompt;
+in
 {
   architect = {
     description = ''

@@ -23,9 +23,9 @@ let
       config
       pkgs
       lib
+      shared
       secretPath
       ;
-    inherit (shared) profileDefinitions mkProfileSwitch;
   };
 in
 {
@@ -60,25 +60,20 @@ in
       # Module imports
       # --------------------------------------------------------------------------------------------
       agents = import ./agents.nix {
-        inherit lib;
+        inherit lib shared;
         inherit (cfg.agents) enabledAgents;
-        instructions = instructions.omp;
-        sharedAgents = shared.agentRoles;
       };
 
       extensions = import ./extensions.nix { inherit pkgs; };
 
       mcp = import ./mcp.nix {
-        inherit lib mcpOptions;
-        inherit (shared.mcp) timeouts;
+        inherit lib mcpOptions shared;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
-        mcpServers = shared.mcp.servers;
       };
 
       settingsConfigFile = yaml.generate "omp-settings.yml" (
         import ./settings.nix {
-          inherit (shared) preferences;
-          sharedAgents = shared.agentRoles;
+          inherit shared;
         }
       );
 

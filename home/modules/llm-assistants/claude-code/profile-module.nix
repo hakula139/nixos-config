@@ -4,9 +4,8 @@
 
 {
   lib,
-  defaultSessionEffort,
   defaultEfforts,
-  defaultCompactWindows,
+  officialProfile,
 }:
 
 lib.types.submodule {
@@ -24,7 +23,7 @@ lib.types.submodule {
 
     sessionEffort = lib.mkOption {
       type = lib.types.str;
-      default = defaultSessionEffort;
+      default = officialProfile.sessionEffort;
       description = "Reasoning effort for the main session";
     };
 
@@ -36,7 +35,7 @@ lib.types.submodule {
 
     compactWindows = lib.mkOption {
       type = lib.types.attrsOf lib.types.ints.positive;
-      default = defaultCompactWindows;
+      default = officialProfile.compactWindows;
       description = "Auto-compaction window in tokens for each model ID";
     };
 

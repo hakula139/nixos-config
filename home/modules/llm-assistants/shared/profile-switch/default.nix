@@ -5,7 +5,7 @@
 {
   pkgs,
   lib,
-  mkNuCommand,
+  repoLib,
 }:
 
 {
@@ -23,7 +23,7 @@ let
   profilesDir = "${stateDir}/profiles";
 in
 {
-  package = mkNuCommand {
+  package = repoLib.mkNuCommand {
     inherit pkgs name;
     script = ./profile-switch.nu;
     runtimeInputs = [ pkgs.coreutils ];

@@ -3,16 +3,17 @@
 # ==================================================================================================
 
 {
+  config,
   pkgs,
   lib,
-  mkNuCommand,
-  homeDir,
-  username,
   isDarwin,
-  prune ? false,
+  repoLib,
 }:
 
 let
+  cfg = config.hakula.cursor;
+  inherit (config.home) username;
+
   # ------------------------------------------------------------------------------------------------
   # Extension list
   # ------------------------------------------------------------------------------------------------
@@ -162,7 +163,7 @@ let
         "/usr/bin"
       ];
 
-  syncExtensions = mkNuCommand {
+  syncExtensions = repoLib.mkNuCommand {
     inherit pkgs;
     name = "sync-cursor-extensions";
     script = ./scripts/sync-extensions.nu;
@@ -171,12 +172,12 @@ let
     config = {
       inherit
         baseExtensions
-        remoteExtensions
         cliDirs
+        remoteExtensions
         username
-        prune
         ;
-      serverDir = "${homeDir}/.cursor-server/bin";
+      prune = cfg.extensions.prune;
+      serverDir = "${config.home.homeDirectory}/.cursor-server/bin";
     };
   };
 in

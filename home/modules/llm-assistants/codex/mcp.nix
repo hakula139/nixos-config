@@ -7,8 +7,7 @@
   enabledServers,
   mcpApprovals,
   mcpOptions,
-  mcpServers,
-  timeouts,
+  shared,
 }:
 
 let
@@ -21,10 +20,10 @@ let
     name:
     lib.nameValuePair mcpOptions.serverDisplayNames.${name} (
       {
-        startup_timeout_sec = timeouts.startup;
+        startup_timeout_sec = shared.mcp.timeouts.startup;
       }
-      // lib.mapAttrs' (field: toml: lib.nameValuePair toml mcpServers.${name}.${field}) (
-        lib.intersectAttrs mcpServers.${name} fieldRenames
+      // lib.mapAttrs' (field: toml: lib.nameValuePair toml shared.mcp.servers.${name}.${field}) (
+        lib.intersectAttrs shared.mcp.servers.${name} fieldRenames
       )
       // mcpApprovals.${name} or { }
     );
