@@ -129,15 +129,6 @@ let
   };
 
   # ------------------------------------------------------------------------------------------------
-  # Brave Search
-  # ------------------------------------------------------------------------------------------------
-  braveSearchBin = mkNpmServer {
-    name = "brave-search";
-    command = [ "@brave/brave-search-mcp-server" ];
-    envFiles.BRAVE_API_KEY = secretPath "llm-assistants/mcp/brave-api-key";
-  };
-
-  # ------------------------------------------------------------------------------------------------
   # Chrome DevTools
   # ------------------------------------------------------------------------------------------------
   chromeDevtoolsBin = mkNpmServer {
@@ -238,11 +229,6 @@ in
 
     bifrost = {
       command = lib.getExe bifrostBin;
-      type = "stdio";
-    };
-
-    braveSearch = {
-      command = lib.getExe braveSearchBin;
       type = "stdio";
     };
 
