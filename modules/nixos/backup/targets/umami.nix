@@ -93,7 +93,11 @@ in
           echo "==> Restoring PostgreSQL database..."
           runuser -u postgres -- dropdb --if-exists ${dbName}
           runuser -u postgres -- createdb -O ${serviceName} ${dbName}
-          runuser -u postgres -- psql -d ${dbName} -v ON_ERROR_STOP=1 <"$sqlFile"
+          runuser -u postgres -- \
+            psql \
+              -d ${dbName} \
+              -v ON_ERROR_STOP=1 \
+              <"$sqlFile"
         else
           echo "umami.sql not found in backup, skipping database restore"
         fi

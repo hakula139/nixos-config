@@ -17,13 +17,13 @@ let
 
   # Tiny Windows toast notification CLI for WSL
   # https://github.com/shanselman/toasty
+  toastyExe = pkgs.fetchurl {
+    url = "https://github.com/shanselman/toasty/releases/download/v0.8.1/toasty-x64.exe";
+    hash = "sha256-HGx6JBXNkqEUjPngj9LoX6SOq1dSzj1+D9wfjqH6LaI=";
+  };
+
   toasty = pkgs.runCommand "toasty" { } ''
-    install -D -m 0755 ${
-      pkgs.fetchurl {
-        url = "https://github.com/shanselman/toasty/releases/download/v0.8.1/toasty-x64.exe";
-        hash = "sha256-HGx6JBXNkqEUjPngj9LoX6SOq1dSzj1+D9wfjqH6LaI=";
-      }
-    } $out/bin/toasty.exe
+    install -Dm0755 ${toastyExe} "$out/bin/toasty.exe"
   '';
 
   # Cross-platform notification script: notify <title> [body]

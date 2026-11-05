@@ -24,7 +24,11 @@ zstyle ':completion:*' special-dirs false
 autoload -U zmv
 
 # fzf-tab styling. one:accept auto-selects a unique match.
-zstyle ':fzf-tab:*' fzf-flags --height=40% --layout=reverse --border --bind=one:accept
+zstyle ':fzf-tab:*' fzf-flags \
+  --height=40% \
+  --layout=reverse \
+  --border \
+  --bind=one:accept
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 zstyle ':fzf-tab:complete:ls:*' fzf-preview 'eza -1 --color=always $realpath'
 
@@ -34,12 +38,29 @@ mkcd() { mkdir -p "$1" && cd "$1"; }
 # wrapper's direnv revert, which this read-only query does not need on every prompt.
 if [[ -n "$TMUX" ]]; then
   _refresh_tmux_env() {
-    eval "$(@tmux@ show-environment -s 2>/dev/null | grep -E '(VSCODE_|GIT_ASKPASS|CLAUDE_CODE_SSE_PORT)')"
+    eval "$(
+      @tmux@ show-environment -s 2>/dev/null \
+        | grep -E '(VSCODE_|GIT_ASKPASS|CLAUDE_CODE_SSE_PORT)'
+    )"
+
     # WSL_INTEROP from tmux state can point at a dead socket, causing slow interop and Crashpad
     # errors. Always use the newest socket on disk.
     if [[ -d /run/WSL ]]; then
       local newest
-      newest=$(find /run/WSL -maxdepth 1 -name '*_interop' -type s -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
+      newest=$(
+        find /run/WSL \
+          -maxdepth 1 \
+          -name '*_interop' \
+          -type s \
+          -printf '%T@ %p\n' \
+          2>/dev/null \
+          | sort -rn \
+          | head -1 \
+          | cut \
+            -d' ' \
+            -f2-
+      )
+
       [[ -n "$newest" ]] && export WSL_INTEROP="$newest"
     fi
   }

@@ -55,7 +55,10 @@ let
 
   systemManagerNixswScript = pkgs.writeShellScript "nixsw" ''
     set -euo pipefail
-    system-manager switch --flake '.#${flakeConfigName}' --sudo
+    system-manager switch \
+      --flake '.#${flakeConfigName}' \
+      --sudo
+
     ${systemManagerHealthCheck}
     ${postSwitchCommands}
   '';
@@ -63,8 +66,10 @@ let
   systemManagerNixrollScript = pkgs.writeShellScript "nixroll" ''
     set -euo pipefail
     sudo nix profile rollback --profile ${lib.escapeShellArg systemManagerProfile}
-    system-manager activate --sudo \
+    system-manager activate \
+      --sudo \
       --store-path "$(readlink -f ${lib.escapeShellArg systemManagerProfile})"
+
     ${systemManagerHealthCheck}
     ${postSwitchCommands}
   '';
@@ -190,14 +195,18 @@ in
 
       # Git extras
       gls = ''
-        git pull --no-recurse-submodules &&
-        git submodule sync &&
-        git submodule update --init --checkout &&
-        git submodule foreach --recursive '
-          git submodule sync &&
-          git submodule update --init --checkout &&
-          git lfs pull
-        '
+        git pull --no-recurse-submodules \
+          && git submodule sync \
+          && git submodule update \
+            --init \
+            --checkout \
+          && git submodule foreach --recursive '
+            git submodule sync \
+              && git submodule update \
+                --init \
+                --checkout \
+              && git lfs pull
+          '
       '';
 
       # Podman Compose
@@ -223,7 +232,7 @@ in
       psg = "ps aux | grep -v grep | grep -i";
 
       # Network
-      ports = "ss -tulanp";
+      ports = "ss -tulpn";
       myip = "curl -s ifconfig.me";
 
       # Misc utilities

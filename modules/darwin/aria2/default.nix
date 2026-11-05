@@ -31,7 +31,7 @@ let
     # aria2 ignores unreadable config files and would start RPC without its token.
     [[ -r ${esc rpcConfig} && -s ${esc rpcConfig} ]]
 
-    install -d -m 0700 ${esc stateDir}
+    install -dm0700 ${esc stateDir}
     touch ${esc sessionFile}
     chmod 0600 ${esc sessionFile}
 
