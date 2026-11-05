@@ -25,6 +25,7 @@ let
     ast-grep = ./ast-grep;
     browser-debugging = ./browser-debugging;
     clean-gone = ./clean-gone;
+    code-layout = ./code-layout;
     cspell = ./cspell;
     disk-cleanup = ./disk-cleanup;
     dream = ./dream;

@@ -52,17 +52,14 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 - Before editing, read the surrounding code and comparable files, using the closest counterpart for any new file. Match their structure, naming, comments, docstrings, and section banners where applicable, and treat a gap from those conventions or from sibling code as a defect to fix even when the code works.
 - For CI changes, match action references, shells, and command layout in comparable workflows, checking maintained sibling repositories when local precedent is absent. Introduce commit SHA or digest pinning or repository security enforcement only when the task calls for that policy change.
+- In a standalone Bash script with more than one command, start with `set -euo pipefail`, and quote every expansion, even inside `[[ ]]`, unless it should split into words or match as a pattern.
 - Establish the general case before adding exceptions or qualifications. Respect API contracts and local ordering conventions.
 - Write changes to a repository's source and documentation files, including new ones, with your file-edit tool, while shell writes stay fine for generated files, scratch and build files, and files outside a repository.
 - Before finishing, compare the complete edited construct and its callers with the surrounding code and comparable files, including unchanged entries in the same group.
 
 ### Code Layout
 
-- Keep closely related code and single-line siblings together, separating distinct logical blocks and groups of siblings with a blank line. In a long sequence, where the boundaries would otherwise blur, set off a multiline statement, field, or entry with a blank line after it, and before it unless a related single-line sibling leads into it. Keep a short set or list in one block even when one entry spans a few lines. These separations apply when writing or restructuring a sequence, and an entry added to an existing one follows the spacing and grouping its siblings already use, so the sequence keeps one layout and the diff shows only the new entry.
-- Order parameters and fields for readability: group related items, place dependencies before dependents, and order each group to make relationships clear. Use alphabetical order when no stronger relationship applies. Follow API requirements and project conventions.
-- Keep standalone helper programs, test support programs, and code templates in separate files with their language's extension so formatters and linters can check them.
-- Write multiline prompts, messages, and embedded documents with literal line breaks so their structure is readable in the source. Encoding paragraphs with `\n` or assembling them from fragments obscures their structure. Escapes are fine for delimiters and programmatic string operations.
-- Indent multiline string contents to match the surrounding code, then strip that indentation with native support or a standard helper such as Rust's `indoc`. Preserve intentional relative indentation, such as nested lists and code blocks.
+Load the `code-layout` skill before writing, editing, or reviewing code. It owns the layout rules, which serve the reader and one-line diffs.
 
 ### Comments
 
@@ -74,6 +71,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 - When tests fail, coverage drops, or behavior breaks, investigate the root cause before patching symptoms. Skipping tests, adding ignores or retries, or special-casing specific commits or data to get checks passing also patches symptoms, so fix the cause or make the test hermetic.
 - If a fix does not work, inspect the actual state (DOM, traces, logs, payloads) before guessing again.
 - Verify the result before declaring the task done, directly or through a delegate's verification evidence. Confirm that asynchronous or external operations have landed, including API responses, advanced git refs, and multi-repo build passes. Name any UI change you could not test in a browser.
+- Show that a refactor or port preserves behavior by diffing the old and new code's output on the same inputs and environment.
 
 ### Tests
 
@@ -138,7 +136,9 @@ Before editing documentation, identify what specifically needs correction or rem
 
 - Describe current behavior and usage. Put change summaries, the reasons behind editorial choices such as why an example was chosen, and comparisons with removed or rejected approaches in commit or PR / MR descriptions, unless migration instructions need them or a design document records a rejected alternative whose reason still constrains the current design.
 - Focus on why and how to use the feature. Give readers what they need to decide or act, and omit incidental details or facts already clear from the code.
-- State each rule once in agent instructions and convention docs. Add an example only when the rule would otherwise be ambiguous. Omit cases and data points a capable model can infer from the rule, while preserving every rule and qualification. Repository instructions cover only exceptions that history and metadata cannot show. State a rule no tool enforces with the goal it serves, so a reader can apply it to cases it does not name.
+- State each rule once, in one home that other pages link to. Add an example only when the rule would otherwise be ambiguous. Omit cases and data points a capable model can infer from the rule, while preserving every rule and qualification. Add a rule to a repository's instructions or convention docs only when the code, tools, and history cannot show it, when it guards a destructive action, or when it has already cost a debugging session.
+- State a rule no tool enforces with the goal it serves, so a reader can apply it to cases it does not name.
+- Keep a repository's `AGENTS.md` to what applies to every task, with area rules in the docs it routes to, and keep its README for people evaluating or operating the project.
 - Keep skills and docs that describe a general mechanism generic. Wiring in a new tool, package, or pin does not warrant naming it there, since its wiring and registry entries already record it.
 - Organize sections around reader tasks or questions. Keep paragraphs short and focused on one idea, and split long sections at meaningful points, such as between shared prerequisites and platform-specific instructions.
 - Describe only implemented functionality. Do not present WIP, TODO, or planned features as if they exist.

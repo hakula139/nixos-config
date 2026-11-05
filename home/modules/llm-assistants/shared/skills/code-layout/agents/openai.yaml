@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Code Layout'
+  short_description: 'Lay out code for the reader and for one-line diffs'
+  default_prompt: 'Use $code-layout to lay out this change for the reader and for one-line diffs.'
