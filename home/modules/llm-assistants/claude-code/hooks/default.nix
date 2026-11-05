@@ -31,6 +31,8 @@ let
     model = modelAliases.flagship;
   };
 
+  teammateIdle = import ./teammate-idle { inherit pkgs lib; };
+
   installed = sharedHooks.install (
     with sharedHooks.hooks;
     [
@@ -38,6 +40,7 @@ let
       autoFormat
       commentGate
       completeness
+      teammateIdle
     ]
   );
 
@@ -50,27 +53,6 @@ let
             type = "command";
             command = ''
               ${projectNotify} "Question asked"
-            '';
-          }
-        ];
-      }
-    ];
-
-    TeammateIdle = [
-      {
-        hooks = [
-          {
-            type = "command";
-            command = ''
-              input="$(cat)"
-              session_id="$(printf '%s' "$input" | ${lib.getExe pkgs.jq} -r '.session_id // empty')"
-              teammate_name="$(printf '%s' "$input" | ${lib.getExe pkgs.jq} -r '.teammate_name // empty')"
-              nudge_flag="/tmp/claude-team-nudged-''${session_id:-unknown}"
-              if [ ! -f "$nudge_flag" ]; then
-                touch "$nudge_flag"
-                printf "Teammate %s: before going idle, check TaskList for unclaimed tasks and send any unsent findings via SendMessage." "$teammate_name" >&2
-                exit 2
-              fi
             '';
           }
         ];
