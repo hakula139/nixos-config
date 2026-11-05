@@ -30,4 +30,5 @@ One clear failure of the model's ability is enough to stop giving it that kind o
   - **Tests**: Keep test writing with Claude, because its tests have let plausible bugs survive at full line coverage, as a reviewer's mutation testing showed.
   - **UI work**: Hand it a measuring script and have a Claude reviewer check the result in a browser, because it has claimed a visual fix that a browser check showed had failed.
   - **Disagreement**: Require it to report disagreement with the brief, because it has overridden an explicit instruction over a concern that was already moot.
+  - **Scope**: Give it an explicit stopping point, because it has spent hours on probes its brief did not ask for while a request others waited on stayed unpublished.
   - **Images**: Keep image-reading work off its gateway route, which rejects screenshots returned inside tool results with HTTP 400 and ends the agent mid-task.
