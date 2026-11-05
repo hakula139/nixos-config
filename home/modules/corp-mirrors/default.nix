@@ -4,9 +4,9 @@
 
 {
   config,
+  pkgs,
   lib,
   corpHosts,
-  hostType,
   ...
 }:
 
@@ -15,13 +15,46 @@ let
 
   cfg = config.hakula.corp-mirrors;
 
+  ini = pkgs.formats.ini { listToValue = lib.concatStringsSep " "; };
+  toml = pkgs.formats.toml { };
+
+  # ------------------------------------------------------------------------------------------------
+  # Go Development
+  # ------------------------------------------------------------------------------------------------
   goProxy = "${artifactoryUrl}/api/go/mirrors-golang";
+
+  # ------------------------------------------------------------------------------------------------
+  # Node.js Development
+  # ------------------------------------------------------------------------------------------------
   npmRegistry = "${artifactoryUrl}/api/npm/mirrors-npm";
+
+  # ------------------------------------------------------------------------------------------------
+  # Python Development
+  # ------------------------------------------------------------------------------------------------
   pypiMirror = "${artifactoryUrl}/api/pypi/mirrors-pypi/simple";
   pypiExtraIndexes = [
     "${artifactoryUrl}/api/pypi/hpc-pypi/simple"
   ];
 
+  # On hosts that reach pypi.org the mirror is explicit, so corp locks validate while pypi.org stays
+  # the default, and first-match falls through to it when the HPC index cannot satisfy a package.
+  uvConfig = {
+    index = [
+      (
+        {
+          name = "corp";
+          url = pypiMirror;
+        }
+        // (if cfg.enable then { default = true; } else { explicit = true; })
+      )
+    ]
+    ++ map (url: { inherit url; }) pypiExtraIndexes;
+  }
+  // lib.optionalAttrs (!cfg.enable) { index-strategy = "unsafe-first-match"; };
+
+  # ------------------------------------------------------------------------------------------------
+  # Containers
+  # ------------------------------------------------------------------------------------------------
   ociMirrors = [
     "docker.io"
     "gcr.io"
@@ -32,32 +65,40 @@ let
     "registry.k8s.io"
   ];
 
-  mkRegistry = registry: ''
-    [[registry]]
-    prefix = "${registry}"
-    location = "${registry}"
-
-    [[registry.mirror]]
-    prefix = "${registry}"
-    location = "${harbor}/${registry}"
-  '';
+  registries =
+    map (registry: {
+      prefix = registry;
+      location = registry;
+      mirror = [
+        {
+          prefix = registry;
+          location = "${harbor}/${registry}";
+        }
+      ];
+    }) ociMirrors
+    ++ [
+      {
+        prefix = harbor;
+        location = harbor;
+      }
+    ];
 in
 {
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
   options.hakula.corp-mirrors = {
-    enable = lib.mkEnableOption "corp network mirror configuration";
+    enable = lib.mkEnableOption "every corp mirror, for a host without pypi.org access";
+
+    uvIndexes = {
+      enable = lib.mkEnableOption "only uv's corp indexes, for a host that reaches pypi.org";
+    };
   };
 
   # ------------------------------------------------------------------------------------------------
   # Module config
   # ------------------------------------------------------------------------------------------------
   config = lib.mkMerge [
-    {
-      hakula.corp-mirrors.enable = lib.mkDefault (hostType == "work");
-    }
-
     (lib.mkIf cfg.enable {
       home.sessionVariables = {
         # ------------------------------------------------------------------------------------------
@@ -94,36 +135,28 @@ in
         # ------------------------------------------------------------------------------------------
         # Python Development
         # ------------------------------------------------------------------------------------------
-        ".config/pip/pip.conf".text = ''
-          [global]
-          index-url = ${pypiMirror}
-          extra-index-url =
-          ${lib.concatMapStringsSep "\n" (url: "    ${url}") pypiExtraIndexes}
-        '';
-
-        ".config/uv/uv.toml".text = ''
-          [[index]]
-          url = "${pypiMirror}"
-          default = true
-
-          ${lib.concatMapStringsSep "\n" (url: ''
-            [[index]]
-            url = "${url}"
-          '') pypiExtraIndexes}
-        '';
+        ".config/pip/pip.conf".source = ini.generate "pip.conf" {
+          global = {
+            index-url = pypiMirror;
+            extra-index-url = pypiExtraIndexes;
+          };
+        };
 
         # ------------------------------------------------------------------------------------------
         # Containers
         # ------------------------------------------------------------------------------------------
-        ".config/containers/registries.conf".text = ''
-          unqualified-search-registries = ['docker.io']
-
-          ${lib.concatMapStringsSep "\n\n" mkRegistry ociMirrors}
-          [[registry]]
-          prefix = "${harbor}"
-          location = "${harbor}"
-        '';
+        ".config/containers/registries.conf".source = toml.generate "registries.conf" {
+          unqualified-search-registries = [ "docker.io" ];
+          registry = registries;
+        };
       };
+    })
+
+    (lib.mkIf (cfg.enable || cfg.uvIndexes.enable) {
+      # --------------------------------------------------------------------------------------------
+      # Python Development
+      # --------------------------------------------------------------------------------------------
+      home.file.".config/uv/uv.toml".source = toml.generate "uv.toml" uvConfig;
     })
   ];
 }

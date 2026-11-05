@@ -2,7 +2,7 @@
   "mcpServers": {
     "NixOS": {
       "command": "uvx",
-      "args": ["mcp-nixos"],
+      "args": ["--no-config", "mcp-nixos"],
       "type": "stdio"
     }
   }

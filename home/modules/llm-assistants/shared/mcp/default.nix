@@ -84,13 +84,18 @@ let
     );
 
   # `@latest` refreshes the package on every start and ignores any `uv tool install` version, so
-  # every host runs the newest release.
+  # every host runs the newest release. `--no-config` keeps the servers off the corp indexes,
+  # except where the full mirror set is the host's only route to PyPI.
   mkUvServer =
     server:
     mkServer (
       server
       // {
-        command = [ (lib.getExe' pkgs.uv "uvx") ] ++ server.command;
+        command = [
+          (lib.getExe' pkgs.uv "uvx")
+        ]
+        ++ lib.optional (!config.hakula.corp-mirrors.enable) "--no-config"
+        ++ server.command;
       }
     );
 
