@@ -190,7 +190,8 @@ let
     command = [ (lib.getExe pkgs.mcp-server-gitlab) ];
     envVars.GITLAB_TOOLSETS = gitlabToolsets;
     setup = ''
-      if host=$(${esc glabBin} config get host 2>/dev/null) && [[ -n "$host" ]] \
+      if host=$(${esc glabBin} config get host 2>/dev/null) \
+        && [[ -n "$host" ]] \
         && token=$(${esc glabBin} config get token --host "$host" 2>/dev/null) \
         && [[ -n "$token" ]]; then
         export GITLAB_PERSONAL_ACCESS_TOKEN="$token"

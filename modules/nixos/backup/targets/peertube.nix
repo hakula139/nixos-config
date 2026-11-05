@@ -124,8 +124,13 @@ in
         runuser -u postgres -- pg_dump -d ${dbName} >"${stateDir}/peertube.sql"
 
         echo "==> Creating Redis data archive..."
-        redis-cli -s ${lib.escapeShellArg redisSocket} --rdb "${stateDir}/dump.rdb"
-        tar -czf "${stateDir}/redis_data.tgz" -C "${stateDir}" dump.rdb
+        redis-cli \
+          -s ${lib.escapeShellArg redisSocket} \
+          --rdb "${stateDir}/dump.rdb"
+
+        tar -czf "${stateDir}/redis_data.tgz" \
+          -C "${stateDir}" \
+          dump.rdb
         rm -f "${stateDir}/dump.rdb"
 
         echo "==> Backup preparation complete"
@@ -144,7 +149,11 @@ in
           echo "==> Restoring PostgreSQL database..."
           runuser -u postgres -- dropdb --if-exists ${dbName}
           runuser -u postgres -- createdb -O ${serviceName} ${dbName}
-          runuser -u postgres -- psql -d ${dbName} -v ON_ERROR_STOP=1 <"$sqlFile"
+          runuser -u postgres -- \
+            psql \
+              -d ${dbName} \
+              -v ON_ERROR_STOP=1 \
+              <"$sqlFile"
         else
           echo "peertube.sql not found in backup, skipping database restore"
         fi
@@ -152,7 +161,9 @@ in
         if [ -f "$redisTgz" ]; then
           echo "==> Restoring Redis data..."
           mkdir -p "${redisStateDir}"
-          tar -xzf "$redisTgz" -C "${redisStateDir}" --no-same-owner
+          tar -xzf "$redisTgz" \
+            -C "${redisStateDir}" \
+            --no-same-owner
           chown -R ${redisUser}:${redisGroup} "${redisStateDir}"
           chmod 0600 "${redisStateDir}/dump.rdb" 2>/dev/null || true
         else
