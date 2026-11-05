@@ -102,8 +102,7 @@ in
           --preserve-env=PATH \
           --user=${esc config.homebrew.user} \
           --set-home \
-          env \
-          ${config.homebrew.onActivation.brewBundleCmd}
+          env ${config.homebrew.onActivation.brewBundleCmd}
     }
 
     echo >&2 "Homebrew bundle..."

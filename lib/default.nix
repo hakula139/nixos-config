@@ -13,7 +13,6 @@ in
   inherit wrapPackage;
 
   aria2 = import ./aria2.nix;
-  curl = import ./curl.nix;
   llmAssistants = import ./llm-assistants { inherit lib; };
   mkNuCommand = import ./nu-command.nix { inherit lib wrapPackage; };
   packagesFor = pkgs: import ./packages.nix { inherit pkgs; };

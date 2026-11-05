@@ -12,10 +12,15 @@
 }:
 
 let
-  curlArgs = repoLib.curl.mkArgs {
-    connectTimeout = timeouts.modelConnect;
-    maxTime = timeouts.modelCall;
-  };
+  curlArgs = [
+    "-fsSL"
+
+    "--connect-timeout"
+    (toString timeouts.modelConnect)
+
+    "--max-time"
+    (toString timeouts.modelCall)
+  ];
 in
 lib.getExe (
   repoLib.mkNuCommand {

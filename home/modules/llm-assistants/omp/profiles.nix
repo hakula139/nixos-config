@@ -153,7 +153,7 @@ in
     # home-manager store symlink keeps the store's epoch mtime forever, so catalog updates never
     # reach long-running sessions. Install a regular file so activation bumps the mtime.
     home.activation.ompModelsYaml = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      run install -m 0600 ${modelsYaml} ${configDir}/models.yml
+      run install -m0600 ${modelsYaml} ${configDir}/models.yml
     '';
 
     # Keep config.yml writable for profile switching and OMP settings updates.

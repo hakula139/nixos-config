@@ -108,8 +108,13 @@ in
       system.activationScripts.postActivation.text = lib.mkAfter ''
         hostsTmp=$(mktemp)
         ${hostsScript} /etc/hosts \
-          ${lib.escapeShellArg (lib.optionalString cfg.enable gatewayHost)} >"$hostsTmp"
-        install -m 0644 -o root -g wheel "$hostsTmp" /etc/hosts
+          ${lib.escapeShellArg (lib.optionalString cfg.enable gatewayHost)} \
+          >"$hostsTmp"
+
+        install -m0644 \
+          -o root \
+          -g wheel \
+          "$hostsTmp" /etc/hosts
         rm -f "$hostsTmp"
       '';
     }

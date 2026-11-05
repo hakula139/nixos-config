@@ -28,8 +28,10 @@ let
       }
       ''
         codex debug models --bundled \
-          | jq -e \
-            --argjson defaults ${lib.escapeShellArg (builtins.toJSON gptDefaults)} '
+          | jq \
+            -e \
+            --argjson defaults ${lib.escapeShellArg (builtins.toJSON gptDefaults)} \
+            '
               .models |= map(
                 select(.supported_in_api)
                 | .slug |= "openai/" + .
@@ -37,7 +39,8 @@ let
                 | if .upgrade then .upgrade.model |= "openai/" + . else . end
               )
               | select(.models != [])
-            ' > "$out"
+            ' \
+            >"$out"
       '';
 
   # ------------------------------------------------------------------------------------------------
@@ -85,6 +88,8 @@ let
         );
   };
 
+  upstreamPromptFile = "${pkgs.codex.src}/codex-rs/models-manager/prompt.md";
+
   # Read the upstream prompt at build time to avoid import-from-derivation.
   local =
     pkgs.runCommand "codex-corp-local-models.json"
@@ -96,10 +101,9 @@ let
         passAsFile = [ "modelMetadata" ];
       }
       ''
-        jq --rawfile instructions \
-          ${lib.escapeShellArg "${pkgs.codex.src}/codex-rs/models-manager/prompt.md"} '
-            .models |= map(.model_messages = { instructions_template: $instructions })
-          ' "$modelMetadataPath" > "$out"
+        jq --rawfile instructions ${lib.escapeShellArg upstreamPromptFile} '
+          .models |= map(.model_messages = { instructions_template: $instructions })
+        ' "$modelMetadataPath" >"$out"
       '';
 in
 {

@@ -22,13 +22,18 @@ let
     }) managedSkills
     ++ lib.mapAttrsToList (name: path: { inherit name path; }) shared.skills
   );
+
+  bundleDir = "${configDir}/skills/nixos-config";
 in
 {
   # Codex 0.153.4 skips Home Manager's symlinked skills during discovery.
   activation = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    run install -d -m 0700 ${lib.escapeShellArg "${configDir}/skills/nixos-config"}
-    run ${lib.getExe pkgs.rsync} -rpL --delete --chmod=u=rwX,go= \
-      ${skillBundle}/ ${lib.escapeShellArg "${configDir}/skills/nixos-config/"}
+    run install -dm0700 ${lib.escapeShellArg bundleDir}
+
+    run ${lib.getExe pkgs.rsync} ${skillBundle}/ ${lib.escapeShellArg "${bundleDir}/"} \
+      -rpL \
+      --delete \
+      --chmod=u=rwX,go=
   '';
 
   settings = {

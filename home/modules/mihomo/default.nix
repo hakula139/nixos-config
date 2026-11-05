@@ -53,10 +53,15 @@ let
         ;
       inherit (repoLib.proxy) proxyVars;
 
-      curlArgs = repoLib.curl.mkArgs {
-        connectTimeout = 10;
-        maxTime = 60;
-      };
+      curlArgs = [
+        "-fsSL"
+
+        "--connect-timeout"
+        "10"
+
+        "--max-time"
+        "60"
+      ];
     };
   };
 
@@ -248,7 +253,7 @@ in
     # Directory management
     # ----------------------------------------------------------------------------------------------
     home.activation.mihomoSetup = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      run install -d -m 0700 ${esc configDir}
+      run install -dm0700 ${esc configDir}
     '';
   };
 }

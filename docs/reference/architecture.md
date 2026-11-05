@@ -41,7 +41,6 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── default.nix                 # Repository helper namespace exposed as repoLib
 │   ├── aria2.nix                   # Shared aria2 download and RPC settings
 │   ├── builders.nix                # mkDarwin, mkDocker, mkHomeManagerConfig, mkServer, mkSystemManager, mkWSL
-│   ├── curl.nix                    # Bounded curl arguments for unattended HTTP calls
 │   ├── nu-command.nix              # Nushell commands installed under their own names, with flag inputs
 │   ├── overlays.nix                # nixpkgs overlay (channels, flake-input CLIs, toolchains, custom packages)
 │   ├── packages.nix                # Base and font package groups for each package set

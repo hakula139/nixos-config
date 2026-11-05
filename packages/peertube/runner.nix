@@ -28,12 +28,10 @@ pkgs.peertube.overrideAttrs (old: {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/bin $out/lib/peertube-runner
-    cp apps/peertube-runner/dist/peertube-runner.mjs \
-       $out/lib/peertube-runner/peertube-runner.mjs
-    cp apps/peertube-runner/package.json \
-       $out/lib/peertube-runner/package.json
-    ln -s $out/lib/peertube-runner/peertube-runner.mjs $out/bin/peertube-runner
+    mkdir -p "$out/bin" "$out/lib/peertube-runner"
+    cp apps/peertube-runner/dist/peertube-runner.mjs apps/peertube-runner/package.json \
+      "$out/lib/peertube-runner/"
+    ln -s "$out/lib/peertube-runner/peertube-runner.mjs" "$out/bin/peertube-runner"
 
     runHook postInstall
   '';

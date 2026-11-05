@@ -40,6 +40,9 @@ in
   # Directory management
   # ------------------------------------------------------------------------------------------------
   system.activationScripts.preActivation.text = lib.mkAfter ''
-    install -d -m 0700 -o ${lib.escapeShellArg userName} -g staff ${lib.escapeShellArg licenseDir}
+    install -dm0700 \
+      -o ${lib.escapeShellArg userName} \
+      -g staff \
+      ${lib.escapeShellArg licenseDir}
   '';
 }

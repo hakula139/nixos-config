@@ -34,7 +34,13 @@ while getopts ':c:f:L:S:T:V' opt; do
 done
 command="${!OPTIND:-new-session}"
 
-if server_path="$(@tmux@ "${socket[@]}" -N show-environment -g PATH 2>/dev/null)"; then
+if server_path="$(
+  @tmux@ \
+    "${socket[@]}" \
+    -N \
+    show-environment -g PATH \
+    2>/dev/null
+)"; then
   PATH="${server_path#PATH=}" exec @tmux@ -N "$@"
 fi
 

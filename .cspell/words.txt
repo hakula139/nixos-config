@@ -321,7 +321,7 @@ tomlkit
 tomlq
 toolsai
 tsdown
-tulanp
+tulpn
 ulimits
 umami
 unapprove

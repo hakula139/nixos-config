@@ -110,7 +110,11 @@ jobs:
           set -euo pipefail
           jq -r 'to_entries[] | [.key, .value] | @tsv' <<< "$CACHIX_PINS" |
             while IFS=$'\t' read -r pin_name pin_root; do
-              store_path=$(nix build --no-link --print-out-paths "$pin_root")
+              store_path=$(
+                nix build "$pin_root" \
+                  --no-link \
+                  --print-out-paths
+              )
               cachix push "$CACHIX_NAME" "$store_path"
               cachix pin "$CACHIX_NAME" "$pin_name" "$store_path" --keep-revisions 2
             done

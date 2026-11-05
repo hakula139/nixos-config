@@ -40,7 +40,7 @@ pkgs.stdenv.mkDerivation {
 
   installPhase = ''
     runHook preInstall
-    install -D -m 0755 cloudreve $out/bin/cloudreve
+    install -Dm0755 cloudreve "$out/bin/cloudreve"
     runHook postInstall
   '';
 

@@ -161,9 +161,9 @@ in
         ];
 
         preStart = ''
-          install -m 0755 ${lib.getExe pkgs.cloudreve} "$STATE_DIRECTORY/cloudreve"
-          install -d -m 0750 "$STATE_DIRECTORY/data"
-          install -m 0600 ${configFile} "$STATE_DIRECTORY/data/conf.ini"
+          install -m0755 ${lib.getExe pkgs.cloudreve} "$STATE_DIRECTORY/cloudreve"
+          install -dm0750 "$STATE_DIRECTORY/data"
+          install -m0600 ${configFile} "$STATE_DIRECTORY/data/conf.ini"
         '';
 
         serviceConfig = repoLib.systemd.hardening // {

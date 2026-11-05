@@ -46,7 +46,7 @@ pkgs.stdenv.mkDerivation {
 
   installPhase = ''
     runHook preInstall
-    install -D -m 0755 github-mcp-server $out/bin/mcp-server-github
+    install -Dm0755 github-mcp-server "$out/bin/mcp-server-github"
     runHook postInstall
   '';
 

@@ -36,7 +36,9 @@ pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
-    CI=true pnpm prune --prod --ignore-scripts
+    CI=true pnpm prune \
+      --prod \
+      --ignore-scripts
 
     mkdir -p "$out/lib/acpx"
     cp -r dist node_modules package.json skills "$out/lib/acpx"

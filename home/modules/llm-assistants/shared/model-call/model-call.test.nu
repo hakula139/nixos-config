@@ -11,9 +11,7 @@ const SCRIPT = ($SCRIPT_DIR | path join "model-call.nu")
 
 const TOKEN = "stub-gateway-token"
 const CURL_ARGS = [
-  --fail
-  --silent
-  --show-error
+  -fsSL
   --connect-timeout "5"
   --max-time "90"
 ]
