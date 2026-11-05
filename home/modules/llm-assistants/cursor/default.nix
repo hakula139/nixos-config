@@ -75,7 +75,8 @@ in
       };
 
       extensions = import ./extensions.nix {
-        inherit lib isDarwin;
+        inherit pkgs lib isDarwin;
+        inherit (repoLib) mkNuCommand;
         inherit (config.home) username;
         inherit (cfg.extensions) prune;
         homeDir = config.home.homeDirectory;
