@@ -37,10 +37,13 @@ def gate [env_vars: record]: nothing -> any {
   }
 
   let run = with-env $env_vars {
-    $payload
-    | to json
-    | ^$nu.current-exe --no-config-file $SCRIPT $config_file
-    | complete
+    (
+      $payload
+      | to json
+      | ^$nu.current-exe --no-config-file
+        $SCRIPT --config $config_file
+      | complete
+    )
   }
   assert equal $run.exit_code 0 $run.stderr
 

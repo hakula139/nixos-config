@@ -136,9 +136,11 @@ def restore [config: record]: nothing -> any {
   | to json --raw
 }
 
-def main [config_file: string] {
+def main [
+  --config: path # Wrapper-supplied JSON with the prompt
+] {
   let out = try {
-    restore (open $config_file)
+    restore (open $config)
   } catch {
     null
   }

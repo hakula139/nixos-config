@@ -242,7 +242,13 @@ def digest-run [
     ([--config $config_file ($from | default $DAY) $to] | compact)
     ++ [$"--excerpt-chars=($excerpt_chars)"]
   )
-  with-env {TZ: $tz} { ^$nu.current-exe --no-config-file $SCRIPT ...$args | complete }
+  with-env {TZ: $tz} {
+    (
+      ^$nu.current-exe --no-config-file
+        $SCRIPT ...$args
+      | complete
+    )
+  }
 }
 
 def digest-output [

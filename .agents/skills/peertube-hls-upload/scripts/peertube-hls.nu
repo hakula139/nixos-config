@@ -214,8 +214,8 @@ def "main identify" [video_uuid: string] {
 
 # Transcode a source video to HLS fragmented MP4. `fps` is required for re-encode mode.
 def "main transcode" [
-  mode: string # remux or re-encode
-  source: string # absolute path to the source video
+  mode: string # Remux or re-encode
+  source: string # Absolute path to the source video
   file_uuid: string
   resolution: string
   fps?: string
@@ -284,7 +284,7 @@ def "main transcode" [
 def "main upload" [
   video_uuid: string
   file: string
-  dest_name?: string # override the B2 object name
+  dest_name?: string # Override the B2 object name
 ] {
   require-uuid $video_uuid
   require-b2-credentials

@@ -38,9 +38,14 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
   | save $config_file
 
   let run = with-env {STUB_LOG: $log, STUB_RULES: $rules_file} {
-    $stdin
-    | ^$nu.current-exe --no-config-file $SCRIPT $config_file ...$args
-    | complete
+    (
+      $stdin
+      | ^$nu.current-exe --no-config-file
+        $SCRIPT
+          --config $config_file
+          ...$args
+      | complete
+    )
   }
   let calls = if ($log | path exists) {
     open $log | from json --objects

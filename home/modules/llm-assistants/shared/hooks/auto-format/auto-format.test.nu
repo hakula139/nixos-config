@@ -47,9 +47,12 @@ def run-event [
     STUB_EXIT: $exit_code
     STUB_STDERR: $stderr
   } {
-    $payload
-    | ^$nu.current-exe --no-config-file $SCRIPT $config_file
-    | complete
+    (
+      $payload
+      | ^$nu.current-exe --no-config-file
+        $SCRIPT --config $config_file
+      | complete
+    )
   }
   assert equal $run.exit_code 0 $run.stderr
 

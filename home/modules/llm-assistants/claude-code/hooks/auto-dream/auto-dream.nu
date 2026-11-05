@@ -15,7 +15,7 @@ const RETRY_AFTER = 1hr
 const PROJECTS_DIR = $nu.home-dir | path join ".claude/projects"
 const NUDGE_DIR = $nu.cache-dir | path join "claude-code/auto-dream"
 
-# Claude Code's project directory name for a path
+# Claude Code's project directory name for a path.
 def project-slug [path: string]: nothing -> string {
   $path | str replace --all --regex "[^a-zA-Z0-9]" "-"
 }
@@ -111,9 +111,11 @@ def nudge [config: record, input: record]: nothing -> any {
   | to json --raw
 }
 
-def main [config_file: string] {
+def main [
+  --config: path # Wrapper-supplied JSON with git, the model, and the prompt
+] {
   let out = try {
-    nudge (open $config_file) (^cat | from json)
+    nudge (open $config) (^cat | from json)
   } catch {
     null
   }

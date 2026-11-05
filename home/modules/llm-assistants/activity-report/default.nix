@@ -21,47 +21,33 @@ let
   # ------------------------------------------------------------------------------------------------
   # Digest
   # ------------------------------------------------------------------------------------------------
-  json = pkgs.formats.json { };
-
-  digestConfig = json.generate "activity-digest.json" {
-    inherit (cfg)
-      excludedDirs
-      labels
-      readingMinutes
-      maxMinutes
-      agentMaxMinutes
-      agentIdleMinutes
-      ;
-
-    assistantDirs = {
-      claude = "${homeDir}/.claude";
-      codex =
-        if config.home.preferXdgDirectories then "${config.xdg.configHome}/codex" else "${homeDir}/.codex";
-      omp = "${homeDir}/.omp/agent";
-    };
-  };
-
-  digestScript = pkgs.writers.writeNuBin "activity-digest" (builtins.readFile ./activity-digest.nu);
-
-  digest = repoLib.wrapPackage {
+  digest = repoLib.mkNuCommand {
     inherit pkgs;
-    pkg = digestScript;
+    name = "activity-digest";
+    script = ./activity-digest.nu;
 
-    wrapArgs = [
-      "--prefix"
-      "PATH"
-      ":"
-      (lib.makeBinPath [
-        pkgs.git
-        pkgs.zstd
-      ])
-
-      "--add-flag"
-      "--config"
-
-      "--add-flag"
-      "${digestConfig}"
+    runtimeInputs = [
+      pkgs.git
+      pkgs.zstd
     ];
+
+    config = {
+      inherit (cfg)
+        excludedDirs
+        labels
+        readingMinutes
+        maxMinutes
+        agentMaxMinutes
+        agentIdleMinutes
+        ;
+
+      assistantDirs = {
+        claude = "${homeDir}/.claude";
+        codex =
+          if config.home.preferXdgDirectories then "${config.xdg.configHome}/codex" else "${homeDir}/.codex";
+        omp = "${homeDir}/.omp/agent";
+      };
+    };
   };
 
   # ------------------------------------------------------------------------------------------------

@@ -12,8 +12,10 @@ def fail [reason: string] {
   exit 1
 }
 
-def main [config_file: string] {
-  let config = (open $config_file)
+def main [
+  --config: path # Wrapper-supplied JSON with the gateway, curl, and its arguments
+] {
+  let config = (open $config)
   let gateway = $config.gateway
   let request = (^cat | from json)
 

@@ -12,8 +12,11 @@
 }:
 
 lib.getExe (mkNuCommand {
+  inherit pkgs;
   name = "${assistant}-model-call";
   script = ./model-call.nu;
+  runtimeInputs = [ pkgs.coreutils ];
+
   config = {
     inherit gateway curlArgs;
     curl = lib.getExe pkgs.curl;

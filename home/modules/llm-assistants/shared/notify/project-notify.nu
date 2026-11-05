@@ -3,10 +3,14 @@
 # ==================================================================================================
 # Project-Scoped Notification
 # ==================================================================================================
-# projectNotify <title> <message> [payload]
-# ==================================================================================================
 
-def main [notify: string, title: string, message: string = "", payload: string = ""] {
+# Notify with the title and message, prefixed by the project's directory name.
+def main [
+  title: string # Notification title
+  message: string = "" # Notification body
+  payload: string = "" # Event JSON whose cwd names the project in place of the working directory
+  --notify: path # Wrapper-supplied command that shows the notification
+] {
   mut project = ($env.PWD | path basename)
 
   if ($payload | is-not-empty) {

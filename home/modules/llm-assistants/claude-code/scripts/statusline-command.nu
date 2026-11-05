@@ -319,8 +319,10 @@ def format-ccusage-info [data: record]: nothing -> record<block: string, daily: 
 # Main
 # --------------------------------------------------------------------------------------------------
 
-def main [config_file: string] {
-  let config = (open $config_file)
+def main [
+  --config: path # Wrapper-supplied JSON with the display name of each model ID
+] {
+  let config = (open $config)
   # `open /dev/stdin` re-opens fd 0 by path, which fails with ENXIO when the caller passes a socket
   # instead of a pipe, as Claude Code's spawn does.
   let input = (^cat | from json)

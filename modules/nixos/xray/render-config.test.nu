@@ -55,7 +55,11 @@ def render [min_level: string]: nothing -> record {
   | to json
   | save $config_file
 
-  let run = (^$nu.current-exe --no-config-file $SCRIPT $config_file | complete)
+  let run = (
+    ^$nu.current-exe --no-config-file
+      $SCRIPT --config $config_file
+    | complete
+  )
   {run: $run, output: $output}
 }
 

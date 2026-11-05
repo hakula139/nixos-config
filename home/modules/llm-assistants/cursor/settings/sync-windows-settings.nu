@@ -10,8 +10,10 @@
 # added on Windows. Those entries are preserved, with Nix winning on shared keys.
 const MERGE_KEY = "remote.SSH.remotePlatform"
 
-def main [config_file: string] {
-  let config = (open $config_file)
+def main [
+  --config: path # Wrapper-supplied JSON with the settings file and the Windows interop helper
+] {
+  let config = (open $config)
   let app_data = (^$config.windowsInterop APPDATA | str trim)
   let target_dir = ([$app_data "Cursor/User"] | path join)
   let target = ([$target_dir "settings.json"] | path join)

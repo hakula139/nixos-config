@@ -19,8 +19,7 @@
     slug = "auto-format";
     script = ./auto-format.nu;
     config = {
-      inherit fileFormatter;
-      patchInput = toString patchInput;
+      inherit fileFormatter patchInput;
     };
   };
 }
