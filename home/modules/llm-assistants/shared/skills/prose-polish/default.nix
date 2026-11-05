@@ -21,8 +21,11 @@ let
   ) modelCatalog.models;
 
   command = mkNuCommand {
+    inherit pkgs;
     name = "prose-polish";
     script = ./scripts/prose-polish.nu;
+    runtimeInputs = [ pkgs.coreutils ];
+
     config = {
       inherit
         phrasing

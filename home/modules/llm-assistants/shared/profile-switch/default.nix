@@ -5,6 +5,7 @@
 {
   pkgs,
   lib,
+  mkNuCommand,
 }:
 
 {
@@ -19,33 +20,26 @@
 }:
 
 let
-  json = pkgs.formats.json { };
   profilesDir = "${stateDir}/profiles";
-
-  switchConfig = json.generate "${name}.json" {
-    inherit
-      assistant
-      stateDir
-      profilesDir
-      extension
-      defaultProfile
-      configFile
-      resetKeys
-      ;
-  };
 in
 {
-  package = pkgs.writers.writeNuBin name {
-    makeWrapperArgs = [
-      "--prefix"
-      "PATH"
-      ":"
-      (lib.makeBinPath [ pkgs.coreutils ])
+  package = mkNuCommand {
+    inherit pkgs name;
+    script = ./profile-switch.nu;
+    runtimeInputs = [ pkgs.coreutils ];
 
-      "--add-flag"
-      "${switchConfig}"
-    ];
-  } (builtins.readFile ./profile-switch.nu);
+    config = {
+      inherit
+        assistant
+        stateDir
+        profilesDir
+        extension
+        defaultProfile
+        configFile
+        resetKeys
+        ;
+    };
+  };
 
   files = lib.mapAttrs' (
     profile: source: lib.nameValuePair "${profilesDir}/${profile}.${extension}" { inherit source; }

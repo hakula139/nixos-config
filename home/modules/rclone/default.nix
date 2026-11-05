@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  repoLib,
   secretPath,
   ...
 }:
@@ -19,23 +20,21 @@ let
   logDir = "${config.home.homeDirectory}/Library/Logs/rclone";
   socketPath = name: "${stateDir}/${name}.sock";
 
-  mountLauncher = pkgs.writers.writeNu "rclone-mount" { } (builtins.readFile ./mount.nu);
+  mountLauncher = pkgs.writers.writeNuBin "rclone-mount" (builtins.readFile ./mount.nu);
 
-  refresh = pkgs.writers.writeNuBin "rclone-refresh" {
-    makeWrapperArgs = [
-      "--prefix"
-      "PATH"
-      ":"
-      (lib.makeBinPath [ config.programs.rclone.package ])
-    ];
-  } (builtins.readFile ./refresh.nu);
+  refresh = repoLib.mkNuCommand {
+    inherit pkgs;
+    name = "rclone-refresh";
+    script = ./refresh.nu;
+    runtimeInputs = [ config.programs.rclone.package ];
+  };
 
   agents = lib.concatMapAttrs (name: mount: {
     "rclone-mount-${name}" = {
       enable = true;
       config = {
         ProgramArguments = [
-          "${mountLauncher}"
+          (lib.getExe mountLauncher)
           (socketPath name)
           "${mountRoot}/${name}"
           rclone

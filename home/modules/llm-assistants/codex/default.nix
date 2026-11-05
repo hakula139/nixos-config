@@ -64,8 +64,6 @@ in
     let
       inherit (shared) notify;
 
-      json = pkgs.formats.json { };
-
       # --------------------------------------------------------------------------------------------
       # Module imports
       # --------------------------------------------------------------------------------------------
@@ -146,41 +144,32 @@ in
         // plugins.settings
       ) (lib.optionalAttrs pkgs.stdenv.isDarwin desktop);
 
-      activationConfig = json.generate "codex-config-activation.json" {
-        configDir = codexConfigDir;
-        activeProfile = "${profiles.stateDir}/active-profile";
-        settings = codexSettings;
-        keybindings = lib.optionals pkgs.stdenv.isDarwin [
-          {
-            command = "hotkeyWindow";
-            key = "Command+Shift+Space";
-          }
-        ];
+      activateConfig = repoLib.mkNuCommand {
+        inherit pkgs;
+        name = "activate-codex-config";
+        script = ./scripts/activate-config.nu;
+        runtimeInputs = [ pkgs.coreutils ];
+
+        config = {
+          configDir = codexConfigDir;
+          activeProfile = "${profiles.stateDir}/active-profile";
+          settings = codexSettings;
+          keybindings = lib.optionals pkgs.stdenv.isDarwin [
+            {
+              command = "hotkeyWindow";
+              key = "Command+Shift+Space";
+            }
+          ];
+        };
       };
 
-      activateConfig = pkgs.writers.writeNu "activate-codex-config" {
-        makeWrapperArgs = [
-          "--prefix"
-          "PATH"
-          ":"
-          (lib.makeBinPath [ pkgs.coreutils ])
-
-          "--add-flag"
-          "${activationConfig}"
-        ];
-      } (builtins.readFile ./scripts/activate-config.nu);
-
-      stopStaleDaemon = pkgs.writers.writeNu "stop-stale-codex-daemon" {
-        makeWrapperArgs = [
-          "--prefix"
-          "PATH"
-          ":"
-          (lib.makeBinPath [ codexBin ])
-
-          "--add-flag"
-          "${pkgs.codex}"
-        ];
-      } (builtins.readFile ./scripts/stop-stale-daemon.nu);
+      stopStaleDaemon = repoLib.mkNuCommand {
+        inherit pkgs;
+        name = "stop-stale-codex-daemon";
+        script = ./scripts/stop-stale-daemon.nu;
+        runtimeInputs = [ codexBin ];
+        flags.package = pkgs.codex;
+      };
 
       # Separate from default.rules, which Codex rewrites on TUI allowlisting.
       codexRulesTarget =
@@ -220,11 +209,11 @@ in
         home.activation.codexSkills = skills.activation;
 
         home.activation.codexMutableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          run ${activateConfig}
+          run ${lib.getExe activateConfig}
         '';
 
         home.activation.codexDaemon = lib.hm.dag.entryAfter [ "codexAuthProfile" ] ''
-          run ${stopStaleDaemon}
+          run ${lib.getExe stopStaleDaemon}
         '';
       }
     ]

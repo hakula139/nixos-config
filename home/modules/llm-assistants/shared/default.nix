@@ -55,17 +55,11 @@ let
   # ------------------------------------------------------------------------------------------------
   # Model calls
   # ------------------------------------------------------------------------------------------------
-  mkNuCommand = import ./nu-command { inherit pkgs lib; };
-
   mkModelCall =
     assistant:
     import ./model-call {
-      inherit
-        pkgs
-        lib
-        assistant
-        mkNuCommand
-        ;
+      inherit pkgs lib assistant;
+      inherit (repoLib) mkNuCommand;
       gateway = gatewayFor assistant;
 
       curlArgs = repoLib.curl.mkArgs {
@@ -96,7 +90,6 @@ in
     # MCP servers
     # ----------------------------------------------------------------------------------------------
     mcp = import ./mcp {
-      inherit (repoLib.proxy) clearProxyEnv;
       inherit
         config
         pkgs
@@ -105,6 +98,7 @@ in
         secretPath
         corpGateway
         ;
+      inherit (repoLib.proxy) clearProxyEnv;
     };
 
     mcpSecrets = import ./mcp/secrets.nix;
@@ -119,16 +113,19 @@ in
         modelCatalog
         fileFormatter
         timeouts
-        mkNuCommand
         mkModelCall
         ;
+      inherit (repoLib) mkNuCommand;
       inherit (config.xdg) dataHome;
       inherit (promptFragments) readPrompt;
     };
 
     inherit fileFormatter mkModelCall;
 
-    notify = import ./notify { inherit pkgs lib; };
+    notify = import ./notify {
+      inherit pkgs lib;
+      inherit (repoLib) mkNuCommand;
+    };
 
     # ----------------------------------------------------------------------------------------------
     # Auth profiles
@@ -140,6 +137,9 @@ in
       inherit (profileDefinitions) providers;
     };
 
-    mkProfileSwitch = import ./profile-switch { inherit pkgs lib; };
+    mkProfileSwitch = import ./profile-switch {
+      inherit pkgs lib;
+      inherit (repoLib) mkNuCommand;
+    };
   };
 }

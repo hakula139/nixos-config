@@ -34,12 +34,13 @@ let
       config,
     }:
     lib.getExe (mkNuCommand {
+      inherit pkgs script config;
       name = "${assistant}-${slug}";
-      inherit script config;
+      runtimeInputs = [ pkgs.coreutils ];
     });
 
-  patchInput = pkgs.writers.writeNu "patch-input" { } (
-    builtins.readFile ./lib/patch-input/patch-input.nu
+  patchInput = lib.getExe (
+    pkgs.writers.writeNuBin "patch-input" (builtins.readFile ./lib/patch-input/patch-input.nu)
   );
 
   modelCall = mkModelCall assistant;

@@ -12,7 +12,7 @@ const FORMAT = "#{client_name}|#{session_id}"
 
 # Move every client still attached after a restore back to its recorded session.
 def main [
-  restore_script: path # Continuum's restore script to run
+  --restore-script: path # Wrapper-supplied Continuum restore script to run
 ] {
   mut recorded = []
   let restore = (job spawn { ^$restore_script | ignore })

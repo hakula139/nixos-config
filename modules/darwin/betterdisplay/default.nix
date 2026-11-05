@@ -5,6 +5,7 @@
 {
   config,
   pkgs,
+  lib,
   repoLib,
   ...
 }:
@@ -14,15 +15,16 @@ let
   app = "/Applications/BetterDisplay.app/Contents/MacOS/BetterDisplay";
   licenseFile = config.age.secrets.betterdisplay-license.path;
 
-  activateLicense = pkgs.writers.writeNu "betterdisplay-activate-license" {
-    makeWrapperArgs = [
-      "--add-flag"
-      app
+  activateLicense = repoLib.mkNuCommand {
+    inherit pkgs;
+    name = "betterdisplay-activate-license";
+    script = ./activate-license.nu;
 
-      "--add-flag"
-      licenseFile
-    ];
-  } (builtins.readFile ./activate-license.nu);
+    flags = {
+      inherit app;
+      license-file = licenseFile;
+    };
+  };
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -45,7 +47,7 @@ in
   home-manager.users.${userName}.launchd.agents.betterdisplay-license = {
     enable = true;
     config = {
-      ProgramArguments = [ "${activateLicense}" ];
+      ProgramArguments = [ (lib.getExe activateLicense) ];
       RunAtLoad = true;
       WatchPaths = [
         "/Applications/BetterDisplay.app"

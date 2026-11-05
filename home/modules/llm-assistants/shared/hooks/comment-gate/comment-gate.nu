@@ -190,9 +190,11 @@ def gate [config: record]: nothing -> any {
   ))
 }
 
-def main [config_file: string] {
+def main [
+  --config: path # Wrapper-supplied JSON with the model call, model, prompt, and input parser
+] {
   let out = try {
-    gate (open $config_file)
+    gate (open $config)
   } catch {|err|
     unchecked $err.msg
   }

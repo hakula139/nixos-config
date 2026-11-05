@@ -11,26 +11,19 @@
 }:
 
 let
-  json = pkgs.formats.json { };
   cfg = config.hakula.fonts;
 
-  fontDirs = map (p: "${p}/share/fonts") (repoLib.packagesFor pkgs).fonts;
-  windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
-  fontConfig = json.generate "windows-fonts.json" {
-    inherit fontDirs windowsInterop;
+  installWindowsFonts = repoLib.mkNuCommand {
+    inherit pkgs;
+    name = "install-windows-fonts";
+    script = ./install-windows-fonts.nu;
+    runtimeInputs = [ pkgs.iconv ];
+
+    config = {
+      fontDirs = map (p: "${p}/share/fonts") (repoLib.packagesFor pkgs).fonts;
+      windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
+    };
   };
-
-  installWindowsFonts = pkgs.writers.writeNuBin "install-windows-fonts" {
-    makeWrapperArgs = [
-      "--prefix"
-      "PATH"
-      ":"
-      (lib.makeBinPath [ pkgs.iconv ])
-
-      "--add-flag"
-      "${fontConfig}"
-    ];
-  } (builtins.readFile ./install-windows-fonts.nu);
 in
 {
   # ------------------------------------------------------------------------------------------------

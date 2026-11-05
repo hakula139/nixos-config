@@ -6,4 +6,4 @@
   pkgs,
 }:
 
-pkgs.writers.writeNu "nu-check" (builtins.readFile ./nu-check.nu)
+pkgs.writers.writeNuBin "nu-check" (builtins.readFile ./nu-check.nu)

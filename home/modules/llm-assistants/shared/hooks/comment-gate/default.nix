@@ -22,10 +22,9 @@
     slug = "comment-gate";
     script = ./comment-gate.nu;
     config = {
-      inherit modelCall;
+      inherit modelCall patchInput;
       model = modelCatalog.models.${modelCatalog.defaults.gemini.mini}.channelId.google;
       prompt = readPrompt ./prompt.md;
-      patchInput = toString patchInput;
     };
   };
 }

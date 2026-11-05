@@ -84,8 +84,10 @@ def trust-hooks [hooks: record, state: record, source: string]: nothing -> recor
 }
 
 # Apply managed settings while preserving Codex's mutable user state.
-def main [config_file: string] {
-  let config = (open $config_file)
+def main [
+  --config: path # Wrapper-supplied JSON with the config directory, profile link, and settings
+] {
+  let config = (open $config)
   (
     ^install
       -d

@@ -4,6 +4,7 @@
 
 {
   inputs,
+  repoLib,
 }:
 
 [
@@ -56,7 +57,7 @@
     acpx = final.callPackage ../packages/acpx { };
     browser-tools = final.callPackage ../packages/browser-tools { };
     cloudreve = final.callPackage ../packages/cloudreve { };
-    file-formatter = final.callPackage ../packages/file-formatter { };
+    file-formatter = final.callPackage ../packages/file-formatter { inherit repoLib; };
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };
     mcp-server-gitlab = final.callPackage ../packages/mcp/mcp-server-gitlab { };
     nu-check = final.callPackage ../packages/nu-check { };

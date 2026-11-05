@@ -76,7 +76,11 @@ def "test activation records golden hook hashes and keeps other state" [] {
   | to json
   | save $config_file
 
-  let run = (^$nu.current-exe --no-config-file $SCRIPT $config_file | complete)
+  let run = (
+    ^$nu.current-exe --no-config-file
+      $SCRIPT --config $config_file
+    | complete
+  )
   assert equal $run.exit_code 0 $run.stderr
 
   let trusted = (
@@ -134,7 +138,11 @@ def "test activation trusts hooks at the canonical config path" [] {
     | to json
     | save $config_file
 
-    let run = (^$nu.current-exe --no-config-file $SCRIPT $config_file | complete)
+    let run = (
+      ^$nu.current-exe --no-config-file
+        $SCRIPT --config $config_file
+      | complete
+    )
     assert equal $run.exit_code 0 $run.stderr
 
     let key = $"($canonical)/config.toml:stop:0:0"
@@ -181,7 +189,11 @@ def "test activation imports only profiles in the canonical config directory" []
     | to json
     | save $config_file
 
-    let run = (^$nu.current-exe --no-config-file $SCRIPT $config_file | complete)
+    let run = (
+      ^$nu.current-exe --no-config-file
+        $SCRIPT --config $config_file
+      | complete
+    )
     assert equal $run.exit_code 0 $run.stderr
 
     let projects = (open ($canonical | path join "config.toml") | get -o projects)

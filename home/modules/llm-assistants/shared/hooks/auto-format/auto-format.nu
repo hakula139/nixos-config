@@ -38,9 +38,11 @@ def format-edited [config: record]: nothing -> any {
   | to json --raw
 }
 
-def main [config_file: string] {
+def main [
+  --config: path # Wrapper-supplied JSON with the formatter and input parser
+] {
   let out = try {
-    format-edited (open $config_file)
+    format-edited (open $config)
   } catch {
     null
   }

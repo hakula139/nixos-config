@@ -1,7 +1,9 @@
 #!/usr/bin/env nu
 
-def main [config_file: string] {
-  let config = (open $config_file)
+def main [
+  --config: path # Wrapper-supplied JSON with the base config, secret files, proxy, and curl args
+] {
+  let config = (open $config)
   let target_file = ($config.configDir | path join "config.yaml")
 
   # `open` only parses YAML when the extension says so, and the named duplicate-key error is worth

@@ -30,12 +30,10 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     let
-      json = pkgs.formats.json { };
-
       configFile = "/run/xray-config/config.json";
 
       # Clients, short IDs, and the private key are filled in at runtime from the secrets.
-      renderConfig = json.generate "xray-render.json" {
+      renderConfig = {
         settings = {
           log = {
             loglevel = "warning";
@@ -91,17 +89,13 @@ in
         outputFile = configFile;
       };
 
-      renderScript = pkgs.writers.writeNu "xray-render-config" {
-        makeWrapperArgs = [
-          "--prefix"
-          "PATH"
-          ":"
-          (lib.makeBinPath [ pkgs.coreutils ])
-
-          "--add-flag"
-          "${renderConfig}"
-        ];
-      } (builtins.readFile ./render-config.nu);
+      renderScript = repoLib.mkNuCommand {
+        inherit pkgs;
+        name = "xray-render-config";
+        script = ./render-config.nu;
+        runtimeInputs = [ pkgs.coreutils ];
+        config = renderConfig;
+      };
     in
     {
       # --------------------------------------------------------------------------------------------
@@ -193,7 +187,7 @@ in
 
         serviceConfig = repoLib.systemd.hardening // {
           Type = "oneshot";
-          ExecStart = renderScript;
+          ExecStart = lib.getExe renderScript;
           RemainAfterExit = true;
           RuntimeDirectory = "xray-config";
           RuntimeDirectoryMode = "0700";

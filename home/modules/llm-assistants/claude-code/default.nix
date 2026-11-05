@@ -98,8 +98,13 @@ in
       # --------------------------------------------------------------------------------------------
       # Status line
       # --------------------------------------------------------------------------------------------
-      statusLineConfig = json.generate "claude-statusline.json" {
-        models = lib.listToAttrs (
+      statusLinePackage = repoLib.mkNuCommand {
+        inherit pkgs;
+        name = "statusline-command";
+        script = ./scripts/statusline-command.nu;
+        runtimeInputs = [ pkgs.ccusage ];
+
+        config.models = lib.listToAttrs (
           lib.concatLists (
             lib.mapAttrsToList (
               id: model:
@@ -109,17 +114,6 @@ in
         );
       };
 
-      statusLinePackage = pkgs.writers.writeNuBin "statusline-command" {
-        makeWrapperArgs = [
-          "--prefix"
-          "PATH"
-          ":"
-          (lib.makeBinPath [ pkgs.ccusage ])
-
-          "--add-flag"
-          "${statusLineConfig}"
-        ];
-      } (builtins.readFile ./scripts/statusline-command.nu);
       statusLineScript = lib.getExe statusLinePackage;
 
       # --------------------------------------------------------------------------------------------

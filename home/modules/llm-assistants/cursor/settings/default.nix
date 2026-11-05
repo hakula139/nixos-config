@@ -10,6 +10,7 @@
   isDarwin,
   isNixOS,
   mirroredNetworking,
+  mkNuCommand,
   profileDirectory,
   windowsInterop,
 }:
@@ -159,17 +160,16 @@ let
   # ------------------------------------------------------------------------------------------------
   # Windows sync
   # ------------------------------------------------------------------------------------------------
-  syncWindowsSettingsConfig = json.generate "cursor-windows-sync.json" {
-    settingsFile = windowsSettingsJson;
-    inherit windowsInterop;
-  };
+  syncWindowsSettings = mkNuCommand {
+    inherit pkgs;
+    name = "sync-windows-cursor-settings";
+    script = ./sync-windows-settings.nu;
 
-  syncWindowsSettings = pkgs.writers.writeNuBin "sync-windows-cursor-settings" {
-    makeWrapperArgs = [
-      "--add-flag"
-      "${syncWindowsSettingsConfig}"
-    ];
-  } (builtins.readFile ./sync-windows-settings.nu);
+    config = {
+      settingsFile = windowsSettingsJson;
+      inherit windowsInterop;
+    };
+  };
 in
 {
   inherit

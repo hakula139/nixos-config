@@ -923,9 +923,6 @@ def main [
   --config: path # Wrapper-supplied JSON with the host's labels, policy, and source directories
   --excerpt-chars: int = 400 # Characters kept per prompt and reply, or 0 to keep the text whole
 ]: nothing -> nothing {
-  if $config == null {
-    error make {msg: "--config <path> is required"}
-  }
   let cfg = (open $config)
   let to = ($to | default $from)
   if $to < $from {

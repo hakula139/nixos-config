@@ -36,10 +36,13 @@ def call [request: record, reply: record]: nothing -> record {
   | save $config_file
 
   let run = with-env {STUB_LOG: $log, STUB_REPLY: ($reply | to json)} {
-    $request
-    | to json
-    | ^$nu.current-exe --no-config-file $SCRIPT $config_file
-    | complete
+    (
+      $request
+      | to json
+      | ^$nu.current-exe --no-config-file
+        $SCRIPT --config $config_file
+      | complete
+    )
   }
   {run: $run, calls: (open $log | from json --objects), token_file: $token_file}
 }

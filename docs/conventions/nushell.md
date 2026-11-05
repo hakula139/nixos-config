@@ -42,7 +42,7 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 
 ## In Nix
 
-- **Inputs**: keep checked-in Nushell valid on its own. Pass a few scalars as typed `main` arguments through `makeWrapperArgs` and `--add-flag`. Pass structured values as one JSON config file through a typed `--config` flag, and wrap the bare `writeNuBin` script with `repoLib.wrapPackage`, since `makeWrapperArgs` renames the script that `--help` names. Put executables on the wrapper's `PATH`.
+- **Inputs**: keep checked-in Nushell valid on its own. Build a command that needs a wrapper with `repoLib.mkNuCommand`, since `makeWrapperArgs` renames the script that `--help` names. Put executables in its `runtimeInputs`, pass structured values as `config`, which the script reads through a typed `--config` flag, and pass a few scalars as typed `flags`, which leaves positional parameters to the user.
 - **Shebang**: the writers prepend a store-path shebang, which demotes the script's `#!/usr/bin/env nu` to a comment. Keep that line for standalone runs and LSP checks, and commit the executable bit on helpers run from the checkout. Spawn Nushell from a generated script with `$nu.current-exe`.
 - **Modules**: a parse-time `use` target must resolve in both the source tree and the store. Without such a path, expose the helper as an executable.
 

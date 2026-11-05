@@ -76,12 +76,12 @@ def write-config [config: record, profile: path] {
 
 # Switch the active auth profile, or list the available ones.
 def main [
-  config_file: string
-  profile?: string # profile to activate, or omit to list
-  --list (-l) # list profiles without switching
-  --initialize # retain an installed profile or select the configured default
+  profile?: string # Profile to activate, or omit to list
+  --config: path # Wrapper-supplied JSON with the profile directory and the assistant's config file
+  --list (-l) # List profiles without switching
+  --initialize # Retain an installed profile or select the configured default
 ] {
-  let config = (open $config_file)
+  let config = (open $config)
   let active_link = ($config.stateDir | path join "active-profile")
 
   let profile = if $initialize {
