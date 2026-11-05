@@ -1,0 +1,4 @@
+interface:
+  display_name: 'agenix'
+  short_description: 'Edit and re-key agenix secrets safely'
+  default_prompt: 'Use $agenix to edit, re-key, or verify these agenix secrets without overwriting plaintext.'

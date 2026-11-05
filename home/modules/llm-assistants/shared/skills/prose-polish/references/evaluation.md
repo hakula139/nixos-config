@@ -1,6 +1,6 @@
 # Prose Polishing Evaluation
 
-The experiments behind this repository's prose polishing: how output quality was judged, what the blind reviews and the English replay found, and the principles and exclusions that follow. The current script and prompts live in the `prose-polish` skill, and this record describes only what was tested.
+The experiments behind the `prose-polish` skill: how output quality was judged, what the blind reviews and the English replay found, and the principles and exclusions that follow. The skill's script and prompts carry its current behavior, and this record describes only what was tested.
 
 ## Abstract
 

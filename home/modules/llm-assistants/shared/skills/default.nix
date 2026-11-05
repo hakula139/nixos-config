@@ -38,6 +38,8 @@ let
     git-workflow = ./git-workflow;
     mcp-builder = anthropic + "/mcp-builder";
     model-delegation = ./model-delegation;
+    nix = ./nix;
+    nushell = ./nushell;
     read-pdfs = ./read-pdfs;
     review = ./review;
     security-best-practices = openai + "/security-best-practices";
