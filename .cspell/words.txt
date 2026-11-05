@@ -36,7 +36,6 @@ clangd
 claudeai
 clippy
 cloudreve
-cncidr
 colmena
 commentish
 condarc
