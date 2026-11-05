@@ -10,7 +10,6 @@ let
   serverDisplayNames = {
     atlassian = "Atlassian";
     bifrost = "Bifrost";
-    braveSearch = "BraveSearch";
     chromeDevtools = "ChromeDevTools";
     deepwiki = "DeepWiki";
     exa = "Exa";
