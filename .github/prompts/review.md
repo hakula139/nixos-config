@@ -1,4 +1,4 @@
-Review this PR by applying the review skill in `home/modules/llm-assistants/shared/skills/review/SKILL.md` in its default review mode, together with the repository instructions it loads.
+Review this PR by applying the review skill in `home/modules/llm-assistants/shared/skills/review/SKILL.md` in its default review mode, together with the repository instructions it loads. Treat `home/modules/llm-assistants/instructions/shared.md` as the global instructions the skill names.
 
 ## CI scope
 

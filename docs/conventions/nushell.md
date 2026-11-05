@@ -1,18 +1,12 @@
 # Nushell
 
-Nushell is the default for new helper scripts.
-
 - **Entry point**: `def main` with typed parameters.
 - **Script-relative resources**: bind `const SCRIPT_DIR = path self "."` after the header and imports. It resolves at parse time from the defining file, so Nix must package those resources beside the script.
 - **Help**: keep the script header to its purpose and operating constraints, and document usage at each command and parameter so `--help` carries it. Point to it with `Run with --help for usage.` only when the header says something else.
 - **Quoting**: quote string values, paths included, so they read as data, and leave names, flags, and subcommands bare, as in `^git -C $dir add ".gitignore"`. Leave a glob meant to expand bare, and build a home path from `$nu.home-dir`, since a quoted `~` stays literal. Keep the quotes any word needs to stay a literal string, as `"0700"` and `"1min"` do. Use double quotes, and single quotes when the text holds a literal backslash or double quote.
-- **Multiline strings**: indent the literal with the code, with the opening quote, content, and closing quote at one column, then `| str dedent` from `std-rfc/str` on the next line and any enclosing parenthesis on its own line.
-- **Match arms**: once any arm contains a blank line, separate all the arms with blank lines.
-
-## What stays bash
-
-- Scripts that another shell evaluates or sources, as with `makeWrapper --run` snippets.
-- `exec` wrappers that only set a variable and hand off.
+- **Multiline strings**: keep the opening quote, content, and closing quote at one column, then `| str dedent` from `std-rfc/str` on the next line and any enclosing parenthesis on its own line.
+- **Builtin switches**: switches on Nushell builtins and custom commands stay on one line, since only external calls and argument lists split by option.
+- **`path join`**: merge adjacent literal segments into one string and keep the call on one line, so the path reads as one value.
 
 ## Traps
 
@@ -65,7 +59,7 @@ Give a script a `<script>.test.nu` beside it when its output is easy to get subt
 
 - **Running**: `nu-test <file>...` runs every test concurrently, each in its own process and `TMPDIR`. A test needing tools beyond Nushell, bash, and coreutils adds them to the check's inputs.
 
-- **Refactors and ports**: diff every fixture's or representative payload's output from the old script (`git show HEAD:<path>`) against the rewrite, running both under the wrapper's runtime `PATH` so a pre-existing bug does not read as a regression. Do this before porting a hook, since a hook error leaves the tool call running and silently disables the hook.
+- **Refactors and ports**: run the old script (`git show HEAD:<path>`) under the wrapper's runtime `PATH` too, so a pre-existing bug does not read as a regression, and do this before porting a hook, since a hook error leaves the tool call running and silently disables the hook.
 
 ## Linting
 
