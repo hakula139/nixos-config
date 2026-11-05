@@ -1,66 +1,28 @@
 # Nushell
 
-- **Entry point**: `def main` with typed parameters.
+General Nushell conventions and traps live in the `nushell` skill. This page covers the choices, packaging, and test runner specific to nixos-config.
+
+## Scripts
+
 - **Script-relative resources**: bind `const SCRIPT_DIR = path self "."` after the header and imports. It resolves at parse time from the defining file, so Nix must package those resources beside the script.
-- **Help**: keep the script header to its purpose and operating constraints, and document usage at each command and parameter so `--help` carries it. Point to it with `Run with --help for usage.` only when the header says something else.
-- **Quoting**: quote string values, paths included, so they read as data, and leave names, flags, and subcommands bare, as in `^git -C $dir add ".gitignore"`. Leave a glob meant to expand bare, and build a home path from `$nu.home-dir`, since a quoted `~` stays literal. Keep the quotes any word needs to stay a literal string, as `"0700"` and `"1min"` do. Use double quotes, and single quotes when the text holds a literal backslash or double quote.
-- **Multiline strings**: keep the opening quote, content, and closing quote at one column, then `| str dedent` from `std-rfc/str` on the next line and any enclosing parenthesis on its own line.
-- **Builtin switches**: switches on Nushell builtins and custom commands stay on one line, since only external calls and argument lists split by option.
+- **Help**: point to the help output with `Run with --help for usage.` only when the header says something else. Start a parameter help comment with a capital and end it without a period, and end a `def` docstring with one.
+- **Quote style**: use double quotes, switching to single quotes when the text holds a literal backslash or double quote.
 - **`path join`**: merge adjacent literal segments into one string and keep the call on one line, so the path reads as one value.
-
-## Traps
-
-These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/book/thinking_in_nu.html) and [Coming from Bash](https://www.nushell.sh/book/coming_from_bash.html). Reproduce a trap on the pinned Nushell before adding it.
-
-### Parsing and data
-
-- **`from json` accepts some plain text, so `try` cannot validate JSON.** `open` on an empty JSON, YAML, or NUON file returns null, while truncated JSON raises, so check the shape (`$j | describe | str starts-with "record"`) before reading a field.
-- **`get -o` raises on rows that are not records.** It tolerates a missing column but fails on a list of strings or a scalar, so wrap it in `try` when the shape is unverified.
-- **Return annotations do not validate dynamic output.** A `-> record` function can return a list from an untyped helper, and `get -o` on an empty list returns `[]`, which `default` keeps.
-- **A `mut` or a defaulted closure parameter takes the type of its initial value.** Each later value is checked against that type, at parse time when its type is known and at runtime otherwise, so `mut current = null` rejects a record, and `generate {|row, acc = null| ... }` raises `Can't convert to nothing` once it passes `acc` a value. Annotate the union, as in `mut current: oneof<record, nothing> = null`, because `nu-check` misses the runtime case.
-- **YAML error messages hide the parser's detail.** Read `$e.rendered` in the catch block, since `$e.msg` says only `Error while parsing as yaml`.
-- **`math sum` errors on an empty list.** Use `| append 0 | math sum`.
-- **`open --raw` yields a byte stream, which collects to `binary` on invalid UTF-8**, so a `: string` parameter or a `string ->` input raises a type error. To require UTF-8, pipe the stream itself into `into string` inside `try`, which raises `Non-UTF8 string` on invalid bytes and on a UTF-16 BOM. `into string` rejects every collected `binary`, valid or not.
-
-### Strings and arguments
-
-- **Bare words depend on context.** `where after != before` compares the `after` column with the string `"before"` (write `where after != $it.before`), and a comma splits a list item, so `[--sort=-pcpu,-pmem]` holds two.
-- **Outside parentheses or a list a newline ends the command.** Arguments continue onto the next line only inside them, binary operators only inside parentheses, and a line starting with `|` continues the pipeline. A line starting `and ($b)` calls a command named `and`, and `["a" + $x]` holds three elements.
-- **Dynamic regexes need single-quoted pieces.** Parentheses interpolate in both `$"..."` and `$'...'`, and double quotes consume backslashes, so concatenate: `($label + ' (?<n>\d+)')`.
-- **Forwarding arguments needs `def --wrapped`.** A plain `def` parses flags in `...args` itself.
-
-### External commands
-
-- **A nonzero external exit ends the script with that code and prints nothing.** Tolerate it with `try` or `| complete` and `.exit_code`.
-- **Stdin needs `^cat`.** `$in` is empty under the generated shebang, which lacks `--stdin`, and reopening `/dev/stdin` fails with ENXIO on a socket, as Node's `spawn` supplies. Text capture strips one trailing newline, so use `^cat | into binary` for byte-identical round trips.
 
 ## In Nix
 
 - **Inputs**: keep checked-in Nushell valid on its own. Build a command that needs a wrapper with `repoLib.mkNuCommand`, since `makeWrapperArgs` renames the script that `--help` names. Put executables in its `runtimeInputs`, pass structured values as `config`, which the script reads through a typed `--config` flag, and pass a few scalars as typed `flags`, which leaves positional parameters to the user.
-- **Shebang**: the writers prepend a store-path shebang, which demotes the script's `#!/usr/bin/env nu` to a comment. Keep that line for standalone runs and LSP checks, and commit the executable bit on helpers run from the checkout. Spawn Nushell from a generated script with `$nu.current-exe`.
+- **Shebang**: the writers prepend a store-path shebang without `--stdin`, which demotes the script's `#!/usr/bin/env nu` to a comment. Keep that line for standalone runs and LSP checks, and commit the executable bit on helpers run from the checkout. Spawn Nushell from a generated script with `$nu.current-exe`.
 - **Modules**: a parse-time `use` target must resolve in both the source tree and the store. Without such a path, expose the helper as an executable.
 
 ## Testing
 
-Give a script a `<script>.test.nu` beside it when its output is easy to get subtly wrong. Drive it the way its caller does, and skip tests that only restate the code or need the external tools the script exists to call.
+Each script's tests live in a `<script>.test.nu` beside it, as commands named `test <behavior>`. `nu-test <file>...` starts every test concurrently in its own process and `TMPDIR` and confines `mktemp` to a scratch directory. A test needing tools beyond Nushell, bash, and coreutils adds them to the check's inputs.
 
-- **Tests**: commands named `test <behavior>` in plain words, asserting with `std/assert`.
-
-- **Structured inputs**: write JSON and JSONL test inputs as Nushell records and lists, serialized with `to json`, or with `to json --raw` per line for JSONL.
-
-- **Fixtures**: when several cases differ only in document-like or byte-sensitive inputs, make them golden files under `fixtures/<group>/<case>/`.
-
-  - A `case.nuon` holds what the files cannot express. Write a line break as `\n`, except in a string that is itself text of several lines, which reads better as a multiline literal whose continuation lines start at column 0, since NUON keeps indentation as content. Lay it out like Nushell source, with each list item on its own line.
-  - Small structured inputs, such as argv lists and payload records, stay in the test file.
-  - Copy each input into a `mktemp` directory before running the script. The runner confines `mktemp` to a scratch `TMPDIR`.
-  - Store fixtures are read-only and `cp` keeps the mode, so `chmod u+w` a copy the script writes.
-
+- **Fixtures**: golden fixtures live under `fixtures/<group>/<case>/`. Store fixtures are read-only and `cp` keeps the mode, so `chmod u+w` a copy the script writes.
 - **Stubs**: a stand-in for an executable is `<executable>.stub.nu` beside the test, which the runner installs in `$env.NU_TEST_STUBS`. A stub that records calls appends JSON lines to `$env.STUB_LOG`, read back with `open $log | from json --objects`.
-
-- **Running**: `nu-test <file>...` runs every test concurrently, each in its own process and `TMPDIR`. A test needing tools beyond Nushell, bash, and coreutils adds them to the check's inputs.
-
 - **Refactors and ports**: run the old script (`git show HEAD:<path>`) under the wrapper's runtime `PATH` too, so a pre-existing bug does not read as a regression, and do this before porting a hook, since a hook error leaves the tool call running and silently disables the hook.
 
 ## Linting
 
-`nu-check` wraps `nu --ide-check`, which catches delimiters and the arity of local `def`s, but it passes a mistyped command as an external call, so run the script once for real. `editorconfig-checker` owns indentation. Don't use `nufmt`, which reindents to four spaces.
+`nix flake check` runs `nu-check` over every script, and `editorconfig-checker` owns indentation. Don't use `nufmt`, which reindents to four spaces.
