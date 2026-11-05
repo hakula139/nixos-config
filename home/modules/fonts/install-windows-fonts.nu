@@ -3,96 +3,104 @@
 # ==================================================================================================
 # Windows Font Install (WSL only)
 # ==================================================================================================
-# Copy font files from the Nix store into the Windows per-user font directory, then register each
-# one under the HKCU Fonts registry key.
+# Copy the Nix store's fonts into the Windows per-user font directory and register each under the
+# configured registry key. Windows holds the fonts it loaded at sign-in open until sign-out, so
+# each copy's name carries its package's hash and a later run removes the copies it supersedes.
 # ==================================================================================================
 
-const FONT_EXTENSIONS = ["ttf" "otf" "ttc" "otc"]
-
-const FONTS_KEY = 'HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
-
-def extension [file: string]: nothing -> string {
-  $file | path parse | get extension | str lowercase
-}
-
-def font-files [dirs: list<string>]: nothing -> list<string> {
-  $dirs
-  | each {|dir| glob ($dir | path join "**/*") }
-  | flatten
-  | where {|f| (extension $f) in $FONT_EXTENSIONS }
-}
-
-def font-type [file: string]: nothing -> string {
-  if (extension $file) in ["otf" "otc"] { "OpenType" } else { "TrueType" }
-}
-
-def registry-document [fonts: list<string>, win_font_dir: string]: nothing -> string {
-  let entries = (
-    $fonts | each {|font|
-      let name = ($font | path basename)
-      let value = $"($font | path parse | get stem) \((font-type $font))"
-      let data = ([$win_font_dir $name] | str join '\' | str replace --all '\' '\\')
-      $'"($value)"="($data)"'
-    }
-  )
-  [
-    "Windows Registry Editor Version 5.00"
-    ""
-    $"[($FONTS_KEY)]"
-    ...$entries
-    ""
-  ] | str join "\r\n"
-}
+const FONT_TYPES = {ttf: "TrueType", otf: "OpenType", ttc: "TrueType", otc: "OpenType"}
 
 def main [
-  --config: path # Wrapper-supplied JSON with the font directories and the Windows interop helper
+  --config: path # Wrapper-supplied JSON with the font directories, registry key, and interop helper
 ] {
   let config = (open $config)
   let local_app_data = (^$config.windowsInterop LOCALAPPDATA | str trim)
   let font_dir = ([$local_app_data "Microsoft/Windows/Fonts"] | path join)
   mkdir $font_dir
 
-  let results = (
-    font-files $config.fontDirs | each {|font|
-      let dest = ([$font_dir ($font | path basename)] | path join)
-      let current = (
-        if ($dest | path exists) { (ls $dest | get 0.size) } else { null }
-      )
-      if $current == (ls $font | get 0.size) {
+  let fonts = (
+    $config.fontDirs
+    | each {|dir|
+      let hash = (^nix-store --query --hash $dir | str substring 7..14)
+      glob ($dir | path join "**/*")
+      | each {|path| {path: $path, hash: $hash, ...($path | path parse)} }
+    }
+    | flatten
+    | insert type {|font| $FONT_TYPES | get -o ($font.extension | str lowercase) }
+    | where type != null
+    | insert name {|font| $"($font.stem).($font.hash).($font.extension)" }
+    | insert status {|font|
+      let target = ([$font_dir $font.name] | path join)
+      let partial = $"($target).part"
+      if ($target | path exists) {
         "skipped"
       } else {
         try {
-          cp --force $font $dest
+          ^cp --force $font.path $partial
+          mv $partial $target
           "installed"
-        } catch { "failed" }
+        } catch {
+          rm --force $partial
+          "failed"
+        }
       }
     }
   )
 
   let counts = {
-    installed: ($results | where $it == "installed" | length)
-    skipped: ($results | where $it == "skipped" | length)
-    failed: ($results | where $it == "failed" | length)
+    installed: ($fonts | where status == "installed" | length)
+    skipped: ($fonts | where status == "skipped" | length)
+    failed: ($fonts | where status == "failed" | length)
   }
+
   print $"Fonts: ($counts.installed) installed, ($counts.skipped) already present, ($counts.failed) failed"
 
+  let present = ($fonts | where status != "failed")
   let win_font_dir = (^/bin/wslpath -w $font_dir | str trim)
-  let registry_file = ([$font_dir ".nixos-config-fonts.reg"] | path join)
+  let entries = (
+    $present
+    | insert data {|font| [$win_font_dir $font.name] | str join '\' | str replace --all '\' '\\' }
+    | format pattern '"{stem} ({type})"="{data}"'
+  )
 
-  # reg.exe detects a UTF-16LE file only from its byte-order mark.
-  0x[ff fe] | save --raw --force $registry_file
-  registry-document (font-files [$font_dir]) $win_font_dir
-  | ^iconv --from-code UTF-8 --to-code UTF-16LE
-  | save --raw --append $registry_file
+  let registry_file = ([$font_dir ".nixos-config-fonts.reg"] | path join)
+  (
+    [
+      # reg.exe detects a UTF-16LE file only from its byte-order mark.
+      "\u{feff}Windows Registry Editor Version 5.00"
+      ""
+      $"[($config.fontsKey)]"
+      ...$entries
+      ""
+    ]
+    | str join "\r\n"
+    | ^iconv
+      --from-code UTF-8
+      --to-code UTF-16LE
+    | save --raw --force $registry_file
+  )
 
   let win_registry_file = (^/bin/wslpath -w $registry_file | str trim)
   let import_result = (^/mnt/c/Windows/System32/reg.exe import $win_registry_file | complete)
   rm --force $registry_file
 
   if $import_result.exit_code != 0 {
-    error make { msg: $"Font registration failed: ($import_result.stderr | str trim)" }
+    error make {msg: $"Font registration failed: ($import_result.stderr | str trim)"}
   }
+
+  let store_names = ($present.path | path basename)
+  let superseded = (
+    ls --short-names $font_dir
+    | get name
+    # A nix-base32 hash infix before the extension
+    | where ($it | str replace --regex '\.[0-9a-df-np-sv-z]{8}(\.[^.]+)$' "$1") in $store_names
+    | where $it not-in $present.name
+    | each {|name| [$font_dir $name] | path join }
+  )
+
+  for file in $superseded { try { rm $file } }
+
   if $counts.installed > 0 {
-    print "Fonts registered. Restart applications to use new fonts."
+    print "New fonts load in applications started after the next Windows sign-in."
   }
 }

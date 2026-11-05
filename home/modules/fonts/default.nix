@@ -17,10 +17,15 @@ let
     inherit pkgs;
     name = "install-windows-fonts";
     script = ./install-windows-fonts.nu;
-    runtimeInputs = [ pkgs.iconv ];
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.iconv
+      pkgs.nix
+    ];
 
     config = {
       fontDirs = map (p: "${p}/share/fonts") (repoLib.packagesFor pkgs).fonts;
+      fontsKey = ''HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'';
       windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
     };
   };
