@@ -13,14 +13,16 @@ const MERGE_KEY = "remote.SSH.remotePlatform"
 def main [config_file: string] {
   let config = (open $config_file)
   let app_data = (^$config.windowsInterop APPDATA | str trim)
-  let target_dir = ([$app_data "Cursor" "User"] | path join)
+  let target_dir = ([$app_data "Cursor/User"] | path join)
   let target = ([$target_dir "settings.json"] | path join)
   mkdir $target_dir
 
   let nix_settings = (open --raw $config.settingsFile | from json)
-  let existing = (
-    try { open --raw $target | from json | default {} } catch { {} }
-  )
+  let existing = try {
+    open --raw $target | from json | default {}
+  } catch {
+    {}
+  }
 
   let merged = (
     $nix_settings

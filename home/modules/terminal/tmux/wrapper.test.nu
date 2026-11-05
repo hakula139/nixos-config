@@ -25,16 +25,31 @@ def wrap [argv: list<string>, env_vars: record = {}, --status: int = 0]: nothing
   | str replace --all "@tmux@" $"'($env.NU_TEST_STUBS | path join "tmux")'"
   | save $script
 
-  let assignments = ({STUB_LOG: $log} | merge $env_vars | items {|name, value| $"($name)=($value)" })
+  let assignments = (
+    {STUB_LOG: $log}
+    | merge $env_vars
+    | items {|name, value| $"($name)=($value)" }
+  )
   let run = (
-    ^env -u DIRENV_DIFF -u IN_NIX_SHELL -u NIX_BUILD_TOP ...$assignments bash $script ...$argv
+    ^env
+      -u DIRENV_DIFF
+      -u IN_NIX_SHELL
+      -u NIX_BUILD_TOP
+      ...$assignments
+      bash $script ...$argv
     | complete
   )
   let context = $"argv ($argv | to nuon), env ($env_vars | to nuon): ($run.stderr)"
   assert equal $run.exit_code $status $context
 
-  let calls = if ($log | path exists) { open $log | from json --objects } else { [] }
-  $run | insert calls $calls | insert script $script
+  let calls = if ($log | path exists) {
+    open $log | from json --objects
+  } else {
+    []
+  }
+  $run
+  | insert calls $calls
+  | insert script $script
 }
 
 def caller-path []: nothing -> string {

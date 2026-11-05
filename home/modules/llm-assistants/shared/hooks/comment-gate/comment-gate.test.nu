@@ -16,7 +16,9 @@ def gate [env_vars: record]: nothing -> any {
   let config_file = ($dir | path join "config.json")
 
   let model_call = ($env.NU_TEST_STUBS | path join "model-call")
-  {modelCall: $model_call, model: "stub", prompt: "", patchInput: ""} | to json | save $config_file
+  {modelCall: $model_call, model: "stub", prompt: "", patchInput: ""}
+  | to json
+  | save $config_file
 
   let payload = {
     tool_name: "Write"
@@ -35,7 +37,10 @@ def gate [env_vars: record]: nothing -> any {
   }
 
   let run = with-env $env_vars {
-    $payload | to json | ^$nu.current-exe --no-config-file $SCRIPT $config_file | complete
+    $payload
+    | to json
+    | ^$nu.current-exe --no-config-file $SCRIPT $config_file
+    | complete
   }
   assert equal $run.exit_code 0 $run.stderr
 

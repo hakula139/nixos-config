@@ -64,7 +64,11 @@ def payload [input: record, config: record]: nothing -> list<record> {
     "Edit" => [{path: $args.file_path, before: $args.old_string, text: $args.new_string}]
     "apply_patch" => {
       let parser = $config.patchInput
-      $args.command | ^$parser | from json | where action != "Delete" | each {|file|
+      $args.command
+      | ^$parser
+      | from json
+      | where action != "Delete"
+      | each {|file|
         {path: $file.path, text: ($file.added | str join "\n")}
       }
     }
@@ -91,7 +95,12 @@ def judge [text: string, config: record]: nothing -> record {
     system: $config.prompt
     user: $text
   }
-  let run = ($request | to json | ^$caller | complete)
+  let run = (
+    $request
+    | to json
+    | ^$caller
+    | complete
+  )
   if $run.exit_code != 0 {
     {error: ($run.stderr | str trim)}
   } else {
@@ -150,9 +159,11 @@ def reason [raw: string]: nothing -> string {
 def gate [config: record]: nothing -> any {
   let input = (^cat | from json)
   let found = (payload $input $config | where {|file|
-    ((not ($file.path | str ends-with ".md"))
+    (
+      (not ($file.path | str ends-with ".md"))
       and ($file.text | str trim | str length --grapheme-clusters) >= $MIN_CHARS
-      and (commentish $file.path $file.text))
+      and (commentish $file.path $file.text)
+    )
   })
   if ($found | is-empty) { return null }
 
@@ -180,7 +191,11 @@ def gate [config: record]: nothing -> any {
 }
 
 def main [config_file: string] {
-  let out = try { gate (open $config_file) } catch {|err| unchecked $err.msg }
+  let out = try {
+    gate (open $config_file)
+  } catch {|err|
+    unchecked $err.msg
+  }
   if $out != null {
     print $out
   }
