@@ -81,6 +81,13 @@ def "test only missing extensions are installed, matching IDs case-insensitively
   assert equal $result.changes (installs "example.missing" "example.remote")
 }
 
+def "test a CLI inside a Cursor server skips the remote extensions" [] {
+  let result = (sync $"($HEADER)example.present\r\n" --server)
+
+  assert equal $result.run.exit_code 0 $result.run.stderr
+  assert equal $result.changes (installs "Example.MixedCase" "example.missing")
+}
+
 def "test pruning uninstalls extensions missing from the list" [] {
   let listing = $"($HEADER)example.present\r\nexample.mixedcase\r\nexample.extra\r\n"
 
@@ -93,21 +100,12 @@ def "test pruning uninstalls extensions missing from the list" [] {
   )
 }
 
-def "test a CLI inside a Cursor server skips the remote extensions" [] {
-  let result = (sync $"($HEADER)example.present\r\n" --server)
+def "test a missing CLI skips the sync" [] {
+  let result = (sync "" --no-cli)
 
   assert equal $result.run.exit_code 0 $result.run.stderr
-  assert equal $result.changes (installs "Example.MixedCase" "example.missing")
-}
-
-def "test a failed install warns and the sync continues" [] {
-  let result = (sync "" --failing-id "Example.MixedCase")
-
-  assert equal $result.run.exit_code 0 $result.run.stderr
-  assert str contains $result.run.stderr "install failed for Example.MixedCase, continuing sync"
-  assert equal $result.changes (
-    installs "example.present" "Example.MixedCase" "example.missing" "example.remote"
-  )
+  assert str contains $result.run.stderr "Cursor CLI not found, skipping sync"
+  assert equal $result.changes []
 }
 
 def "test a failed listing skips the sync" [] {
@@ -118,10 +116,12 @@ def "test a failed listing skips the sync" [] {
   assert equal $result.changes []
 }
 
-def "test a missing CLI skips the sync" [] {
-  let result = (sync "" --no-cli)
+def "test a failed install warns and the sync continues" [] {
+  let result = (sync "" --failing-id "Example.MixedCase")
 
   assert equal $result.run.exit_code 0 $result.run.stderr
-  assert str contains $result.run.stderr "Cursor CLI not found, skipping sync"
-  assert equal $result.changes []
+  assert str contains $result.run.stderr "install failed for Example.MixedCase, continuing sync"
+  assert equal $result.changes (
+    installs "example.present" "Example.MixedCase" "example.missing" "example.remote"
+  )
 }
