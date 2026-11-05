@@ -22,8 +22,14 @@ def generate [users: record]: nothing -> record {
   let servers_file = ($dir | path join "servers.json")
   let output = ($dir | path join "out")
 
-  $users | to json | save $users_file
-  $SERVERS | to json | save $servers_file
+  $users
+  | to json
+  | save $users_file
+
+  $SERVERS
+  | to json
+  | save $servers_file
+
   mkdir $output
   "stale" | save ($output | path join "stale-uuid.yaml")
 
@@ -44,7 +50,10 @@ def subscription [output: string, uuid: string]: nothing -> record {
 }
 
 def subscriptions [output: string]: nothing -> list<string> {
-  ls $output | get name | path basename | sort
+  ls $output
+  | get name
+  | path basename
+  | sort
 }
 
 def "test each user gets the servers their level admits" [] {

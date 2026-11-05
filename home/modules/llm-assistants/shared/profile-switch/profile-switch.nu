@@ -7,18 +7,26 @@
 # `glob` rather than `ls`, which raises when no profile has been written yet.
 def profile-names [config: record]: nothing -> list<string> {
   glob ($config.profilesDir | path join $"*.($config.extension)")
-    | path parse --extension $config.extension | get stem | sort
+  | path parse --extension $config.extension
+  | get stem
+  | sort
 }
 
 def active-profile [config: record, active_link: string]: nothing -> string {
   try {
     readlink $active_link | path parse --extension $config.extension | get stem
-  } catch { "" }
+  } catch {
+    ""
+  }
 }
 
 def list-profiles [config: record, active_link: string, --stderr]: nothing -> nothing {
   let current = (active-profile $config $active_link)
-  let highlight = (if $stderr { is-terminal --stderr } else { is-terminal --stdout })
+  let highlight = if $stderr {
+    is-terminal --stderr
+  } else {
+    is-terminal --stdout
+  }
 
   for name in (profile-names $config) {
     let line = if $name != $current {
@@ -37,11 +45,17 @@ def list-profiles [config: record, active_link: string, --stderr]: nothing -> no
 }
 
 def write-config [config: record, profile: path] {
-  let current = if ($config.configFile | path exists) { open $config.configFile } else { {} }
+  let current = if ($config.configFile | path exists) {
+    open $config.configFile
+  } else {
+    {}
+  }
   let reset_paths = ($config.resetKeys | each { split row "." | into cell-path })
-  let settings = ($current
+  let settings = (
+    $current
     | reject --optional ...$reset_paths
-    | merge deep --strategy overwrite (open $profile))
+    | merge deep --strategy overwrite (open $profile)
+  )
   let serialized = match ($config.configFile | path parse | get extension) {
     "toml" => { $settings | to toml }
     "yml" | "yaml" => { $settings | to yaml }
@@ -78,7 +92,9 @@ def main [
     } else {
       $config.defaultProfile
     }
-  } else { $profile }
+  } else {
+    $profile
+  }
 
   if $list or ($profile | is-empty) {
     list-profiles $config $active_link

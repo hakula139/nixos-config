@@ -31,7 +31,8 @@ def main [
 
   let license = open --raw $license_file | from json
   let result = (
-    ^$app manageLicense -activate
+    ^$app manageLicense
+      -activate
       $"-email=($license.email)"
       $"-key=($license.key)"
     | complete

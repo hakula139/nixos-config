@@ -31,7 +31,13 @@ def main [
   let surviving = (^tmux list-clients -F "#{client_name}" | lines)
   for entry in $recorded {
     if $entry.client in $surviving {
-      try { ^tmux switch-client -c $entry.client -t $entry.session }
+      try {
+        (
+          ^tmux switch-client
+            -c $entry.client
+            -t $entry.session
+        )
+      }
     }
   }
 }

@@ -16,7 +16,11 @@ def render-inbound [
   let clients = (
     $users
     | each {|user|
-      if $flow == null { {id: $user.uuid} } else { {id: $user.uuid, flow: $flow} }
+      if $flow == null {
+        {id: $user.uuid}
+      } else {
+        {id: $user.uuid, flow: $flow}
+      }
     }
   )
   let inbound = ($inbound | upsert settings.clients $clients)

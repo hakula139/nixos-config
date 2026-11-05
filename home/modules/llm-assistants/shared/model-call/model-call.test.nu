@@ -36,7 +36,10 @@ def call [request: record, reply: record]: nothing -> record {
   | save $config_file
 
   let run = with-env {STUB_LOG: $log, STUB_REPLY: ($reply | to json)} {
-    $request | to json | ^$nu.current-exe --no-config-file $SCRIPT $config_file | complete
+    $request
+    | to json
+    | ^$nu.current-exe --no-config-file $SCRIPT $config_file
+    | complete
   }
   {run: $run, calls: (open $log | from json --objects), token_file: $token_file}
 }
@@ -55,6 +58,7 @@ def "test a request passes the token by file and prints the reply" [] {
   assert equal $result.calls [
     {
       args: [
+        https://gateway.test/v1/chat/completions
         ...$CURL_ARGS
         --ipv4
         --cacert "/ca.pem"
@@ -62,7 +66,6 @@ def "test a request passes the token by file and prints the reply" [] {
         --expand-header "Authorization: Bearer {{token:trim}}"
         --header "content-type: application/json"
         --data @-
-        https://gateway.test/v1/chat/completions
       ]
       body: {
         model: "stub"

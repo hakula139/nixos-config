@@ -26,19 +26,17 @@ def main [
 
   let uid = (^id -u $user_name | str trim)
   let targets = [
-    {
-      name: "ssh"
-      target: $"gui/($uid)/com.hakula.tunnel"
-    }
-    {
-      name: "relay"
-      target: "system/org.nixos.tunnel"
-    }
+    {name: "ssh", target: $"gui/($uid)/com.hakula.tunnel"}
+    {name: "relay", target: "system/org.nixos.tunnel"}
   ]
 
   match $action {
     "up" => {
-      let state = (^tailscale status --json | from json | get BackendState)
+      let state = (
+        ^tailscale status --json
+        | from json
+        | get BackendState
+      )
       if $state != "Running" {
         error make {msg: $"Tailscale is ($state). Run sudo tailscale up first."}
       }

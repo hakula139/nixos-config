@@ -13,5 +13,7 @@ def --wrapped main [...args: string] {
   | $"($in)\n"
   | save --append $env.STUB_LOG
 
-  {BackendState: $env.STUB_TAILSCALE_STATE} | to json --raw | print
+  {BackendState: $env.STUB_TAILSCALE_STATE}
+  | to json --raw
+  | print
 }

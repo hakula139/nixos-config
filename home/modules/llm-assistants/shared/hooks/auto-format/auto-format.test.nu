@@ -8,7 +8,7 @@ use std/assert
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "auto-format.nu")
-const PATCH_INPUT = ($SCRIPT_DIR | path join ".." "lib" "patch-input" "patch-input.nu")
+const PATCH_INPUT = ($SCRIPT_DIR | path join "../lib/patch-input/patch-input.nu")
 
 def run-event [
   input: any
@@ -36,7 +36,9 @@ def run-event [
   let payload = if ($input | describe) == "string" {
     $input
   } else {
-    $input | upsert cwd $cwd | to json
+    $input
+    | upsert cwd $cwd
+    | to json
   }
   let run = with-env {
     PATH: $bin
@@ -45,12 +47,18 @@ def run-event [
     STUB_EXIT: $exit_code
     STUB_STDERR: $stderr
   } {
-    $payload | ^$nu.current-exe --no-config-file $SCRIPT $config_file | complete
+    $payload
+    | ^$nu.current-exe --no-config-file $SCRIPT $config_file
+    | complete
   }
   assert equal $run.exit_code 0 $run.stderr
 
   {
-    calls: (if ($log | path exists) { open $log | from json --objects } else { [] })
+    calls: (if ($log | path exists) {
+      open $log | from json --objects
+    } else {
+      []
+    })
     run: $run
   }
 }
@@ -106,7 +114,12 @@ def "test failed hook reports reach the hook response" [] {
   let input = {tool_name: "Edit", tool_input: {file_path: "notes.md"}}
   let report = "runner text one\n\nrunner text two"
 
-  let result = (run-event $input $cwd --report $report --exit-code 7 --stderr "formatter warning")
+  let result = (
+    run-event $input $cwd
+      --report $report
+      --exit-code 7
+      --stderr "formatter warning"
+  )
 
   assert equal $result.calls [{cwd: $cwd, args: ["notes.md"]}]
   assert equal ($result.run.stdout | from json) {

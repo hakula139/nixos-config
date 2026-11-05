@@ -141,7 +141,9 @@ def sh-quote [value: string]: nothing -> string {
 }
 
 def sh-join [args: list<string>]: nothing -> string {
-  $args | each {|a| sh-quote $a } | str join " "
+  $args
+  | each {|a| sh-quote $a }
+  | str join " "
 }
 
 def b2-upload [src: string, dst: string] {
@@ -156,14 +158,26 @@ def b2-upload [src: string, dst: string] {
   print $"Uploading ($name) \(($content_type)\)..."
   (
     ^nix shell nixpkgs#awscli2 --command
-      aws s3 cp $src $dst --endpoint-url $B2_ENDPOINT --content-type $content_type
+      aws s3 cp $src $dst
+        --endpoint-url $B2_ENDPOINT
+        --content-type $content_type
   )
 }
 
 # Values bind through psql's `-v`, so nothing is escaped into the statement itself.
 def pt-psql [sql: string, params: record = {}] {
-  let bindings = ($params | items {|k, v| [-v $"($k)=($v)"] } | flatten)
-  let command = (sh-join [sudo -u peertube psql -v ON_ERROR_STOP=1 -d peertube ...$bindings])
+  let bindings = (
+    $params
+    | items {|k, v| [-v $"($k)=($v)"] }
+    | flatten
+  )
+  let command = (sh-join [
+    sudo -u peertube
+      psql
+        -v ON_ERROR_STOP=1
+        -d peertube
+        ...$bindings
+  ])
   $sql | ^ssh $PEERTUBE_HOST $command
 }
 
@@ -177,12 +191,19 @@ def "main identify" [video_uuid: string] {
 
   print "=== API: Video details ==="
   let fetch = (sh-join [
-    curl --fail --show-error --silent
-    $"http://127.0.0.1:9000/api/v1/videos/($video_uuid)"
-    -H $"Host: ($PEERTUBE_DOMAIN)"
+    curl $"http://127.0.0.1:9000/api/v1/videos/($video_uuid)"
+      --fail
+      --show-error
+      --silent
+      -H $"Host: ($PEERTUBE_DOMAIN)"
   ])
   let query = $fetch + " | " + (sh-join [jq $API_JQ_FILTER])
-  ^ssh $PEERTUBE_HOST (sh-join [sudo -u peertube bash -o pipefail -c $query])
+  ^ssh $PEERTUBE_HOST (sh-join [
+    sudo -u peertube
+      bash
+        -o pipefail
+        -c $query
+  ])
 
   print "\n=== DB: HLS file details ==="
   pt-psql $SQL_HLS_FILES {uuid: $video_uuid}
@@ -224,10 +245,11 @@ def "main transcode" [
     "remux" => {
       (
         ^ffmpeg
-        -i $source
-        -an
-        -c:v copy
-        ...$hls_args $m3u8
+          -i $source
+          -an
+          -c:v copy
+          ...$hls_args
+          $m3u8
       )
     }
     "re-encode" => {
@@ -236,16 +258,17 @@ def "main transcode" [
       }
       (
         ^ffmpeg
-        -i $source
-        -an
-        -c:v libx264
-        -preset $X264_PRESET
-        -profile:v $X264_PROFILE
-        -crf $X264_CRF
-        -b_strategy $X264_B_STRATEGY
-        -bf $X264_BF
-        -r $fps
-        ...$hls_args $m3u8
+          -i $source
+          -an
+          -c:v libx264
+          -preset $X264_PRESET
+          -profile:v $X264_PROFILE
+          -crf $X264_CRF
+          -b_strategy $X264_B_STRATEGY
+          -bf $X264_BF
+          -r $fps
+          ...$hls_args
+          $m3u8
       )
     }
     _ => { die $"unknown mode: ($mode) \(use 'remux' or 're-encode'\)" }
@@ -267,7 +290,11 @@ def "main upload" [
   require-b2-credentials
   require-file $file "file not found"
 
-  let name = if ($dest_name | is-empty) { $file | path basename } else { $dest_name }
+  let name = if ($dest_name | is-empty) {
+    $file | path basename
+  } else {
+    $dest_name
+  }
   b2-upload $file $"(b2-prefix $video_uuid)/($name)"
 }
 
@@ -321,18 +348,21 @@ def "main db-update-meta" [file_id: string, file_uuid: string, resolution: strin
 
   let metadata_file = $"($WORK_DIR)/metadata-($file_uuid)-($resolution).json"
   (
-    ^ffprobe
-    -v quiet
-    -print_format json
-    -show_format
-    -show_streams
-    $fmp4
+    ^ffprobe $fmp4
+      -v quiet
+      -print_format json
+      -show_format
+      -show_streams
     | save --raw --force $metadata_file
   )
 
   print $"Updating videoFile id=($file_id) metadata..."
 
-  let metadata = (open --raw $metadata_file | from json | to json -r)
+  let metadata = (
+    open --raw $metadata_file
+    | from json
+    | to json -r
+  )
   pt-psql $SQL_UPDATE_META {metadata: $metadata, id: $file_id}
 }
 

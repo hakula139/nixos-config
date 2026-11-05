@@ -5,8 +5,9 @@ Nushell is the default for new helper scripts.
 - **Entry point**: `def main` with typed parameters.
 - **Script-relative resources**: bind `const SCRIPT_DIR = path self "."` after the header and imports. It resolves at parse time from the defining file, so Nix must package those resources beside the script.
 - **Help**: keep the script header to its purpose and operating constraints, and document usage at each command and parameter so `--help` carries it. Point to it with `Run with --help for usage.` only when the header says something else.
-- **Multiline strings**: indent the literal with the code, with the opening quote, content, and closing quote at one column, then `| str dedent` from `std-rfc/str` on the next line and any enclosing parenthesis on its own line.
 - **Quoting**: quote string values, paths included, so they read as data, and leave names, flags, and subcommands bare, as in `^git -C $dir add ".gitignore"`. Leave a glob meant to expand bare, and build a home path from `$nu.home-dir`, since a quoted `~` stays literal. Keep the quotes any word needs to stay a literal string, as `"0700"` and `"1min"` do. Use double quotes, and single quotes when the text holds a literal backslash or double quote.
+- **Multiline strings**: indent the literal with the code, with the opening quote, content, and closing quote at one column, then `| str dedent` from `std-rfc/str` on the next line and any enclosing parenthesis on its own line.
+- **Match arms**: once any arm contains a blank line, separate all the arms with blank lines.
 
 ## What stays bash
 
@@ -30,7 +31,7 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 ### Strings and arguments
 
 - **Bare words depend on context.** `where after != before` compares the `after` column with the string `"before"` (write `where after != $it.before`), and a comma splits a list item, so `[--sort=-pcpu,-pmem]` holds two.
-- **A binary operator continues an expression only inside parentheses.** A line starting `and ($b)` calls a command named `and`, and `["a" + $x]` holds three elements.
+- **Outside parentheses or a list a newline ends the command.** Arguments continue onto the next line only inside them, binary operators only inside parentheses, and a line starting with `|` continues the pipeline. A line starting `and ($b)` calls a command named `and`, and `["a" + $x]` holds three elements.
 - **Dynamic regexes need single-quoted pieces.** Parentheses interpolate in both `$"..."` and `$'...'`, and double quotes consume backslashes, so concatenate: `($label + ' (?<n>\d+)')`.
 - **Forwarding arguments needs `def --wrapped`.** A plain `def` parses flags in `...args` itself.
 
@@ -56,7 +57,7 @@ Give a script a `<script>.test.nu` beside it when its output is easy to get subt
 - **Fixtures**: when several cases differ only in document-like or byte-sensitive inputs, make them golden files under `fixtures/<group>/<case>/`.
 
   - A `case.nuon` holds what the files cannot express. Write a line break as `\n`, except in a string that is itself text of several lines, which reads better as a multiline literal whose continuation lines start at column 0, since NUON keeps indentation as content. Lay it out like Nushell source, with each list item on its own line.
-  - Small structured inputs, such as argv lists and payload records, stay inline in the test.
+  - Small structured inputs, such as argv lists and payload records, stay in the test file.
   - Copy each input into a `mktemp` directory before running the script. The runner confines `mktemp` to a scratch `TMPDIR`.
   - Store fixtures are read-only and `cp` keeps the mode, so `chmod u+w` a copy the script writes.
 

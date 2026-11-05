@@ -4,10 +4,11 @@
 # Claude Code Status Line Command
 # ==================================================================================================
 # Row 1: <directory> <git>
-# Row 2: Model | Ctx: X% (XXk/200k) | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h) | Today: $X.XX | HH:MM
+# Row 2: Model | Ctx: X% (XXk/1000k) | Sess: $X.XX | Block: $X.XX (XhYm left, $X.XX/h)
+#        | Today: $X.XX | HH:MM
 # ==================================================================================================
 
-const CCUSAGE_CACHE = $nu.cache-dir | path join "claude-code" "statusline-usage.json"
+const CCUSAGE_CACHE = $nu.cache-dir | path join "claude-code/statusline-usage.json"
 const CCUSAGE_TTL = 30sec
 const CCUSAGE_FIELDS = [
   "date"
@@ -36,7 +37,11 @@ def labeled [label: string, value: string, color: string = "green"]: nothing -> 
 }
 
 def usd [amount: float]: nothing -> string {
-  if $amount == 0 { "$0.00" } else { $"$($amount | into string --decimals 2)" }
+  if $amount == 0 {
+    "$0.00"
+  } else {
+    $"$($amount | into string --decimals 2)"
+  }
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -78,7 +83,15 @@ def model-name [input: record, models: record]: nothing -> string {
 const NO_BRANCH = {branch: "", ahead: 0, behind: 0}
 
 def git-status [cwd: string]: nothing -> list<string> {
-  let result = (^git -C $cwd --no-optional-locks status --porcelain --branch | complete)
+  let result = (
+    ^git
+      -C $cwd
+      --no-optional-locks
+      status
+        --porcelain
+        --branch
+    | complete
+  )
   if $result.exit_code != 0 {
     return []
   }
@@ -114,7 +127,9 @@ def parse-branch [header: string]: nothing -> record<branch: string, ahead: int,
 }
 
 # Porcelain v1 XY codes: X is the index status, Y the worktree status.
-def work-counts [entries: list<string>]: nothing -> record<staged: int, modified: int, untracked: int> {
+def work-counts [
+  entries: list<string>
+]: nothing -> record<staged: int, modified: int, untracked: int> {
   let codes = ($entries | each { str substring 0..<2 })
   {
     staged: ($codes | where ($it | str substring 0..<1) in ["M", "A"] | length)
@@ -160,7 +175,9 @@ def format-claude-info [input: record]: nothing -> record<ctx: string, sess: str
   )
   let size = ($input.context_window?.context_window_size? | default 0)
 
-  let ctx = if $size == 0 { labeled "Ctx" "0%" } else {
+  let ctx = if $size == 0 {
+    labeled "Ctx" "0%"
+  } else {
     let percent = ($used * 100 // $size)
     let color = if $percent >= 80 { "red" } else if $percent >= 50 { "yellow" } else { "green" }
     labeled "Ctx" $"($percent)% \(($used // 1000)k/($size // 1000)k)" $color
@@ -177,7 +194,11 @@ def format-claude-info [input: record]: nothing -> record<ctx: string, sess: str
 # --------------------------------------------------------------------------------------------------
 
 def cache-is-fresh []: nothing -> bool {
-  try { (date now) - (ls $CCUSAGE_CACHE | get 0.modified) < $CCUSAGE_TTL } catch { false }
+  try {
+    (date now) - (ls $CCUSAGE_CACHE | get 0.modified) < $CCUSAGE_TTL
+  } catch {
+    false
+  }
 }
 
 # A fresh TTL alone would still accept a payload written by an older schema.
@@ -185,10 +206,16 @@ def read-cache []: nothing -> record {
   if not (cache-is-fresh) {
     return {}
   }
-  let cached = (try { open $CCUSAGE_CACHE | default {} } catch { {} })
-  if ($cached | describe | str starts-with "record") and (
-    $CCUSAGE_FIELDS | all {|field| $field in $cached }
-  ) and ($cached.date == (date now | format date "%Y%m%d")) {
+  let cached = try {
+    open $CCUSAGE_CACHE | default {}
+  } catch {
+    {}
+  }
+  if (
+    ($cached | describe | str starts-with "record")
+    and ($CCUSAGE_FIELDS | all {|field| $field in $cached })
+    and ($cached.date == (date now | format date "%Y%m%d"))
+  ) {
     $cached
   } else {
     {}
@@ -196,18 +223,31 @@ def read-cache []: nothing -> record {
 }
 
 def ccusage-json [args: list<string>]: nothing -> record {
-  let result = (^ccusage claude ...$args --json --offline | complete)
+  let result = (
+    ^ccusage claude ...$args
+      --json
+      --offline
+    | complete
+  )
   if $result.exit_code != 0 {
     return {}
   }
-  try { $result.stdout | from json } catch { {} }
+  try {
+    $result.stdout | from json
+  } catch {
+    {}
+  }
 }
 
 def current-usage []: nothing -> record {
   let today = (date now | format date "%Y%m%d")
   let blocks = (ccusage-json [blocks --active])
   let active = ($blocks.blocks? | default [] | where ($it.isActive? | default false) | get -o 0)
-  let daily = (ccusage-json [daily --since $today --until $today])
+  let daily = (ccusage-json [
+    daily
+      --since $today
+      --until $today
+  ])
   let daily_cost = $daily.totals?.totalCost?
 
   {
@@ -239,7 +279,11 @@ def format-remaining [minutes: int]: nothing -> string {
     return ""
   }
   let hours = ($minutes // 60)
-  if $hours > 0 { $"($hours)h($minutes mod 60)m left" } else { $"($minutes)m left" }
+  if $hours > 0 {
+    $"($hours)h($minutes mod 60)m left"
+  } else {
+    $"($minutes)m left"
+  }
 }
 
 def format-ccusage-info [data: record]: nothing -> record<block: string, daily: string> {
@@ -251,13 +295,23 @@ def format-ccusage-info [data: record]: nothing -> record<block: string, daily: 
     | compact --empty
     | str join ", "
   )
-  let suffix = if ($details | is-empty) { "" } else { " " + (paint $"\(($details)\)" yellow) }
+  let suffix = if ($details | is-empty) {
+    ""
+  } else {
+    " " + (paint $"\(($details)\)" yellow)
+  }
 
   {
     block: (if $data.has_block {
       $"(labeled "Block" (usd $data.block_cost) cyan)($suffix)"
-    } else { "" })
-    daily: (if $data.has_daily { labeled "Today" (usd $data.daily_cost) cyan } else { "" })
+    } else {
+      ""
+    })
+    daily: (if $data.has_daily {
+      labeled "Today" (usd $data.daily_cost) cyan
+    } else {
+      ""
+    })
   }
 }
 
@@ -272,7 +326,11 @@ def main [config_file: string] {
   let input = (^cat | from json)
   let cwd = $input.workspace.current_dir
 
-  let dir_name = if $cwd == $nu.home-dir { "~" } else { $cwd | path basename }
+  let dir_name = if $cwd == $nu.home-dir {
+    "~"
+  } else {
+    $cwd | path basename
+  }
   let row1 = $"(paint $dir_name blue_bold)(format-git-info $cwd)"
 
   let model = (model-name $input $config.models)

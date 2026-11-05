@@ -22,12 +22,16 @@ source $SCRIPT
 # Creates a repository with gate `config` and a Git hook unless `--no-hook` or `--no-config`.
 def make-repo [dir: string, config: string, --no-hook, --no-config]: nothing -> string {
   mkdir $dir
-  ^git -C $dir init --quiet
+  (
+    ^git
+      -C $dir
+      init --quiet
+  )
   if not $no_config {
     $config | save --force ($dir | path join ".pre-commit-config.yaml")
   }
   if not $no_hook {
-    touch ($dir | path join ".git" "hooks" "pre-commit")
+    touch ($dir | path join ".git/hooks/pre-commit")
   }
   $dir
 }
@@ -41,7 +45,8 @@ def write-marker-script [repo: string]: nothing -> nothing {
     test "$GATE_MARKER" = loaded
     '#
     | str dedent
-  ) | save --force ($repo | path join "marker.sh")
+  )
+  | save --force ($repo | path join "marker.sh")
 }
 
 # Writes the `.envrc` that exports the marker.
@@ -164,7 +169,9 @@ def "test a fixer hook that rewrites a file is not reported" [] {
     exit $changed
     '#
     | str dedent
-  ) | save --force ($repo | path join "fix.sh")
+  )
+  | save --force ($repo | path join "fix.sh")
+
   let file = ($repo | path join "notes.txt")
   "content" | save $file
 
@@ -190,7 +197,9 @@ def "test only the failed hooks are rerun after a fixer rewrites the file" [] {
     exit 0
     '#
     | str dedent
-  ) | save --force ($repo | path join "check.sh")
+  )
+  | save --force ($repo | path join "check.sh")
+
   (
     r#'
     #!/bin/sh
@@ -202,7 +211,9 @@ def "test only the failed hooks are rerun after a fixer rewrites the file" [] {
     exit 0
     '#
     | str dedent
-  ) | save --force ($repo | path join "fix.sh")
+  )
+  | save --force ($repo | path join "fix.sh")
+
   (
     r#'
     #!/bin/sh
@@ -211,7 +222,9 @@ def "test only the failed hooks are rerun after a fixer rewrites the file" [] {
     exit 1
     '#
     | str dedent
-  ) | save --force ($repo | path join "lint.sh")
+  )
+  | save --force ($repo | path join "lint.sh")
+
   let file = ($repo | path join "notes.txt")
   "content" | save $file
 
@@ -241,7 +254,9 @@ def "test a failing hook is reported" [] {
     exit 1
     '#
     | str dedent
-  ) | save --force ($repo | path join "lint.sh")
+  )
+  | save --force ($repo | path join "lint.sh")
+
   let file = ($repo | path join "notes.txt")
   "content\n" | save $file
 
@@ -301,7 +316,7 @@ def "test paths from two repositories, an outside path and a deleted path" [] {
   mkdir $sub
   let a = ($first | path join "a.nix")
   let b = ($second | path join "b.nix")
-  let outside = ($base | path join "outside" "c.nix")
+  let outside = ($base | path join "outside/c.nix")
   let deleted = ($first | path join "deleted.nix")
   let dash = "-s.nix"
   let dash_file = ($sub | path join $dash)
@@ -370,7 +385,13 @@ def "test a caller direnv diff that hides prek still runs the gate" [] {
       PATH: ($env.PATH | where $it != $prek_dir | str join ":")
       XDG_DATA_HOME: ($env.TMPDIR | path join "data")
     } {
-      ^direnv exec $caller $nu.current-exe --no-config-file -c "print $env.DIRENV_DIFF" | complete
+      (
+        ^direnv exec $caller
+          $nu.current-exe
+            --no-config-file
+            -c "print $env.DIRENV_DIFF"
+        | complete
+      )
     }
   )
   assert equal $generated.exit_code 0 $generated.stderr

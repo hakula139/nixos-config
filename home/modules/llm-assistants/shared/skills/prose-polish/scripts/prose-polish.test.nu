@@ -21,7 +21,10 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
   let config_file = ($dir | path join "config.json")
   let log = ($dir | path join "calls.jsonl")
 
-  $rules | to json | save $rules_file
+  $rules
+  | to json
+  | save $rules_file
+
   {
     modelCall: ($env.NU_TEST_STUBS | path join "model-call")
     phrasing: ""
@@ -39,7 +42,11 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
     | ^$nu.current-exe --no-config-file $SCRIPT $config_file ...$args
     | complete
   }
-  let calls = if ($log | path exists) { open $log | from json --objects } else { [] }
+  let calls = if ($log | path exists) {
+    open $log | from json --objects
+  } else {
+    []
+  }
   {run: $run, calls: $calls}
 }
 
@@ -52,7 +59,11 @@ def cases [category: string]: nothing -> list<record> {
   | each {|entry|
     let dir = ($entry.name | path expand)
     let file = ($dir | path join "case.nuon")
-    let given = if ($file | path exists) { open --raw $file | from nuon } else { {} }
+    let given = if ($file | path exists) {
+      open --raw $file | from nuon
+    } else {
+      {}
+    }
     let data = ({rules: [], args: [], forwarded: ""} | merge $given)
     {name: ($dir | path basename), dir: $dir, data: $data}
   }
@@ -167,7 +178,10 @@ def "test a refused rewrite is retried with its reason" [] {
   let repair = $target.data.rules.1
   let paragraph = $target.data.sent.1
   let polished = (open --raw ($target.dir | path join "expected.md"))
-  let kept = ($polished | str replace ($paragraph | str replace $repair.find $repair.replace) $paragraph)
+  let kept = (
+    $polished
+    | str replace ($paragraph | str replace $repair.find $repair.replace) $paragraph
+  )
   let rejected = ($paragraph | str replace $opening.find $opening.replace)
   let problem = 'the rewrite dropped the code span "`utilizes`" and added "`uses`"'
 

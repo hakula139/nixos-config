@@ -17,7 +17,7 @@ def extension [file: string]: nothing -> string {
 
 def font-files [dirs: list<string>]: nothing -> list<string> {
   $dirs
-  | each {|dir| glob ($dir | path join "**" "*") }
+  | each {|dir| glob ($dir | path join "**/*") }
   | flatten
   | where {|f| (extension $f) in $FONT_EXTENSIONS }
 }
@@ -47,7 +47,7 @@ def registry-document [fonts: list<string>, win_font_dir: string]: nothing -> st
 def main [config_file: string] {
   let config = (open $config_file)
   let local_app_data = (^$config.windowsInterop LOCALAPPDATA | str trim)
-  let font_dir = ([$local_app_data "Microsoft" "Windows" "Fonts"] | path join)
+  let font_dir = ([$local_app_data "Microsoft/Windows/Fonts"] | path join)
   mkdir $font_dir
 
   let results = (

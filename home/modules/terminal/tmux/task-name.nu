@@ -34,8 +34,23 @@ def main [
     return
   }
 
-  let output = try { ^tmux display-message -p -t $pane $FORMAT } catch { "" }
-  let session = $output | lines | parse --regex $FIELDS | where pane == $pane | get 0?
+  let output = try {
+    (
+      ^tmux display-message
+        -p
+        -t $pane
+        $FORMAT
+    )
+  } catch {
+    ""
+  }
+  let session = (
+    $output
+    | lines
+    | parse --regex $FIELDS
+    | where pane == $pane
+    | get 0?
+  )
   if $session == null {
     skip $"cannot inspect pane ($pane)"
   } else if $session.name !~ '^\d+$' {
@@ -48,7 +63,13 @@ def main [
     skip "Workmux manages its window"
   } else {
     ^tmux rename-session -t $session.id $name
-    let renamed = ^tmux display-message -p -t $pane "#{session_name}" | str trim
+    let renamed = (
+      ^tmux display-message
+        -p
+        -t $pane
+        "#{session_name}"
+      | str trim
+    )
     if $renamed != $name {
       error make {msg: $"session ($session.id) is named '($renamed)' after renaming to '($name)'"}
     }

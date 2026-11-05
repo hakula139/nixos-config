@@ -38,21 +38,25 @@ def main [config_file: string] {
   let run = (
     $shaped
     | to json
-    | ^$curl ...$config.curlArgs
+    | ^$curl $"($gateway.baseUrl)/v1/chat/completions"
+      ...$config.curlArgs
       --ipv4
       --cacert $gateway.caFile
       --variable $"token@($gateway.tokenFile)"
       --expand-header "Authorization: Bearer {{token:trim}}"
       --header "content-type: application/json"
       --data @-
-      $"($gateway.baseUrl)/v1/chat/completions"
     | complete
   )
   if $run.exit_code != 0 {
     fail ($run.stderr | str trim)
   }
 
-  let response = (try { $run.stdout | from json } catch { null })
+  let response = try {
+    $run.stdout | from json
+  } catch {
+    null
+  }
   if not ($response | describe | str starts-with "record") {
     fail "the gateway reply is not a JSON object"
   }

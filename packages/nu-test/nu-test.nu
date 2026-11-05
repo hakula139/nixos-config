@@ -10,7 +10,12 @@
 
 def nu-run [file: string, body: string, tmp: string, stubs: string]: nothing -> record {
   with-env {TMPDIR: $tmp, NU_TEST_STUBS: $stubs} {
-    ^$nu.current-exe --no-config-file --commands $"source ($file | to nuon)\n($body)" | complete
+    (
+      ^$nu.current-exe
+        --no-config-file
+        --commands $"source ($file | to nuon)\n($body)"
+      | complete
+    )
   }
 }
 
@@ -46,7 +51,11 @@ def plan-file [file: string]: nothing -> record {
       | from json
       | each {|name| {file: $file, name: $name, path: $path, scratch: $scratch, stubs: $stubs} }
     } catch {|err|
-      let run = ($found | update exit_code 1 | update stderr $err.rendered)
+      let run = (
+        $found
+        | update exit_code 1
+        | update stderr $err.rendered
+      )
       [{file: $file, name: "(load)", run: $run}]
     }
   }
@@ -68,7 +77,12 @@ def main [
   # Nested `par-each` builds a private thread pool per inner call, so plan every test first and
   # run the flat job list on one default-size pool.
   let plans = ($files | par-each --keep-order {|file| plan-file $file })
-  let results = ($plans | get jobs | flatten | par-each --keep-order {|job| run-job $job })
+  let results = (
+    $plans
+    | get jobs
+    | flatten
+    | par-each --keep-order {|job| run-job $job }
+  )
   for plan in $plans { rm --recursive --force $plan.scratch }
 
   for result in $results {

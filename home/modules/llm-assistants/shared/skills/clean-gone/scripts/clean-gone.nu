@@ -19,15 +19,26 @@ def --wrapped git-succeeds [...args: string]: nothing -> bool {
 
 def --wrapped git-out [...args: string]: nothing -> string {
   let r = (^git ...$args | complete)
-  if $r.exit_code == 0 { $r.stdout | str trim } else { "" }
+  if $r.exit_code == 0 {
+    $r.stdout | str trim
+  } else {
+    ""
+  }
 }
 
 def commit-exists [ref: string]: nothing -> bool {
-  git-succeeds rev-parse --verify --quiet $"($ref)^{commit}"
+  (
+    git-succeeds rev-parse
+      --verify
+      --quiet
+      $"($ref)^{commit}"
+  )
 }
 
 def --wrapped nul-list [...args: string]: nothing -> list<string> {
-  ^git ...$args | split row (char nul) | where $it != ""
+  ^git ...$args
+  | split row (char nul)
+  | where $it != ""
 }
 
 def die [msg: string] {
@@ -42,20 +53,26 @@ def die [msg: string] {
 # A blank field terminates each worktree's block, so the split into blocks has to happen before
 # empty fields are dropped.
 def worktree-map []: nothing -> record {
-  ^git worktree list --porcelain -z
-  | split row (char nul)
-  | split list ""
-  | each {|block|
-    $block | parse "{key} {value}" | reduce --fold {} {|field, acc|
-      $acc | insert $field.key $field.value
+  (
+    ^git worktree list
+      --porcelain
+      -z
+    | split row (char nul)
+    | split list ""
+    | each {|block|
+      $block
+      | parse "{key} {value}"
+      | reduce --fold {} {|field, acc|
+        $acc | insert $field.key $field.value
+      }
     }
-  }
-  | where {|wt| "branch" in $wt }
-  | reduce --fold {} {|wt, acc|
-    let branch = ($wt.branch | str replace "refs/heads/" "")
-    let paths = ($acc | get -o $branch | default [] | append $wt.worktree)
-    $acc | upsert $branch $paths
-  }
+    | where {|wt| "branch" in $wt }
+    | reduce --fold {} {|wt, acc|
+      let branch = ($wt.branch | str replace "refs/heads/" "")
+      let paths = ($acc | get -o $branch | default [] | append $wt.worktree)
+      $acc | upsert $branch $paths
+    }
+  )
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -94,16 +111,19 @@ def branch-is-integrated [branch: string, base_ref: string]: nothing -> bool {
   }
 
   # An empty net diff (an add later reverted) is integrated by definition.
-  let changed = (nul-list diff --name-only --no-renames -z $merge_base $branch_ref)
+  let changed = (
+    nul-list diff $merge_base $branch_ref
+      --name-only
+      --no-renames
+      -z
+  )
   if ($changed | is-empty) {
     return true
   }
 
   # `:(literal)` keeps a path containing `*` or `[` from being read as a glob.
   let pathspecs = ($changed | each {|p| ":\(literal)" + $p })
-  let candidates = (
-    git-out rev-list --first-parent $base_ref $"^($merge_base)" | lines
-  )
+  let candidates = (git-out rev-list --first-parent $base_ref $"^($merge_base)" | lines)
 
   for candidate in $candidates {
     if (git-succeeds diff --quiet $branch_ref $candidate -- ...$pathspecs) {
@@ -135,9 +155,8 @@ def main [
   let worktrees = (worktree-map)
 
   let gone = (
-    ^git for-each-ref
+    ^git for-each-ref refs/heads/
       --format="%(refname:strip=2)%09%(upstream:track)%09%(upstream:remotename)"
-      refs/heads/
     | lines
     | parse "{branch}\t{tracking}\t{remote}"
     | where ($it.tracking | str contains "gone")
@@ -170,7 +189,14 @@ def main [
     }
 
     if ($worktree | is-not-empty) {
-      let status = (^git -C $worktree status --porcelain --ignored | complete)
+      let status = (
+        ^git
+          -C $worktree
+          status
+            --porcelain
+            --ignored
+        | complete
+      )
       if $status.exit_code != 0 {
         print -e $"SKIP ($branch): failed to inspect worktree ($worktree)"
         $skipped += 1
