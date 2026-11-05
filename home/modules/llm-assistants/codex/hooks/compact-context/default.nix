@@ -3,17 +3,16 @@
 # ==================================================================================================
 
 {
-  mkNuHook,
-  timeouts,
+  sharedHooks,
 }:
 
 {
   event = "SessionStart";
   type = "command";
   matcher = "compact";
-  timeout = timeouts.tool;
+  timeout = sharedHooks.timeouts.tool;
   statusMessage = "Restoring compacted context";
-  command = mkNuHook {
+  command = sharedHooks.mkNuHook {
     slug = "compact-context";
     script = ./compact-context.nu;
     config = {

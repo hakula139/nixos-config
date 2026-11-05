@@ -5,12 +5,12 @@
 {
   pkgs,
   lib,
-  mkHooks,
+  shared,
   enableCorpGateway,
 }:
 
 let
-  sharedHooks = mkHooks {
+  sharedHooks = shared.mkHooks {
     inherit enableCorpGateway;
     assistant = "codex";
     toolClasses = {
@@ -23,7 +23,7 @@ let
   };
 
   compactContext = import ./compact-context {
-    inherit (sharedHooks) mkNuHook timeouts;
+    inherit sharedHooks;
   };
 
   installed = sharedHooks.install (

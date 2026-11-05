@@ -3,19 +3,18 @@
 # ==================================================================================================
 
 {
+  config,
   pkgs,
   lib,
   flakeConfigName,
-  flakePath,
   isDarwin,
   isNixOS,
-  mirroredNetworking,
-  mkNuCommand,
-  profileDirectory,
-  windowsInterop,
+  repoLib,
 }:
 
 let
+  cfg = config.hakula.cursor;
+  flakePath = config.hakula.nix.configPath;
   json = pkgs.formats.json { };
 
   # ------------------------------------------------------------------------------------------------
@@ -132,7 +131,7 @@ let
 
     "direnv.path.executable" = lib.getExe pkgs.direnv;
 
-    "python.defaultInterpreterPath" = "${profileDirectory}/bin/python";
+    "python.defaultInterpreterPath" = "${config.home.profileDirectory}/bin/python";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -140,7 +139,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Mirrored networking already exposes WSL listeners on Windows localhost, so a forward is
   # redundant, and one that binds while the WSL server is down holds the port it needs.
-  mirroredNetworkingSettings = lib.optionalAttrs mirroredNetworking {
+  mirroredNetworkingSettings = lib.optionalAttrs cfg.mirroredNetworking.enable {
     "remote.autoForwardPorts" = false;
     "remote.forwardOnOpen" = false;
     "remote.restoreForwardedPorts" = false;
@@ -160,14 +159,14 @@ let
   # ------------------------------------------------------------------------------------------------
   # Windows sync
   # ------------------------------------------------------------------------------------------------
-  syncWindowsSettings = mkNuCommand {
+  syncWindowsSettings = repoLib.mkNuCommand {
     inherit pkgs;
     name = "sync-windows-cursor-settings";
     script = ./sync-windows-settings.nu;
 
     config = {
       settingsFile = windowsSettingsJson;
-      inherit windowsInterop;
+      windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
     };
   };
 in

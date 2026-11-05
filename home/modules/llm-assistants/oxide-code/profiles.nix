@@ -6,9 +6,7 @@
   config,
   pkgs,
   lib,
-  profileDefinitions,
-  anthropicProfiles,
-  mkProfileSwitch,
+  shared,
 }:
 
 let
@@ -20,7 +18,7 @@ let
   # ------------------------------------------------------------------------------------------------
   mkProfile =
     _:
-    anthropicProfiles.mkProfileAuth {
+    shared.anthropicProfiles.mkProfileAuth {
       client = "oxide-code";
       caEnvVar = "OX_EXTRA_CA_CERTS";
     };
@@ -30,7 +28,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # oxide-code speaks only the Anthropic Messages API and serves only Claude models.
   profiles = lib.mapAttrs mkProfile (
-    profileDefinitions.mkProfiles {
+    shared.profileDefinitions.mkProfiles {
       inherit (cfg) enableCorpGateway;
       nativeFamily = "claude";
 
@@ -50,13 +48,13 @@ let
   mkProfileScript =
     name: profile:
     pkgs.writeShellScript "ox-profile-${name}" (
-      lib.concatStringsSep "\n" (anthropicProfiles.mkEnvLines { label = "ox"; } profile)
+      lib.concatStringsSep "\n" (shared.anthropicProfiles.mkEnvLines { label = "ox"; } profile)
     );
 
   # ------------------------------------------------------------------------------------------------
   # Profile loader
   # ------------------------------------------------------------------------------------------------
-  profileEnvVars = anthropicProfiles.mkProfileEnvVars {
+  profileEnvVars = shared.anthropicProfiles.mkProfileEnvVars {
     extraKnownEnvVars = [
       "NODE_EXTRA_CA_CERTS"
       "OX_EXTRA_CA_CERTS"
@@ -71,7 +69,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile switcher
   # ------------------------------------------------------------------------------------------------
-  switch = mkProfileSwitch {
+  switch = shared.mkProfileSwitch {
     inherit stateDir;
     inherit (cfg) defaultProfile;
     name = "ox-switch";
@@ -84,7 +82,7 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options = profileDefinitions.mkOptions {
+  options = shared.profileDefinitions.mkOptions {
     defaultProfile = if cfg.enableCorpGateway then "corp-gateway-anthropic" else "official";
     enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
   };
@@ -101,7 +99,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    hakula.secrets.required = anthropicProfiles.mkRequiredSecrets profiles;
+    hakula.secrets.required = shared.anthropicProfiles.mkRequiredSecrets profiles;
 
     # ----------------------------------------------------------------------------------------------
     # Packages

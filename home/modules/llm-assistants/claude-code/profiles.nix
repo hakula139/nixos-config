@@ -6,17 +6,16 @@
   config,
   pkgs,
   lib,
-  sharedAgents,
+  shared,
   enabledAgents,
   modelCatalog,
-  profileDefinitions,
-  anthropicProfiles,
-  mkProfileSwitch,
   mcpFlag,
 }:
 
 let
-  inherit (profileDefinitions)
+  inherit (shared.profileDefinitions)
+    mkOptions
+    mkProfiles
     modelAliases
     roleTiers
     workloadPolicy
@@ -53,7 +52,7 @@ let
           CLAUDE_CODE_SUBAGENT_MODEL = modelAliases.claude.${roleTiers.task.modelTier};
         };
 
-      auth = anthropicProfiles.mkProfileAuth {
+      auth = shared.anthropicProfiles.mkProfileAuth {
         client = "claude-code";
         caEnvVar = "NODE_EXTRA_CA_CERTS";
       } profile;
@@ -121,34 +120,31 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile definitions
   # ------------------------------------------------------------------------------------------------
-  profiles = lib.mapAttrs mkProfile (
-    profileDefinitions.mkProfiles {
-      inherit (cfg.auth) enableCorpGateway;
-      nativeFamily = "claude";
-      hybridBase = "corp-gateway-anthropic";
+  profiles = lib.mapAttrs mkProfile (mkProfiles {
+    inherit (cfg.auth) enableCorpGateway;
+    nativeFamily = "claude";
+    hybridBase = "corp-gateway-anthropic";
 
-      providers = [
-        "corp-gateway"
-        "ikuncode"
-        "yescode"
-      ];
+    providers = [
+      "corp-gateway"
+      "ikuncode"
+      "yescode"
+    ];
 
-      channels = [
-        "anthropic"
-        "openai"
-        "local"
-      ];
-    }
-  );
+    channels = [
+      "anthropic"
+      "openai"
+      "local"
+    ];
+  });
 
   # ------------------------------------------------------------------------------------------------
   # Profile submodule
   # ------------------------------------------------------------------------------------------------
   profileType = import ./profile-module.nix {
     inherit lib;
-    defaultSessionEffort = profiles.official.sessionEffort;
     defaultEfforts = workloadPolicy.claude;
-    defaultCompactWindows = profiles.official.compactWindows;
+    officialProfile = profiles.official;
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -220,11 +216,10 @@ let
       agents = import ./agents {
         inherit
           lib
-          sharedAgents
+          shared
           enabledAgents
           efforts
           ;
-        modelAliases = modelAliases.claude;
       };
     in
     pkgs.linkFarm "claude-code-agents" (
@@ -265,7 +260,7 @@ let
 
       envScript = pkgs.writeShellScript "claude-profile-${name}" (
         lib.concatStringsSep "\n" (
-          anthropicProfiles.mkEnvLines { label = "claude"; } profile
+          shared.anthropicProfiles.mkEnvLines { label = "claude"; } profile
           ++ [ "__claude_settings=${esc settings}" ]
         )
       );
@@ -280,7 +275,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile loader
   # ------------------------------------------------------------------------------------------------
-  profileEnvVars = anthropicProfiles.mkProfileEnvVars { } cfg.auth.profiles;
+  profileEnvVars = shared.anthropicProfiles.mkProfileEnvVars { } cfg.auth.profiles;
 
   profileLoader = pkgs.replaceVars ./scripts/profile-loader.sh {
     inherit stateDir;
@@ -292,7 +287,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile switcher
   # ------------------------------------------------------------------------------------------------
-  switch = mkProfileSwitch {
+  switch = shared.mkProfileSwitch {
     inherit stateDir;
     inherit (cfg.auth) defaultProfile;
     name = "claude-switch";
@@ -315,7 +310,7 @@ in
   # Module options
   # ------------------------------------------------------------------------------------------------
   options =
-    profileDefinitions.mkOptions {
+    mkOptions {
       defaultProfile = "official";
       enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
     }
@@ -353,7 +348,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    hakula.secrets.required = anthropicProfiles.mkRequiredSecrets cfg.auth.profiles;
+    hakula.secrets.required = shared.anthropicProfiles.mkRequiredSecrets cfg.auth.profiles;
 
     # ----------------------------------------------------------------------------------------------
     # Packages

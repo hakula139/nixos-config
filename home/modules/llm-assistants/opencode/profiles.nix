@@ -6,20 +6,18 @@
   config,
   pkgs,
   lib,
-  sharedAgents,
+  shared,
   enabledAgents,
-  profileDefinitions,
   secretPath,
-  mkProfileSwitch,
 }:
 
 let
   cfg = config.hakula.opencode.auth;
   json = pkgs.formats.json { };
   stateDir = "${config.xdg.stateHome}/opencode";
-  managedAgents = lib.filterAttrs (name: _: lib.elem name enabledAgents) sharedAgents;
+  managedAgents = lib.filterAttrs (name: _: lib.elem name enabledAgents) shared.agentRoles;
 
-  corpGateway = profileDefinitions.providers.corp-gateway;
+  corpGateway = shared.profileDefinitions.providers.corp-gateway;
   tokenFile = secretPath (corpGateway.tokenSecretFor "opencode");
   caFile = secretPath corpGateway.caSecret;
 
@@ -163,7 +161,7 @@ let
   # Profile definitions
   # ------------------------------------------------------------------------------------------------
   profiles = lib.mapAttrs mkProfile (
-    profileDefinitions.mkProfiles {
+    shared.profileDefinitions.mkProfiles {
       inherit (cfg) enableCorpGateway;
       nativeFamily = "gpt";
       hybridBase = "corp-gateway-anthropic";
@@ -183,7 +181,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile switcher
   # ------------------------------------------------------------------------------------------------
-  switch = mkProfileSwitch {
+  switch = shared.mkProfileSwitch {
     inherit stateDir;
     inherit (cfg) defaultProfile;
     name = "opencode-switch";
@@ -196,7 +194,7 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options = profileDefinitions.mkOptions {
+  options = shared.profileDefinitions.mkOptions {
     defaultProfile = if cfg.enableCorpGateway then "corp-gateway-anthropic" else "official";
     enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
   };
