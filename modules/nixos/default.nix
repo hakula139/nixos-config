@@ -134,7 +134,7 @@ in
       # TCP BBR: Better throughput on high-latency / lossy networks
       "net.core.default_qdisc" = "fq";
       "net.ipv4.tcp_congestion_control" = "bbr";
-      # Memory: Reduce swap usage on memory-constrained servers
+      # Memory
       "vm.swappiness" = 10;
       "vm.vfs_cache_pressure" = 50;
     };
