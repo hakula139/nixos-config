@@ -27,6 +27,7 @@ Lay code out for the reader and for one-line diffs. Where a formatter decides, i
 - Once one branch holds a blank line, put a blank line between all branches.
 - An entry added to an existing sequence follows the spacing and grouping its siblings use.
 - Order parameters and fields for readability: group related items, put dependencies before dependents, fall back to alphabetical order, and let API and project conventions win.
+- Group tests by behavior in the order the code runs, and within each behavior put the normal case first, even where a guard checks an error case before it.
 
 ## Embedded code and text
 
