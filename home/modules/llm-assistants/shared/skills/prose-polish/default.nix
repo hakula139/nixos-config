@@ -49,6 +49,10 @@ pkgs.linkFarm "prose-polish-skill" [
     path = ./agents/openai.yaml;
   }
   {
+    name = "references/evaluation.md";
+    path = ./references/evaluation.md;
+  }
+  {
     name = "scripts/prose-polish";
     path = lib.getExe command;
   }

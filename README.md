@@ -17,5 +17,5 @@ Every proxy node in `data/servers.nix` is a deploy target. Switch the workstatio
 
 - [Bootstrap](docs/guides/bootstrap.md): First-time installation and Docker image builds.
 - [Architecture](docs/reference/architecture.md): Supported hosts and repository layout.
-- [Secrets](docs/guides/secrets.md): Managing encrypted credentials.
+- [Secrets](.agents/skills/agenix/SKILL.md): Managing encrypted credentials.
 - [Contributor instructions](AGENTS.md): Conventions and verification for configuration changes.

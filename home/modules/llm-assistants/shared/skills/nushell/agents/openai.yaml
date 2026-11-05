@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Nushell'
+  short_description: 'Write, review, and debug Nushell scripts and tests'
+  default_prompt: 'Use $nushell to write, review, or debug these Nushell scripts and tests.'

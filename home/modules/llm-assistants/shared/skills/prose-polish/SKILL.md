@@ -13,7 +13,7 @@ The bundled script is the only way prose is polished here. It sends each eligibl
 
 ## Workflow
 
-1. Pick the model. Use the one the user names, or choose one suited to the text, and pass it with `--model`, which takes a key from the model catalog such as `gemini-3.8-flash`. Without `--model`, the script uses `gemini-4-argon`.
+1. Pick the model. Use the one the user names, or choose one suited to the text, and pass it with `--model`, which takes a key from the model catalog such as `gemini-3.8-flash`. Without `--model`, the script uses `gemini-4-argon`. [references/evaluation.md](references/evaluation.md) records the blind rewriter reviews and the principles for changing the model or prompts.
 
 2. Run the script. Resolve `<skill-dir>` to this skill's directory.
 
