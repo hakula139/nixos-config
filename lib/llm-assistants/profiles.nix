@@ -15,7 +15,7 @@ let
   workloadPolicy = {
     claude = {
       standard = "medium";
-      flagship = "xhigh";
+      flagship = "high";
       mini = "low";
     };
 
