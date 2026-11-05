@@ -220,6 +220,7 @@ in
 
                 command = [
                   fileFormatter
+                  "--"
                   "$FILE"
                 ];
               };
