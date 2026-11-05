@@ -4,7 +4,6 @@
 
 {
   inputs,
-  nixpkgs,
   overlays,
   pkgsFor,
   commonSpecialArgs,
@@ -113,7 +112,7 @@ let
       hostModule,
       enableDevToolchains ? true,
     }:
-    nixpkgs.lib.nixosSystem {
+    inputs.nixpkgs.lib.nixosSystem {
       specialArgs = commonSpecialArgs // {
         inherit hostName hostType;
       };
@@ -231,7 +230,7 @@ let
     }:
     let
       pkgs = pkgsFor "x86_64-linux";
-      nixosConfig = nixpkgs.lib.nixosSystem {
+      nixosConfig = inputs.nixpkgs.lib.nixosSystem {
         specialArgs = commonSpecialArgs // {
           inherit hostName hostType;
         };

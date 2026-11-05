@@ -54,32 +54,30 @@ in
       # Module imports
       # --------------------------------------------------------------------------------------------
       mcp = import ./mcp.nix {
-        inherit pkgs mcpOptions;
+        inherit pkgs mcpOptions shared;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
-        mcpServers = shared.mcp.servers;
       };
 
       settings = import ./settings {
         inherit
+          config
           pkgs
           lib
           flakeConfigName
           isDarwin
           isNixOS
+          repoLib
           ;
-        inherit (repoLib) mkNuCommand;
-        inherit (config.home) profileDirectory;
-        flakePath = config.hakula.nix.configPath;
-        mirroredNetworking = cfg.mirroredNetworking.enable;
-        windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
       };
 
       extensions = import ./extensions.nix {
-        inherit pkgs lib isDarwin;
-        inherit (repoLib) mkNuCommand;
-        inherit (config.home) username;
-        inherit (cfg.extensions) prune;
-        homeDir = config.home.homeDirectory;
+        inherit
+          config
+          pkgs
+          lib
+          isDarwin
+          repoLib
+          ;
       };
 
       remoteFiles = import ./remote.nix {

@@ -4,9 +4,8 @@
 
 {
   lib,
-  sharedAgents,
+  shared,
   enabledAgents,
-  modelAliases,
   efforts,
 }:
 
@@ -18,7 +17,7 @@ let
     name: agent:
     let
       settings = agent.claude // {
-        model = modelAliases.${agent.workload};
+        model = shared.profileDefinitions.modelAliases.claude.${agent.workload};
         effort = efforts.${agent.workload};
       };
 
@@ -46,7 +45,7 @@ let
     ${agent.prompt}
   '';
 
-  allAgents = lib.mapAttrs renderAgent sharedAgents;
+  allAgents = lib.mapAttrs renderAgent shared.agentRoles;
 in
 {
   files = lib.filterAttrs (name: _: lib.elem name enabledAgents) allAgents;

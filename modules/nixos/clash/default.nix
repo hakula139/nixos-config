@@ -34,7 +34,6 @@ in
           lib
           servers
           ;
-        inherit (config.hakula.network) realitySniHost;
       };
     in
     {

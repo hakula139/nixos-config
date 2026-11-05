@@ -304,7 +304,6 @@
       builders = import ./lib/builders.nix {
         inherit
           inputs
-          nixpkgs
           overlays
           pkgsFor
           commonSpecialArgs

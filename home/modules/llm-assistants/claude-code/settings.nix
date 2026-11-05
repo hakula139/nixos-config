@@ -10,8 +10,7 @@
   plugins,
   bundlePlugins,
   profileSettings,
-  preferences,
-  timeouts,
+  shared,
 }:
 
 {
@@ -29,7 +28,7 @@
   # ------------------------------------------------------------------------------------------------
   # Project
   # ------------------------------------------------------------------------------------------------
-  plansDirectory = "./${preferences.plansDir}";
+  plansDirectory = "./${shared.preferences.plansDir}";
 
   includeGitInstructions = false;
   attribution = {
@@ -69,7 +68,7 @@
       "300" = "5m";
       "600" = "10m";
     }
-    .${toString preferences.askTimeout};
+    .${toString shared.preferences.askTimeout};
 
   # ------------------------------------------------------------------------------------------------
   # Sessions
@@ -96,6 +95,6 @@
     ENABLE_CLAUDEAI_MCP_SERVERS = "0";
     ENABLE_PROMPT_CACHING_1H = "1";
     FORCE_AUTOUPDATE_PLUGINS = if bundlePlugins then "0" else "1";
-    MCP_TIMEOUT = toString (timeouts.startup * 1000);
+    MCP_TIMEOUT = toString (shared.mcp.timeouts.startup * 1000);
   };
 }

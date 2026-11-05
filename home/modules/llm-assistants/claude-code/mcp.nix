@@ -6,7 +6,7 @@
   pkgs,
   enabledServers,
   mcpOptions,
-  mcpServers,
+  shared,
 }:
 
 let
@@ -15,7 +15,7 @@ let
   serversConfig = builtins.listToAttrs (
     map (s: {
       name = mcpOptions.serverDisplayNames.${s};
-      value = mcpServers.${s};
+      value = shared.mcp.servers.${s};
     }) enabledServers
   );
 

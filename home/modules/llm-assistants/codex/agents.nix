@@ -5,7 +5,7 @@
 {
   pkgs,
   lib,
-  sharedAgents,
+  shared,
   enabledAgents,
   workloads,
 }:
@@ -35,7 +35,7 @@ let
     };
 
   roles = lib.mapAttrs mkAgentConfig (
-    lib.filterAttrs (name: _: lib.elem name enabledAgents) sharedAgents
+    lib.filterAttrs (name: _: lib.elem name enabledAgents) shared.agentRoles
   );
 
   # Codex has no switch for its built-in explorer, which runs on the default subagent model, so a

@@ -5,15 +5,14 @@
 {
   enabledServers,
   mcpOptions,
-  mcpServers,
-  timeouts,
+  shared,
 }:
 
 let
   mkEntry =
     s:
     let
-      server = mcpServers.${s};
+      server = shared.mcp.servers.${s};
     in
     {
       name = mcpOptions.serverDisplayNames.${s};
@@ -31,7 +30,7 @@ let
             }
         )
         // {
-          timeout = timeouts.startup * 1000;
+          timeout = shared.mcp.timeouts.startup * 1000;
         };
     };
 in
