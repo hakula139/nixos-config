@@ -128,6 +128,8 @@ Choose a structure that helps the reader understand, compare, or act, whether in
 
 - Use logical punctuation: place commas and periods outside closing quotation marks (`"foobar",`).
 
+- End every sentence with a period, including the last one. Only a sentence fragment may go without one.
+
 - When discussing punctuation marks, put them in code spans (`、；：`, `「」`, `——`). Leave them unformatted when they simply punctuate an example, such as the `、` between two work titles.
 
 ### Documentation
