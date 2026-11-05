@@ -44,8 +44,10 @@ def registry-document [fonts: list<string>, win_font_dir: string]: nothing -> st
   ] | str join "\r\n"
 }
 
-def main [config_file: string] {
-  let config = (open $config_file)
+def main [
+  --config: path # Wrapper-supplied JSON with the font directories and the Windows interop helper
+] {
+  let config = (open $config)
   let local_app_data = (^$config.windowsInterop LOCALAPPDATA | str trim)
   let font_dir = ([$local_app_data "Microsoft/Windows/Fonts"] | path join)
   mkdir $font_dir

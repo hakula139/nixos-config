@@ -9,6 +9,7 @@
 {
   pkgs,
   lib,
+  mkNuCommand,
 }:
 
 let
@@ -45,12 +46,13 @@ let
     ''}
   '';
 
-  projectNotifyPackage = pkgs.writers.writeNuBin "project-notify" {
-    makeWrapperArgs = [
-      "--add-flag"
-      "${notifyScript}"
-    ];
-  } (builtins.readFile ./project-notify.nu);
+  projectNotifyPackage = mkNuCommand {
+    inherit pkgs;
+    name = "project-notify";
+    script = ./project-notify.nu;
+    flags.notify = notifyScript;
+  };
+
   mkProjectNotifyScript = lib.getExe projectNotifyPackage;
 in
 {

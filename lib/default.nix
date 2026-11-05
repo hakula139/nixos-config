@@ -15,6 +15,7 @@ in
   aria2 = import ./aria2.nix;
   curl = import ./curl.nix;
   llmAssistants = import ./llm-assistants { inherit lib; };
+  mkNuCommand = import ./nu-command.nix { inherit lib wrapPackage; };
   packagesFor = pkgs: import ./packages.nix { inherit pkgs; };
   proxy = import ./proxy.nix { inherit lib wrapPackage; };
   secrets = import ./secrets.nix { inherit lib; };

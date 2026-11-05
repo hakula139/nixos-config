@@ -7,6 +7,7 @@
   pkgs,
   lib,
   corpHosts,
+  repoLib,
   ...
 }:
 
@@ -21,31 +22,23 @@ let
 
   upFlag = "/var/run/tunnel.up";
 
-  hostsScript = pkgs.writers.writeNu "tunnel-hosts" (builtins.readFile ./hosts.nu);
+  hostsScript = lib.getExe (pkgs.writers.writeNuBin "tunnel-hosts" (builtins.readFile ./hosts.nu));
 
-  controlPackage = pkgs.writers.writeNuBin "tunnel" {
-    makeWrapperArgs = [
-      "--prefix"
-      "PATH"
-      ":"
-      (lib.makeBinPath [
-        pkgs.coreutils
-        config.services.tailscale.package
-      ])
+  controlPackage = repoLib.mkNuCommand {
+    inherit pkgs;
+    name = "tunnel";
+    script = ./control.nu;
 
-      "--add-flag"
-      "--user-name"
-
-      "--add-flag"
-      userName
-
-      "--add-flag"
-      "--up-flag"
-
-      "--add-flag"
-      upFlag
+    runtimeInputs = [
+      pkgs.coreutils
+      config.services.tailscale.package
     ];
-  } (builtins.readFile ./control.nu);
+
+    flags = {
+      user-name = userName;
+      up-flag = upFlag;
+    };
+  };
 
   relayCommand = [
     (lib.getExe pkgs.socat)
