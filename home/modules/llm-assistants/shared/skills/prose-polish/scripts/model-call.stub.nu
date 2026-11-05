@@ -12,16 +12,30 @@
 
 def main [] {
   let request = (^cat | from json)
-  let passages = ($request.user | lines | last | from json | get passages)
+  let passages = (
+    $request.user
+    | lines
+    | last
+    | from json
+    | get passages
+  )
 
-  let calls = if ($env.STUB_LOG | path exists) { open $env.STUB_LOG | lines | length } else { 0 }
+  let calls = if ($env.STUB_LOG | path exists) {
+    open $env.STUB_LOG | lines | length
+  } else {
+    0
+  }
   {model: $request.model, user: $request.user, passages: $passages}
   | to json --raw
   | $"($in)\n"
   | save --append $env.STUB_LOG
 
   let rules = (open $env.STUB_RULES)
-  let rule = (if $calls < ($rules | length) { $rules | get $calls } else { $rules | last })
+  let rule = if $calls < ($rules | length) {
+    $rules | get $calls
+  } else {
+    $rules | last
+  }
   if ($rule | get -o fail) != null {
     print --stderr $rule.fail
     exit 1

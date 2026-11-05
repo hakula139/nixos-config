@@ -11,7 +11,9 @@ const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "patch-input.nu")
 
 def parse-patch [patch: string]: nothing -> list<record> {
-  $patch | ^$nu.current-exe --no-config-file $SCRIPT | from json
+  $patch
+  | ^$nu.current-exe --no-config-file $SCRIPT
+  | from json
 }
 
 def "test reports each file with only its added lines" [] {

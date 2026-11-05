@@ -29,7 +29,11 @@ def main [...files: string] {
     }
 
     # `--ide-check` passes invalid UTF-8 in a comment.
-    let text = (try { open --raw $file | into string } catch { null })
+    let text = try {
+      open --raw $file | into string
+    } catch {
+      null
+    }
     if $text == null {
       print -e $"($file): not valid UTF-8"
       $failed = true

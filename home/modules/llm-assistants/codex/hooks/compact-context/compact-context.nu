@@ -14,15 +14,24 @@ def turn-items [transcript: string]: nothing -> list<record> {
   open --raw $transcript
   | lines
   | where {|line|
-    ($line | str contains '"item_completed"') and (
-      ($line | str contains '"FileChange"') or ($line | str contains '"CommandExecution"')
+    (
+      ($line | str contains '"item_completed"')
+      and (($line | str contains '"FileChange"') or ($line | str contains '"CommandExecution"'))
     )
   }
-  | each {|line| try { $line | from json } catch { null } }
+  | each {|line|
+    try {
+      $line | from json
+    } catch {
+      null
+    }
+  }
   | where {|entry|
-    (($entry | describe | str starts-with "record")
+    (
+      ($entry | describe | str starts-with "record")
       and $entry.type? == "event_msg"
-      and $entry.payload.type == "item_completed")
+      and $entry.payload.type == "item_completed"
+    )
   }
   | get payload.item
 }
@@ -45,8 +54,14 @@ def read-files [items: list<record>]: nothing -> list<string> {
   | where {|item| $item.type == "CommandExecution" and $item.status? == "completed" }
   | each {|item|
     let cwd = ($item.cwd | str replace --regex "^file://" "" | url decode)
-    $item.parsed_cmd | where type == "read" | each {|cmd|
-      let path = if ($cmd.path | str starts-with "~") { $cmd.path | path expand } else { $cmd.path }
+    $item.parsed_cmd
+    | where type == "read"
+    | each {|cmd|
+      let path = if ($cmd.path | str starts-with "~") {
+        $cmd.path | path expand
+      } else {
+        $cmd.path
+      }
       $cwd | path join $path
     }
   }
@@ -54,7 +69,10 @@ def read-files [items: list<record>]: nothing -> list<string> {
 }
 
 def newest-unique [paths: list<string>]: nothing -> list<string> {
-  $paths | each { path expand --no-symlink } | reverse | uniq
+  $paths
+  | each { path expand --no-symlink }
+  | reverse
+  | uniq
 }
 
 def section [label: string, paths: list<string>, limit: int, cwd: string]: nothing -> any {
@@ -62,8 +80,14 @@ def section [label: string, paths: list<string>, limit: int, cwd: string]: nothi
     return null
   }
   let shown = (
-    $paths | first $limit | each {|path|
-      let relative = (try { $path | path relative-to $cwd } catch { $path })
+    $paths
+    | first $limit
+    | each {|path|
+      let relative = try {
+        $path | path relative-to $cwd
+      } catch {
+        $path
+      }
       $"- ($relative)"
     }
   )
@@ -93,8 +117,16 @@ def restore [config: record]: nothing -> any {
     return null
   }
 
-  let pointer = ($config.prompt | str replace "@transcriptPath@" $transcript | str trim)
-  let sections = (try { file-sections $transcript $input.cwd } catch { [] })
+  let pointer = (
+    $config.prompt
+    | str replace "@transcriptPath@" $transcript
+    | str trim
+  )
+  let sections = try {
+    file-sections $transcript $input.cwd
+  } catch {
+    []
+  }
   {
     hookSpecificOutput: {
       hookEventName: "SessionStart"
@@ -105,7 +137,11 @@ def restore [config: record]: nothing -> any {
 }
 
 def main [config_file: string] {
-  let out = (try { restore (open $config_file) } catch { null })
+  let out = try {
+    restore (open $config_file)
+  } catch {
+    null
+  }
   if $out != null {
     print $out
   }

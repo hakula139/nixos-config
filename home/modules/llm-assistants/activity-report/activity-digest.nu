@@ -19,7 +19,11 @@ def content-text []: any -> string {
   if ($content | describe) == "string" {
     $content
   } else {
-    $content | default [] | get -o text | compact | str join "\n"
+    $content
+    | default []
+    | get -o text
+    | compact
+    | str join "\n"
   }
 }
 
@@ -45,7 +49,11 @@ def excerpt [chars: int]: string -> string {
 def strip-request-prefix []: string -> string {
   let text = $in
   let parts = ($text | split row --regex $REQUEST_HEADING)
-  if ($parts | length) == 1 { $text } else { $parts | last | str trim }
+  if ($parts | length) == 1 {
+    $text
+  } else {
+    $parts | last | str trim
+  }
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -54,13 +62,19 @@ def strip-request-prefix []: string -> string {
 
 # A transcript may end in a partial line while its session is still being written.
 def read-transcript [file: string]: nothing -> list {
-  let text = (
-    if ($file | str ends-with ".zst") { ^zstd -dc $file } else { open --raw $file }
-  )
+  let text = if ($file | str ends-with ".zst") {
+    ^zstd -dc $file
+  } else {
+    open --raw $file
+  }
   try {
     $text | from json --objects
   } catch {
-    $text | lines | drop 1 | str join "\n" | from json --objects
+    $text
+    | lines
+    | drop 1
+    | str join "\n"
+    | from json --objects
   }
 }
 
@@ -98,7 +112,11 @@ def turns []: list -> list {
           cut: null
           model: null
         }
-        if $kept { {out: $turn, next: $next} } else { {next: $next} }
+        if $kept {
+          {out: $turn, next: $next}
+        } else {
+          {next: $next}
+        }
       }
     }
   }
@@ -140,7 +158,9 @@ def read-sessions [
         | where {|w| ($w.1 - $w.0) > $gap }
         | each {|w| {kind: "pause", ts: $w.0} }
       )
-      $session | insert transcript $file | update events { append $pauses }
+      $session
+      | insert transcript $file
+      | update events { append $pauses }
     }
   }
   | par-each --keep-order {|s|
@@ -149,7 +169,11 @@ def read-sessions [
       | update ts { into datetime | date to-timezone local }
       | sort-by ts
       | each {|e|
-        if $e.kind == "write" { $e | update paths { each {|path| physical $path } } } else { $e }
+        if $e.kind == "write" {
+          $e | update paths { each {|path| physical $path } }
+        } else {
+          $e
+        }
       }
     )
     $s | merge {
@@ -199,7 +223,11 @@ def claude-question [r: record]: nothing -> any {
   if ($answers | is-empty) {
     null
   } else {
-    let text = ($answers | items {|question, answer| $"($question): ($answer)" } | str join "\n")
+    let text = (
+      $answers
+      | items {|question, answer| $"($question): ($answer)" }
+      | str join "\n"
+    )
     {kind: "prompt", ts: $r.timestamp, text: $text}
   }
 }
@@ -237,34 +265,30 @@ def claude-sessions [cfg: record, since: datetime]: nothing -> list {
     let events = (
       $records
       | each {|r|
-        let event = (
-          if $r.isCompactSummary? == true {
-            null
-          } else if $r.type == "user" and $r.toolUseResult? == null {
-            let kind = if (claude-human $r) { "prompt" } else { "trigger" }
-            {kind: $kind, ts: $r.timestamp, text: ($r.message.content | content-text)}
-          } else if (
-            $r.type == "attachment"
-            and $r.attachment.type? == "queued_command"
-            and (claude-human $r.attachment)
-          ) {
-            {kind: "prompt", ts: $r.timestamp, text: ($r.attachment.prompt | content-text)}
-          } else if $r.type == "user" {
-            claude-question $r
-          } else if $r.type == "assistant" {
-            let paths = (claude-writes $r)
-            if ($paths | is-not-empty) {
-              {kind: "write", ts: $r.timestamp, paths: $paths}
-            } else if (claude-reply $r) {
-              {kind: "reply", ts: $r.timestamp, text: ($r.message.content | content-text)}
-            }
+        let event = if $r.isCompactSummary? == true {
+          null
+        } else if $r.type == "user" and $r.toolUseResult? == null {
+          let kind = if (claude-human $r) { "prompt" } else { "trigger" }
+          {kind: $kind, ts: $r.timestamp, text: ($r.message.content | content-text)}
+        } else if (
+          $r.type == "attachment"
+          and $r.attachment.type? == "queued_command"
+          and (claude-human $r.attachment)
+        ) {
+          {kind: "prompt", ts: $r.timestamp, text: ($r.attachment.prompt | content-text)}
+        } else if $r.type == "user" {
+          claude-question $r
+        } else if $r.type == "assistant" {
+          let paths = (claude-writes $r)
+          if ($paths | is-not-empty) {
+            {kind: "write", ts: $r.timestamp, paths: $paths}
+          } else if (claude-reply $r) {
+            {kind: "reply", ts: $r.timestamp, text: ($r.message.content | content-text)}
           }
-        )
-        let model = (
-          if $r.type == "assistant" or $r.isCompactSummary? == true {
-            {kind: "model", ts: $r.timestamp}
-          }
-        )
+        }
+        let model = if $r.type == "assistant" or $r.isCompactSummary? == true {
+          {kind: "model", ts: $r.timestamp}
+        }
         [$event $model]
       }
       | flatten
@@ -316,37 +340,37 @@ def codex-sessions [cfg: record, since: datetime]: nothing -> list {
     let events = (
       $records
       | each {|r|
-        let event = (
-          if $r.type != "event_msg" {
-            null
-          } else {
-            let p = $r.payload
-            if $p.type == "task_started" {
-              {kind: "trigger", ts: $r.timestamp, text: ""}
-            } else if $p.type == "turn_aborted" {
-              {kind: "abort", ts: $r.timestamp}
-            } else if $p.type == "item_completed" and $p.item.type? == "UserMessage" {
-              let text = ($p.item.content | content-text | strip-request-prefix)
-              {kind: "prompt", ts: $r.timestamp, text: $text}
-            } else if $p.type == "item_completed" and $p.item.type? == "FileChange" {
-              {kind: "write", ts: $r.timestamp, paths: ($p.item.changes? | default {} | columns)}
-            } else if $p.type == "task_complete" and $p.last_agent_message? != null {
-              {kind: "reply", ts: $r.timestamp, text: $p.last_agent_message}
-            }
-          }
-        )
-        let model = (
-          if (
-            $r.type == "response_item"
-            and (
-              $r.payload.type? in ["agent_message" "reasoning" "function_call" "custom_tool_call"]
-              or $r.payload.type? == "compaction"
-              or $r.payload.role? == "assistant"
+        let event = if $r.type != "event_msg" {
+          null
+        } else {
+          let p = $r.payload
+          if $p.type == "task_started" {
+            {kind: "trigger", ts: $r.timestamp, text: ""}
+          } else if $p.type == "turn_aborted" {
+            {kind: "abort", ts: $r.timestamp}
+          } else if $p.type == "item_completed" and $p.item.type? == "UserMessage" {
+            let text = (
+              $p.item.content
+              | content-text
+              | strip-request-prefix
             )
-          ) {
-            {kind: "model", ts: $r.timestamp}
+            {kind: "prompt", ts: $r.timestamp, text: $text}
+          } else if $p.type == "item_completed" and $p.item.type? == "FileChange" {
+            {kind: "write", ts: $r.timestamp, paths: ($p.item.changes? | default {} | columns)}
+          } else if $p.type == "task_complete" and $p.last_agent_message? != null {
+            {kind: "reply", ts: $r.timestamp, text: $p.last_agent_message}
           }
-        )
+        }
+        let model = if (
+          $r.type == "response_item"
+          and (
+            $r.payload.type? in ["agent_message" "reasoning" "function_call" "custom_tool_call"]
+            or $r.payload.type? == "compaction"
+            or $r.payload.role? == "assistant"
+          )
+        ) {
+          {kind: "model", ts: $r.timestamp}
+        }
         [$event $model]
       }
       | flatten
@@ -370,12 +394,16 @@ def omp-paths [cwd: string, call: record]: nothing -> list<string> {
   let paths = (
     [($args.path?)]
     ++ (
-      if $args.input? == null { [] } else {
+      if $args.input? == null {
+        []
+      } else {
         $args.input | lines | parse --regex '^\[\s*(?<path>.+?)#\w+\s*\]$' | get path
       }
     )
   )
-  $paths | compact | each {|path| $cwd | path join $path | path expand --no-symlink }
+  $paths
+  | compact
+  | each {|path| $cwd | path join $path | path expand --no-symlink }
 }
 
 def omp-sessions [cfg: record, since: datetime]: nothing -> list {
@@ -385,34 +413,30 @@ def omp-sessions [cfg: record, since: datetime]: nothing -> list {
     let events = (
       $records
       | each {|r|
-        let event = (
-          if $r.type != "message" {
-            null
-          } else {
-            let m = $r.message
-            if $m.role == "user" {
-              let kind = if $m.attribution? == "user" { "prompt" } else { "trigger" }
-              {kind: $kind, ts: $r.timestamp, text: ($m.content | content-text)}
-            } else if $m.role == "assistant" and $m.stopReason? == "stop" {
-              {kind: "reply", ts: $r.timestamp, text: ($m.content | content-text)}
-            } else if $m.role == "assistant" {
-              let paths = (
-                $m.content
-                | where {|part| $part.type? == "toolCall" and $part.name in ["write" "edit"] }
-                | each {|part| omp-paths $cwd $part }
-                | flatten
-              )
-              if ($paths | is-not-empty) {
-                {kind: "write", ts: $r.timestamp, paths: $paths}
-              }
+        let event = if $r.type != "message" {
+          null
+        } else {
+          let m = $r.message
+          if $m.role == "user" {
+            let kind = if $m.attribution? == "user" { "prompt" } else { "trigger" }
+            {kind: $kind, ts: $r.timestamp, text: ($m.content | content-text)}
+          } else if $m.role == "assistant" and $m.stopReason? == "stop" {
+            {kind: "reply", ts: $r.timestamp, text: ($m.content | content-text)}
+          } else if $m.role == "assistant" {
+            let paths = (
+              $m.content
+              | where {|part| $part.type? == "toolCall" and $part.name in ["write" "edit"] }
+              | each {|part| omp-paths $cwd $part }
+              | flatten
+            )
+            if ($paths | is-not-empty) {
+              {kind: "write", ts: $r.timestamp, paths: $paths}
             }
           }
-        )
-        let model = (
-          if $r.type == "message" and $r.message.role? == "assistant" {
-            {kind: "model", ts: $r.timestamp}
-          }
-        )
+        }
+        let model = if $r.type == "message" and $r.message.role? == "assistant" {
+          {kind: "model", ts: $r.timestamp}
+        }
         [$event $model]
       }
       | flatten
@@ -438,7 +462,11 @@ def existing-ancestor [dir: string]: nothing -> any {
     $dir
   } else {
     let parent = ($dir | path dirname)
-    if $parent == $dir { null } else { existing-ancestor $parent }
+    if $parent == $dir {
+      null
+    } else {
+      existing-ancestor $parent
+    }
   }
 }
 
@@ -446,7 +474,13 @@ def existing-ancestor [dir: string]: nothing -> any {
 # worktree's root is its main checkout, the parent of the worktree's common git dir.
 def repository-of [dir: string]: nothing -> any {
   let run = (
-    ^git -C $dir rev-parse --path-format=absolute --git-dir --git-common-dir --show-toplevel
+    ^git
+      -C $dir
+      rev-parse
+        --path-format=absolute
+        --git-dir
+        --git-common-dir
+        --show-toplevel
     | complete
   )
   if $run.exit_code != 0 {
@@ -455,7 +489,11 @@ def repository-of [dir: string]: nothing -> any {
     let parts = ($run.stdout | lines)
     {
       checkout: $parts.2
-      root: (if $parts.0 == $parts.1 { $parts.2 } else { $parts.1 | path dirname })
+      root: (if $parts.0 == $parts.1 {
+        $parts.2
+      } else {
+        $parts.1 | path dirname
+      })
     }
   }
 }
@@ -476,14 +514,22 @@ def repository-map [dirs: list<string>]: nothing -> record {
 
 # The directory name of a repository, or null.
 def repo-name [repo: any]: nothing -> any {
-  if $repo == null { null } else { $repo.root | path basename }
+  if $repo == null {
+    null
+  } else {
+    $repo.root | path basename
+  }
 }
 
 # A written path with its existing directory resolved, so a symlinked parent names the directory the
 # write lands in.
 def physical [path: string]: nothing -> string {
   let dir = ($path | path dirname)
-  if ($dir | path exists) { $dir | path expand | path join ($path | path basename) } else { $path }
+  if ($dir | path exists) {
+    $dir | path expand | path join ($path | path basename)
+  } else {
+    $path
+  }
 }
 
 # The repository containing a written path, or null.
@@ -502,14 +548,22 @@ def ignored-paths [repos: record, paths: list<string>]: nothing -> list<string> 
   | transpose checkout rows
   | each {|group|
     let run = (
-      $group.rows | get path | str join (char nul)
-      | ^git -C $group.checkout check-ignore -z --stdin
+      $group.rows
+      | get path
+      | str join (char nul)
+      | ^git
+        -C $group.checkout
+        check-ignore
+          -z
+          --stdin
       | complete
     )
     if $run.exit_code not-in [0 1] {
       error make {msg: $"git check-ignore failed in ($group.checkout): ($run.stderr | str trim)"}
     }
-    $run.stdout | split row (char nul) | compact --empty
+    $run.stdout
+    | split row (char nul)
+    | compact --empty
   }
   | flatten
 }
@@ -563,28 +617,32 @@ def link []: list -> list {
   let units = (
     $ordered
     | reduce --fold {} {|s, acc|
-      let parent = (if $s.parent == null { [] } else { $acc | get -o $s.parent | default [] })
-      let prompts = (if $s.attended { $s.turns | where kind == "prompt" } else { [] })
+      let parent = if $s.parent == null {
+        []
+      } else {
+        $acc | get -o $s.parent | default []
+      }
+      let prompts = if $s.attended {
+        $s.turns | where kind == "prompt"
+      } else {
+        []
+      }
       let turns = (
         $s.turns
         | each {|t|
           let own = ($prompts | where ts <= $t.ts | last)
-          let anchor = (
-            if $own != null or ($parent | is-empty) {
-              null
-            } else {
-              $parent | where ts <= $t.ts | last
-            }
-          )
-          let unit = (
-            if $own != null {
-              $"($s.transcript)#($own.ts | into int)"
-            } else if $anchor != null {
-              $anchor.unit
-            } else {
-              $s.transcript
-            }
-          )
+          let anchor = if $own != null or ($parent | is-empty) {
+            null
+          } else {
+            $parent | where ts <= $t.ts | last
+          }
+          let unit = if $own != null {
+            $"($s.transcript)#($own.ts | into int)"
+          } else if $anchor != null {
+            $anchor.unit
+          } else {
+            $s.transcript
+          }
           $t | insert unit $unit
         }
       )
@@ -618,7 +676,9 @@ def credit-prompts [cfg: record, units: record]: list -> list<record> {
       | where ts >= $day and ts < ($day + 1day)
       | agent-hours $cfg
     )
-    $p.item | insert hours ($hours | math round --precision 4) | insert agent $agent
+    $p.item
+    | insert hours ($hours | math round --precision 4)
+    | insert agent $agent
   }
 }
 
@@ -641,7 +701,12 @@ def continuations [
     | group-by {|t| $t.ts | format date "%Y-%m-%d"}
     | values
     | each {|turns|
-      let wrote = ($turns | get -o paths | flatten | shares $repos $ignored)
+      let wrote = (
+        $turns
+        | get -o paths
+        | flatten
+        | shares $repos $ignored
+      )
       {
         transcript: $p.transcript
         ts: ($turns.0.ts | format date "%Y-%m-%d" | into datetime)
@@ -717,7 +782,13 @@ def agent-run [
     null
   } else {
     let paths = ($today | get -o paths | flatten)
-    let text = ($today | each {|t| $t.text } | where {|t| $t != "" } | get -o 0 | default "")
+    let text = (
+      $today
+      | each {|t| $t.text }
+      | where {|t| $t != "" }
+      | get -o 0
+      | default ""
+    )
     {
       tool: $session.tool
       session: $session.id
@@ -766,16 +837,14 @@ def day [
       | each {|transcript|
         let s = ($sessions | where transcript == $transcript | first)
         let prompts = ($today | where transcript == $transcript)
-        let events = (
-          if ($prompts | is-empty) {
-            []
-          } else {
-            # Turns started today keep their replies past midnight, until the next prompt.
-            let first = ($prompts | first | get ts)
-            let next = ($s.turns | where kind == "prompt" and ts >= $end | get -o 0.ts)
-            $s.events | where {|e| $e.ts >= $first and ($next == null or $e.ts < $next) }
-          }
-        )
+        let events = if ($prompts | is-empty) {
+          []
+        } else {
+          # Turns started today keep their replies past midnight, until the next prompt.
+          let first = ($prompts | first | get ts)
+          let next = ($s.turns | where kind == "prompt" and ts >= $end | get -o 0.ts)
+          $s.events | where {|e| $e.ts >= $first and ($next == null or $e.ts < $next) }
+        }
         {
           tool: $s.tool
           session: $s.id
@@ -793,6 +862,7 @@ def day [
               }
             }
           )
+
           replies: ($events | final-replies | each { stamp $excerpt_chars } | where text != "")
           continued: (
             $later
@@ -813,7 +883,11 @@ def repositories [repos: record, names: list<string>]: nothing -> record {
   $names
   | reduce --fold {} {|name, acc|
     let root = ($found | where {|repo| ($repo.root | path basename) == $name } | get -o 0.root)
-    if $root == null { $acc } else { $acc | insert $name $root }
+    if $root == null {
+      $acc
+    } else {
+      $acc | insert $name $root
+    }
   }
 }
 

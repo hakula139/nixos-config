@@ -18,7 +18,9 @@ Project-specific rules for any coding assistant working in this repository. `CLA
 
 ## Layout
 
-Wrap code and comments at 100 columns including the indent (Python follows ruff's 88), and keep a single-line string literal whole at any length. nixfmt does not reflow comments. Every language uses the [section banners](docs/conventions/nix.md#section-banners).
+Wrap code and comments at 100 columns including the indent (Python follows ruff's 88), and keep a single-line string literal, and a table row holding one, whole at any length. nixfmt does not reflow comments. Every language uses the [section banners](docs/conventions/nix.md#section-banners).
+
+Where the formatter leaves line breaks to the author, lay code out for the reader and for diffs. An external call or argument list with two or more options, bare flags included, keeps its command, subcommands, and positionals on the first line and puts each option with its value on its own line one level deeper, in any order its parser requires, and a wrapped command starts a deeper line. Split a pipeline that transforms data step by step into one stage per line, and write a construct with more than one branch across lines, except a short `if` / `else` between plain values, which reads as a ternary.
 
 ## Repository safeguards
 

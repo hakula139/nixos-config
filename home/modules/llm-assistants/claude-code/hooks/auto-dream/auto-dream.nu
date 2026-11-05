@@ -12,8 +12,8 @@ const MIN_SESSIONS = 5
 # A nudge the session ignored, or a dream it abandoned, comes back after this long.
 const RETRY_AFTER = 1hr
 
-const PROJECTS_DIR = $nu.home-dir | path join ".claude" "projects"
-const NUDGE_DIR = $nu.cache-dir | path join "claude-code" "auto-dream"
+const PROJECTS_DIR = $nu.home-dir | path join ".claude/projects"
+const NUDGE_DIR = $nu.cache-dir | path join "claude-code/auto-dream"
 
 # Claude Code's project directory name for a path
 def project-slug [path: string]: nothing -> string {
@@ -22,7 +22,12 @@ def project-slug [path: string]: nothing -> string {
 
 # All worktrees of a repository share the main worktree's memory store.
 def main-worktree [git: string, cwd: string]: nothing -> string {
-  let result = (^$git -C $cwd worktree list --porcelain | complete)
+  let result = (
+    ^$git
+      -C $cwd
+      worktree list --porcelain
+    | complete
+  )
   if $result.exit_code != 0 {
     return ""
   }
@@ -31,7 +36,11 @@ def main-worktree [git: string, cwd: string]: nothing -> string {
 }
 
 def modified [path: string]: nothing -> datetime {
-  if ($path | path exists) { ls $path | get 0.modified } else { 0 | into datetime }
+  if ($path | path exists) {
+    ls $path | get 0.modified
+  } else {
+    0 | into datetime
+  }
 }
 
 def memories [store: string]: nothing -> list<string> {
@@ -81,7 +90,11 @@ def nudge [config: record, input: record]: nothing -> any {
 
   mkdir $NUDGE_DIR
   touch $marker
-  let last = if $since == (0 | into datetime) { "none recorded" } else { $since | format date "%Y-%m-%d" }
+  let last = if $since == (0 | into datetime) {
+    "none recorded"
+  } else {
+    $since | format date "%Y-%m-%d"
+  }
   let context = (
     $config.prompt
     | str replace --all "@model@" $config.model
@@ -90,7 +103,7 @@ def nudge [config: record, input: record]: nothing -> any {
     | str replace --all "@store@" $store
   )
 
-  # SessionStart feeds `additionalContext` to the model, while `systemMessage` reaches only the user.
+  # SessionStart gives the model `additionalContext`, while `systemMessage` reaches only the user.
   {
     systemMessage: $"Memory consolidation is due after ($sessions) sessions, so Claude will dream in a background agent."
     hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $context}
@@ -99,7 +112,11 @@ def nudge [config: record, input: record]: nothing -> any {
 }
 
 def main [config_file: string] {
-  let out = (try { nudge (open $config_file) (^cat | from json) } catch { null })
+  let out = try {
+    nudge (open $config_file) (^cat | from json)
+  } catch {
+    null
+  }
   if $out != null {
     print $out
   }
