@@ -9,7 +9,7 @@
 {
   pkgs,
   lib,
-  mkNuCommand,
+  repoLib,
 }:
 
 let
@@ -46,7 +46,7 @@ let
     ''}
   '';
 
-  projectNotifyPackage = mkNuCommand {
+  projectNotifyPackage = repoLib.mkNuCommand {
     inherit pkgs;
     name = "project-notify";
     script = ./project-notify.nu;

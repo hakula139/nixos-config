@@ -4,7 +4,7 @@
 
 {
   lib,
-  sharedAgents,
+  shared,
   enabledAgents,
 }:
 
@@ -30,4 +30,4 @@ let
     ${agent.prompt}
   '';
 in
-lib.mapAttrs renderAgent (lib.filterAttrs (name: _: lib.elem name enabledAgents) sharedAgents)
+lib.mapAttrs renderAgent (lib.filterAttrs (name: _: lib.elem name enabledAgents) shared.agentRoles)

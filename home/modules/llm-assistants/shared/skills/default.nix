@@ -15,6 +15,8 @@
 let
   cfg = config.hakula.llm-assistants;
 
+  promptFragments = import ../prompt-fragments;
+
   corpGateway = config.lib.llmAssistants.profileDefinitions.providers.corp-gateway;
   corpGatewayEnabled = cfg.enable && cfg.auth.enableCorpGateway;
 
@@ -54,9 +56,13 @@ let
   }
   // lib.optionalAttrs corpGatewayEnabled {
     prose-polish = import ./prose-polish {
-      inherit pkgs lib modelCatalog;
-      inherit (import ../prompt-fragments) phrasing;
-      inherit (repoLib) mkNuCommand;
+      inherit
+        pkgs
+        lib
+        modelCatalog
+        promptFragments
+        repoLib
+        ;
       modelCall = config.lib.llmAssistants.mkModelCall "prose-polish";
     };
   };

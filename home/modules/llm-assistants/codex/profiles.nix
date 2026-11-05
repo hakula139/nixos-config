@@ -6,12 +6,10 @@
   config,
   pkgs,
   lib,
-  sharedAgents,
+  shared,
   enabledAgents,
-  profileDefinitions,
   secretPath,
   configDir,
-  mkProfileSwitch,
 }:
 
 let
@@ -19,7 +17,7 @@ let
   toml = pkgs.formats.toml { };
   stateDir = "${config.xdg.stateHome}/codex";
 
-  corpGateway = profileDefinitions.providers.corp-gateway;
+  corpGateway = shared.profileDefinitions.providers.corp-gateway;
   tokenFile = secretPath (corpGateway.tokenSecretFor "codex");
   caFile = secretPath corpGateway.caSecret;
 
@@ -36,7 +34,7 @@ let
       inherit
         pkgs
         lib
-        sharedAgents
+        shared
         enabledAgents
         workloads
         ;
@@ -70,7 +68,7 @@ let
   # Profile definitions
   # ------------------------------------------------------------------------------------------------
   profiles = lib.mapAttrs mkProfile (
-    profileDefinitions.mkProfiles {
+    shared.profileDefinitions.mkProfiles {
       inherit (cfg) enableCorpGateway;
       nativeFamily = "gpt";
       providers = [
@@ -86,7 +84,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile switcher
   # ------------------------------------------------------------------------------------------------
-  switch = mkProfileSwitch {
+  switch = shared.mkProfileSwitch {
     inherit stateDir;
     inherit (cfg) defaultProfile;
     name = "codex-switch";
@@ -99,14 +97,14 @@ let
       "model_auto_compact_token_limit"
       "model_catalog_json"
     ]
-    ++ map (name: "agents.${name}") (builtins.attrNames sharedAgents);
+    ++ map (name: "agents.${name}") (builtins.attrNames shared.agentRoles);
   };
 in
 {
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options = profileDefinitions.mkOptions {
+  options = shared.profileDefinitions.mkOptions {
     defaultProfile = "official";
     enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
   };

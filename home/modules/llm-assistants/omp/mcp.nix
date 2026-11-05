@@ -6,15 +6,14 @@
   lib,
   enabledServers,
   mcpOptions,
-  mcpServers,
-  timeouts,
+  shared,
 }:
 
 let
   mkEntry =
     name:
     lib.nameValuePair mcpOptions.serverDisplayNames.${name} (
-      mcpServers.${name} // { timeout = timeouts.startup * 1000; }
+      shared.mcp.servers.${name} // { timeout = shared.mcp.timeouts.startup * 1000; }
     );
 in
 {

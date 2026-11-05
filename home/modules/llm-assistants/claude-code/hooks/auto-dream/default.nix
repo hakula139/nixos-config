@@ -5,17 +5,16 @@
 {
   pkgs,
   lib,
-  mkNuHook,
   model,
-  timeouts,
+  sharedHooks,
 }:
 
 {
   event = "SessionStart";
   type = "command";
-  timeout = timeouts.tool;
+  timeout = sharedHooks.timeouts.tool;
   statusMessage = "Checking memory consolidation";
-  command = mkNuHook {
+  command = sharedHooks.mkNuHook {
     slug = "auto-dream";
     script = ./auto-dream.nu;
     config = {
