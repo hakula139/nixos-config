@@ -7,10 +7,10 @@
 # Start or stop both tunnel services. Startup requires Tailscale to be connected, and launchd then
 # restarts a failed service until tunnel down or a reboot.
 def main [
-  action: string # up, down, or status. Run up and down with sudo.
+  action: string # One of up, down, or status, with up and down run under sudo
   host?: string # SSH configuration entry that up connects through
-  --user-name: string # Account that owns the SSH agent
-  --up-flag: path # File holding the SSH host, which both services require to be non-empty
+  --user-name: string # Wrapper-supplied account that owns the SSH agent
+  --up-flag: path # Wrapper-supplied file holding the SSH host, which both services need non-empty
 ] {
   if $action not-in ["up" "down" "status"] {
     error make {msg: "Expected up, down, or status"}

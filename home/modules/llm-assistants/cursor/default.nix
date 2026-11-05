@@ -67,6 +67,7 @@ in
           isDarwin
           isNixOS
           ;
+        inherit (repoLib) mkNuCommand;
         inherit (config.home) profileDirectory;
         flakePath = config.hakula.nix.configPath;
         mirroredNetworking = cfg.mirroredNetworking.enable;

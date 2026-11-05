@@ -34,8 +34,10 @@ def render-inbound [
 }
 
 # Render the Xray config, admitting proxy users whose level meets this server's minimum.
-def main [config_file: string] {
-  let config = (open $config_file)
+def main [
+  --config: path # Wrapper-supplied JSON with the base config, user and key files, and output path
+] {
+  let config = (open $config)
   if $config.minLevel not-in $LEVELS {
     error make {msg: $"Unknown minimum level: ($config.minLevel)"}
   }

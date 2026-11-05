@@ -425,11 +425,11 @@ def gateway-model [config: record, key: any]: nothing -> string {
 # while skipped pieces produce no report. Exits 1 when the model key is unknown, the model call
 # fails, or the input cannot be read, including a missing path or bytes that are not UTF-8.
 def main [
-  config_file: string # Supplied by the wrapper
   path?: path # Document to rewrite in place, read from stdin when omitted
+  --config: path # Wrapper-supplied JSON with the models, prompts, and model call
   --model (-m): string # Model catalog key, such as gemini-3.8-flash, in place of the default
 ] {
-  let config = (open $config_file)
+  let config = (open $config)
   let config = ($config | update model (gateway-model $config $model))
 
   let raw = if $path == null {

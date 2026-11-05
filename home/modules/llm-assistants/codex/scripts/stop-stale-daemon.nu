@@ -8,7 +8,9 @@
 #
 # The next Codex client starts it again from this generation's package, in that client's
 # environment. Restarting it here would pin the activation environment for its lifetime.
-def main [package: string] {
+def main [
+  --package: path # Wrapper-supplied Codex package of this generation
+] {
   let version = (^codex app-server daemon version | complete)
   if $version.exit_code != 0 { return }
 

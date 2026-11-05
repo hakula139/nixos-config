@@ -138,7 +138,7 @@
 
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
-      overlays = import ./lib/overlays.nix { inherit inputs; };
+      overlays = import ./lib/overlays.nix { inherit inputs repoLib; };
 
       pkgsFor =
         system:
@@ -207,7 +207,7 @@
               enable = true;
               name = "nu-check";
               description = "Run nushell's diagnostic check on .nu files.";
-              entry = "${pkgs.nu-check}";
+              entry = nixpkgs.lib.getExe pkgs.nu-check;
               files = "\\.nu$";
               types = [ "file" ];
             };

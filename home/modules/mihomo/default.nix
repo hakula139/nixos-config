@@ -18,7 +18,6 @@ let
   esc = lib.escapeShellArg;
 
   cfg = config.hakula.mihomo;
-  json = pkgs.formats.json { };
 
   # ------------------------------------------------------------------------------------------------
   # Paths
@@ -39,32 +38,27 @@ let
       (builtins.readFile ./config.yaml)
   );
 
-  updateConfig = json.generate "mihomo-update.json" {
-    inherit
-      baseConfigFile
-      configDir
-      secretFile
-      subscriptionUrlFile
-      ;
-    inherit (repoLib.proxy) proxyVars;
+  updatePackage = repoLib.mkNuCommand {
+    inherit pkgs;
+    name = "mihomo-update";
+    script = ./mihomo-update.nu;
+    runtimeInputs = [ pkgs.curl ];
 
-    curlArgs = repoLib.curl.mkArgs {
-      connectTimeout = 10;
-      maxTime = 60;
+    config = {
+      inherit
+        baseConfigFile
+        configDir
+        secretFile
+        subscriptionUrlFile
+        ;
+      inherit (repoLib.proxy) proxyVars;
+
+      curlArgs = repoLib.curl.mkArgs {
+        connectTimeout = 10;
+        maxTime = 60;
+      };
     };
   };
-
-  updatePackage = pkgs.writers.writeNuBin "mihomo-update" {
-    makeWrapperArgs = [
-      "--prefix"
-      "PATH"
-      ":"
-      (lib.makeBinPath [ pkgs.curl ])
-
-      "--add-flag"
-      "${updateConfig}"
-    ];
-  } (builtins.readFile ./mihomo-update.nu);
 
   updateScript = lib.getExe updatePackage;
 

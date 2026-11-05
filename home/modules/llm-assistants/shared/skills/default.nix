@@ -8,6 +8,7 @@
   lib,
   inputs,
   modelCatalog,
+  repoLib,
   ...
 }:
 
@@ -54,7 +55,7 @@ let
     prose-polish = import ./prose-polish {
       inherit pkgs lib modelCatalog;
       inherit (import ../prompt-fragments) phrasing;
-      mkNuCommand = import ../nu-command { inherit pkgs lib; };
+      inherit (repoLib) mkNuCommand;
       modelCall = config.lib.llmAssistants.mkModelCall "prose-polish";
     };
   };

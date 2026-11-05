@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  repoLib,
   ...
 }:
 
@@ -35,14 +36,12 @@ let
     meta.mainProgram = "tmux";
   };
 
-  taskName = pkgs.writers.writeNuBin "tmux-task-name" {
-    makeWrapperArgs = [
-      "--prefix"
-      "PATH"
-      ":"
-      (lib.makeBinPath [ pkgs.tmux ])
-    ];
-  } (builtins.readFile ./task-name.nu);
+  taskName = repoLib.mkNuCommand {
+    inherit pkgs;
+    name = "tmux-task-name";
+    script = ./task-name.nu;
+    runtimeInputs = [ pkgs.tmux ];
+  };
 
   # The plugin wrapper starts nested tmux clients, which deadlock the config queue if the initial
   # client exits while they run synchronously, and can be interrupted midway when backgrounded.
@@ -71,17 +70,13 @@ let
   # the background restore reads.
   resurrectPluginDir = "${pkgs.tmuxPlugins.resurrect}/share/tmux-plugins/resurrect";
   continuumPluginDir = "${pkgs.tmuxPlugins.continuum}/share/tmux-plugins/continuum";
-  restoreClients = pkgs.writers.writeNuBin "tmux-restore-clients" {
-    makeWrapperArgs = [
-      "--prefix"
-      "PATH"
-      ":"
-      (lib.makeBinPath [ pkgs.tmux ])
-
-      "--add-flag"
-      "${continuumPluginDir}/scripts/continuum_restore.sh"
-    ];
-  } (builtins.readFile ./restore-clients.nu);
+  restoreClients = repoLib.mkNuCommand {
+    inherit pkgs;
+    name = "tmux-restore-clients";
+    script = ./restore-clients.nu;
+    runtimeInputs = [ pkgs.tmux ];
+    flags.restore-script = "${continuumPluginDir}/scripts/continuum_restore.sh";
+  };
 
   persistenceConfig = ''
     %if "#{==:#{b:socket_path},default}"
