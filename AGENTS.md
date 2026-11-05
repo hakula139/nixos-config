@@ -6,7 +6,6 @@ Project-specific rules for any coding assistant working in this repository. `CLA
 
 | When the task involves                        | Read                                                                     |
 | --------------------------------------------- | ------------------------------------------------------------------------ |
-| Any code or comment                           | [docs/conventions/general.md](docs/conventions/general.md)               |
 | A Nix module, package, or host                | [docs/conventions/nix.md](docs/conventions/nix.md)                       |
 | A Nushell script or its tests                 | [docs/conventions/nushell.md](docs/conventions/nushell.md)               |
 | A secret or a recipient list                  | [docs/guides/secrets.md](docs/guides/secrets.md)                         |
@@ -15,6 +14,10 @@ Project-specific rules for any coding assistant working in this repository. `CLA
 | The prose polish skill or its model           | [docs/reference/prose-evaluation.md](docs/reference/prose-evaluation.md) |
 | First-time setup on any platform              | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)                     |
 | A deployment with nixsw or nixdp              | [README.md](README.md#applying-a-configuration)                          |
+
+## Script language
+
+Nushell is the default for new helper scripts. Bash is only for scripts another shell evaluates or sources, as with `makeWrapper --run` snippets, and for `exec` wrappers that only set a variable and hand off.
 
 ## Repository safeguards
 
