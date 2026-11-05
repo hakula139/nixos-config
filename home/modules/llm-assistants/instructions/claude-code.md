@@ -8,11 +8,7 @@
 
 ### Bash Tool
 
-The Bash tool runs zsh.
-
-- **Globs**: An unmatched glob aborts the command with "no matches found", so quote glob arguments such as `--include='*.nix'`.
-- **Variables**: An unquoted `$var` is not word-split, so build commands as arrays. `status` is read-only, so name the exit variable `rc`, and read `pipestatus` (lowercase) for a pipeline.
-- **`rm`**: Give it literal paths, because auto mode blocks a target it cannot resolve.
+- **`rm`**: Give it literal paths, since Claude Code's safety check asks for approval when a target is a variable or a glob it cannot resolve.
 - **Comments**: Never start the `command` field with a shell comment, because that breaks permission pattern matching, and put explanations in the `description` parameter.
 
 ### Isolated Worktrees
