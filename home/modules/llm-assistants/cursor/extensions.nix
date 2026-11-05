@@ -3,7 +3,9 @@
 # ==================================================================================================
 
 {
+  pkgs,
   lib,
+  mkNuCommand,
   homeDir,
   username,
   isDarwin,
@@ -11,18 +13,6 @@
 }:
 
 let
-  paths =
-    if isDarwin then
-      [
-        "/usr/local/bin"
-        "/Applications/Cursor.app/Contents/Resources/app/bin"
-      ]
-    else
-      [
-        "/usr/local/bin"
-        "/usr/bin"
-      ];
-
   # ------------------------------------------------------------------------------------------------
   # Extension list
   # ------------------------------------------------------------------------------------------------
@@ -158,73 +148,40 @@ let
   ];
 
   # ------------------------------------------------------------------------------------------------
-  # Installation script
+  # Sync script
   # ------------------------------------------------------------------------------------------------
-  installScript = ''
-    is_cursor_server() {
-      [[ "$(command -v cursor 2>/dev/null)" == *".cursor-server"* ]]
-    }
-
-    base_extensions="${lib.concatStringsSep "\n" baseExtensions}"
-    remote_extensions="${lib.concatStringsSep "\n" remoteExtensions}"
-
-    if is_cursor_server; then
-      expected="$base_extensions"
+  cliDirs =
+    if isDarwin then
+      [
+        "/usr/local/bin"
+        "/Applications/Cursor.app/Contents/Resources/app/bin"
+      ]
     else
-      expected="$base_extensions"$'\n'"$remote_extensions"
-    fi
+      [
+        "/usr/local/bin"
+        "/usr/bin"
+      ];
 
-    get_installed_ids() {
-      cursor --list-extensions --show-versions 2>/dev/null \
-        | sed 's/\r$//' \
-        | grep -E '^[[:alnum:]_-]+\.[[:alnum:]_-]+(@[^[:space:]]+)?$' \
-        | cut -d@ -f1
-    }
+  syncExtensions = mkNuCommand {
+    inherit pkgs;
+    name = "sync-cursor-extensions";
+    script = ./scripts/sync-extensions.nu;
+    runtimeInputs = [ pkgs.coreutils ];
 
-    installed_ids="$(get_installed_ids)"
-
-    while IFS= read -r ext; do
-      [ -z "$ext" ] && continue
-      printf '%s\n' "$installed_ids" | grep -iqFx "$ext" && continue
-      run cursor --install-extension "$ext" || true
-    done < <(printf '%s\n' "$expected")
-
-    if ${lib.boolToString prune}; then
-      while IFS= read -r ext; do
-        [ -z "$ext" ] && continue
-        printf '%s\n' "$expected" | grep -iqFx "$ext" && continue
-        run cursor --uninstall-extension "$ext" 2>/dev/null || true
-      done < <(get_installed_ids)
-    fi
-  '';
+    config = {
+      inherit
+        baseExtensions
+        remoteExtensions
+        cliDirs
+        username
+        prune
+        ;
+      serverDir = "${homeDir}/.cursor-server/bin";
+    };
+  };
 in
 {
   activation = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    cursor_server_path="$(
-      find "${homeDir}/.cursor-server/bin" \
-        -type d \
-        -name "remote-cli" 2>/dev/null \
-        | sort \
-        | tail -n 1 || true
-    )"
-
-    export PATH="${lib.concatStringsSep ":" paths}''${cursor_server_path:+:$cursor_server_path}:$PATH"
-
-    # Detect Cursor IPC socket for CLI communication (needed when running via sudo)
-    if [ -z "''${VSCODE_IPC_HOOK_CLI:-}" ]; then
-      uid="$(id -u "${username}")"
-      ipc_socket="$(ls -t /run/user/"$uid"/vscode-ipc-*.sock 2>/dev/null | head -1 || true)"
-      if [ -n "$ipc_socket" ]; then
-        export VSCODE_IPC_HOOK_CLI="$ipc_socket"
-      fi
-    fi
-
-    if command -v cursor &>/dev/null; then
-      (
-        ${installScript}
-      ) || echo "Cursor extension management failed, continuing anyway"
-    else
-      echo "Cursor not found, skipping extension installation"
-    fi
+    run ${lib.getExe syncExtensions}
   '';
 }
