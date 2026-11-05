@@ -121,7 +121,7 @@ def format-paths [paths: list<string>]: nothing -> list<string> {
 }
 
 # Report the hooks that fail on the given files.
-def --wrapped main [
+def main [
   ...paths: string # Files to check
 ] {
   let reports = (format-paths $paths)

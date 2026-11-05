@@ -20,11 +20,11 @@ def collect-paths [input: record, parser: string]: nothing -> list<string> {
 def format-edited [config: record]: nothing -> any {
   let input = (^cat | from json)
   cd $input.cwd
-  let paths = (collect-paths $input $config.patchInput)
+  let paths = (collect-paths $input $config.patchInput | path expand)
   if ($paths | is-empty) { return null }
 
   let formatter = $config.fileFormatter
-  let run = (^$formatter ...$paths | complete)
+  let run = (^$formatter -- ...$paths | complete)
   if ($run.stderr | is-not-empty) { print --stderr --no-newline $run.stderr }
   let report = ($run.stdout | str trim)
   if ($report | is-empty) { return null }

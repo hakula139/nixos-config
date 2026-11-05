@@ -4,7 +4,7 @@
 # Formatter Stub
 # ==================================================================================================
 
-def --wrapped main [...args: string] {
+def main [...args: string] {
   {cwd: $env.PWD, args: $args}
   | to json --raw
   | $"($in)\n"
