@@ -48,7 +48,6 @@ in
 
   "llm-assistants/telegram-bot-token.age".publicKeys = allKeys;
 
-  "llm-assistants/mcp/brave-api-key.age".publicKeys = allKeys;
   "llm-assistants/mcp/confluence-pat.age".publicKeys = allKeys;
   "llm-assistants/mcp/context7-api-key.age".publicKeys = allKeys;
   "llm-assistants/mcp/exa-api-key.age".publicKeys = allKeys;
