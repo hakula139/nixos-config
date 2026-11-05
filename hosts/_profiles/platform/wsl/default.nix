@@ -41,13 +41,11 @@ in
   };
 
   # ------------------------------------------------------------------------------------------------
-  # WSL-inert baseline knobs
+  # WSL-inert network knobs
   # ------------------------------------------------------------------------------------------------
   boot.kernel.sysctl = {
     "net.core.default_qdisc" = lib.mkForce null;
     "net.ipv4.tcp_congestion_control" = lib.mkForce null;
-    "vm.swappiness" = lib.mkForce null;
-    "vm.vfs_cache_pressure" = lib.mkForce null;
   };
 
   # ------------------------------------------------------------------------------------------------
