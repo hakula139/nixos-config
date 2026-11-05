@@ -5,6 +5,7 @@
 - **Edit and Write**: The formatter and the comment gate run only on Edit and Write, so use those tools for repository edits even when auto mode suggests `sed` or a heredoc.
 - **Subagent writes**: Write refuses a subagent's write when the target is a Markdown file whose name starts with `report`, `summary`, `findings`, or `analysis`, regardless of case. When a delegate must produce such a file, the coordinator creates it first and the delegate fills it in with Edit, so the formatter and the comment gate still run.
 - **Bash**: Never start the `command` field with a shell comment because that breaks permission pattern matching. Put explanations in the `description` parameter.
+- **Bash shell**: The Bash tool runs zsh, where an unmatched glob aborts the whole command with "no matches found", so quote glob arguments such as `--include='*.nix'`. An unquoted `$var` is not word-split, so build commands as arrays. `status` is read-only, so name the exit variable `rc`, and read `pipestatus` (lowercase) for a pipeline. Give `rm` literal paths.
 - **Web search**: Native `WebSearch` needs a profile that enables it, while `WebFetch` always works.
 
 ### Isolated Worktrees
