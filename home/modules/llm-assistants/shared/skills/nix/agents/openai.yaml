@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Nix'
+  short_description: 'Write and review Nix modules, packages, and flakes'
+  default_prompt: 'Use $nix to write or review these Nix modules, packages, or flakes.'
