@@ -102,6 +102,19 @@ def modes [case: record, rules: list<record>, args: list<string>]: nothing -> li
   ]
 }
 
+def "test the default model and --model" [] {
+  let target = (case polish ideographic-indent)
+  let input = (bytes ($target.dir | path join "input.md"))
+
+  let default = (command [] $input $target.data.rules)
+  assert equal $default.run.exit_code 0 $default.run.stderr
+  assert equal ($default.calls | get model) ["stub"]
+
+  let chosen = (command [--model gemini-3.8-flash] $input $target.data.rules)
+  assert equal $chosen.run.exit_code 0 $chosen.run.stderr
+  assert equal ($chosen.calls | get model) ["gateway/gemini-3.8-flash"]
+}
+
 def "test polish cases" [] {
   for case in (cases polish) {
     let expected = (bytes ($case.dir | path join "expected.md"))
@@ -148,34 +161,6 @@ def "test refuse cases" [] {
   }
 }
 
-def "test fail cases" [] {
-  for case in (cases fail) {
-    let report = $"($case.data.forwarded)prose-polish: ($case.data.stderr)\n"
-
-    for mode in (modes $case $case.data.rules $case.data.args) {
-      let context = $"($case.name) ($mode.name)"
-      assert equal $mode.run.exit_code 1 $context
-      assert equal $mode.run.stdout "" $context
-      assert equal $mode.run.stderr $report $context
-      assert equal ($mode.calls | length) ($case.data.rules | length) $context
-      assert $mode.untouched $context
-    }
-  }
-}
-
-def "test the default model and --model" [] {
-  let target = (case polish ideographic-indent)
-  let input = (bytes ($target.dir | path join "input.md"))
-
-  let default = (command [] $input $target.data.rules)
-  assert equal $default.run.exit_code 0 $default.run.stderr
-  assert equal ($default.calls | get model) ["stub"]
-
-  let chosen = (command [--model gemini-3.8-flash] $input $target.data.rules)
-  assert equal $chosen.run.exit_code 0 $chosen.run.stderr
-  assert equal ($chosen.calls | get model) ["gateway/gemini-3.8-flash"]
-}
-
 def "test a refused rewrite is retried with its reason" [] {
   let target = (case polish repair-succeeds)
   let document = (bytes ($target.dir | path join "input.md"))
@@ -213,5 +198,20 @@ def "test a refused rewrite is retried with its reason" [] {
     ] $context
     assert str contains ($result.calls | get 0.user) $PROMPT $context
     assert str contains ($result.calls | get 1.user) $REPAIR_PROMPT $context
+  }
+}
+
+def "test fail cases" [] {
+  for case in (cases fail) {
+    let report = $"($case.data.forwarded)prose-polish: ($case.data.stderr)\n"
+
+    for mode in (modes $case $case.data.rules $case.data.args) {
+      let context = $"($case.name) ($mode.name)"
+      assert equal $mode.run.exit_code 1 $context
+      assert equal $mode.run.stdout "" $context
+      assert equal $mode.run.stderr $report $context
+      assert equal ($mode.calls | length) ($case.data.rules | length) $context
+      assert $mode.untouched $context
+    }
   }
 }

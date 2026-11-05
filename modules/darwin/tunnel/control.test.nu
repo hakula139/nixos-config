@@ -56,17 +56,6 @@ def launchctl-calls [result: record]: nothing -> list<record> {
   | sort-by {|call| $call.args | last}
 }
 
-def "test a stopped Tailscale backend cannot start either tunnel service" [] {
-  for state in ["Stopped" "NeedsLogin"] {
-    let result = (control [up $HOST] [] $state)
-
-    assert not equal $result.run.exit_code 0 $state
-    assert str contains $result.run.stderr $state $state
-    assert equal (launchctl-calls $result) [] $state
-    assert not $result.up_flag $state
-  }
-}
-
 def "test startup targets the configured account and checks Tailscale first" [] {
   let id_call = {command: "id", args: [-u example-user]}
 
@@ -111,6 +100,17 @@ def "test startup without a host starts nothing" [] {
   }
 }
 
+def "test a stopped Tailscale backend cannot start either tunnel service" [] {
+  for state in ["Stopped" "NeedsLogin"] {
+    let result = (control [up $HOST] [] $state)
+
+    assert not equal $result.run.exit_code 0 $state
+    assert str contains $result.run.stderr $state $state
+    assert equal (launchctl-calls $result) [] $state
+    assert not $result.up_flag $state
+  }
+}
+
 def "test a startup failure reports the affected component and how to stop partial startup" [] {
   for target in [$SSH $RELAY] {
     let replies = [
@@ -124,6 +124,13 @@ def "test a startup failure reports the affected component and how to stop parti
     assert str contains $result.run.stderr "sudo tunnel down" $target
     assert equal $result.run.stdout "" $target
   }
+}
+
+def "test stopping removes the up flag before stopping either service" [] {
+  let result = (control --flag $HOST [down])
+  assert equal $result.run.exit_code 0 $result.run.stderr
+
+  assert equal ($result.calls | where command == "launchctl" | get up_host) [null null]
 }
 
 def "test stopping tolerates an already stopped process for either service" [] {
@@ -148,13 +155,6 @@ def "test stopping tolerates an already stopped process for either service" [] {
       {command: "launchctl", args: [kill SIGTERM $RELAY]}
     ] $case.name
   }
-}
-
-def "test stopping removes the up flag before stopping either service" [] {
-  let result = (control --flag $HOST [down])
-  assert equal $result.run.exit_code 0 $result.run.stderr
-
-  assert equal ($result.calls | where command == "launchctl" | get up_host) [null null]
 }
 
 def "test an unexpected stop failure is reported after both services are attempted" [] {

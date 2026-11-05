@@ -276,6 +276,126 @@ def digest-day [
   digest-output $dir $overrides --excerpt-chars=$excerpt_chars | get days.0
 }
 
+def "test the excerpt length keeps whole text at zero and cuts at a custom limit" [] {
+  let dir = (mktemp --directory)
+  let long = (
+    $"
+    first
+    ("" | fill --character "a" --width 450)
+    "
+    | str dedent
+  )
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-prompt "/work/app" "10:00" $long)
+    (claude-reply "/work/app" "10:30" $long)
+  ]
+
+  let excerpted = (digest-day $dir)
+  let short = (digest-day $dir --excerpt-chars 10)
+  let full = (digest-day $dir --excerpt-chars 0)
+
+  let excerpt = $"first ("" | fill --character "a" --width 394)..."
+  let short_excerpt = "first aaaa..."
+  let projected = {|day|
+    $day.sessions | each {|s| {prompt: $s.prompts.0.text, reply: $s.replies.0.text} }
+  }
+  assert equal (do $projected $excerpted) [{prompt: $excerpt, reply: $excerpt}]
+  assert equal (do $projected $short) [{prompt: $short_excerpt, reply: $short_excerpt}]
+  assert equal (do $projected $full) [{prompt: $long, reply: $long}]
+}
+
+def "test a negative excerpt length is rejected" [] {
+  let dir = (mktemp --directory)
+
+  let run = (digest-run $dir --excerpt-chars=-1)
+
+  assert equal $run.exit_code 1
+  assert str contains $run.stderr "must be 0 or greater"
+}
+
+def "test Codex request headings are stripped from prompts" [] {
+  let dir = (mktemp --directory)
+  let cases = [
+    {
+      name: "Desktop browser context"
+      clock: "11:00"
+      done: "11:30"
+      input: (
+        "
+        <in-app-browser-context source="ambient-ui-state">
+        page text
+        ## My request:
+        quoted earlier transcript
+        </in-app-browser-context>
+        ## My request:
+        summarize it
+        "
+        | str dedent
+      )
+      expected: "summarize it"
+    }
+    {
+      name: "Desktop IDE context"
+      clock: "12:00"
+      done: "12:30"
+      input: (
+        "
+        # Context from my IDE setup:
+        ## Active file: /work/app/main.nu
+        ## My request:
+        short form
+        "
+        | str dedent
+      )
+      expected: "short form"
+    }
+    {
+      name: "TUI IDE context"
+      clock: "13:00"
+      done: "13:30"
+      input: (
+        "
+        # Context from my IDE setup:
+
+        ## Active file: src/lib.rs
+
+        ## My request for Codex:
+        long form
+        "
+        | str dedent
+      )
+      expected: "long form"
+    }
+    {
+      name: "no heading"
+      clock: "14:00"
+      done: "14:30"
+      input: "no heading here"
+      expected: "no heading here"
+    }
+    {
+      name: "inline mention"
+      clock: "15:00"
+      done: "15:30"
+      input: "quote ## My request: tail"
+      expected: "tail"
+    }
+  ]
+  let records = (
+    $cases
+    | each {|c| codex-turn $c.clock $c.input --done $c.done }
+    | flatten
+  )
+  codex-transcript $dir {id: "request", cwd: "/work/app", thread_source: "user"} $records
+
+  let day = (digest-day $dir --excerpt-chars 0)
+  let prompts = ($day.sessions.0.prompts | get text)
+
+  for c in ($cases | enumerate) {
+    assert equal ($prompts | get $c.index) $c.item.expected $c.item.name
+  }
+}
+
 def "test only prompts a person typed count" [] {
   let dir = (mktemp --directory)
   let app = "/work/app"
@@ -348,22 +468,18 @@ def "test an answered question earns a prompt and a timed-out one earns none" []
   ]
 }
 
-def "test a prompt queued while a question waits keeps its own unit" [] {
+def "test only a record tool result can be a question" [] {
   let dir = (mktemp --directory)
   transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-user "/work/app" "09:58" "ran a command" {toolUseResult: "output"})
+    (claude-user "/work/app" "09:59" "read a file" {toolUseResult: [{type: "text", text: "x"}]})
     (claude-prompt "/work/app" "10:00" "start")
-    (claude-answered "/work/app" "10:05" {"Which repo?": "app"})
-    (claude-queued "/work/app" "10:03" "also run the tests")
-    (claude-reply "/work/app" "10:20" "done")
+    (claude-reply "/work/app" "10:10" "done")
   ]
 
-  let day = (digest-day $dir --excerpt-chars 0)
+  let day = (digest-day $dir)
 
-  assert equal ($day.sessions.0.prompts | select at agent) [
-    {at: "10:00", agent: 0.05}
-    {at: "10:03", agent: 0.0333}
-    {at: "10:05", agent: 0.25}
-  ]
+  assert equal ($day.sessions.0.prompts | select at hours) [{at: "10:00", hours: 0.3333}]
 }
 
 def "test records written out of order keep their time order" [] {
@@ -383,18 +499,155 @@ def "test records written out of order keep their time order" [] {
   assert equal $day.sessions.0.replies [{at: "10:20", text: "done"}]
 }
 
-def "test only a record tool result can be a question" [] {
+def "test both forms of an archived Codex session read once" [] {
+  let dir = (mktemp --directory)
+  let app = (git-repo $dir app)
+  let meta = {id: "both", cwd: $app, thread_source: "user"}
+  let records = (codex-turn "11:00" "review it" --done "11:10")
+  codex-transcript $dir $meta $records --archived --compressed
+  codex-transcript $dir $meta $records --archived
+
+  let day = (digest-day $dir)
+
+  assert equal ($day.sessions | length) 1
+  assert equal $day.sessions.0.prompts.0.agent 0.1664
+}
+
+def "test a prompt queued while a question waits keeps its own unit" [] {
   let dir = (mktemp --directory)
   transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-user "/work/app" "09:58" "ran a command" {toolUseResult: "output"})
-    (claude-user "/work/app" "09:59" "read a file" {toolUseResult: [{type: "text", text: "x"}]})
     (claude-prompt "/work/app" "10:00" "start")
-    (claude-reply "/work/app" "10:10" "done")
+    (claude-answered "/work/app" "10:05" {"Which repo?": "app"})
+    (claude-queued "/work/app" "10:03" "also run the tests")
+    (claude-reply "/work/app" "10:20" "done")
+  ]
+
+  let day = (digest-day $dir --excerpt-chars 0)
+
+  assert equal ($day.sessions.0.prompts | select at agent) [
+    {at: "10:00", agent: 0.05}
+    {at: "10:03", agent: 0.0333}
+    {at: "10:05", agent: 0.25}
+  ]
+}
+
+def "test steering prompts and triggers share the first reply" [] {
+  let dir = (mktemp --directory)
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-prompt "/work/app" "10:00" "start")
+    (claude-queued "/work/app" "10:05" "also check tests")
+    (claude-notification "/work/app" "10:08")
+    (claude-reply "/work/app" "10:30")
   ]
 
   let day = (digest-day $dir)
 
-  assert equal ($day.sessions.0.prompts | select at hours) [{at: "10:00", hours: 0.3333}]
+  assert equal $day.sessions.0.replies [{at: "10:30", text: "done"}]
+  assert equal ($day.sessions.0.prompts | select at text) [
+    {at: "10:00", text: "start"}
+    {at: "10:05", text: "also check tests"}
+  ]
+  assert equal ($day.sessions.0.prompts | get hours) [0.0833 0.5833]
+  assert equal ($day.sessions.0.prompts | get agent) [0.0833 0.4167]
+}
+
+def "test a Codex turn starts at its prompt" [] {
+  let dir = (mktemp --directory)
+  let app = (git-repo $dir app)
+  codex-transcript $dir {id: "lead", cwd: $app, thread_source: "user"} (
+    codex-turn "11:00" "review it" --done "11:10"
+  )
+
+  let day = (digest-day $dir)
+
+  assert equal $day.runs []
+  assert equal $day.sessions.0.prompts.0.agent 0.1664
+}
+
+def "test a reply-less turn ends at its last model record" [] {
+  let dir = (mktemp --directory)
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-prompt "/work/app" "10:00" "P")
+    ...(claude-active "/work/app" ["10:10" "10:20"])
+    (claude-prompt "/work/app" "10:25" "Q")
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal ($day.sessions.0.prompts | select at agent) [
+    {at: "10:00", agent: 0.3333}
+    {at: "10:25", agent: 0}
+  ]
+}
+
+def "test a compaction belongs to the turn it compacted" [] {
+  let dir = (mktemp --directory)
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-prompt "/work/app" "10:00" "P")
+    ...(claude-active "/work/app" ["10:05"])
+    (claude-user "/work/app" "10:10" "summary" {isCompactSummary: true})
+  ]
+  transcript $dir ["claude/projects/app/b.jsonl"] [
+    (claude-prompt "/work/app" "10:00" "P")
+    ...(claude-active "/work/app" ["10:05"])
+    (claude-user "/work/app" "10:10" "summary" {isCompactSummary: true})
+    (claude-reply "/work/app" "10:20" "done")
+  ]
+  codex-transcript $dir {id: "c", cwd: "/work/app", thread_source: "user"} [
+    ...(codex-turn "10:00" "P")
+    (codex-model "10:05")
+    {type: "response_item", timestamp: (at "10:10"), payload: {type: "compaction"}}
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal (
+    $day.sessions
+    | select session prompts
+    | each {|s| {session: $s.session, agent: $s.prompts.0.agent} }
+    | sort-by session
+  ) [
+    {session: "a", agent: 0.1667}
+    {session: "b", agent: 0.3333}
+    {session: "c", agent: 0.1664}
+  ]
+  assert equal $day.runs []
+}
+
+def "test a turn with no model output earns nothing" [] {
+  let dir = (mktemp --directory)
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-prompt "/work/app" "10:00" "P")
+    (claude-prompt "/work/app" "10:05" "Q")
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal ($day.sessions.0.prompts | select at agent) [
+    {at: "10:00", agent: 0}
+    {at: "10:05", agent: 0}
+  ]
+}
+
+def "test canceled Codex turns cannot borrow a later reply" [] {
+  let dir = (mktemp --directory)
+  let prompt = {type: "UserMessage", content: [{type: "text", text: "start"}]}
+  codex-transcript $dir {id: "canceled", cwd: "/work/app", thread_source: "user"} [
+    (codex-event "10:00" {type: "task_started", turn_id: "first"})
+    (codex-event "10:00" {type: "item_completed", item: $prompt, turn_id: "first"})
+    (codex-event "10:01" {type: "turn_aborted", turn_id: "first"})
+    (codex-event "13:00" {type: "task_started", turn_id: "second"})
+    (codex-model "13:05")
+    (codex-event "13:10" {type: "task_complete", last_agent_message: "done"})
+    (codex-event "13:11" {type: "turn_aborted", turn_id: "second"})
+    (codex-event "13:12" {type: "task_complete", last_agent_message: "final"})
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal $day.sessions.0.prompts.0.hours 0.1667
+  assert equal $day.sessions.0.prompts.0.agent 0.1667
+  assert equal $day.sessions.0.replies [{at: "13:12", text: "final"}]
 }
 
 def "test each tool's writes credit their prompt's repositories" [] {
@@ -583,19 +836,6 @@ def "test Codex subagents and guardian reviews credit the prompt that started th
   }
 }
 
-def "test a Codex turn starts at its prompt" [] {
-  let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  codex-transcript $dir {id: "lead", cwd: $app, thread_source: "user"} (
-    codex-turn "11:00" "review it" --done "11:10"
-  )
-
-  let day = (digest-day $dir)
-
-  assert equal $day.runs []
-  assert equal $day.sessions.0.prompts.0.agent 0.1664
-}
-
 def "test a Codex subagent finds its parent in archived sessions" [] {
   for compressed in [false true] {
     let dir = (mktemp --directory)
@@ -621,20 +861,6 @@ def "test a Codex subagent finds its parent in archived sessions" [] {
     assert equal $day.sessions.0.prompts.0.repos {lib: 1.0} $form
     assert equal $day.runs [] $form
   }
-}
-
-def "test both forms of an archived Codex session read once" [] {
-  let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let meta = {id: "both", cwd: $app, thread_source: "user"}
-  let records = (codex-turn "11:00" "review it" --done "11:10")
-  codex-transcript $dir $meta $records --archived --compressed
-  codex-transcript $dir $meta $records --archived
-
-  let day = (digest-day $dir)
-
-  assert equal ($day.sessions | length) 1
-  assert equal $day.sessions.0.prompts.0.agent 0.1664
 }
 
 def "test OMP subagents and advisors credit the prompt that started them" [] {
@@ -836,6 +1062,45 @@ def "test writes git ignores count only while their directory exists" [] {
   assert equal $day.sessions.0.prompts.0.repos {app: 0.67, lib: 0.33}
 }
 
+def "test a prompt earns its turn and a reading allowance until the next prompt anywhere" [] {
+  let dir = (mktemp --directory)
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-prompt "/work/app" "10:00" "release it, I'll watch")
+    (claude-reply "/work/app" "11:30")
+    (claude-prompt "/work/app" "12:00" "fix the test")
+    (claude-reply "/work/app" "12:06")
+    (claude-prompt "/work/app" "13:00" "refactor the parser")
+    (claude-reply "/work/app" "13:45")
+    (claude-prompt "/work/app" "14:00" "merge it")
+    (claude-reply "/work/app" "14:06")
+    (claude-notification "/work/app" "14:30")
+    (claude-reply "/work/app" "14:50")
+  ]
+  transcript $dir ["claude/projects/lib/b.jsonl"] [
+    (claude-prompt "/work/lib" "13:24" "review the API")
+  ]
+
+  let day = (digest-day $dir {readingMinutes: 12})
+
+  assert equal ($day.sessions | each { get prompts.hours }) [[1.0 0.3 0.4 0.3] [0.2]]
+}
+
+def "test a prompt is cut by a prompt from another session after midnight" [] {
+  let dir = (mktemp --directory)
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-prompt "/work/app" "2026-10-15T23:30" "late")
+    (claude-reply "/work/app" "2026-10-16T00:20")
+  ]
+  transcript $dir ["claude/projects/lib/b.jsonl"] [
+    (claude-prompt "/work/lib" "2026-10-16T00:05" "early")
+    (claude-reply "/work/lib" "2026-10-16T00:10")
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal ($day.sessions | each { get prompts | get hours }) [[0.5833]]
+}
+
 def "test separate prompts and parallel delegates both add agent time" [] {
   let dir = (mktemp --directory)
   let app = (git-repo $dir app)
@@ -866,6 +1131,103 @@ def "test separate prompts and parallel delegates both add agent time" [] {
 
   assert equal ($day.sessions | where cwd == $app | get 0.prompts.0.agent) 2.8333
   assert equal ($day.sessions | where cwd == $lib | get 0.prompts.0.agent) 0.5
+}
+
+def "test an agent turn earns at most the cap" [] {
+  let dir = (mktemp --directory)
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-notification "/work/app" "10:00")
+    ...(claude-active "/work/app" ["10:20" "10:40" "11:00" "11:20" "11:40" "12:00" "12:20" "12:40"])
+    (claude-reply "/work/app" "13:00")
+  ]
+
+  let day = (digest-day $dir {agentMaxMinutes: 90})
+
+  assert equal $day.runs.0.agent 1.5
+}
+
+def "test a stalled delegate earns only the time before its gap" [] {
+  let dir = (mktemp --directory)
+  let app = (git-repo $dir app)
+  let lead = "aaaabbbb-0000-4000-8000-000000000009"
+  transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
+    (claude-prompt $app "09:55" "P")
+    (claude-reply $app "10:00" "first")
+  ]
+  claude-subagent $dir app $lead a {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
+    (claude-user $app "10:05" "task" {isSidechain: true})
+    ...(claude-active $app ["10:25" "10:45"])
+    (claude-tool $app "13:45" SubagentHandback {})
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal $day.sessions.0.prompts.0.agent 0.75
+}
+
+def "test a gap of exactly the idle threshold keeps the turn span" [] {
+  let dir = (mktemp --directory)
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-notification "/work/app" "10:00")
+    ...(claude-active "/work/app" ["10:30"])
+    (claude-reply "/work/app" "11:00")
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal $day.runs.0.agent 1
+}
+
+def "test a turn ends at its first long gap" [] {
+  let dir = (mktemp --directory)
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-notification "/work/app" "10:00")
+    ...(claude-active "/work/app" ["10:10" "10:50" "11:00" "12:00"])
+    (claude-reply "/work/app" "12:05")
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal $day.runs.0.agent 0.1667
+}
+
+def "test a later turn gap does not cut an earlier turn" [] {
+  let dir = (mktemp --directory)
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-notification "/work/app" "10:00")
+    ...(claude-active "/work/app" ["10:05"])
+    (claude-notification "/work/app" "10:10")
+    ...(claude-active "/work/app" ["10:15" "10:20"])
+    (claude-reply "/work/app" "11:30")
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal $day.runs.0.agent 0.3333
+}
+
+def "test each tool turn ends at its last record before a long gap" [] {
+  let dir = (mktemp --directory)
+  let item = {type: "UserMessage", content: [{type: "text", text: "go"}]}
+  codex-transcript $dir {id: "codex", cwd: "/work/app", thread_source: "user", source: "exec"} [
+    (codex-event "10:00" {type: "task_started", turn_id: "t"})
+    (codex-event "10:00" {type: "item_completed", item: $item, turn_id: "t"})
+    (codex-event "10:20" {type: "token_count"})
+    (codex-event "11:30" {type: "task_complete", last_agent_message: "ok"})
+  ]
+  transcript $dir ["omp/sessions/app/a.jsonl"] [
+    {type: "session", id: "omp", cwd: "/work/app"}
+    (omp-user "12:00" "go" --agent)
+    (omp-tool "12:20" [{type: "toolCall", id: "r", name: "read", arguments: {path: "x"}}])
+    (omp-reply "13:30")
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal ($day.runs | select tool agent) [
+    {tool: "codex", agent: 0.3333}
+    {tool: "omp", agent: 0.3333}
+  ]
 }
 
 def "test a delegate turn on a later day continues its prompt there" [] {
@@ -1102,6 +1464,33 @@ def "test agent time belongs to the day its turn started" [] {
   assert equal $day.runs.0.agent 2.0
 }
 
+def "test a day keeps its final replies past midnight until the next prompt" [] {
+  let dir = (mktemp --directory)
+  transcript $dir ["claude/projects/app/a.jsonl"] [
+    (claude-prompt "/work/app" "10:00" "start")
+    (claude-reply "/work/app" "10:05" "working")
+    (claude-tool "/work/app" "10:06" Edit {
+      file_path: "/work/app/a.nu"
+      old_string: "a"
+      new_string: "b"
+      replace_all: false
+    })
+    (claude-notification "/work/app" "10:08")
+    (claude-reply "/work/app" "10:12" "started")
+    (claude-prompt "/work/app" "10:15" "ship it")
+    (claude-reply "/work/app" "2026-10-16T00:30" "merged")
+    (claude-prompt "/work/app" "2026-10-16T09:00" "next")
+    (claude-reply "/work/app" "2026-10-16T09:05" "tomorrow")
+  ]
+
+  let day = (digest-day $dir)
+
+  assert equal ($day.sessions.0.replies | select at text) [
+    {at: "10:12", text: "started"}
+    {at: "00:30", text: "merged"}
+  ]
+}
+
 def "test sessions report their repository, and the digest lists labels and repository paths" [] {
   let dir = (mktemp --directory)
   let app = (git-repo $dir app)
@@ -1141,393 +1530,4 @@ def "test sessions report their repository, and the digest lists labels and repo
     "replies"
     "continued"
   ]
-}
-
-def "test a prompt earns its turn and a reading allowance until the next prompt anywhere" [] {
-  let dir = (mktemp --directory)
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-prompt "/work/app" "10:00" "release it, I'll watch")
-    (claude-reply "/work/app" "11:30")
-    (claude-prompt "/work/app" "12:00" "fix the test")
-    (claude-reply "/work/app" "12:06")
-    (claude-prompt "/work/app" "13:00" "refactor the parser")
-    (claude-reply "/work/app" "13:45")
-    (claude-prompt "/work/app" "14:00" "merge it")
-    (claude-reply "/work/app" "14:06")
-    (claude-notification "/work/app" "14:30")
-    (claude-reply "/work/app" "14:50")
-  ]
-  transcript $dir ["claude/projects/lib/b.jsonl"] [
-    (claude-prompt "/work/lib" "13:24" "review the API")
-  ]
-
-  let day = (digest-day $dir {readingMinutes: 12})
-
-  assert equal ($day.sessions | each { get prompts.hours }) [[1.0 0.3 0.4 0.3] [0.2]]
-}
-
-def "test steering prompts and triggers share the first reply" [] {
-  let dir = (mktemp --directory)
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-prompt "/work/app" "10:00" "start")
-    (claude-queued "/work/app" "10:05" "also check tests")
-    (claude-notification "/work/app" "10:08")
-    (claude-reply "/work/app" "10:30")
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal $day.sessions.0.replies [{at: "10:30", text: "done"}]
-  assert equal ($day.sessions.0.prompts | select at text) [
-    {at: "10:00", text: "start"}
-    {at: "10:05", text: "also check tests"}
-  ]
-  assert equal ($day.sessions.0.prompts | get hours) [0.0833 0.5833]
-  assert equal ($day.sessions.0.prompts | get agent) [0.0833 0.4167]
-}
-
-def "test a reply-less turn ends at its last model record" [] {
-  let dir = (mktemp --directory)
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-prompt "/work/app" "10:00" "P")
-    ...(claude-active "/work/app" ["10:10" "10:20"])
-    (claude-prompt "/work/app" "10:25" "Q")
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal ($day.sessions.0.prompts | select at agent) [
-    {at: "10:00", agent: 0.3333}
-    {at: "10:25", agent: 0}
-  ]
-}
-
-def "test a compaction belongs to the turn it compacted" [] {
-  let dir = (mktemp --directory)
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-prompt "/work/app" "10:00" "P")
-    ...(claude-active "/work/app" ["10:05"])
-    (claude-user "/work/app" "10:10" "summary" {isCompactSummary: true})
-  ]
-  transcript $dir ["claude/projects/app/b.jsonl"] [
-    (claude-prompt "/work/app" "10:00" "P")
-    ...(claude-active "/work/app" ["10:05"])
-    (claude-user "/work/app" "10:10" "summary" {isCompactSummary: true})
-    (claude-reply "/work/app" "10:20" "done")
-  ]
-  codex-transcript $dir {id: "c", cwd: "/work/app", thread_source: "user"} [
-    ...(codex-turn "10:00" "P")
-    (codex-model "10:05")
-    {type: "response_item", timestamp: (at "10:10"), payload: {type: "compaction"}}
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal (
-    $day.sessions
-    | select session prompts
-    | each {|s| {session: $s.session, agent: $s.prompts.0.agent} }
-    | sort-by session
-  ) [
-    {session: "a", agent: 0.1667}
-    {session: "b", agent: 0.3333}
-    {session: "c", agent: 0.1664}
-  ]
-  assert equal $day.runs []
-}
-
-def "test a turn with no model output earns nothing" [] {
-  let dir = (mktemp --directory)
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-prompt "/work/app" "10:00" "P")
-    (claude-prompt "/work/app" "10:05" "Q")
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal ($day.sessions.0.prompts | select at agent) [
-    {at: "10:00", agent: 0}
-    {at: "10:05", agent: 0}
-  ]
-}
-
-def "test an agent turn earns at most the cap" [] {
-  let dir = (mktemp --directory)
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-notification "/work/app" "10:00")
-    ...(claude-active "/work/app" ["10:20" "10:40" "11:00" "11:20" "11:40" "12:00" "12:20" "12:40"])
-    (claude-reply "/work/app" "13:00")
-  ]
-
-  let day = (digest-day $dir {agentMaxMinutes: 90})
-
-  assert equal $day.runs.0.agent 1.5
-}
-
-def "test a stalled delegate earns only the time before its gap" [] {
-  let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let lead = "aaaabbbb-0000-4000-8000-000000000009"
-  transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
-    (claude-prompt $app "09:55" "P")
-    (claude-reply $app "10:00" "first")
-  ]
-  claude-subagent $dir app $lead a {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
-    (claude-user $app "10:05" "task" {isSidechain: true})
-    ...(claude-active $app ["10:25" "10:45"])
-    (claude-tool $app "13:45" SubagentHandback {})
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal $day.sessions.0.prompts.0.agent 0.75
-}
-
-def "test a gap of exactly the idle threshold keeps the turn span" [] {
-  let dir = (mktemp --directory)
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-notification "/work/app" "10:00")
-    ...(claude-active "/work/app" ["10:30"])
-    (claude-reply "/work/app" "11:00")
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal $day.runs.0.agent 1
-}
-
-def "test a turn ends at its first long gap" [] {
-  let dir = (mktemp --directory)
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-notification "/work/app" "10:00")
-    ...(claude-active "/work/app" ["10:10" "10:50" "11:00" "12:00"])
-    (claude-reply "/work/app" "12:05")
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal $day.runs.0.agent 0.1667
-}
-
-def "test a later turn gap does not cut an earlier turn" [] {
-  let dir = (mktemp --directory)
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-notification "/work/app" "10:00")
-    ...(claude-active "/work/app" ["10:05"])
-    (claude-notification "/work/app" "10:10")
-    ...(claude-active "/work/app" ["10:15" "10:20"])
-    (claude-reply "/work/app" "11:30")
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal $day.runs.0.agent 0.3333
-}
-
-def "test each tool turn ends at its last record before a long gap" [] {
-  let dir = (mktemp --directory)
-  let item = {type: "UserMessage", content: [{type: "text", text: "go"}]}
-  codex-transcript $dir {id: "codex", cwd: "/work/app", thread_source: "user", source: "exec"} [
-    (codex-event "10:00" {type: "task_started", turn_id: "t"})
-    (codex-event "10:00" {type: "item_completed", item: $item, turn_id: "t"})
-    (codex-event "10:20" {type: "token_count"})
-    (codex-event "11:30" {type: "task_complete", last_agent_message: "ok"})
-  ]
-  transcript $dir ["omp/sessions/app/a.jsonl"] [
-    {type: "session", id: "omp", cwd: "/work/app"}
-    (omp-user "12:00" "go" --agent)
-    (omp-tool "12:20" [{type: "toolCall", id: "r", name: "read", arguments: {path: "x"}}])
-    (omp-reply "13:30")
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal ($day.runs | select tool agent) [
-    {tool: "codex", agent: 0.3333}
-    {tool: "omp", agent: 0.3333}
-  ]
-}
-
-def "test canceled Codex turns cannot borrow a later reply" [] {
-  let dir = (mktemp --directory)
-  let prompt = {type: "UserMessage", content: [{type: "text", text: "start"}]}
-  codex-transcript $dir {id: "canceled", cwd: "/work/app", thread_source: "user"} [
-    (codex-event "10:00" {type: "task_started", turn_id: "first"})
-    (codex-event "10:00" {type: "item_completed", item: $prompt, turn_id: "first"})
-    (codex-event "10:01" {type: "turn_aborted", turn_id: "first"})
-    (codex-event "13:00" {type: "task_started", turn_id: "second"})
-    (codex-model "13:05")
-    (codex-event "13:10" {type: "task_complete", last_agent_message: "done"})
-    (codex-event "13:11" {type: "turn_aborted", turn_id: "second"})
-    (codex-event "13:12" {type: "task_complete", last_agent_message: "final"})
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal $day.sessions.0.prompts.0.hours 0.1667
-  assert equal $day.sessions.0.prompts.0.agent 0.1667
-  assert equal $day.sessions.0.replies [{at: "13:12", text: "final"}]
-}
-
-def "test a day keeps its final replies past midnight until the next prompt" [] {
-  let dir = (mktemp --directory)
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-prompt "/work/app" "10:00" "start")
-    (claude-reply "/work/app" "10:05" "working")
-    (claude-tool "/work/app" "10:06" Edit {
-      file_path: "/work/app/a.nu"
-      old_string: "a"
-      new_string: "b"
-      replace_all: false
-    })
-    (claude-notification "/work/app" "10:08")
-    (claude-reply "/work/app" "10:12" "started")
-    (claude-prompt "/work/app" "10:15" "ship it")
-    (claude-reply "/work/app" "2026-10-16T00:30" "merged")
-    (claude-prompt "/work/app" "2026-10-16T09:00" "next")
-    (claude-reply "/work/app" "2026-10-16T09:05" "tomorrow")
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal ($day.sessions.0.replies | select at text) [
-    {at: "10:12", text: "started"}
-    {at: "00:30", text: "merged"}
-  ]
-}
-
-def "test a prompt is cut by a prompt from another session after midnight" [] {
-  let dir = (mktemp --directory)
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-prompt "/work/app" "2026-10-15T23:30" "late")
-    (claude-reply "/work/app" "2026-10-16T00:20")
-  ]
-  transcript $dir ["claude/projects/lib/b.jsonl"] [
-    (claude-prompt "/work/lib" "2026-10-16T00:05" "early")
-    (claude-reply "/work/lib" "2026-10-16T00:10")
-  ]
-
-  let day = (digest-day $dir)
-
-  assert equal ($day.sessions | each { get prompts | get hours }) [[0.5833]]
-}
-
-def "test the excerpt length keeps whole text at zero and cuts at a custom limit" [] {
-  let dir = (mktemp --directory)
-  let long = (
-    $"
-    first
-    ("" | fill --character "a" --width 450)
-    "
-    | str dedent
-  )
-  transcript $dir ["claude/projects/app/a.jsonl"] [
-    (claude-prompt "/work/app" "10:00" $long)
-    (claude-reply "/work/app" "10:30" $long)
-  ]
-
-  let excerpted = (digest-day $dir)
-  let short = (digest-day $dir --excerpt-chars 10)
-  let full = (digest-day $dir --excerpt-chars 0)
-
-  let excerpt = $"first ("" | fill --character "a" --width 394)..."
-  let short_excerpt = "first aaaa..."
-  let projected = {|day|
-    $day.sessions | each {|s| {prompt: $s.prompts.0.text, reply: $s.replies.0.text} }
-  }
-  assert equal (do $projected $excerpted) [{prompt: $excerpt, reply: $excerpt}]
-  assert equal (do $projected $short) [{prompt: $short_excerpt, reply: $short_excerpt}]
-  assert equal (do $projected $full) [{prompt: $long, reply: $long}]
-}
-
-def "test Codex request headings are stripped from prompts" [] {
-  let dir = (mktemp --directory)
-  let cases = [
-    {
-      name: "Desktop browser context"
-      clock: "11:00"
-      done: "11:30"
-      input: (
-        "
-        <in-app-browser-context source="ambient-ui-state">
-        page text
-        ## My request:
-        quoted earlier transcript
-        </in-app-browser-context>
-        ## My request:
-        summarize it
-        "
-        | str dedent
-      )
-      expected: "summarize it"
-    }
-    {
-      name: "Desktop IDE context"
-      clock: "12:00"
-      done: "12:30"
-      input: (
-        "
-        # Context from my IDE setup:
-        ## Active file: /work/app/main.nu
-        ## My request:
-        short form
-        "
-        | str dedent
-      )
-      expected: "short form"
-    }
-    {
-      name: "TUI IDE context"
-      clock: "13:00"
-      done: "13:30"
-      input: (
-        "
-        # Context from my IDE setup:
-
-        ## Active file: src/lib.rs
-
-        ## My request for Codex:
-        long form
-        "
-        | str dedent
-      )
-      expected: "long form"
-    }
-    {
-      name: "no heading"
-      clock: "14:00"
-      done: "14:30"
-      input: "no heading here"
-      expected: "no heading here"
-    }
-    {
-      name: "inline mention"
-      clock: "15:00"
-      done: "15:30"
-      input: "quote ## My request: tail"
-      expected: "tail"
-    }
-  ]
-  let records = (
-    $cases
-    | each {|c| codex-turn $c.clock $c.input --done $c.done }
-    | flatten
-  )
-  codex-transcript $dir {id: "request", cwd: "/work/app", thread_source: "user"} $records
-
-  let day = (digest-day $dir --excerpt-chars 0)
-  let prompts = ($day.sessions.0.prompts | get text)
-
-  for c in ($cases | enumerate) {
-    assert equal ($prompts | get $c.index) $c.item.expected $c.item.name
-  }
-}
-
-def "test a negative excerpt length is rejected" [] {
-  let dir = (mktemp --directory)
-
-  let run = (digest-run $dir --excerpt-chars=-1)
-
-  assert equal $run.exit_code 1
-  assert str contains $run.stderr "must be 0 or greater"
 }
