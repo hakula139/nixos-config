@@ -111,12 +111,6 @@ rule-providers:
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt
     path: ./ruleset/telegramcidr.yaml
     interval: 86400
-  ChinaIP:
-    type: http
-    behavior: ipcidr
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt
-    path: ./ruleset/cncidr.yaml
-    interval: 86400
 
 rules:
   - RULE-SET,Hakula,DIRECT,no-resolve
@@ -130,6 +124,5 @@ rules:
   - RULE-SET,Direct,DIRECT
   - RULE-SET,LAN,DIRECT,no-resolve
   - RULE-SET,Telegram,PROXY,no-resolve
-  - RULE-SET,ChinaIP,DIRECT,no-resolve
   - GEOIP,CN,DIRECT
   - MATCH,PROXY
