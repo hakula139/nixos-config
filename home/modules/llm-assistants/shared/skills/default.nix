@@ -29,6 +29,9 @@ let
       "acp-delegate"
       "find-docs"
     ]
+    // {
+      model-track-record = ./model-track-record;
+    }
     // lib.optionalAttrs config.hakula.acp.enable {
       inherit (plugins) acp-delegate;
     }
