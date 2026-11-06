@@ -165,3 +165,5 @@ The results support these principles for any change to the rewriting models, pro
 The measurements reflect one reviewer's preferences on the sampled Chinese tasks. Each condition has between one and five samples. The frame comparison used five draws per arm and reached $p = 0.049$. The rewrite comparison used one shared draft, so its ranking provides limited evidence about performance on other texts, and the top score should be expected to regress on repeated sampling.
 
 The results apply to the tested models, prompts, and context frames. A model, prompt, or frame adopted later carries no measured quality until it is blind-reviewed itself. This record holds no blind review of English rewrites, so section 3.7 measures only tic counts, churn, and latency.
+
+Every call also carries the whole document as read-only context, a frame no blind review has scored, while section 3.4 found that adding an English coding conversation cost 2 to 3 points.
