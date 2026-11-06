@@ -4,7 +4,7 @@ General Nix conventions live in the `nix` skill. This page covers the choices an
 
 ## Module shape
 
-- **Restart policy**: a long-running NixOS service merges `repoLib.systemd.restartUnit` into its `systemd.services.<name>`, and a Home Manager user service merges `repoLib.systemd.restart` into its `Service` section, instead of setting `Restart=` or start limits itself.
+- **Restart policy**: a long-running NixOS service merges `repoLib.systemd.restartUnit` into its `systemd.services.<name>`, and a Home Manager user service merges `repoLib.systemd.restart` into its `Service` section, instead of setting `Restart=` or start limits itself. A user service whose start can fail persistently also merges `repoLib.systemd.restartLimit` into its `Unit` section, so a persistent failure ends in `failed` instead of restarting forever.
 - **Unattended HTTP calls** pass curl's `-fsSL` and explicit connect and max timeouts in their own argument list.
 - **Unstable packages**: take a package from `pkgs.unstable` only when the stable branch lacks the version you need, and select it at the call site. When something reads `pkgs.<name>` implicitly, as nixpkgs writers and git-hooks.nix hooks do, pin it in the overlay instead, unless stable packages compile against it, as they do against a language toolchain.
 - **Module banners**: in option-bearing modules, place `Module options` and `Module config` banners before the top-level `options` and `config` assignments.

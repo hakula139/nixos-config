@@ -1,13 +1,10 @@
 #!/usr/bin/env nu
 
 def main [
-  --config: path # Wrapper-supplied JSON with the base config, secret files, proxy, and curl args
+  --config: path # Wrapper-supplied JSON with the base config, secret files, proxy, curl args, and added rules
 ] {
   let config = (open $config)
   let target_file = ($config.configDir | path join "config.yaml")
-
-  # `open` only parses YAML when the extension says so, and the named duplicate-key error is worth
-  # more than a generic one.
   let staging_file = ($config.configDir | path join "config.staging.yaml")
 
   # The subscription fetch must not loop through mihomo itself, which is either down during initial
@@ -26,38 +23,30 @@ def main [
     exit 1
   }
 
-  # `str replace` is literal in both pattern and replacement, so `|`, `&`, `\` and `'` survive. The
-  # base config holds the secret in a single-quoted scalar, so a literal `'` still has to be doubled
-  # for YAML itself.
-  print "Preparing base configuration with secrets"
-  let secret = (
-    open --raw $config.secretFile
-    | decode utf-8
-    | str trim
-    | str replace --all "'" "''"
-  )
-  let base = (
-    open --raw $config.baseConfigFile
-    | decode utf-8
-    | str replace --all "__SECRET__" $secret
+  print "Preparing subscription rules"
+  let prepared = (
+    $fetched.stdout
+    | from yaml
+    | update rules { $config.prependRules ++ $in }
+    | upsert rule-providers { default {} | merge $config.ruleProviders }
   )
 
+  # The base replaces each top-level key it sets, since the ports and DNS belong to the host, and the
+  # secret is read here so no store path holds it.
   print "Merging base configuration with subscription"
-  $"($base)\n($fetched.stdout)" | save --force $staging_file
+  let secret = (open --raw $config.secretFile | decode utf-8 | str trim)
+  let merged = (
+    $prepared
+    | merge $config.baseConfig
+    | upsert secret $secret
+    | to yaml
+  )
 
-  print "Validating merged config"
-  try {
-    open $staging_file | ignore
-  } catch { |e|
-    rm --force $staging_file
-    print --stderr "Error: merged config is not valid YAML, keeping previous config:"
-    print --stderr $e.rendered
-    exit 1
-  }
+  $merged | save --force $staging_file
 
   if ($target_file | path exists) {
     print $"Backing up existing config to ($target_file).bak"
-    cp $target_file $"($target_file).bak"
+    ^cp $target_file $"($target_file).bak"
   }
 
   mv --force $staging_file $target_file
