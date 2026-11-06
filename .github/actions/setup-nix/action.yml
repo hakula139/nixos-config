@@ -18,7 +18,7 @@ runs:
   steps:
     - name: General cleanup
       if: ${{ runner.os == 'Linux' }}
-      uses: wimpysworld/nothing-but-nix@v10
+      uses: wimpysworld/nothing-but-nix@v11
       with:
         nix-permission-edict: true
         root-safe-haven: '24576' # 24 GB
