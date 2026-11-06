@@ -528,8 +528,9 @@
     {
       name = "Branch and worktree cleanup";
       reason = ''
-        Running `clean-gone` is allowed without separate user approval. Removing a worktree or
-        branch it skipped still needs the user's approval.
+        Running `clean-gone` is allowed without separate user approval. It changes only local state,
+        removing merged, closed, or stale branches and finished or clean idle worktrees. Removing a
+        worktree or branch it skipped still needs the user's approval.
       '';
     }
     {
