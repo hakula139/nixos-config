@@ -1,8 +1,9 @@
 # ==================================================================================================
 # Prose Polish Skill
 # ==================================================================================================
-# The installed skill directory: its instructions, its agent metadata, and the wrapper that carries
-# the model call and prompts. Tests and the stub stay out of the installed directory.
+# The installed skill directory: its instructions, agent metadata, and evaluation reference, plus
+# the wrapper that carries the model call and prompts. Tests and the stub stay out of the
+# installed directory.
 # ==================================================================================================
 
 {
@@ -38,22 +39,17 @@ let
       repairPrompt = builtins.readFile ./scripts/repair-prompt.md;
     };
   };
+
+  src = lib.fileset.toSource {
+    root = ./.;
+    fileset = lib.fileset.unions [
+      ./SKILL.md
+      ./agents
+      ./references
+    ];
+  };
 in
-pkgs.linkFarm "prose-polish-skill" [
-  {
-    name = "SKILL.md";
-    path = ./SKILL.md;
-  }
-  {
-    name = "agents/openai.yaml";
-    path = ./agents/openai.yaml;
-  }
-  {
-    name = "references/evaluation.md";
-    path = ./references/evaluation.md;
-  }
-  {
-    name = "scripts/prose-polish";
-    path = lib.getExe command;
-  }
-]
+pkgs.runCommand "prose-polish-skill" { } ''
+  cp -r --no-preserve=mode ${src} "$out"
+  install -Dm0755 ${lib.getExe command} "$out/scripts/prose-polish"
+''
