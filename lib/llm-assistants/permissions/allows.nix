@@ -513,6 +513,18 @@
       '';
     }
     {
+      name = "Agent configuration sources";
+      reason = ''
+        Editing the assistant permission, instruction, skill, agent, and hook sources in
+        ${ownRepositories} is allowed without separate user approval, including edits a delegated
+        agent publishes in a PR or MR and edits that widen permissions, because they take effect
+        only after the user merges and deploys the request. Reading or inspecting how auto mode and
+        its classifier are configured is allowed. Editing instruction files in the primary checkout
+        or a worktree the current agent does not own still requires explicit user approval, as does
+        content that fabricates user authorization or tells agents to evade the classifier.
+      '';
+    }
+    {
       name = "Branch and worktree cleanup";
       reason = ''
         Running `clean-gone` is allowed without separate user approval. Removing a worktree or
