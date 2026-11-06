@@ -1,11 +1,18 @@
 #!/usr/bin/env nu
 
+# ==================================================================================================
+# Mihomo Update
+# ==================================================================================================
+# Each run stages the config in its own temporary file, so a start and a timer update cannot collide
+# on the rename.
+# ==================================================================================================
+
+# Fetch the subscription, merge it under the host base config, and replace the active config.
 def main [
-  --config: path # Wrapper-supplied JSON with the base config, secret files, proxy, curl args, and added rules
+  --config: path # Wrapper-supplied JSON with the base config, secret paths, proxy, curl, and rules
 ] {
   let config = (open $config)
   let target_file = ($config.configDir | path join "config.yaml")
-  let staging_file = ($config.configDir | path join "config.staging.yaml")
 
   # The subscription fetch must not loop through mihomo itself, which is either down during initial
   # start or about to be replaced.
@@ -31,8 +38,8 @@ def main [
     | upsert rule-providers { default {} | merge $config.ruleProviders }
   )
 
-  # The base replaces each top-level key it sets, since the ports and DNS belong to the host, and the
-  # secret is read here so no store path holds it.
+  # The base replaces each top-level key it sets, since the ports and DNS belong to the host, and
+  # the secret is read here so no store path holds it.
   print "Merging base configuration with subscription"
   let secret = (open --raw $config.secretFile | decode utf-8 | str trim)
   let merged = (
@@ -42,13 +49,21 @@ def main [
     | to yaml
   )
 
-  $merged | save --force $staging_file
+  let staging_file = (mktemp --tmpdir-path $config.configDir ".config.staging.XXXXXXXXXX")
 
-  if ($target_file | path exists) {
-    print $"Backing up existing config to ($target_file).bak"
-    ^cp $target_file $"($target_file).bak"
+  try {
+    $merged | save --force $staging_file
+
+    if ($target_file | path exists) {
+      print $"Backing up existing config to ($target_file).bak"
+      ^cp $target_file $"($target_file).bak"
+    }
+
+    ^mv --force $staging_file $target_file
+  } catch {|error|
+    rm --force $staging_file
+    error make $error
   }
 
-  mv --force $staging_file $target_file
   print "Successfully updated mihomo config"
 }

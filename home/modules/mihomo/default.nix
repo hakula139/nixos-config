@@ -30,6 +30,7 @@ let
 
   secretFile = secretPath "mihomo/secret";
   subscriptionUrlFile = secretPath "mihomo/subscription-url";
+  systemctl = config.systemd.user.systemctlPath;
 
   # ------------------------------------------------------------------------------------------------
   # Base config
@@ -128,8 +129,11 @@ let
   updatePackage = repoLib.mkNuCommand {
     inherit pkgs;
     name = "mihomo-update";
-    script = ./mihomo-update.nu;
-    runtimeInputs = [ pkgs.curl ];
+    script = ./update.nu;
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.curl
+    ];
 
     config = {
       inherit
@@ -174,33 +178,32 @@ let
   # ------------------------------------------------------------------------------------------------
   mihomoLabel = "one.metacubex.mihomo";
 
-  updateReloadScript = pkgs.writeShellScript "mihomo-update-reload" ''
-    set -euo pipefail
+  startPackage = repoLib.mkNuCommand {
+    inherit pkgs;
+    name = "mihomo-start";
+    script = ./start.nu;
+    runtimeInputs = [
+      mihomo
+      updatePackage
+    ];
+    flags.config-dir = configDir;
+  };
 
-    ${updateScript}
+  # Go keeps an inherited SIG_IGN for SIGHUP until signal.Notify, so an early reload cannot kill the
+  # start script or mihomo before mihomo handles it.
+  startCommand = [
+    (lib.getExe' pkgs.coreutils "env")
+    "--ignore-signal=HUP"
+    (lib.getExe startPackage)
+  ];
 
-    /bin/launchctl kill SIGHUP "gui/$(id -u)/${mihomoLabel}"
-  '';
-
-  startScript = pkgs.writeShellScript "mihomo-start" ''
-    set -euo pipefail
-
-    # Ignored until mihomo's signal.Notify takes over. An early SIGHUP kills the wrapper or mihomo.
-    trap "" HUP
-
-    echo "Updating config before start..."
-    if ! ${updateScript}; then
-      if [[ -f ${esc configDir}/config.yaml ]]; then
-        echo >&2 "Warning: subscription update failed, starting mihomo from the previous config"
-      else
-        echo >&2 "Error: subscription update failed and no config exists in" ${esc configDir}
-        exit 1
-      fi
-    fi
-
-    echo "Starting mihomo..."
-    exec ${lib.getExe mihomo} -d ${esc configDir}
-  '';
+  updateReloadPackage = repoLib.mkNuCommand {
+    inherit pkgs;
+    name = "mihomo-update-reload";
+    script = ./update-reload.nu;
+    runtimeInputs = [ updatePackage ];
+    flags.label = mihomoLabel;
+  };
 
   portCheckPackage = repoLib.mkNuCommand {
     inherit pkgs;
@@ -268,8 +271,8 @@ in
 
         Service = {
           Type = "oneshot";
-          ExecStart = "${updateScript}";
-          ExecStartPost = "${config.systemd.user.systemctlPath} --user try-reload-or-restart mihomo.service";
+          ExecStart = updateScript;
+          ExecStartPost = "${systemctl} --user try-reload-or-restart mihomo.service";
           RemainAfterExit = false;
         };
       };
@@ -281,7 +284,7 @@ in
 
         Service = repoLib.systemd.restart // {
           Type = "simple";
-          ExecStart = "${startScript}";
+          ExecStart = lib.concatStringsSep " " startCommand;
           ExecStartPost = "${portCheckScript} --pid $MAINPID";
           ExecReload = "${lib.getExe' pkgs.coreutils "kill"} -HUP $MAINPID";
         };
@@ -326,7 +329,7 @@ in
 
         config = {
           Label = "one.metacubex.mihomo-update";
-          ProgramArguments = [ "${updateReloadScript}" ];
+          ProgramArguments = [ (lib.getExe updateReloadPackage) ];
           StartCalendarInterval = [
             {
               Hour = 4;
@@ -344,7 +347,7 @@ in
 
         config = {
           Label = mihomoLabel;
-          ProgramArguments = [ "${startScript}" ];
+          ProgramArguments = startCommand;
           RunAtLoad = true;
           KeepAlive = true;
           StandardOutPath = "${homeDir}/Library/Logs/mihomo.log";
