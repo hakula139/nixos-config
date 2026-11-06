@@ -45,7 +45,7 @@ let
     pkgs.writers.writeNuBin "patch-input" (builtins.readFile ./lib/patch-input/patch-input.nu)
   );
 
-  modelCall = mkModelCall assistant;
+  modelCall = mkModelCall { inherit assistant; };
 
   # ------------------------------------------------------------------------------------------------
   # Hook entries
