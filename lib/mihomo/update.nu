@@ -7,6 +7,21 @@
 # on the rename.
 # ==================================================================================================
 
+# Read the source address of the default route, which is where local containers reach the proxy.
+def host-v4 []: nothing -> string {
+  let route = (^ip -4 route get 1.1.1.1 | complete)
+  if $route.exit_code != 0 {
+    return ""
+  }
+
+  let found = ($route.stdout | parse --regex 'src\s+(?<ip>\d+\.\d+\.\d+\.\d+)')
+  if ($found | is-empty) {
+    return ""
+  }
+
+  $found.0.ip
+}
+
 # Fetch the subscription, merge it under the host base config, and replace the active config.
 def main [
   --config: path # Wrapper-supplied JSON with the base config, secret paths, proxy, curl, and rules
@@ -31,10 +46,20 @@ def main [
   }
 
   print "Preparing subscription rules"
+  # A proxied fetch through the nodes the subscription itself defines could never rotate a broken
+  # node list, so the subscription host always bypasses the tunnels.
+  let subscription_host = ($url | url parse | get -o host | default "")
+  let prepended_rules = $config.prependRules ++ (
+    if ($subscription_host | is-empty) {
+      []
+    } else {
+      [$"DOMAIN,($subscription_host),DIRECT"]
+    }
+  )
   let prepared = (
     $fetched.stdout
     | from yaml
-    | update rules { $config.prependRules ++ $in }
+    | update rules { $prepended_rules ++ $in }
     | upsert rule-providers { default {} | merge $config.ruleProviders }
   )
 
@@ -42,17 +67,49 @@ def main [
   # the secret is read here so no store path holds it.
   print "Merging base configuration with subscription"
   let secret = (open --raw $config.secretFile | decode utf-8 | str trim)
+  let base_config = (
+    if $config.lanAllowHostAddress {
+      let host = (host-v4)
+      if ($host | is-empty) {
+        print --stderr "Warning: could not determine the host IPv4 address, so only loopback may use the proxy"
+        $config.baseConfig
+      } else {
+        $config.baseConfig
+        | upsert "lan-allowed-ips" (($config.baseConfig | get "lan-allowed-ips") | append $"($host)/32")
+      }
+    } else {
+      $config.baseConfig
+    }
+  )
   let merged = (
     $prepared
-    | merge $config.baseConfig
+    | merge $base_config
     | upsert secret $secret
     | to yaml
   )
 
+  mkdir $config.configDir
   let staging_file = (mktemp --tmpdir-path $config.configDir ".config.staging.XXXXXXXXXX")
 
   try {
     $merged | save --force $staging_file
+
+    # A subscription that is valid YAML but rejected by mihomo would replace a working config and
+    # then crash-loop on the next restart.
+    let validated = (^mihomo -t -d $config.configDir -f $staging_file | complete)
+    if $validated.exit_code != 0 {
+      let detail = (
+        [
+          $validated.stdout
+          $validated.stderr
+        ]
+        | str join "\n"
+        | str trim
+      )
+      print --stderr $"Error: mihomo rejected the merged config: ($detail)"
+      rm --force $staging_file
+      exit 1
+    }
 
     if ($target_file | path exists) {
       print $"Backing up existing config to ($target_file).bak"

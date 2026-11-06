@@ -1,15 +1,11 @@
 #!/usr/bin/env nu
 
 # ==================================================================================================
-# mihomo Stub
+# ip Stub
 # ==================================================================================================
-# Stands in for mihomo in the start tests. Each call appends its arguments and parent pid to
-# `STUB_LOG`, so a test can tell whether the start script exec'd mihomo or ran it as a child.
+# Stands in for `ip route get` in the update tests, so the runtime LAN address is deterministic.
 # ==================================================================================================
 
 def --wrapped main [...args: string] {
-  {args: $args, ppid: (ps | where pid == $nu.pid | get 0.ppid)}
-  | to json --raw
-  | $"($in)\n"
-  | save --append $env.STUB_LOG
+  "1.1.1.1 via 10.0.0.1 dev eth0 src 10.0.0.5 uid 1000"
 }

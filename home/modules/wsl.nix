@@ -45,10 +45,5 @@ in
     };
 
     hakula.fonts.windowsSync.enable = lib.mkDefault true;
-
-    hakula.mihomo = {
-      port = lib.mkDefault 7897;
-      controllerPort = lib.mkDefault 59386;
-    };
   };
 }
