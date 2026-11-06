@@ -147,11 +147,13 @@ in
       MaxRetentionSec=14day
     '';
 
-    # Files in /tmp age by ctime and mtime, and directories by birth time and mtime.
-    # Read-only traversals (du, ripgrep, backup scans) renew atime and defer deletion.
-    systemd.tmpfiles.rules = [
-      "q /tmp 1777 root root cmBM:3d"
-    ];
+    # /tmp and /var/tmp age by ctime and mtime, and directories by birth time and mtime, since
+    # read-only traversals (du, ripgrep, backup scans) renew atime. Replacing the stock tmp.conf
+    # prevents a duplicate /tmp rule.
+    environment.etc."tmpfiles.d/tmp.conf".text = ''
+      q /tmp 1777 root root cmBM:3d
+      q /var/tmp 1777 root root cmBM:10d
+    '';
 
     # ----------------------------------------------------------------------------------------------
     # Networking
