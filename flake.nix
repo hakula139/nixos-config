@@ -188,6 +188,17 @@
 
             deadnix.enable = true;
 
+            doctoc = {
+              enable = true;
+              description = "Generate the table of contents in Markdown files.";
+              entry = nixpkgs.lib.getExe pkgs.doctoc;
+              args = [
+                "--update-only"
+                "--maxlevel=3"
+              ];
+              files = "\\.md$";
+            };
+
             dprint = {
               enable = true;
               description = "Format Markdown with dprint.";
