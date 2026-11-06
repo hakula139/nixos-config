@@ -31,13 +31,14 @@ let
     {
       slug,
       script,
-      config,
+      runtimeInputs ? [ ],
+      config ? null,
     }:
     lib.getExe (
       repoLib.mkNuCommand {
         inherit pkgs script config;
         name = "${assistant}-${slug}";
-        runtimeInputs = [ pkgs.coreutils ];
+        runtimeInputs = [ pkgs.coreutils ] ++ runtimeInputs;
       }
     );
 
