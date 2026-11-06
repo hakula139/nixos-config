@@ -6,18 +6,21 @@
   config,
   pkgs,
   lib,
+  corpHosts,
   repoLib,
+  hostType,
   secretPath,
   ...
 }:
 
 let
+  cfg = config.hakula.mihomo;
+  isWork = hostType == "work";
+
   inherit (pkgs) mihomo;
   inherit (pkgs.stdenv) isDarwin;
 
   esc = lib.escapeShellArg;
-
-  cfg = config.hakula.mihomo;
 
   # ------------------------------------------------------------------------------------------------
   # Paths
@@ -29,15 +32,99 @@ let
   subscriptionUrlFile = secretPath "mihomo/subscription-url";
 
   # ------------------------------------------------------------------------------------------------
-  # Config update
+  # Base config
   # ------------------------------------------------------------------------------------------------
-  baseConfigFile = pkgs.writeText "mihomo-base.yaml" (
-    builtins.replaceStrings
-      [ "__PORT__" "__CONTROLLER_PORT__" ]
-      [ (toString cfg.port) (toString cfg.controllerPort) ]
-      (builtins.readFile ./config.yaml)
-  );
+  baseConfig = {
+    # ----------------------------------------------------------------------------------------------
+    # Proxy Ports
+    # ----------------------------------------------------------------------------------------------
+    mixed-port = cfg.port;
 
+    # ----------------------------------------------------------------------------------------------
+    # Allow LAN
+    # ----------------------------------------------------------------------------------------------
+    allow-lan = true;
+    bind-address = "*";
+
+    # ----------------------------------------------------------------------------------------------
+    # External Control
+    # ----------------------------------------------------------------------------------------------
+    external-controller = "0.0.0.0:${toString cfg.controllerPort}";
+
+    # ----------------------------------------------------------------------------------------------
+    # General
+    # ----------------------------------------------------------------------------------------------
+    mode = "rule";
+    log-level = "info";
+    ipv6 = true;
+    unified-delay = true;
+    tcp-concurrent = true;
+
+    # ----------------------------------------------------------------------------------------------
+    # Auto Update GEO
+    # ----------------------------------------------------------------------------------------------
+    geo-auto-update = true;
+    geo-update-interval = 24;
+
+    # ----------------------------------------------------------------------------------------------
+    # Cache
+    # ----------------------------------------------------------------------------------------------
+    profile.store-selected = true;
+
+    # ----------------------------------------------------------------------------------------------
+    # DNS
+    # ----------------------------------------------------------------------------------------------
+    dns = {
+      # --------------------------------------------------------------------------------------------
+      # Basics
+      # --------------------------------------------------------------------------------------------
+      enable = true;
+      prefer-h3 = true;
+      ipv6 = true;
+      use-system-hosts = true;
+
+      # --------------------------------------------------------------------------------------------
+      # Fake IP
+      # --------------------------------------------------------------------------------------------
+      enhanced-mode = "fake-ip";
+      fake-ip-range = "198.18.0.1/16";
+      fake-ip-filter = [
+        "*.lan"
+        "*.local"
+      ];
+      fake-ip-filter-mode = "blacklist";
+
+      # --------------------------------------------------------------------------------------------
+      # Upstreams
+      # --------------------------------------------------------------------------------------------
+      default-nameserver = [
+        "223.5.5.5"
+        "8.8.8.8"
+      ];
+      nameserver = [
+        "https://doh.pub/dns-query"
+        "https://dns.alidns.com/dns-query"
+      ];
+      fallback = [
+        "https://dns.google/dns-query"
+        "https://cloudflare-dns.com/dns-query"
+      ];
+      fallback-filter = {
+        geoip = true;
+        geoip-code = "CN";
+        ipcidr = [
+          "240.0.0.0/4"
+        ];
+      };
+    }
+    // lib.optionalAttrs isWork {
+      nameserver-policy."+.${corpHosts.domain}" = "system";
+    };
+  };
+
+  # ------------------------------------------------------------------------------------------------
+  # Update command
+  # ------------------------------------------------------------------------------------------------
   updatePackage = repoLib.mkNuCommand {
     inherit pkgs;
     name = "mihomo-update";
@@ -46,7 +133,7 @@ let
 
     config = {
       inherit
-        baseConfigFile
+        baseConfig
         configDir
         secretFile
         subscriptionUrlFile
@@ -62,13 +149,28 @@ let
         "--max-time"
         "60"
       ];
+
+      ruleProviders = lib.optionalAttrs isWork {
+        Intranet = {
+          type = "inline";
+          behavior = "classical";
+          payload = [
+            "DOMAIN-SUFFIX,${corpHosts.domain}"
+            "IP-CIDR,10.0.0.0/8,no-resolve"
+          ];
+        };
+      };
+
+      prependRules = lib.optionals isWork [
+        "RULE-SET,Intranet,DIRECT"
+      ];
     };
   };
 
   updateScript = lib.getExe updatePackage;
 
   # ------------------------------------------------------------------------------------------------
-  # Service
+  # Service scripts
   # ------------------------------------------------------------------------------------------------
   mihomoLabel = "one.metacubex.mihomo";
 
@@ -99,6 +201,16 @@ let
     echo "Starting mihomo..."
     exec ${lib.getExe mihomo} -d ${esc configDir}
   '';
+
+  portCheckPackage = repoLib.mkNuCommand {
+    inherit pkgs;
+    name = "mihomo-check-port";
+    script = ./check-port.nu;
+    runtimeInputs = [ pkgs.iproute2 ];
+    flags.port = toString cfg.port;
+  };
+
+  portCheckScript = lib.getExe portCheckPackage;
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -152,9 +264,6 @@ in
       mihomo-update = {
         Unit = {
           Description = "Update mihomo subscription config";
-          After = [
-            "network-online.target"
-          ];
         };
 
         Service = {
@@ -166,19 +275,14 @@ in
       };
 
       mihomo = {
-        Unit = {
+        Unit = repoLib.systemd.restartLimit // {
           Description = "Mihomo proxy service";
-          After = [
-            "network-online.target"
-          ];
-          Wants = [
-            "network-online.target"
-          ];
         };
 
         Service = repoLib.systemd.restart // {
           Type = "simple";
           ExecStart = "${startScript}";
+          ExecStartPost = "${portCheckScript} --pid $MAINPID";
           ExecReload = "${lib.getExe' pkgs.coreutils "kill"} -HUP $MAINPID";
         };
 

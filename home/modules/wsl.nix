@@ -47,7 +47,6 @@ in
     hakula.fonts.windowsSync.enable = lib.mkDefault true;
 
     hakula.mihomo = {
-      enable = lib.mkDefault false;
       port = lib.mkDefault 7897;
       controllerPort = lib.mkDefault 59386;
     };

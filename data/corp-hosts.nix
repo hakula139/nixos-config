@@ -2,18 +2,16 @@
 # Corporation Host Inventory
 # ==================================================================================================
 
-let
-  corpDomain = import ./corp-domain.nix;
-in
 rec {
-  wildcardDomain = ".${corpDomain}";
+  domain = import ./corp-domain.nix;
+  wildcardDomain = ".${domain}";
 
-  artifactory = "artifactory.${corpDomain}";
-  githubMirror = "github-mirror.${corpDomain}";
-  gitlab = "gitlab-space2.${corpDomain}";
-  harbor = "harbor.${corpDomain}";
-  llmGateway = "gw.llm.${corpDomain}";
-  wiki = "wiki.${corpDomain}";
+  artifactory = "artifactory.${domain}";
+  githubMirror = "github-mirror.${domain}";
+  gitlab = "gitlab-space2.${domain}";
+  harbor = "harbor.${domain}";
+  llmGateway = "gw.llm.${domain}";
+  wiki = "wiki.${domain}";
 
   artifactoryUrl = "https://${artifactory}/artifactory";
   githubMirrorUrl = "https://${githubMirror}";

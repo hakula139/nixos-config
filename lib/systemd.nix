@@ -31,6 +31,12 @@ in
 
   inherit restart;
 
+  # The interval must outlast five failed starts under `restart`'s backoff, each up to 70s long.
+  restartLimit = {
+    StartLimitIntervalSec = "9min";
+    StartLimitBurst = 5;
+  };
+
   # A zero burst avoids the start-limit-hit latch, whose state needs a manual reset.
   restartUnit = {
     serviceConfig = lib.mapAttrs (_: lib.mkForce) restart;

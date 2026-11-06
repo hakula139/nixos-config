@@ -112,6 +112,7 @@ hediet
 hitoolbox
 hkcu
 hlsearch
+htlpn
 hookify
 horiz
 iface
