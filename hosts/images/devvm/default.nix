@@ -76,17 +76,13 @@ in
       hakula.claude-code = {
         auth.defaultProfile = "corp-gateway-anthropic";
         mcp.enabledServers = commonMcpServers;
-        plugins.bundle = true;
       };
 
       hakula.codex.mcp.enabledServers = commonMcpServers;
 
       hakula.omp.mcp.enabledServers = commonMcpServers;
 
-      hakula.opencode = {
-        mcp.enabledServers = commonMcpServers;
-        plugins.bundle = true;
-      };
+      hakula.opencode.mcp.enabledServers = commonMcpServers;
 
       # --------------------------------------------------------------------------------------------
       # Secrets

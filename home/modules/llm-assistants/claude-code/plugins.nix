@@ -3,170 +3,44 @@
 # ==================================================================================================
 
 {
-  pkgs,
   lib,
-  enableDevToolchains ? false,
+  enableDevToolchains,
 }:
 
 let
-  json = pkgs.formats.json { };
-
   # ------------------------------------------------------------------------------------------------
   # Marketplace definitions
   # ------------------------------------------------------------------------------------------------
   marketplaces = {
-    claude-plugins-official = {
-      github = {
-        owner = "anthropics";
-        repo = "claude-plugins-official";
-      };
-
-      rev = "a7ba5b93db0c7c8d17f3f1d25853adca79598a1a"; # 2026-10-30
-      hash = "sha256-C8uTRCtKEvL7dz+dDbfs/DwU/uxH5YzYFDn0oo3BKnA=";
-      pluginsDir = "plugins";
-    };
-
-    workmux = {
-      github = {
-        owner = "raine";
-        repo = "workmux";
-      };
-      inherit (pkgs.workmux) version;
-      source = pkgs.workmux.src;
-      pluginsDir = null;
-    };
+    claude-plugins-official = "anthropics/claude-plugins-official";
+    workmux = "raine/workmux";
   };
-
-  marketplaceSources = lib.mapAttrs (
-    _: m:
-    m.source or (pkgs.fetchFromGitHub {
-      inherit (m.github) owner repo;
-      inherit (m) rev hash;
-    })
-  ) marketplaces;
 
   # ------------------------------------------------------------------------------------------------
   # Enabled plugins
   # ------------------------------------------------------------------------------------------------
   enabledPlugins = {
-    # Official plugins
     "skill-creator@claude-plugins-official" = true;
-
-    # Official LSP plugins
-    "pyright-lsp@claude-plugins-official" = true;
-    "typescript-lsp@claude-plugins-official" = true;
-
-    # Third-party plugins
     "workmux-status@workmux" = true;
   }
-  # Dev toolchain plugins (require C/C++, Go, Rust toolchains)
   // lib.optionalAttrs enableDevToolchains {
-    # Official LSP plugins
     "clangd-lsp@claude-plugins-official" = true;
     "gopls-lsp@claude-plugins-official" = true;
+    "pyright-lsp@claude-plugins-official" = true;
     "rust-analyzer-lsp@claude-plugins-official" = true;
+    "typescript-lsp@claude-plugins-official" = true;
   };
-
-  # ------------------------------------------------------------------------------------------------
-  # Helpers
-  # ------------------------------------------------------------------------------------------------
-  mkGithubSource = m: {
-    source = "github";
-    repo = "${m.github.owner}/${m.github.repo}";
-  };
-
-  parsePluginId =
-    id:
-    let
-      parts = lib.splitString "@" id;
-    in
-    {
-      plugin = builtins.head parts;
-      marketplace = builtins.elemAt parts 1;
-    };
 
   # ------------------------------------------------------------------------------------------------
   # Derived settings
   # ------------------------------------------------------------------------------------------------
-  extraKnownMarketplaces = lib.mapAttrs (_: m: {
-    source = mkGithubSource m;
+  extraKnownMarketplaces = lib.mapAttrs (_: repo: {
+    source = {
+      source = "github";
+      inherit repo;
+    };
   }) marketplaces;
-
-  # ------------------------------------------------------------------------------------------------
-  # Plugin bundling
-  # ------------------------------------------------------------------------------------------------
-  mkPluginBundle =
-    homeDir:
-    let
-      usedMarketplaceNames = lib.unique (
-        map (id: (parsePluginId id).marketplace) (builtins.attrNames enabledPlugins)
-      );
-
-      entries = map (
-        id:
-        let
-          inherit (parsePluginId id) plugin marketplace;
-          m = marketplaces.${marketplace};
-          src = marketplaceSources.${marketplace};
-          version = m.version or (builtins.substring 0 12 m.rev);
-          pluginSrc = if m.pluginsDir == null then src else "${src}/${m.pluginsDir}/${plugin}";
-          cachePath = "cache/${marketplace}/${plugin}/${version}";
-        in
-        {
-          inherit
-            plugin
-            marketplace
-            version
-            pluginSrc
-            cachePath
-            ;
-          installPath = "${homeDir}/.claude/plugins/${cachePath}";
-        }
-      ) (builtins.attrNames enabledPlugins);
-
-      installedPlugins = {
-        version = 2;
-        plugins = builtins.listToAttrs (
-          map (e: {
-            name = "${e.plugin}@${e.marketplace}";
-            value = [
-              {
-                scope = "user";
-                inherit (e) installPath version;
-                installedAt = "1970-01-01T00:00:00.000Z";
-                lastUpdated = "1970-01-01T00:00:00.000Z";
-              }
-            ];
-          }) entries
-        );
-      };
-
-      # Registry mapping marketplace names to their install locations, which Claude Code reads to
-      # discover the available marketplaces.
-      knownMarketplaces = lib.genAttrs usedMarketplaceNames (name: {
-        source = mkGithubSource marketplaces.${name};
-        installLocation = "${homeDir}/.claude/plugins/marketplaces/${name}";
-        lastUpdated = "1970-01-01T00:00:00.000Z";
-        autoUpdate = false;
-      });
-    in
-    pkgs.runCommand "claude-plugins-bundle" { } ''
-      mkdir -p $out/cache $out/marketplaces
-      ${lib.concatMapStrings (e: ''
-        mkdir -p "$out/cache/${e.marketplace}/${e.plugin}"
-        cp -r "${e.pluginSrc}" "$out/${e.cachePath}"
-      '') entries}
-      ${lib.concatMapStrings (name: ''
-        cp -r "${marketplaceSources.${name}}" "$out/marketplaces/${name}"
-      '') usedMarketplaceNames}
-      cp ${json.generate "installed_plugins.json" installedPlugins} $out/installed_plugins.json
-      cp ${json.generate "known_marketplaces.json" knownMarketplaces} $out/known_marketplaces.json
-    '';
 in
 {
-  inherit
-    enabledPlugins
-    extraKnownMarketplaces
-    mkPluginBundle
-    ;
+  inherit enabledPlugins extraKnownMarketplaces;
 }

@@ -69,7 +69,7 @@ sudo nix run nix-darwin/nix-darwin-26.05#darwin-rebuild -- switch --flake '.#mac
 
 ## Docker image
 
-`devvm` packages its NixOS system closure as a Docker image for transfer to restricted networks. The [Compose file](../../hosts/images/devvm/docker-compose.yml) also requires host files and directories for credentials, workspace data, and the Docker socket. Packages that `npx` fetches at runtime still need network access or a populated cache, and `uvx` needs network access unless it runs with `--offline` or `UV_OFFLINE` on a populated cache.
+`devvm` packages its NixOS system closure as a Docker image for transfer to restricted networks. The [Compose file](../../hosts/images/devvm/docker-compose.yml) also requires host files and directories for credentials, workspace data, and the Docker socket. Public packages and GitHub repositories over git reach the image through the corp mirrors, so `npx` and `uvx` resolve at runtime without public internet access.
 
 Build the image with Nix, then load and start it with Docker:
 

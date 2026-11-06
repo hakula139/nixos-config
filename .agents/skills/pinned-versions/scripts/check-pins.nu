@@ -10,13 +10,10 @@
 # Run with --help for usage.
 # ==================================================================================================
 
-const PLUGINS_NIX = "home/modules/llm-assistants/claude-code/plugins.nix"
-
 # The overlay applies the custom packages to every host, so one host's package set covers each
 # override and the channel it overrides.
 const EVAL_PKGS = "nixosConfigurations.us-1.pkgs"
 
-# Commit prefix length used by the plugin bundle.
 const REV_ABBREV = 12
 
 # --------------------------------------------------------------------------------------------------
@@ -152,20 +149,6 @@ def gh-default-head [repo: string]: nothing -> string {
 # --------------------------------------------------------------------------------------------------
 # Pin extraction
 # --------------------------------------------------------------------------------------------------
-
-def plugin-block [root: string, name: string]: nothing -> list<string> {
-  open --raw ([$root $PLUGINS_NIX] | path join)
-  | lines
-  | skip until {|l| $l == $"    ($name) = {" }
-  | take until {|l| $l == "    };" }
-}
-
-def plugin-rev [root: string, name: string]: nothing -> string {
-  plugin-block $root $name
-  | str join "\n"
-  | parse --regex 'rev = "(?<rev>[0-9a-f]+)"'
-  | get rev.0
-}
 
 def nix-attr [root: string, file: string, regex: string]: nothing -> string {
   open --raw ([$root $file] | path join) | parse --regex $regex | get v.0
@@ -311,21 +294,6 @@ def registry [root: string]: nothing -> list<record> {
           pin: "oxide-code"
           local: {|| nix-attr $root "flake.nix" 'github:hakula139/oxide-code/(?<v>[^"]+)' }
           upstream: {|| gh-newest-release hakula139/oxide-code }
-        }
-      ]
-    }
-    {
-      title: "Claude Code plugin marketplaces (rev + hash)"
-      pins: [
-        {
-          pin: "claude-plugins-official"
-          local: {|| abbrev (plugin-rev $root claude-plugins-official) }
-          upstream: {|| abbrev (gh-default-head anthropics/claude-plugins-official) }
-        }
-        {
-          pin: "workmux"
-          local: {|| "flake.lock" }
-          delegated: "renovate"
         }
       ]
     }

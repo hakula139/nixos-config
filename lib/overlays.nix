@@ -34,7 +34,6 @@
       claude-code
       codex
       codex-acp
-      oh-my-opencode
       omp
       opencode
       workmux

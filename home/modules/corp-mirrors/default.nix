@@ -26,7 +26,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Node.js Development
   # ------------------------------------------------------------------------------------------------
-  npmRegistry = "${artifactoryUrl}/api/npm/mirrors-npm";
+  npmRegistry = "${artifactoryUrl}/api/npm/npm/";
 
   # ------------------------------------------------------------------------------------------------
   # Python Development
@@ -51,6 +51,11 @@ let
     ++ map (url: { inherit url; }) pypiExtraIndexes;
   }
   // lib.optionalAttrs (!cfg.enable) { index-strategy = "unsafe-first-match"; };
+
+  # ------------------------------------------------------------------------------------------------
+  # Rust Development
+  # ------------------------------------------------------------------------------------------------
+  cargoIndex = "${artifactoryUrl}/api/cargo/mirrors-cargo-crates/index/";
 
   # ------------------------------------------------------------------------------------------------
   # Containers
@@ -88,7 +93,7 @@ in
   # Module options
   # ------------------------------------------------------------------------------------------------
   options.hakula.corp-mirrors = {
-    enable = lib.mkEnableOption "every corp mirror, for a host without pypi.org access";
+    enable = lib.mkEnableOption "every corp mirror, for a host without public internet access";
 
     uvIndexes = {
       enable = lib.mkEnableOption "only uv's corp indexes, for a host that reaches pypi.org";
@@ -143,6 +148,16 @@ in
         };
 
         # ------------------------------------------------------------------------------------------
+        # Rust Development
+        # ------------------------------------------------------------------------------------------
+        ".cargo/config.toml".source = toml.generate "config.toml" {
+          source = {
+            crates-io.replace-with = "corp";
+            corp.registry = "sparse+${cargoIndex}";
+          };
+        };
+
+        # ------------------------------------------------------------------------------------------
         # Containers
         # ------------------------------------------------------------------------------------------
         ".config/containers/registries.conf".source = toml.generate "registries.conf" {
@@ -150,6 +165,11 @@ in
           registry = registries;
         };
       };
+
+      # --------------------------------------------------------------------------------------------
+      # GitHub
+      # --------------------------------------------------------------------------------------------
+      programs.git.settings.url."${githubMirrorUrl}/".insteadOf = "https://github.com/";
     })
 
     (lib.mkIf (cfg.enable || cfg.uvIndexes.enable) {

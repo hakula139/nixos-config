@@ -56,8 +56,6 @@ in
 
     mcp = mcpOptions.mkMcpOptions { names = mcpOptions.commonServerNames; };
 
-    plugins.bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
-
     proxy = repoLib.proxy.mkProxyOptions "Claude Code";
   };
 
@@ -84,11 +82,7 @@ in
       };
 
       plugins = import ./plugins.nix {
-        inherit
-          pkgs
-          lib
-          enableDevToolchains
-          ;
+        inherit lib enableDevToolchains;
       };
 
       # --------------------------------------------------------------------------------------------
@@ -131,8 +125,9 @@ in
           # Restores the upstream default, since nixpkgs narrows it to `system`, which loads only a
           # few Keychain roots in macOS SSH sessions.
           CLAUDE_CODE_CERT_STORE = "bundled,system";
-        }
-        // lib.optionalAttrs cfg.plugins.bundle {
+
+          # The marketplaces are declared in settings, so the built-in snapshot install duplicates
+          # their clone and fails when `downloads.claude.ai` is unreachable.
           CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL = "1";
         };
       };
@@ -143,14 +138,12 @@ in
       settingsJson = json.generate "claude-code-settings.json" (
         import ./settings.nix {
           inherit
-            lib
             homeDir
             hooks
             permissionSettings
             plugins
             shared
             ;
-          bundlePlugins = cfg.plugins.bundle;
           profileSettings = profiles.settings;
         }
         // {
@@ -165,11 +158,6 @@ in
         mkdir -p "$out"
         cp ${lib.escapeShellArg settingsJson} "$out/settings.json"
       '';
-
-      # --------------------------------------------------------------------------------------------
-      # Plugin bundling
-      # --------------------------------------------------------------------------------------------
-      pluginBundle = plugins.mkPluginBundle homeDir;
     in
     lib.mkMerge [
       profiles.config
@@ -197,31 +185,6 @@ in
 
         xdg.dataFile = hooks.dataFiles;
       }
-
-      # --------------------------------------------------------------------------------------------
-      # Plugin bundling (air-gapped deployment)
-      # --------------------------------------------------------------------------------------------
-      (lib.mkIf cfg.plugins.bundle {
-        home.file = {
-          ".claude/plugins/cache" = {
-            source = "${pluginBundle}/cache";
-            recursive = true;
-          };
-
-          ".claude/plugins/marketplaces" = {
-            source = "${pluginBundle}/marketplaces";
-            recursive = true;
-          };
-
-          ".claude/plugins/installed_plugins.json" = {
-            source = "${pluginBundle}/installed_plugins.json";
-          };
-
-          ".claude/plugins/known_marketplaces.json" = {
-            source = "${pluginBundle}/known_marketplaces.json";
-          };
-        };
-      })
     ]
   );
 }
