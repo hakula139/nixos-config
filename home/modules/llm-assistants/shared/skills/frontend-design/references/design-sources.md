@@ -1,6 +1,6 @@
 # Design Sources
 
-This file holds the full rule set behind [SKILL.md](../SKILL.md), including rules SKILL.md does not condense, with each rule's source, strength, and any disagreement between sources. The project conventions and the user-stated rules without a public source live only in SKILL.md. A rule's strength is one of:
+This file holds the full rule set behind [SKILL.md](../SKILL.md), including rules SKILL.md does not condense, with each rule's source, strength, and any disagreement between sources. Project conventions and user-stated rules without a public source live only in SKILL.md. A rule's strength is one of:
 
 | Strength        | Meaning                                                                |
 | --------------- | ---------------------------------------------------------------------- |
@@ -84,28 +84,28 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Design tokens
 
-- **Rule:** Define tokens for color, type, space, radius, and shadow, and reference tokens at call sites. Choose a small set of colors, two weights, and a few sizes before building.
+- **Rule:** Define tokens for color, type, space, radius, and shadow, and reference them at call sites. Choose a small set of colors, two weights, and a few sizes before building.
 - **Why:** tokens are the single source of truth across design tools and code, and they make theming possible. Fewer choices produce consistency without policing every screen.
 - **Source:** [DTCG format 2025.10][dtcg-format], [Carbon color tokens][carbon-color], [Refactoring UI, limit your choices][refactoring-ui].
 - **Strength:** Platform.
 
 ### Spacing scale
 
-- **Rule:** Use one spacing scale. Carbon builds on multiples of 2, 4, and 8 from an 8px mini unit, GOV.UK uses a 5px-based scale from 0 to 60px, and Material uses 4dp and 8dp. Pick one and stay on it, and keep GOV.UK's 5px spacing and Carbon's 8px grid in separate artifacts.
+- **Rule:** Use one spacing scale and stay on it. Carbon builds on multiples of 2, 4, and 8 from an 8px mini unit, GOV.UK uses a 5px-based scale from 0 to 60px, and Material uses 4dp and 8dp. Keep GOV.UK's 5px spacing and Carbon's 8px grid in separate artifacts.
 - **Why:** arbitrary margins destroy rhythm and make small changes expensive, and the bases disagree, so the shared rule is consistency.
 - **Source:** [Carbon spacing][carbon-spacing], [GOV.UK spacing][govuk-spacing].
 - **Strength:** Multi-system.
 
 ### Type scale
 
-- **Rule:** Use a small fixed type scale and map every size to a role. GOV.UK runs 16 to 80px in named steps, Carbon runs 12 to 92px from a single equation, and Material 3 has 15 baseline roles plus 15 emphasized roles. Set body text at the scale's body role. GOV.UK uses 19px with 25px leading, Carbon's dense product scale starts at 14px, and WCAG sets no minimum font size. Keep the type scale and body size from the same system as the spacing scale.
-- **Why:** ad hoc sizes create inconsistent hierarchy. Small body text is the first thing to fail under zoom, low vision, and projection.
+- **Rule:** Use a small fixed type scale, map every size to a role, and set body text at the scale's body role. GOV.UK runs 16 to 80px in named steps, Carbon runs 12 to 92px from a single equation, and Material 3 has 15 baseline roles plus 15 emphasized roles. GOV.UK uses 19px body with 25px leading, Carbon's dense product scale starts at 14px, and WCAG sets no minimum font size. Take the type scale, body size, and spacing scale from the same system.
+- **Why:** ad hoc sizes create inconsistent hierarchy, and small body text is the first thing to fail under zoom, low vision, and projection.
 - **Source:** [GOV.UK type scale][govuk-type-scale], [Carbon typography][carbon-typography], [Material 3 type scale][material-type-scale].
 - **Strength:** Multi-system.
 
 ### Interaction states
 
-- **Rule:** Define every interaction state. Cover enabled, hover, focus, pressed, and disabled. Material's state layers use 8% hover, 10% focus, 10% pressed, and 16% drag opacity.
+- **Rule:** Define every interaction state, covering enabled, hover, focus, pressed, and disabled. Material's state layers use 8% hover, 10% focus, 10% pressed, and 16% drag opacity.
 - **Why:** undefined states get invented per component.
 - **Source:** [Material 3 states][material-states].
 - **Strength:** System.
@@ -114,8 +114,8 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Visual hierarchy
 
-- **Rule:** Give each view one dominant element. Rank everything else as secondary or tertiary, and make the focal point obvious at a glance. Build hierarchy with size, weight, and color together, and use two or three text colors and about two weights for UI hierarchy.
-- **Why:** attention is scarce, and a flat field gives the eye no entry point. Size alone produces a flat, crowded hierarchy.
+- **Rule:** Give each view one dominant element, rank everything else as secondary or tertiary, and make the focal point obvious at a glance. Build hierarchy with size, weight, and color together, using two or three text colors and about two weights for UI hierarchy.
+- **Why:** attention is scarce, a flat field gives the eye no entry point, and size alone produces a flat, crowded hierarchy.
 - **Source:** [Duarte, slide design][duarte-slide-design], [Refactoring UI][refactoring-ui], [Refactoring UI, 7 practical tips][refactoring-ui-tips].
 - **Strength:** Practitioner.
 
@@ -150,7 +150,7 @@ A rule with several sources takes the strength of its strongest one.
 ### Reflow and zoom
 
 - **Rule:** Support 200% text resize, and reflow at 320 CSS px (400% zoom) without two-dimensional scrolling, except for parts that need two-dimensional layout such as data tables, maps, and diagrams. Set the viewport meta tag to `width=device-width, initial-scale=1`, and do not block zoom. Avoid `maximum-scale` and `user-scalable=no`.
-- **Why:** zooming must not force horizontal back-and-forth reading. Without the viewport tag, mobile browsers render a desktop width and shrink it.
+- **Why:** zooming must not force horizontal back-and-forth reading, and without the viewport tag, mobile browsers render a desktop width and shrink it.
 - **Source:** [WCAG 1.4.4][wcag-144], [1.4.10][wcag-1410], [web.dev, responsive basics][webdev-responsive].
 - **Strength:** WCAG AA.
 
@@ -165,11 +165,11 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Typefaces
 
-- **Rule:** Use at most two typefaces, each with a fixed role. Decorative faces go in headers or illustrations, and body copy stays in a text face.
+- **Rule:** Use at most two typefaces, each with a fixed role. Put decorative faces in headers or illustrations, and keep body copy in a text face.
 - **Why:** more faces compete and muddy the hierarchy.
 - **Source:** [Butterick, mixing fonts][butterick-mixing-fonts], [NN/g, pairing typefaces][nng-pairing-typefaces].
 - **Strength:** Practitioner.
-- **Disagreement:** Butterick says any two identifiably different fonts can mix, including two serifs, and that mixing is never required. Common web advice pairs serif with sans and avoids similar classifications. NN/g favors a single family with multiple weights.
+- **Disagreement:** Butterick says any two identifiably different fonts can mix, including two serifs, and that mixing is never required. Common web advice pairs serif with sans and avoids similar classifications, while NN/g favors a single family with multiple weights.
 
 ### Measure
 
@@ -181,7 +181,7 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Leading
 
-- **Rule:** Set body leading around 1.3 to 1.5, and never below 1.2. Butterick gives 120 to 145% of point size, GOV.UK body is 19px with 25px leading at about 1.32, and WCAG's override test requires the layout to survive 1.5.
+- **Rule:** Set body leading around 1.3 to 1.5, and never below 1.2. Butterick gives 120 to 145% of point size, GOV.UK body is 19px with 25px leading (about 1.32), and WCAG's override test requires the layout to survive 1.5.
 - **Why:** tight leading merges lines and makes tracking hard.
 - **Source:** [Butterick, line spacing][butterick-line-spacing], [WCAG 1.4.12][wcag-1412].
 - **Strength:** Practitioner.
@@ -205,8 +205,8 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Color roles
 
-- **Rule:** Use role-based color tokens, and build light and dark themes from the same role set. Map `primary`, `on-primary`, `surface`, `container`, and `outline` to components, and keep raw hex values at the token definition. In dark themes, each added layer gets lighter, as Carbon's near-black surfaces do with Gray 100 at `#161616`.
-- **Why:** roles keep light and dark themes, and contrast pairs, coherent.
+- **Rule:** Use role-based color tokens, and build light and dark themes from the same role set. Map `primary`, `on-primary`, `surface`, `container`, and `outline` to components, and keep raw hex values at the token definition. In dark themes, make each added layer lighter, as Carbon's near-black surfaces do from Gray 100 (`#161616`).
+- **Why:** roles keep light and dark themes and their contrast pairs coherent.
 - **Source:** [Material 3 color roles][material-color-roles], [Carbon color][carbon-color].
 - **Strength:** Multi-system.
 
@@ -219,7 +219,7 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Text contrast
 
-- **Rule:** Set text contrast at least 4.5:1, and large text at least 3:1. Large means 18pt (about 24px) or 14pt bold (about 18.5px). Do not round a computed 4.499:1 up to a pass.
+- **Rule:** Set text contrast to at least 4.5:1, and large text to at least 3:1, where large means 18pt (about 24px) or 14pt bold (about 18.5px). Do not round a computed 4.499:1 up to a pass.
 - **Why:** low-contrast text is unreadable for people with low vision or impaired contrast perception.
 - **Source:** [WCAG 1.4.3][wcag-143].
 - **Strength:** WCAG AA.
@@ -241,7 +241,7 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Text on colored backgrounds
 
-- **Rule:** Secondary text on a colored background uses white at reduced opacity, or a color of the background's hue, and stays within [Text contrast](#text-contrast).
+- **Rule:** For secondary text on a colored background, use white at reduced opacity or a color of the background's hue, and stay within [Text contrast](#text-contrast).
 - **Why:** grey on a colored background looks washed out, while a color of the background's hue lowers the text's emphasis and keeps it vivid.
 - **Source:** [Refactoring UI][refactoring-ui-tips].
 - **Strength:** Practitioner.
@@ -257,36 +257,36 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Numeric columns
 
-- **Rule:** Right-align numeric columns, use tabular figures through `font-variant-numeric: tabular-nums lining-nums` so digits share a width, and put units in the header. Give the table a caption and use scoped headers.
+- **Rule:** Right-align numeric columns, use tabular figures (`font-variant-numeric: tabular-nums lining-nums`) so digits share a width, and put units in the header. Give the table a caption and use scoped headers.
 - **Why:** aligned digits make columns comparable, and captions and scopes make tables navigable.
 - **Source:** [Butterick, grids of numbers][butterick-grids-of-numbers], [Butterick, alternate figures][butterick-alternate-figures], [GOV.UK table][govuk-table], [Web Typography, numerals and tables][web-typography-numerals].
 - **Strength:** System.
 
 ### Chart type
 
-- **Rule:** Choose the chart from the message. Line for change over time, bar for comparison and shares, scatter for correlation, and histogram for distribution.
-- **Why:** the statement the chart must make determines the form.
+- **Rule:** Choose the chart type from the message: line for change over time, bar for comparison and shares, scatter for correlation, and histogram for distribution.
+- **Why:** the statement the chart must make determines its form.
 - **Source:** [Datawrapper, chart types][datawrapper-chart-types], [FT Visual Vocabulary][ft-visual-vocabulary].
 - **Strength:** Practitioner.
 
 ### Data-ink
 
-- **Rule:** Maximize data-ink. Remove gridlines, background fills, 3D effects, and decoration that do not carry data.
+- **Rule:** Maximize data-ink by removing gridlines, background fills, 3D effects, and decoration that do not carry data.
 - **Why:** non-data ink competes with the data for attention.
 - **Source:** [Tufte's data-ink, summarized by EU DataViz][eudataviz-chart-junk], [Nature][nature-illustration].
 - **Strength:** Practitioner.
 
 ### Proportional encoding
 
-- **Rule:** Keep the visual encoding proportional to the values. Do not truncate the axis on bar charts or use area and volume to exaggerate differences. Treat dual axes with care.
+- **Rule:** Keep the visual encoding proportional to the values. Do not truncate the axis on bar charts or use area and volume to exaggerate differences, and treat dual axes with care.
 - **Why:** distorted encoding misleads readers about magnitude.
 - **Source:** [Tufte's lie factor, summarized by EU DataViz][eudataviz-chart-junk], [Datawrapper, chart colors][datawrapper-colors], [FT Visual Vocabulary][ft-visual-vocabulary].
 - **Strength:** Practitioner.
 
 ### Direct labels
 
-- **Rule:** Label series directly and explain every encoding, then add a short description with the key takeaway.
-- **Why:** readers should not hunt a legend.
+- **Rule:** Label series directly, explain every encoding, and add a short description with the key takeaway.
+- **Why:** readers should not have to hunt through a legend.
 - **Source:** [Datawrapper, chart colors][datawrapper-colors].
 - **Strength:** Practitioner.
 
@@ -301,14 +301,14 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Form layout
 
-- **Rule:** Use a single-column form with one question per row. Short related fields such as city, state, and postal code may share a row.
+- **Rule:** Use a single-column form with one question per row, though short related fields such as city, state, and postal code may share a row.
 - **Why:** multiple columns interrupt the vertical reading flow.
 - **Source:** [NN/g, web form design][nng-web-form-design].
 - **Strength:** Research.
 
 ### Labels
 
-- **Rule:** Give every input a persistent visible label, preferably above the field. Placeholders may add hints but must not replace labels.
+- **Rule:** Give every input a persistent visible label, preferably above the field. Placeholders may add hints, but they must not replace labels.
 - **Why:** disappearing hints strain memory and make error recovery harder.
 - **Source:** [WCAG 3.3.2][wcag-332], [NN/g, placeholders][nng-placeholders], [NN/g, form white space][nng-form-white-space].
 - **Strength:** WCAG A.
@@ -322,7 +322,7 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Error messages
 
-- **Rule:** Name the field in an error, say how to fix it, and preserve what the user entered. Add an error summary at the top, move focus to it, and link each summary item to its field.
+- **Rule:** Name the field in an error message, say how to fix the error, and preserve what the user entered. Add an error summary at the top, move focus to it, and link each item to its field.
 - **Why:** users need to find and correct errors without re-entering data.
 - **Source:** [WCAG 3.3.1][wcag-331], [3.3.3][wcag-333], [GOV.UK error message][govuk-error-message], [GOV.UK error summary][govuk-error-summary].
 - **Strength:** WCAG AA.
@@ -336,22 +336,22 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Action wording
 
-- **Rule:** Use the same word for the same action across the flow. If the button says "Publish", the confirmation says "Published". Name the action, and avoid vague text such as "Submit" or "Click here".
+- **Rule:** Use the same word for the same action across the flow, so if the button says "Publish", the confirmation says "Published". Name the action, and avoid vague text such as "Submit" or "Click here".
 - **Why:** inconsistent vocabulary forces users to re-learn each step, and vague button text hides what the action does.
 - **Source:** [NN/g, heuristic 4][nng-heuristics], [GOV.UK button][govuk-button].
 - **Strength:** Research.
 
 ### Loading feedback
 
-- **Rule:** Match feedback to delay. Under 1s needs none, over 1s needs a busy indicator, and over 10s needs progress and an estimate. Use skeletons for container loads and inline spinners for actions.
+- **Rule:** Match feedback to the delay: under 1s needs none, over 1s needs a busy indicator, and over 10s needs progress and an estimate. Use skeletons for container loads and inline spinners for actions.
 - **Why:** users need to know whether the system is working.
 - **Source:** [NN/g, response times][nng-response-times], [Carbon loading][carbon-loading].
 - **Strength:** Research.
 
 ### Empty states
 
-- **Rule:** Design the empty state. Explain what will appear here, why it is empty, and the next action.
-- **Why:** first use and zero-result states are where users decide whether the product works.
+- **Rule:** Design the empty state to explain what will appear here, why it is empty, and what to do next.
+- **Why:** first-use and zero-result states are where users decide whether the product works.
 - **Source:** [Carbon empty states][carbon-empty-states].
 - **Strength:** System.
 
@@ -366,14 +366,14 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Focus
 
-- **Rule:** Keep focus order meaningful, focus always visible, and the focused item at least partly unobscured. A strong indicator (WCAG AAA, 2.4.13) uses at least a 2px perimeter with 3:1 contrast, and the focus indicator is never removed without a visible replacement.
+- **Rule:** Keep focus order meaningful, focus always visible, and the focused item at least partly unobscured. Never remove the focus indicator without a visible replacement, and for a strong indicator (WCAG AAA, 2.4.13), use at least a 2px perimeter with 3:1 contrast.
 - **Why:** sighted keyboard users cannot operate what they cannot see.
 - **Source:** [WCAG 2.4.3][wcag-243], [2.4.7][wcag-247], [2.4.11][wcag-2411], [2.4.13][wcag-2413].
 - **Strength:** WCAG AA.
 
 ### Target size
 
-- **Rule:** Set pointer targets at least 24 by 24 CSS pixels, or space them so a 24px circle centered on each does not intersect another. Prefer 44 by 44 for primary controls, which is WCAG AAA and the Apple default for iOS and iPadOS.
+- **Rule:** Make pointer targets at least 24 by 24 CSS pixels, or space them so a 24px circle centered on each does not intersect another. Prefer 44 by 44 for primary controls, which meets WCAG AAA and matches the Apple default for iOS and iPadOS.
 - **Why:** small, close targets cause mis-taps for people with tremor or limited dexterity.
 - **Source:** [WCAG 2.5.8][wcag-258], [2.5.5][wcag-255], [Apple HIG accessibility][apple-hig-accessibility].
 - **Strength:** WCAG AA.
@@ -387,14 +387,14 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Headings and widget patterns
 
-- **Rule:** Write descriptive headings and labels, and use APG patterns for widgets. Menus, dialogs, tabs, and comboboxes need the documented roles, states, and keyboard behavior.
+- **Rule:** Write descriptive headings and labels, and follow APG patterns for widgets, giving menus, dialogs, tabs, and comboboxes their documented roles, states, and keyboard behavior.
 - **Why:** users navigate by headings and expect standard widget keys.
 - **Source:** [WCAG 2.4.6][wcag-246], [WAI-ARIA Authoring Practices][wai-aria-apg].
 - **Strength:** WCAG AA.
 
 ### Text alternatives
 
-- **Rule:** Provide text alternatives for informative images. Complex images such as charts and diagrams need a short description plus a long description of the essential information. Use real text for text.
+- **Rule:** Provide text alternatives for informative images. Give complex images such as charts and diagrams both a short description and a long description of the essential information. Render text as real text.
 - **Why:** assistive technology cannot recover meaning from pixels, and users cannot restyle an image.
 - **Source:** [WCAG 1.1.1][wcag-111], [WAI complex images][wai-complex-images], [WCAG 1.4.5][wcag-145].
 - **Strength:** WCAG AA.
@@ -404,7 +404,7 @@ A rule with several sources takes the strength of its strongest one.
 ### Durations
 
 - **Rule:** Keep UI effects at 150, 200, or 300ms and larger spatial transitions at 350, 500, or 750ms, following Material's Standard motion scheme converted to web curves.
-- **Why:** shorter feels instant, longer feels sluggish, and spatial moves need more time to read.
+- **Why:** shorter durations feel instant, longer ones feel sluggish, and spatial moves need more time to read.
 - **Source:** [Material 3 motion specs][material-motion-specs].
 - **Strength:** System.
 
@@ -417,7 +417,7 @@ A rule with several sources takes the strength of its strongest one.
 
 ### User control
 
-- **Rule:** Give users control over motion. Moving, blinking, or scrolling content that starts automatically, lasts more than five seconds, and runs beside other content needs a way to pause, stop, or hide it, and auto-updating content that starts automatically beside other content needs the same or a way to control the update frequency, unless the motion is essential (2.2.2). Let users disable interaction-triggered motion unless it is essential, for example through `prefers-reduced-motion` (AAA, 2.3.3).
+- **Rule:** Give users control over motion. Moving, blinking, or scrolling content that starts automatically, lasts more than five seconds, and runs beside other content needs a way to pause, stop, or hide it, and auto-updating content that starts automatically beside other content needs the same controls or a way to adjust update frequency, unless the motion is essential (2.2.2). Also let users disable non-essential interaction-triggered motion, such as through `prefers-reduced-motion` (AAA, 2.3.3).
 - **Why:** moving and auto-updating content distracts people with attention or reading difficulties, and interaction-triggered motion can cause nausea, migraine, and dizziness for people with vestibular disorders.
 - **Source:** [WCAG 2.2.2][wcag-222], [2.3.3][wcag-233].
 - **Strength:** WCAG A.
@@ -426,8 +426,8 @@ A rule with several sources takes the strength of its strongest one.
 
 ### One idea per slide
 
-- **Rule:** One idea per slide, and pass the three-second glance test. A slide should read like a billboard. Use large type, whitespace, and images, since the best slides may have almost no text. Avoid bullet walls and slideuments.
-- **Why:** audiences cannot read dense slides and listen at the same time. The spoken word carries the detail, and the slide carries the point.
+- **Rule:** Put one idea on each slide and pass the three-second glance test. Make each slide read like a billboard with large type, whitespace, and images, since the best slides may have almost no text. Avoid bullet walls and slideuments.
+- **Why:** audiences cannot read dense slides while listening, so the spoken word carries the detail and the slide carries the point.
 - **Source:** [Duarte, slide design][duarte-slide-design], [Duarte, one idea per slide][duarte-one-idea], [Reynolds, design tips][reynolds-tips].
 - **Strength:** Practitioner.
 
@@ -440,44 +440,44 @@ A rule with several sources takes the strength of its strongest one.
 
 ### Diagram hierarchy and labels
 
-- **Rule:** Give diagrams a visual hierarchy and complete labels. Make the most important elements the most saturated and detailed, keep background elements neutral, label every element and the first instance of every object, and use figure parts and subheadings. Carry diagram meaning with consistent arrows.
+- **Rule:** Give diagrams a visual hierarchy and complete labels. Make the most important elements the most saturated and detailed while keeping background elements neutral, label every element and the first instance of every object, organize with figure parts and subheadings, and use consistent arrows to carry meaning.
 - **Why:** a diagram is an argument about relationships, and unlabeled elements make it ambiguous.
 - **Source:** [Nature, scientific illustration guide][nature-illustration].
 - **Strength:** Practitioner.
 
 ## Choosing the sources
 
-WCAG, GOV.UK, and Carbon form the smallest set that covers the skill's surfaces without asking an agent to internalize a branded visual language. WCAG supplies the only rules that are both normative and mechanically checkable. GOV.UK supplies the best public evidence on the highest-risk web surface, which is data entry and error recovery. Carbon supplies the patterns the other two lack for dense product screens and charts. Material 3 is the strongest alternative and the best source for color roles, state opacities, and motion tokens, but adopting it wholesale would impose an expressive identity and a large token vocabulary that the skill does not need.
+WCAG, GOV.UK, and Carbon form the smallest set that covers the skill's surfaces without asking an agent to internalize a branded visual language. WCAG supplies the only rules that are both normative and mechanically checkable, GOV.UK supplies the best public evidence on the highest-risk web surface, which is data entry and error recovery, and Carbon supplies the patterns the other two lack for dense product screens and charts. Material 3 is the strongest alternative and the best source for color roles, state opacities, and motion tokens, but adopting it wholesale would impose an expressive identity and a large token vocabulary that the skill does not need.
 
 - **[WCAG 2.2 AA plus WAI-ARIA APG][wcag-understanding]**
 
-  - **Covers:** Testable criteria for contrast, focus, targets, reflow, text spacing, motion, errors, labels, and alt text, plus widget roles and keyboard behavior. Accessibility across web, slides, and diagrams. No visual language, layout, or content guidance.
-  - **Conflicts and costs:** None with visual systems. It is a floor, so it constrains every other choice.
+  - **Covers:** Testable criteria for contrast, focus, targets, reflow, text spacing, motion, errors, labels, and alt text, along with widget roles and keyboard behavior, and accessibility across web, slides, and diagrams without prescribing visual language, layout, or content.
+  - **Conflicts and costs:** None with visual systems, though as a floor it constrains every other choice.
 
 - **[GOV.UK Design System][govuk-design-system]**
 
-  - **Covers:** Evidence-based patterns for forms, labels, validation, error summaries, buttons, tables, spacing, type scale, and service-page layout. Strongest on transactional web forms and public-service content. Weak on dashboards, charts, and expressive marketing surfaces.
-  - **Conflicts and costs:** Austere visual language. Its 5px spacing scale, 19px body, and GDS Transport conflict with Carbon and Material values.
+  - **Covers:** Evidence-based patterns for forms, labels, validation, error summaries, buttons, tables, spacing, type scale, and service-page layout. It is strongest on transactional web forms and public-service content, and weak on dashboards, charts, and expressive marketing surfaces.
+  - **Conflicts and costs:** Austere visual language. Its 5px spacing scale, 19px body text, and GDS Transport typeface conflict with Carbon and Material values.
 
 - **[IBM Carbon][carbon]**
 
-  - **Covers:** Tokens, 2x grid, spacing and type scales, color themes, interaction states, empty and loading patterns, data tables, and Carbon Charts. Strongest on data-dense product UI, dashboards, and enterprise apps. Weaker on public-service form content and slides.
-  - **Conflicts and costs:** IBM Plex and the 2x grid are branded. Its 8px base and dense 14px body conflict with GOV.UK.
+  - **Covers:** Tokens, the 2x grid, spacing and type scales, color themes, interaction states, empty and loading patterns, data tables, and Carbon Charts. It is strongest on data-dense product UI, dashboards, and enterprise apps, and weaker on public-service form content and slides.
+  - **Conflicts and costs:** IBM Plex and the 2x grid carry brand identity. Its 8px base unit and dense 14px body text conflict with GOV.UK.
 
 - **[Material Design 3][material-3]**
 
-  - **Covers:** The most complete visual system, with 26 color roles, 30 type styles, state layers, motion durations, elevation, and component states. Broad cross-platform app coverage. Strong for Android and token-driven theming. Heavy for a small skill.
-  - **Conflicts and costs:** Its expressive visual language and dynamic color fight a brief that wants a distinct identity. Its token surface costs context and its values conflict with GOV.UK and Carbon.
+  - **Covers:** The most complete visual system, offering 26 color roles, 30 type styles, state layers, motion durations, elevation, and component states. Broad cross-platform app coverage. It is strong for Android and token-driven theming, but heavy for a small skill.
+  - **Conflicts and costs:** Its expressive visual language and dynamic color fight a brief that wants a distinct identity, and its token surface costs context. Its values conflict with GOV.UK and Carbon.
 
 - **[Apple Human Interface Guidelines][apple-hig-accessibility]**
 
   - **Covers:** Platform conventions, control sizing, accessibility expectations, and interaction feel for Apple platforms. Excellent for native Apple apps. Not a web, dashboard, or slide standard.
-  - **Conflicts and costs:** Platform-bound. Its 44pt default overlaps WCAG AAA but does not replace web semantics.
+  - **Conflicts and costs:** It is bound to Apple platforms, and while its 44pt default target size overlaps WCAG AAA, it does not replace web semantics.
 
 - **Practitioner canon** (Butterick, Every Layout, Refactoring UI, Duarte, Reynolds, Tufte, Datawrapper, NN/g, and Nature)
 
-  - **Covers:** Visual craft, including measure, leading, pairing, numerals, hierarchy, spacing, slide glance media, and data-ink. The aesthetic and editorial gaps the systems leave, especially slides and diagrams.
-  - **Conflicts and costs:** Single-author advice can conflict, for example 45 to 75 versus 45 to 90 characters.
+  - **Covers:** Visual craft such as measure, leading, font pairing, numerals, hierarchy, spacing, slide glance media, and data-ink, filling the aesthetic and editorial gaps the systems leave, especially for slides and diagrams.
+  - **Conflicts and costs:** Single-author recommendations can disagree, as in a 45 to 75 character measure versus 45 to 90.
 
 - **Platform guidance**
 
