@@ -9,11 +9,11 @@
     # ----------------------------------------------------------------------------------------------
     {
       command = "agenix";
-      reason = "Rewrites encrypted secrets.";
+      reason = "Reads or rewrites encrypted secrets.";
     }
     {
       command = "rm";
-      reason = "Irreversible local deletion.";
+      reason = "Irreversible deletion, except own /tmp scratch, build output, and `clean-gone`.";
     }
     {
       command = "sudo";
