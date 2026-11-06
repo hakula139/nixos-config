@@ -650,7 +650,7 @@ def "test canceled Codex turns cannot borrow a later reply" [] {
   assert equal $day.sessions.0.replies [{at: "13:12", text: "final"}]
 }
 
-def "test each tool's writes credit their prompt's repositories" [] {
+def "test writes from each tool credit the repositories of their prompts" [] {
   let dir = (mktemp --directory)
   let app = (git-repo $dir app)
   let lib = (git-repo $dir lib)
