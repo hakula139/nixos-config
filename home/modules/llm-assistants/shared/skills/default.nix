@@ -21,45 +21,45 @@ let
   # ------------------------------------------------------------------------------------------------
   # Skill sources
   # ------------------------------------------------------------------------------------------------
-  plugins = inputs.plugins.lib.skills;
+  pluginSkills = inputs.plugins.lib.skills;
   promptFragments = import ../prompt-fragments;
 
-  sources =
-    lib.removeAttrs plugins [
-      "acp-delegate"
-      "find-docs"
-    ]
-    // {
-      model-track-record = ./model-track-record;
-    }
-    // lib.optionalAttrs config.hakula.acp.enable {
-      inherit (plugins) acp-delegate;
-    }
-    // lib.optionalAttrs config.hakula.activity-report.enable {
-      activity-report = ./activity-report;
-    }
-    // lib.optionalAttrs config.hakula.agent-project-move.enable {
-      agent-project-move = "${config.programs.agent-project-move.package}/share/skills/agent-project-move";
-    }
-    // lib.optionalAttrs config.hakula.ctx7.enable {
-      inherit (plugins) find-docs;
-    }
-    // lib.optionalAttrs corpGatewayEnabled {
-      prose-polish = import ./prose-polish {
-        inherit
-          pkgs
-          lib
-          modelCatalog
-          promptFragments
-          repoLib
-          ;
-        modelCall = config.lib.llmAssistants.mkModelCall {
-          assistant = "prose-polish";
-          # Leaves a full batch's rewrite headroom past the hooks' model-call limit.
-          timeout = 300;
-        };
+  hostSkills = {
+    model-track-record = ./model-track-record;
+  }
+  // lib.optionalAttrs config.hakula.acp.enable {
+    inherit (pluginSkills) acp-delegate;
+  }
+  // lib.optionalAttrs config.hakula.activity-report.enable {
+    activity-report = ./activity-report;
+  }
+  // lib.optionalAttrs config.hakula.agent-project-move.enable {
+    agent-project-move = "${config.programs.agent-project-move.package}/share/skills/agent-project-move";
+  }
+  // lib.optionalAttrs config.hakula.ctx7.enable {
+    inherit (pluginSkills) find-docs;
+  }
+  // lib.optionalAttrs corpGatewayEnabled {
+    prose-polish = import ./prose-polish {
+      inherit
+        pkgs
+        lib
+        modelCatalog
+        promptFragments
+        repoLib
+        ;
+      modelCall = config.lib.llmAssistants.mkModelCall {
+        assistant = "prose-polish";
+        # Leaves a full batch's rewrite headroom past the hooks' model-call limit.
+        timeout = 300;
       };
     };
+  };
+
+  sources = lib.attrsets.unionOfDisjoint (lib.removeAttrs pluginSkills [
+    "acp-delegate"
+    "find-docs"
+  ]) hostSkills;
 
   mkSkillFiles =
     { directory, recursive }:

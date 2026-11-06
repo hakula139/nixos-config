@@ -1,7 +1,7 @@
 ---
 name: model-track-record
 description: >-
-  This host's private track record for models reached through internal snapshots or gateway
+  This configuration's track record for models reached through internal snapshots or gateway
   routes. Load it together with model-delegation, once per session before the first handoff to a
   non-flagship tier or another assistant, and again after a review or the user corrects a
   delegate's work.
@@ -9,7 +9,7 @@ description: >-
 
 # Model Track Record
 
-These entries name internal snapshots or gateway routes, so they stay out of the public `model-delegation` skill. They take precedence over its track record for the models they name, and an observation that names an internal snapshot or route is recorded here.
+These entries name internal snapshots or gateway routes, so they stay out of the public `model-delegation` skill. Record an observation that names an internal snapshot or route here.
 
 - **DeepSeek V4.1 Flash (`local_v2/DeepSeek-V4.1-Flash-1017`)**: Hand it implementation only with a detailed design from a flagship-tier agent that names the files, approach, edge cases, and checks, because it does not reliably design on its own.
 

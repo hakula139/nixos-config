@@ -15,7 +15,7 @@ Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment va
 
 ### Git Workflow
 
-Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue update, conflict resolution, or cleanup. It owns Git authorization and conventions.
+Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue update, conflict resolution, or cleanup. It owns Git authorization and conventions. A repository follows devkit's [GitHub conventions](https://github.com/hakula139/devkit/blob/main/docs/github.md) for its settings, ruleset, and labels by default, and may deviate where it needs to.
 
 ### Shared-Tree Safety
 
@@ -198,7 +198,7 @@ Custom agents set their own model tier.
 - **Standard tier**: Review changes from the standard tier, which the implementer and generic subagents use, before accepting them, as it may run on a different model from the coordinator's.
 - **Mini tier**: The mini tier may run on a cheaper model, so give it only the researcher's read-only lookups and background checks and the operator's approved operations.
 - **Effort**: Effort follows the configured tier within the native client's capabilities, but use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence, and if the selected route is unavailable, report that before switching.
-- **Track record**: Load the `model-delegation` skill together with `model-track-record`, whose entries take precedence for the models they name, once per session before first handing a task to a non-flagship tier or another assistant, and again after a review or after the user corrects a delegate's work.
+- **Track record**: Load the `model-delegation` skill and the private track record in `model-track-record` once per session before first handing a task to a non-flagship tier or another assistant, and again after a review or after the user corrects a delegate's work.
 - **Workmux**: When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), because Workmux's configured default is static.
 - **Codex panes**: After typing a prompt into a Codex pane, send Enter as a separate keystroke and confirm the task started, since Codex panes sometimes miss the submitting Enter.
 
