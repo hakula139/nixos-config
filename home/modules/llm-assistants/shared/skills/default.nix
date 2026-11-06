@@ -24,7 +24,6 @@ let
   promptFragments = import ../prompt-fragments;
 
   anthropic = inputs.anthropics-skills + "/skills";
-  openai = inputs.openai-skills + "/skills/.curated";
 
   sources = {
     ast-grep = ./ast-grep;
@@ -36,8 +35,6 @@ let
     dream = ./dream;
     environment-repair = ./environment-repair;
     frontend-design = anthropic + "/frontend-design";
-    gh-address-comments = openai + "/gh-address-comments";
-    gh-fix-ci = openai + "/gh-fix-ci";
     git-workflow = ./git-workflow;
     mcp-builder = anthropic + "/mcp-builder";
     model-delegation = ./model-delegation;
@@ -45,7 +42,6 @@ let
     nushell = ./nushell;
     read-pdfs = ./read-pdfs;
     review = ./review;
-    security-best-practices = openai + "/security-best-practices";
   }
   // lib.optionalAttrs config.hakula.acp.enable {
     acp-delegate = ./acp-delegate;

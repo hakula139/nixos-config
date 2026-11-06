@@ -462,22 +462,6 @@
         "type": "github"
       }
     },
-    "openai-skills": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1782268572,
-        "narHash": "sha256-t4oGnFg0YpxJaQiFpgTiwYhaFoZK6wPDiqvHoG0bXiU=",
-        "owner": "openai",
-        "repo": "skills",
-        "rev": "49f948faa9258a0c61caceaf225e179651397431",
-        "type": "github"
-      },
-      "original": {
-        "owner": "openai",
-        "repo": "skills",
-        "type": "github"
-      }
-    },
     "oxide-code": {
       "inputs": {
         "git-hooks-nix": [
@@ -549,7 +533,6 @@
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "openai-skills": "openai-skills",
         "oxide-code": "oxide-code",
         "rust-overlay": "rust-overlay_2",
         "system-manager": "system-manager"
