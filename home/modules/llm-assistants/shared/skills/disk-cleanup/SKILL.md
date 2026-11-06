@@ -14,13 +14,13 @@ Measure and classify every large item. Remove only what is safe, then report the
 
 Start by running `df -h` on the affected volumes. On macOS, `df` excludes purgeable space, and APFS local snapshots retain deleted files until they are thinned, so also run `tmutil listlocalsnapshots /`. Then use `du -sh` to size the usual heavy spots, staying on one filesystem with `-x` and sorting the output:
 
-| Location                                                                                                          | How to size it                                                                                   |
-| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `/private/tmp` (macOS) or `/tmp`                                                                                  | `du -xsh /private/tmp/* \| sort -h`. Agents often leave Cargo target dirs and review copies here |
-| Agent worktrees, such as `.claude/worktrees/*` in each repository and Codex's `~/.codex/worktrees/*`              | `du -sh` on each worktree and its `target/`, `node_modules/`, or `result*` outputs               |
-| `~/.cache/uv`, `~/.npm`, `~/.cargo/registry`, and the directories that `pnpm store path` and `brew --cache` print | `du -sh` on each path                                                                            |
-| Nix store                                                                                                         | `nix store gc --dry-run` lists what garbage collection would delete                              |
-| Docker                                                                                                            | `docker system df`                                                                               |
+| Location                                                                                                                                                   | How to size it                                                                                   |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `/private/tmp` (macOS) or `/tmp`                                                                                                                           | `du -xsh /private/tmp/* \| sort -h`. Agents often leave Cargo target dirs and review copies here |
+| Agent worktrees, such as `<parent>/<repo>__worktrees/*`, `.claude/worktrees/*` in each repository, Codex's `~/.codex/worktrees/*`, and OMP's `~/.omp/wt/*` | `du -sh` on each worktree and its `target/`, `node_modules/`, or `result*` outputs               |
+| `~/.cache/uv`, `~/.npm`, `~/.cargo/registry`, and the directories that `pnpm store path` and `brew --cache` print                                          | `du -sh` on each path                                                                            |
+| Nix store                                                                                                                                                  | `nix store gc --dry-run` lists what garbage collection would delete                              |
+| Docker                                                                                                                                                     | `docker system df`                                                                               |
 
 If the numbers don't add up, investigate further, starting with `du -xh -d 1 ~ | sort -h`.
 

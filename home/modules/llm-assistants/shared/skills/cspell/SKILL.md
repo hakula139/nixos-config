@@ -22,7 +22,7 @@ cspell trace --ignore-case --only-found <word>
 
 Trace searches dictionaries without reproducing filename overrides or identifier splitting, so also check the actual file. Confirm the summary reports a nonzero count of checked files.
 
-A linked worktree inside an ignored directory can silently check zero files, even with `"gitignoreRoot": "."`. Before changing filters, identify what owns the input inventory:
+A linked worktree inside an ignored directory, such as one under `.claude/worktrees/`, can silently check zero files, even with `"gitignoreRoot": "."`. A sibling worktree under `<repo>__worktrees` sits outside the repository and is unaffected. Before changing filters, identify what owns the input inventory:
 
 - **Git-selected files** (such as `git ls-files` or pre-commit filenames): CSpell's Git-ignore pass can redundantly exclude the checkout itself. Setting `"useGitignore": false` is appropriate when every caller already supplies a safe inventory. Preserve the configured source exclusions.
 - **CSpell discovery or explicit edited files that may be untracked or ignored**: Retain Git-ignore filtering unless the caller establishes an equivalent safe boundary. Inspect every caller before changing shared configuration, and avoid an unconditional `--no-gitignore` bypass.

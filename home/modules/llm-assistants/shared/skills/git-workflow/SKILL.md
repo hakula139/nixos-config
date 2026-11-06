@@ -24,7 +24,7 @@ Read the repository's contribution instructions before starting, and use its own
 ## Worktrees
 
 - Keep the main checkout on the default branch, because several agents may work in the repository at once and editing it or switching its branch can collide with their work.
-- Create every task branch, including the coordinator's own, in a worktree under `.claude/worktrees/<name>`. Claude Code and Workmux (under `workmux/`) create their worktrees there too, so they all share one gitignored directory.
+- Create every task branch, including the coordinator's own, in a worktree under `<parent>/<repo>__worktrees/<name>`, the sibling layout Workmux uses. Claude Code's built-in worktrees still live under `.claude/worktrees/`.
 
 ## Ignore rules
 

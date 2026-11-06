@@ -222,7 +222,10 @@ def digest-run [
 ]: nothing -> record {
   let config_file = ($dir | path join "config.json")
   {
-    excludedDirs: ['/\.claude/worktrees/workmux/']
+    excludedDirs: [
+      '/\.claude/worktrees/workmux/'
+      '/[^/]+__worktrees/workmux-'
+    ]
     labels: {default: ["work"], projects: {nixos-config: ["personal"]}}
     readingMinutes: 10
     maxMinutes: 60
@@ -903,7 +906,6 @@ def "test repositories resolve subdirectories and worktrees, and missing paths r
   let dir = (mktemp --directory)
   let app = (git-repo $dir app)
   mkdir ($app | path join "src")
-  mkdir ($dir | path join "app-wt")
   let linked = ($dir | path join "app-wt/fix")
   (
     ^git
@@ -912,7 +914,7 @@ def "test repositories resolve subdirectories and worktrees, and missing paths r
         --detach
         --quiet
   )
-  let live = ($app | path join ".claude/worktrees/live")
+  let live = ($dir | path join "app__worktrees/fix")
   (
     ^git
       -C $app
@@ -1399,7 +1401,7 @@ def "test turns no prompt started become runs" [] {
   let dir = (mktemp --directory)
   let app = (git-repo $dir app)
   let lib = (git-repo $dir lib)
-  let worker = ($app | path join ".claude/worktrees/workmux/fix")
+  let worker = ($dir | path join "app__worktrees/workmux-fix")
   let lead = "aaaabbbb-0000-4000-8000-000000000002"
   transcript $dir ["claude/projects/app/team.jsonl"] [
     (claude-user $app "10:00" "relay" {teamName: "t", agentName: "fix"})
