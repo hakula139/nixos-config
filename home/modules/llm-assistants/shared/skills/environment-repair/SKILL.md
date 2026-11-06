@@ -16,7 +16,7 @@ Use this for a tool startup failure, a broken managed setting, or a reproducible
 2. Start one background worker on a unique `fix/` branch based on the checkout's current commit, recording that commit and leaving the checkout's uncommitted changes in place. Verify the worker's checkout before its first edit.
 
    - Prefer the assistant's native background subagents, in a worktree you create.
-   - Otherwise, run `workmux add --background --base <commit> -P <prompt-file> <branch>` from the checkout, plus `--parent-session` across projects. Workmux creates the worktree itself.
+   - Otherwise, run `workmux add <branch> --background --base <commit> -P <prompt-file>` from the checkout, plus `--parent-session` across projects. Workmux creates the worktree, and `clean-gone` removes it once finished, as `git-workflow` describes.
    - If neither route exists, say so and continue.
 
 3. Brief it with the failing command and redacted error, the full path of the worktree it owns, and its scope: determine whether nixos-config owns the cause, reproduce it where safe, fix it under the repository's `AGENTS.md`, verify the fix, and publish a PR / MR through `git-workflow` within any publication limit the task sets. It must not merge, activate (`nixsw`, service restarts), or start another repair.

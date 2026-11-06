@@ -30,6 +30,8 @@ let
 
   teammateIdle = import ./teammate-idle { inherit pkgs lib; };
 
+  worktree = import ./worktree { inherit pkgs sharedHooks; };
+
   installed = sharedHooks.install (
     with sharedHooks.hooks;
     [
@@ -38,6 +40,8 @@ let
       commentGate
       completeness
       teammateIdle
+      worktree.create
+      worktree.remove
     ]
   );
 

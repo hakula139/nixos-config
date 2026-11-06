@@ -160,6 +160,10 @@ Once the task is clear, a top-level interactive agent runs `tmux-task-name <shor
 
 Enter a repository's dev shell only from within that repository, since its hook may install Git hooks into whichever repository is current. Get standalone tools from `PATH`, `nix shell nixpkgs#<pkg> -c`, or a hook-free shell documented by a skill, such as `browser-debugging`.
 
+### Worktrees
+
+Use Workmux for worktrees and never an assistant's built-in worktree feature, such as Codex's `--worktree`, `/worktree`, or `create_worktree`, OMP's `/wt` or `omp worktree add`, or OpenCode workspaces. The `git-workflow` skill owns the commands.
+
 ### Shell Commands
 
 `pgrep -f` and `pkill -f` can match the tool's own shell, whose command line holds the pattern, so a `pgrep -f` wait never ends and `pkill -f` kills the command it runs in. To wait for another process, block on its lock with `flock` or on its PID with `tail -f --pid`.

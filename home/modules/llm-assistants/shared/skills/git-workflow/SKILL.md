@@ -11,7 +11,7 @@ description: >-
 
 # Git Workflow
 
-Read the repository's contribution instructions before starting, and use its own tools for worktrees, rebases, and merges.
+Read the repository's contribution instructions before starting, and create worktrees with Workmux while the repository owns rebases and merges.
 
 ## Authorization
 
@@ -24,7 +24,9 @@ Read the repository's contribution instructions before starting, and use its own
 ## Worktrees
 
 - Keep the main checkout on the default branch, because several agents may work in the repository at once and editing it or switching its branch can collide with their work.
-- Create every task branch, including the coordinator's own, in a worktree under `<parent>/<repo>__worktrees/<name>`, the sibling layout Workmux uses. Claude Code's built-in worktrees still live under `.claude/worktrees/`.
+- Create every task branch, including the coordinator's own, with `workmux add <branch> --name <handle> --headless --json`, and open or hand the session the receipt's `worktree_path`. The worktree lands under `<parent>/<repo>__worktrees/<handle>`. Always pass `--name`, since every `add` without one takes Workmux's `workmux-` prefix, which activity-report reads as an unattended Workmux worker.
+- Never run `git worktree add`, since Workmux records the handle, branch, and base in git config and places the worktree beside the checkout.
+- To discard an unwanted worktree, use `workmux remove --force <handle>`.
 
 ## Ignore rules
 

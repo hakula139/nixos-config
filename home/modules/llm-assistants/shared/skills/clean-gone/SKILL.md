@@ -8,7 +8,7 @@ description: >-
 
 # Clean Gone Branches
 
-Remove finished branches and stale worktrees while protecting work in progress. The `clean-gone` command applies its plan by default.
+Remove finished branches and stale worktrees while protecting work in progress. The `clean-gone` command applies its plan by default. To discard an unwanted worktree, follow the `git-workflow` skill.
 
 ## Workflow
 
@@ -19,7 +19,7 @@ Remove finished branches and stale worktrees while protecting work in progress. 
    git fetch --all --prune
    ```
 
-2. Run `clean-gone` as its own command to sweep the repository. Preview with `--dry-run` when unsure.
+2. Run `clean-gone` as its own command to sweep the repository. Preview with `--dry-run` when unsure. A raw `git worktree remove` leaves its branch behind and skips the agent-memory move, so let `clean-gone` remove finished worktrees.
 
    It prunes worktrees whose directory is gone, first unlocking any that an exited session or this session locked, and skips a missing one that another lock holds. Then it checks every other linked worktree except the current one. It skips a worktree that a running process or another live session's lock holds, and one that this session's lock holds unless its branch is finished. Before removing a worktree, it moves the ignored files under its `.claude/agent-memory-local/` and `.agents/plans/` into the main checkout, copying missing files and appending missing lines without overwriting anything. Then:
 
