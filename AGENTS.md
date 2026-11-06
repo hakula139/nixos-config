@@ -55,7 +55,7 @@ nix build '.#packages.x86_64-linux.devvm-docker'
 
 Host out paths change on every source edit because `home/modules/shared.nix` pins `inputs.self.outPath` into the Nix registry. To show that a refactor preserves behavior, compare the attributes or built files it affects before and after, excluding `registry.json` when diffing `home-manager-files`.
 
-Because the shell hook links the gitignored `.pre-commit-config.yaml` only on shell entry, run `nix develop` once in a worktree under `.claude/worktrees/`, and again after any rebase or merge that changes the hook configuration.
+Because the shell hook links the gitignored `.pre-commit-config.yaml` only on shell entry, run `nix develop` once in each worktree, and again after any rebase or merge that changes the hook configuration.
 
 ## Documentation maintenance
 

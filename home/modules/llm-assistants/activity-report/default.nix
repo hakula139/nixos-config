@@ -70,9 +70,11 @@ in
 
     excludedDirs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      # Workmux workers take their prompts from the agent that launched them.
+      # Workmux workers take their prompts from the agent that launched them. The first pattern
+      # covers sessions before the sibling migration.
       default = [
         "/\\.claude/worktrees/workmux/"
+        "/[^/]+__worktrees/workmux-"
       ];
       description = "Regexes matching session directories excluded from human hours and excerpts";
     };

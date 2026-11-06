@@ -456,16 +456,28 @@ def omp-sessions [cfg: record, since: datetime]: nothing -> list {
 # Repositories
 # --------------------------------------------------------------------------------------------------
 
-# The nearest existing ancestor of a directory, since a deleted worktree no longer exists.
+# The main checkout of a deleted sibling worktree, `<root>/<name>` for `<root>/<name>__worktrees`,
+# or null outside that layout.
+def worktrees-main [dir: string]: nothing -> any {
+  $dir | parse --regex '^(?<main>.+)__worktrees/' | get -o 0.main
+}
+
+# The nearest existing ancestor of a directory, since a deleted worktree no longer exists. A
+# deleted sibling worktree resolves to its main checkout.
 def existing-ancestor [dir: string]: nothing -> any {
   if ($dir | path exists) {
     $dir
   } else {
-    let parent = ($dir | path dirname)
-    if $parent == $dir {
-      null
+    let main = (worktrees-main $dir)
+    if $main != null and (($main | path join ".git") | path exists) {
+      $main
     } else {
-      existing-ancestor $parent
+      let parent = ($dir | path dirname)
+      if $parent == $dir {
+        null
+      } else {
+        existing-ancestor $parent
+      }
     }
   }
 }
