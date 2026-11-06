@@ -31,14 +31,11 @@ let
     "worktree"
   ];
 
-  workmuxSkillFiles = lib.listToAttrs (
-    map (name: {
-      name = ".agents/skills/${name}";
-      value = {
-        source = "${workmux}/share/skills/workmux/${name}";
-        recursive = true;
-      };
-    }) workmuxSkills
+  workmuxSkillFiles = lib.genAttrs' workmuxSkills (
+    name:
+    lib.nameValuePair ".agents/skills/${name}" {
+      source = "${workmux}/share/skills/workmux/${name}";
+    }
   );
 in
 {
