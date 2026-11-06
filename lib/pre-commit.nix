@@ -51,6 +51,7 @@ inputs.git-hooks-nix.lib.${pkgs.stdenv.hostPlatform.system}.run {
       entry = lib.getExe pkgs.doctoc;
       args = [
         "--update-only"
+        "--notitle"
         "--maxlevel=3"
       ];
       files = "\\.md$";

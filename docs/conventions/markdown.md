@@ -5,4 +5,4 @@ The shared instructions hold the general Markdown rules. This page covers how ni
 ## Table of contents
 
 - **Markers**: put doctoc's `START` and `END` markers where the list goes, and the `doctoc` hook fills and refreshes it on commit.
-- **Plain headings**: keep links out of headings, because doctoc builds a reference-linked heading's anchor from its raw source, and markdownlint passes the broken entry.
+- **Plain headings**: keep reference-style links out of headings, because doctoc builds their anchor from the raw source, and markdownlint passes the broken entry. Inline links anchor correctly.
