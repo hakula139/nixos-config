@@ -208,9 +208,11 @@ def clean [
   --ssh-exit: int = 0
 ]: nothing -> record {
   let argv = (if $dry_run { ["--dry-run"] } else { [] })
+  let log = (mktemp)
   let run = with-env {
     PATH: ($env.PATH | prepend [$repo.bin $env.NU_TEST_STUBS])
     STUB_FORGE_ERROR: $forge_error
+    STUB_LOG: $log
     STUB_LSOF_EXIT: ($lsof_exit | into string)
     STUB_LSOF_OUTPUT: $open
     STUB_REQUESTS: ($requests | to json --raw)
@@ -221,7 +223,10 @@ def clean [
     cd ($cwd | default $repo.main)
     ^$nu.current-exe --no-config-file $SCRIPT ...$argv | complete
   }
-  $run | insert lines ($run.stdout | lines)
+  let calls = (open $log | from json --objects)
+  $run
+  | insert lines ($run.stdout | lines)
+  | insert calls $calls
 }
 
 def worktrees [repo: record]: nothing -> list<string> {
@@ -482,56 +487,113 @@ def "test the forge is detected from the origin URL or its SSH host alias" [] {
     {
       name: "a URL"
       url: "https://github.com/example/app.git"
+      base: ""
+      prefix: ""
+      extra: ""
+      github: true
+    }
+    {
+      name: "a URL mapped to a mirror by insteadOf"
+      url: "https://github.com/example/app.git"
+      base: "https://git.example/github/"
+      prefix: "https://github.com/"
+      extra: ""
+      github: true
+    }
+    {
+      name: "a shorthand URL rewritten by insteadOf"
+      url: "gh:app.git"
+      base: "git@github.com:example/"
+      prefix: "gh:"
+      extra: ""
+      github: true
+    }
+    {
+      name: "several configured URLs"
+      url: "https://github.com/example/app.git"
+      base: ""
+      prefix: ""
+      extra: "https://github.com/example/other.git"
       github: true
     }
     {
       name: "an SSH URL"
       url: "ssh://git@github.com:22/example/app.git"
+      base: ""
+      prefix: ""
+      extra: ""
       github: true
     }
     {
       name: "an scp-like URL"
       url: "git@github.com:example/app.git"
+      base: ""
+      prefix: ""
+      extra: ""
       github: true
     }
     {
       name: "an SSH host alias"
       url: "git@work:example/app.git"
+      base: ""
+      prefix: ""
+      extra: ""
       github: true
     }
     {
       name: "an SSH host alias selected by its user"
       url: "ssh://deploy@work/example/app.git"
+      base: ""
+      prefix: ""
+      extra: ""
       github: true
     }
     {
       name: "an SSH host alias over port 443"
       url: "git@github.com-443:example/app.git"
+      base: ""
+      prefix: ""
+      extra: ""
       github: true
     }
     {
       name: "an alternate SSH host"
       url: "ssh://git@ssh.github.com/example/app.git"
+      base: ""
+      prefix: ""
+      extra: ""
       github: true
     }
     {
       name: "an SSH host alias to another host"
       url: "git@github.com-mirror:example/app.git"
+      base: ""
+      prefix: ""
+      extra: ""
       github: false
     }
     {
       name: "a URL whose SSH alias would map it to GitHub"
       url: "https://work/example/app.git"
+      base: ""
+      prefix: ""
+      extra: ""
       github: false
     }
     {
       name: "a GitLab URL"
       url: "git@gitlab.com:example/app.git"
+      base: ""
+      prefix: ""
+      extra: ""
       github: false
     }
     {
       name: "a local path"
       url: "/srv/example/app.git"
+      base: ""
+      prefix: ""
+      extra: ""
       github: false
     }
   ]
@@ -541,11 +603,35 @@ def "test the forge is detected from the origin URL or its SSH host alias" [] {
     let tip = (git-in $repo.main rev-parse origin/main)
     let worktree = (add-worktree $repo "wt")
     git-in $repo.main remote set-url origin $case.url
+    if ($case.base | is-not-empty) {
+      git-in $repo.main config --global $"url.($case.base).insteadOf" $case.prefix
+    }
+    if ($case.extra | is-not-empty) {
+      git-in $repo.main config --add remote.origin.url $case.extra
+    }
     let requests = (
       if $case.github {
         [{number: 7, headRefName: "feat/wt", state: "MERGED", headRefOid: $tip}]
       } else {
         [(mr 3 "feat/wt" "merged" $tip)]
+      }
+    )
+    let lookup = (
+      if $case.github {
+        [
+          pr list
+            --repo "example/app"
+            --head "feat/wt"
+            --state all
+            --json "number,state,headRefOid"
+        ]
+      } else {
+        [
+          mr list
+            --source-branch "feat/wt"
+            --all
+            --output json
+        ]
       }
     )
 
@@ -557,19 +643,46 @@ def "test the forge is detected from the origin URL or its SSH host alias" [] {
     assert equal $result.lines (removal $worktree $evidence --branch "feat/wt" --force) $case.name
     assert equal $result.exit_code 0 $case.name
     assert-removed $repo $worktree $case.name
+    assert equal $result.calls [{args: $lookup}] $case.name
   }
 }
 
-def "test a rejected SSH configuration ends the run with the ssh error" [] {
-  let repo = (make-repo)
-  git-in $repo.main remote set-url origin "git@work:example/app.git"
+def "test a rejected SSH configuration ends the run only when it is resolved" [] {
   let error = "Bad configuration option: usekeychain"
+  let cases = [
+    {
+      name: "an SSH origin"
+      url: "git@work:example/app.git"
+      base: ""
+      prefix: ""
+      exit_code: 2
+      stdout: ""
+      stderr: $"error: resolving git@work through ssh failed\n    ($error)\n"
+    }
+    {
+      name: "a GitHub origin beside a rewritten SSH URL"
+      url: "https://github.com/example/app.git"
+      base: "git@github.com:"
+      prefix: "https://github.com/"
+      exit_code: 0
+      stdout: "Nothing to clean up.\n"
+      stderr: ""
+    }
+  ]
 
-  let result = (clean $repo --ssh-error $error --ssh-exit 255)
+  for case in $cases {
+    let repo = (make-repo)
+    git-in $repo.main remote set-url origin $case.url
+    if ($case.base | is-not-empty) {
+      git-in $repo.main config --global $"url.($case.base).insteadOf" $case.prefix
+    }
 
-  assert equal $result.exit_code 2
-  assert equal $result.stdout ""
-  assert equal $result.stderr $"error: resolving git@work through ssh failed\n    ($error)\n"
+    let result = (clean $repo --ssh-error $error --ssh-exit 255)
+
+    assert equal $result.exit_code $case.exit_code $case.name
+    assert equal $result.stdout $case.stdout $case.name
+    assert equal $result.stderr $case.stderr $case.name
+  }
 }
 
 def "test the worktree of a finished branch is removed with its uncommitted work" [] {
