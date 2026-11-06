@@ -4,12 +4,14 @@
 
 {
   lib,
+  corpHosts,
   mcpOptions,
 }:
 
 let
+  sourceControl = import ./source-control.nix { inherit corpHosts; };
+  allows = import ./allows.nix { inherit (sourceControl) ownRepositories; };
   gates = import ./gates.nix;
-  allows = import ./allows.nix;
 
   toMcpEntries =
     servers:
@@ -28,7 +30,7 @@ let
     );
 
   policy = {
-    inherit gates allows;
+    inherit sourceControl allows gates;
     allowCommands = allows.commands.readOnly ++ allows.commands.mutating;
     gateCommands = map (gate: gate.command) gates.commands;
     mcpAllows = toMcpEntries (

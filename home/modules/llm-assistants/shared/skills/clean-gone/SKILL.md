@@ -1,55 +1,34 @@
 ---
 name: clean-gone
 description: >-
-  Remove local Git branches with deleted upstreams and integrated commits, including stale linked
-  worktrees. Use when asked to clean up merged branches or worktrees, or when git branch reports
-  gone upstreams. Preserve active, dirty, and unmerged work.
+  Remove finished local Git branches and stale linked worktrees with the `clean-gone` command,
+  moving agent memory into the main checkout. Use when asked to clean up merged branches or
+  worktrees, after a PR / MR merges or closes, or when git branch reports gone upstreams.
 ---
 
 # Clean Gone Branches
 
-Remove branches with deleted upstream refs while protecting uncommitted and unmerged work.
+Remove finished branches and stale worktrees while protecting work in progress. The `clean-gone` command applies its plan by default.
 
 ## Workflow
 
-1. Confirm the repository and refresh remote-tracking refs. Stop if any required fetch fails.
+1. Confirm the repository and refresh remote-tracking refs, since unpublished commits and gone upstreams are judged against the last fetch. Stop if any required fetch fails.
 
    ```bash
    git rev-parse --show-toplevel
    git fetch --all --prune
    ```
 
-   Run `git remote set-head <remote> --auto` for each remote used by the candidates. The script checks each branch's configured remote, so a stale cached default branch can skew its integration check.
+2. Run `clean-gone` as its own command to sweep the repository. Preview with `--dry-run` when unsure.
 
-2. Run the bundled script without `--apply`, then review every planned and skipped branch.
+   It prunes worktrees whose directory is gone, first unlocking any that an exited session or this session locked, and skips a missing one that another lock holds. Then it checks every other linked worktree except the current one. It skips a worktree that a running process or another live session's lock holds, and one that this session's lock holds unless its branch is finished. Before removing a worktree, it moves the ignored files under its `.claude/agent-memory-local/` and `.agents/plans/` into the main checkout, copying missing files and appending missing lines without overwriting anything. Then:
 
-   ```bash
-   <skill-dir>/scripts/clean-gone.nu
-   ```
+   - **Finished**: the newest PR / MR of the branch is merged or closed, and its head contains the branch tip. The worktree is removed even with uncommitted work, and the branch is deleted.
+   - **Open PR / MR**: the worktree is kept untouched.
+   - **Uncommitted work**: the worktree is skipped with the age of its newest change.
+   - **Idle for over a day**: a clean detached worktree is removed when a branch or remote-tracking ref holds its HEAD. A clean worktree on a branch is removed, and its branch is deleted only when every commit is on a remote.
+   - **No worktree**: a finished branch is deleted, and so is one without an open PR / MR whose commits are all on a remote once its last commit is over a day old. A branch with unpublished commits is never deleted, and it is skipped for review once its upstream is gone or its last commit is over a day old.
 
-   The script selects only branches whose upstream is marked `[gone]`. It skips the current worktree, worktrees it cannot inspect, and worktrees with uncommitted, untracked, or ignored files. It considers a branch integrated if it is an ancestor of the target branch or its changed-path tree exactly matches a tree in the target branch's history. Since `git branch -d` does not recognize squash merges, the script force-deletes a branch only after that integration check passes. It never force-removes worktrees.
+3. Follow up on each line that ends with "Review whether it needs an MR." Inspect each flagged item, then open an MR for work worth keeping, under the standing authority for follow-up changes in a repository you already publish to, or report it to the user. Never discard uncommitted work unless the user names it.
 
-3. Confirm that no other agent or terminal is using the planned worktrees. The script protects only the current checkout and cannot detect other sessions. If the user requested cleanup, or cleanup follows merged work under `git-workflow`, apply the reviewed plan.
-
-   ```bash
-   <skill-dir>/scripts/clean-gone.nu --apply
-   ```
-
-   Otherwise, present the dry run and wait for authorization.
-
-4. Investigate skips when other evidence suggests they may be stale. The script is conservative around squash merges, cherry-picks, and overlapping changes. Git's patch equivalence ignores whitespace and merge-resolution changes, so patch equivalence alone is insufficient. A merged PR / MR is sufficient evidence when its recorded head exactly matches the local branch tip and its merge commit is an ancestor of the target branch. A merged title or matching branch name is not sufficient.
-
-   Before manually removing a skipped worktree, preserve its content as the `git-workflow` skill's Cleanup section describes, covering every submodule too. Leave active worktrees and unresolved changes alone.
-
-   Once integration and preservation are established, run `git worktree remove`, then `git branch -D` if squash history prevents ordinary deletion. If Git refuses ordinary worktree removal, such as for a worktree that contains submodules, use `git worktree remove --force` only after verifying integration, confirming that all tracked, untracked, and ignored content in the worktree and every submodule is clean or preserved, and checking that no agent, process, or terminal is using them. The authorization in step 3 covers this verified fallback. Never recursively delete directories to bypass unresolved state.
-
-5. Report the worktrees and branches removed or skipped, the evidence for each manual cleanup, and the reason for each remaining skip.
-
-## Integration bases
-
-The script uses each branch's cached remote `HEAD` and skips branches whose default cannot be resolved. If refreshing that ref fails or the branch was intentionally merged into another base, establish the target from the merged PR / MR or the user's instructions, then pass it to both runs. Ask only if you cannot establish the target:
-
-```bash
-<skill-dir>/scripts/clean-gone.nu --base refs/remotes/origin/release
-<skill-dir>/scripts/clean-gone.nu --base refs/remotes/origin/release --apply
-```
+4. Report the worktrees and branches removed or skipped and the reason for each remaining skip. Removing a skipped worktree or branch another way needs the user's approval.
