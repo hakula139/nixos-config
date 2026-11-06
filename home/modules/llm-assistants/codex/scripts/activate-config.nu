@@ -5,11 +5,10 @@
 # ==================================================================================================
 
 def save-config [content: string, target: string] {
-  let temporary = (^mktemp $"--tmpdir=($target | path dirname)" ".config.XXXXXXXXXX" | str trim)
+  let temporary = (mktemp --tmpdir-path ($target | path dirname) ".config.XXXXXXXXXX")
 
   try {
     $content | save --force $temporary
-    ^chmod 600 $temporary
     ^mv --force $temporary $target
   } catch {|error|
     rm --force $temporary
