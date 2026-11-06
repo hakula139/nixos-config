@@ -62,11 +62,10 @@ def write-config [config: record, profile: path] {
   }
   let directory = ($config.configFile | path dirname)
   mkdir $directory
-  let temporary = (^mktemp $"--tmpdir=($directory)" ".profile-config.XXXXXXXXXX" | str trim)
+  let temporary = (mktemp --tmpdir-path $directory ".profile-config.XXXXXXXXXX")
 
   try {
     $serialized | save --force $temporary
-    ^chmod 600 $temporary
     ^mv --force $temporary $config.configFile
   } catch {|error|
     rm --force $temporary
