@@ -62,6 +62,7 @@ direnv
 disko
 diskutil
 dmit
+doctoc
 dont
 dotenv
 drblury
@@ -69,6 +70,8 @@ dreamin
 drivedx
 dropdb
 dscacheutil
+dtcg
+duarte
 duckdb
 duckdbrc
 dups
@@ -207,6 +210,7 @@ nsncd
 nspr
 nufmt
 numpy
+nums
 numtide
 nuon
 nvcr
@@ -293,6 +297,7 @@ shfmt
 showcmd
 signup
 sigsys
+slideuments
 smol
 snmp
 socat
@@ -322,6 +327,7 @@ tomlkit
 tomlq
 toolsai
 tsdown
+tufte
 tulpn
 ulimits
 umami
@@ -345,6 +351,7 @@ vlang
 vless
 waka
 wakatime
+wcag
 whatpulse
 whereis
 whois

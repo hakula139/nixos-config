@@ -1,72 +1,116 @@
 ---
 name: frontend-design
 description: >-
-  Design and build UI that fits its content and audience, covering applications, sites, decks, and
-  diagrams. Use when building or changing any interface, when choosing layout, type, spacing,
-  motion, or copy, and when reviewing a rendered result, even when the request does not mention
-  design.
+  Design and build accessible web UI, dashboards, slides, and diagrams that fit their content
+  and audience. Use when building or changing any interface, when choosing layout, type, color,
+  spacing, motion, or copy, and when reviewing a rendered result, even when the request does not
+  mention design.
 ---
 
 # Frontend Design
 
-These rules cover what a capable model tends to get wrong in UI work when left to its own habits. Each names the goal it serves, so apply it to the interface in front of you.
+Project conventions govern the stack and tooling. WCAG bounds every surface, and the public baseline supplies the patterns. Each design rule states the goal it serves, so it generalizes to the interface in front of you.
 
-## Stack
+## Project conventions
 
-- Work inside the project's existing stack and its idioms, such as Tailwind classes where the repository styles that way, so one page does not follow two sets of styling rules.
-- For a new application UI, use Tailwind CSS with each token defined once, plus the ecosystem's established component library, and hand-build a component only when neither the library nor the framework has a fit, as the global instructions' Design rules require.
-- Bespoke presentational work, such as a deck or a landing page, may hand-build its components on those same tokens, so the bespoke page still shares the product's system.
-- Use an established icon library, and keep every icon in use in one local module so the set stays coherent. A hand-drawn path breaks the library's stroke weight and grid, so glyphs and arrows come from the library.
+- Work inside the project's existing stack and idioms, so one screen never mixes styling systems.
+- For new UI, use the latest Tailwind CSS.
+- Use `@apply` to share a class set wherever several elements repeat it, keeping classes concise, shared, and consistent.
+- Reuse the established UI framework and its components before building your own.
+- Use open-source libraries for icons, fonts, and rendering such as markdown, and write your own only when no library fits.
+- Keep the design simple, elegant, and consistent with the user's related projects.
 
-## Direction
+## Design baseline
 
-- Aim for a result that looks designed for this content and audience, and match the project's design system when it has one, so the work reads as part of the product.
-- Define color, type, and spacing as tokens, add a token only when a need appears, and keep the set small so the system stays learnable.
-- Plan a new direction before coding, since a layout chosen while typing tends to fall back on the familiar.
+Use each public standard for the areas where it is authoritative.
 
-## Consistency
+- **WCAG 2.2 AA and the WAI-ARIA Authoring Practices** set contrast, focus, target size, reflow, and error identification for every surface.
+- **GOV.UK Design System** provides the patterns for forms, validation, errors, content, and service pages.
+- **IBM Carbon** provides the patterns for data-dense product UI, dashboards, tables, and charts.
+- **Material 3** supplies color roles, state-layer opacities, and motion durations.
+- **The practitioner canon** (Butterick, Every Layout, Refactoring UI, Duarte, Reynolds, Tufte, Datawrapper, NN/g, and Nature) covers typography, hierarchy, slides, and diagrams.
+- **Platform guidance** from W3C Community Groups and browser vendors covers viewport setup, responsive images, Core Web Vitals, and the design-token format.
 
-- Give every element type, such as a footnote, table, caption, or transition, one style across every screen, and give a different kind a visibly different treatment, so a reader carries what they learn from one page to the next and never relearns an element.
-- Let structure follow meaning, so a sub-case nests inside its parent and a reader sees the relationship without reading a label.
+Precedence:
 
-## Density
+- WCAG is a floor. A visual direction may change the look but cannot remove contrast, focus, target size, reflow, or error identification.
+- Pick one system's spacing scale, type scale, and body size per artifact and apply them throughout, since GOV.UK's 5px scale and 19px body conflict with Carbon's 8px grid and 14px body.
+- Use GOV.UK for form structure and errors, Carbon for the data surfaces named above, Material 3 for the cross-cutting values above, and the canon and Platform guidance inside the WCAG floor.
 
-- Show the least text that carries the message, and replace text with a glyph, arrow, or diagram when the visual already says it, so attention goes to the idea.
-- Cut content before cramming it into the layout, and avoid both a page filled edge to edge and one so thin it wastes the space. Every element should have room to be read.
-- Shape each screen around its content, so screens that say different things do not all reduce to one table plus a note.
+[references/design-sources.md](references/design-sources.md) holds the full rule set, including rules SKILL.md does not condense, with each rule's source, strength, and any disagreement between sources, plus how the sources were chosen.
 
-## Type
+## Rules
 
-- Reserve monospace for literals a reader could type or search for, such as commands, paths, identifiers, and keys, and match its weight to the surrounding text, so the face marks a literal and sits calmly in the line.
-- Set no text in all caps, because it slows reading and removes case information.
-- Break headings and card text at phrase boundaries, leave no short word alone on a last line, and keep body lines under about 80 characters so the eye can find the next line.
+### Foundations
 
-## Layout
+- Draw every margin and gap from a single spacing scale, so the rhythm holds and small changes stay cheap.
+- Map a small fixed type scale to roles and set body text to the body role, so the hierarchy stays consistent and text survives zoom.
 
-- Measure positions and gaps in the rendered page before changing geometry, because guessed padding and alignment fail repeatedly.
-- Take spacing from the scale and give equal relationships equal gaps, so a reader can tell which items belong together.
-- Align related edges so items that belong together read as one group, and match the heights of side-by-side panels so the row reads as one band.
-- Allow no overflow or occlusion at every viewport the project supports, so nothing is cut off or hidden.
+### Layout and spacing
 
-## Motion
+- Give each view one dominant element and build hierarchy through size, weight, and color together, using about two weights and two or three text colors, so the eye finds an entry point and sees what matters.
+- Group related items by proximity, and give important elements more surrounding space, so nearness reads as relationship and extra space reads as importance.
+- Align related edges to shared key lines, keep body copy left-aligned, and center only short headings, because centered and justified blocks break alignment and slow reading. Do not justify browser body text without hyphenation.
+- Design from a single small-screen column first, with no page-level horizontal overflow or obscured focus, so content and controls stay reachable.
+- Support 200% text resize and reflow at 320 CSS px (400% zoom) without two-dimensional scrolling, except for elements that require a two-dimensional layout such as data tables, maps, and diagrams.
+- Show less text, and use more icons or images where they make the content more readable, but do not blindly switch text to images, so attention stays on the idea.
+- Put detail in tooltips or popovers when needed, so the screen does not fill with text.
+- Place controls in a row's free space before overlapping or stacking them, so no control is covered while part of the row sits empty.
+- Design for growth, with many tabs, columns, or aspects, so added tabs or columns do not overflow.
+- Style each element type the same way on every screen, so a reader never has to relearn it.
 
-- Use motion where it explains a change, and design its order and timing, so the reader sees what moved and why.
-- Prefer calm transitions, and honor reduced motion so the page stays usable for people who ask for less movement.
+### Typography
 
-## Copy
+- Set body leading at 1.3 to 1.5 and never below 1.2, and build the layout to survive user overrides of 1.5 line-height, 2em paragraph spacing, 0.12em letter spacing, and 0.16em word spacing.
+- Fill the available width up to 90 characters, so the eye travels a comfortable distance without losing its place.
+- Use at most two typefaces with fixed roles and keep decorative faces out of body copy, so the typefaces reinforce the hierarchy.
+- Leave no short word alone on the last line of a paragraph or heading, since a lone word reads as a mistake and weakens the line.
+- Use sentence case for body text, headings, and most labels. All caps is acceptable for short labels and captions when the text is tracked and the label is genuinely short. Never set a paragraph or a multi-line heading in caps, since caps remove the word shapes that aid recognition. Apply caps with `text-transform: uppercase` so the underlying text keeps its case.
 
-- The global instructions' Writing rules apply to every string in the interface, so an interface reads as one voice from labels to errors.
-- Where a page argues or explains, as a deck or landing page does, headings are short claims. On any page, a subtitle adds information the heading does not carry, so a reader can scan the structure from headings alone.
-- Parallel notes on sibling cards or diagram nodes answer the same question, so a reader can compare them across the row.
-- Labels may drop articles, while full sentences keep them, so a reader can tell a label from a sentence at a glance.
-- Keep copy concrete and relevant to the actual audience. Take claims, figures, and examples only from a source the user agreed to, and mark any placeholder as one, so nothing without a source ships as fact.
+### Color
 
-## Defaults to question
+- Set text contrast to at least 4.5:1 and large text to at least 3:1, where large means 18pt (about 24px) or 14pt bold (about 18.5px), and never round a computed 4.499:1 up to a pass, because low-contrast text disappears for low-vision users.
+- Keep component boundaries, states, meaningful graphics, and focus indicators at 3:1 contrast or better against adjacent colors, so the control and its state remain visible.
+- Never use color as the only cue. Pair it with text, an icon, a shape, or a pattern, so the meaning survives color blindness.
+- Define color as role tokens such as `primary`, `on-primary`, `surface`, `container`, and `outline`, build light and dark themes from the same roles, follow the OS setting for dark mode, and keep light mode the default for a general audience, so contrast pairs stay coherent and dark mode remains a choice.
 
-Before keeping a structure, check whether the content asked for it. An interchangeable card grid, a stat hero built from a gradient and a large number, decorative labels, and arrows or separators that carry no meaning fit any topic. A layout chosen because it is familiar leaves the page without a point of view, so replace it when the content suggests something else.
+### Data display
+
+- Use a table when the task compares values across rows and columns, so the table supports comparison. Put a human-friendly name in the first column. Never show an internal ID there.
+- Right-align numeric columns, use tabular figures, put units in the header, and give the table a caption and scoped headers, so values line up and the table is navigable.
+- Choose the chart from the message: a line for change over time, a bar for comparison and share, a scatter for correlation, and a histogram for distribution, so the form makes the statement the chart must make.
+- Maximize data-ink by removing gridlines, background fills, 3D effects, and decoration, so nothing competes with the data.
+- Keep the visual encoding proportional to the values, and label encodings directly with a short description of the key takeaway, so the chart does not mislead about magnitude or send readers hunting a legend. Do not truncate the value axis on a bar chart or use area and volume to exaggerate differences.
+
+### Forms and feedback
+
+- Use a single-column form with one question per row, letting only short related fields such as city, state, and postal code share a row, so the vertical reading flow holds.
+- Give every input a persistent visible label above the field, reserve placeholders for hints, validate on submit, accept flexible formats, and preserve the user's input, so the field stays identifiable and slow typists are not penalized.
+- Name the field in each error message, explain how to fix it, and place an error summary at the top that links to each offending field, so users can find and fix errors without re-entering data.
+- Match feedback to the delay, so users know the system is working: use no special feedback under 1s, a busy indicator over 1s, and a progress indicator with a time estimate over 10s, using skeletons for container loads and inline spinners for actions.
+- Design the empty state with what will appear, why it is empty, and the next action, so first use and the zero-result state are clear.
+- Use one primary button per page that names the action, and use the same word for the same action across the flow, so the next step is clear.
+
+### Accessibility
+
+- Make all functionality keyboard-operable, with no per-keystroke timing requirement, and keep focus order meaningful and focus always visible. A strong indicator uses at least a 2px perimeter at 3:1 contrast, and the focus indicator is never removed without a visible replacement.
+- Make pointer targets at least 24 by 24 CSS pixels, or preferably 44 by 44 for primary controls, and give every dragging action a single-pointer alternative, such as clicking a slider track or typing into a numeric input, so people with limited dexterity can operate it.
+- Provide text alternatives for informative images, with a short description and a long description for complex charts and diagrams, and render text as real text, so assistive technology and restyling both work.
+- Write descriptive headings and labels, and follow the APG roles, states, and keyboard behaviors for menus, dialogs, tabs, and comboboxes, because users navigate by headings and expect standard widget keys.
+
+### Motion
+
+- Set UI effects to 150, 200, or 300ms and larger spatial transitions to 350, 500, or 750ms, so small changes feel instant and spatial moves stay readable.
+- Use motion to show what changed or to direct attention, and remove decorative autoplay and parallax. Give automatic motion that runs beside other content for more than five seconds a pause, stop, or hide control, give auto-updating content the same or a frequency control, and let users disable interaction-triggered motion through `prefers-reduced-motion`, so moving content neither distracts nor sickens anyone.
+
+### Slides and diagrams
+
+- Give each slide one idea that passes a three-second glance, with large type, whitespace, and images, so the audience can listen while they glance.
+- Structure the talk as a story from the status quo to what could be and end with a clear call to action, so the audience follows the problem through to the outcome.
+- Give a diagram a visual hierarchy, make the most important elements the most saturated and detailed, keep the background neutral, and label every element and the first instance of every object, so the argument about relationships is unambiguous.
+- Carry diagram meaning with labels and consistent arrows, and give every diagram short and long text alternatives, so color-blind and blind readers get the argument.
 
 ## Verify
 
-- Look at the rendered result through the `browser-debugging` skill at the project's viewports, checking overflow, alignment, console errors, keyboard navigation, and reduced motion, because a page is judged on what renders.
-- When the repository deploys previews, open the change as a PR / MR so the user can review the preview.
-- Read a video by extracting frames before describing it, so the description rests on what the footage shows.
+- Check the rendered result with the `browser-debugging` skill across the project's viewports for overflow, alignment, padding, contrast, keyboard focus, and reduced motion, measuring positions and gaps in the screenshot before changing any geometry.
+- Deploy to the project's test or preview environment so the user can review it.

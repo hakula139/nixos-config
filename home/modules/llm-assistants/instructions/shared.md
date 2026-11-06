@@ -112,12 +112,15 @@ Avoid these tics, which illustrate failures of the phrasing guidance:
 
 ### Structure
 
-Choose a structure that helps the reader understand, compare, or act, whether in replies or documents: use prose for explanations, bullets for parallel options or requirements, numbered lists for sequences, tables for comparisons, and headings where they aid navigation. Leave a paragraph as prose when a list adds nothing.
+Choose a structure that helps the reader understand, compare, or act, whether in replies or documents: use prose for explanations, bullets for parallel options or requirements, numbered lists for sequences, tables for comparing items across the same fields, and headings where they aid navigation. Leave a paragraph as prose when a list adds nothing.
 
 ### Markdown
 
+- Generate any table of contents with the repository's tooling, so it stays in sync with the headings.
 - If any list item contains a nested list, a second paragraph, or a code block, make the entire list loose by leaving a blank line between items and before each nested part.
 - Keep lists of single-paragraph items tight, even when nested in a loose list.
+- Keep a table readable in raw source as well as rendered. When its cells would carry whole sentences, give each item a heading and list its fields under bold labels.
+- In a link-heavy document, use reference-style links with descriptive IDs, so the prose stays readable in raw source, and put the definitions at the end of the file with no heading above them, since they render invisibly.
 
 ### Punctuation
 

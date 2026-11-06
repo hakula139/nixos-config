@@ -8,6 +8,7 @@ Project-specific rules for any coding assistant working in this repository. `CLA
 | --------------------------------------------- | ---------------------------------------------------------------- |
 | A Nix module, package, or host                | [docs/conventions/nix.md](docs/conventions/nix.md)               |
 | A Nushell script or its tests                 | [docs/conventions/nushell.md](docs/conventions/nushell.md)       |
+| A Markdown table of contents                  | [docs/conventions/markdown.md](docs/conventions/markdown.md)     |
 | A secret or a recipient list                  | [.agents/skills/agenix/SKILL.md](.agents/skills/agenix/SKILL.md) |
 | Host wiring, builders, or the repository tree | [docs/reference/architecture.md](docs/reference/architecture.md) |
 | The workflow or a failing check               | [docs/reference/ci.md](docs/reference/ci.md)                     |
