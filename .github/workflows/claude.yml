@@ -65,6 +65,7 @@ jobs:
             hakula-workflow@hakula-plugins
             hakula-languages@hakula-plugins
           claude_args: |
+            --allowedTools "Skill"
             --allowedTools "Write"
             --allowedTools "Bash(gh pr comment *)"
             --allowedTools "Bash(gh pr diff *)"
