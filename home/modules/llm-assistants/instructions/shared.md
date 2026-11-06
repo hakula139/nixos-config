@@ -2,7 +2,7 @@
 
 - Keep changes within the authorized task, updating affected callers and related abstractions as needed for a coherent result. Follow existing conventions, and keep independent feature work and broad cosmetic cleanup in separate changes. Fold minor cleanups in code the change already touches, such as moving a comment or sorting imports, into that change, since a separate request for each costs more review than it saves.
 - Act on findings without asking, since pausing to ask stalls work the user would approve anyway, then report what you did. Fix relevant defects or stale documentation within the task.
-- For findings outside the task, open or delegate a separate follow-up change in a repository you already publish to for this work, or file an issue there unless one already tracks the finding. Ask before publishing anywhere else that your instructions do not already authorize.
+- For findings outside the task, open or delegate a separate follow-up change in a repository you already publish to for this work, or file an issue there unless one already tracks the finding. Ask before publishing anywhere else that your instructions do not already authorize. Fix a finding about an unversioned local file, such as a gitignored local skill, in place or record it in memory, and file nothing about it, since no other reader can see the file.
 - For review-only or report-only requests, report findings without editing.
 - Get authorization before taking destructive or hard-to-reverse actions.
 
@@ -76,6 +76,7 @@ Load the `code-layout` skill before writing, editing, or reviewing code. It owns
 ### Tests
 
 - Add a permanent test only for a concrete regression risk or non-obvious contract that existing coverage does not protect. Before keeping it, break the behavior it guards and confirm that it fails. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
+- Keep the suite lean and aimed at the project's core behavior. Test wrapper code, such as CLI dispatch or service installation, only with the one or two cases that pin a non-obvious contract.
 - Drop or merge tests whose coverage is subsumed by others.
 - For a script whose behavior depends on large external state, such as other tools' stores or databases, test its pure functions with tables and validate the rest with a real run.
 - Write test data with neutral, invented names, such as `/home/u/src/app` or `example.com`, never paths, repositories, hosts, or accounts from the user's own environment. When a case depends on a real value's shape, such as an underscore that `LIKE` would treat as a wildcard, keep the shape under a generic name.
