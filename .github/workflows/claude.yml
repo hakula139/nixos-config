@@ -97,3 +97,9 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          plugin_marketplaces: https://github.com/hakula139/plugins.git
+          plugins: |
+            hakula-workflow@hakula-plugins
+            hakula-languages@hakula-plugins
+          claude_args: |
+            --allowedTools "Skill"

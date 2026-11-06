@@ -60,5 +60,5 @@ Because the shell hook links the gitignored `.pre-commit-config.yaml` only on sh
 
 ## Documentation maintenance
 
-- Keep the repository tree in [docs/reference/architecture.md](docs/reference/architecture.md) accurate at its current depth, and add prose below it only for knowledge every module author needs.
+- Keep the repository tree in [docs/reference/architecture.md](docs/reference/architecture.md) accurate at its current depth, and add prose below it only for knowledge every module author needs or that a row in [Read before you edit](#read-before-you-edit) routes to.
 - Update the architecture's host table when host wiring changes, and the README's usage instructions when commands change.

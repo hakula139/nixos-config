@@ -1,4 +1,4 @@
-Review this PR by applying the `hakula-workflow:review` skill in its default review mode, together with the repository instructions it loads. Treat `home/modules/llm-assistants/instructions/shared.md` as the global instructions the skill names.
+Review this PR by applying the `hakula-workflow:review` skill in its default review mode, together with the repository instructions it loads. Treat `home/modules/llm-assistants/instructions/shared.md` as the global instructions the skill names, with `@comments@`, `@phrasing@`, and `@proseTics@` replaced by `home/modules/llm-assistants/shared/prompt-fragments/comments.md`, `phrasing.md`, and `prose-tics.md`.
 
 ## CI scope
 

@@ -17,7 +17,7 @@ General Nushell conventions and traps live in the `nushell` skill from [hakula13
 
 ## Testing
 
-Tests run under this repository's own `packages/nu-test`, which differs in detail from the devkit runner the `nushell` skill describes, such as in load-failure reporting, stub shebangs, and scratch cleanup, so this section describes the runner here.
+This repository runs its own `packages/nu-test`, which differs from the devkit runner the `nushell` skill describes in load-failure reporting, stub shebangs, and scratch cleanup.
 
 Each script's tests live in a `<script>.test.nu` beside it, as commands named `test <behavior>`. `nu-test <file>...` starts every test concurrently in its own process and `TMPDIR` and confines `mktemp` to a scratch directory. A test needing tools beyond Nushell, bash, and coreutils adds them to the check's inputs.
 
