@@ -42,8 +42,8 @@ in
     # Directory management
     # ----------------------------------------------------------------------------------------------
     system.activationScripts.preActivation.text = lib.mkAfter ''
-      install -d -m 0755 /var/lib
-      install -d -m 0700 ${lib.escapeShellArg repoLib.mihomo.stateDir}
+      install -dm0755 /var/lib
+      install -dm0700 ${lib.escapeShellArg repoLib.mihomo.stateDir}
     '';
 
     # ----------------------------------------------------------------------------------------------
