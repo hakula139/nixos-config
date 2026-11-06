@@ -56,6 +56,7 @@
     # ----------------------------------------------------------------------------------------------
     acpx = final.callPackage ../packages/acpx { };
     browser-tools = final.callPackage ../packages/browser-tools { };
+    clean-gone = final.callPackage ../packages/clean-gone { inherit repoLib; };
     cloudreve = final.callPackage ../packages/cloudreve { };
     file-formatter = final.callPackage ../packages/file-formatter { inherit repoLib; };
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };

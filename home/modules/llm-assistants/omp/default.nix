@@ -80,7 +80,7 @@ in
       permissionConfigFile = yaml.generate "omp-permissions.yml" (
         import ./permissions.nix {
           inherit lib;
-          policy = repoLib.llmAssistants.permissions;
+          policy = shared.permissions;
         }
       );
 

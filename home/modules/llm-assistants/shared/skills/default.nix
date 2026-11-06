@@ -14,11 +14,14 @@
 
 let
   cfg = config.hakula.llm-assistants;
-
-  promptFragments = import ../prompt-fragments;
-
+  skillsInstalled = cfg.enable || config.hakula.codex.enable || config.hakula.omp.enable;
   corpGateway = config.lib.llmAssistants.profileDefinitions.providers.corp-gateway;
   corpGatewayEnabled = cfg.enable && cfg.auth.enableCorpGateway;
+
+  # ------------------------------------------------------------------------------------------------
+  # Skill sources
+  # ------------------------------------------------------------------------------------------------
+  promptFragments = import ../prompt-fragments;
 
   anthropic = inputs.anthropics-skills + "/skills";
   openai = inputs.openai-skills + "/skills/.curated";
@@ -87,6 +90,8 @@ in
     (lib.mkIf cfg.enable (mkSkillFiles ".claude/skills"))
     (lib.mkIf config.hakula.omp.enable (mkSkillFiles ".omp/agent/skills"))
   ];
+
+  home.packages = lib.mkIf skillsInstalled [ pkgs.clean-gone ];
 
   hakula.secrets.required = lib.mkIf corpGatewayEnabled {
     ${corpGateway.tokenSecretFor "prose-polish"} = { };

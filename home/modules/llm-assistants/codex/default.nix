@@ -77,7 +77,7 @@ in
 
       permissions = import ./permissions.nix {
         inherit lib;
-        policy = repoLib.llmAssistants.permissions;
+        policy = shared.permissions;
       };
 
       mcp = import ./mcp.nix {
