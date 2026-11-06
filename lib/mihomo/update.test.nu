@@ -36,8 +36,8 @@ def run-update [
   let config_file = ($dir | path join "update.json")
   let target = ($config_dir | path join "config.yaml")
 
+  mkdir $config_dir
   if $previous {
-    mkdir $config_dir
     $PREVIOUS | save $target
   }
   $SECRET | save $secret_file
@@ -69,14 +69,12 @@ def run-update [
     ^$nu.current-exe --no-config-file $SCRIPT --config $config_file | complete
   }
 
-  let staging = if ($config_dir | path exists) {
+  let staging = (
     ls --all $config_dir
     | get name
     | path basename
     | filter {|name| $name | str starts-with ".config.staging." }
-  } else {
-    []
-  }
+  )
 
   {run: $run, target: $target, config_dir: $config_dir, staging: $staging}
 }
@@ -118,7 +116,6 @@ def "test the update stages, validates, and replaces the config" [] {
       assert equal (open --raw $"($result.target).bak") $PREVIOUS $context
     } else {
       assert not ($"($result.target).bak" | path exists) $context
-      assert equal (ls -lD $result.config_dir | get 0.mode) "rwx------" $context
     }
   }
 }

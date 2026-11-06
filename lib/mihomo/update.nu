@@ -59,13 +59,6 @@ def main [
     | to yaml
   )
 
-  # Create only the leaf directory. On macOS an intermediate /var/lib must not appear with the
-  # daemon's 0077 umask, so the mode is set explicitly.
-  if not ($config.configDir | path exists) {
-    ^mkdir $config.configDir
-    ^chmod "0700" $config.configDir
-  }
-
   let staging_file = (mktemp --tmpdir-path $config.configDir ".config.staging.XXXXXXXXXX")
 
   try {
