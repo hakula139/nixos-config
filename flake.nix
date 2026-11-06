@@ -154,6 +154,17 @@
         system:
         let
           pkgs = pkgsFor system;
+          json = pkgs.formats.json { };
+
+          dprintConfig = json.generate "dprint.json" {
+            markdown = {
+              emphasisKind = "underscores";
+              strongKind = "asterisks";
+            };
+
+            # Language plugins would also rewrite fenced examples inside Markdown.
+            plugins = [ "${pkgs.dprint-plugins.dprint-plugin-markdown}/plugin.wasm" ];
+          };
         in
         git-hooks-nix.lib.${system}.run {
           src = ./.;
@@ -177,6 +188,20 @@
 
             deadnix.enable = true;
 
+            dprint = {
+              enable = true;
+              description = "Format Markdown with dprint.";
+              entry = "${nixpkgs.lib.getExe pkgs.dprint} fmt";
+              # dprint honors ancestor .gitignore files, and this repository ignores
+              # `/.claude/worktrees/`, which would skip every file in an agent worktree.
+              args = [
+                "--config=${dprintConfig}"
+                "--allow-no-files"
+                "--no-gitignore"
+              ];
+              files = "\\.md$";
+            };
+
             editorconfig-checker.enable = true;
 
             end-of-file-fixer = {
@@ -195,11 +220,9 @@
 
             nu-check = {
               enable = true;
-              name = "nu-check";
               description = "Run nushell's diagnostic check on .nu files.";
               entry = nixpkgs.lib.getExe pkgs.nu-check;
               files = "\\.nu$";
-              types = [ "file" ];
             };
 
             prettier = {

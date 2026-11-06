@@ -4,15 +4,15 @@ Project-specific rules for any coding assistant working in this repository. `CLA
 
 ## Read before you edit
 
-| When the task involves                        | Read                                                                     |
-| --------------------------------------------- | ------------------------------------------------------------------------ |
-| A Nix module, package, or host                | [docs/conventions/nix.md](docs/conventions/nix.md)                       |
-| A Nushell script or its tests                 | [docs/conventions/nushell.md](docs/conventions/nushell.md)               |
-| A secret or a recipient list                  | [.agents/skills/agenix/SKILL.md](.agents/skills/agenix/SKILL.md)         |
-| Host wiring, builders, or the repository tree | [docs/reference/architecture.md](docs/reference/architecture.md)         |
-| The workflow or a failing check               | [docs/reference/ci.md](docs/reference/ci.md)                             |
-| First-time setup on any platform              | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)                     |
-| A deployment with nixsw or nixdp              | [README.md](README.md#applying-a-configuration)                          |
+| When the task involves                        | Read                                                             |
+| --------------------------------------------- | ---------------------------------------------------------------- |
+| A Nix module, package, or host                | [docs/conventions/nix.md](docs/conventions/nix.md)               |
+| A Nushell script or its tests                 | [docs/conventions/nushell.md](docs/conventions/nushell.md)       |
+| A secret or a recipient list                  | [.agents/skills/agenix/SKILL.md](.agents/skills/agenix/SKILL.md) |
+| Host wiring, builders, or the repository tree | [docs/reference/architecture.md](docs/reference/architecture.md) |
+| The workflow or a failing check               | [docs/reference/ci.md](docs/reference/ci.md)                     |
+| First-time setup on any platform              | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)             |
+| A deployment with nixsw or nixdp              | [README.md](README.md#applying-a-configuration)                  |
 
 ## Script language
 
