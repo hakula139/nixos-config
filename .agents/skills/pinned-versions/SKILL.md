@@ -1,9 +1,10 @@
 ---
 name: pinned-versions
 description: >-
-  Audit or upgrade manually pinned dependencies in nixos-config, including plugin revisions, custom
-  packages, flake release tags, container images, and runtime packages, and review Renovate's
-  GitHub Actions updates. Use for stale dependency sweeps or hash mismatches after version bumps.
+  Audit or upgrade manually pinned dependencies in nixos-config, including extension revisions,
+  custom packages, flake release tags, container images, and runtime packages, and review
+  Renovate's GitHub Actions updates. Use for stale dependency sweeps or hash mismatches after
+  version bumps.
 ---
 
 # Pinned Versions
@@ -35,41 +36,6 @@ Package attributes that select a major, such as `postgresql_17`, follow the lock
 A NixOS release upgrade rechecks each `pkgs.unstable` pick and overlay pin against the [unstable packages rule](../../../docs/conventions/nix.md#module-shape).
 
 `peertube` follows the `nixpkgs-unstable` version, with three local patches and an `aarch64-darwin` platforms addition on the package itself. `peertube-runner` is a build override in `packages/peertube/runner.nix` that derives from it, and a version move can break it. A sweep pins a version again only when upstream is ahead of `nixpkgs-unstable`. Review release-specific migration requirements before changing the version, run required manual migrations during deployment and verify their results, and keep one-time migration services out of the persistent configuration.
-
-## Claude Code plugin marketplaces
-
-The manual marketplace revisions control the prebuilt Claude Code cache only when `hakula.claude-code.plugins.bundle` is enabled, currently in `devvm`. Unbundled Claude Code fetches its marketplaces at runtime, so these hashes do not pin that cache.
-
-To update a manual marketplace:
-
-1. Resolve the default branch to a commit. Update `rev` and its date comment together, since the checker reads the revision from code.
-
-2. Obtain the extracted-tree hash. `fetchFromGitHub` requires `--unpack` when prefetching an archive:
-
-   ```bash
-   nix store prefetch-file --json --unpack \
-     'https://github.com/<owner>/<repo>/archive/<rev>.tar.gz'
-   ```
-
-   The output carries the SRI hash. Check this invocation against the existing revision and hash when using a different archive URL or fetch method.
-
-3. Validate each changed source with the module's fetcher, substituting the marketplace values:
-
-   ```bash
-   nix build --no-link --impure --expr '
-     let
-       p = (builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.x86_64-linux;
-     in
-     p.fetchFromGitHub {
-       owner = "<owner>";
-       repo = "<repo>";
-       rev = "<rev>";
-       hash = "<hash>";
-     }
-   '
-   ```
-
-4. Build `.#packages.x86_64-linux.devvm-docker` to check the assembled cache.
 
 ## Nix-built packages and fetched helpers
 
@@ -123,6 +89,6 @@ Renovate owns these refs. Review its PRs for breaking changes, and run local wor
 
 ## Verification
 
-Follow [repository verification](../../../AGENTS.md#verification) for formatting and builds. Select checks by the changed source: direct package or marketplace fetches first, then the affected host or plugin bundle. A source fetch for another platform verifies its hash but does not prove its binary runs there.
+Follow [repository verification](../../../AGENTS.md#verification) for formatting and builds. Select checks by the changed source: direct package fetches first, then the affected host. A source fetch for another platform verifies its hash but does not prove its binary runs there.
 
 Report which pins changed, the upstream releases or commits selected, and the checks actually completed. Keep incomplete upstream queries and untested runtime or deployment behavior explicit.
