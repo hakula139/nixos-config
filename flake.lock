@@ -50,22 +50,6 @@
         "type": "github"
       }
     },
-    "anthropics-skills": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1793215238,
-        "narHash": "sha256-MkCOANBAqCc1WmNf7S8PsyAphGJAIzEXGyCm8RrCR9M=",
-        "owner": "anthropics",
-        "repo": "skills",
-        "rev": "ca45fc496a3436251f191354091d557da31c15b5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "anthropics",
-        "repo": "skills",
-        "type": "github"
-      }
-    },
     "bun2nix": {
       "inputs": {
         "flake-parts": [
@@ -522,7 +506,6 @@
       "inputs": {
         "agenix": "agenix",
         "agent-project-move": "agent-project-move",
-        "anthropics-skills": "anthropics-skills",
         "colmena": "colmena",
         "disko": "disko",
         "git-hooks-nix": "git-hooks-nix",
