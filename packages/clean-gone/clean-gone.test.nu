@@ -192,8 +192,9 @@ def lsof-listing [processes: list<record>]: nothing -> string {
 # Runs and state
 # --------------------------------------------------------------------------------------------------
 
-# Runs the command in `cwd` with the forge listing `requests` or failing with `forge_error`, and
-# `lsof` printing `open` or failing with `lsof_exit`.
+# Runs the command in `cwd` with the forge listing `requests` or failing with `forge_error`, `lsof`
+# printing `open` or failing with `lsof_exit`, and `ssh -G` resolving `ssh_hostnames` or failing
+# with `ssh_error` and `ssh_exit`.
 def clean [
   repo: record
   --cwd: string
@@ -202,6 +203,9 @@ def clean [
   --forge-error: string = ""
   --open: string = ""
   --lsof-exit: int = 0
+  --ssh-hostnames: record = {}
+  --ssh-error: string = ""
+  --ssh-exit: int = 0
 ]: nothing -> record {
   let argv = (if $dry_run { ["--dry-run"] } else { [] })
   let run = with-env {
@@ -210,6 +214,9 @@ def clean [
     STUB_LSOF_EXIT: ($lsof_exit | into string)
     STUB_LSOF_OUTPUT: $open
     STUB_REQUESTS: ($requests | to json --raw)
+    STUB_SSH_ERROR: $ssh_error
+    STUB_SSH_EXIT: ($ssh_exit | into string)
+    STUB_SSH_HOSTNAMES: ($ssh_hostnames | to json --raw)
   } {
     cd ($cwd | default $repo.main)
     ^$nu.current-exe --no-config-file $SCRIPT ...$argv | complete
@@ -462,6 +469,108 @@ def "test a locked worktree whose directory is gone is pruned only after a relea
 # --------------------------------------------------------------------------------------------------
 # Requests
 # --------------------------------------------------------------------------------------------------
+
+def "test the forge is detected from the origin URL or its SSH host alias" [] {
+  let hostnames = {
+    "git@work": "github.com"
+    "deploy@work": "github.com"
+    work: "git.example"
+    "github.com-443": "ssh.github.com"
+    "github.com-mirror": "git.example"
+  }
+  let cases = [
+    {
+      name: "a URL"
+      url: "https://github.com/example/app.git"
+      github: true
+    }
+    {
+      name: "an SSH URL"
+      url: "ssh://git@github.com:22/example/app.git"
+      github: true
+    }
+    {
+      name: "an scp-like URL"
+      url: "git@github.com:example/app.git"
+      github: true
+    }
+    {
+      name: "an SSH host alias"
+      url: "git@work:example/app.git"
+      github: true
+    }
+    {
+      name: "an SSH host alias selected by its user"
+      url: "ssh://deploy@work/example/app.git"
+      github: true
+    }
+    {
+      name: "an SSH host alias over port 443"
+      url: "git@github.com-443:example/app.git"
+      github: true
+    }
+    {
+      name: "an alternate SSH host"
+      url: "ssh://git@ssh.github.com/example/app.git"
+      github: true
+    }
+    {
+      name: "an SSH host alias to another host"
+      url: "git@github.com-mirror:example/app.git"
+      github: false
+    }
+    {
+      name: "a URL whose SSH alias would map it to GitHub"
+      url: "https://work/example/app.git"
+      github: false
+    }
+    {
+      name: "a GitLab URL"
+      url: "git@gitlab.com:example/app.git"
+      github: false
+    }
+    {
+      name: "a local path"
+      url: "/srv/example/app.git"
+      github: false
+    }
+  ]
+
+  for case in $cases {
+    let repo = (make-repo)
+    let tip = (git-in $repo.main rev-parse origin/main)
+    let worktree = (add-worktree $repo "wt")
+    git-in $repo.main remote set-url origin $case.url
+    let requests = (
+      if $case.github {
+        [{number: 7, headRefName: "feat/wt", state: "MERGED", headRefOid: $tip}]
+      } else {
+        [(mr 3 "feat/wt" "merged" $tip)]
+      }
+    )
+
+    let result = (clean $repo --requests $requests --ssh-hostnames $hostnames)
+
+    let evidence = (
+      if $case.github { "pull request #7 is merged" } else { "merge request !3 is merged" }
+    )
+    assert equal $result.lines (removal $worktree $evidence --branch "feat/wt" --force) $case.name
+    assert equal $result.exit_code 0 $case.name
+    assert-removed $repo $worktree $case.name
+  }
+}
+
+def "test a rejected SSH configuration ends the run with the ssh error" [] {
+  let repo = (make-repo)
+  git-in $repo.main remote set-url origin "git@work:example/app.git"
+  let error = "Bad configuration option: usekeychain"
+
+  let result = (clean $repo --ssh-error $error --ssh-exit 255)
+
+  assert equal $result.exit_code 2
+  assert equal $result.stdout ""
+  assert equal $result.stderr $"error: resolving git@work through ssh failed\n    ($error)\n"
+}
 
 def "test the worktree of a finished branch is removed with its uncommitted work" [] {
   let cases = [

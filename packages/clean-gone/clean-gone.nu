@@ -11,9 +11,7 @@
 
 const AGENT_DIRS = [".claude/agent-memory-local" ".agents/plans"]
 const IDLE_AFTER = 1day
-
-# An `origin` URL on github.com, in URL or scp-like form.
-const GITHUB_URL = '^(?:[a-z+]+://)?(?:[^@/]+@)?github\.com[:/]'
+const GITHUB_HOSTS = ["github.com" "ssh.github.com"]
 
 # --------------------------------------------------------------------------------------------------
 # Git helpers
@@ -252,6 +250,76 @@ def lock-state [locked: oneof<string, nothing>, context: record]: nothing -> rec
     }
   }
   {problem: $"is locked by another running session \(pid ($pid)\)"}
+}
+
+# --------------------------------------------------------------------------------------------------
+# Forge
+# --------------------------------------------------------------------------------------------------
+
+# The scheme, user, and host of the remote `url`, from a URL with a scheme or an scp-like
+# `host:path`, each empty for a local path or a `file://` URL.
+def remote-parts [url: string]: nothing -> record {
+  if ($url =~ '://') {
+    let parts = ($url | url parse)
+    {
+      scheme: ($parts | get -o scheme | default "")
+      user: ($parts | get -o username | default "")
+      host: ($parts | get -o host | default "")
+    }
+  } else {
+    let match = ($url | parse --regex '^(?:(?<user>[^@/]+)@)?(?<host>[^/:]+):')
+    if ($match | is-empty) {
+      {scheme: "", user: "", host: ""}
+    } else {
+      {
+        scheme: ""
+        user: ($match.0 | get -o user | default "")
+        host: $match.0.host
+      }
+    }
+  }
+}
+
+# Whether the parsed remote `parts` uses an SSH transport: an scp-like `host:path`, or an ssh-based
+# URL scheme.
+def ssh-transport [parts: record]: nothing -> bool {
+  if ($parts.scheme | is-empty) { return true }
+  $parts.scheme in ["ssh" "git+ssh" "ssh+git"]
+}
+
+# Whether `url` names a repository on GitHub, resolving SSH host aliases through `ssh -G` for SSH
+# transports. Fails when `ssh -G` rejects the configuration.
+def github-remote [url: string]: nothing -> bool {
+  let remote = (remote-parts $url)
+  let host = (
+    if ($remote.host | is-empty) or not (ssh-transport $remote) {
+      $remote.host
+    } else {
+      let target = (
+        if ($remote.user | is-empty) {
+          $remote.host
+        } else {
+          $"($remote.user)@($remote.host)"
+        }
+      )
+      let run = (^ssh -G $target | complete)
+      if $run.exit_code != 0 {
+        die (
+          error-lines $run.stderr
+          | prepend $"resolving ($target) through ssh failed"
+          | str join "\n    "
+        )
+      }
+      (
+        $run.stdout
+        | lines
+        | parse --regex '^hostname\s+(?<host>\S+)$'
+        | get host
+        | first
+      )
+    }
+  )
+  $host in $GITHUB_HOSTS
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -623,7 +691,7 @@ def main [
   let processes = (ps | select pid ppid)
   let context = {
     main: $records.0.path
-    github: ((git-out remote get-url origin) =~ $GITHUB_URL)
+    github: (github-remote (git-out remote get-url origin))
     open_files: $open_files
     processes: $processes
     ancestors: (ancestor-pids $processes $nu.pid)

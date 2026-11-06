@@ -15,5 +15,6 @@ repoLib.mkNuCommand {
   runtimeInputs = [
     pkgs.git
     pkgs.lsof
+    pkgs.openssh
   ];
 }
