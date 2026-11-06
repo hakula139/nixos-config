@@ -50,13 +50,13 @@ def plan-file [file: string]: nothing -> record {
       $found.stdout
       | from json
       | each {|name|
-          if ($name =~ '^test [A-Za-z0-9 ,.:-]+$') {
-            {file: $file, name: $name, path: $path, scratch: $scratch, stubs: $stubs}
-          } else {
-            let message = "A test name may hold only letters, digits, spaces, and `,.:-`."
-            {file: $file, name: $name, run: {exit_code: 1, stdout: "", stderr: $message}}
-          }
+        if ($name =~ '^test [A-Za-z0-9 ,.:-]+$') {
+          {file: $file, name: $name, path: $path, scratch: $scratch, stubs: $stubs}
+        } else {
+          let message = "A test name may hold only letters, digits, spaces, and `,.:-`."
+          {file: $file, name: $name, run: {exit_code: 1, stdout: "", stderr: $message}}
         }
+      }
     } catch {|err|
       let run = (
         $found
