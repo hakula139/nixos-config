@@ -91,13 +91,8 @@ in
       };
 
       skills = import ./skills {
-        inherit
-          config
-          pkgs
-          lib
-          shared
-          ;
-        configDir = codexConfigDir;
+        inherit shared;
+        skillsDir = "${codexConfigDir}/skills";
       };
 
       # --------------------------------------------------------------------------------------------
@@ -166,13 +161,6 @@ in
         runtimeInputs = [ codexBin ];
         flags.package = pkgs.codex;
       };
-
-      # Separate from default.rules, which Codex rewrites on TUI allowlisting.
-      codexRulesTarget =
-        if config.home.preferXdgDirectories then
-          "${lib.removePrefix "${config.home.homeDirectory}/" config.xdg.configHome}/codex/rules/nixos-config.rules"
-        else
-          ".codex/rules/nixos-config.rules";
     in
     lib.mkMerge [
       profiles.config
@@ -190,9 +178,10 @@ in
         # ------------------------------------------------------------------------------------------
         # Configuration files
         # ------------------------------------------------------------------------------------------
-        home.file = {
+        home.file = skills.files // {
           codexRules = {
-            target = codexRulesTarget;
+            # Separate from default.rules, which Codex rewrites on TUI allowlisting.
+            target = "${codexConfigDir}/rules/nixos-config.rules";
             text = permissions.rules;
           };
         };
@@ -202,8 +191,6 @@ in
         # ------------------------------------------------------------------------------------------
         # Activation
         # ------------------------------------------------------------------------------------------
-        home.activation.codexSkills = skills.activation;
-
         home.activation.codexMutableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           run ${lib.getExe activateConfig}
         '';
