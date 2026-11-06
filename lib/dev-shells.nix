@@ -10,7 +10,9 @@
 let
   inherit (pkgs) lib;
 
-  tooling = import ./tooling.nix { inherit pkgs; };
+  tooling = import ./tooling.nix {
+    inherit pkgs;
+  };
 
   # mkShell adds packages to PATH in list order, and the hook packages propagate a bare `python3`,
   # so each shell lists its own packages ahead of these.

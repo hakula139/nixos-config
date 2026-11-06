@@ -46,7 +46,9 @@ let
     pkgs.writers.writeNuBin "patch-input" (builtins.readFile ./lib/patch-input/patch-input.nu)
   );
 
-  modelCall = mkModelCall { inherit assistant; };
+  modelCall = mkModelCall {
+    inherit assistant;
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Hook entries
@@ -123,6 +125,8 @@ in
         ;
     };
 
-    completeness = import ./completeness { inherit timeouts; };
+    completeness = import ./completeness {
+      inherit timeouts;
+    };
   };
 }
