@@ -1,5 +1,3 @@
-# cspell:words netrc
-
 services:
   devvm:
     image: devvm:latest
