@@ -19,6 +19,10 @@ Project-specific rules for any coding assistant working in this repository. `CLA
 
 Nushell is the default for new helper scripts. Bash is only for scripts another shell evaluates or sources, as with `makeWrapper --run` snippets, and for `exec` wrappers that only set a variable and hand off.
 
+## Assistant sources
+
+The global instructions render from `home/modules/llm-assistants/instructions/shared.md`, with one assistant's additions in the files beside it and each `@name@` section in `home/modules/llm-assistants/shared/prompt-fragments/`. Shared skills come from [hakula139/plugins](https://github.com/hakula139/plugins) through the `plugins` flake input, so change them there and update the lock here. Host-only skills live in `home/modules/llm-assistants/shared/skills/`, and this repository's own skills in `.agents/skills/`.
+
 ## Layout
 
 Lines end at column 100, counting the indent, in every language except Python, which follows ruff's 88.

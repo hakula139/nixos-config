@@ -109,6 +109,34 @@
         "type": "github"
       }
     },
+    "devkit": {
+      "inputs": {
+        "git-hooks-nix": [
+          "git-hooks-nix"
+        ],
+        "nixpkgs": [
+          "plugins",
+          "nixpkgs"
+        ],
+        "nixpkgs-unstable": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793969014,
+        "narHash": "sha256-zv3AmKieMhtUt/H3dh44x6mX4moUwsXHE7gKSEtYGs8=",
+        "owner": "hakula139",
+        "repo": "devkit",
+        "rev": "9666b7261a94b5d7ed9a13a839dfc5360d96dd4d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hakula139",
+        "ref": "v1.0.0-rc.3",
+        "repo": "devkit",
+        "type": "github"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -474,6 +502,27 @@
         "type": "github"
       }
     },
+    "plugins": {
+      "inputs": {
+        "devkit": "devkit",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793971746,
+        "narHash": "sha256-O1qcG3DTV/YFMeoYJfyxpS1MlNFn8/b8mAsq+AC+13s=",
+        "owner": "hakula139",
+        "repo": "plugins",
+        "rev": "e52f4ebbaff199e1e9f5f80d86bc0718ed417c70",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hakula139",
+        "repo": "plugins",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks-nix": {
       "inputs": {
         "flake-compat": [
@@ -517,6 +566,7 @@
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "oxide-code": "oxide-code",
+        "plugins": "plugins",
         "rust-overlay": "rust-overlay_2",
         "system-manager": "system-manager"
       }

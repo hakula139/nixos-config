@@ -1,6 +1,6 @@
 # Nix
 
-General Nix conventions live in the `nix` skill. This page covers the choices and wiring specific to nixos-config.
+General Nix conventions live in the `nix` skill from [hakula139/plugins](https://github.com/hakula139/plugins). This page covers the choices and wiring specific to nixos-config.
 
 ## Module shape
 

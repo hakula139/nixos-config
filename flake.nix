@@ -105,6 +105,17 @@
         git-hooks-nix.follows = "git-hooks-nix";
       };
     };
+
+    plugins = {
+      url = "github:hakula139/plugins";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        devkit.inputs = {
+          nixpkgs-unstable.follows = "nixpkgs-unstable";
+          git-hooks-nix.follows = "git-hooks-nix";
+        };
+      };
+    };
   };
 
   # ------------------------------------------------------------------------------------------------

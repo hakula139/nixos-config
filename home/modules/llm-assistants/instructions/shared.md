@@ -150,7 +150,7 @@ Before editing documentation, identify what specifically needs correction or rem
 
 ## Tools and Delegation
 
-Use only the tools and capabilities available in the current session, within their actual schemas and permission boundaries. Prefer relevant installed skills, following their workflows and resources. If a tool or the environment misbehaves, hand the repair to the `environment-repair` skill and continue the main task.
+Use only the tools and capabilities available in the current session, within their actual schemas and permission boundaries. Prefer relevant installed skills, following their workflows and resources. If a tool or the environment misbehaves, hand the repair to the `harness-repair` skill and continue the main task. The configuration repository is nixos-config, which generates these instructions, the assistant settings, and the host-only skills. Its checkout path is in `${XDG_CONFIG_HOME:-$HOME/.config}/nixos-config/repository`, and its `AGENTS.md` locates the sources.
 
 ### Terminal Sessions
 
@@ -158,7 +158,7 @@ Once the task is clear, a top-level interactive agent runs `tmux-task-name <shor
 
 ### Dev Shells
 
-Enter a repository's dev shell only from within that repository, since its hook may install Git hooks into whichever repository is current. Get standalone tools from `PATH`, `nix shell nixpkgs#<pkg> -c`, or a hook-free shell documented by a skill, such as `browser-debugging`.
+Enter a repository's dev shell only from within that repository, since its hook may install Git hooks into whichever repository is current. Get standalone tools from `PATH`, `nix shell nixpkgs#<pkg> -c`, or a hook-free shell such as `nix develop nixos-config#browser`, the Playwright environment for the `browser-debugging` skill.
 
 ### Worktrees
 
@@ -198,9 +198,23 @@ Custom agents set their own model tier.
 - **Standard tier**: Review changes from the standard tier, which the implementer and generic subagents use, before accepting them, as it may run on a different model from the coordinator's.
 - **Mini tier**: The mini tier may run on a cheaper model, so give it only the researcher's read-only lookups and background checks and the operator's approved operations.
 - **Effort**: Effort follows the configured tier within the native client's capabilities, but use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence, and if the selected route is unavailable, report that before switching.
-- **Track record**: Load the `model-delegation` skill, which holds each model's track record, once per session before first handing a task to a non-flagship tier or another assistant, and again after a review or after the user corrects a delegate's work.
+- **Track record**: Load the `model-delegation` skill, which holds the public track record, once per session before first handing a task to a non-flagship tier or another assistant, and again after a review or after the user corrects a delegate's work. The private track record below takes precedence for the models it names.
 - **Workmux**: When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), because Workmux's configured default is static.
 - **Codex panes**: After typing a prompt into a Codex pane, send Enter as a separate keystroke and confirm the task started, since Codex panes sometimes miss the submitting Enter.
+
+### Private Track Record
+
+These entries name internal snapshots or gateway routes, so they stay out of the public `model-delegation` skill.
+
+- **DeepSeek V4.1 Flash (`local_v2/DeepSeek-V4.1-Flash-1017`)**: Hand it implementation only with a detailed design from a flagship-tier agent that names the files, approach, edge cases, and checks, because it does not reliably design on its own.
+
+  - **Judgment**: Keep goal-based convention sweeps and fix rounds that need judgment with a flagship-tier agent, because it applied a layout goal unevenly across sibling files, applied a reviewer's mistaken suggestion literally, and deleted accepted rationale comments while moving code.
+  - **Edge cases**: It follows exact edit lists and detailed review findings well, but it has mishandled edge cases even when the brief named them.
+  - **Tests**: Keep test writing with Claude, because its tests have let plausible bugs survive at full line coverage, as a reviewer's mutation testing showed.
+  - **UI work**: Hand it a measuring script and have a Claude reviewer check the result in a browser, because it has claimed a visual fix that a browser check showed had failed.
+  - **Disagreement**: Require it to report disagreement with the brief, because it has overridden an explicit instruction over a concern that was already moot.
+  - **Scope**: Give it an explicit stopping point, because it has spent hours on probes its brief did not ask for while a request others waited on stayed unpublished.
+  - **Images**: Keep image-reading work off its gateway route, which rejects screenshots returned inside tool results with HTTP 400 and ends the agent mid-task.
 
 ### MCP Servers
 

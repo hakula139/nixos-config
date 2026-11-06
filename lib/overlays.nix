@@ -26,6 +26,7 @@
     # Flake-input CLIs
     # ----------------------------------------------------------------------------------------------
     agenix = inputs.agenix.packages.${final.stdenv.hostPlatform.system}.default;
+    clean-gone = inputs.plugins.packages.${final.stdenv.hostPlatform.system}.clean-gone;
     colmena = inputs.colmena.packages.${final.stdenv.hostPlatform.system}.colmena;
     system-manager = inputs.system-manager.packages.${final.stdenv.hostPlatform.system}.default;
     inherit (inputs.llm-agents.packages.${final.stdenv.hostPlatform.system})
@@ -55,7 +56,6 @@
     # ----------------------------------------------------------------------------------------------
     acpx = final.callPackage ../packages/acpx { };
     browser-tools = final.callPackage ../packages/browser-tools { };
-    clean-gone = final.callPackage ../packages/clean-gone { inherit repoLib; };
     cloudreve = final.callPackage ../packages/cloudreve { };
     file-formatter = final.callPackage ../packages/file-formatter { inherit repoLib; };
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };
