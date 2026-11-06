@@ -59,9 +59,6 @@ in
         wakatime-sync-ai-activity = {
           Unit = {
             Description = "Sync AI assistant activity to WakaTime";
-            After = [
-              "network-online.target"
-            ];
           };
 
           Service = {
