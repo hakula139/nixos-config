@@ -232,6 +232,7 @@ pdftoppm
 peertube
 pgrep
 phoityne
+pids
 pipx
 pkgs
 pkief

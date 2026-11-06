@@ -36,7 +36,7 @@ in
   classifyAllShell = false;
   environment = [
     "$defaults"
-    "Source control: github.com/hakula139 and all repos under it"
+    "Source control, in addition to the trusted repo and its remotes: ${policy.sourceControl.ownRepositories}"
   ];
 
   allow = [ "$defaults" ] ++ toProseRules policy.allows.policies;

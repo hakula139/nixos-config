@@ -104,10 +104,8 @@ Pass an edited body through a file or structured argument, then read the issue b
 
 When work finishes, clean up within the authorization above, and include the cleanup in the operator's spawn prompt after an approved merge when an `operator` agent is available.
 
-- Before removing a worktree, check it for uncommitted, untracked, and ignored files, preserve anything still needed, and confirm that no other agent or terminal is using it.
-- A detached HEAD may be the only reference to its commits, so confirm they reached a remote branch, matching by subject as well as patch ID because conflict resolution changes patch IDs.
-- Treat a denied or interrupted removal as an unknown outcome and reread `git worktree list` before retrying.
-- Diff unique ignored content, such as agent memory directories, local settings, and notes, against its counterpart in the main checkout, and merge anything missing there.
-- Remove the worktree and its local branch, then prune its remote-tracking ref. Use the repository's tooling or the `clean-gone` skill for merged branches. Delete a remote branch only when explicitly requested.
+- Remove finished worktrees and branches by running `clean-gone` as its own command, which sweeps the repository. It moves agent memory and plans into the main checkout first, and the `clean-gone` skill describes what it removes and keeps.
+- Resolve each skip at its cause, and ask the user before removing a skipped worktree or branch another way. Treat a denied or interrupted removal as an unknown outcome and reread `git worktree list` before retrying.
+- Delete a remote branch only when explicitly requested.
 - Delete completed plans and working notes from the plans directory, such as a gitignored `.agents/plans/`. Rewrite stale notes to show only the current state and remaining work.
 - Each agent removes the scratch copies and build directories it created, such as `git archive` exports and their `CARGO_TARGET_DIR`s under `/tmp`, and names in its report anything it leaves for someone else.

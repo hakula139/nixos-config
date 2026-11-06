@@ -3,6 +3,10 @@
 # ==================================================================================================
 
 {
+  ownRepositories,
+}:
+
+{
   # No argument of an allowed command may choose a program for it to run, since no gate sees it.
   commands = {
     # Reads local or remote state. No flag writes files or changes remote or system state, and cache
@@ -283,6 +287,7 @@
       # --------------------------------------------------------------------------------------------
       # Git
       # --------------------------------------------------------------------------------------------
+      "clean-gone"
       "git add"
       "git branch"
       "git diff"
@@ -292,7 +297,6 @@
       "git switch"
       "git tag"
       "git worktree add"
-      "git worktree remove"
 
       # --------------------------------------------------------------------------------------------
       # GitHub / GitLab
@@ -494,18 +498,34 @@
     {
       name = "Repository Git configuration";
       reason = ''
-        Changing repository-local Git configuration in repositories under github.com/hakula139
-        is allowed without separate user approval, including repairing settings that a tool or
-        test corrupted.
+        Changing repository-local Git configuration in ${ownRepositories} is allowed without
+        separate user approval, including repairing settings that a tool or test corrupted.
         Changing global or system Git configuration still requires explicit user approval.
       '';
     }
     {
       name = "GitHub / GitLab remote changes";
       reason = ''
-        Remote changes are allowed without separate user approval, including pushing commits
-        and creating or updating pull requests.
+        Remote changes to ${ownRepositories} are allowed without separate user approval,
+        including pushing commits and creating or updating pull requests.
         Merging or approving PRs or MRs, including automatic or queued merging, still
+        requires explicit user approval.
+      '';
+    }
+    {
+      name = "Branch and worktree cleanup";
+      reason = ''
+        Running `clean-gone` is allowed without separate user approval. Removing a worktree or
+        branch it skipped still needs the user's approval.
+      '';
+    }
+    {
+      name = "Memory consolidation";
+      reason = ''
+        Running the `dream` skill when the user or the auto-dream session nudge requests it
+        is allowed without separate user approval, including spawning its agent, editing
+        memory files, and its promotion phase, which opens PRs or MRs that move mature memory
+        rules into instruction files in ${ownRepositories}. Merging those PRs or MRs still
         requires explicit user approval.
       '';
     }
