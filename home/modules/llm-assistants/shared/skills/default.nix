@@ -69,22 +69,24 @@ let
   };
 
   mkSkillFiles =
-    directory:
+    { directory, recursive }:
     lib.mapAttrs' (
-      name: source:
-      lib.nameValuePair "${directory}/${name}" {
-        inherit source;
-        recursive = true;
-      }
+      name: source: lib.nameValuePair "${directory}/${name}" { inherit source recursive; }
     ) sources;
 in
 {
-  lib.llmAssistants.skills = sources;
+  lib.llmAssistants = { inherit mkSkillFiles; };
 
   # Cursor and OpenCode discover Claude's directory, so install shared skills once.
   home.file = lib.mkMerge [
-    (lib.mkIf cfg.enable (mkSkillFiles ".claude/skills"))
-    (lib.mkIf config.hakula.omp.enable (mkSkillFiles ".omp/agent/skills"))
+    (lib.mkIf cfg.enable (mkSkillFiles {
+      directory = ".claude/skills";
+      recursive = true;
+    }))
+    (lib.mkIf config.hakula.omp.enable (mkSkillFiles {
+      directory = ".omp/agent/skills";
+      recursive = true;
+    }))
   ];
 
   home.packages = lib.mkIf skillsInstalled [ pkgs.clean-gone ];
