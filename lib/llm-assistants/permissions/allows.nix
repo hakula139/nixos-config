@@ -161,6 +161,7 @@
       "git shortlog"
       "git status"
       "git worktree list"
+      "workmux path"
 
       # --------------------------------------------------------------------------------------------
       # GitHub / GitLab
@@ -296,7 +297,6 @@
       "git stash"
       "git switch"
       "git tag"
-      "git worktree add"
 
       # --------------------------------------------------------------------------------------------
       # GitHub / GitLab
