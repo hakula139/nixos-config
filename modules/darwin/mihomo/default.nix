@@ -26,7 +26,7 @@ let
     subscriptionUrlFile = config.age.secrets.mihomo-subscription-url.path;
   };
 
-  label = "${config.launchd.labelPrefix}.mihomo";
+  label = config.launchd.daemons.mihomo.serviceConfig.Label;
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -43,10 +43,12 @@ in
     # ----------------------------------------------------------------------------------------------
     age.secrets.mihomo-secret = repoLib.secrets.mkSecret {
       name = "mihomo/secret";
+      group = "wheel";
     };
 
     age.secrets.mihomo-subscription-url = repoLib.secrets.mkSecret {
       name = "mihomo/subscription-url";
+      group = "wheel";
     };
 
     # ----------------------------------------------------------------------------------------------

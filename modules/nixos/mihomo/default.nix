@@ -15,6 +15,8 @@
 let
   cfg = config.hakula.services.mihomo;
 
+  systemctl = "${config.systemd.package}/bin/systemctl";
+
   packages = repoLib.mihomo.mkPackages {
     inherit
       pkgs
@@ -73,7 +75,7 @@ in
     };
 
     # ----------------------------------------------------------------------------------------------
-    # User & group
+    # User & Group
     # ----------------------------------------------------------------------------------------------
     users.groups.mihomo = { };
 
@@ -83,11 +85,6 @@ in
     };
 
     # ----------------------------------------------------------------------------------------------
-    # Networking
-    # ----------------------------------------------------------------------------------------------
-    networking.firewall.checkReversePath = lib.mkIf cfg.tun.enable "loose";
-
-    # ----------------------------------------------------------------------------------------------
     # Systemd services
     # ----------------------------------------------------------------------------------------------
     systemd.services.mihomo = lib.mkMerge [
@@ -95,7 +92,6 @@ in
 
       {
         description = "Mihomo proxy service";
-        after = [ "agenix-chown.service" ];
         wantedBy = [ "multi-user.target" ];
 
         serviceConfig = hardening // {
@@ -109,12 +105,11 @@ in
 
     systemd.services.mihomo-update = {
       description = "Update the mihomo subscription config";
-      after = [ "agenix-chown.service" ];
 
       serviceConfig = updateHardening // {
         Type = "oneshot";
         ExecStart = lib.getExe packages.update;
-        ExecStartPost = "+${config.systemd.package}/bin/systemctl try-reload-or-restart mihomo.service";
+        ExecStartPost = "+${systemctl} try-reload-or-restart mihomo.service";
       };
     };
 
@@ -128,7 +123,6 @@ in
       timerConfig = {
         OnCalendar = "*-*-* 04:00:00";
         Persistent = true;
-        Unit = "mihomo-update.service";
       };
     };
   };

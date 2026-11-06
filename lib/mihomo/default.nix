@@ -17,19 +17,14 @@ let
     {
       cfg,
       corpHosts,
-      hostType,
+      isWork,
       isDarwin,
     }:
-    let
-      isWork = hostType == "work";
-    in
     {
       mixed-port = mixedPort;
       external-controller = "127.0.0.1:${toString controllerPort}";
 
-      # Loopback, plus the host's own address for rootless podman. The NixOS firewall and the
-      # runtime `lan-allowed-ips` keep both off the LAN and the tailnet.
-      allow-lan = !isDarwin;
+      allow-lan = false;
 
       mode = "rule";
       log-level = "warning";
@@ -133,10 +128,6 @@ let
           "+.push.apple.com"
         ];
       };
-    }
-    // lib.optionalAttrs (!isDarwin) {
-      bind-address = "0.0.0.0";
-      lan-allowed-ips = [ "127.0.0.0/8" ];
     };
 in
 {
@@ -161,14 +152,15 @@ in
       subscriptionUrlFile,
     }:
     let
-      isDarwin = pkgs.stdenv.isDarwin;
+      inherit (pkgs.stdenv) isDarwin;
+
       isWork = hostType == "work";
 
       baseConfig = mkBaseConfig {
         inherit
           cfg
           corpHosts
-          hostType
+          isWork
           isDarwin
           ;
       };
@@ -181,8 +173,7 @@ in
           pkgs.coreutils
           pkgs.curl
           pkgs.mihomo
-        ]
-        ++ lib.optional (!isDarwin) pkgs.iproute2;
+        ];
 
         config = {
           inherit
@@ -192,7 +183,6 @@ in
             ;
           configDir = stateDir;
           inherit (proxy) proxyVars;
-          lanAllowHostAddress = !isDarwin;
 
           curlArgs = [
             "-fsSL"

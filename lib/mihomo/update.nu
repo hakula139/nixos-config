@@ -7,21 +7,6 @@
 # on the rename.
 # ==================================================================================================
 
-# Read the source address of the default route, which is where local containers reach the proxy.
-def host-v4 []: nothing -> string {
-  let route = (^ip -4 route get 1.1.1.1 | complete)
-  if $route.exit_code != 0 {
-    return ""
-  }
-
-  let found = ($route.stdout | parse --regex 'src\s+(?<ip>\d+\.\d+\.\d+\.\d+)')
-  if ($found | is-empty) {
-    return ""
-  }
-
-  $found.0.ip
-}
-
 # Fetch the subscription, merge it under the host base config, and replace the active config.
 def main [
   --config: path # Wrapper-supplied JSON with the base config, secret paths, proxy, curl, and rules
@@ -67,28 +52,20 @@ def main [
   # the secret is read here so no store path holds it.
   print "Merging base configuration with subscription"
   let secret = (open --raw $config.secretFile | decode utf-8 | str trim)
-  let base_config = (
-    if $config.lanAllowHostAddress {
-      let host = (host-v4)
-      if ($host | is-empty) {
-        print --stderr "Warning: could not determine the host IPv4 address, so only loopback may use the proxy"
-        $config.baseConfig
-      } else {
-        $config.baseConfig
-        | upsert "lan-allowed-ips" (($config.baseConfig | get "lan-allowed-ips") | append $"($host)/32")
-      }
-    } else {
-      $config.baseConfig
-    }
-  )
   let merged = (
     $prepared
-    | merge $base_config
+    | merge $config.baseConfig
     | upsert secret $secret
     | to yaml
   )
 
-  mkdir $config.configDir
+  # Create only the leaf directory. On macOS an intermediate /var/lib must not appear with the
+  # daemon's 0077 umask, so the mode is set explicitly.
+  if not ($config.configDir | path exists) {
+    ^mkdir $config.configDir
+    ^chmod "0700" $config.configDir
+  }
+
   let staging_file = (mktemp --tmpdir-path $config.configDir ".config.staging.XXXXXXXXXX")
 
   try {
@@ -96,7 +73,12 @@ def main [
 
     # A subscription that is valid YAML but rejected by mihomo would replace a working config and
     # then crash-loop on the next restart.
-    let validated = (^mihomo -t -d $config.configDir -f $staging_file | complete)
+    let validated = (
+      ^mihomo -t
+      -d $config.configDir
+      -f $staging_file
+      | complete
+    )
     if $validated.exit_code != 0 {
       let detail = (
         [
