@@ -41,6 +41,7 @@ These traps assume the Nushell Book's [Thinking in Nu](https://www.nushell.sh/bo
 - **A script argument starting with `--` is spliced into `main` unquoted.** On the pinned Nushell, `escape_for_script_arg` inserts an argument that starts with `--` and has no `=` into the `main ...` source line without quoting it, even after `--`, so `command -- '--x;print INJECTED'` runs `print INJECTED`. Callers must pass operands that cannot start with `--`, such as absolute paths.
 - **`url encode` escapes characters a URI keeps.** The default escapes every ASCII punctuation mark except `.`, `/`, and `:`, including the unreserved `-`, `_`, and `~`, and `--all` escapes those three as well. To match another encoder, pass only the characters it escapes through `url encode --all`.
 - **`$nu.home-dir` ignores a `HOME` change inside the running Nushell.** It is fixed at startup, so code that runs after `$env.HOME = ...` or inside `with-env {HOME: ...}` in the same process reads `$env.HOME`. A child Nushell started with a new `HOME` sees it.
+- **`str length` counts UTF-8 bytes by default.** `"中文字" | str length` returns 9 on the pinned Nushell. Pass `--chars` or `--grapheme-clusters` when a limit is written in characters.
 
 ### External commands
 

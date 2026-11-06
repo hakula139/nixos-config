@@ -60,7 +60,11 @@ let
         promptFragments
         repoLib
         ;
-      modelCall = config.lib.llmAssistants.mkModelCall "prose-polish";
+      modelCall = config.lib.llmAssistants.mkModelCall {
+        assistant = "prose-polish";
+        # Leaves a full batch's rewrite headroom past the hooks' model-call limit.
+        timeout = 300;
+      };
     };
   };
 
