@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  inputs,
   modelCatalog,
   repoLib,
   ...
@@ -23,8 +22,6 @@ let
   # ------------------------------------------------------------------------------------------------
   promptFragments = import ../prompt-fragments;
 
-  anthropic = inputs.anthropics-skills + "/skills";
-
   sources = {
     ast-grep = ./ast-grep;
     browser-debugging = ./browser-debugging;
@@ -34,9 +31,8 @@ let
     disk-cleanup = ./disk-cleanup;
     dream = ./dream;
     environment-repair = ./environment-repair;
-    frontend-design = anthropic + "/frontend-design";
+    frontend-design = ./frontend-design;
     git-workflow = ./git-workflow;
-    mcp-builder = anthropic + "/mcp-builder";
     model-delegation = ./model-delegation;
     nix = ./nix;
     nushell = ./nushell;
