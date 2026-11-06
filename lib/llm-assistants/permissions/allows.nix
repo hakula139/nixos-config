@@ -506,10 +506,11 @@
     {
       name = "GitHub / GitLab remote changes";
       reason = ''
-        Remote changes to ${ownRepositories} are allowed without separate user approval,
-        including pushing commits and creating or updating pull requests.
-        Merging or approving PRs or MRs, including automatic or queued merging, still
-        requires explicit user approval.
+        Remote changes to ${ownRepositories} are allowed without separate user approval, including
+        pushing commits, creating or updating PRs or MRs, and opening a follow-up PR, MR, or issue
+        (or updating the issue that already tracks it) for a finding from the current work.
+        Merging or approving PRs or MRs, including automatic or queued merging, still requires
+        explicit user approval.
       '';
     }
     {
