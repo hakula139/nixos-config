@@ -275,9 +275,13 @@ def grade [target: record, raw: string]: nothing -> record {
 # Rewriting
 # --------------------------------------------------------------------------------------------------
 
+# Bytes track tokens in CJK and English alike, so this budget keeps each reply under `maxTokens`.
+const BATCH_BYTES = 20000
+
 def call-model [
   passages: list<record>
   notes: list<string>
+  context: string
   config: record
 ]: nothing -> list<string> {
   let request = {
@@ -289,6 +293,7 @@ def call-model [
       [
         ($config.prompt | str trim)
         "The input is a JSON object. Return only the same object shape and numeric IDs, replacing each text value with its rewrite."
+        $"<document>\n($context)\n</document>"
         ...$notes
         ({passages: $passages} | to json --raw)
       ]
@@ -336,8 +341,48 @@ def call-model [
   }
 }
 
+# The passages split greedily into runs whose `text` totals at most `size` UTF-8 bytes, keeping
+# order. A passage larger than `size` stays whole in its own run.
+def batches [passages: list<record>, size: int]: nothing -> list<list<record>> {
+  mut out: list<list<record>> = []
+  mut current: list<record> = []
+  mut used = 0
+  for passage in $passages {
+    let length = ($passage.text | str length --utf-8-bytes)
+    if ($current | is-not-empty) and (($used + $length) > $size) {
+      $out = ($out | append [$current])
+      $current = []
+      $used = 0
+    }
+    $current = ($current | append $passage)
+    $used = $used + $length
+  }
+  if ($current | is-not-empty) {
+    $out = ($out | append [$current])
+  }
+  $out
+}
+
+# The batch replies in order, ending at the first failed call, so a short result means one failed.
+def call-batches [
+  passages: list<record>
+  notes: list<string>
+  context: string
+  config: record
+]: nothing -> list<string> {
+  mut replies: list<string> = []
+  for batch in (batches $passages $BATCH_BYTES) {
+    let reply = (call-model $batch $notes $context $config)
+    if ($reply | is-empty) {
+      break
+    }
+    $replies = ($replies ++ $reply)
+  }
+  $replies
+}
+
 # The rewriter cannot see why a passage was refused, so return the refused attempt with the reason.
-def repair [pending: list<record>, config: record]: nothing -> list<string> {
+def repair [pending: list<record>, context: string, config: record]: nothing -> list<string> {
   let passages = (
     $pending
     | each {|row|
@@ -349,20 +394,19 @@ def repair [pending: list<record>, config: record]: nothing -> list<string> {
       }
     }
   )
-
-  call-model $passages [($config.repairPrompt | str trim)] $config
+  call-batches $passages [($config.repairPrompt | str trim)] $context $config
 }
 
 # Each target graded with its final rewrite in `after` and any remaining fault in `problem`, or
-# null when the opening model call fails.
-def rewrite [found: list<record>, config: record]: nothing -> any {
+# null when any opening batch's model call fails.
+def rewrite [found: list<record>, context: string, config: record]: nothing -> any {
   let passages = (
     $found
     | enumerate
     | each {|slot| {id: $slot.index, text: $slot.item.before} }
   )
-  let opening = (call-model $passages [] $config)
-  if ($opening | is-empty) {
+  let opening = (call-batches $passages [] $context $config)
+  if ($opening | length) != ($passages | length) {
     return null
   }
 
@@ -377,7 +421,7 @@ def rewrite [found: list<record>, config: record]: nothing -> any {
     if ($pending | is-empty) {
       break
     }
-    let retried = (repair $pending $config)
+    let retried = (repair $pending $context $config)
     if ($retried | is-empty) {
       break
     }
@@ -451,7 +495,7 @@ def main [
   let graded = if ($found | is-empty) {
     []
   } else {
-    rewrite $found $config
+    rewrite $found $text $config
   }
   if $graded == null {
     fail "the model call failed"

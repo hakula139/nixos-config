@@ -102,6 +102,13 @@ def modes [case: record, rules: list<record>, args: list<string>]: nothing -> li
   ]
 }
 
+# A document of `count` one-line paragraphs whose passage text exceeds one batch.
+def long-document [count: int]: nothing -> string {
+  let sentence = "The river carries the boat past the quiet mills while the fox sleeps."
+  let filler = (1..5 | each { $sentence } | str join " ")
+  1..$count | each {|n| $"Paragraph ($n). ($filler)" } | str join "\n\n"
+}
+
 def "test the default model and --model" [] {
   let target = (case polish ideographic-indent)
   let input = (bytes ($target.dir | path join "input.md"))
@@ -198,6 +205,71 @@ def "test a refused rewrite is retried with its reason" [] {
     ] $context
     assert str contains ($result.calls | get 0.user) $PROMPT $context
     assert str contains ($result.calls | get 1.user) $REPAIR_PROMPT $context
+  }
+}
+
+def "test a long document is batched with the whole document as context" [] {
+  let document = (long-document 60)
+  let rule = {find: "river", replace: "stream"}
+
+  let result = (command [] ($document | encode utf-8) [$rule])
+  let calls = $result.calls
+
+  assert equal $result.run.exit_code 0 $result.run.stderr
+  assert equal ($calls | length) 2 "the passages split into two batches"
+  assert equal ($calls | get 0.passages | get id) (seq 0 54) "the first batch stops at the budget"
+  assert equal ($calls | get 1.passages | get id) (seq 55 59) "the second batch takes the rest"
+  for call in $calls {
+    assert str contains $call.user $document "each call carries the whole document"
+  }
+  assert equal $result.run.stdout ($document | str replace --all "river" "stream")
+}
+
+def "test a failed later batch leaves the file untouched" [] {
+  let document = (long-document 60)
+  let rule = {find: "river", replace: "stream"}
+  let path = (mktemp --directory | path join "input.md")
+  $document | save --raw $path
+
+  let result = (command [$path] "" [$rule {fail: "boom"}])
+
+  assert equal $result.run.exit_code 1 "a failed later batch ends the run"
+  assert equal (bytes $path) ($document | encode utf-8) "the file stays untouched"
+}
+
+def "test a long document repairs each batch with the whole document as context" [] {
+  let document = (long-document 60)
+  let paragraphs = ($document | split row "\n\n")
+  let opening = {find: "river", replace: "river;"}
+  let repair = {find: "river", replace: "stream"}
+  let repaired = ($document | str replace --all "river" "stream")
+  let head = ($paragraphs | first 55 | str join "\n\n")
+  let tail = ($paragraphs | skip 55 | str join "\n\n")
+  let partial = $"($head | str replace --all "river" "stream")\n\n($tail)"
+
+  let variants = [
+    [name rules expected kept];
+    ["every repair batch succeeds" [$opening $opening $repair $repair] $repaired 0]
+    ["a later repair batch fails" [$opening $opening $repair {fail: "boom"}] $partial 5]
+  ]
+
+  for variant in $variants {
+    let result = (command [] ($document | encode utf-8) $variant.rules)
+    let calls = $result.calls
+
+    assert equal $result.run.exit_code 0 $"($variant.name): ($result.run.stderr)"
+    assert equal ($calls | length) 4 $"($variant.name): two opening and two repair calls"
+    for call in ($calls | skip 2) {
+      assert str contains $call.user $document $"($variant.name): document context"
+    }
+    assert equal $result.run.stdout $variant.expected $variant.name
+    let kept = (
+      $result.run.stderr
+      | lines
+      | where {|line| $line | str starts-with "prose-polish: kept this passage" }
+      | length
+    )
+    assert equal $kept $variant.kept $"($variant.name): kept passages"
   }
 }
 

@@ -56,15 +56,20 @@ let
   # Model calls
   # ------------------------------------------------------------------------------------------------
   mkModelCall =
-    assistant:
+    {
+      assistant,
+      timeout ? timeouts.modelCall,
+    }:
     import ./model-call {
       inherit
         pkgs
         lib
         assistant
         repoLib
-        timeouts
         ;
+      timeouts = timeouts // {
+        modelCall = timeout;
+      };
       gateway = gatewayFor assistant;
     };
 in

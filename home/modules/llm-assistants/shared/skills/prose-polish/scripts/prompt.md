@@ -10,3 +10,5 @@ Follow each language's conventions:
 - Chinese: fullwidth punctuation between Han characters, and at most one `；` in a sentence.
 
 Preserve all Markdown structure and literal material, including code, links, paths, identifiers, quotations, and bracketed spans such as footnote markers (`[^1]`), reference labels (`[1]`), and task boxes (`[ ]`).
+
+The whole document also arrives as read-only context inside a `<document>` block. Read it only to understand each passage in its setting, add nothing from it to a rewrite, and return rewrites for the listed passages alone.

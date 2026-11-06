@@ -9,7 +9,7 @@ description: >-
 
 # Prose Polish
 
-The bundled script is the only way prose is polished here. It sends each eligible paragraph to the model. It rejects rewrites that alter Markdown structure, code spans, links, numbers, or quotations, or that add a banned mark, and retries each rejected rewrite with the reason. A paragraph whose rewrite still fails keeps its original text. Fenced code, front matter, paragraphs that hold indented code, double-backtick spans, or raw code elements, and pieces that are only headings or table rows or hold no letters stay as they are. Skipped pieces produce no report, so polish those yourself.
+The bundled script is the only way prose is polished here. It sends each eligible paragraph to the model in batches, alongside the whole document as read-only context, and changes only those eligible paragraphs. It rejects rewrites that alter Markdown structure, code spans, links, numbers, or quotations, or that add a banned mark, and retries each rejected rewrite with the reason. A paragraph whose rewrite still fails keeps its original text. Fenced code, front matter, paragraphs that hold indented code, double-backtick spans, or raw code elements, and pieces that are only headings or table rows or hold no letters stay as they are. Skipped pieces produce no report, so polish those yourself.
 
 ## Workflow
 
@@ -37,6 +37,8 @@ The bundled script is the only way prose is polished here. It sends each eligibl
 
    To preview a file without changing it, feed it through stdin as `< docs/notes.md` and read the output.
 
+   For a long document, run the script in the background and read the result when it finishes, since the total runtime grows with the batch count and any repair rounds.
+
 3. Compare every rewritten paragraph with its original. The checks protect structure and literal material but cannot detect a dropped qualification or a changed claim, so put back any rewrite that does not improve its paragraph.
 
 4. Restore dropped claims with the assistant's file-edit tool, in the polished file or draft. Keep the wording the script produced wherever the claim survives.
@@ -45,4 +47,4 @@ The bundled script is the only way prose is polished here. It sends each eligibl
 
 ## Failures
 
-The script exits 1 when the model key is unknown, naming the valid keys, when the model call fails, or when the input cannot be read, whether the path is missing or a directory, or the bytes are not UTF-8 text, on a path or stdin. The file stays untouched in every case. On success it exits 0 and reports on stderr each passage it kept because its rewrite failed a check. A long document can exceed one call's time or output limit, which also fails the model call, so polish it in sections.
+The script exits 1 when the model key is unknown, naming the valid keys, when the model call fails, or when the input cannot be read, whether the path is missing or a directory, or the bytes are not UTF-8 text, on a path or stdin. The file stays untouched in every case. On success it exits 0 and reports on stderr each passage it kept because its rewrite failed a check.
