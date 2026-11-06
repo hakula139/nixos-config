@@ -8,11 +8,11 @@
 
 let
   mcpOptions = import ./mcp-options.nix { inherit lib; };
-  permissions = import ./permissions { inherit lib mcpOptions; };
 in
 {
-  inherit mcpOptions permissions;
+  inherit mcpOptions;
 
+  mkPermissions = { corpHosts }: import ./permissions { inherit lib corpHosts mcpOptions; };
   mkProfileDefinitions = import ./profiles.nix;
 
   mkOptions =

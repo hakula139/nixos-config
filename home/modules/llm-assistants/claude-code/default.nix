@@ -80,7 +80,7 @@ in
 
       permissionSettings = import ./permissions {
         inherit lib;
-        policy = repoLib.llmAssistants.permissions;
+        policy = shared.permissions;
       };
 
       plugins = import ./plugins.nix {
