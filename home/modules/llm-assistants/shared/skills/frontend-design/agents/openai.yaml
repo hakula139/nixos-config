@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Frontend Design'
+  short_description: 'Design UI that fits its content and audience'
+  default_prompt: 'Use $frontend-design to design this UI from the content out.'
