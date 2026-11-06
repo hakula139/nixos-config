@@ -256,8 +256,17 @@ def lock-state [locked: oneof<string, nothing>, context: record]: nothing -> rec
 # Forge
 # --------------------------------------------------------------------------------------------------
 
-# The scheme, user, and host of the remote `url`, from a URL with a scheme or an scp-like
-# `host:path`, each empty for a local path or a `file://` URL.
+# The origin's configured URL, before `insteadOf` rewrites it, taking the first of several values.
+def configured-origin []: nothing -> string {
+  (
+    git-out config --get-all remote.origin.url
+    | lines
+    | first
+    | default ""
+  )
+}
+
+# The scheme, user, host, and path of `url`, from a URL or an scp-like `host:path`.
 def remote-parts [url: string]: nothing -> record {
   if ($url =~ '://') {
     let parts = ($url | url parse)
@@ -265,16 +274,23 @@ def remote-parts [url: string]: nothing -> record {
       scheme: ($parts | get -o scheme | default "")
       user: ($parts | get -o username | default "")
       host: ($parts | get -o host | default "")
+      path: ($parts | get -o path | default "")
     }
   } else {
-    let match = ($url | parse --regex '^(?:(?<user>[^@/]+)@)?(?<host>[^/:]+):')
+    let match = ($url | parse --regex '^(?:(?<user>[^@/]+)@)?(?<host>[^/:]+):(?<path>.*)$')
     if ($match | is-empty) {
-      {scheme: "", user: "", host: ""}
+      {
+        scheme: ""
+        user: ""
+        host: ""
+        path: ""
+      }
     } else {
       {
         scheme: ""
         user: ($match.0 | get -o user | default "")
         host: $match.0.host
+        path: $match.0.path
       }
     }
   }
@@ -287,19 +303,18 @@ def ssh-transport [parts: record]: nothing -> bool {
   $parts.scheme in ["ssh" "git+ssh" "ssh+git"]
 }
 
-# Whether `url` names a repository on GitHub, resolving SSH host aliases through `ssh -G` for SSH
-# transports. Fails when `ssh -G` rejects the configuration.
-def github-remote [url: string]: nothing -> bool {
-  let remote = (remote-parts $url)
+# Whether the parsed remote `parts` names a repository on GitHub, resolving SSH host aliases through
+# `ssh -G` for SSH transports. Fails when `ssh -G` rejects the configuration.
+def github-remote [parts: record]: nothing -> bool {
   let host = (
-    if ($remote.host | is-empty) or not (ssh-transport $remote) {
-      $remote.host
+    if ($parts.host | is-empty) or not (ssh-transport $parts) {
+      $parts.host
     } else {
       let target = (
-        if ($remote.user | is-empty) {
-          $remote.host
+        if ($parts.user | is-empty) {
+          $parts.host
         } else {
-          $"($remote.user)@($remote.host)"
+          $"($parts.user)@($parts.host)"
         }
       )
       let run = (^ssh -G $target | complete)
@@ -329,12 +344,14 @@ def github-remote [url: string]: nothing -> bool {
 # Whether the requests on `origin` from `branch` make it `open`, `finished`, or `unfinished`, or the
 # `problem` that leaves it unknown. Any open request keeps it open. Otherwise it is finished when
 # its newest request is merged or closed and that request's head contains the branch tip, since a
-# later tip holds unreviewed work.
-def branch-status [branch: string, github: bool]: nothing -> record {
+# later tip holds unreviewed work. `gh` reads the requests from the context's slug, since it cannot
+# resolve a remote that `insteadOf` rewrites.
+def branch-status [branch: string, context: record]: nothing -> record {
   let run = (
-    if $github {
+    if $context.github {
       (
         ^gh pr list
+          --repo $context.slug
           --head $branch
           --state all
           --json number,state,headRefOid
@@ -360,7 +377,7 @@ def branch-status [branch: string, github: bool]: nothing -> record {
   let requests = (
     $run.stdout
     | from json
-    | rename --column (if $github { {headRefOid: sha} } else { {iid: number} })
+    | rename --column (if $context.github { {headRefOid: sha} } else { {iid: number} })
     | update state {|request| $request.state | str lowercase | str replace "opened" "open" }
   )
   if ($requests | where state == "open" | is-not-empty) {
@@ -376,7 +393,7 @@ def branch-status [branch: string, github: bool]: nothing -> record {
     return {state: "unfinished"}
   }
 
-  let prefix = (if $github { "pull request #" } else { "merge request !" })
+  let prefix = (if $context.github { "pull request #" } else { "merge request !" })
   {
     state: "finished"
     evidence: $"($prefix)($newest.number) is ($newest.state)"
@@ -547,7 +564,7 @@ def clean-worktree [worktree: record, context: record]: nothing -> string {
     if ($branch | is-empty) {
       {state: "detached"}
     } else {
-      branch-status $branch $context.github
+      branch-status $branch $context
     }
   )
   if "problem" in $status {
@@ -612,7 +629,7 @@ def clean-worktree [worktree: record, context: record]: nothing -> string {
 # Cleans an unchecked-out branch as `main`'s help describes. Returns `clean`, `skip`, or `keep`.
 def clean-branch [branch: record, context: record]: nothing -> string {
   let name = $branch.name
-  let status = (branch-status $name $context.github)
+  let status = (branch-status $name $context)
   if "problem" in $status {
     print-skip $name $status.problem $status.details
     return "skip"
@@ -688,10 +705,23 @@ def main [
     ^git worktree prune
   }
   let records = (worktree-records | where not prunable)
+  let github_origin = (
+    [(configured-origin) (git-out remote get-url origin)]
+    | uniq
+    | each {|url| remote-parts $url }
+    | where {|parts| github-remote $parts }
+    | first
+  )
   let processes = (ps | select pid ppid)
   let context = {
     main: $records.0.path
-    github: (github-remote (git-out remote get-url origin))
+    github: ($github_origin != null)
+    slug: (
+      $github_origin.path?
+      | default ""
+      | str trim --char "/"
+      | str replace --regex '\.git$' ""
+    )
     open_files: $open_files
     processes: $processes
     ancestors: (ancestor-pids $processes $nu.pid)
