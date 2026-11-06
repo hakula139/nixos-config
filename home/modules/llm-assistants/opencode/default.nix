@@ -46,16 +46,6 @@ in
 
     mcp = mcpOptions.mkMcpOptions { names = mcpOptions.commonServerNames; };
 
-    plugins = {
-      bundle = lib.mkEnableOption "pre-bundled plugins (for air-gapped deployment)";
-
-      ohMyOpenCode = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
-        description = "Whether to enable the oh-my-opencode plugin";
-      };
-    };
-
     proxy = repoLib.proxy.mkProxyOptions "OpenCode";
   };
 
@@ -117,18 +107,6 @@ in
           (repoLib.proxy.mkProxyScript cfg.proxy)
         ];
       };
-
-      # --------------------------------------------------------------------------------------------
-      # oh-my-openagent
-      # --------------------------------------------------------------------------------------------
-      ohMyOpenCodeRoot = "${pkgs.oh-my-opencode}/lib/oh-my-opencode";
-
-      pluginConfigFile = json.generate "oh-my-openagent.json" {
-        git_master = {
-          commit_footer = false;
-          include_co_authored_by = false;
-        };
-      };
     in
     lib.mkMerge [
       profiles.config
@@ -165,13 +143,6 @@ in
             # MCP servers
             # --------------------------------------------------------------------------------------
             mcp = mcp.serversConfig;
-
-            # --------------------------------------------------------------------------------------
-            # Plugins
-            # --------------------------------------------------------------------------------------
-            plugin = lib.optionals (cfg.plugins.ohMyOpenCode && !cfg.plugins.bundle) [
-              "oh-my-opencode"
-            ];
 
             # --------------------------------------------------------------------------------------
             # Formatters
@@ -239,24 +210,8 @@ in
         # ------------------------------------------------------------------------------------------
         xdg.configFile = {
           "opencode/tui.json".source = tuiConfigFile;
-        }
-        // lib.optionalAttrs cfg.plugins.ohMyOpenCode {
-          "opencode/oh-my-openagent.json".source = pluginConfigFile;
         };
       }
-
-      (lib.mkIf (cfg.plugins.ohMyOpenCode && cfg.plugins.bundle) {
-        xdg.configFile = {
-          "opencode/oh-my-opencode" = {
-            source = ohMyOpenCodeRoot;
-            recursive = true;
-          };
-
-          "opencode/plugins/oh-my-openagent.js".text = ''
-            export { default } from "../oh-my-opencode/dist/index.js";
-          '';
-        };
-      })
     ]
   );
 }

@@ -3,27 +3,20 @@
 # ==================================================================================================
 
 {
-  lib,
   homeDir,
   hooks,
   permissionSettings,
   plugins,
-  bundlePlugins,
   profileSettings,
   shared,
 }:
 
 {
   hooks = hooks.events;
-  inherit (plugins) enabledPlugins;
+  inherit (plugins) enabledPlugins extraKnownMarketplaces;
 }
 // permissionSettings
 // profileSettings
-// lib.optionalAttrs (!bundlePlugins) {
-  # With bundling, known_marketplaces.json drives discovery, and leaving extraKnownMarketplaces set
-  # triggers failed GitHub installs offline.
-  inherit (plugins) extraKnownMarketplaces;
-}
 // {
   # ------------------------------------------------------------------------------------------------
   # Project
@@ -94,7 +87,7 @@
     DISABLE_INSTALLATION_CHECKS = "1";
     ENABLE_CLAUDEAI_MCP_SERVERS = "0";
     ENABLE_PROMPT_CACHING_1H = "1";
-    FORCE_AUTOUPDATE_PLUGINS = if bundlePlugins then "0" else "1";
+    FORCE_AUTOUPDATE_PLUGINS = "1";
     MCP_TIMEOUT = toString (shared.mcp.timeouts.startup * 1000);
   };
 }
