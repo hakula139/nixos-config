@@ -89,7 +89,7 @@
     };
 
     devkit = {
-      url = "github:hakula139/devkit/b3c36cb40179dcc4c226b0fee6e474577accecfb";
+      url = "github:hakula139/devkit/44782b619d0c4cd9562c5000f6230aa9582e67ac";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         nixpkgs-unstable.follows = "nixpkgs-unstable";
@@ -116,7 +116,7 @@
     };
 
     plugins = {
-      url = "github:hakula139/plugins/c3f01df640ebe4d477b63f2c84f1f5104fb3d32d";
+      url = "github:hakula139/plugins/c9aa3aff22914fc028d6e0d44ccf5d6db4728cd1";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         devkit.follows = "devkit";
