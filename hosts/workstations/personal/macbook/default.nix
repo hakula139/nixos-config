@@ -53,6 +53,7 @@
   # Home Manager Overrides
   # ------------------------------------------------------------------------------------------------
   home-manager.users.hakula = {
+    hakula.bench-backup.enable = true;
     hakula.claude-code.auth.defaultProfile = "official";
     hakula.llm-assistants.proxy.enable = true;
     hakula.nix.configPath = "/Users/hakula/GitHub/nixos-config";
