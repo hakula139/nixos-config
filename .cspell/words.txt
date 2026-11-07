@@ -203,6 +203,7 @@ nixup
 nlsv
 nofile
 nohlsearch
+notitle
 npmjs
 nscd
 nslookup
