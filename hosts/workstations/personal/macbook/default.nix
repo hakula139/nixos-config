@@ -47,7 +47,6 @@
 
   hakula.services.mihomo = {
     enable = true;
-    controllerPort = 9090;
     tun.enable = true;
   };
 
