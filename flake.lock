@@ -115,7 +115,6 @@
           "git-hooks-nix"
         ],
         "nixpkgs": [
-          "plugins",
           "nixpkgs"
         ],
         "nixpkgs-unstable": [
@@ -504,7 +503,9 @@
     },
     "plugins": {
       "inputs": {
-        "devkit": "devkit",
+        "devkit": [
+          "devkit"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -556,6 +557,7 @@
         "agenix": "agenix",
         "agent-project-move": "agent-project-move",
         "colmena": "colmena",
+        "devkit": "devkit",
         "disko": "disko",
         "git-hooks-nix": "git-hooks-nix",
         "home-manager": "home-manager",
