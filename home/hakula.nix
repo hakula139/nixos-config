@@ -33,7 +33,6 @@ in
     ./modules/darwin.nix
     ./modules/wsl.nix
     ./modules/stale-links.nix
-    ./modules/bench-backup
     ./modules/corp-mirrors
     ./modules/fonts
     ./modules/git
