@@ -8,26 +8,12 @@ use std/assert
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "update.nu")
+const SUBSCRIPTION = ($SCRIPT_DIR | path join "fixtures/update/subscription/config.yaml")
 
 const PREVIOUS = "log-level: info\n"
 const SECRET = "test-secret"
 const SUBSCRIPTION_URL = "https://sub.example.com/x"
 const BASE_TUN = {enable: false, stack: "gvisor"}
-
-const SUBSCRIPTION = "
-mixed-port: 7890
-log-level: debug
-allow-lan: true
-tun:
-  enable: true
-  stack: system
-  device: utun42
-  strict-route: true
-proxies: []
-proxy-groups: []
-rules:
-  - MATCH,DIRECT
-"
 
 def run-update [
   curl_status: int
@@ -54,7 +40,7 @@ def run-update [
       "mixed-port": 7897
       "log-level": "warning"
       "allow-lan": false
-      tun: $BASE_TUN
+      "tun": $BASE_TUN
     }
     configDir: $config_dir
     secretFile: $secret_file
@@ -91,12 +77,13 @@ def run-update [
 }
 
 def "test the update stages, validates, and replaces the config" [] {
+  let subscription = (open --raw $SUBSCRIPTION)
   let cases = [
     [name curl_status body mihomo_status previous status];
-    ["fetch fails" 18 $SUBSCRIPTION 0 true 1]
-    ["mihomo rejects" 0 $SUBSCRIPTION 1 true 1]
-    ["success" 0 $SUBSCRIPTION 0 true 0]
-    ["success without an existing config" 0 $SUBSCRIPTION 0 false 0]
+    ["fetch fails" 18 $subscription 0 true 1]
+    ["mihomo rejects" 0 $subscription 1 true 1]
+    ["success" 0 $subscription 0 true 0]
+    ["success without an existing config" 0 $subscription 0 false 0]
   ]
 
   for case in $cases {
@@ -112,8 +99,8 @@ def "test the update stages, validates, and replaces the config" [] {
     }
 
     let merged = (open $result.target)
-    assert equal $merged."mixed-port" 7897 $context
-    assert equal $merged."allow-lan" false $context
+    assert equal $merged.mixed-port 7897 $context
+    assert equal $merged.allow-lan false $context
     assert equal $merged.tun $BASE_TUN $context
     assert equal $merged.secret $SECRET $context
     assert equal $merged.rules [
