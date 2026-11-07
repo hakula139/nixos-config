@@ -25,6 +25,14 @@ let
       corpHosts,
       isWork,
     }:
+    let
+      localDomains = [
+        "*"
+        "+.lan"
+        "+.local"
+        "+.arpa"
+      ];
+    in
     {
       # --------------------------------------------------------------------------------------------
       # Proxy ports
@@ -87,7 +95,6 @@ let
         # Basics
         # ------------------------------------------------------------------------------------------
         enable = true;
-        prefer-h3 = true;
         ipv6 = true;
         use-system-hosts = true;
 
@@ -98,17 +105,17 @@ let
         fake-ip-range = "198.18.0.1/16";
         fake-ip-range6 = "2001:2::/64";
         fake-ip-filter-mode = "blacklist";
-        fake-ip-filter = [
-          "+.lan"
-          "+.local"
-          "+.arpa"
-          "time.*.com"
+        fake-ip-filter = localDomains ++ [
           "ntp.*.com"
+          "time.*.com"
           "+.pool.ntp.org"
+
+          "+.stun.*.*"
+
           "+.msftconnecttest.com"
           "+.msftncsi.com"
+
           "localhost.ptlogin2.qq.com"
-          "+.stun.*.*"
         ];
 
         # ------------------------------------------------------------------------------------------
@@ -119,16 +126,19 @@ let
           "119.29.29.29"
         ];
         nameserver = [
-          "https://doh.pub/dns-query"
-          "https://dns.alidns.com/dns-query"
+          "https://dns.google/dns-query#RULES"
+          "https://cloudflare-dns.com/dns-query#RULES"
         ];
         proxy-server-nameserver = [
           "https://doh.pub/dns-query"
           "https://dns.alidns.com/dns-query"
         ];
-      }
-      // lib.optionalAttrs isWork {
-        nameserver-policy."+.${corpHosts.domain}" = "system";
+
+        nameserver-policy =
+          lib.genAttrs localDomains (_: "system")
+          // lib.optionalAttrs isWork {
+            "+.${corpHosts.domain}" = "system";
+          };
       };
 
       # --------------------------------------------------------------------------------------------
@@ -219,7 +229,7 @@ in
         runtimeInputs = [
           pkgs.coreutils
           pkgs.curl
-          pkgs.mihomo
+          pkgs.unstable.mihomo
         ];
 
         config = {
@@ -266,7 +276,7 @@ in
         name = "mihomo-start";
         script = ./start.nu;
         runtimeInputs = [
-          pkgs.mihomo
+          pkgs.unstable.mihomo
           updatePackage
         ];
         flags.config-dir = stateDir;
