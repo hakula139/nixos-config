@@ -44,8 +44,7 @@ let
 
       assistantDirs = {
         claude = "${homeDir}/.claude";
-        codex =
-          if config.home.preferXdgDirectories then "${config.xdg.configHome}/codex" else "${homeDir}/.codex";
+        codex = config.lib.llmAssistants.codexConfigDir;
         omp = "${homeDir}/.omp/agent";
       };
     };
