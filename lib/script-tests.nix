@@ -34,6 +34,7 @@ pkgs.runCommand "script-tests"
       pkgs.git
       pkgs.nixfmt
       pkgs.prek
+      pkgs.restic
       pkgs.sqlite
       pkgs.zstd
       tooling.scriptPython
