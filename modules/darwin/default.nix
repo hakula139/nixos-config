@@ -36,6 +36,7 @@ in
     ./drivedx
     ./keka
     ./llm-assistants
+    ./mihomo
     ./ssh
     ./tailscale
     ./tunnel
