@@ -126,7 +126,10 @@
       ];
 
       forAllSystems = nixpkgs.lib.genAttrs systems;
-      overlays = import ./lib/overlays.nix { inherit inputs repoLib; };
+
+      overlays = import ./lib/overlays.nix {
+        inherit inputs repoLib;
+      };
 
       pkgsFor =
         system:
@@ -181,7 +184,10 @@
         };
       };
 
-      repoLib = import ./lib { inherit (nixpkgs) lib; };
+      repoLib = import ./lib {
+        inherit (nixpkgs) lib;
+      };
+
       data = import ./data;
       keys = import ./secrets/keys.nix;
 

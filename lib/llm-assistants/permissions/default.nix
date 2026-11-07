@@ -9,8 +9,12 @@
 }:
 
 let
-  sourceControl = import ./source-control.nix { inherit corpHosts; };
-  allows = import ./allows.nix { inherit (sourceControl) ownRepositories; };
+  sourceControl = import ./source-control.nix {
+    inherit corpHosts;
+  };
+  allows = import ./allows.nix {
+    inherit (sourceControl) ownRepositories;
+  };
   gates = import ./gates.nix;
 
   toMcpEntries =

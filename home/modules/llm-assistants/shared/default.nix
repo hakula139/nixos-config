@@ -18,7 +18,9 @@ let
   # Instructions and agent roles
   # ------------------------------------------------------------------------------------------------
   promptFragments = import ./prompt-fragments;
-  roles = import ./agent-roles { inherit promptFragments; };
+  roles = import ./agent-roles {
+    inherit promptFragments;
+  };
   toLine = text: lib.replaceStrings [ "\n" ] [ " " ] (lib.trim text);
   agentRoles = lib.mapAttrs (_: role: role // { description = toLine role.description; }) roles;
 
@@ -83,8 +85,12 @@ in
     # Instructions and agent roles
     # ----------------------------------------------------------------------------------------------
     inherit agentRoles;
-    instructions = import ../instructions { inherit promptFragments; };
-    agentRoleOptions = import ./agent-roles/options.nix { inherit lib agentRoles; };
+    instructions = import ../instructions {
+      inherit promptFragments;
+    };
+    agentRoleOptions = import ./agent-roles/options.nix {
+      inherit lib agentRoles;
+    };
 
     # ----------------------------------------------------------------------------------------------
     # Preferences
@@ -111,7 +117,9 @@ in
     # ----------------------------------------------------------------------------------------------
     # Permissions
     # ----------------------------------------------------------------------------------------------
-    permissions = repoLib.llmAssistants.mkPermissions { inherit corpHosts; };
+    permissions = repoLib.llmAssistants.mkPermissions {
+      inherit corpHosts;
+    };
 
     # ----------------------------------------------------------------------------------------------
     # Hooks and notifications
