@@ -64,7 +64,9 @@ in
         inherit (cfg.agents) enabledAgents;
       };
 
-      extensions = import ./extensions.nix { inherit pkgs; };
+      extensions = import ./extensions.nix {
+        inherit pkgs;
+      };
 
       mcp = import ./mcp.nix {
         inherit lib mcpOptions shared;

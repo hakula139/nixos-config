@@ -10,7 +10,9 @@
 let
   inherit (pkgs) lib;
 
-  tooling = import ./tooling.nix { inherit pkgs; };
+  tooling = import ./tooling.nix {
+    inherit pkgs;
+  };
 
   testsWith =
     suffix: lib.fileset.toList (lib.fileset.fileFilter (file: lib.hasSuffix suffix file.name) root);
