@@ -7,15 +7,9 @@
 }:
 
 let
-  wrapPackage = import ./wrap-package.nix {
-    inherit lib;
-  };
-  mkNuCommand = import ./nu-command.nix {
-    inherit lib wrapPackage;
-  };
-  proxy = import ./proxy.nix {
-    inherit lib wrapPackage;
-  };
+  wrapPackage = import ./wrap-package.nix { inherit lib; };
+  mkNuCommand = import ./nu-command.nix { inherit lib wrapPackage; };
+  proxy = import ./proxy.nix { inherit lib wrapPackage; };
 in
 {
   inherit
