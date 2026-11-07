@@ -116,7 +116,7 @@
     };
 
     plugins = {
-      url = "github:hakula139/plugins/9e54c8ecb47a91d7c52ff58d23379369b2a29d58";
+      url = "github:hakula139/plugins/d6a2869f8faf7807e26d78071cf66c145e69c38e";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         devkit.follows = "devkit";

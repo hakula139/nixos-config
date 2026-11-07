@@ -69,8 +69,6 @@ in
     }))
   ];
 
-  home.packages = lib.mkIf skillsInstalled [ pkgs.clean-gone ];
-
   hakula.activity-report.enable = lib.mkIf skillsInstalled (lib.mkDefault true);
   hakula.agent-project-move.enable = lib.mkIf skillsInstalled (lib.mkDefault true);
 
