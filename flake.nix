@@ -88,6 +88,15 @@
       };
     };
 
+    devkit = {
+      url = "github:hakula139/devkit/v1.0.0-rc.3";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-unstable.follows = "nixpkgs-unstable";
+        git-hooks-nix.follows = "git-hooks-nix";
+      };
+    };
+
     listenbrainz-scrobbler = {
       url = "github:hakula139/listenbrainz-scrobbler/v0.3.0";
       inputs = {
@@ -103,6 +112,14 @@
         nixpkgs.follows = "nixpkgs";
         home-manager.follows = "home-manager";
         git-hooks-nix.follows = "git-hooks-nix";
+      };
+    };
+
+    plugins = {
+      url = "github:hakula139/plugins";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        devkit.follows = "devkit";
       };
     };
   };
