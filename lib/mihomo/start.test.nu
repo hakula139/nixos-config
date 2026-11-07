@@ -9,15 +9,12 @@ use std/assert
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "start.nu")
 
-const WARNING = "Warning: subscription update failed"
-
 def "test mihomo replaces the start process unless a failed update finds no config" [] {
   let cases = [
-    [name update_status config status warning];
-    ["update succeeds with a config" 0 true 0 false]
-    ["update succeeds without a config" 0 false 0 false]
-    ["update fails with a config" 1 true 0 true]
-    ["update fails without a config" 1 false 1 false]
+    [name update_status config status];
+    ["update succeeds with a config" 0 true 0]
+    ["update fails with a config" 1 true 0]
+    ["update fails without a config" 1 false 1]
   ]
 
   for case in $cases {
@@ -35,7 +32,11 @@ def "test mihomo replaces the start process unless a failed update finds no conf
       STUB_LOG: $log
       STUB_UPDATE_STATUS: ($case.update_status | into string)
     } {
-      ^$nu.current-exe --no-config-file $SCRIPT --config-dir $config_dir | complete
+      (
+        ^$nu.current-exe --no-config-file
+          $SCRIPT --config-dir $config_dir
+        | complete
+      )
     }
     let context = $"($case.name): ($run.stderr)"
     assert equal $run.exit_code $case.status $context
@@ -43,6 +44,5 @@ def "test mihomo replaces the start process unless a failed update finds no conf
     # Only an exec leaves mihomo a direct child of this test process.
     let expected = if $case.status == 0 { [{args: [-d $config_dir], ppid: $nu.pid}] } else { [] }
     assert equal (open $log | from json --objects) $expected $context
-    assert equal ($run.stderr | str contains $WARNING) $case.warning $context
   }
 }

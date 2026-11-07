@@ -54,6 +54,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── tooling.nix                 # Shared development tool groups
 │   ├── wrap-package.nix            # Package wrappers preserving upstream launcher identity
 │   ├── llm-assistants/             # Assistant options, permissions, and profiles
+│   ├── mihomo/                     # Shared mihomo settings, update / start / port-check commands
 │   └── wsl/                        # Windows interop helpers (windows-interop.nu)
 ├── modules/
 │   ├── darwin/                     # macOS-specific modules
