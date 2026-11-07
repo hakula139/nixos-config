@@ -84,7 +84,7 @@ def main [
     snapshot-votes $config.dataDir $snapshot_dir
     cd $config.dataDir
     restic $config.restic [backup --quiet --exclude ./checks --exclude ./agents
-      --exclude ./arena/v3/d1 --exclude "*.lock" --exclude "*.sqlite-wal"
+      --exclude ./arena/v3 --exclude "*.lock" --exclude "*.sqlite-wal"
       --exclude "*.sqlite-shm" .]
   } catch {|failure|
     rm --recursive --force $snapshot_dir
