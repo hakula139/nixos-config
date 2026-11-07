@@ -24,7 +24,6 @@ let
       cfg,
       corpHosts,
       isWork,
-      isDarwin,
     }:
     {
       # --------------------------------------------------------------------------------------------
@@ -73,15 +72,11 @@ let
         stack = "gvisor";
         auto-route = true;
         auto-detect-interface = true;
-        strict-route = isDarwin;
         mtu = 1500;
         dns-hijack = [
           "any:53"
           "tcp://any:53"
         ];
-      }
-      // lib.optionalAttrs isDarwin {
-        device = "utun1024";
       };
 
       # --------------------------------------------------------------------------------------------
@@ -201,8 +196,6 @@ in
       subscriptionUrlFile,
     }:
     let
-      inherit (pkgs.stdenv) isDarwin;
-
       isWork = hostType == "work";
 
       # --------------------------------------------------------------------------------------------
@@ -213,7 +206,6 @@ in
           cfg
           corpHosts
           isWork
-          isDarwin
           ;
       };
 

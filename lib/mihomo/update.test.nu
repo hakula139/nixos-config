@@ -12,11 +12,17 @@ const SCRIPT = ($SCRIPT_DIR | path join "update.nu")
 const PREVIOUS = "log-level: info\n"
 const SECRET = "test-secret"
 const SUBSCRIPTION_URL = "https://sub.example.com/x"
+const BASE_TUN = {enable: false, stack: "gvisor"}
 
 const SUBSCRIPTION = "
 mixed-port: 7890
 log-level: debug
 allow-lan: true
+tun:
+  enable: true
+  stack: system
+  device: utun42
+  strict-route: true
 proxies: []
 proxy-groups: []
 rules:
@@ -48,6 +54,7 @@ def run-update [
       "mixed-port": 7897
       "log-level": "warning"
       "allow-lan": false
+      tun: $BASE_TUN
     }
     configDir: $config_dir
     secretFile: $secret_file
@@ -106,6 +113,7 @@ def "test the update stages, validates, and replaces the config" [] {
     assert equal $merged."mixed-port" 7897 $context
     assert equal $merged."log-level" "warning" $context
     assert equal $merged."allow-lan" false $context
+    assert equal $merged.tun $BASE_TUN $context
     assert equal $merged.secret $SECRET $context
     assert equal ($merged.rules | first 2) [
       "RULE-SET,Intranet,DIRECT"
