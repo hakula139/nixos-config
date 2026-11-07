@@ -93,7 +93,9 @@ in
         mkdir -p "$out"
         cp ${lib.escapeShellArg settings.settingsJson} "$out/settings.json"
         cp ${lib.escapeShellArg "${./keybindings.json}"} "$out/keybindings.json"
-        cp ${lib.escapeShellArg mcp.mcpJson} "$out/mcp.json"
+        ${lib.optionalString config.hakula.llm-assistants.enable ''
+          cp ${lib.escapeShellArg mcp.mcpJson} "$out/mcp.json"
+        ''}
       '';
 
       darwinFiles = {
