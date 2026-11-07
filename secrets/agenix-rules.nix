@@ -22,6 +22,11 @@ let
 
   # Common groupings
   allServersAndMacbook = allServers ++ [ macbook ];
+  benchBackupKeys = [
+    keys.users.cloudcone
+    keys.users.dmit
+    macbook
+  ];
   corpGatewayKeys = allWorkstations ++ [ devvm ];
   us1Only = allUsers ++ [ us-1 ];
   us4Only = allUsers ++ [ us-4 ];
@@ -88,6 +93,10 @@ in
   "betterdisplay/license.age".publicKeys = [ macbook ];
   "drivedx/license.age".publicKeys = [ macbook ];
   "rclone/config.age".publicKeys = [ macbook ];
+
+  "bench-backup/env.age".publicKeys = benchBackupKeys;
+  "bench-backup/password.age".publicKeys = benchBackupKeys;
+  "bench-backup/repository.age".publicKeys = benchBackupKeys;
 
   "feishu/caldav.age".publicKeys = [ wsl ];
 }
