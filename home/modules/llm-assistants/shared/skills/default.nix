@@ -45,6 +45,9 @@ let
 
   sources = lib.attrsets.unionOfDisjoint pluginSkills hostSkills;
 
+  # ------------------------------------------------------------------------------------------------
+  # Skill files
+  # ------------------------------------------------------------------------------------------------
   mkSkillFiles =
     { directory, recursive }:
     lib.mapAttrs' (
@@ -52,6 +55,9 @@ let
     ) sources;
 in
 lib.mkIf cfg.enable {
+  # ------------------------------------------------------------------------------------------------
+  # Skills
+  # ------------------------------------------------------------------------------------------------
   home.file = lib.mkMerge [
     (mkSkillFiles {
       directory = "${config.lib.llmAssistants.claudeConfigDir}/skills";
@@ -67,9 +73,15 @@ lib.mkIf cfg.enable {
     })
   ];
 
+  # ------------------------------------------------------------------------------------------------
+  # Helper programs
+  # ------------------------------------------------------------------------------------------------
   hakula.activity-report.enable = true;
   hakula.agent-project-move.enable = true;
 
+  # ------------------------------------------------------------------------------------------------
+  # Secrets
+  # ------------------------------------------------------------------------------------------------
   hakula.secrets.required = lib.mkIf corpGatewayEnabled {
     ${corpGateway.tokenSecretFor "prose-polish"} = { };
     ${corpGateway.caSecret} = { };
