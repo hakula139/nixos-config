@@ -7,7 +7,9 @@
 }:
 
 let
-  wrapPackage = import ./wrap-package.nix { inherit lib; };
+  wrapPackage = import ./wrap-package.nix {
+    inherit lib;
+  };
 in
 {
   inherit wrapPackage;

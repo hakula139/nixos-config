@@ -28,9 +28,13 @@ let
     model = shared.profileDefinitions.modelAliases.claude.flagship;
   };
 
-  teammateIdle = import ./teammate-idle { inherit pkgs lib; };
+  teammateIdle = import ./teammate-idle {
+    inherit pkgs lib;
+  };
 
-  worktree = import ./worktree { inherit pkgs sharedHooks; };
+  worktree = import ./worktree {
+    inherit pkgs sharedHooks;
+  };
 
   installed = sharedHooks.install (
     with sharedHooks.hooks;
