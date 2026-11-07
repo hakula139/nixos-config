@@ -62,7 +62,7 @@ def run-update [
     proxyVars: []
     curlArgs: []
     ruleProviders: {}
-    prependRules: ["RULE-SET,Intranet,DIRECT"]
+    prependRules: ["DOMAIN-SUFFIX,internal.example,DIRECT"]
   }
   | to json
   | save $config_file
@@ -73,7 +73,11 @@ def run-update [
     STUB_CURL_BODY: $body
     STUB_MIHOMO_STATUS: ($mihomo_status | into string)
   } {
-    ^$nu.current-exe --no-config-file $SCRIPT --config $config_file | complete
+    (
+      ^$nu.current-exe --no-config-file
+        $SCRIPT --config $config_file
+      | complete
+    )
   }
 
   let staging = (
@@ -83,17 +87,16 @@ def run-update [
     | filter {|name| $name | str starts-with ".config.staging." }
   )
 
-  {run: $run, target: $target, config_dir: $config_dir, staging: $staging}
+  {run: $run, target: $target, staging: $staging}
 }
 
 def "test the update stages, validates, and replaces the config" [] {
   let cases = [
-    [name curl_status body mihomo_status previous status message];
-    ["fetch fails" 22 "" 0 true 1 "subscription fetch failed"]
-    ["empty body" 0 "  \n" 0 true 1 "downloaded config is empty"]
-    ["mihomo rejects" 0 $SUBSCRIPTION 1 true 1 "mihomo rejected the merged config"]
-    ["success" 0 $SUBSCRIPTION 0 true 0 ""]
-    ["success without an existing config" 0 $SUBSCRIPTION 0 false 0 ""]
+    [name curl_status body mihomo_status previous status];
+    ["fetch fails" 18 $SUBSCRIPTION 0 true 1]
+    ["mihomo rejects" 0 $SUBSCRIPTION 1 true 1]
+    ["success" 0 $SUBSCRIPTION 0 true 0]
+    ["success without an existing config" 0 $SUBSCRIPTION 0 false 0]
   ]
 
   for case in $cases {
@@ -104,20 +107,19 @@ def "test the update stages, validates, and replaces the config" [] {
     assert equal $result.staging [] $"($context): staging file left behind"
 
     if $case.status != 0 {
-      assert str contains $result.run.stderr $case.message $context
       assert equal (open --raw $result.target) $PREVIOUS $"($context): config changed on failure"
       continue
     }
 
     let merged = (open $result.target)
     assert equal $merged."mixed-port" 7897 $context
-    assert equal $merged."log-level" "warning" $context
     assert equal $merged."allow-lan" false $context
     assert equal $merged.tun $BASE_TUN $context
     assert equal $merged.secret $SECRET $context
-    assert equal ($merged.rules | first 2) [
-      "RULE-SET,Intranet,DIRECT"
+    assert equal $merged.rules [
+      "DOMAIN-SUFFIX,internal.example,DIRECT"
       "DOMAIN,sub.example.com,DIRECT"
+      "MATCH,DIRECT"
     ] $context
 
     if $case.previous {

@@ -68,22 +68,13 @@ def main [
     # then crash-loop on the next restart.
     let validated = (
       ^mihomo -t
-      -d $config.configDir
-      -f $staging_file
+        -d $config.configDir
+        -f $staging_file
       | complete
     )
     if $validated.exit_code != 0 {
-      let detail = (
-        [
-          $validated.stdout
-          $validated.stderr
-        ]
-        | str join "\n"
-        | str trim
-      )
-      print --stderr $"Error: mihomo rejected the merged config: ($detail)"
-      rm --force $staging_file
-      exit 1
+      let detail = ($"($validated.stdout)\n($validated.stderr)" | str trim)
+      error make {msg: $"mihomo rejected the merged config: ($detail)"}
     }
 
     if ($target_file | path exists) {

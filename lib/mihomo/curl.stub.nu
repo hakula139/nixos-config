@@ -7,10 +7,6 @@
 # ==================================================================================================
 
 def --wrapped main [...args: string] {
-  let status = ($env.STUB_CURL_STATUS? | default "0" | into int)
-  if $status != 0 {
-    exit $status
-  }
-
-  print --no-newline ($env.STUB_CURL_BODY? | default "")
+  print --no-newline $env.STUB_CURL_BODY
+  exit ($env.STUB_CURL_STATUS | into int)
 }

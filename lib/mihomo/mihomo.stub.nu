@@ -17,6 +17,6 @@ def --wrapped main [...args: string] {
   }
 
   if ("-t" in $args) {
-    exit ($env.STUB_MIHOMO_STATUS? | default "0" | into int)
+    exit ($env.STUB_MIHOMO_STATUS | into int)
   }
 }
