@@ -62,7 +62,6 @@
       mounts = {
         Hakula-Cloud.remote = "hakula_cloud:";
         BMS.remote = "bms:";
-        Images.remote = "images:";
 
         B2 = {
           remote = "b2:hakula";
