@@ -318,6 +318,7 @@ def "test errors that leave nothing checkable exit 2 without output" [] {
 # --------------------------------------------------------------------------------------------------
 
 def "test a worktree in use is kept even when its branch is finished" [] {
+  let live_pid = (^bash -c 'sleep 300 >/dev/null 2>&1 & echo "$!"' | str trim | into int)
   let cases = [
     {
       name: "a process inside it"
@@ -342,33 +343,37 @@ def "test a worktree in use is kept even when its branch is finished" [] {
     }
     {
       name: "another live session's lock"
-      lock: (claude-lock 1)
+      lock: (claude-lock $live_pid)
       processes: []
-      lines: ["SKIP {wt}: is locked by another running session (pid 1)"]
+      lines: [$"SKIP {wt}: is locked by another running session \(pid ($live_pid)\)"]
     }
   ]
 
-  for case in ($cases | enumerate) {
-    let repo = (make-repo)
-    let tip = (git-in $repo.main rev-parse origin/main)
-    let worktree = (add-worktree $repo "wt")
-    make-dirty $worktree
-    if $case.item.lock != null {
-      if ($case.item.lock | is-empty) {
-        git-in $repo.main worktree lock $worktree
-      } else {
-        git-in $repo.main worktree lock --reason $case.item.lock $worktree
+  try {
+    for case in ($cases | enumerate) {
+      let repo = (make-repo)
+      let tip = (git-in $repo.main rev-parse origin/main)
+      let worktree = (add-worktree $repo "wt")
+      make-dirty $worktree
+      if $case.item.lock != null {
+        if ($case.item.lock | is-empty) {
+          git-in $repo.main worktree lock $worktree
+        } else {
+          git-in $repo.main worktree lock --reason $case.item.lock $worktree
+        }
       }
+      let open = (lsof-listing $case.item.processes | str replace --all "{wt}" $worktree)
+      let requests = [(mr 1 "feat/wt" "merged" $tip)]
+
+      let result = (clean $repo --requests $requests --open $open)
+
+      let expected = ($case.item.lines | each { str replace "{wt}" $worktree })
+      assert equal $result.lines $expected $case.item.name
+      assert equal $result.exit_code 1 $case.item.name
+      assert-kept $repo $worktree "feat/wt" $case.item.name
     }
-    let open = (lsof-listing $case.item.processes | str replace --all "{wt}" $worktree)
-    let requests = [(mr 1 "feat/wt" "merged" $tip)]
-
-    let result = (clean $repo --requests $requests --open $open)
-
-    let expected = ($case.item.lines | each { str replace "{wt}" $worktree })
-    assert equal $result.lines $expected $case.item.name
-    assert equal $result.exit_code 1 $case.item.name
-    assert-kept $repo $worktree "feat/wt" $case.item.name
+  } finally {
+    ^bash -c 'kill "$1"' -- ($live_pid | into string)
   }
 }
 
