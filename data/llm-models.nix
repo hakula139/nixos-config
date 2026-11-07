@@ -111,13 +111,6 @@ let
       requiresEffort = false;
       supportsDisplay = false;
     };
-
-    channelCost.local = {
-      input = 0;
-      output = 0;
-      cacheRead = 0;
-      cacheWrite = 0;
-    };
   };
 in
 {
@@ -257,6 +250,12 @@ in
       autoCompactTokens = 400000;
 
       channelId.local = "local_v2/DeepSeek-V4.1-Flash-1017";
+      channelCost.local = {
+        input = 0.15;
+        output = 0.60;
+        cacheRead = 0.003;
+        cacheWrite = 0.15;
+      };
     };
 
     "kimi-k3" = localCommon // {
@@ -268,6 +267,12 @@ in
       autoCompactTokens = 320000;
 
       channelId.local = "local_v2_k3/Kimi-K3";
+      channelCost.local = {
+        input = 0.192;
+        output = 16;
+        cacheRead = 0.182;
+        cacheWrite = 0;
+      };
     };
   };
 }
