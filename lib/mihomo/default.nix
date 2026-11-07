@@ -13,7 +13,6 @@ let
   # Paths and ports
   # ------------------------------------------------------------------------------------------------
   mixedPort = 7897;
-  controllerPort = 59386;
   stateDir = "/var/lib/mihomo";
 
   # ------------------------------------------------------------------------------------------------
@@ -42,7 +41,7 @@ let
       # --------------------------------------------------------------------------------------------
       # External control
       # --------------------------------------------------------------------------------------------
-      external-controller = "127.0.0.1:${toString controllerPort}";
+      external-controller = "127.0.0.1:${toString cfg.controllerPort}";
 
       # --------------------------------------------------------------------------------------------
       # Allow LAN
@@ -181,7 +180,6 @@ in
 {
   inherit
     mixedPort
-    controllerPort
     stateDir
     ;
 
@@ -190,6 +188,13 @@ in
   # ------------------------------------------------------------------------------------------------
   mkOptions = {
     enable = lib.mkEnableOption "Mihomo proxy service";
+
+    controllerPort = lib.mkOption {
+      type = lib.types.port;
+      default = 59386;
+      description = "Loopback controller API port";
+    };
+
     tun.enable = lib.mkEnableOption "TUN mode, which routes all host traffic through mihomo";
   };
 

@@ -23,6 +23,11 @@
     inherit hostName;
     computerName = displayName;
     localHostName = hostName;
+    knownNetworkServices = [
+      "USB 10/100/1000 LAN"
+      "Wi-Fi"
+      "Thunderbolt Bridge"
+    ];
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -38,6 +43,12 @@
   hakula.services.aria2 = {
     enable = true;
     webUi.enable = true;
+  };
+
+  hakula.services.mihomo = {
+    enable = true;
+    controllerPort = 9090;
+    tun.enable = true;
   };
 
   hakula.services.openssh.enable = true;

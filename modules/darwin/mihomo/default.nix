@@ -67,6 +67,36 @@ in
       "119.29.29.29"
     ];
 
+    system.activationScripts.networking.text = lib.mkAfter (
+      lib.optionalString (config.networking.knownNetworkServices != [ ]) ''
+        networkservices=$(networksetup -listallnetworkservices)
+        ${lib.concatMapStringsSep "\n" (
+          service:
+          let
+            serviceArg = lib.escapeShellArg service;
+            proxyArgs = lib.escapeShellArgs [
+              service
+              "127.0.0.1"
+              (toString repoLib.mihomo.mixedPort)
+            ];
+          in
+          ''
+            case "$networkservices" in
+              *${serviceArg}*)
+                networksetup -setwebproxy ${proxyArgs}
+                networksetup -setwebproxystate ${serviceArg} on
+                networksetup -setsecurewebproxy ${proxyArgs}
+                networksetup -setsecurewebproxystate ${serviceArg} on
+                networksetup -setsocksfirewallproxy ${proxyArgs}
+                networksetup -setsocksfirewallproxystate ${serviceArg} on
+                networksetup -setautoproxystate ${serviceArg} off
+                ;;
+            esac
+          ''
+        ) config.networking.knownNetworkServices}
+      ''
+    );
+
     # ----------------------------------------------------------------------------------------------
     # Launchd daemons
     # ----------------------------------------------------------------------------------------------
