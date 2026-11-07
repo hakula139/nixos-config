@@ -16,7 +16,6 @@
 let
   cfg = config.hakula.activity-report;
 
-  homeDir = config.home.homeDirectory;
   isWork = hostType == "work";
 
   # ------------------------------------------------------------------------------------------------
@@ -43,9 +42,9 @@ let
         ;
 
       assistantDirs = {
-        claude = "${homeDir}/.claude";
+        claude = config.lib.llmAssistants.claudeConfigDir;
         codex = config.lib.llmAssistants.codexConfigDir;
-        omp = "${homeDir}/.omp/agent";
+        omp = config.lib.llmAssistants.ompConfigDir;
       };
     };
   };

@@ -54,11 +54,11 @@ in
 lib.mkIf cfg.enable {
   home.file = lib.mkMerge [
     (mkSkillFiles {
-      directory = ".claude/skills";
+      directory = "${config.lib.llmAssistants.claudeConfigDir}/skills";
       recursive = true;
     })
     (mkSkillFiles {
-      directory = ".omp/agent/skills";
+      directory = "${config.lib.llmAssistants.ompConfigDir}/skills";
       recursive = true;
     })
     (mkSkillFiles {

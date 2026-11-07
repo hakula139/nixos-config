@@ -82,11 +82,15 @@ in
   ];
 
   lib.llmAssistants = {
+    claudeConfigDir = "${config.home.homeDirectory}/.claude";
+
     codexConfigDir =
       if config.home.preferXdgDirectories then
         "${config.xdg.configHome}/codex"
       else
         "${config.home.homeDirectory}/.codex";
+
+    ompConfigDir = "${config.home.homeDirectory}/.omp/agent";
 
     # ----------------------------------------------------------------------------------------------
     # Instructions and agent roles
