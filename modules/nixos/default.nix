@@ -33,6 +33,7 @@ in
     ./earlyoom
     ./fhs-compat
     ./llm-assistants
+    ./mihomo
     ./netdata
     ./nginx
     ./nix-daemon-proxy

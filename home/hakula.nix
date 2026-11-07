@@ -37,7 +37,6 @@ in
     ./modules/fonts
     ./modules/git
     ./modules/llm-assistants
-    ./modules/mihomo
     ./modules/nix
     ./modules/rclone
     ./modules/secrets

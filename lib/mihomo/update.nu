@@ -31,10 +31,20 @@ def main [
   }
 
   print "Preparing subscription rules"
+  # A proxied fetch through the nodes the subscription itself defines could never rotate a broken
+  # node list, so the subscription host always bypasses the tunnels.
+  let subscription_host = ($url | url parse | get -o host | default "")
+  let prepended_rules = $config.prependRules ++ (
+    if ($subscription_host | is-empty) {
+      []
+    } else {
+      [$"DOMAIN,($subscription_host),DIRECT"]
+    }
+  )
   let prepared = (
     $fetched.stdout
     | from yaml
-    | update rules { $config.prependRules ++ $in }
+    | update rules { $prepended_rules ++ $in }
     | upsert rule-providers { default {} | merge $config.ruleProviders }
   )
 
@@ -53,6 +63,19 @@ def main [
 
   try {
     $merged | save --force $staging_file
+
+    # A subscription that is valid YAML but rejected by mihomo would replace a working config and
+    # then crash-loop on the next restart.
+    let validated = (
+      ^mihomo -t
+        -d $config.configDir
+        -f $staging_file
+      | complete
+    )
+    if $validated.exit_code != 0 {
+      let detail = ($"($validated.stdout)\n($validated.stderr)" | str trim)
+      error make {msg: $"mihomo rejected the merged config: ($detail)"}
+    }
 
     if ($target_file | path exists) {
       print $"Backing up existing config to ($target_file).bak"
