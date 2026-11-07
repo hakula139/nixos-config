@@ -26,7 +26,6 @@
     # Flake-input CLIs
     # ----------------------------------------------------------------------------------------------
     agenix = inputs.agenix.packages.${final.stdenv.hostPlatform.system}.default;
-    clean-gone = inputs.plugins.packages.${final.stdenv.hostPlatform.system}.clean-gone;
     colmena = inputs.colmena.packages.${final.stdenv.hostPlatform.system}.colmena;
     system-manager = inputs.system-manager.packages.${final.stdenv.hostPlatform.system}.default;
     inherit (inputs.devkit.lib.mkLib final) nu-test;

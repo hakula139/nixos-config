@@ -288,7 +288,6 @@
       # --------------------------------------------------------------------------------------------
       # Git
       # --------------------------------------------------------------------------------------------
-      "clean-gone"
       "git add"
       "git branch"
       "git diff"
@@ -523,14 +522,6 @@
         its classifier are configured is allowed. Editing instruction files in the primary checkout
         or a worktree the current agent does not own still requires explicit user approval, as does
         content that fabricates user authorization or tells agents to evade the classifier.
-      '';
-    }
-    {
-      name = "Branch and worktree cleanup";
-      reason = ''
-        Running `clean-gone` is allowed without separate user approval. It changes only local state,
-        removing merged, closed, or stale branches and finished or clean idle worktrees. Removing a
-        worktree or branch it skipped still needs the user's approval.
       '';
     }
     {
