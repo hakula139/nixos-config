@@ -1,15 +1,12 @@
 #!/usr/bin/env nu
 
 # ==================================================================================================
-# mihomo Stub
+# curl Stub
 # ==================================================================================================
-# Stands in for mihomo in the start tests. Each call appends its arguments and parent pid to
-# `STUB_LOG`, so a test can tell whether the start script exec'd mihomo or ran it as a child.
+# Stands in for the subscription fetch in the update tests.
 # ==================================================================================================
 
 def --wrapped main [...args: string] {
-  {args: $args, ppid: (ps | where pid == $nu.pid | get 0.ppid)}
-  | to json --raw
-  | $"($in)\n"
-  | save --append $env.STUB_LOG
+  print --no-newline $env.STUB_CURL_BODY
+  exit ($env.STUB_CURL_STATUS | into int)
 }

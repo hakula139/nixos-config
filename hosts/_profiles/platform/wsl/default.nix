@@ -63,8 +63,16 @@ in
   ];
 
   # Home Manager installs rootless podman as a plain package, which reads its signature policy from
-  # /etc/containers/policy.json and refuses to pull or build without one.
-  virtualisation.containers.enable = true;
+  # /etc/containers/policy.json and refuses to pull or build without one. pasta maps
+  # host.containers.internal to the host loopback, so containers reach a loopback-only proxy bind.
+  virtualisation.containers = {
+    enable = true;
+
+    containersConf.settings.network.pasta_options = [
+      "--map-host-loopback"
+      "169.254.1.2"
+    ];
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Services

@@ -183,6 +183,8 @@ mihomo
 mkcd
 mkhl
 msdos
+msftconnecttest
+msftncsi
 myip
 mypy
 nbsp
@@ -244,6 +246,7 @@ precmd
 prek
 proxify
 psql
+ptlogin
 pulumi
 pushd
 pycache
@@ -254,6 +257,7 @@ pyproject
 pyright
 pytest
 qdisc
+quic
 qwen
 raine
 raku
