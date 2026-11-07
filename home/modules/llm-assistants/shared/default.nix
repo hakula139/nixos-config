@@ -82,6 +82,12 @@ in
   ];
 
   lib.llmAssistants = {
+    codexConfigDir =
+      if config.home.preferXdgDirectories then
+        "${config.xdg.configHome}/codex"
+      else
+        "${config.home.homeDirectory}/.codex";
+
     # ----------------------------------------------------------------------------------------------
     # Instructions and agent roles
     # ----------------------------------------------------------------------------------------------

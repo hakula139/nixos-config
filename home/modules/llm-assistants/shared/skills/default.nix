@@ -14,11 +14,8 @@
 
 let
   cfg = config.hakula.llm-assistants;
-  claudeSkillsInstalled =
-    cfg.enable || config.hakula.claude-code.enable || config.hakula.opencode.enable;
-  skillsInstalled = claudeSkillsInstalled || config.hakula.codex.enable || config.hakula.omp.enable;
   corpGateway = config.lib.llmAssistants.profileDefinitions.providers.corp-gateway;
-  corpGatewayEnabled = cfg.enable && cfg.auth.enableCorpGateway;
+  corpGatewayEnabled = cfg.auth.enableCorpGateway;
 
   # ------------------------------------------------------------------------------------------------
   # Skill sources
@@ -54,23 +51,24 @@ let
       name: source: lib.nameValuePair "${directory}/${name}" { inherit source recursive; }
     ) sources;
 in
-{
-  lib.llmAssistants = { inherit mkSkillFiles; };
-
-  # Cursor and OpenCode discover Claude's directory, so install shared skills once.
+lib.mkIf cfg.enable {
   home.file = lib.mkMerge [
-    (lib.mkIf claudeSkillsInstalled (mkSkillFiles {
+    (mkSkillFiles {
       directory = ".claude/skills";
       recursive = true;
-    }))
-    (lib.mkIf config.hakula.omp.enable (mkSkillFiles {
+    })
+    (mkSkillFiles {
       directory = ".omp/agent/skills";
       recursive = true;
-    }))
+    })
+    (mkSkillFiles {
+      directory = "${config.lib.llmAssistants.codexConfigDir}/skills";
+      recursive = false;
+    })
   ];
 
-  hakula.activity-report.enable = lib.mkIf skillsInstalled (lib.mkDefault true);
-  hakula.agent-project-move.enable = lib.mkIf skillsInstalled (lib.mkDefault true);
+  hakula.activity-report.enable = true;
+  hakula.agent-project-move.enable = true;
 
   hakula.secrets.required = lib.mkIf corpGatewayEnabled {
     ${corpGateway.tokenSecretFor "prose-polish"} = { };
