@@ -510,11 +510,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794043270,
-        "narHash": "sha256-mS1S6/IjtQRSXZDuPP/sn2ZkyfLtBty6jpII2krqmro=",
+        "lastModified": 1794043791,
+        "narHash": "sha256-bJ6qyY9k2QYeExMh+hdHu3flYjB3o75PltWmDlgOgDs=",
         "owner": "hakula139",
         "repo": "plugins",
-        "rev": "0123027ba61190cbf0a2ebc4c3127cb513964607",
+        "rev": "d2fde01d73473fe7c776616be0e8182b6c1ff5d1",
         "type": "github"
       },
       "original": {
