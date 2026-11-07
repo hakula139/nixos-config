@@ -15,7 +15,7 @@ Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment va
 
 ### Git Workflow
 
-Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue update, conflict resolution, or cleanup. It owns Git authorization and conventions.
+Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue update, conflict resolution, or cleanup. It owns Git authorization and conventions. A repository follows devkit's [GitHub conventions](https://github.com/hakula139/devkit/blob/main/docs/github.md) for its settings, ruleset, and labels by default, and may deviate where it needs to.
 
 ### Shared-Tree Safety
 
@@ -150,7 +150,7 @@ Before editing documentation, identify what specifically needs correction or rem
 
 ## Tools and Delegation
 
-Use only the tools and capabilities available in the current session, within their actual schemas and permission boundaries. Prefer relevant installed skills, following their workflows and resources. If a tool or the environment misbehaves, hand the repair to the `environment-repair` skill and continue the main task.
+Use only the tools and capabilities available in the current session, within their actual schemas and permission boundaries. Prefer relevant installed skills, following their workflows and resources. If a tool or the environment misbehaves, hand the repair to the `harness-repair` skill and continue the main task. The configuration repository is nixos-config, which generates these instructions, the assistant settings, and the host-only skills. Its checkout path is in `${XDG_CONFIG_HOME:-$HOME/.config}/nixos-config/repository`, and its `AGENTS.md` locates the sources.
 
 ### Terminal Sessions
 
@@ -158,7 +158,7 @@ Once the task is clear, a top-level interactive agent runs `tmux-task-name <shor
 
 ### Dev Shells
 
-Enter a repository's dev shell only from within that repository, since its hook may install Git hooks into whichever repository is current. Get standalone tools from `PATH`, `nix shell nixpkgs#<pkg> -c`, or a hook-free shell documented by a skill, such as `browser-debugging`.
+Enter a repository's dev shell only from within that repository, since its hook may install Git hooks into whichever repository is current. Get standalone tools from `PATH`, `nix shell nixpkgs#<pkg> -c`, or a hook-free shell such as `nix develop nixos-config#browser`, the Playwright environment for the `browser-debugging` skill.
 
 ### Worktrees
 

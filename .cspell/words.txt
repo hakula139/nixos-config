@@ -6,7 +6,6 @@ alnum
 alsa
 anthropics
 aone
-apfs
 archiver
 ariang
 attrsets
@@ -55,6 +54,7 @@ dbengine
 dbname
 dbus
 debugpy
+devkit
 devvm
 dhcpcd
 dhparams
@@ -70,8 +70,6 @@ dreamin
 drivedx
 dropdb
 dscacheutil
-dtcg
-duarte
 duckdb
 duckdbrc
 dups
@@ -211,7 +209,6 @@ nsncd
 nspr
 nufmt
 numpy
-nums
 numtide
 nuon
 nvcr
@@ -225,24 +222,19 @@ oxfmt
 pango
 pcall
 pcdn
-pcpu
 pcpull
 pcre
 pcup
 pcupb
 pcupd
 pcupdb
-pdfs
-pdftoppm
 peertube
 pgrep
 phoityne
-pids
 pipx
 pkgs
 pkief
 pkill
-pmem
 pmset
 pname
 poppler
@@ -276,9 +268,7 @@ repoints
 rerere
 resolv
 resolvectl
-résumés
 retag
-retarget
 reuseaddr
 revealjs
 rlimit
@@ -290,7 +280,6 @@ scrobbler
 sdist
 searxng
 sess
-sgconfig
 sgid
 shanselman
 shellenv
@@ -298,7 +287,6 @@ shfmt
 showcmd
 signup
 sigsys
-slideuments
 smol
 snmp
 socat
@@ -322,13 +310,11 @@ timedatectl
 tmp
 tmpfiles
 tmpfs
-tmutil
 tojson
 tomlkit
 tomlq
 toolsai
 tsdown
-tufte
 tulpn
 ulimits
 umami
@@ -352,7 +338,6 @@ vlang
 vless
 waka
 wakatime
-wcag
 whatpulse
 whereis
 whois

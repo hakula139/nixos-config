@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   modelCatalog,
   repoLib,
   ...
@@ -20,53 +21,43 @@ let
   # ------------------------------------------------------------------------------------------------
   # Skill sources
   # ------------------------------------------------------------------------------------------------
+  pluginSkills = inputs.plugins.lib.skills;
   promptFragments = import ../prompt-fragments;
 
-  sources = {
-    ast-grep = ./ast-grep;
-    browser-debugging = ./browser-debugging;
-    clean-gone = ./clean-gone;
-    code-layout = ./code-layout;
-    cspell = ./cspell;
-    disk-cleanup = ./disk-cleanup;
-    dream = ./dream;
-    environment-repair = ./environment-repair;
-    frontend-design = ./frontend-design;
-    git-workflow = ./git-workflow;
-    model-delegation = ./model-delegation;
-    nix = ./nix;
-    nushell = ./nushell;
-    read-pdfs = ./read-pdfs;
-    review = ./review;
-  }
-  // lib.optionalAttrs config.hakula.acp.enable {
-    acp-delegate = ./acp-delegate;
-  }
-  // lib.optionalAttrs config.hakula.activity-report.enable {
-    activity-report = ./activity-report;
-  }
-  // lib.optionalAttrs config.hakula.agent-project-move.enable {
-    agent-project-move = "${config.programs.agent-project-move.package}/share/skills/agent-project-move";
-  }
-  // lib.optionalAttrs config.hakula.ctx7.enable {
-    find-docs = ./find-docs;
-  }
-  // lib.optionalAttrs corpGatewayEnabled {
-    prose-polish = import ./prose-polish {
-      inherit
-        pkgs
-        lib
-        modelCatalog
-        promptFragments
-        repoLib
-        ;
-      modelCall = config.lib.llmAssistants.mkModelCall {
-        assistant = "prose-polish";
-        # Leaves a full batch's rewrite headroom past the hooks' model-call limit.
-        timeout = 300;
+  hostSkills =
+    lib.optionalAttrs config.hakula.acp.enable {
+      inherit (pluginSkills) acp-delegate;
+    }
+    // lib.optionalAttrs config.hakula.activity-report.enable {
+      activity-report = ./activity-report;
+    }
+    // lib.optionalAttrs config.hakula.agent-project-move.enable {
+      agent-project-move = "${config.programs.agent-project-move.package}/share/skills/agent-project-move";
+    }
+    // lib.optionalAttrs config.hakula.ctx7.enable {
+      inherit (pluginSkills) find-docs;
+    }
+    // lib.optionalAttrs corpGatewayEnabled {
+      prose-polish = import ./prose-polish {
+        inherit
+          pkgs
+          lib
+          modelCatalog
+          promptFragments
+          repoLib
+          ;
+        modelCall = config.lib.llmAssistants.mkModelCall {
+          assistant = "prose-polish";
+          # Leaves a full batch's rewrite headroom past the hooks' model-call limit.
+          timeout = 300;
+        };
       };
     };
-  };
+
+  sources = lib.attrsets.unionOfDisjoint (lib.removeAttrs pluginSkills [
+    "acp-delegate"
+    "find-docs"
+  ]) hostSkills;
 
   mkSkillFiles =
     { directory, recursive }:

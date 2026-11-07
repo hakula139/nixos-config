@@ -1,4 +1,0 @@
-interface:
-  display_name: 'Frontend Design'
-  short_description: 'Design accessible web UI, dashboards, slides, and diagrams'
-  default_prompt: 'Use $frontend-design to design this UI from the content out.'

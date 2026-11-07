@@ -109,6 +109,33 @@
         "type": "github"
       }
     },
+    "devkit": {
+      "inputs": {
+        "git-hooks-nix": [
+          "git-hooks-nix"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-unstable": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793969014,
+        "narHash": "sha256-zv3AmKieMhtUt/H3dh44x6mX4moUwsXHE7gKSEtYGs8=",
+        "owner": "hakula139",
+        "repo": "devkit",
+        "rev": "9666b7261a94b5d7ed9a13a839dfc5360d96dd4d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hakula139",
+        "ref": "v1.0.0-rc.3",
+        "repo": "devkit",
+        "type": "github"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -474,6 +501,29 @@
         "type": "github"
       }
     },
+    "plugins": {
+      "inputs": {
+        "devkit": [
+          "devkit"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794045715,
+        "narHash": "sha256-E/nh7UoOLhsvRo+WVfnFbOx9MAlXK9ODZsqmXFwWX54=",
+        "owner": "hakula139",
+        "repo": "plugins",
+        "rev": "71b3f8ec9cffa2354900f192e22f16dfe4d881ed",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hakula139",
+        "repo": "plugins",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks-nix": {
       "inputs": {
         "flake-compat": [
@@ -507,6 +557,7 @@
         "agenix": "agenix",
         "agent-project-move": "agent-project-move",
         "colmena": "colmena",
+        "devkit": "devkit",
         "disko": "disko",
         "git-hooks-nix": "git-hooks-nix",
         "home-manager": "home-manager",
@@ -517,6 +568,7 @@
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "oxide-code": "oxide-code",
+        "plugins": "plugins",
         "rust-overlay": "rust-overlay_2",
         "system-manager": "system-manager"
       }
