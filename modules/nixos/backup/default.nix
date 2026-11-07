@@ -24,7 +24,9 @@ let
   heartbeatServiceFor = result: name: "backup-heartbeat-${result}-${name}";
   restoreServiceFor = name: "backup-restore-${name}";
 
-  targetModule = import ./target-module.nix { inherit lib; };
+  targetModule = import ./target-module.nix {
+    inherit lib;
+  };
   enabledTargets = lib.filterAttrs (_: t: t.enable) cfg.targets;
   heartbeatTargets = lib.filterAttrs (_: t: t.heartbeatUrl != null) enabledTargets;
   restoreTargets = lib.filterAttrs (_: t: t.restoreSnapshot != null) enabledTargets;

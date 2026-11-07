@@ -282,7 +282,9 @@ let
     profileEnvVars = toString profileEnvVars;
   };
 
-  sessionArgs = pkgs.replaceVars ./scripts/session-args.sh { inherit mcpFlag; };
+  sessionArgs = pkgs.replaceVars ./scripts/session-args.sh {
+    inherit mcpFlag;
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Profile switcher
