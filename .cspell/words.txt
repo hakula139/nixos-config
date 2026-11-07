@@ -338,6 +338,7 @@ vlang
 vless
 waka
 wakatime
+wetype
 whatpulse
 whereis
 whois
