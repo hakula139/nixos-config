@@ -68,7 +68,3 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 ├── docs/                           # This knowledge base
 └── .github/workflows/ci.yml        # CI pipeline
 ```
-
-## Assistant sources
-
-The global instructions render from `home/modules/llm-assistants/instructions/shared.md`, with one assistant's additions in the files beside it and each `@name@` section in `home/modules/llm-assistants/shared/prompt-fragments/`. Shared skills and the `clean-gone` command come from [hakula139/plugins](https://github.com/hakula139/plugins) through the `plugins` flake input, so change them there and update the lock here. Host-only skills live in `home/modules/llm-assistants/shared/skills/`, which also installs every skill for each assistant, and this repository's own skills in `.agents/skills/`.
