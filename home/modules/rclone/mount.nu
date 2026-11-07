@@ -33,7 +33,7 @@ def --wrapped main [
 
   let mounts = (^mount -t nfs)
   if ($mounts | str contains (" on " + $mountpoint + " (")) {
-    ^diskutil unmount $mountpoint
+    ^/sbin/umount -f $mountpoint
   }
 
   rm --force $socket
