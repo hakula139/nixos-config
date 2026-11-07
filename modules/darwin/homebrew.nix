@@ -70,6 +70,7 @@ in
       "tencent-meeting"
       "tor-browser"
       "warp"
+      "wetype"
       "whatpulse/whatpulse/whatpulse_chmodbpf"
       "whatpulse/whatpulse/whatpulse"
     ];
