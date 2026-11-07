@@ -15,7 +15,7 @@ Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment va
 
 ### Git Workflow
 
-Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue update, conflict resolution, or cleanup. It owns Git authorization and conventions. A repository follows devkit's [GitHub conventions](https://github.com/hakula139/devkit/blob/main/docs/github.md) for its settings, ruleset, and labels by default, and may deviate where it needs to.
+Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue update, conflict resolution, or cleanup. It owns Git authorization and conventions. Before changing repository settings, rulesets, or labels, read devkit's pinned local guide at `@devkitSource@/docs/github.md`. Before preparing a release, read `@devkitSource@/docs/releasing.md`. Apply those conventions by default and preserve justified repository-specific requirements.
 
 ### Shared-Tree Safety
 

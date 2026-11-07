@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   corpHosts,
   modelCatalog,
   repoLib,
@@ -87,6 +88,7 @@ in
     inherit agentRoles;
     instructions = import ../instructions {
       inherit promptFragments;
+      devkitSource = inputs.devkit;
     };
     agentRoleOptions = import ./agent-roles/options.nix {
       inherit lib agentRoles;
