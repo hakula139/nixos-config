@@ -6,9 +6,9 @@
   config,
   pkgs,
   lib,
+  repoLib,
   corpHosts,
   hostType,
-  repoLib,
   ...
 }:
 

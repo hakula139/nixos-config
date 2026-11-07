@@ -6,9 +6,9 @@
   config,
   pkgs,
   lib,
+  repoLib,
   corpHosts,
   hostType,
-  repoLib,
   ...
 }:
 
@@ -34,8 +34,8 @@ let
     UMask = "0077";
     StateDirectory = "mihomo";
     StateDirectoryMode = "0700";
-    CapabilityBoundingSet = if cfg.tun.enable then [ "CAP_NET_ADMIN" ] else "";
     AmbientCapabilities = lib.optionals cfg.tun.enable [ "CAP_NET_ADMIN" ];
+    CapabilityBoundingSet = if cfg.tun.enable then [ "CAP_NET_ADMIN" ] else "";
     RestrictAddressFamilies = [
       "AF_UNIX"
       "AF_INET"
@@ -45,8 +45,8 @@ let
   };
 
   updateHardening = hardening // {
-    CapabilityBoundingSet = "";
     AmbientCapabilities = [ ];
+    CapabilityBoundingSet = "";
   };
 in
 {
@@ -60,6 +60,16 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkIf cfg.enable {
     # ----------------------------------------------------------------------------------------------
+    # User & Group
+    # ----------------------------------------------------------------------------------------------
+    users.users.mihomo = {
+      isSystemUser = true;
+      group = "mihomo";
+    };
+
+    users.groups.mihomo = { };
+
+    # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
     age.secrets.mihomo-secret = repoLib.secrets.mkSecret {
@@ -71,16 +81,6 @@ in
     age.secrets.mihomo-subscription-url = repoLib.secrets.mkSecret {
       name = "mihomo/subscription-url";
       owner = "mihomo";
-      group = "mihomo";
-    };
-
-    # ----------------------------------------------------------------------------------------------
-    # User & Group
-    # ----------------------------------------------------------------------------------------------
-    users.groups.mihomo = { };
-
-    users.users.mihomo = {
-      isSystemUser = true;
       group = "mihomo";
     };
 
