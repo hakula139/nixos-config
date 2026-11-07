@@ -7,7 +7,20 @@
 def restic [command: string, args: list<string>] {
   let result = (run-external $command ...$args | complete)
   if $result.exit_code != 0 {
-    error make {msg: $"Restic operation failed with exit code ($result.exit_code)"}
+    let diagnosis = match $result.exit_code {
+      2 => "Go runtime error"
+      3 => {
+        if $args.0 == "backup" { "Some source data could not be read" } else {
+          "One or more snapshots could not be removed"
+        }
+      }
+      10 => "Repository does not exist. Initialize it with restic-bench init"
+      11 => "Could not lock the repository"
+      12 => "Repository password is incorrect"
+      130 => "Operation was cancelled"
+      _ => "Run restic-bench interactively for details"
+    }
+    error make {msg: $"Restic ($args.0) failed \(exit ($result.exit_code)\): ($diagnosis)"}
   }
 }
 
