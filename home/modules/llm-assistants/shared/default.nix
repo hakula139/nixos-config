@@ -82,6 +82,9 @@ in
   ];
 
   lib.llmAssistants = {
+    # ----------------------------------------------------------------------------------------------
+    # Configuration directories
+    # ----------------------------------------------------------------------------------------------
     claudeConfigDir = "${config.home.homeDirectory}/.claude";
 
     codexConfigDir =
