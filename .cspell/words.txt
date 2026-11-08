@@ -179,6 +179,7 @@ mdformat
 mechatroner
 meslo
 metacubex
+metacubexd
 mihomo
 mkcd
 mkhl

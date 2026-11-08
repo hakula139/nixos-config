@@ -280,7 +280,10 @@ in
           pkgs.unstable.mihomo
           updatePackage
         ];
-        flags.config-dir = stateDir;
+        flags = {
+          config-dir = stateDir;
+          external-ui = toString pkgs.metacubexd;
+        };
       };
 
       checkPortPackage = mkNuCommand {
