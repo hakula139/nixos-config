@@ -62,10 +62,20 @@ def strip-request-prefix []: string -> string {
 
 # A transcript may end in a partial line while its session is still being written.
 def read-transcript [file: string]: nothing -> list {
-  let text = if ($file | str ends-with ".zst") {
+  let raw = if ($file | str ends-with ".zst") {
     ^zstd -dc $file
   } else {
     open --raw $file
+  }
+  let text = if ($raw | str contains "\u{0}") {
+    let lines = ($raw | lines)
+    let corrupt = ($lines | where $it =~ '^\x00+$' | length)
+    if $corrupt > 0 {
+      print --stderr $"Skipped NUL-only transcript records in ($file): ($corrupt)"
+    }
+    $lines | where $it !~ '^\x00+$' | str join "\n"
+  } else {
+    $raw
   }
   try {
     $text | from json --objects

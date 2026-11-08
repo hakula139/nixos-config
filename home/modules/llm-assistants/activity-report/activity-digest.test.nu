@@ -279,6 +279,49 @@ def digest-day [
   digest-output $dir $overrides --excerpt-chars=$excerpt_chars | get days.0
 }
 
+def "test NUL-only transcript records warn and preserve the remaining activity" [] {
+  for tool in ["claude" "codex"] {
+    let dir = (mktemp --directory)
+    let file = if $tool == "claude" {
+      let path = ["claude/projects/app/a.jsonl"]
+      transcript $dir $path [
+        (claude-prompt "/work/app" "10:00" "first task")
+        (claude-reply "/work/app" "10:30" "first result")
+        (claude-prompt "/work/app" "11:00" "second task")
+        (claude-reply "/work/app" "11:30" "second result")
+      ]
+      $dir | path join ...$path
+    } else {
+      codex-transcript $dir {id: "a", cwd: "/work/app", thread_source: "user"} [
+        ...(codex-turn "10:00" "first task" --done "10:30")
+        ...(codex-turn "11:00" "second task" --done "11:30")
+      ]
+      let path = ["codex/sessions" ...($DAY | split row "-") $"rollout-($DAY)T00-00-00-a.jsonl"]
+      $dir | path join ...$path
+    }
+    let expected = (digest-output $dir)
+    let lines = (open --raw $file | lines)
+    [($lines | first) "\u{0}\u{0}" ...($lines | skip 1)]
+    | str join "\n"
+    | save --force $file
+    if $tool == "codex" {
+      (
+        ^zstd $file
+          --quiet
+          --force
+          --rm
+      )
+    }
+
+    let run = (digest-run $dir)
+    assert equal $run.exit_code 0 $"($tool): ($run.stderr)"
+
+    assert equal ($run.stdout | from json) $expected $tool
+    assert str contains $run.stderr $"Skipped NUL-only transcript records in ($file)" $tool
+    assert str contains $run.stderr ": 1" $tool
+  }
+}
+
 def "test the excerpt length keeps whole text at zero and cuts at a custom limit" [] {
   let dir = (mktemp --directory)
   let long = (
