@@ -20,6 +20,7 @@ def "test mihomo replaces the start process unless a failed update finds no conf
   for case in $cases {
     let dir = (mktemp --directory)
     let config_dir = ($dir | path join "mihomo")
+    let external_ui = ($dir | path join "dashboard")
     let log = ($dir | path join "calls.jsonl")
     mkdir $config_dir
     touch $log
@@ -34,7 +35,9 @@ def "test mihomo replaces the start process unless a failed update finds no conf
     } {
       (
         ^$nu.current-exe --no-config-file
-          $SCRIPT --config-dir $config_dir
+          $SCRIPT
+            --config-dir $config_dir
+            --external-ui $external_ui
         | complete
       )
     }
@@ -42,7 +45,11 @@ def "test mihomo replaces the start process unless a failed update finds no conf
     assert equal $run.exit_code $case.status $context
 
     # Only an exec leaves mihomo a direct child of this test process.
-    let expected = if $case.status == 0 { [{args: [-d $config_dir], ppid: $nu.pid}] } else { [] }
+    let expected = if $case.status == 0 {
+      [{args: [-d $config_dir -ext-ui $external_ui], ppid: $nu.pid}]
+    } else {
+      []
+    }
     assert equal (open $log | from json --objects) $expected $context
   }
 }
