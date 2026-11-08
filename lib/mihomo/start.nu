@@ -8,6 +8,7 @@
 # previous config when one exists, and fails the start when none does.
 def main [
   --config-dir: path # Wrapper-supplied mihomo config directory
+  --external-ui: path # Wrapper-supplied dashboard assets
 ] {
   print "Updating config before start..."
   try {
@@ -22,5 +23,9 @@ def main [
   }
 
   print "Starting mihomo..."
-  exec mihomo -d $config_dir
+  (
+    exec mihomo
+      -d $config_dir
+      -ext-ui $external_ui
+  )
 }
