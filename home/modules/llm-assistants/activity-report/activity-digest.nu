@@ -67,16 +67,20 @@ def read-transcript [file: string]: nothing -> list {
   } else {
     open --raw $file
   }
+
   let text = if ($raw | str contains "\u{0}") {
     let lines = ($raw | lines)
     let corrupt = ($lines | where $it =~ '^\x00+$' | length)
+
     if $corrupt > 0 {
       print --stderr $"Skipped NUL-only transcript records in ($file): ($corrupt)"
     }
+
     $lines | where $it !~ '^\x00+$' | str join "\n"
   } else {
     $raw
   }
+
   try {
     $text | from json --objects
   } catch {

@@ -282,6 +282,7 @@ def digest-day [
 def "test NUL-only transcript records warn and preserve the remaining activity" [] {
   for tool in ["claude" "codex"] {
     let dir = (mktemp --directory)
+
     let file = if $tool == "claude" {
       let path = ["claude/projects/app/a.jsonl"]
       transcript $dir $path [
@@ -300,10 +301,12 @@ def "test NUL-only transcript records warn and preserve the remaining activity" 
       $dir | path join ...$path
     }
     let expected = (digest-output $dir)
+
     let lines = (open --raw $file | lines)
     [($lines | first) "\u{0}\u{0}" ...($lines | skip 1)]
     | str join "\n"
     | save --force $file
+
     if $tool == "codex" {
       (
         ^zstd $file
