@@ -16,6 +16,7 @@ const REQUEST_HEADING = "## My request( for Codex)?:"
 # A message's content is a string or a list of typed parts, of which only text parts carry text.
 def content-text []: any -> string {
   let content = $in
+
   if ($content | describe) == "string" {
     $content
   } else {
@@ -30,6 +31,7 @@ def content-text []: any -> string {
 # Cut text to a number of characters, or keep it whole when the number is zero.
 def excerpt [chars: int]: string -> string {
   let text = $in
+
   if $chars == 0 {
     $text
   } else {
@@ -38,6 +40,7 @@ def excerpt [chars: int]: string -> string {
       | str replace --all --regex '\s+' " "
       | str trim
     )
+
     if ($flat | str length --grapheme-clusters) > $chars {
       $"($flat | str substring --grapheme-clusters 0..<$chars)..."
     } else {
@@ -49,6 +52,7 @@ def excerpt [chars: int]: string -> string {
 def strip-request-prefix []: string -> string {
   let text = $in
   let parts = ($text | split row --regex $REQUEST_HEADING)
+
   if ($parts | length) == 1 {
     $text
   } else {
@@ -76,7 +80,9 @@ def read-transcript [file: string]: nothing -> list {
       print --stderr $"Skipped NUL-only transcript records in ($file): ($corrupt)"
     }
 
-    $lines | where $it !~ '^\x00+$' | str join "\n"
+    $lines
+    | where $it !~ '^\x00+$'
+    | str join "\n"
   } else {
     $raw
   }
@@ -108,10 +114,15 @@ def turns []: list -> list {
     }|
     match $event.kind {
       "reply" => {next: ($state | update reply $event.ts)}
+
       "abort" => {next: ($state | update reply null)}
+
       "write" => {next: ($state | update paths { append $event.paths })}
+
       "model" => {next: ($state | update model ($state.model | default $event.ts))}
+
       "pause" => {next: ($state | update cut $event.ts)}
+
       _ => {
         let turn = ($event | merge {
           end: ($state.reply | default $state.model | default $event.ts)
@@ -126,6 +137,7 @@ def turns []: list -> list {
           cut: null
           model: null
         }
+
         if $kept {
           {out: $turn, next: $next}
         } else {
@@ -158,6 +170,7 @@ def read-sessions [
   | par-each --keep-order {|file|
     let records = (read-transcript $file)
     let session = (do $parse $records $file)
+
     if $session == null {
       null
     } else {
@@ -172,6 +185,7 @@ def read-sessions [
         | where {|w| ($w.1 - $w.0) > $gap }
         | each {|w| {kind: "pause", ts: $w.0} }
       )
+
       $session
       | insert transcript $file
       | update events { append $pauses }
@@ -180,7 +194,7 @@ def read-sessions [
   | par-each --keep-order {|s|
     let events = (
       $s.events
-      | update ts { into datetime | date to-timezone local }
+      | update ts { into datetime | date to-timezone "local" }
       | sort-by ts
       | each {|e|
         if $e.kind == "write" {
@@ -190,6 +204,7 @@ def read-sessions [
         }
       }
     )
+
     $s | merge {
       tool: $tool
       attended: ($s.attended and ($cfg.excludedDirs | all {|pattern| $s.cwd !~ $pattern }))
@@ -203,10 +218,12 @@ def read-sessions [
 # parent agent, and otherwise its lead. A teammate names its lead's session id.
 def claude-parent [cfg: record, records: list, file: string]: nothing -> any {
   let dir = ($file | path dirname)
+
   if ($dir | path basename) == "subagents" {
     let meta_file = ($file | str replace --regex '\.jsonl$' ".meta.json")
     let meta = (open --raw $meta_file | from json)
     let parent_agent = ($meta | get -o parentAgentId)
+
     if $parent_agent != null {
       $dir | path join $"agent-($parent_agent).jsonl"
     } else {
@@ -214,10 +231,12 @@ def claude-parent [cfg: record, records: list, file: string]: nothing -> any {
     }
   } else {
     let team = ($records | get -o teamName | compact | get -o 0)
+
     if $team == null or not ($team | str starts-with "session-") {
       null
     } else {
       let id = ($team | str replace "session-" "")
+
       glob $"($cfg.assistantDirs.claude)/projects/*/($id)*.jsonl" | get -o 0
     }
   }
@@ -230,10 +249,13 @@ def claude-human [r: record]: nothing -> bool {
 # A question's answers become a prompt, one `question: answer` line per entry.
 def claude-question [r: record]: nothing -> any {
   let result = $r.toolUseResult?
+
   if not ($result | describe | str starts-with "record") {
     return null
   }
+
   let answers = ($result | get -o answers | default {})
+
   if ($answers | is-empty) {
     null
   } else {
@@ -242,6 +264,7 @@ def claude-question [r: record]: nothing -> any {
       | items {|question, answer| $"($question): ($answer)" }
       | str join "\n"
     )
+
     {kind: "prompt", ts: $r.timestamp, text: $text}
   }
 }
@@ -254,6 +277,7 @@ def claude-reply [r: record]: nothing -> bool {
 # Absolute paths a Claude record wrote: Edit and Write name a file, NotebookEdit a notebook.
 def claude-writes [r: record]: nothing -> list<string> {
   let part = ($r.message.content | get -o 0)
+
   if (
     $part == null
     or $part.type? != "tool_use"
@@ -261,6 +285,7 @@ def claude-writes [r: record]: nothing -> list<string> {
   ) {
     return []
   }
+
   if $part.name == "NotebookEdit" {
     [$part.input.notebook_path] | compact
   } else {
@@ -270,11 +295,14 @@ def claude-writes [r: record]: nothing -> list<string> {
 
 def claude-sessions [cfg: record, since: datetime]: nothing -> list {
   let globs = ["projects/*/*.jsonl" "projects/*/*/subagents/*.jsonl"]
-  read-sessions $cfg $since claude $globs {|records, file|
+
+  read-sessions $cfg $since "claude" $globs {|records, file|
     let cwd = ($records | get -o cwd | compact | get -o 0)
+
     if $cwd == null {
       return null
     }
+
     let entrypoint = ($records | get -o entrypoint | compact | get -o 0 | default "")
     let events = (
       $records
@@ -283,6 +311,7 @@ def claude-sessions [cfg: record, since: datetime]: nothing -> list {
           null
         } else if $r.type == "user" and $r.toolUseResult? == null {
           let kind = if (claude-human $r) { "prompt" } else { "trigger" }
+
           {kind: $kind, ts: $r.timestamp, text: ($r.message.content | content-text)}
         } else if (
           $r.type == "attachment"
@@ -294,23 +323,28 @@ def claude-sessions [cfg: record, since: datetime]: nothing -> list {
           claude-question $r
         } else if $r.type == "assistant" {
           let paths = (claude-writes $r)
+
           if ($paths | is-not-empty) {
             {kind: "write", ts: $r.timestamp, paths: $paths}
           } else if (claude-reply $r) {
             {kind: "reply", ts: $r.timestamp, text: ($r.message.content | content-text)}
           }
         }
+
         let model = if $r.type == "assistant" or $r.isCompactSummary? == true {
           {kind: "model", ts: $r.timestamp}
         }
+
         [$event $model]
       }
       | flatten
       | compact
     )
+
     let id = ($file | path parse | get stem)
     let headless = ($entrypoint | str starts-with "sdk")
     let attended = ((not $headless) and ($records.0.isSidechain? != true))
+
     {
       id: $id
       cwd: $cwd
@@ -325,10 +359,12 @@ def claude-sessions [cfg: record, since: datetime]: nothing -> list {
 # reviews both carry `parent_thread_id` at the top level of the session metadata.
 def codex-parent [cfg: record, meta: record]: nothing -> any {
   let id = ($meta | get -o parent_thread_id)
+
   if $id == null {
     null
   } else {
     let base = $cfg.assistantDirs.codex
+
     (
       (glob $"($base)/sessions/*/*/*/rollout-*-($id).jsonl")
       ++ (glob $"($base)/sessions/*/*/*/rollout-*-($id).jsonl.zst")
@@ -340,17 +376,19 @@ def codex-parent [cfg: record, meta: record]: nothing -> any {
 }
 
 def codex-sessions [cfg: record, since: datetime]: nothing -> list {
-  read-sessions $cfg $since codex [
+  read-sessions $cfg $since "codex" [
     "sessions/*/*/*/*.jsonl"
     "sessions/*/*/*/*.jsonl.zst"
     "archived_sessions/*.jsonl"
     "archived_sessions/*.jsonl.zst"
   ] {|records|
     let meta = ($records | get -o 0.payload)
+
     # Codex Desktop imports of other assistants' sessions carry no thread source.
     if $meta.thread_source? == null {
       return null
     }
+
     let events = (
       $records
       | each {|r|
@@ -358,6 +396,7 @@ def codex-sessions [cfg: record, since: datetime]: nothing -> list {
           null
         } else {
           let p = $r.payload
+
           if $p.type == "task_started" {
             {kind: "trigger", ts: $r.timestamp, text: ""}
           } else if $p.type == "turn_aborted" {
@@ -368,6 +407,7 @@ def codex-sessions [cfg: record, since: datetime]: nothing -> list {
               | content-text
               | strip-request-prefix
             )
+
             {kind: "prompt", ts: $r.timestamp, text: $text}
           } else if $p.type == "item_completed" and $p.item.type? == "FileChange" {
             {kind: "write", ts: $r.timestamp, paths: ($p.item.changes? | default {} | columns)}
@@ -375,6 +415,7 @@ def codex-sessions [cfg: record, since: datetime]: nothing -> list {
             {kind: "reply", ts: $r.timestamp, text: $p.last_agent_message}
           }
         }
+
         let model = if (
           $r.type == "response_item"
           and (
@@ -385,13 +426,16 @@ def codex-sessions [cfg: record, since: datetime]: nothing -> list {
         ) {
           {kind: "model", ts: $r.timestamp}
         }
+
         [$event $model]
       }
       | flatten
       | compact
     )
+
     # Subagents and reviewers carry other thread sources. `codex exec` and MCP runs are headless.
     let attended = ($meta.thread_source == "user" and $meta.source? not-in ["exec" "mcp"])
+
     {
       id: $meta.id
       cwd: $meta.cwd
@@ -411,17 +455,21 @@ def omp-paths [cwd: string, call: record]: nothing -> list<string> {
       if $args.input? == null {
         []
       } else {
-        $args.input | lines | parse --regex '^\[\s*(?<path>.+?)#\w+\s*\]$' | get path
+        $args.input
+        | lines
+        | parse --regex '^\[\s*(?<path>.+?)#\w+\s*\]$'
+        | get path
       }
     )
   )
+
   $paths
   | compact
   | each {|path| $cwd | path join $path | path expand --no-symlink }
 }
 
 def omp-sessions [cfg: record, since: datetime]: nothing -> list {
-  read-sessions $cfg $since omp ["sessions/**/*.jsonl"] {|records, file|
+  read-sessions $cfg $since "omp" ["sessions/**/*.jsonl"] {|records, file|
     let meta = ($records | where type == "session" | first)
     let cwd = $meta.cwd
     let events = (
@@ -431,8 +479,10 @@ def omp-sessions [cfg: record, since: datetime]: nothing -> list {
           null
         } else {
           let m = $r.message
+
           if $m.role == "user" {
             let kind = if $m.attribution? == "user" { "prompt" } else { "trigger" }
+
             {kind: $kind, ts: $r.timestamp, text: ($m.content | content-text)}
           } else if $m.role == "assistant" and $m.stopReason? == "stop" {
             {kind: "reply", ts: $r.timestamp, text: ($m.content | content-text)}
@@ -443,19 +493,23 @@ def omp-sessions [cfg: record, since: datetime]: nothing -> list {
               | each {|part| omp-paths $cwd $part }
               | flatten
             )
+
             if ($paths | is-not-empty) {
               {kind: "write", ts: $r.timestamp, paths: $paths}
             }
           }
         }
+
         let model = if $r.type == "message" and $r.message.role? == "assistant" {
           {kind: "model", ts: $r.timestamp}
         }
+
         [$event $model]
       }
       | flatten
       | compact
     )
+
     {
       id: $meta.id
       cwd: $cwd
@@ -483,10 +537,12 @@ def existing-ancestor [dir: string]: nothing -> any {
     $dir
   } else {
     let main = (worktrees-main $dir)
+
     if $main != null and (($main | path join ".git") | path exists) {
       $main
     } else {
       let parent = ($dir | path dirname)
+
       if $parent == $dir {
         null
       } else {
@@ -509,10 +565,12 @@ def repository-of [dir: string]: nothing -> any {
         --show-toplevel
     | complete
   )
+
   if $run.exit_code != 0 {
     null
   } else {
     let parts = ($run.stdout | lines)
+
     {
       checkout: $parts.2
       root: (if $parts.0 == $parts.1 {
@@ -535,6 +593,7 @@ def repository-map [dirs: list<string>]: nothing -> record {
     | uniq
     | reduce --fold {} {|ancestor, acc| $acc | insert $ancestor (repository-of $ancestor) }
   )
+
   $pairs | reduce --fold {} {|pair, acc| $acc | insert $pair.dir ($found | get -o $pair.ancestor) }
 }
 
@@ -551,6 +610,7 @@ def repo-name [repo: any]: nothing -> any {
 # write lands in.
 def physical [path: string]: nothing -> string {
   let dir = ($path | path dirname)
+
   if ($dir | path exists) {
     $dir | path expand | path join ($path | path basename)
   } else {
@@ -584,9 +644,11 @@ def ignored-paths [repos: record, paths: list<string>]: nothing -> list<string> 
           --stdin
       | complete
     )
+
     if $run.exit_code not-in [0 1] {
       error make {msg: $"git check-ignore failed in ($group.checkout): ($run.stderr | str trim)"}
     }
+
     $run.stdout
     | split row (char nul)
     | compact --empty
@@ -605,10 +667,13 @@ def shares [repos: record, ignored: list<string>]: list<string> -> record {
     | sort
   )
   let counts = ($repos_of_files | uniq --count)
+
   if ($counts | is-empty) {
     return {}
   }
+
   let total = ($counts | get count | math sum)
+
   $counts
   | each {|count| {repo: $count.value, share: ($count.count / $total | math round --precision 2)} }
   | sort-by share --reverse
@@ -622,6 +687,7 @@ def shares [repos: record, ignored: list<string>]: list<string> -> record {
 # The depth of a session's parent chain, zero when no loaded session delegated to it.
 def depth [parents: record, transcript: string, seen: list = []]: nothing -> int {
   let parent = ($parents | get -o $transcript)
+
   if $parent == null or ($seen | any {|path| $path == $transcript }) {
     0
   } else {
@@ -648,11 +714,13 @@ def link []: list -> list {
       } else {
         $acc | get -o $s.parent | default []
       }
+
       let prompts = if $s.attended {
         $s.turns | where kind == "prompt"
       } else {
         []
       }
+
       let turns = (
         $s.turns
         | each {|t|
@@ -662,6 +730,7 @@ def link []: list -> list {
           } else {
             $parent | where ts <= $t.ts | last
           }
+
           let unit = if $own != null {
             $"($s.transcript)#($own.ts | into int)"
           } else if $anchor != null {
@@ -669,12 +738,15 @@ def link []: list -> list {
           } else {
             $s.transcript
           }
+
           $t | insert unit $unit
         }
       )
+
       $acc | insert $s.transcript $turns
     }
   )
+
   $sessions | each {|s| $s | update turns ($units | get -o $s.transcript) }
 }
 
@@ -687,6 +759,7 @@ def credit-prompts [cfg: record, units: record]: list -> list<record> {
     | flatten
     | sort-by ts
   )
+
   $timeline
   | enumerate
   | each {|p|
@@ -702,6 +775,7 @@ def credit-prompts [cfg: record, units: record]: list -> list<record> {
       | where ts >= $day and ts < ($day + 1day)
       | agent-hours $cfg
     )
+
     $p.item
     | insert hours ($hours | math round --precision 4)
     | insert agent $agent
@@ -721,10 +795,11 @@ def continuations [
   $in
   | each {|p|
     let since = ($p.ts | format date "%Y-%m-%d" | into datetime)
+
     $units
     | get $p.unit
     | where ts >= ($since + 1day)
-    | group-by {|t| $t.ts | format date "%Y-%m-%d"}
+    | group-by {|t| $t.ts | format date "%Y-%m-%d" }
     | values
     | each {|turns|
       let wrote = (
@@ -733,6 +808,7 @@ def continuations [
         | flatten
         | shares $repos $ignored
       )
+
       {
         transcript: $p.transcript
         ts: ($turns.0.ts | format date "%Y-%m-%d" | into datetime)
@@ -752,6 +828,7 @@ def unit-shares [repos: record, ignored: list<string>]: record -> record {
   | transpose unit turns
   | reduce --fold {} {|unit, acc|
     let paths = ($unit.turns | get -o paths | flatten)
+
     $acc | insert $unit.unit ($paths | shares $repos $ignored)
   }
 }
@@ -765,6 +842,7 @@ def agent-hours [cfg: record]: list<record> -> float {
       $acc + (([$t.end ($t.ts + $cfg.agentMaxMinutes * 1min) $t.idle] | compact | math min) - $t.ts)
     }
   )
+
   ($spent / 1hr) | math round --precision 4
 }
 
@@ -774,6 +852,7 @@ def agent-hours [cfg: record]: list<record> -> float {
 
 def stamp [excerpt_chars: int]: record -> record {
   let event = $in
+
   {
     at: ($event.ts | format date "%H:%M")
     text: ($event.text | excerpt $excerpt_chars)
@@ -783,6 +862,7 @@ def stamp [excerpt_chars: int]: record -> record {
 # A turn's final reply is the last one before the next prompt.
 def final-replies []: list -> list {
   let events = ($in | where kind in ["prompt" "reply"])
+
   $events
   | enumerate
   | where {|e|
@@ -804,6 +884,7 @@ def agent-run [
 ]: nothing -> any {
   let end = ($start + 1day)
   let today = ($turns | where ts >= $start and ts < $end)
+
   if ($today | is-empty) {
     null
   } else {
@@ -815,6 +896,7 @@ def agent-run [
       | get -o 0
       | default ""
     )
+
     {
       tool: $session.tool
       session: $session.id
@@ -849,11 +931,13 @@ def day [
     | where {|unit| $unit.unit not-in $prompt_units }
     | each {|unit|
       let session = ($sessions | where transcript == $unit.unit | first)
+
       agent-run $cfg $start $session $unit.turns $repos $ignored $excerpt_chars
     }
     | compact
     | sort-by at
   )
+
   {
     date: ($start | format date "%Y-%m-%d")
     weekday: ($start | format date "%a")
@@ -869,8 +953,10 @@ def day [
           # Turns started today keep their replies past midnight, until the next prompt.
           let first = ($prompts | first | get ts)
           let next = ($s.turns | where kind == "prompt" and ts >= $end | get -o 0.ts)
+
           $s.events | where {|e| $e.ts >= $first and ($next == null or $e.ts < $next) }
         }
+
         {
           tool: $s.tool
           session: $s.id
@@ -898,6 +984,7 @@ def day [
         }
       }
     )
+
     runs: $runs
   }
 }
@@ -906,9 +993,11 @@ def day [
 # first root found.
 def repositories [repos: record, names: list<string>]: nothing -> record {
   let found = ($repos | values | compact | uniq-by root)
+
   $names
   | reduce --fold {} {|name, acc|
     let root = ($found | where {|repo| ($repo.root | path basename) == $name } | get -o 0.root)
+
     if $root == null {
       $acc
     } else {
@@ -951,28 +1040,34 @@ def main [
 ]: nothing -> nothing {
   let cfg = (open $config)
   let to = ($to | default $from)
+
   if $to < $from {
     error make {msg: $"Last date ($to) precedes first date ($from)"}
   }
+
   if $excerpt_chars < 0 {
     error make {msg: $"Excerpt length ($excerpt_chars) must be 0 or greater"}
   }
+
   let days = (seq date --begin-date $from --end-date $to | each { into datetime })
   let since = ($days | first)
   let sessions = (
     (claude-sessions $cfg $since) ++ (codex-sessions $cfg $since) ++ (omp-sessions $cfg $since)
   )
+
   let linked = ($sessions | link)
   let turns = (
     $linked
     | each {|s| $s.turns | insert transcript $s.transcript }
     | flatten
   )
+
   let paths = ($turns | get -o paths | flatten | uniq)
   let dirs = (($paths | each {|path| $path | path dirname }) ++ ($linked | get cwd) | uniq)
   let repos = (repository-map $dirs)
   let ignored = (ignored-paths $repos $paths)
   let linked = ($linked | each {|s| $s | insert repo (repo-name ($repos | get -o $s.cwd)) })
+
   let units = ($turns | group-by unit)
   let shares = ($units | unit-shares $repos $ignored)
   let credited = (
@@ -982,6 +1077,7 @@ def main [
   )
   let continuations = ($credited | continuations $cfg $units $repos $ignored $excerpt_chars)
   let prompt_units = ($credited | get unit | uniq)
+
   let days = (
     $days
     | each {|start|
@@ -1005,6 +1101,7 @@ def main [
     | compact
     | uniq
   )
+
   {
     labels: $cfg.labels
     repositories: (repositories $repos $names)
