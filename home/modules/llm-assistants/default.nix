@@ -8,7 +8,6 @@
   options,
   enableDevToolchains,
   hostType,
-  isDesktop,
   repoLib,
   ...
 }:
@@ -148,12 +147,9 @@ in
           enable = lib.mkDefault true;
           proxy = lib.mkIf cfg.proxy.enable assistantProxy;
         })
-        // lib.genAttrs [ "acp" "agent-project-move" "ccusage" "ctx7" "workmux" ] (_: {
+        // lib.genAttrs [ "acp" "ccusage" "ctx7" "workmux" ] (_: {
           enable = lib.mkDefault true;
-        })
-        // {
-          activity-report.enable = lib.mkDefault isDesktop;
-        };
+        });
     })
   ];
 }

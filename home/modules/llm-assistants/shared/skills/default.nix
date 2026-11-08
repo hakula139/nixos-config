@@ -14,9 +14,8 @@
 
 let
   cfg = config.hakula.llm-assistants;
-  skillsInstalled = cfg.enable || config.hakula.codex.enable || config.hakula.omp.enable;
   corpGateway = config.lib.llmAssistants.profileDefinitions.providers.corp-gateway;
-  corpGatewayEnabled = cfg.enable && cfg.auth.enableCorpGateway;
+  corpGatewayEnabled = cfg.auth.enableCorpGateway;
 
   # ------------------------------------------------------------------------------------------------
   # Skill sources
@@ -24,64 +23,65 @@ let
   pluginSkills = inputs.plugins.lib.skills;
   promptFragments = import ../prompt-fragments;
 
-  hostSkills =
-    lib.optionalAttrs config.hakula.acp.enable {
-      inherit (pluginSkills) acp-delegate;
-    }
-    // lib.optionalAttrs config.hakula.activity-report.enable {
-      activity-report = ./activity-report;
-    }
-    // lib.optionalAttrs config.hakula.agent-project-move.enable {
-      agent-project-move = "${config.programs.agent-project-move.package}/share/skills/agent-project-move";
-    }
-    // lib.optionalAttrs config.hakula.ctx7.enable {
-      inherit (pluginSkills) find-docs;
-    }
-    // lib.optionalAttrs corpGatewayEnabled {
-      prose-polish = import ./prose-polish {
-        inherit
-          pkgs
-          lib
-          modelCatalog
-          promptFragments
-          repoLib
-          ;
-        modelCall = config.lib.llmAssistants.mkModelCall {
-          assistant = "prose-polish";
-          # Leaves a full batch's rewrite headroom past the hooks' model-call limit.
-          timeout = 300;
-        };
+  hostSkills = {
+    activity-report = ./activity-report;
+    agent-project-move = "${config.programs.agent-project-move.package}/share/skills/agent-project-move";
+  }
+  // lib.optionalAttrs corpGatewayEnabled {
+    prose-polish = import ./prose-polish {
+      inherit
+        pkgs
+        lib
+        modelCatalog
+        promptFragments
+        repoLib
+        ;
+      modelCall = config.lib.llmAssistants.mkModelCall {
+        assistant = "prose-polish";
+        timeout = 300;
       };
     };
+  };
 
-  sources = lib.attrsets.unionOfDisjoint (lib.removeAttrs pluginSkills [
-    "acp-delegate"
-    "find-docs"
-  ]) hostSkills;
+  sources = lib.attrsets.unionOfDisjoint pluginSkills hostSkills;
 
+  # ------------------------------------------------------------------------------------------------
+  # Skill files
+  # ------------------------------------------------------------------------------------------------
   mkSkillFiles =
     { directory, recursive }:
     lib.mapAttrs' (
       name: source: lib.nameValuePair "${directory}/${name}" { inherit source recursive; }
     ) sources;
 in
-{
-  lib.llmAssistants = { inherit mkSkillFiles; };
-
-  # Cursor and OpenCode discover Claude's directory, so install shared skills once.
+lib.mkIf cfg.enable {
+  # ------------------------------------------------------------------------------------------------
+  # Skills
+  # ------------------------------------------------------------------------------------------------
   home.file = lib.mkMerge [
-    (lib.mkIf cfg.enable (mkSkillFiles {
-      directory = ".claude/skills";
+    (mkSkillFiles {
+      directory = "${config.lib.llmAssistants.claudeConfigDir}/skills";
       recursive = true;
-    }))
-    (lib.mkIf config.hakula.omp.enable (mkSkillFiles {
-      directory = ".omp/agent/skills";
+    })
+    (mkSkillFiles {
+      directory = "${config.lib.llmAssistants.ompConfigDir}/skills";
       recursive = true;
-    }))
+    })
+    (mkSkillFiles {
+      directory = "${config.lib.llmAssistants.codexConfigDir}/skills";
+      recursive = false;
+    })
   ];
 
-  home.packages = lib.mkIf skillsInstalled [ pkgs.clean-gone ];
+  # ------------------------------------------------------------------------------------------------
+  # Helper programs
+  # ------------------------------------------------------------------------------------------------
+  hakula.activity-report.enable = true;
+  hakula.agent-project-move.enable = true;
 
+  # ------------------------------------------------------------------------------------------------
+  # Secrets
+  # ------------------------------------------------------------------------------------------------
   hakula.secrets.required = lib.mkIf corpGatewayEnabled {
     ${corpGateway.tokenSecretFor "prose-polish"} = { };
     ${corpGateway.caSecret} = { };

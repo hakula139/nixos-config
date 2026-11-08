@@ -13,7 +13,7 @@
 let
   cfg = config.hakula.omp.auth;
   yaml = pkgs.formats.yaml { };
-  configDir = "${config.home.homeDirectory}/.omp/agent";
+  configDir = shared.ompConfigDir;
   stateDir = "${config.xdg.stateHome}/omp";
 
   corpGateway = shared.profileDefinitions.providers.corp-gateway;

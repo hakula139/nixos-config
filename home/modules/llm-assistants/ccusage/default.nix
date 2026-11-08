@@ -41,7 +41,7 @@ in
       pi.stores = [
         {
           name = "omp";
-          path = "${config.home.homeDirectory}/.omp/agent/sessions";
+          path = "${config.lib.llmAssistants.ompConfigDir}/sessions";
         }
       ];
     };

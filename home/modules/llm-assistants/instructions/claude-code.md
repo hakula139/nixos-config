@@ -13,7 +13,7 @@
 
 ### Isolated Worktrees
 
-Claude Code's worktree features route through Workmux: `--worktree`, `EnterWorktree`, `isolation: "worktree"`, and background sessions create a Workmux worktree beside the checkout and reuse an existing one with the same name. Each gets the handle `<name>` and the branch `worktree-<name>`. A subagent's worktree is kept after it finishes, and `clean-gone` removes it once its work is finished. `.worktreeinclude` is not processed, because the hook replaces the built-in creation. Workmux's `files` configuration copies or symlinks ignored files instead.
+Claude Code's worktree features route through Workmux: `--worktree`, `EnterWorktree`, `isolation: "worktree"`, and background sessions create a Workmux worktree beside the checkout and reuse an existing one with the same name. Each gets the handle `<name>` and the branch `worktree-<name>`. A subagent's worktree is kept after it finishes. Use the `clean-gone` skill to review and clean up finished worktrees. `.worktreeinclude` is not processed, because the hook replaces the built-in creation. Workmux's `files` configuration copies or symlinks ignored files instead.
 
 Claude Code runs a guard on Bash and `Monitor` commands only in an isolated agent or session: an agent spawned with `isolation: "worktree"`, a session opened with `EnterWorktree` or `claude --worktree`, and the agents spawned inside either.
 

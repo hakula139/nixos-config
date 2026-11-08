@@ -13,7 +13,7 @@
     }
     {
       command = "rm";
-      reason = "Irreversible deletion, except own /tmp scratch, build output, and `clean-gone`.";
+      reason = "Irreversible deletion, except own /tmp scratch and build output.";
     }
     {
       command = "sudo";

@@ -122,16 +122,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1793969014,
-        "narHash": "sha256-zv3AmKieMhtUt/H3dh44x6mX4moUwsXHE7gKSEtYGs8=",
+        "lastModified": 1794135239,
+        "narHash": "sha256-sB3L22DBlqdr59I1vyFur73TunnLQpQwkld2W9fsUQY=",
         "owner": "hakula139",
         "repo": "devkit",
-        "rev": "9666b7261a94b5d7ed9a13a839dfc5360d96dd4d",
+        "rev": "ab441d00685573d83046f0eb2d6400e4e273771a",
         "type": "github"
       },
       "original": {
         "owner": "hakula139",
-        "ref": "v1.0.0-rc.3",
+        "ref": "v1",
         "repo": "devkit",
         "type": "github"
       }
@@ -511,11 +511,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794078648,
-        "narHash": "sha256-OVyI4ARq9H+gZXJZ3ETAkc5u7sLANuaZla4LmdHrv9M=",
+        "lastModified": 1794137782,
+        "narHash": "sha256-r9otP0bF6yfqAXut5Thq25v1LZ2tdr1gvhjqRP6EEpk=",
         "owner": "hakula139",
         "repo": "plugins",
-        "rev": "c690ec59863b2f606e9e426bd400911f3254dc8d",
+        "rev": "a2dfa7c17026f2877f94c0f7a8d01bfbb4078c54",
         "type": "github"
       },
       "original": {

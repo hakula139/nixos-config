@@ -8,6 +8,7 @@
   lib,
   repoLib,
   hostType,
+  isDesktop,
   secretPath,
   ...
 }:
@@ -15,7 +16,6 @@
 let
   cfg = config.hakula.activity-report;
 
-  homeDir = config.home.homeDirectory;
   isWork = hostType == "work";
 
   # ------------------------------------------------------------------------------------------------
@@ -42,10 +42,9 @@ let
         ;
 
       assistantDirs = {
-        claude = "${homeDir}/.claude";
-        codex =
-          if config.home.preferXdgDirectories then "${config.xdg.configHome}/codex" else "${homeDir}/.codex";
-        omp = "${homeDir}/.omp/agent";
+        claude = config.lib.llmAssistants.claudeConfigDir;
+        codex = config.lib.llmAssistants.codexConfigDir;
+        omp = config.lib.llmAssistants.ompConfigDir;
       };
     };
   };
@@ -132,7 +131,7 @@ in
       ];
     })
 
-    (lib.mkIf (cfg.enable && isWork) {
+    (lib.mkIf (cfg.enable && isWork && isDesktop) {
       # --------------------------------------------------------------------------------------------
       # Secrets
       # --------------------------------------------------------------------------------------------

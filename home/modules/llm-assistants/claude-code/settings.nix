@@ -3,7 +3,6 @@
 # ==================================================================================================
 
 {
-  homeDir,
   hooks,
   permissionSettings,
   plugins,
@@ -45,7 +44,7 @@
   tui = "fullscreen";
   statusLine = {
     type = "command";
-    command = "${homeDir}/.claude/statusline-command";
+    command = "${shared.claudeConfigDir}/statusline-command";
   };
 
   showThinkingSummaries = true;

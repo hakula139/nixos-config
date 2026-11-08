@@ -64,8 +64,6 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     let
-      homeDir = config.home.homeDirectory;
-
       json = pkgs.formats.json { };
 
       # --------------------------------------------------------------------------------------------
@@ -138,7 +136,6 @@ in
       settingsJson = json.generate "claude-code-settings.json" (
         import ./settings.nix {
           inherit
-            homeDir
             hooks
             permissionSettings
             plugins
