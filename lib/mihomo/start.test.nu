@@ -35,7 +35,9 @@ def "test mihomo replaces the start process unless a failed update finds no conf
     } {
       (
         ^$nu.current-exe --no-config-file
-          $SCRIPT --config-dir $config_dir --external-ui $external_ui
+          $SCRIPT
+            --config-dir $config_dir
+            --external-ui $external_ui
         | complete
       )
     }
