@@ -24,7 +24,11 @@ let
       "--run"
       ''
         if [[ -z "''${GH_TOKEN:-}" && -z "''${GITHUB_TOKEN:-}" && -s ${esc ghPatFile} ]] \
-          && ! [[ "''${1:-}" == auth && "''${2:-}" =~ ^(login|logout|refresh|switch)$ ]]; then
+          && ! [[ "''${1:-}" == auth && "''${2:-}" =~ ^(login|logout|refresh|switch)$ ]] \
+          && ! ${esc (lib.getExe pkgs.gh)} auth token \
+            --hostname github.com \
+            --no-refresh \
+            >/dev/null 2>&1; then
           export GH_TOKEN="$(<${esc ghPatFile})"
         fi
       ''
