@@ -16,12 +16,17 @@
 
 let
   # ------------------------------------------------------------------------------------------------
-  # Instructions and agent roles
+  # Prompt fragments
   # ------------------------------------------------------------------------------------------------
   promptFragments = import ./prompt-fragments;
+
+  # ------------------------------------------------------------------------------------------------
+  # Agent roles
+  # ------------------------------------------------------------------------------------------------
   roles = import ./agent-roles {
     inherit promptFragments;
   };
+
   toLine = text: lib.replaceStrings [ "\n" ] [ " " ] (lib.trim text);
   agentRoles = lib.mapAttrs (_: role: role // { description = toLine role.description; }) roles;
 
@@ -96,13 +101,18 @@ in
     ompConfigDir = "${config.home.homeDirectory}/.omp/agent";
 
     # ----------------------------------------------------------------------------------------------
-    # Instructions and agent roles
+    # Instructions
     # ----------------------------------------------------------------------------------------------
-    inherit agentRoles;
     instructions = import ../instructions {
       inherit promptFragments;
       devkitSource = inputs.devkit;
     };
+
+    # ----------------------------------------------------------------------------------------------
+    # Agent roles
+    # ----------------------------------------------------------------------------------------------
+    inherit agentRoles;
+
     agentRoleOptions = import ./agent-roles/options.nix {
       inherit lib agentRoles;
     };
@@ -111,6 +121,20 @@ in
     # Preferences
     # ----------------------------------------------------------------------------------------------
     preferences = import ./preferences;
+
+    # ----------------------------------------------------------------------------------------------
+    # Auth profiles
+    # ----------------------------------------------------------------------------------------------
+    inherit profileDefinitions;
+
+    anthropicProfiles = import ./anthropic-profiles {
+      inherit lib secretPath;
+      inherit (profileDefinitions) providers;
+    };
+
+    mkProfileSwitch = import ./profile-switch {
+      inherit pkgs lib repoLib;
+    };
 
     # ----------------------------------------------------------------------------------------------
     # MCP servers
@@ -137,8 +161,15 @@ in
     };
 
     # ----------------------------------------------------------------------------------------------
-    # Hooks and notifications
+    # Model calls
     # ----------------------------------------------------------------------------------------------
+    inherit mkModelCall;
+
+    # ----------------------------------------------------------------------------------------------
+    # Hooks
+    # ----------------------------------------------------------------------------------------------
+    inherit fileFormatter;
+
     mkHooks = import ./hooks {
       inherit
         pkgs
@@ -153,23 +184,10 @@ in
       inherit (config.xdg) dataHome;
     };
 
-    inherit fileFormatter mkModelCall;
-
+    # ----------------------------------------------------------------------------------------------
+    # Notifications
+    # ----------------------------------------------------------------------------------------------
     notify = import ./notify {
-      inherit pkgs lib repoLib;
-    };
-
-    # ----------------------------------------------------------------------------------------------
-    # Auth profiles
-    # ----------------------------------------------------------------------------------------------
-    inherit profileDefinitions;
-
-    anthropicProfiles = import ./anthropic-profiles {
-      inherit lib secretPath;
-      inherit (profileDefinitions) providers;
-    };
-
-    mkProfileSwitch = import ./profile-switch {
       inherit pkgs lib repoLib;
     };
   };
