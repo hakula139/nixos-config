@@ -13,7 +13,8 @@ let
   # Paths and ports
   # ------------------------------------------------------------------------------------------------
   mixedPort = 7897;
-  controllerPort = 9090;
+  # A nonstandard port reduces exposure to common browser fingerprinting probes.
+  controllerPort = 59386;
   stateDir = "/var/lib/mihomo";
 
   # ------------------------------------------------------------------------------------------------
