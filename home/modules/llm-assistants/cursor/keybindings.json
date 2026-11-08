@@ -1,13 +1,13 @@
 [
   {
     "key": "cmd+shift+k",
-    "command": "-aipopup.action.modal.generate",
-    "when": "editorFocus && !composerBarIsVisible"
+    "command": "editor.action.deleteLines",
+    "when": "editorTextFocus && !editorReadonly"
   },
   {
     "key": "ctrl+shift+k",
-    "command": "-aipopup.action.modal.generate",
-    "when": "editorFocus && !composerBarIsVisible"
+    "command": "editor.action.deleteLines",
+    "when": "editorTextFocus && !editorReadonly"
   },
   {
     "key": "ctrl+=",
