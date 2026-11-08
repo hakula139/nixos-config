@@ -122,3 +122,15 @@ jobs:
       - name: Check system closure size
         run: |
           nix path-info -Sh ${{ matrix.config.target }}
+
+  result:
+    name: CI Result
+    if: ${{ !cancelled() }}
+    needs: [flake-check, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    steps:
+      - name: Check results
+        uses: hakula139/devkit/.github/actions/ci-result@v1
