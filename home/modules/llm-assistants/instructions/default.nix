@@ -4,10 +4,13 @@
 
 {
   promptFragments,
+  devkitSource,
 }:
 
 let
-  sharedBody = promptFragments.readPrompt ./shared.md;
+  sharedBody = builtins.replaceStrings [ "@devkitSource@" ] [ "${devkitSource}" ] (
+    promptFragments.readPrompt ./shared.md
+  );
 
   render =
     {
