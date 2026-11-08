@@ -49,7 +49,6 @@ in
     casks = [
       "altserver"
       "chatgpt"
-      "clash-verge-rev"
       "cursor"
       "docker-desktop"
       "free-download-manager"

@@ -23,7 +23,7 @@ in
       default = false;
       description = ''
         Use userspace networking instead of a kernel TUN device. Avoids routing table conflicts with
-        other TUN-based tools (e.g., Clash Verge).
+        other TUN-based tools (e.g., Mihomo).
       '';
     };
   };
