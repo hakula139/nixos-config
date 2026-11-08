@@ -25,6 +25,7 @@ def at [clock: string]: nothing -> string {
 def transcript [dir: string, path: list<string>, records: list]: nothing -> nothing {
   let file = ($dir | path join ...$path)
   mkdir ($file | path dirname)
+
   $records
   | each { to json --raw }
   | str join "\n"
@@ -35,11 +36,13 @@ def transcript [dir: string, path: list<string>, records: list]: nothing -> noth
 def git-repo [dir: string, name: string]: nothing -> string {
   let path = ($dir | path join $name)
   mkdir $path
+
   (
     ^git
       -C $path
       init --quiet
   )
+
   (
     "
     .claude/worktrees/
@@ -50,15 +53,17 @@ def git-repo [dir: string, name: string]: nothing -> string {
   )
   | save ($path | path join ".gitignore")
   ^git -C $path add ".gitignore"
+
   (
     ^git
       -C $path
-      -c user.name=test
-      -c user.email=test@test
+      -c "user.name=test"
+      -c "user.email=test@test"
       commit
         --quiet
-        -m init
+        -m "init"
   )
+
   $path | path expand
 }
 
@@ -78,6 +83,7 @@ def claude-queued [
   kind: string = "human"
 ]: nothing -> record {
   let attachment = {type: "queued_command", origin: {kind: $kind}, prompt: $text}
+
   {type: "attachment", cwd: $cwd, timestamp: (at $clock), attachment: $attachment}
 }
 
@@ -90,6 +96,7 @@ def claude-answered [cwd: string, clock: string, answers: record]: nothing -> re
   let content = [{type: "tool_result", content: "The user answered.", tool_use_id: "tool"}]
   let result = {questions: [], answers: $answers, annotations: {}}
   let message = {role: "user", content: $content}
+
   {type: "user", cwd: $cwd, timestamp: (at $clock), isSidechain: false, message: $message}
   | insert toolUseResult $result
 }
@@ -99,12 +106,14 @@ def claude-timed-out [cwd: string, clock: string]: nothing -> record {
   let content = [{type: "tool_result", content: "No response after 300s.", tool_use_id: "tool"}]
   let result = {questions: [], answers: {}, afkTimeoutMs: 300000, annotations: {}}
   let message = {role: "user", content: $content}
+
   {type: "user", cwd: $cwd, timestamp: (at $clock), isSidechain: false, message: $message}
   | insert toolUseResult $result
 }
 
 def claude-reply [cwd: string, clock: string, text: string = "done"]: nothing -> record {
   let message = {stop_reason: "end_turn", content: [{type: "text", text: $text}]}
+
   {type: "assistant", cwd: $cwd, timestamp: (at $clock), message: $message}
 }
 
@@ -113,6 +122,7 @@ def claude-active [cwd: string, clocks: list<string>]: nothing -> list<record> {
   $clocks
   | each {|clock|
     let message = {stop_reason: null, content: [{type: "thinking", thinking: ""}]}
+
     {type: "assistant", cwd: $cwd, timestamp: (at $clock), message: $message}
   }
 }
@@ -120,6 +130,7 @@ def claude-active [cwd: string, clocks: list<string>]: nothing -> list<record> {
 def claude-tool [cwd: string, clock: string, name: string, input: record]: nothing -> record {
   let content = [{type: "tool_use", id: "tool", name: $name, input: $input}]
   let message = {role: "assistant", stop_reason: "tool_use", content: $content}
+
   {type: "assistant", cwd: $cwd, timestamp: (at $clock), message: $message}
 }
 
@@ -132,7 +143,9 @@ def claude-subagent [
   records: list
 ]: nothing -> nothing {
   transcript $dir ["claude/projects" $project $lead "subagents" $"agent-($id).jsonl"] $records
+
   let path = [$dir "claude/projects" $project $lead "subagents" $"agent-($id).meta.json"]
+
   $meta
   | to json
   | save --force ($path | path join)
@@ -150,7 +163,9 @@ def codex-transcript [
   } else {
     ["codex/sessions" ...($DAY | split row "-") $"rollout-($DAY)T00-00-00-($meta.id).jsonl"]
   }
+
   transcript $dir $path ([{type: "session_meta", payload: $meta}] ++ $records)
+
   if $compressed {
     (
       ^zstd ($dir | path join ...$path)
@@ -167,6 +182,7 @@ def codex-event [clock: string, payload: record]: nothing -> record {
 
 def codex-model [clock: string]: nothing -> record {
   let payload = {type: "message", role: "assistant", content: [{type: "output_text", text: ""}]}
+
   {type: "response_item", timestamp: (at $clock), payload: $payload}
 }
 
@@ -175,6 +191,7 @@ def codex-turn [clock: string, text?: string, --done: string]: nothing -> list<r
   let id = $"turn-($clock)"
   let item = {type: "UserMessage", content: [{type: "text", text: $text}]}
   let prompt_at = ((at $clock | into datetime) + 1sec | format date "%Y-%m-%dT%H:%M:%S%.3fZ")
+
   [
     (codex-event $clock {type: "task_started", turn_id: $id})
     (
@@ -193,22 +210,26 @@ def codex-turn [clock: string, text?: string, --done: string]: nothing -> list<r
 
 def codex-file-change [clock: string, changes: record]: nothing -> record {
   let item = {type: "FileChange", id: "change", status: "completed", changes: $changes}
+
   codex-event $clock {type: "item_completed", item: ($item | merge {stdout: "", stderr: ""})}
 }
 
 def omp-user [clock: string, text: string, --agent]: nothing -> record {
   let attribution = if $agent { "agent" } else { "user" }
   let message = {role: "user", attribution: $attribution, content: $text}
+
   {type: "message", timestamp: (at $clock), message: $message}
 }
 
 def omp-reply [clock: string, text: string = "done"]: nothing -> record {
   let message = {role: "assistant", stopReason: "stop", content: $text}
+
   {type: "message", timestamp: (at $clock), message: $message}
 }
 
 def omp-tool [clock: string, calls: list]: nothing -> record {
   let message = {role: "assistant", stopReason: "toolUse", content: $calls}
+
   {type: "message", timestamp: (at $clock), message: $message}
 }
 
@@ -221,6 +242,7 @@ def digest-run [
   --tz: string = "UTC"
 ]: nothing -> record {
   let config_file = ($dir | path join "config.json")
+
   {
     excludedDirs: [
       '/\.claude/worktrees/workmux/'
@@ -245,6 +267,7 @@ def digest-run [
     ([--config $config_file ($from | default $DAY) $to] | compact)
     ++ [$"--excerpt-chars=($excerpt_chars)"]
   )
+
   with-env {TZ: $tz} {
     (
       ^$nu.current-exe --no-config-file
@@ -265,6 +288,7 @@ def digest-output [
   let run = (
     digest-run $dir $overrides --excerpt-chars=$excerpt_chars --from=$from --to=$to --tz=$tz
   )
+
   assert equal $run.exit_code 0 $run.stderr
 
   $run.stdout | from json
@@ -291,6 +315,7 @@ def "test NUL-only transcript records warn and preserve the remaining activity" 
         (claude-prompt "/work/app" "11:00" "second task")
         (claude-reply "/work/app" "11:30" "second result")
       ]
+
       $dir | path join ...$path
     } else {
       codex-transcript $dir {id: "a", cwd: "/work/app", thread_source: "user"} [
@@ -298,6 +323,7 @@ def "test NUL-only transcript records warn and preserve the remaining activity" 
         ...(codex-turn "11:00" "second task" --done "11:30")
       ]
       let path = ["codex/sessions" ...($DAY | split row "-") $"rollout-($DAY)T00-00-00-a.jsonl"]
+
       $dir | path join ...$path
     }
     let expected = (digest-output $dir)
@@ -454,7 +480,7 @@ def "test only prompts a person typed count" [] {
     (claude-user $app "12:00" "From the lead: continue" {teamName: "t"})
     (claude-user $app "13:00" "<command-name>/export</command-name>")
     (claude-user $app "13:30" "/compact")
-    (claude-queued $app "13:45" "<task-notification>" task-notification)
+    (claude-queued $app "13:45" "<task-notification>" "task-notification")
     (claude-prompt $app "14:00" "/review")
   ]
   codex-transcript $dir {id: "user", cwd: $app, thread_source: "user"} (
@@ -550,7 +576,7 @@ def "test records written out of order keep their time order" [] {
 
 def "test both forms of an archived Codex session read once" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
+  let app = (git-repo $dir "app")
   let meta = {id: "both", cwd: $app, thread_source: "user"}
   let records = (codex-turn "11:00" "review it" --done "11:10")
   codex-transcript $dir $meta $records --archived --compressed
@@ -602,7 +628,7 @@ def "test steering prompts and triggers share the first reply" [] {
 
 def "test a Codex turn starts at its prompt" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
+  let app = (git-repo $dir "app")
   codex-transcript $dir {id: "lead", cwd: $app, thread_source: "user"} (
     codex-turn "11:00" "review it" --done "11:10"
   )
@@ -701,26 +727,26 @@ def "test canceled Codex turns cannot borrow a later reply" [] {
 
 def "test writes from each tool credit the repositories of their prompts" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let lib = (git-repo $dir lib)
+  let app = (git-repo $dir "app")
+  let lib = (git-repo $dir "lib")
   mkdir ($app | path join "src")
 
   transcript $dir ["claude/projects/app/a.jsonl"] [
     (claude-prompt $app "10:00" "ship the parser")
-    (claude-tool $app "10:01" Edit {
+    (claude-tool $app "10:01" "Edit" {
       file_path: ($app | path join "src/a.nu")
       old_string: "a"
       new_string: "b"
       replace_all: false
     })
-    (claude-tool $app "10:02" Edit {
+    (claude-tool $app "10:02" "Edit" {
       file_path: ($app | path join "src/a.nu")
       old_string: "b"
       new_string: "c"
       replace_all: false
     })
-    (claude-tool $app "10:03" Write {file_path: ($lib | path join "b.nu"), content: "b"})
-    (claude-tool $app "10:04" NotebookEdit {
+    (claude-tool $app "10:03" "Write" {file_path: ($lib | path join "b.nu"), content: "b"})
+    (claude-tool $app "10:04" "NotebookEdit" {
       notebook_path: ($lib | path join "n.ipynb")
       cell_id: "cell"
       new_source: "x"
@@ -786,9 +812,9 @@ def "test writes from each tool credit the repositories of their prompts" [] {
 
 def "test Claude subagents, forks, and teammates credit the prompt whose turn started them" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let lib = (git-repo $dir lib)
-  let docs = (git-repo $dir docs)
+  let app = (git-repo $dir "app")
+  let lib = (git-repo $dir "lib")
+  let docs = (git-repo $dir "docs")
   mkdir ($app | path join "src")
   let lead = "1a2b3c4d-0000-4000-8000-000000000001"
   transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
@@ -797,35 +823,35 @@ def "test Claude subagents, forks, and teammates credit the prompt whose turn st
     (claude-prompt $app "10:20" "P2")
     (claude-reply $app "10:25" "second")
   ]
-  claude-subagent $dir app $lead a {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
+  claude-subagent $dir "app" $lead "a" {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
     (claude-user $app "10:01" "task" {isSidechain: true})
     ...(claude-active $app ["10:03"])
     (claude-user $app "10:15" "relay" {isSidechain: true, isMeta: true, origin: {kind: "human"}})
-    (claude-tool $app "10:21" Edit {
+    (claude-tool $app "10:21" "Edit" {
       file_path: ($lib | path join "parser.nu")
       old_string: "a"
       new_string: "b"
       replace_all: false
     })
-    (claude-tool $app "10:22" SubagentHandback {})
+    (claude-tool $app "10:22" "SubagentHandback" {})
     (claude-user $app "10:26" "continue" {isSidechain: true})
-    (claude-tool $app "10:27" Write {file_path: ($docs | path join "README.md"), content: "x"})
-    (claude-tool $app "10:28" SubagentHandback {})
+    (claude-tool $app "10:27" "Write" {file_path: ($docs | path join "README.md"), content: "x"})
+    (claude-tool $app "10:28" "SubagentHandback" {})
   ]
-  claude-subagent $dir app $lead f {
+  claude-subagent $dir "app" $lead "f" {
     agentType: "fork"
     isFork: true
     parentAgentId: "a"
     spawnDepth: 2
   } [
     (claude-user $app "10:21" "fork" {isSidechain: true})
-    (claude-tool $app "10:21" Write {file_path: ($app | path join "src/fork.nu"), content: "x"})
-    (claude-tool $app "10:23" SubagentHandback {})
+    (claude-tool $app "10:21" "Write" {file_path: ($app | path join "src/fork.nu"), content: "x"})
+    (claude-tool $app "10:23" "SubagentHandback" {})
   ]
   let teammate = '<teammate-message teammate_id="team-lead">work</teammate-message>'
   transcript $dir ["claude/projects/app/99999999-0000-4000-8000-000000000001.jsonl"] [
     (claude-user $app "10:05" $teammate {teamName: "session-1a2b3c4d", agentName: "fix"})
-    (claude-tool $app "10:06" Write {file_path: ($lib | path join "team.nu"), content: "x"})
+    (claude-tool $app "10:06" "Write" {file_path: ($lib | path join "team.nu"), content: "x"})
     (claude-reply $app "10:07" "done")
   ]
 
@@ -841,8 +867,8 @@ def "test Claude subagents, forks, and teammates credit the prompt whose turn st
 def "test Codex subagents and guardian reviews credit the prompt that started them" [] {
   for compressed in [false true] {
     let dir = (mktemp --directory)
-    let app = (git-repo $dir app)
-    let lib = (git-repo $dir lib)
+    let app = (git-repo $dir "app")
+    let lib = (git-repo $dir "lib")
     let form = if $compressed { "compressed" } else { "plain" }
     codex-transcript $dir {id: "lead", cwd: $app, thread_source: "user"} (
       codex-turn "11:00" "review it" --done "11:10"
@@ -888,8 +914,8 @@ def "test Codex subagents and guardian reviews credit the prompt that started th
 def "test a Codex subagent finds its parent in archived sessions" [] {
   for compressed in [false true] {
     let dir = (mktemp --directory)
-    let app = (git-repo $dir app)
-    let lib = (git-repo $dir lib)
+    let app = (git-repo $dir "app")
+    let lib = (git-repo $dir "lib")
     let form = if $compressed { "compressed" } else { "plain" }
     codex-transcript $dir {id: "lead", cwd: $app, thread_source: "user"} (
       codex-turn "11:00" "review it" --done "11:10"
@@ -914,8 +940,8 @@ def "test a Codex subagent finds its parent in archived sessions" [] {
 
 def "test OMP subagents and advisors credit the prompt that started them" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let lib = (git-repo $dir lib)
+  let app = (git-repo $dir "app")
+  let lib = (git-repo $dir "lib")
   transcript $dir ["omp/sessions/app/parent.jsonl"] [
     {type: "session", id: "parent", cwd: $app}
     (omp-user "12:00" "review it")
@@ -950,7 +976,7 @@ def "test OMP subagents and advisors credit the prompt that started them" [] {
 
 def "test repositories resolve subdirectories and worktrees, and missing paths resolve to none" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
+  let app = (git-repo $dir "app")
   mkdir ($app | path join "src")
   let linked = ($dir | path join "app-wt/fix")
   (
@@ -1022,7 +1048,7 @@ def "test repositories resolve subdirectories and worktrees, and missing paths r
   for c in $cases {
     transcript $dir ["claude/projects" $c.name $"($c.name).jsonl"] [
       (claude-prompt $c.cwd $c.clock "write it")
-      (claude-tool $c.cwd $c.clock Write {file_path: $c.file, content: "x"})
+      (claude-tool $c.cwd $c.clock "Write" {file_path: $c.file, content: "x"})
     ]
   }
 
@@ -1038,15 +1064,18 @@ def "test repositories resolve subdirectories and worktrees, and missing paths r
 def "test a checkout behind a symlinked parent keeps its writes" [] {
   let dir = (mktemp --directory)
   mkdir ($dir | path join "real")
-  let app = (git-repo ($dir | path join "real") app)
+  let app = (git-repo ($dir | path join "real") "app")
   mkdir ($app | path join "src")
   ^ln -s "real" ($dir | path join "lnk")
   let linked = ($dir | path join "lnk/app")
   transcript $dir ["claude/projects/app/a.jsonl"] [
     (claude-prompt $linked "10:00" "ship it")
-    (claude-tool $linked "10:01" Write {file_path: ($linked | path join "src/a.nu"), content: "x"})
+    (claude-tool $linked "10:01" "Write" {
+      file_path: ($linked | path join "src/a.nu")
+      content: "x"
+    })
     (claude-prompt $linked "10:05" "then the deleted worktree")
-    (claude-tool $linked "10:06" Write {
+    (claude-tool $linked "10:06" "Write" {
       file_path: ($linked | path join ".claude/worktrees/gone/b.nu")
       content: "x"
     })
@@ -1062,14 +1091,14 @@ def "test a checkout behind a symlinked parent keeps its writes" [] {
 
 def "test a symlink outside a repository credits the repository it points into" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let lib = (git-repo $dir lib)
+  let app = (git-repo $dir "app")
+  let lib = (git-repo $dir "lib")
   mkdir ($lib | path join "src")
   mkdir ($dir | path join "elsewhere")
   ^ln -s ($lib | path join "src") ($dir | path join "elsewhere/mem")
   transcript $dir ["claude/projects/app/a.jsonl"] [
     (claude-prompt $app "10:00" "write to the linked tree")
-    (claude-tool $app "10:01" Write {
+    (claude-tool $app "10:01" "Write" {
       file_path: ($dir | path join "elsewhere/mem/a.nu")
       content: "x"
     })
@@ -1083,26 +1112,26 @@ def "test a symlink outside a repository credits the repository it points into" 
 
 def "test writes git ignores count only while their directory exists" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let lib = (git-repo $dir lib)
+  let app = (git-repo $dir "app")
+  let lib = (git-repo $dir "lib")
   mkdir ($app | path join "src")
   mkdir ($lib | path join ".claude/agent-memory-local/r")
   transcript $dir ["claude/projects/app/a.jsonl"] [
     (claude-prompt $app "10:00" "write files")
-    (claude-tool $app "10:01" Write {file_path: ($app | path join "src/a.nu"), content: "x"})
-    (claude-tool $app "10:02" Write {
+    (claude-tool $app "10:01" "Write" {file_path: ($app | path join "src/a.nu"), content: "x"})
+    (claude-tool $app "10:02" "Write" {
       file_path: ($app | path join ".claude/worktrees/gone/src/b.nu")
       content: "x"
     })
-    (claude-tool $app "10:03" Write {
+    (claude-tool $app "10:03" "Write" {
       file_path: ($lib | path join ".claude/agent-memory-local/r/m.md")
       content: "x"
     })
-    (claude-tool $app "10:03" Write {
+    (claude-tool $app "10:03" "Write" {
       file_path: ($lib | path join ".claude/agent-memory-local/r/周报.md")
       content: "x"
     })
-    (claude-tool $app "10:04" Write {file_path: ($lib | path join "README.md"), content: "x"})
+    (claude-tool $app "10:04" "Write" {file_path: ($lib | path join "README.md"), content: "x"})
   ]
 
   let day = (digest-day $dir)
@@ -1151,23 +1180,23 @@ def "test a prompt is cut by a prompt from another session after midnight" [] {
 
 def "test separate prompts and parallel delegates both add agent time" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let lib = (git-repo $dir lib)
+  let app = (git-repo $dir "app")
+  let lib = (git-repo $dir "lib")
   let lead = "aaaabbbb-0000-4000-8000-000000000001"
   transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
     (claude-prompt $app "10:00" "P")
     ...(claude-active $app ["10:20" "10:40"])
     (claude-reply $app "11:00" "first")
   ]
-  claude-subagent $dir app $lead a {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
+  claude-subagent $dir "app" $lead "a" {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
     (claude-user $app "10:10" "task" {isSidechain: true})
     ...(claude-active $app ["10:30"])
-    (claude-tool $app "10:50" SubagentHandback {})
+    (claude-tool $app "10:50" "SubagentHandback" {})
   ]
-  claude-subagent $dir app $lead b {agentType: "implementer", toolUseId: "u", spawnDepth: 1} [
+  claude-subagent $dir "app" $lead "b" {agentType: "implementer", toolUseId: "u", spawnDepth: 1} [
     (claude-user $app "10:20" "task" {isSidechain: true})
     ...(claude-active $app ["10:40" "11:00"])
-    (claude-tool $app "11:30" SubagentHandback {})
+    (claude-tool $app "11:30" "SubagentHandback" {})
   ]
   transcript $dir ["claude/projects/lib/q.jsonl"] [
     (claude-prompt $lib "10:30" "Q")
@@ -1196,16 +1225,16 @@ def "test an agent turn earns at most the cap" [] {
 
 def "test a stalled delegate earns only the time before its gap" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
+  let app = (git-repo $dir "app")
   let lead = "aaaabbbb-0000-4000-8000-000000000009"
   transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
     (claude-prompt $app "09:55" "P")
     (claude-reply $app "10:00" "first")
   ]
-  claude-subagent $dir app $lead a {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
+  claude-subagent $dir "app" $lead "a" {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
     (claude-user $app "10:05" "task" {isSidechain: true})
     ...(claude-active $app ["10:25" "10:45"])
-    (claude-tool $app "13:45" SubagentHandback {})
+    (claude-tool $app "13:45" "SubagentHandback" {})
   ]
 
   let day = (digest-day $dir)
@@ -1280,8 +1309,8 @@ def "test each tool turn ends at its last record before a long gap" [] {
 
 def "test a delegate turn on a later day continues its prompt there" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let lib = (git-repo $dir lib)
+  let app = (git-repo $dir "app")
+  let lib = (git-repo $dir "lib")
   let lead = "aaaabbbb-0000-4000-8000-000000000003"
   transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
     (claude-prompt $app "22:00" "P")
@@ -1289,13 +1318,16 @@ def "test a delegate turn on a later day continues its prompt there" [] {
     (claude-prompt $app "2026-10-16T09:00" "Q")
     (claude-reply $app "2026-10-16T09:30" "second")
   ]
-  claude-subagent $dir app $lead a {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
+  claude-subagent $dir "app" $lead "a" {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
     (claude-user $app "22:30" "task" {isSidechain: true})
-    (claude-tool $app "23:00" Write {file_path: ($app | path join "src/x.nu"), content: "x"})
-    (claude-tool $app "23:00" SubagentHandback {})
+    (claude-tool $app "23:00" "Write" {file_path: ($app | path join "src/x.nu"), content: "x"})
+    (claude-tool $app "23:00" "SubagentHandback" {})
     (claude-user $app "2026-10-16T00:10" "continue" {isSidechain: true})
-    (claude-tool $app "2026-10-16T00:40" Write {file_path: ($lib | path join "y.nu"), content: "y"})
-    (claude-tool $app "2026-10-16T00:50" SubagentHandback {})
+    (claude-tool $app "2026-10-16T00:40" "Write" {
+      file_path: ($lib | path join "y.nu")
+      content: "y"
+    })
+    (claude-tool $app "2026-10-16T00:50" "SubagentHandback" {})
   ]
 
   let output = (digest-output $dir --to "2026-10-16")
@@ -1312,7 +1344,7 @@ def "test a delegate turn on a later day continues its prompt there" [] {
 
 def "test a local command on a later day leaves no continuation" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
+  let app = (git-repo $dir "app")
   let lead = "aaaabbbb-0000-4000-8000-000000000005"
   let exported = "<local-command-stdout>Conversation exported</local-command-stdout>"
   transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
@@ -1335,7 +1367,7 @@ def "test a local command before more conversation leaves no continuation" [] {
   ]
   for case in $cases {
     let dir = (mktemp --directory)
-    let app = (git-repo $dir app)
+    let app = (git-repo $dir "app")
     let lead = "aaaabbbb-0000-4000-8000-00000000000c"
     transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
       (claude-prompt $app "22:00" "P")
@@ -1356,17 +1388,20 @@ def "test a local command before more conversation leaves no continuation" [] {
 
 def "test a continuation-only day lists the lead session without prompts" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let lib = (git-repo $dir lib)
+  let app = (git-repo $dir "app")
+  let lib = (git-repo $dir "lib")
   let lead = "aaaabbbb-0000-4000-8000-000000000004"
   transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
     (claude-prompt $app "22:00" "P")
     (claude-reply $app "22:20" "first")
   ]
-  claude-subagent $dir app $lead a {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
+  claude-subagent $dir "app" $lead "a" {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
     (claude-user $app "2026-10-16T00:10" "continue" {isSidechain: true})
-    (claude-tool $app "2026-10-16T00:40" Write {file_path: ($lib | path join "y.nu"), content: "y"})
-    (claude-tool $app "2026-10-16T00:50" SubagentHandback {})
+    (claude-tool $app "2026-10-16T00:40" "Write" {
+      file_path: ($lib | path join "y.nu")
+      content: "y"
+    })
+    (claude-tool $app "2026-10-16T00:50" "SubagentHandback" {})
   ]
 
   let output = (digest-output $dir --from "2026-10-16" --to "2026-10-16")
@@ -1383,16 +1418,16 @@ def "test a continuation-only day lists the lead session without prompts" [] {
 
 def "test a continuation that wrote nothing takes the prompt repositories" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
+  let app = (git-repo $dir "app")
   let lead = "aaaabbbb-0000-4000-8000-000000000007"
   transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
     (claude-prompt $app "22:00" "P")
     (claude-reply $app "22:20" "first")
   ]
-  claude-subagent $dir app $lead a {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
+  claude-subagent $dir "app" $lead "a" {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
     (claude-user $app "22:30" "task" {isSidechain: true})
-    (claude-tool $app "23:00" Write {file_path: ($app | path join "src/x.nu"), content: "x"})
-    (claude-tool $app "23:00" SubagentHandback {})
+    (claude-tool $app "23:00" "Write" {file_path: ($app | path join "src/x.nu"), content: "x"})
+    (claude-tool $app "23:00" "SubagentHandback" {})
     (claude-user $app "2026-10-16T00:10" "continue" {isSidechain: true})
     (claude-reply $app "2026-10-16T00:40" "done")
   ]
@@ -1406,15 +1441,15 @@ def "test a continuation that wrote nothing takes the prompt repositories" [] {
 
 def "test a continuation books its turn on the local day" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
+  let app = (git-repo $dir "app")
   let lead = "aaaabbbb-0000-4000-8000-000000000008"
   transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
     (claude-prompt $app "10:00" "P")
     (claude-reply $app "10:30" "first")
   ]
-  claude-subagent $dir app $lead a {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
+  claude-subagent $dir "app" $lead "a" {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
     (claude-user $app "2026-10-15T16:30" "continue" {isSidechain: true})
-    (claude-tool $app "2026-10-15T17:00" SubagentHandback {})
+    (claude-tool $app "2026-10-15T17:00" "SubagentHandback" {})
   ]
 
   let output = (digest-output $dir --to "2026-10-16" --tz "CST-8")
@@ -1427,15 +1462,15 @@ def "test a continuation books its turn on the local day" [] {
 
 def "test a continuation text is excerpted" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
+  let app = (git-repo $dir "app")
   let lead = "aaaabbbb-0000-4000-8000-00000000000e"
   transcript $dir ["claude/projects/app" $"($lead).jsonl"] [
     (claude-prompt $app "22:00" "a long prompt")
     (claude-reply $app "22:20" "first")
   ]
-  claude-subagent $dir app $lead a {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
+  claude-subagent $dir "app" $lead "a" {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
     (claude-user $app "2026-10-16T00:10" "continue" {isSidechain: true})
-    (claude-tool $app "2026-10-16T00:50" SubagentHandback {})
+    (claude-tool $app "2026-10-16T00:50" "SubagentHandback" {})
   ]
 
   let output = (digest-output $dir --to "2026-10-16" --excerpt-chars 6)
@@ -1445,8 +1480,8 @@ def "test a continuation text is excerpted" [] {
 
 def "test turns no prompt started become runs" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let lib = (git-repo $dir lib)
+  let app = (git-repo $dir "app")
+  let lib = (git-repo $dir "lib")
   let worker = ($dir | path join "app__worktrees/workmux-fix")
   let lead = "aaaabbbb-0000-4000-8000-000000000002"
   transcript $dir ["claude/projects/app/team.jsonl"] [
@@ -1454,7 +1489,11 @@ def "test turns no prompt started become runs" [] {
     ...(claude-active $app ["10:15"])
     (claude-reply $app "10:30")
   ]
-  claude-subagent $dir app $lead orphan {agentType: "implementer", toolUseId: "t", spawnDepth: 1} [
+  claude-subagent $dir "app" $lead "orphan" {
+    agentType: "implementer"
+    toolUseId: "t"
+    spawnDepth: 1
+  } [
     (claude-user $app "10:10" "task" {isSidechain: true})
     ...(claude-active $app ["10:25"])
     (claude-reply $app "10:40")
@@ -1517,7 +1556,7 @@ def "test a day keeps its final replies past midnight until the next prompt" [] 
   transcript $dir ["claude/projects/app/a.jsonl"] [
     (claude-prompt "/work/app" "10:00" "start")
     (claude-reply "/work/app" "10:05" "working")
-    (claude-tool "/work/app" "10:06" Edit {
+    (claude-tool "/work/app" "10:06" "Edit" {
       file_path: "/work/app/a.nu"
       old_string: "a"
       new_string: "b"
@@ -1541,17 +1580,17 @@ def "test a day keeps its final replies past midnight until the next prompt" [] 
 
 def "test sessions report their repository, and the digest lists labels and repository paths" [] {
   let dir = (mktemp --directory)
-  let app = (git-repo $dir app)
-  let cfg = (git-repo $dir nixos-config)
+  let app = (git-repo $dir "app")
+  let cfg = (git-repo $dir "nixos-config")
   mkdir ($app | path join "src")
   mkdir ($dir | path join "scratch")
   transcript $dir ["claude/projects/app/a.jsonl"] [
     (claude-prompt $app "10:00" "ship")
-    (claude-tool $app "10:01" Write {file_path: ($app | path join "src/a.nu"), content: "x"})
+    (claude-tool $app "10:01" "Write" {file_path: ($app | path join "src/a.nu"), content: "x"})
   ]
   transcript $dir ["claude/projects/cfg/b.jsonl"] [
     (claude-prompt $cfg "11:00" "tidy")
-    (claude-tool $cfg "11:01" Write {file_path: ($cfg | path join "README.md"), content: "x"})
+    (claude-tool $cfg "11:01" "Write" {file_path: ($cfg | path join "README.md"), content: "x"})
   ]
   transcript $dir ["claude/projects/scratch/c.jsonl"] [
     (claude-prompt ($dir | path join "scratch") "12:00" "file")
