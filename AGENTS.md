@@ -4,16 +4,16 @@ Project-specific rules for any coding assistant working in this repository. `CLA
 
 ## Read before you edit
 
-| When the task involves                        | Read                                                             |
-| --------------------------------------------- | ---------------------------------------------------------------- |
-| A Nix module, package, or host                | [docs/conventions/nix.md](docs/conventions/nix.md)               |
-| A Nushell script or its tests                 | [docs/conventions/nushell.md](docs/conventions/nushell.md)       |
-| A Markdown table of contents                  | [docs/conventions/markdown.md](docs/conventions/markdown.md)     |
-| A secret or a recipient list                  | [.agents/skills/agenix/SKILL.md](.agents/skills/agenix/SKILL.md) |
-| Host wiring, builders, or the repository tree | [docs/reference/architecture.md](docs/reference/architecture.md) |
-| The workflow or a failing check               | [docs/reference/ci.md](docs/reference/ci.md)                     |
-| First-time setup on any platform              | [docs/guides/bootstrap.md](docs/guides/bootstrap.md)             |
-| A deployment with nixsw or nixdp              | [README.md](README.md#applying-a-configuration)                  |
+| When the task involves                        | Read                       |
+| --------------------------------------------- | -------------------------- |
+| A Nix module, package, or host                | [Nix conventions]          |
+| A Nushell script or its tests                 | [Nushell conventions]      |
+| A Markdown table of contents                  | [Markdown conventions]     |
+| A secret or a recipient list                  | [Secrets]                  |
+| Host wiring, builders, or the repository tree | [Architecture]             |
+| The workflow or a failing check               | [CI]                       |
+| First-time setup on any platform              | [Bootstrap]                |
+| A deployment with nixsw or nixdp              | [Applying a configuration] |
 
 ## Script language
 
@@ -59,5 +59,14 @@ Because the shell hook links the gitignored `.pre-commit-config.yaml` only on sh
 
 ## Documentation maintenance
 
-- Keep the repository tree in [docs/reference/architecture.md](docs/reference/architecture.md) accurate at its current depth, and add prose below it only for knowledge every module author needs.
+- Keep the repository tree in [Architecture] accurate at its current depth, and add prose below it only for knowledge every module author needs.
 - Update the architecture's host table when host wiring changes, and the README's usage instructions when commands change.
+
+[Nix conventions]: docs/conventions/nix.md
+[Nushell conventions]: docs/conventions/nushell.md
+[Markdown conventions]: docs/conventions/markdown.md
+[Secrets]: .agents/skills/agenix/SKILL.md
+[Architecture]: docs/reference/architecture.md
+[CI]: docs/reference/ci.md
+[Bootstrap]: docs/guides/bootstrap.md
+[Applying a configuration]: README.md#applying-a-configuration
