@@ -23,5 +23,9 @@ def main [
   }
 
   print "Starting mihomo..."
-  exec mihomo -d $config_dir -ext-ui $external_ui
+  (
+    exec mihomo
+      -d $config_dir
+      -ext-ui $external_ui
+  )
 }
