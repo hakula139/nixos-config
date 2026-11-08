@@ -15,14 +15,8 @@ let
   cfg = config.hakula.codex;
   shared = config.lib.llmAssistants;
 
-  inherit (shared) agentRoleOptions instructions;
+  inherit (shared) agentRoleOptions codexConfigDir instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
-
-  codexConfigDir =
-    if config.home.preferXdgDirectories then
-      "${config.xdg.configHome}/codex"
-    else
-      "${config.home.homeDirectory}/.codex";
 
   profiles = import ./profiles.nix {
     inherit
@@ -90,11 +84,6 @@ in
         inherit pkgs lib;
       };
 
-      skills = import ./skills {
-        inherit shared;
-        skillsDir = "${codexConfigDir}/skills";
-      };
-
       # --------------------------------------------------------------------------------------------
       # Package wrapper
       # --------------------------------------------------------------------------------------------
@@ -128,7 +117,6 @@ in
             mcp
             notify
             permissions
-            skills
             ;
         })
         // profiles.settings
@@ -178,7 +166,7 @@ in
         # ------------------------------------------------------------------------------------------
         # Configuration files
         # ------------------------------------------------------------------------------------------
-        home.file = skills.files // {
+        home.file = {
           codexRules = {
             # Separate from default.rules, which Codex rewrites on TUI allowlisting.
             target = "${codexConfigDir}/rules/nixos-config.rules";

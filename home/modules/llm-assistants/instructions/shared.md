@@ -15,7 +15,7 @@ Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment va
 
 ### Git Workflow
 
-Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue update, conflict resolution, or cleanup. It owns Git authorization and conventions. A repository follows devkit's [GitHub conventions](https://github.com/hakula139/devkit/blob/main/docs/github.md) for its settings, ruleset, and labels by default, and may deviate where it needs to.
+Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue update, conflict resolution, or cleanup. It owns Git authorization and conventions. Before changing repository settings, rulesets, or labels, read devkit's pinned local guide at `@devkitSource@/docs/github.md`. Before preparing a release, read `@devkitSource@/docs/releasing.md`. Apply those conventions by default and preserve justified repository-specific requirements.
 
 ### Shared-Tree Safety
 
@@ -120,7 +120,7 @@ Choose a structure that helps the reader understand, compare, or act, whether in
 - If any list item contains a nested list, a second paragraph, or a code block, make the entire list loose by leaving a blank line between items and before each nested part.
 - Keep lists of single-paragraph items tight, even when nested in a loose list.
 - Keep a table readable in raw source as well as rendered. When its cells would carry whole sentences, give each item a heading and list its fields under bold labels.
-- In a link-heavy document, use reference-style links with descriptive IDs, so the prose stays readable in raw source, and put the definitions at the end of the file with no heading above them, since they render invisibly.
+- Prefer inline links for short local targets and readable one-off links. Use reference links for long or repeated targets when they improve source readability. Prefer shortcut references when the link text is already descriptive, and use a separate reference label only when it adds a useful distinction. Put reference definitions at the end without a heading.
 
 ### Punctuation
 
