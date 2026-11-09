@@ -113,9 +113,9 @@ hediet
 hitoolbox
 hkcu
 hlsearch
-htlpn
 hookify
 horiz
+htlpn
 iface
 ikuncode
 imap
