@@ -482,6 +482,9 @@
       "wait_for_job"
       "wait_for_pipeline"
     ];
+    mirrorCatalog = [
+      "list_mirrors"
+    ];
   };
 
   tools = [

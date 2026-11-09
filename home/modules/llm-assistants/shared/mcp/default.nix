@@ -13,7 +13,7 @@
 }:
 
 let
-  inherit (corpHosts) gitlabUrl wikiUrl;
+  inherit (corpHosts) gitlabUrl mirrorCatalogUrl wikiUrl;
 
   esc = lib.escapeShellArg;
 
@@ -256,6 +256,11 @@ in
     gitlab = {
       command = lib.getExe gitlabBin;
       type = "stdio";
+    };
+
+    mirrorCatalog = {
+      type = "http";
+      url = "${mirrorCatalogUrl}/mcp";
     };
 
     scrapling = {

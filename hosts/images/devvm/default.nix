@@ -13,11 +13,7 @@
 let
   inherit (corpHosts) wildcardDomain;
 
-  commonMcpServers = [
-    "atlassian"
-    "bifrost"
-    "gitlab"
-  ];
+  commonMcpServers = repoLib.llmAssistants.mcpOptions.corpServerNames;
 
   proxyUrlSecret = "devvm/proxy-url";
   proxyNoProxy = [

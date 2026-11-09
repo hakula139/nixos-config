@@ -11,11 +11,13 @@ rec {
   gitlab = "gitlab-space2.${domain}";
   harbor = "harbor.${domain}";
   llmGateway = "gw.llm.${domain}";
+  mirrorCatalog = "mirror-catalog.${domain}";
   wiki = "wiki.${domain}";
 
   artifactoryUrl = "https://${artifactory}/artifactory";
   githubMirrorUrl = "https://${githubMirror}";
   gitlabUrl = "https://${gitlab}";
   llmGatewayUrl = "https://${llmGateway}";
+  mirrorCatalogUrl = "https://${mirrorCatalog}";
   wikiUrl = "https://${wiki}";
 }

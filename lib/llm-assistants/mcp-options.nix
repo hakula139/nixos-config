@@ -15,6 +15,7 @@ let
     exa = "Exa";
     github = "GitHub";
     gitlab = "GitLab";
+    mirrorCatalog = "MirrorCatalog";
     scrapling = "Scrapling";
   };
 
@@ -28,6 +29,7 @@ let
     "exa"
     "github"
     "gitlab"
+    "mirrorCatalog"
     "scrapling"
   ];
 
@@ -35,6 +37,7 @@ let
     "atlassian"
     "bifrost"
     "gitlab"
+    "mirrorCatalog"
   ];
 
   mkEnabledServersOption =
