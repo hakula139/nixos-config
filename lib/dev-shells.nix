@@ -12,8 +12,6 @@ let
     inherit pkgs;
   };
 
-  # mkShell adds packages to PATH in list order, and the hook packages propagate a bare `python3`,
-  # so each shell lists its own packages ahead of these.
   basePackages = preCommit.nativeBuildInputs ++ tooling.all;
 in
 {

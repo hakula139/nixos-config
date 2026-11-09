@@ -9,8 +9,8 @@ line-ending = "lf"
 skip-magic-trailing-comma = false
 
 [lint]
-select = ["B", "C4", "D", "E", "F", "I", "SIM", "UP", "W"]
-ignore = ["D1"]
+select = ["B", "C4", "D", "E", "F", "I", "S", "SIM", "UP", "W"]
+ignore = ["D1", "S101", "S603", "S607"]
 
 [lint.isort]
 lines-after-imports = 2
