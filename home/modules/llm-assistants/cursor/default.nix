@@ -6,10 +6,11 @@
   config,
   pkgs,
   lib,
+  inputs,
+  repoLib,
   flakeConfigName,
   isDesktop,
   isNixOS,
-  repoLib,
   systemManagerPaths,
   ...
 }:
@@ -63,10 +64,11 @@ in
           config
           pkgs
           lib
+          inputs
+          repoLib
           flakeConfigName
           isDarwin
           isNixOS
-          repoLib
           ;
       };
 

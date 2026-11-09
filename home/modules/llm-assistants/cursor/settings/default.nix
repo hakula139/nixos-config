@@ -6,10 +6,11 @@
   config,
   pkgs,
   lib,
+  inputs,
+  repoLib,
   flakeConfigName,
   isDarwin,
   isNixOS,
-  repoLib,
 }:
 
 let
@@ -113,6 +114,14 @@ let
   };
 
   # ------------------------------------------------------------------------------------------------
+  # Markdownlint Settings
+  # ------------------------------------------------------------------------------------------------
+  # Keep out of `portableSettings`, which syncs to Windows where the devkit store path is absent.
+  markdownlintSettings = {
+    "markdownlint.configFile" = "${inputs.devkit}/.markdownlint-cli2.jsonc";
+  };
+
+  # ------------------------------------------------------------------------------------------------
   # Machine settings
   # ------------------------------------------------------------------------------------------------
   machineSettings = portableSettings // {
@@ -150,9 +159,9 @@ let
   # ------------------------------------------------------------------------------------------------
   settings = settingsBase // portableSettings;
 
-  settingsJson = json.generate "cursor-settings.json" settings;
+  settingsJson = json.generate "cursor-settings.json" (settings // markdownlintSettings);
   machineSettingsJson = json.generate "cursor-machine-settings.json" (
-    machineSettings // mirroredNetworkingSettings
+    machineSettings // markdownlintSettings // mirroredNetworkingSettings
   );
   windowsSettingsJson = json.generate "cursor-windows-settings.json" (settings // windowsSettings);
 
@@ -172,10 +181,8 @@ let
 in
 {
   inherit
-    settings
     settingsJson
     machineSettingsJson
-    windowsSettingsJson
     syncWindowsSettings
     ;
 }
