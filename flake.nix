@@ -168,7 +168,7 @@
       # --------------------------------------------------------------------------------------------
       # Pre-commit checks
       # --------------------------------------------------------------------------------------------
-      preCommitCheckFor =
+      preCommitFor =
         system:
         import ./lib/pre-commit.nix {
           pkgs = pkgsFor system;
@@ -358,7 +358,7 @@
       # Checks
       # --------------------------------------------------------------------------------------------
       checks = forAllSystems (system: {
-        pre-commit = preCommitCheckFor system;
+        pre-commit = (preCommitFor system).check;
 
         scripts = import ./lib/script-tests.nix {
           pkgs = pkgsFor system;
@@ -373,7 +373,7 @@
         system:
         import ./lib/dev-shells.nix {
           pkgs = pkgsFor system;
-          preCommitCheck = preCommitCheckFor system;
+          preCommit = (preCommitFor system).shell;
         }
       );
 
