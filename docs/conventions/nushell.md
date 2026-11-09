@@ -25,4 +25,4 @@ Each script's tests live in a `<script>.test.nu` beside it, as commands named `t
 
 ## Linting
 
-`nix flake check` runs `nu-check` over every script, and `editorconfig-checker` owns indentation. Don't use `nufmt`, which reindents to four spaces.
+`nix develop -c run-hooks` runs `nu-check` over every script, and `editorconfig-checker` owns indentation. Don't use `nufmt`, which reindents to four spaces.
