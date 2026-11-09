@@ -21,8 +21,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Base settings
   # ------------------------------------------------------------------------------------------------
-  settingsBase = lib.importJSON ./settings.json;
-  windowsDisplaySettings = lib.importJSON ./windows-settings.json;
+  baseSettings = lib.importJSON ./settings.json;
 
   # ------------------------------------------------------------------------------------------------
   # Terminal profiles
@@ -70,7 +69,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Devkit settings
   # ------------------------------------------------------------------------------------------------
-  # Kept out of the Windows output, where this store path does not exist.
+  # This store path has no portable value, so the local User file carries it too.
   devkitSettings = {
     "markdownlint.configFile" = "${inputs.devkit}/.markdownlint-cli2.jsonc";
   };
@@ -112,9 +111,10 @@ let
       { };
 
   # ------------------------------------------------------------------------------------------------
-  # Store path settings
+  # Machine settings
   # ------------------------------------------------------------------------------------------------
-  storePathSettings = {
+  # The local User file also reaches remote windows, so these paths stay in the remote Machine file.
+  machineSettings = {
     "bashIde.shellcheckPath" = lib.getExe pkgs.shellcheck;
     "bashIde.shfmt.path" = lib.getExe pkgs.shfmt;
     "direnv.path.executable" = lib.getExe pkgs.direnv;
@@ -141,16 +141,21 @@ let
   };
 
   # ------------------------------------------------------------------------------------------------
+  # Windows display settings
+  # ------------------------------------------------------------------------------------------------
+  windowsDisplaySettings = lib.importJSON ./windows-settings.json;
+
+  # ------------------------------------------------------------------------------------------------
   # Final settings
   # ------------------------------------------------------------------------------------------------
   settingsJson = json.generate "cursor-settings.json" (
-    settingsBase // portableSettings // devkitSettings
+    baseSettings // portableSettings // devkitSettings
   );
   machineSettingsJson = json.generate "cursor-machine-settings.json" (
-    portableSettings // storePathSettings // devkitSettings // mirroredNetworkingSettings
+    portableSettings // devkitSettings // machineSettings // mirroredNetworkingSettings
   );
   windowsSettingsJson = json.generate "cursor-windows-settings.json" (
-    settingsBase // portableSettings // windowsDisplaySettings
+    baseSettings // portableSettings // windowsDisplaySettings
   );
 
   # ------------------------------------------------------------------------------------------------

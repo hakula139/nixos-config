@@ -17,10 +17,10 @@
 
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
+  inherit (repoLib.llmAssistants) mcpOptions;
+
   cfg = config.hakula.cursor;
   shared = config.lib.llmAssistants;
-
-  inherit (repoLib.llmAssistants) mcpOptions;
   cursorMcpServers = mcpOptions.commonServerNames;
 in
 {
@@ -77,8 +77,8 @@ in
           config
           pkgs
           lib
-          isDarwin
           repoLib
+          isDarwin
           ;
       };
 
