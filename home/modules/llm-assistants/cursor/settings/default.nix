@@ -7,7 +7,6 @@
   pkgs,
   lib,
   inputs,
-  repoLib,
   flakeConfigName,
   isDarwin,
   isNixOS,
@@ -151,25 +150,11 @@ let
   windowsSettingsJson = json.generate "cursor-windows-settings.json" (
     baseSettings // portableSettings // windowsDisplaySettings
   );
-
-  # ------------------------------------------------------------------------------------------------
-  # Windows sync
-  # ------------------------------------------------------------------------------------------------
-  syncWindowsSettings = repoLib.mkNuCommand {
-    inherit pkgs;
-    name = "sync-windows-cursor-settings";
-    script = ./sync-windows-settings.nu;
-
-    config = {
-      settingsFile = windowsSettingsJson;
-      windowsInterop = repoLib.wsl.mkWindowsInterop pkgs;
-    };
-  };
 in
 {
   inherit
     settingsJson
     machineSettingsJson
-    syncWindowsSettings
+    windowsSettingsJson
     ;
 }
