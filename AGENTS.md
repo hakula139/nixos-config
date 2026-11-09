@@ -45,7 +45,7 @@ Place a file description inside the header banner after the title, and close it 
 
 ## Verification
 
-`nix flake check` runs the structure checks, pre-commit hooks, and script tests from the dev shell (`nix develop -c zsh`), but it builds no host and its `checks.pre-commit` output alone does not evaluate host modules. For host changes, build each affected output directly, and build `macbook` on a Mac or through CI's macOS job:
+`nix develop -c run-hooks` runs the pre-commit hooks on every tracked file. `nix flake check` checks the flake's structure, evaluating each NixOS host, and runs the script tests, but it runs no hooks and builds no host. For host changes, build each affected output directly, and build `macbook` on a Mac or through CI's macOS job:
 
 ```bash
 nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'

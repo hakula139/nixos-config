@@ -165,7 +165,8 @@ def load_users(path: Path) -> dict[str, UserConfig]:
 
 
 def load_template(path: Path) -> Template | None:
-    env = Environment(loader=FileSystemLoader(path.parent))
+    # The template renders YAML, so autoescaping would corrupt the values.
+    env = Environment(loader=FileSystemLoader(path.parent))  # noqa: S701
     try:
         return env.get_template(path.name)
     except TemplateNotFound:
