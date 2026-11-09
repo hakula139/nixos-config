@@ -104,18 +104,13 @@ in
         ''}
       '';
 
-      darwinFiles = {
-        "Library/Application Support/Cursor/User/settings.json".source = "${configFiles}/settings.json";
-        "Library/Application Support/Cursor/User/keybindings.json".source =
-          "${configFiles}/keybindings.json";
-        "Library/Application Support/Cursor/User/snippets".source = ./snippets;
+      userFiles = dir: {
+        "${dir}/settings.json".source = "${configFiles}/settings.json";
+        "${dir}/keybindings.json".source = "${configFiles}/keybindings.json";
       };
 
-      linuxFiles = {
-        "Cursor/User/settings.json".source = "${configFiles}/settings.json";
-        "Cursor/User/keybindings.json".source = "${configFiles}/keybindings.json";
-        "Cursor/User/snippets".source = ./snippets;
-      };
+      darwinFiles = userFiles "Library/Application Support/Cursor/User";
+      linuxFiles = userFiles "Cursor/User";
     in
     {
       # --------------------------------------------------------------------------------------------
