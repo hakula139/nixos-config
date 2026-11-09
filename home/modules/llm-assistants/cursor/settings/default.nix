@@ -22,7 +22,7 @@ let
   # Base settings
   # ------------------------------------------------------------------------------------------------
   settingsBase = lib.importJSON ./settings.json;
-  windowsSettings = lib.importJSON ./windows-settings.json;
+  windowsDisplaySettings = lib.importJSON ./windows-settings.json;
 
   # ------------------------------------------------------------------------------------------------
   # Terminal profiles
@@ -33,34 +33,50 @@ let
       icon = "terminal-bash";
       path = "bash";
     };
-
     tmux = {
       args = [
         "-lc"
         ''exec tmux new-session -A -s "''${PWD##*/}"''
       ];
-
       icon = "terminal-tmux";
       path = "bash";
     };
-
     zsh = {
       args = [
         "-l"
         "-i"
       ];
-
       path = "zsh";
     };
   };
 
-  terminalSettings = {
+  # ------------------------------------------------------------------------------------------------
+  # Portable settings
+  # ------------------------------------------------------------------------------------------------
+  portableSettings = {
+    "bashIde.shellcheckPath" = "shellcheck";
+    "bashIde.shfmt.path" = "shfmt";
+    "nix.serverPath" = "nixd";
+    "nix.serverSettings" = {
+      nixd = {
+        formatting.command = [ "nixfmt" ];
+      };
+    };
+    "nushellLanguageServer.nushellExecutablePath" = "nu";
     "terminal.integrated.profiles.linux" = terminalProfiles;
     "terminal.integrated.profiles.osx" = terminalProfiles;
   };
 
   # ------------------------------------------------------------------------------------------------
-  # nixd - machine-specific option completions
+  # Devkit settings
+  # ------------------------------------------------------------------------------------------------
+  # Kept out of the Windows output, where this store path does not exist.
+  devkitSettings = {
+    "markdownlint.configFile" = "${inputs.devkit}/.markdownlint-cli2.jsonc";
+  };
+
+  # ------------------------------------------------------------------------------------------------
+  # nixd completions
   # ------------------------------------------------------------------------------------------------
   nixdCompletions =
     if flakePath != null && flakeConfigName != null then
@@ -80,7 +96,6 @@ let
       in
       {
         nixpkgs.expr = "import (${flake}).inputs.nixpkgs { }";
-
         options = {
           home-manager.expr = hmOptionsExpr;
         }
@@ -97,37 +112,12 @@ let
       { };
 
   # ------------------------------------------------------------------------------------------------
-  # Portable settings
+  # Store path settings
   # ------------------------------------------------------------------------------------------------
-  portableSettings = terminalSettings // {
-    "bashIde.shellcheckPath" = "shellcheck";
-    "bashIde.shfmt.path" = "shfmt";
-
-    "nix.serverPath" = "nixd";
-    "nix.serverSettings" = {
-      nixd = {
-        formatting.command = [ "nixfmt" ];
-      };
-    };
-
-    "nushellLanguageServer.nushellExecutablePath" = "nu";
-  };
-
-  # ------------------------------------------------------------------------------------------------
-  # Markdownlint Settings
-  # ------------------------------------------------------------------------------------------------
-  # Keep out of `portableSettings`, which syncs to Windows where the devkit store path is absent.
-  markdownlintSettings = {
-    "markdownlint.configFile" = "${inputs.devkit}/.markdownlint-cli2.jsonc";
-  };
-
-  # ------------------------------------------------------------------------------------------------
-  # Machine settings
-  # ------------------------------------------------------------------------------------------------
-  machineSettings = portableSettings // {
+  storePathSettings = {
     "bashIde.shellcheckPath" = lib.getExe pkgs.shellcheck;
     "bashIde.shfmt.path" = lib.getExe pkgs.shfmt;
-
+    "direnv.path.executable" = lib.getExe pkgs.direnv;
     "nix.serverPath" = lib.getExe pkgs.nixd;
     "nix.serverSettings" = {
       nixd = {
@@ -135,11 +125,7 @@ let
       }
       // nixdCompletions;
     };
-
     "nushellLanguageServer.nushellExecutablePath" = lib.getExe pkgs.nushell;
-
-    "direnv.path.executable" = lib.getExe pkgs.direnv;
-
     "python.defaultInterpreterPath" = "${config.home.profileDirectory}/bin/python";
   };
 
@@ -157,13 +143,15 @@ let
   # ------------------------------------------------------------------------------------------------
   # Final settings
   # ------------------------------------------------------------------------------------------------
-  settings = settingsBase // portableSettings;
-
-  settingsJson = json.generate "cursor-settings.json" (settings // markdownlintSettings);
-  machineSettingsJson = json.generate "cursor-machine-settings.json" (
-    machineSettings // markdownlintSettings // mirroredNetworkingSettings
+  settingsJson = json.generate "cursor-settings.json" (
+    settingsBase // portableSettings // devkitSettings
   );
-  windowsSettingsJson = json.generate "cursor-windows-settings.json" (settings // windowsSettings);
+  machineSettingsJson = json.generate "cursor-machine-settings.json" (
+    portableSettings // storePathSettings // devkitSettings // mirroredNetworkingSettings
+  );
+  windowsSettingsJson = json.generate "cursor-windows-settings.json" (
+    settingsBase // portableSettings // windowsDisplaySettings
+  );
 
   # ------------------------------------------------------------------------------------------------
   # Windows sync
