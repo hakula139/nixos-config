@@ -56,11 +56,7 @@ let
     "bashIde.shellcheckPath" = "shellcheck";
     "bashIde.shfmt.path" = "shfmt";
     "nix.serverPath" = "nixd";
-    "nix.serverSettings" = {
-      nixd = {
-        formatting.command = [ "nixfmt" ];
-      };
-    };
+    "nix.serverSettings".nixd.formatting.command = [ "nixfmt" ];
     "nushellLanguageServer.nushellExecutablePath" = "nu";
     "terminal.integrated.profiles.linux" = terminalProfiles;
     "terminal.integrated.profiles.osx" = terminalProfiles;
@@ -119,12 +115,10 @@ let
     "bashIde.shfmt.path" = lib.getExe pkgs.shfmt;
     "direnv.path.executable" = lib.getExe pkgs.direnv;
     "nix.serverPath" = lib.getExe pkgs.nixd;
-    "nix.serverSettings" = {
-      nixd = {
-        formatting.command = [ (lib.getExe pkgs.nixfmt) ];
-      }
-      // nixdCompletions;
-    };
+    "nix.serverSettings".nixd = {
+      formatting.command = [ (lib.getExe pkgs.nixfmt) ];
+    }
+    // nixdCompletions;
     "nushellLanguageServer.nushellExecutablePath" = lib.getExe pkgs.nushell;
     "python.defaultInterpreterPath" = "${config.home.profileDirectory}/bin/python";
   };
