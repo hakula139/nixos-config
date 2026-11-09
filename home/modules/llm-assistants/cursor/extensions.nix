@@ -6,8 +6,8 @@
   config,
   pkgs,
   lib,
-  isDarwin,
   repoLib,
+  isDarwin,
 }:
 
 let

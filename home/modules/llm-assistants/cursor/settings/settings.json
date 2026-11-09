@@ -161,7 +161,7 @@
   "evenBetterToml.formatter.allowedBlankLines": 1,
   "evenBetterToml.formatter.arrayAutoExpand": true,
   "evenBetterToml.formatter.arrayTrailingComma": true,
-  "evenBetterToml.formatter.columnWidth": 80,
+  "evenBetterToml.formatter.columnWidth": 100,
   "evenBetterToml.formatter.trailingNewline": true,
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
