@@ -45,7 +45,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── nu-command.nix              # Nushell commands installed under their own names
 │   ├── overlays.nix                # nixpkgs overlay (channels, CLIs, toolchains, custom packages)
 │   ├── packages.nix                # Base and font package groups for each package set
-│   ├── pre-commit.nix              # Shared devkit checks and hook shell
+│   ├── pre-commit.nix              # Shared devkit hook configuration
 │   ├── proxy.nix                   # Proxy options, wrappers, and environment scripts
 │   ├── script-tests.nix            # `checks.<system>.scripts`, nu-test and bun tests
 │   ├── secrets.nix                 # Secret declarations and path helpers

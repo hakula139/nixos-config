@@ -89,7 +89,7 @@
     };
 
     devkit = {
-      url = "github:hakula139/devkit/v2";
+      url = "github:hakula139/devkit/v3";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         nixpkgs-unstable.follows = "nixpkgs-unstable";
@@ -358,8 +358,6 @@
       # Checks
       # --------------------------------------------------------------------------------------------
       checks = forAllSystems (system: {
-        pre-commit = (preCommitFor system).check;
-
         scripts = import ./lib/script-tests.nix {
           pkgs = pkgsFor system;
           root = ./.;
@@ -373,7 +371,7 @@
         system:
         import ./lib/dev-shells.nix {
           pkgs = pkgsFor system;
-          preCommit = (preCommitFor system).shell;
+          preCommit = preCommitFor system;
         }
       );
 
