@@ -1,5 +1,5 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>hakula139/devkit#v1"],
+  "extends": ["github>hakula139/devkit#v2"],
   "enabledManagers": ["custom.regex", "github-actions", "nix"]
 }

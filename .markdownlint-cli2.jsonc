@@ -1,0 +1,6 @@
+{
+  "config": {
+    // Skill and agent files open with YAML front matter, and prompt files open with prose.
+    "first-line-heading": false,
+  },
+}
