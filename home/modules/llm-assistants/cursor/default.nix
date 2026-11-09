@@ -36,7 +36,7 @@ in
     };
 
     windowsSync = {
-      enable = lib.mkEnableOption "syncing Nix-managed Cursor settings to Windows (WSL only)";
+      enable = lib.mkEnableOption "syncing Cursor settings and keybindings to Windows (WSL only)";
     };
 
     mirroredNetworking = {
@@ -65,7 +65,6 @@ in
           pkgs
           lib
           inputs
-          repoLib
           flakeConfigName
           isDarwin
           isNixOS
@@ -85,6 +84,11 @@ in
       remoteFiles = import ./remote.nix {
         inherit pkgs lib systemManagerPaths;
         inherit (settings) machineSettingsJson;
+      };
+
+      windowsSync = import ./windows-sync.nix {
+        inherit pkgs repoLib;
+        inherit (settings) windowsSettingsJson;
       };
 
       # --------------------------------------------------------------------------------------------
@@ -117,7 +121,7 @@ in
       # --------------------------------------------------------------------------------------------
       # User configuration files
       # --------------------------------------------------------------------------------------------
-      home.packages = lib.optional cfg.windowsSync.enable settings.syncWindowsSettings;
+      home.packages = lib.optional cfg.windowsSync.enable windowsSync.syncWindowsSettings;
 
       home.file =
         lib.optionalAttrs config.hakula.llm-assistants.enable {
