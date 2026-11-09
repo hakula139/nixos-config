@@ -14,21 +14,11 @@ env:
 
 jobs:
   flake-check:
-    name: Nix Flake Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
-      - name: Setup Nix
-        uses: ./.github/actions/setup-nix
-        with:
-          cache_prefix: flake-check
-          cachix_name: ${{ env.CACHIX_NAME }}
-          cachix_skip_push: 'true'
-
-      - name: Run flake check
-        run: nix flake check --all-systems
+    uses: hakula139/devkit/.github/workflows/nix.yml@v1
+    with:
+      macos: false
+    secrets:
+      CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
   build:
     name: Build ${{ matrix.config.name }}
@@ -77,13 +67,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Setup Nix
-        uses: ./.github/actions/setup-nix
+      - name: Set up Nix
+        uses: hakula139/devkit/.github/actions/setup-nix@v1
         with:
-          cache_prefix: ${{ matrix.config.id }}
-          cachix_name: ${{ env.CACHIX_NAME }}
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          cachix_skip_push: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Check deployment derivation
         if: matrix.config.deploy
