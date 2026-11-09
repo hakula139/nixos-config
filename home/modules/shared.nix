@@ -56,7 +56,7 @@ in
       .autopilot on
     '';
 
-    ".editorconfig".source = lib.path.append repo.root ".editorconfig";
+    ".editorconfig".source = "${inputs.devkit}/.editorconfig";
     ".prettierrc.json".source = "${inputs.devkit}/.prettierrc.json";
     ".taplo.toml".source = "${inputs.devkit}/.taplo.toml";
     "ruff.toml".source = lib.path.append repo.root "ruff.toml";
