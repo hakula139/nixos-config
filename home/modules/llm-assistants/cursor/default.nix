@@ -6,20 +6,21 @@
   config,
   pkgs,
   lib,
+  inputs,
+  repoLib,
   flakeConfigName,
   isDesktop,
   isNixOS,
-  repoLib,
   systemManagerPaths,
   ...
 }:
 
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
+  inherit (repoLib.llmAssistants) mcpOptions;
+
   cfg = config.hakula.cursor;
   shared = config.lib.llmAssistants;
-
-  inherit (repoLib.llmAssistants) mcpOptions;
   cursorMcpServers = mcpOptions.commonServerNames;
 in
 {
@@ -63,10 +64,11 @@ in
           config
           pkgs
           lib
+          inputs
+          repoLib
           flakeConfigName
           isDarwin
           isNixOS
-          repoLib
           ;
       };
 
@@ -75,8 +77,8 @@ in
           config
           pkgs
           lib
-          isDarwin
           repoLib
+          isDarwin
           ;
       };
 

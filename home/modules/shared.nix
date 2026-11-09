@@ -57,7 +57,8 @@ in
     '';
 
     ".editorconfig".source = lib.path.append repo.root ".editorconfig";
-    ".prettierrc.json".source = "${inputs.devkit.outPath}/.prettierrc.json";
+    ".prettierrc.json".source = "${inputs.devkit}/.prettierrc.json";
+    ".taplo.toml".source = "${inputs.devkit}/.taplo.toml";
     "ruff.toml".source = lib.path.append repo.root "ruff.toml";
   };
 
