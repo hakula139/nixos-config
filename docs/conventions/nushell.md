@@ -17,11 +17,11 @@ General Nushell conventions and traps live in the `nushell` skill from [hakula13
 
 ## Testing
 
-Each script's tests live in a `<script>.test.nu` beside it, as commands named `test <behavior>`. `nu-test <file>...` starts every test concurrently in its own process and `TMPDIR` and confines `mktemp` to a scratch directory. A test needing tools beyond Nushell, bash, and coreutils adds them to the check's inputs.
+Each script's tests live in a `<script>.test.nu` beside it. The `nushell` skill's [nu-test runner section](https://github.com/hakula139/plugins/blob/main/plugins/hakula-languages/skills/nushell/SKILL.md#the-nu-test-runner) covers how the runner executes them. A test needing tools beyond Nushell, bash, and coreutils adds them to the check's inputs.
 
 - **Fixtures**: golden fixtures live under `fixtures/<group>/<case>/`. Store fixtures are read-only and `cp` keeps the mode, so `chmod u+w` a copy the script writes.
-- **Stubs**: a stand-in for an executable is `<executable>.stub.nu` beside the test, which the runner installs in `$env.NU_TEST_STUBS`. A stub that records calls appends JSON lines to `$env.STUB_LOG`, read back with `open $log | from json --objects`.
-- **Refactors and ports**: run the old script (`git show HEAD:<path>`) under the wrapper's runtime `PATH` too, so a pre-existing bug does not read as a regression, and do this before porting a hook, since a hook error leaves the tool call running and silently disables the hook.
+- **Stubs**: a stub that records calls appends JSON lines to `$env.STUB_LOG`, read back with `open $log | from json --objects`.
+- **Refactors and ports**: run the old script (`git show HEAD:<path>`) under the wrapper's runtime `PATH`, so a pre-existing bug does not read as a regression, and do this before porting a hook, since a hook error leaves the tool call running and silently disables the hook.
 
 ## Linting
 
