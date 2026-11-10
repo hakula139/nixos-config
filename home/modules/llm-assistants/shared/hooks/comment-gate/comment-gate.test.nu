@@ -29,7 +29,6 @@ def gate [env_vars: record]: nothing -> any {
         def load(path):
             # Open the file and read it
             return open(path).read()
-
         "
         | str dedent
       )
