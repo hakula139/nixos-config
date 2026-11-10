@@ -117,9 +117,9 @@ in
 
       # Assistant local state
       "**/.agents/plans/"
+      "**/.agents/skills/*.local"
       "**/.claude/agent-memory-local/"
       "**/.claude/settings.local.json"
-      "**/.claude/worktrees/"
     ];
   };
 

@@ -530,25 +530,49 @@ def worktrees-main [dir: string]: nothing -> any {
   $dir | parse --regex '^(?<main>.+)__worktrees/' | get -o 0.main
 }
 
-# The nearest existing ancestor of a directory, since a deleted worktree no longer exists. A
-# deleted sibling worktree resolves to its main checkout.
-def existing-ancestor [dir: string]: nothing -> any {
+# The nearest existing ancestor of a directory without resolving a sibling worktree, so a deleted
+# sibling worktree stays outside its main checkout.
+def literal-ancestor [dir: string]: nothing -> any {
   if ($dir | path exists) {
     $dir
   } else {
-    let main = (worktrees-main $dir)
+    let parent = ($dir | path dirname)
 
-    if $main != null and (($main | path join ".git") | path exists) {
-      $main
+    if $parent == $dir {
+      null
     } else {
-      let parent = ($dir | path dirname)
-
-      if $parent == $dir {
-        null
-      } else {
-        existing-ancestor $parent
-      }
+      literal-ancestor $parent
     }
+  }
+}
+
+# The nearest existing ancestor of a directory, or the main checkout of a deleted sibling worktree.
+def existing-ancestor [dir: string]: nothing -> any {
+  let ancestor = (literal-ancestor $dir)
+  let main = (worktrees-main $dir)
+
+  if (
+    $main != null
+    and not ($ancestor | str starts-with $"($main)__worktrees/")
+    and ($main | path join ".git" | path exists)
+  ) {
+    $main
+  } else {
+    $ancestor
+  }
+}
+
+# Whether a path lies inside a checkout, resolving a symlink in its nearest existing ancestor.
+def inside-checkout [path: string, checkout: string]: nothing -> bool {
+  let ancestor = (literal-ancestor ($path | path dirname))
+
+  if $ancestor == null {
+    false
+  } else {
+    let root = ($checkout | path expand)
+    let resolved = ($ancestor | path expand)
+
+    $resolved == $root or ($resolved | str starts-with $"($root)/")
   }
 }
 
@@ -623,13 +647,14 @@ def repo-of-file [repos: record, path: string]: nothing -> any {
   $repos | get -o ($path | path dirname)
 }
 
-# Paths git ignores, checked once per checkout. A path whose directory is gone is kept, since a
-# checkout ignores its nested worktrees and would otherwise drop them.
+# Paths git ignores, checked once per checkout. A path outside its resolved checkout is never
+# reported, since a deleted sibling worktree resolves to its main checkout, whose check-ignore
+# rejects it.
 def ignored-paths [repos: record, paths: list<string>]: nothing -> list<string> {
   $paths
-  | where {|path| $path | path dirname | path exists }
   | each {|path| {path: $path, repo: (repo-of-file $repos $path)} }
   | where repo != null
+  | where {|row| inside-checkout $row.path $row.repo.checkout }
   | group-by {|row| $row.repo.checkout }
   | transpose checkout rows
   | each {|group|

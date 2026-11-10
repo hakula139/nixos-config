@@ -43,15 +43,7 @@ def git-repo [dir: string, name: string]: nothing -> string {
       init --quiet
   )
 
-  (
-    "
-    .claude/worktrees/
-    .claude/agent-memory-local/
-
-    "
-    | str dedent
-  )
-  | save ($path | path join ".gitignore")
+  ".claude/agent-memory-local/\n" | save ($path | path join ".gitignore")
   ^git -C $path add ".gitignore"
 
   (
@@ -244,10 +236,7 @@ def digest-run [
   let config_file = ($dir | path join "config.json")
 
   {
-    excludedDirs: [
-      '/\.claude/worktrees/workmux/'
-      '/[^/]+__worktrees/workmux-'
-    ]
+    excludedDirs: ['/[^/]+__worktrees/workmux-']
     labels: {default: ["work"], projects: {nixos-config: ["personal"]}}
     readingMinutes: 10
     maxMinutes: 60
@@ -1023,8 +1012,8 @@ def "test repositories resolve subdirectories and worktrees, and missing paths r
     {
       name: "gone"
       clock: "10:03"
-      cwd: ($app | path join ".claude/worktrees/gone")
-      file: ($app | path join ".claude/worktrees/gone/d.nu")
+      cwd: ($dir | path join "app__worktrees/gone")
+      file: ($dir | path join "app__worktrees/gone/d.nu")
       repo: "app"
       repos: {app: 1.0}
     }
@@ -1061,7 +1050,7 @@ def "test repositories resolve subdirectories and worktrees, and missing paths r
   assert equal $output.repositories {app: $app}
 }
 
-def "test a checkout behind a symlinked parent keeps its writes" [] {
+def "test a checkout behind a symlinked parent keeps its writes except ignored ones" [] {
   let dir = (mktemp --directory)
   mkdir ($dir | path join "real")
   let app = (git-repo ($dir | path join "real") "app")
@@ -1074,9 +1063,9 @@ def "test a checkout behind a symlinked parent keeps its writes" [] {
       file_path: ($linked | path join "src/a.nu")
       content: "x"
     })
-    (claude-prompt $linked "10:05" "then the deleted worktree")
+    (claude-prompt $linked "10:05" "then the removed directory")
     (claude-tool $linked "10:06" "Write" {
-      file_path: ($linked | path join ".claude/worktrees/gone/b.nu")
+      file_path: ($linked | path join ".claude/agent-memory-local/gone/b.nu")
       content: "x"
     })
   ]
@@ -1085,7 +1074,7 @@ def "test a checkout behind a symlinked parent keeps its writes" [] {
   let day = $output.days.0
 
   assert equal $day.sessions.0.repo "app"
-  assert equal ($day.sessions.0.prompts | get repos) [{app: 1.0} {app: 1.0}]
+  assert equal ($day.sessions.0.prompts | get repos) [{app: 1.0} {}]
   assert equal $output.repositories {app: $app}
 }
 
@@ -1110,17 +1099,25 @@ def "test a symlink outside a repository credits the repository it points into" 
   assert equal $output.repositories.lib $lib
 }
 
-def "test writes git ignores count only while their directory exists" [] {
+def "test writes to git-ignored paths never count" [] {
   let dir = (mktemp --directory)
   let app = (git-repo $dir "app")
   let lib = (git-repo $dir "lib")
   mkdir ($app | path join "src")
   mkdir ($lib | path join ".claude/agent-memory-local/r")
+  let live = ($dir | path join "app__worktrees/live")
+  (
+    ^git
+      -C $app
+      worktree add $live
+        --detach
+        --quiet
+  )
   transcript $dir ["claude/projects/app/a.jsonl"] [
     (claude-prompt $app "10:00" "write files")
     (claude-tool $app "10:01" "Write" {file_path: ($app | path join "src/a.nu"), content: "x"})
     (claude-tool $app "10:02" "Write" {
-      file_path: ($app | path join ".claude/worktrees/gone/src/b.nu")
+      file_path: ($app | path join ".claude/agent-memory-local/gone/src/b.nu")
       content: "x"
     })
     (claude-tool $app "10:03" "Write" {
@@ -1132,11 +1129,15 @@ def "test writes git ignores count only while their directory exists" [] {
       content: "x"
     })
     (claude-tool $app "10:04" "Write" {file_path: ($lib | path join "README.md"), content: "x"})
+    (claude-tool $app "10:05" "Write" {
+      file_path: ($live | path join ".claude/agent-memory-local/gone/c.md")
+      content: "x"
+    })
   ]
 
   let day = (digest-day $dir)
 
-  assert equal $day.sessions.0.prompts.0.repos {app: 0.67, lib: 0.33}
+  assert equal $day.sessions.0.prompts.0.repos {app: 0.5, lib: 0.5}
 }
 
 def "test a prompt earns its turn and a reading allowance until the next prompt anywhere" [] {
