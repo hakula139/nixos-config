@@ -44,6 +44,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── dev-shells.nix              # `devShells.<system>`, the default and browser shells
 │   ├── nu-command-test.nix         # `checks.<system>.nu-command`, the wrapper guard check
 │   ├── nu-command-test.nu          # Script wrapped by the guard check
+│   ├── nu-command-test.sh          # Cases the guard check runs
 │   ├── nu-command.nix              # Nushell commands installed under their own names
 │   ├── nu-wrapper.sh               # Guard rejecting arguments Nushell would splice as code
 │   ├── overlays.nix                # nixpkgs overlay (channels, CLIs, toolchains, custom packages)

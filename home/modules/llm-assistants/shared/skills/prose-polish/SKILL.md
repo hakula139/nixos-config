@@ -17,12 +17,11 @@ The bundled script is the only way prose is polished here. It sends each eligibl
 
 2. Run the script. Resolve `<skill-dir>` to this skill's directory.
 
-   - For a draft, create a temp file, write the draft to that path with the assistant's file-edit tool, then pass the same literal path. The script rewrites the file in place and prints nothing, so read it back and compare it with the draft.
+   - For a draft, run `mktemp`, write the draft with the assistant's file-edit tool to the path it prints, then pass that literal path. The script rewrites the file in place and prints nothing, so read it back and compare it with the draft.
 
      ```bash
-     draft="$(mktemp)"
-     # Write the draft to the path in $draft with the file-edit tool.
-     <skill-dir>/scripts/prose-polish "$draft"
+     mktemp
+     <skill-dir>/scripts/prose-polish <draft-path>
      ```
 
    - For a file, pass its path. The script rewrites the file in place and prints nothing, so copy it first and diff the two. It covers every eligible paragraph, including ones the agent did not write.
