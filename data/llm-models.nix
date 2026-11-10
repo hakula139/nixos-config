@@ -242,19 +242,19 @@ in
       };
     };
 
-    "kimi-k3" = localCommon // {
-      name = "Kimi K3";
+    "kimi-k3.1-pro" = localCommon // {
+      name = "Kimi K3.1 Pro";
       vendor = "moonshot";
 
       contextWindow = 409600;
-      maxTokens = 65536;
+      maxTokens = 131072;
       autoCompactTokens = 320000;
 
-      channelId.local = "local_v2_k3/Kimi-K3";
+      channelId.local = "local_v2/Kimi-K3.1-Pro";
       channelCost.local = {
-        input = 0.192;
-        output = 16;
-        cacheRead = 0.182;
+        input = 2.0;
+        output = 10.0;
+        cacheRead = 0.2;
         cacheWrite = 0;
       };
     };
