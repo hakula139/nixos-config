@@ -21,4 +21,3 @@ __pycache__/
 **/.agents/skills/*.local
 **/.claude/agent-memory-local/
 **/.claude/settings.local.json
-/.claude/worktrees/
