@@ -163,7 +163,7 @@ Enter a repository's dev shell only from within that repository, since its hook 
 
 ### Worktrees
 
-Use Workmux for worktrees and never an assistant's built-in worktree feature, such as Codex's `--worktree`, `/worktree`, or `create_worktree`, OMP's `/wt` or `omp worktree add`, or OpenCode workspaces. The `git-workflow` skill owns the commands.
+Use Workmux for worktrees and never an assistant's built-in worktree feature, such as Codex's `--worktree`, `/worktree`, or `create_worktree`, and OMP's `/wt` or `omp worktree add`. The `git-workflow` skill owns the commands.
 
 ### Shell Commands
 
@@ -200,7 +200,7 @@ Custom agents set their own model tier.
 - **Mini tier**: The mini tier may run on a cheaper model, so give it only the researcher's read-only lookups and background checks and the operator's approved operations.
 - **Effort**: Effort follows the configured tier within the native client's capabilities, but use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence, and if the selected route is unavailable, report that before switching.
 - **Track record**: Load the `model-delegation` skill, which holds each model's track record, once per session before first handing a task to a non-flagship tier or another assistant, and again after a review or after the user corrects a delegate's work.
-- **Workmux**: When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, `omp`, or `opencode`), because Workmux's configured default is static.
+- **Workmux**: When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, or `omp`), because Workmux's configured default is static.
 - **Codex panes**: After typing a prompt into a Codex pane, send Enter as a separate keystroke and confirm the task started, since Codex panes sometimes miss the submitting Enter.
 
 ### MCP Servers

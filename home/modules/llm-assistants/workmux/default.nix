@@ -81,9 +81,5 @@ in
     # Program configuration
     # ----------------------------------------------------------------------------------------------
     xdg.configFile."workmux/config.yaml".source = configFile;
-
-    xdg.configFile."opencode/plugins/workmux-status.ts" = lib.mkIf config.hakula.opencode.enable {
-      source = "${workmux.src}/resources/opencode/plugins/workmux-status.ts";
-    };
   };
 }

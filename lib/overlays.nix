@@ -36,7 +36,6 @@
       codex
       codex-acp
       omp
-      opencode
       workmux
       ;
 
