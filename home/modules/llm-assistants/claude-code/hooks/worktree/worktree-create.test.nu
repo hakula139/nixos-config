@@ -88,8 +88,8 @@ def invoke [payload: record, vars: record]: nothing -> record {
 def "test create provisions or reuses a worktree" [] {
   let repo = (setup-repo (mktemp --directory) --with-origin)
   let remote_less = (setup-repo (mktemp --directory))
-  let created = ($repo.root | path join "app__worktrees" "demo")
-  let other = ($repo.root | path join "app__worktrees" "other-demo")
+  let created = ($repo.root | path join "app__worktrees/demo")
+  let other = ($repo.root | path join "app__worktrees/other-demo")
   let fallback = (git-rev $remote_less.app "HEAD")
 
   let cases = [
