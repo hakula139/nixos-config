@@ -70,10 +70,7 @@ in
       };
 
       permissions = import ./permissions.nix {
-        inherit lib;
-        policy = shared.permissions;
-        inherit (shared) skillScripts;
-        skillsDir = "${shared.codexConfigDir}/skills";
+        inherit lib shared;
       };
 
       mcp = import ./mcp.nix {

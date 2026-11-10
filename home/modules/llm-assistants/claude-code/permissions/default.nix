@@ -4,18 +4,19 @@
 
 {
   lib,
-  policy,
-  skillScripts,
-  skillsDir,
+  shared,
 }:
 
 let
+  skillScriptPaths = map (
+    script: "${shared.claudeConfigDir}/skills/${script.skill}/${script.file}"
+  ) shared.skillScripts;
+
   allowRules = import ./allow-rules.nix {
     inherit
       lib
-      policy
-      skillScripts
-      skillsDir
+      shared
+      skillScriptPaths
       ;
   };
   denyRules = import ./deny-rules.nix;
@@ -29,11 +30,6 @@ in
 
   skipDangerousModePermissionPrompt = true;
   autoMode = import ./auto-mode.nix {
-    inherit
-      lib
-      policy
-      skillScripts
-      skillsDir
-      ;
+    inherit lib shared;
   };
 }

@@ -13,12 +13,13 @@ const FIXTURES = ($SCRIPT_DIR | path join "fixtures")
 const PROMPT = "Shared rules."
 const REPAIR_PROMPT = "Repair rules."
 
-# Runs the script in a fresh directory with the stub's `rules`, as the wrapper does. `run` is the
-# completed script and `calls` each model call's `model`, `user` message, and `passages`.
+# Runs a script copy with stub rules and config, as the wrapper does. `run` is the completed
+# script and `calls` each model call's `model`, `user` message, and `passages`.
 def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> record {
   let dir = (mktemp --directory)
   let rules_file = ($dir | path join "rules.json")
   let config_file = ($dir | path join "config.json")
+  let script = ($dir | path join "prose-polish.nu")
   let log = ($dir | path join "calls.jsonl")
 
   $rules
@@ -37,12 +38,15 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
   | to json
   | save $config_file
 
+  open --raw $SCRIPT
+  | str replace --all '@config@' $config_file
+  | save --force $script
+
   let run = with-env {STUB_LOG: $log, STUB_RULES: $rules_file} {
     (
       $stdin
       | ^$nu.current-exe --no-config-file
-        $SCRIPT
-          --config $config_file
+        $script
           ...$args
       | complete
     )
@@ -120,6 +124,13 @@ def "test the default model and --model" [] {
   let chosen = (command [--model gemini-3.8-flash] $input $target.data.rules)
   assert equal $chosen.run.exit_code 0 $chosen.run.stderr
   assert equal ($chosen.calls | get model) ["gateway/gemini-3.8-flash"]
+}
+
+def "test a caller-supplied config is rejected" [] {
+  let result = (command [--config config.json] "" [])
+
+  assert equal $result.run.exit_code 1
+  assert ($result.run.stderr | str contains "unknown flag") $result.run.stderr
 }
 
 def "test polish cases" [] {

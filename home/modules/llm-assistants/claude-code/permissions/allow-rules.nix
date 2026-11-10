@@ -4,33 +4,33 @@
 
 {
   lib,
-  policy,
-  skillScripts,
-  skillsDir,
+  shared,
+  skillScriptPaths,
 }:
 
 let
-  inherit (policy) allows;
+  inherit (shared.permissions) allowCommands mcpAllows;
+  inherit (shared.permissions.allows) paths tools;
 
   toolNames = {
     webFetch = "WebFetch";
     webSearch = "WebSearch";
   };
 
-  # Claude Code's `Bash(ls *)` matches `ls` with or without arguments, but never `lsof`.
-  commandRules = map (command: "Bash(${command} *)") policy.allowCommands;
+  # Claude Code's `Bash(ls *)` matches `ls` with or without arguments.
+  commandRules = map (command: "Bash(${command} *)") allowCommands;
 
-  skillRules = map (script: "Bash(${skillsDir}/${script.skill}/${script.file} *)") skillScripts;
+  skillRules = map (path: "Bash(${path} *)") skillScriptPaths;
 
-  mcpRules = map (entry: "mcp__${entry.displayName}__${entry.tool}") policy.mcpAllows;
+  mcpRules = map (entry: "mcp__${entry.displayName}__${entry.tool}") mcpAllows;
 
-  toolRules = map (tool: toolNames.${tool}) allows.tools;
+  toolRules = map (tool: toolNames.${tool}) tools;
 
   # A leading `//` makes a Claude Code path rule absolute.
   pathRules = lib.concatMap (path: [
     "Read(/${path}/**)"
     "Edit(/${path}/**)"
-  ]) allows.paths;
+  ]) paths;
 
   # The built-in IDE server is outside the shared MCP registry.
   builtinRules = [

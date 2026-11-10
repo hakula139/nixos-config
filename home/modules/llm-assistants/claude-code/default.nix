@@ -75,10 +75,7 @@ in
       };
 
       permissionSettings = import ./permissions {
-        inherit lib;
-        policy = shared.permissions;
-        inherit (shared) skillScripts;
-        skillsDir = "${shared.claudeConfigDir}/skills";
+        inherit lib shared;
       };
 
       plugins = import ./plugins.nix {

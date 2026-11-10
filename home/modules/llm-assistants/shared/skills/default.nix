@@ -51,34 +51,15 @@ let
   # ------------------------------------------------------------------------------------------------
   # Skill scripts
   # ------------------------------------------------------------------------------------------------
-  skippedScript =
-    name:
-    lib.any (suffix: lib.hasSuffix suffix name) [
-      ".test.nu"
-      ".stub.nu"
-    ];
-
-  scriptsFrom =
-    source:
-    if lib.isAttrs source && source ? passthru.entries then
-      builtins.filter (lib.hasPrefix "scripts/") (builtins.attrNames source.passthru.entries)
-    else if lib.pathExists (source + "/scripts") then
-      map (name: "scripts/${name}") (
-        builtins.attrNames (
-          lib.filterAttrs (name: type: type == "regular" && !skippedScript name) (
-            builtins.readDir (source + "/scripts")
-          )
-        )
-      )
-    else
-      [ ];
-
   # Only skills this repository owns contribute permission rules, so an input bump cannot silently
-  # add allows for scripts this repository does not review.
+  # add allows for scripts this repository does not review. A built skill declares its scripts
+  # through `passthru.scripts`.
+  builtSkills = lib.filterAttrs (_: lib.isAttrs) localSkills;
+
   skillScripts = lib.concatLists (
     lib.mapAttrsToList (
-      skill: source: map (file: { inherit skill file; }) (scriptsFrom source)
-    ) localSkills
+      skill: source: map (file: { inherit skill file; }) (source.scripts or [ ])
+    ) builtSkills
   );
 
   # ------------------------------------------------------------------------------------------------
@@ -92,7 +73,7 @@ let
 in
 lib.mkMerge [
   {
-    lib.llmAssistants.skillScripts = skillScripts;
+    lib.llmAssistants.skillScripts = lib.optionals cfg.enable skillScripts;
   }
 
   (lib.mkIf cfg.enable {

@@ -4,12 +4,12 @@
 
 {
   lib,
-  policy,
-  skillScripts,
-  skillsDir,
+  shared,
 }:
 
 let
+  policy = shared.permissions;
+
   softDenyClearance = ''
     Allow when the user explicitly approves the action, including approval already given in
     the conversation. Otherwise, block it even if an allow rule would permit it.
@@ -33,19 +33,6 @@ let
   }) policy.mcpGates;
 
   toSoftDenyRules = entries: map (rule: "${rule} ${toLine softDenyClearance}") (toProseRules entries);
-
-  skillScriptPaths = map (script: "${skillsDir}/${script.skill}/${script.file}") skillScripts;
-
-  exemptSkillScripts =
-    entry:
-    entry
-    // lib.optionalAttrs (entry.name == "Shell edits to repository files" && skillScriptPaths != [ ]) {
-      reason = ''
-        ${lib.trim entry.reason} The scripts bundled with a shared skill rewrite files in place by
-        their own rules, so this rule does not cover them when run from their installed paths:
-        ${lib.concatMapStringsSep ", " (path: "`${path}`") skillScriptPaths}.
-      '';
-    };
 in
 {
   classifyAllShell = false;
@@ -58,7 +45,5 @@ in
   soft_deny = [
     "$defaults"
   ]
-  ++ toSoftDenyRules (
-    policy.gates.commands ++ mcpGates ++ map exemptSkillScripts policy.gates.policies
-  );
+  ++ toSoftDenyRules (policy.gates.commands ++ mcpGates ++ policy.gates.policies);
 }
