@@ -33,7 +33,7 @@ def invoke [payload: record, vars: record]: nothing -> record {
 
 def "test remove deletes through workmux and fails while the directory remains" [] {
   let root = (mktemp --directory)
-  let worktree = ($root | path join "app__worktrees" "demo")
+  let worktree = ($root | path join "app__worktrees/demo")
 
   let cases = [
     {
