@@ -61,7 +61,8 @@ let
   );
 
   mkSkillScriptPaths =
-    skillsDir: map (script: "${skillsDir}/${script.skill}/${script.file}") skillScripts;
+    skillsDir:
+    map (script: "${skillsDir}/${script.skill}/${script.file}") (lib.optionals cfg.enable skillScripts);
 
   # ------------------------------------------------------------------------------------------------
   # Skill files
