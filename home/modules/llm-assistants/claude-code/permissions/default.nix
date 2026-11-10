@@ -8,15 +8,8 @@
 }:
 
 let
-  skillsDir = "${shared.claudeConfigDir}/skills";
-  skillScriptPaths = map (shared.mkSkillScriptPath skillsDir) shared.skillScripts;
-
   allowRules = import ./allow-rules.nix {
-    inherit
-      lib
-      shared
-      skillScriptPaths
-      ;
+    inherit lib shared;
   };
   denyRules = import ./deny-rules.nix;
 in

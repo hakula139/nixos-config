@@ -184,9 +184,9 @@
         Python or other scripts that write files. These changes go through the assistant's
         file-edit tools, which run the formatting and comment-check hooks. This rule does not
         cover generated files, scratch files, files under /tmp, gitignored build output, files
-        outside a repository, Git operations, formatters, code generators, and the scripts
-        bundled with the shared skills in the assistant's own skills directory, which rewrite
-        files by their own rules.
+        outside a repository, Git operations, formatters and code generators that rewrite files
+        by their own rules, or the scripts of the skills this configuration builds, which the
+        allow rules name by path.
       '';
     }
   ];

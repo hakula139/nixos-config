@@ -112,6 +112,13 @@ def long-document [count: int]: nothing -> string {
   1..$count | each {|n| $"Paragraph ($n). ($filler)" } | str join "\n\n"
 }
 
+def "test a caller-supplied config is rejected" [] {
+  let result = (command [--config config.json] "" [])
+
+  assert equal $result.run.exit_code 1
+  assert ($result.run.stderr | str contains "unknown flag") $result.run.stderr
+}
+
 def "test the default model and --model" [] {
   let target = (case polish ideographic-indent)
   let input = (bytes ($target.dir | path join "input.md"))
@@ -123,13 +130,6 @@ def "test the default model and --model" [] {
   let chosen = (command [--model gemini-3.8-flash] $input $target.data.rules)
   assert equal $chosen.run.exit_code 0 $chosen.run.stderr
   assert equal ($chosen.calls | get model) ["gateway/gemini-3.8-flash"]
-}
-
-def "test a caller-supplied config is rejected" [] {
-  let result = (command [--config config.json] "" [])
-
-  assert equal $result.run.exit_code 1
-  assert ($result.run.stderr | str contains "unknown flag") $result.run.stderr
 }
 
 def "test polish cases" [] {

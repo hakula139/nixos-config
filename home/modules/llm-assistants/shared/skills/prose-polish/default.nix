@@ -16,6 +16,8 @@
 }:
 
 let
+  skillScript = "scripts/prose-polish";
+
   json = pkgs.formats.json { };
 
   # Every catalog model sits on a single gateway channel.
@@ -40,6 +42,7 @@ let
     name = "prose-polish";
     script = ./scripts/prose-polish.nu;
     runtimeInputs = [ pkgs.coreutils ];
+
     makeWrapperArgs = [
       "--set"
       "PROSE_POLISH_CONFIG"
@@ -56,7 +59,7 @@ let
     ];
   };
 in
-pkgs.runCommand "prose-polish-skill" { passthru.scripts = [ "scripts/prose-polish" ]; } ''
+pkgs.runCommand "prose-polish-skill" { passthru.scripts = [ skillScript ]; } ''
   cp -r --no-preserve=mode ${src} "$out"
-  install -Dm0755 ${lib.getExe command} "$out/scripts/prose-polish"
+  install -Dm0755 ${lib.getExe command} "$out/${skillScript}"
 ''

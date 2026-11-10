@@ -60,7 +60,8 @@ let
     ) localSkills
   );
 
-  mkSkillScriptPath = skillsDir: script: "${skillsDir}/${script.skill}/${script.file}";
+  mkSkillScriptPaths =
+    skillsDir: map (script: "${skillsDir}/${script.skill}/${script.file}") skillScripts;
 
   # ------------------------------------------------------------------------------------------------
   # Skill files
@@ -74,8 +75,7 @@ in
 lib.mkMerge [
   {
     lib.llmAssistants = {
-      skillScripts = lib.optionals cfg.enable skillScripts;
-      inherit mkSkillScriptPath;
+      inherit mkSkillScriptPaths;
     };
   }
 

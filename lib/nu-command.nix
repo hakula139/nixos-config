@@ -23,19 +23,11 @@ let
   wrapperFlags =
     lib.optionalAttrs (config != null) { config = json.generate "${name}.json" config; } // flags;
 
-  # Nushell rebuilds the `main ...` line from argv without quoting `--` arguments.
-  argumentGuard = ''
-    for arg in "$@"; do
-      if [[ "$arg" == --* && ! "$arg" =~ ^--[A-Za-z][A-Za-z0-9-]*$ ]]; then
-        echo "${name}: unsupported argument: $arg" >&2
-        exit 2
-      fi
-    done
-  '';
+  argumentGuard = builtins.readFile ./nu-wrapper.sh;
 in
 wrapPackage {
   inherit pkgs;
-  # `--help` names `main` after this file, which `makeWrapperArgs` would rename.
+  # `--help` names `main` after this file, which `writeNuBin`'s `makeWrapperArgs` would rename.
   pkg = pkgs.writers.writeNuBin name (builtins.readFile script);
 
   wrapArgs = [

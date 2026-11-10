@@ -42,7 +42,10 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── aria2.nix                   # Shared aria2 download and RPC settings
 │   ├── builders.nix                # mk* host builders
 │   ├── dev-shells.nix              # `devShells.<system>`, the default and browser shells
+│   ├── nu-command-test.nix         # `checks.<system>.nu-command`, the wrapper guard check
+│   ├── nu-command-test.nu          # Script wrapped by the guard check
 │   ├── nu-command.nix              # Nushell commands installed under their own names
+│   ├── nu-wrapper.sh               # Guard rejecting arguments Nushell would splice as code
 │   ├── overlays.nix                # nixpkgs overlay (channels, CLIs, toolchains, custom packages)
 │   ├── packages.nix                # Base and font package groups for each package set
 │   ├── pre-commit.nix              # Shared devkit hook configuration

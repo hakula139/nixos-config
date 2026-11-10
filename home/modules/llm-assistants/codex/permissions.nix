@@ -10,11 +10,15 @@
 let
   policy = shared.permissions;
 
-  skillsDir = "${shared.codexConfigDir}/skills";
-  skillScriptPaths = map (shared.mkSkillScriptPath skillsDir) shared.skillScripts;
-
   toPattern =
     command: lib.concatStringsSep ", " (map (arg: ''"${arg}"'') (lib.splitString " " command));
+
+  toAllowRule = pattern: ''
+    prefix_rule(
+        pattern = [${pattern}],
+        decision = "allow",
+    )
+  '';
 
   gateRules = map (gate: ''
     prefix_rule(
@@ -27,19 +31,11 @@ let
   # Codex applies the strictest matching decision, and `allow` runs a command outside the sandbox
   # without review, so only read-only commands and the scripts of skills this repository owns
   # render as allows.
-  allowRules = map (command: ''
-    prefix_rule(
-        pattern = [${toPattern command}],
-        decision = "allow",
-    )
-  '') policy.allows.commands.readOnly;
+  allowRules = map (command: toAllowRule (toPattern command)) policy.allows.commands.readOnly;
 
-  skillRules = map (path: ''
-    prefix_rule(
-        pattern = ["${path}"],
-        decision = "allow",
-    )
-  '') skillScriptPaths;
+  skillRules = map (path: toAllowRule ''"${path}"'') (
+    shared.mkSkillScriptPaths "${shared.codexConfigDir}/skills"
+  );
 
   toMcpApprovals =
     mode: entries:
