@@ -358,6 +358,11 @@
       # Checks
       # --------------------------------------------------------------------------------------------
       checks = forAllSystems (system: {
+        nu-command = import ./lib/nu-command-test.nix {
+          pkgs = pkgsFor system;
+          inherit repoLib;
+        };
+
         scripts = import ./lib/script-tests.nix {
           pkgs = pkgsFor system;
           root = ./.;

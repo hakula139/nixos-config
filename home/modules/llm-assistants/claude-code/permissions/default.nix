@@ -8,9 +8,9 @@
 }:
 
 let
-  skillScriptPaths = map (
-    script: "${shared.claudeConfigDir}/skills/${script.skill}/${script.file}"
-  ) shared.skillScripts;
+  skillsDir = "${shared.claudeConfigDir}/skills";
+
+  skillScriptPaths = map (shared.mkSkillScriptPath skillsDir) shared.skillScripts;
 
   allowRules = import ./allow-rules.nix {
     inherit

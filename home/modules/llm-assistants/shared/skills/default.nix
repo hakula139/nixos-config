@@ -54,13 +54,13 @@ let
   # Only skills this repository owns contribute permission rules, so an input bump cannot silently
   # add allows for scripts this repository does not review. A built skill declares its scripts
   # through `passthru.scripts`.
-  builtSkills = lib.filterAttrs (_: lib.isAttrs) localSkills;
-
   skillScripts = lib.concatLists (
     lib.mapAttrsToList (
       skill: source: map (file: { inherit skill file; }) (source.scripts or [ ])
-    ) builtSkills
+    ) localSkills
   );
+
+  mkSkillScriptPath = skillsDir: script: "${skillsDir}/${script.skill}/${script.file}";
 
   # ------------------------------------------------------------------------------------------------
   # Skill files
@@ -73,7 +73,10 @@ let
 in
 lib.mkMerge [
   {
-    lib.llmAssistants.skillScripts = lib.optionals cfg.enable skillScripts;
+    lib.llmAssistants = {
+      skillScripts = lib.optionals cfg.enable skillScripts;
+      inherit mkSkillScriptPath;
+    };
   }
 
   (lib.mkIf cfg.enable {

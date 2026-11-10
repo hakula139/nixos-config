@@ -10,9 +10,9 @@
 let
   policy = shared.permissions;
 
-  skillScriptPaths = map (
-    script: "${shared.codexConfigDir}/skills/${script.skill}/${script.file}"
-  ) shared.skillScripts;
+  skillsDir = "${shared.codexConfigDir}/skills";
+
+  skillScriptPaths = map (shared.mkSkillScriptPath skillsDir) shared.skillScripts;
 
   toPattern =
     command: lib.concatStringsSep ", " (map (arg: ''"${arg}"'') (lib.splitString " " command));
