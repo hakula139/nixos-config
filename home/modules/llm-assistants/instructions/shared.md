@@ -8,10 +8,11 @@
 
 ### Secret Handling
 
-Decrypted secrets live at `/run/agenix/<service>/<secret>` and in environment variables. Read them when needed, but never store their values anywhere durable.
+Secrets live at `/run/agenix/<service>/<secret>`, in environment variables, and in credential files such as `.env`. Use them by path or pipe when needed, but never store their values anywhere durable.
 
-- Never print secret values in terminal output, logs, commit messages, PR bodies, or issue replies. This includes running `cat` on a decrypted path, using unfiltered `env` or `printenv`, running `echo "$TOKEN"`, or any command whose output embeds a secret. To show that a value exists, redact it to a length or prefix (`<40 chars>`, `sk-...4f2a`).
+- Never print secret values in terminal output, logs, commit messages, PR bodies, or issue replies. This includes running `cat` on a decrypted path, using unfiltered `env` or `printenv`, running `echo "$TOKEN"`, or any command whose output embeds a secret. To show that a value exists, redact it to a length or prefix (`<40 chars>`, `sk-...4f2a`). Reports, handoffs, and messages to other agents name keys only, with at most a length.
 - Test secrets without revealing them by checking their presence with `[[ -s <path> ]]`, comparing hashes, or piping them directly into the consuming command. Never round-trip a value through your own output.
+- Write a value only into its agenix secret or the untracked file that consumes it, and pass it to commands by path or variable.
 
 ### Git Workflow
 
