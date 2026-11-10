@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# ==================================================================================================
+# Nushell Command Guard Test
+# ==================================================================================================
+
 set -euo pipefail
 
 executable=$1
@@ -23,13 +28,15 @@ check-rejected() {
 check-rejected "$executable" "$injection"
 check-rejected "$executable" doc.md "$injection"
 
+"$executable" "--flag=x;^touch $marker" >/dev/null
+
 if [[ -e "$marker" ]]; then
   echo "injected command ran" >&2
   exit 1
 fi
 
+target="$TMPDIR/redirection-marker"
 for redirection in 'o>' 'e>' 'err>' 'out+err>'; do
-  target="$TMPDIR/redirection-marker"
   printf 'keep' >"$target"
   check-rejected "$executable" "$redirection" "$target"
   if [[ "$(cat "$target")" != 'keep' ]]; then
