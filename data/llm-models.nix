@@ -122,7 +122,7 @@ in
     };
 
     local = {
-      flagship = "deepseek-v4.1-flash";
+      flagship = "kimi-k3.1-pro";
       standard = "deepseek-v4.1-flash";
       mini = "deepseek-v4.1-flash";
     };
