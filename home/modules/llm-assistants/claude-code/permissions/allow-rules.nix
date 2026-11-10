@@ -5,6 +5,8 @@
 {
   lib,
   policy,
+  skillScripts,
+  skillsDir,
 }:
 
 let
@@ -17,6 +19,8 @@ let
 
   # Claude Code's `Bash(ls *)` matches `ls` with or without arguments, but never `lsof`.
   commandRules = map (command: "Bash(${command} *)") policy.allowCommands;
+
+  skillRules = map (script: "Bash(${skillsDir}/${script.skill}/${script.file} *)") skillScripts;
 
   mcpRules = map (entry: "mcp__${entry.displayName}__${entry.tool}") policy.mcpAllows;
 
@@ -33,4 +37,4 @@ let
     "mcp__ide"
   ];
 in
-commandRules ++ mcpRules ++ toolRules ++ pathRules ++ builtinRules
+commandRules ++ skillRules ++ mcpRules ++ toolRules ++ pathRules ++ builtinRules

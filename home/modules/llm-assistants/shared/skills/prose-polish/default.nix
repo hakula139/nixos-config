@@ -49,7 +49,9 @@ let
     ];
   };
 in
-pkgs.runCommand "prose-polish-skill" { } ''
-  cp -r --no-preserve=mode ${src} "$out"
-  install -Dm0755 ${lib.getExe command} "$out/scripts/prose-polish"
-''
+pkgs.linkFarm "prose-polish-skill" {
+  "SKILL.md" = "${src}/SKILL.md";
+  "agents" = "${src}/agents";
+  "references" = "${src}/references";
+  "scripts/prose-polish" = lib.getExe command;
+}

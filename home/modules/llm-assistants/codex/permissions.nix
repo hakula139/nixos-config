@@ -5,6 +5,8 @@
 {
   lib,
   policy,
+  skillScripts,
+  skillsDir,
 }:
 
 let
@@ -28,6 +30,13 @@ let
     )
   '') policy.allows.commands.readOnly;
 
+  skillRules = map (script: ''
+    prefix_rule(
+        pattern = [${toPattern "${skillsDir}/${script.skill}/${script.file}"}],
+        decision = "allow",
+    )
+  '') skillScripts;
+
   toMcpApprovals =
     mode: entries:
     lib.foldl' lib.recursiveUpdate { } (
@@ -49,7 +58,7 @@ let
   );
 in
 {
-  rules = lib.concatStringsSep "\n" (gateRules ++ allowRules);
+  rules = lib.concatStringsSep "\n" (gateRules ++ allowRules ++ skillRules);
 
   mcpApprovals = lib.recursiveUpdate (toMcpApprovals "approve" policy.mcpAllows) (
     toMcpApprovals "prompt" policy.mcpGates

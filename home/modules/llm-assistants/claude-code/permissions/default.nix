@@ -5,11 +5,18 @@
 {
   lib,
   policy,
+  skillScripts,
+  skillsDir,
 }:
 
 let
   allowRules = import ./allow-rules.nix {
-    inherit lib policy;
+    inherit
+      lib
+      policy
+      skillScripts
+      skillsDir
+      ;
   };
   denyRules = import ./deny-rules.nix;
 in
@@ -22,6 +29,11 @@ in
 
   skipDangerousModePermissionPrompt = true;
   autoMode = import ./auto-mode.nix {
-    inherit lib policy;
+    inherit
+      lib
+      policy
+      skillScripts
+      skillsDir
+      ;
   };
 }
