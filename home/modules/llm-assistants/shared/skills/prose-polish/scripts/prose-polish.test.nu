@@ -51,11 +51,13 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
       | complete
     )
   }
+
   let calls = if ($log | path exists) {
     open $log | from json --objects
   } else {
     []
   }
+
   {run: $run, calls: $calls}
 }
 

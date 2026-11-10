@@ -487,6 +487,7 @@ def main [
   let bom = ($raw | bytes starts-with 0x[ef bb bf])
   let body = ($raw | bytes at (if $bom { 3 } else { 0 })..)
   let text = ($body | decode utf-8)
+
   # `decode utf-8` replaces invalid bytes and honors a UTF-16 BOM, so only a strict round trip
   # establishes that the input is UTF-8.
   if ($text | encode utf-8) != $body {
@@ -502,6 +503,7 @@ def main [
   if $graded == null {
     fail "the model call failed"
   }
+
   for row in ($graded | where problem != "") {
     report $"kept this passage because its rewrite failed a check: ($row.problem)"
     print --stderr $row.before
@@ -513,6 +515,7 @@ def main [
   } else {
     $result
   }
+
   if $path == null {
     print --no-newline $out
   } else if $result != $text {

@@ -11,7 +11,6 @@ let
   policy = shared.permissions;
 
   skillsDir = "${shared.codexConfigDir}/skills";
-
   skillScriptPaths = map (shared.mkSkillScriptPath skillsDir) shared.skillScripts;
 
   toPattern =

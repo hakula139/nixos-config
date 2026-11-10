@@ -10,7 +10,6 @@
 
 let
   policy = shared.permissions;
-
   inherit (policy) allows;
 
   toolNames = {

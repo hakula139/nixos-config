@@ -9,7 +9,6 @@
 
 let
   skillsDir = "${shared.claudeConfigDir}/skills";
-
   skillScriptPaths = map (shared.mkSkillScriptPath skillsDir) shared.skillScripts;
 
   allowRules = import ./allow-rules.nix {
