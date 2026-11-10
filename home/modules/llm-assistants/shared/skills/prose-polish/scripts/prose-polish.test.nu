@@ -13,13 +13,12 @@ const FIXTURES = ($SCRIPT_DIR | path join "fixtures")
 const PROMPT = "Shared rules."
 const REPAIR_PROMPT = "Repair rules."
 
-# Runs a script copy with stub rules and config, as the wrapper does. `run` is the completed
-# script and `calls` each model call's `model`, `user` message, and `passages`.
+# Runs the script with stub rules and config, as the wrapper does. `run` is the completed script
+# and `calls` each model call's `model`, `user` message, and `passages`.
 def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> record {
   let dir = (mktemp --directory)
   let rules_file = ($dir | path join "rules.json")
   let config_file = ($dir | path join "config.json")
-  let script = ($dir | path join "prose-polish.nu")
   let log = ($dir | path join "calls.jsonl")
 
   $rules
@@ -38,26 +37,24 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
   | to json
   | save $config_file
 
-  open --raw $SCRIPT
-  | str replace --all '@config@' $config_file
-  | save --force $script
-
-  let run = with-env {STUB_LOG: $log, STUB_RULES: $rules_file} {
+  let run = with-env {
+    STUB_LOG: $log
+    STUB_RULES: $rules_file
+    PROSE_POLISH_CONFIG: $config_file
+  } {
     (
       $stdin
       | ^$nu.current-exe --no-config-file
-        $script
+        $SCRIPT
           ...$args
       | complete
     )
   }
-
   let calls = if ($log | path exists) {
     open $log | from json --objects
   } else {
     []
   }
-
   {run: $run, calls: $calls}
 }
 

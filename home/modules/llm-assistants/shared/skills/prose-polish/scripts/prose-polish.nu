@@ -4,10 +4,8 @@
 # Prose Polish
 # ==================================================================================================
 # Rewrites prose through a gateway model and keeps only rewrites that pass the fidelity checks.
+# The wrapper sets `PROSE_POLISH_CONFIG` to its generated config.
 # ==================================================================================================
-
-# The wrapper replaces this placeholder with the generated config path.
-const CONFIG = '@config@'
 
 # A fence opens with any indentation, so one nested in a list item counts.
 const OPENER = '^[ \t]*(?<d>`{3,}|~{3,})'
@@ -475,7 +473,7 @@ def main [
   path?: path # Document to rewrite in place, read from stdin when omitted
   --model (-m): string # Model catalog key, such as gemini-3.8-flash, in place of the default
 ] {
-  let config = (open $CONFIG)
+  let config = (open $env.PROSE_POLISH_CONFIG)
   let config = ($config | update model (gateway-model $config $model))
 
   let raw = if $path == null {

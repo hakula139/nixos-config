@@ -14,7 +14,7 @@
   runtimeInputs ? [ ],
   config ? null,
   flags ? { },
-  substitutions ? { },
+  makeWrapperArgs ? [ ],
 }:
 
 let
@@ -22,14 +22,6 @@ let
 
   wrapperFlags =
     lib.optionalAttrs (config != null) { config = json.generate "${name}.json" config; } // flags;
-
-  placeholders = map (key: "@${key}@") (builtins.attrNames substitutions);
-  values = map toString (builtins.attrValues substitutions);
-  text = builtins.readFile script;
-
-  scriptText =
-    assert lib.all (placeholder: lib.hasInfix placeholder text) placeholders;
-    builtins.replaceStrings placeholders values text;
 
   # Nushell rebuilds the `main ...` line from argv without quoting `--` arguments.
   argumentGuard = ''
@@ -44,7 +36,7 @@ in
 wrapPackage {
   inherit pkgs;
   # `--help` names `main` after this file, which `makeWrapperArgs` would rename.
-  pkg = pkgs.writers.writeNuBin name scriptText;
+  pkg = pkgs.writers.writeNuBin name (builtins.readFile script);
 
   wrapArgs = [
     "--run"
@@ -64,5 +56,6 @@ wrapPackage {
       "--add-flag"
       "${value}"
     ]) wrapperFlags
-  );
+  )
+  ++ makeWrapperArgs;
 }

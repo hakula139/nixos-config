@@ -40,7 +40,11 @@ let
     name = "prose-polish";
     script = ./scripts/prose-polish.nu;
     runtimeInputs = [ pkgs.coreutils ];
-    substitutions = { inherit config; };
+    makeWrapperArgs = [
+      "--set"
+      "PROSE_POLISH_CONFIG"
+      config
+    ];
   };
 
   src = lib.fileset.toSource {

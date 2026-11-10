@@ -8,16 +8,10 @@
 }:
 
 let
-  script = pkgs.writeText "nu-command-guard-test.nu" ''
-    def main [path?: path, --flag: string] {
-      print $flag
-    }
-  '';
-
   command = repoLib.mkNuCommand {
     inherit pkgs;
     name = "nu-command-guard-test";
-    inherit script;
+    script = ./nu-command-test.nu;
   };
 in
 pkgs.runCommand "nu-command-guard-test" { } ''
