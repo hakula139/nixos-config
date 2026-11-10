@@ -43,13 +43,6 @@ in
         "web_search"
       ];
     };
-
-    opencode = {
-      permission = {
-        bash = "deny";
-        edit = "deny";
-      };
-    };
   };
 
   debugger = {
@@ -160,13 +153,6 @@ in
         "web_search"
       ];
     };
-
-    opencode = {
-      permission = {
-        bash = "deny";
-        edit = "deny";
-      };
-    };
   };
 
   reviewer = {
@@ -201,13 +187,6 @@ in
         "web_search"
       ];
       spawns = "reviewer";
-    };
-
-    opencode = {
-      permission = {
-        bash = "deny";
-        edit = "deny";
-      };
     };
   };
 
@@ -268,13 +247,6 @@ in
         "read"
         "web_search"
       ];
-    };
-
-    opencode = {
-      permission = {
-        bash = "deny";
-        edit = "deny";
-      };
     };
   };
 }

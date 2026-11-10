@@ -101,7 +101,6 @@ ghcup
 gitea
 glab
 gnused
-gofmt
 goimports
 gopath
 gopls
@@ -221,7 +220,6 @@ optimise
 osascript
 osc
 oxalica
-oxfmt
 pango
 pcall
 pcdn

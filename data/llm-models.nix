@@ -17,7 +17,6 @@ let
 
     reasoning = true;
     thinking = {
-      mode = "anthropic-adaptive";
       efforts = [
         "low"
         "medium"
@@ -26,8 +25,6 @@ let
         "max"
       ];
       defaultLevel = "medium";
-      requiresEffort = false;
-      supportsDisplay = true;
     };
   };
 
@@ -45,7 +42,6 @@ let
 
     reasoning = true;
     thinking = {
-      mode = "effort";
       efforts = [
         "low"
         "medium"
@@ -54,8 +50,6 @@ let
         "max"
       ];
       defaultLevel = "high";
-      requiresEffort = false;
-      supportsDisplay = false;
     };
   };
 
@@ -76,15 +70,12 @@ let
 
     reasoning = true;
     thinking = {
-      mode = "effort";
       efforts = [
         "low"
         "medium"
         "high"
       ];
       defaultLevel = "medium";
-      requiresEffort = true;
-      supportsDisplay = false;
     };
   };
 
@@ -101,15 +92,12 @@ let
 
     reasoning = true;
     thinking = {
-      mode = "effort";
       efforts = [
         "low"
         "high"
         "max"
       ];
       defaultLevel = "high";
-      requiresEffort = false;
-      supportsDisplay = false;
     };
   };
 in
@@ -144,10 +132,6 @@ in
   models = {
     "claude-opus-5-5" = claudeAdaptiveCommon // {
       name = "Claude Opus 5.5";
-
-      thinking = claudeAdaptiveCommon.thinking // {
-        requiresEffort = true;
-      };
 
       channelId.anthropic = "bedrock/global.anthropic.claude-opus-5-5";
       channelCost.anthropic = {

@@ -78,8 +78,6 @@ in
 
       hakula.omp.mcp.enabledServers = commonMcpServers;
 
-      hakula.opencode.mcp.enabledServers = commonMcpServers;
-
       # --------------------------------------------------------------------------------------------
       # Secrets
       # --------------------------------------------------------------------------------------------

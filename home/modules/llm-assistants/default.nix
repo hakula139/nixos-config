@@ -28,7 +28,6 @@ let
     "codex"
     "cursor"
     "omp"
-    "opencode"
     "oxide-code"
   ];
 
@@ -87,7 +86,6 @@ in
     ./ctx7
     ./cursor
     ./omp
-    ./opencode
     ./oxide-code
     ./shared
     ./workmux
