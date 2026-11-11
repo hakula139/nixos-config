@@ -56,6 +56,8 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 - In a standalone Bash script with more than one command, start with `set -euo pipefail`, and quote every expansion, even inside `[[ ]]`, unless it should split into words or match as a pattern.
 - Establish the general case before adding exceptions or qualifications. Respect API contracts and local ordering conventions.
 - Write changes to a repository's source and documentation files, including new ones, with your file-edit tool, while shell writes stay fine for generated files, scratch and build files, and files outside a repository.
+- Build long documents incrementally in 3-5 `Write` / `Edit` chunks to bound the loss from a failed write, creating the file early and anchoring each addition on the previous chunk's unique trailing line.
+- When review feedback questions a file's grouping or ordering, reorganize the whole file from first principles in the same change, preserving its behavior.
 - Before finishing, compare the complete edited construct and its callers with the surrounding code and comparable files, including unchanged entries in the same group.
 
 ### Code Layout
@@ -141,6 +143,7 @@ Before editing documentation, identify what specifically needs correction or rem
 
 - Describe current behavior and usage. Put change summaries, the reasons behind editorial choices such as why an example was chosen, and comparisons with removed or rejected approaches in commit or PR / MR descriptions, unless migration instructions need them or a design document records a rejected alternative whose reason still constrains the current design.
 - Focus on why and how to use the feature. Give readers what they need to decide or act, and omit incidental details or facts already clear from the code.
+- For an agent-facing procedure, use prose for steps whose commands the reader can derive. Reserve code blocks for text the reader should copy verbatim, and omit guidance for rare one-off tasks.
 - Every preference in a guide must trace to the user's own statements. Reviewers may improve wording, flag contradictions, or check facts. They should use domain expertise to challenge a conflicting preference. When the user defers to that expertise, they should research established public practices and choose on their merits.
 - State each rule once, in one home that other pages link to. Add an example only when the rule would otherwise be ambiguous. Omit cases and data points a capable model can infer from the rule, while preserving every rule and qualification. Add a rule to a repository's instructions or convention docs only when the code, tools, and history cannot show it, when it guards a destructive action, or when it has already cost a debugging session.
 - State a rule no tool enforces with the goal it serves, so a reader can apply it to cases it does not name.
