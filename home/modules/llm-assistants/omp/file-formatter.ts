@@ -38,7 +38,7 @@ export default function (pi: ExtensionAPI) {
       return;
     }
 
-    const run = await pi.exec(formatter, ['--', ...paths]);
+    const run = await pi.exec(formatter, paths);
     const report = run.stdout.trim();
     if (report.length === 0) {
       return;

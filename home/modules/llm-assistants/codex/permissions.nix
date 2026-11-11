@@ -4,12 +4,20 @@
 
 {
   lib,
-  policy,
+  shared,
 }:
 
 let
-  toPattern =
-    command: lib.concatStringsSep ", " (map (arg: ''"${arg}"'') (lib.splitString " " command));
+  policy = shared.permissions;
+
+  toPattern = command: lib.concatStringsSep ", " (map builtins.toJSON (lib.splitString " " command));
+
+  toAllowRule = pattern: ''
+    prefix_rule(
+        pattern = [${pattern}],
+        decision = "allow",
+    )
+  '';
 
   gateRules = map (gate: ''
     prefix_rule(
@@ -20,13 +28,13 @@ let
   '') policy.gates.commands;
 
   # Codex applies the strictest matching decision, and `allow` runs a command outside the sandbox
-  # without review, so only read-only commands render as allows.
-  allowRules = map (command: ''
-    prefix_rule(
-        pattern = [${toPattern command}],
-        decision = "allow",
-    )
-  '') policy.allows.commands.readOnly;
+  # without review, so only read-only commands and the scripts of skills this repository owns
+  # render as allows.
+  allowRules = map (command: toAllowRule (toPattern command)) policy.allows.commands.readOnly;
+
+  skillRules = map (path: toAllowRule (builtins.toJSON path)) (
+    shared.mkSkillScriptPaths "${shared.codexConfigDir}/skills"
+  );
 
   toMcpApprovals =
     mode: entries:
@@ -49,7 +57,7 @@ let
   );
 in
 {
-  rules = lib.concatStringsSep "\n" (gateRules ++ allowRules);
+  rules = lib.concatStringsSep "\n" (gateRules ++ allowRules ++ skillRules);
 
   mcpApprovals = lib.recursiveUpdate (toMcpApprovals "approve" policy.mcpAllows) (
     toMcpApprovals "prompt" policy.mcpGates

@@ -4,10 +4,12 @@
 
 {
   lib,
-  policy,
+  shared,
 }:
 
 let
+  policy = shared.permissions;
+
   softDenyClearance = ''
     Allow when the user explicitly approves the action, including approval already given in
     the conversation. Otherwise, block it even if an allow rule would permit it.

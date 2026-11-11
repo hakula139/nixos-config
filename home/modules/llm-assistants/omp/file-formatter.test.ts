@@ -25,7 +25,7 @@ const cases: Case[] = [
     toolName: 'write',
     input: { path: 'a.md' },
     details: { resolvedPath: '/home/u/src/app/a.md' },
-    calls: [[formatter, '--', '/home/u/src/app/a.md']],
+    calls: [[formatter, '/home/u/src/app/a.md']],
     context: null,
   },
   {
@@ -43,7 +43,7 @@ const cases: Case[] = [
       },
     },
     report: 'runner report',
-    calls: [[formatter, '--', '/home/u/src/app/x.ts']],
+    calls: [[formatter, '/home/u/src/app/x.ts']],
     context: 'runner report',
   },
   {
@@ -84,14 +84,14 @@ const cases: Case[] = [
     name: 'an edit carries its paths list',
     toolName: 'edit',
     input: { paths: ['a.md', 'b.md'] },
-    calls: [[formatter, '--', '/home/u/src/app/a.md', '/home/u/src/app/b.md']],
+    calls: [[formatter, '/home/u/src/app/a.md', '/home/u/src/app/b.md']],
     context: null,
   },
   {
     name: 'an edit carries its single path',
     toolName: 'edit',
     input: { path: 'a.md' },
-    calls: [[formatter, '--', '/home/u/src/app/a.md']],
+    calls: [[formatter, '/home/u/src/app/a.md']],
     context: null,
   },
   {

@@ -24,7 +24,7 @@ def format-edited [config: record]: nothing -> any {
   if ($paths | is-empty) { return null }
 
   let formatter = $config.fileFormatter
-  let run = (^$formatter -- ...$paths | complete)
+  let run = (^$formatter ...$paths | complete)
   if ($run.stderr | is-not-empty) { print --stderr --no-newline $run.stderr }
   let report = ($run.stdout | str trim)
   if ($report | is-empty) { return null }

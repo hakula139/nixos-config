@@ -4,7 +4,7 @@
 
 {
   lib,
-  wrapPackage,
+  devkit,
 }:
 
 {
@@ -14,6 +14,7 @@
   runtimeInputs ? [ ],
   config ? null,
   flags ? { },
+  makeWrapperArgs ? [ ],
 }:
 
 let
@@ -21,26 +22,22 @@ let
 
   wrapperFlags =
     lib.optionalAttrs (config != null) { config = json.generate "${name}.json" config; } // flags;
-in
-wrapPackage {
-  inherit pkgs;
-  # `--help` names `main` after this file, which `makeWrapperArgs` would rename.
-  pkg = pkgs.writers.writeNuBin name (builtins.readFile script);
 
-  wrapArgs =
-    lib.optionals (runtimeInputs != [ ]) [
-      "--prefix"
-      "PATH"
-      ":"
-      (lib.makeBinPath runtimeInputs)
-    ]
-    ++ lib.concatLists (
+  dk = devkit.lib.mkLib pkgs;
+in
+dk.writeNuApplication {
+  inherit name runtimeInputs;
+
+  text = builtins.readFile script;
+  makeWrapperArgs =
+    lib.concatLists (
       lib.mapAttrsToList (flag: value: [
         "--add-flag"
         "--${flag}"
 
         "--add-flag"
-        "${value}"
+        (toString value)
       ]) wrapperFlags
-    );
+    )
+    ++ makeWrapperArgs;
 }
