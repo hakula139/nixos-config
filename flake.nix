@@ -359,7 +359,7 @@
       # Checks
       # --------------------------------------------------------------------------------------------
       checks = forAllSystems (system: {
-        nu-command = import ./lib/nu-command/integration-test.nix {
+        nu-command = import ./lib/nu-command/tests {
           pkgs = pkgsFor system;
           inherit repoLib;
         };

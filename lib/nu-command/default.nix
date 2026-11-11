@@ -36,7 +36,7 @@ dk.writeNuApplication {
         "--${flag}"
 
         "--add-flag"
-        "${value}"
+        (toString value)
       ]) wrapperFlags
     )
     ++ makeWrapperArgs;

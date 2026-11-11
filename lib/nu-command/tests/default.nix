@@ -1,5 +1,5 @@
 # ==================================================================================================
-# Nushell Command Integration Test
+# Nushell Command Check
 # ==================================================================================================
 
 {
@@ -27,25 +27,13 @@ let
 
     flags = {
       mode = "fast";
-      count = "3";
+      count = 3;
     };
-
-    makeWrapperArgs = [
-      "--set"
-      "NU_COMMAND_TEST_ENV"
-      "wrapper"
-
-      "--add-flag"
-      "--count"
-
-      "--add-flag"
-      "5"
-    ];
   };
 
   plain = command { };
 in
-pkgs.runCommand "nu-command-integration-test" { nativeBuildInputs = [ pkgs.jq ]; } ''
-  bash ${./integration-test.sh} ${pkgs.lib.getExe configured} ${pkgs.lib.getExe plain}
+pkgs.runCommand "nu-command-check" { nativeBuildInputs = [ pkgs.nushell ]; } ''
+  nu --no-config-file ${./test.nu} ${pkgs.lib.getExe configured} ${pkgs.lib.getExe plain}
   touch "$out"
 ''

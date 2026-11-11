@@ -42,7 +42,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── aria2.nix                   # Shared aria2 download and RPC settings
 │   ├── builders.nix                # mk* host builders
 │   ├── dev-shells.nix              # `devShells.<system>`, the default and browser shells
-│   ├── nu-command/                 # Nushell command adapter over devkit and its test
+│   ├── nu-command/                 # Nushell command adapter over devkit (default.nix) and tests/
 │   ├── overlays.nix                # nixpkgs overlay (channels, CLIs, toolchains, custom packages)
 │   ├── packages.nix                # Base and font package groups for each package set
 │   ├── pre-commit.nix              # Shared devkit hook configuration
