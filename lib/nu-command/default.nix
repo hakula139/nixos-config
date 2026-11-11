@@ -29,15 +29,7 @@ dk.writeNuApplication {
   inherit name runtimeInputs;
 
   text = builtins.readFile script;
-  makeWrapperArgs =
-    lib.concatLists (
-      lib.mapAttrsToList (flag: value: [
-        "--add-flag"
-        "--${flag}"
 
-        "--add-flag"
-        (toString value)
-      ]) wrapperFlags
-    )
-    ++ makeWrapperArgs;
+  flags = wrapperFlags;
+  inherit makeWrapperArgs;
 }

@@ -9,8 +9,8 @@
 (pkgs.unstable.wakatime-cli.override { buildGoModule = pkgs.unstable.buildGoLatestModule; })
 .overrideAttrs
   (old: {
-    version = "2.28.0";
-    src = old.src.override { hash = "sha256-GWZLCL+u4tQQ0k5cQaYOPc/pZbjfrP73/SEooNusrRc="; };
+    version = "2.28.4";
+    src = old.src.override { hash = "sha256-HkLeRuhIcOnX7ZW3YwYYPQH9Rujb60UjczztNurLS3I="; };
     patches = (old.patches or [ ]) ++ [
       ./cursor-incremental-query.patch
     ];
