@@ -17,13 +17,11 @@ The bundled script is the only way prose is polished here. It sends each eligibl
 
 2. Run the script. Resolve `<skill-dir>` to this skill's directory.
 
-   - For a draft, pipe it in and capture the result outside the repository.
+   - For a draft, run `mktemp`, write the draft with the assistant's file-edit tool to the path it prints, then pass that literal path. The script rewrites the file in place and prints nothing, so read it back and compare it with the draft.
 
      ```bash
-     polished="$(mktemp)"
-     <skill-dir>/scripts/prose-polish > "$polished" <<'EOF'
-     ...
-     EOF
+     mktemp
+     <skill-dir>/scripts/prose-polish <draft-path>
      ```
 
    - For a file, pass its path. The script rewrites the file in place and prints nothing, so copy it first and diff the two. It covers every eligible paragraph, including ones the agent did not write.

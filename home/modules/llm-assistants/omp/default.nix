@@ -81,8 +81,7 @@ in
 
       permissionConfigFile = yaml.generate "omp-permissions.yml" (
         import ./permissions.nix {
-          inherit lib;
-          policy = shared.permissions;
+          inherit lib shared;
         }
       );
 

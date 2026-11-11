@@ -470,7 +470,7 @@ def gateway-model [config: record, key: any]: nothing -> string {
 # fails, or the input cannot be read, including a missing path or bytes that are not UTF-8.
 def main [
   path?: path # Document to rewrite in place, read from stdin when omitted
-  --config: path # Wrapper-supplied JSON with the models, prompts, and model call
+  --config: path # Wrapper-supplied JSON with the models, model call, and prompts
   --model (-m): string # Model catalog key, such as gemini-3.8-flash, in place of the default
 ] {
   let config = (open $config)
@@ -485,6 +485,7 @@ def main [
   let bom = ($raw | bytes starts-with 0x[ef bb bf])
   let body = ($raw | bytes at (if $bom { 3 } else { 0 })..)
   let text = ($body | decode utf-8)
+
   # `decode utf-8` replaces invalid bytes and honors a UTF-16 BOM, so only a strict round trip
   # establishes that the input is UTF-8.
   if ($text | encode utf-8) != $body {
@@ -500,6 +501,7 @@ def main [
   if $graded == null {
     fail "the model call failed"
   }
+
   for row in ($graded | where problem != "") {
     report $"kept this passage because its rewrite failed a check: ($row.problem)"
     print --stderr $row.before
@@ -511,6 +513,7 @@ def main [
   } else {
     $result
   }
+
   if $path == null {
     print --no-newline $out
   } else if $result != $text {

@@ -4,10 +4,12 @@
 
 {
   lib,
-  policy,
+  shared,
 }:
 
 let
+  policy = shared.permissions;
+
   sanitize =
     value:
     lib.concatStringsSep "_" (

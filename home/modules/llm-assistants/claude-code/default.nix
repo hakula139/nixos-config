@@ -75,8 +75,7 @@ in
       };
 
       permissionSettings = import ./permissions {
-        inherit lib;
-        policy = shared.permissions;
+        inherit lib shared;
       };
 
       plugins = import ./plugins.nix {
