@@ -10,8 +10,7 @@
 let
   policy = shared.permissions;
 
-  toPattern =
-    command: lib.concatStringsSep ", " (map (arg: ''"${arg}"'') (lib.splitString " " command));
+  toPattern = command: lib.concatStringsSep ", " (map builtins.toJSON (lib.splitString " " command));
 
   toAllowRule = pattern: ''
     prefix_rule(
@@ -33,7 +32,7 @@ let
   # render as allows.
   allowRules = map (command: toAllowRule (toPattern command)) policy.allows.commands.readOnly;
 
-  skillRules = map (path: toAllowRule ''"${path}"'') (
+  skillRules = map (path: toAllowRule (builtins.toJSON path)) (
     shared.mkSkillScriptPaths "${shared.codexConfigDir}/skills"
   );
 
