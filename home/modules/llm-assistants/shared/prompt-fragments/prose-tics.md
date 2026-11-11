@@ -13,9 +13,10 @@ Each ban states its reason because a bare rule gets satisfied on the surface whi
 
 3. **Chinese punctuation overuse**: dashes and semicolons stacked across neighboring clauses, as in `X——是 Y；Z——也只有 W`, or a colon or semicolon in most clauses.
 
-4. **Antithesis by negated alternative**: defining something by what it is not. This includes the two-clause form ("This isn't about speed. It's about correctness."), the compact `, not`, the paraphrases `rather than`, `instead of`, `as opposed to`, and `X over Y`, as well as the Chinese "不是……而是……". The rejected position is one nobody held, so removing it loses nothing.
+4. **Antithesis by negated alternative**: defining something by what it is not. This includes the two-clause form ("This isn't about speed. It's about correctness."), the compact `, not` and `, never`, the paraphrases `rather than`, `instead of`, `as opposed to`, and `X over Y`, as well as the Chinese "不是……而是……". The rejected position is one nobody held, so removing it loses nothing.
 
    - **A concrete ambiguity that must be resolved at that location.** State the supported behavior directly when that is enough. Keep the negated alternative only when omitting it would leave a materially wrong interpretation. A merely plausible alternative does not qualify.
+   - **A plain prohibition using "never"**, as in "Never print secret values", since it states no rejected alternative.
 
 5. **Mechanical parallelism**: three or more short phrases with identical grammatical structure used as filler ("fast, reliable, and scalable"), where rhythm takes the place of an argument.
 
