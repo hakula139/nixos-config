@@ -14,8 +14,8 @@ const PROMPT = "Shared rules."
 const REPAIR_PROMPT = "Repair rules."
 
 # Runs the script with stub rules and its generated config, as the wrapper does. `run` is the
-# completed script, `calls` each model call's `model`, `user` message, and `passages`, and `config`
-# is the default a caller can replace with a later `--config`.
+# completed script, `calls` records each model call's `model`, `user` message, and `passages`, and
+# `config` holds the record written for the run.
 def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> record {
   let dir = (mktemp --directory)
   let rules_file = ($dir | path join "rules.json")
