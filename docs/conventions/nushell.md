@@ -11,7 +11,6 @@ General Nushell conventions and traps live in the `nushell` skill from [hakula13
 ## In Nix
 
 - **Inputs**: keep checked-in Nushell valid on its own. Build a command that reads generated `config` or `flags` with `repoLib.mkNuCommand`, which packages it with devkit's [`writeNuApplication`](https://github.com/hakula139/devkit/blob/v3/docs/nushell.md#package-a-single-file). Put executables in its `runtimeInputs`, pass structured values as `config`, which the script reads through a typed `--config` flag, and pass a few scalars as typed `flags`, which leaves positional parameters to the user.
-- **Fixed values**: a script reachable through a generated allow rule follows the shared wrapper-fixed-values rule.
 - **Shebang**: the writers prepend a store-path shebang without `--stdin`, which demotes the script's `#!/usr/bin/env nu` to a comment. Keep that line for standalone runs and LSP checks, and commit the executable bit on helpers run from the checkout. Spawn Nushell from a generated script with `$nu.current-exe`.
 - **Modules**: a parse-time `use` target must resolve in both the source tree and the store. Without such a path, expose the helper as an executable.
 

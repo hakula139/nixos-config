@@ -18,14 +18,12 @@
 let
   skillScript = "scripts/prose-polish";
 
-  json = pkgs.formats.json { };
-
   # Every catalog model sits on a single gateway channel.
   models = lib.mapAttrs (
     _: model: lib.head (builtins.attrValues model.channelId)
   ) modelCatalog.models;
 
-  config = json.generate "prose-polish.json" {
+  config = {
     inherit
       models
       modelCall
@@ -38,17 +36,10 @@ let
   };
 
   command = repoLib.mkNuCommand {
-    inherit pkgs;
+    inherit pkgs config;
     name = "prose-polish";
     script = ./scripts/prose-polish.nu;
     runtimeInputs = [ pkgs.coreutils ];
-
-    # Allowed callers can append script arguments, so `--set` keeps this config fixed.
-    makeWrapperArgs = [
-      "--set"
-      "PROSE_POLISH_CONFIG"
-      config
-    ];
   };
 
   src = lib.fileset.toSource {

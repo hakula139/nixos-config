@@ -4,7 +4,6 @@
 # Prose Polish
 # ==================================================================================================
 # Rewrites prose through a gateway model and keeps only rewrites that pass the fidelity checks.
-# The wrapper sets `PROSE_POLISH_CONFIG` to its generated config.
 # ==================================================================================================
 
 # A fence opens with any indentation, so one nested in a list item counts.
@@ -471,9 +470,10 @@ def gateway-model [config: record, key: any]: nothing -> string {
 # fails, or the input cannot be read, including a missing path or bytes that are not UTF-8.
 def main [
   path?: path # Document to rewrite in place, read from stdin when omitted
+  --config: path # Wrapper-supplied JSON with the models, model call, and prompts
   --model (-m): string # Model catalog key, such as gemini-3.8-flash, in place of the default
 ] {
-  let config = (open $env.PROSE_POLISH_CONFIG)
+  let config = (open $config)
   let config = ($config | update model (gateway-model $config $model))
 
   let raw = if $path == null {
