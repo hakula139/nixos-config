@@ -43,6 +43,7 @@ let
     script = ./scripts/prose-polish.nu;
     runtimeInputs = [ pkgs.coreutils ];
 
+    # Allowed callers can append script arguments, so `--set` keeps this config fixed.
     makeWrapperArgs = [
       "--set"
       "PROSE_POLISH_CONFIG"
