@@ -19,8 +19,8 @@ in
     allow = allowRules;
     deny = denyRules;
   };
-
   skipDangerousModePermissionPrompt = true;
+
   autoMode = import ./auto-mode.nix {
     inherit lib shared;
   };
