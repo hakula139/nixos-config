@@ -97,7 +97,13 @@ in
     # Shell & Environment
     # ----------------------------------------------------------------------------------------------
     programs.zsh.enable = true;
+
     environment.variables = platformSettings.locale;
+
+    environment.etc.localtime = {
+      source = "${pkgs.tzdata}/share/zoneinfo/${platformSettings.timeZone}";
+      replaceExisting = true;
+    };
 
     # Nix-built zsh reads /etc/zprofile for login shells, the only hook system-manager has for
     # injecting the system PATH.

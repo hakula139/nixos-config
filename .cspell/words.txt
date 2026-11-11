@@ -319,6 +319,7 @@ tomlq
 toolsai
 tsdown
 tulpn
+tzdata
 ulimits
 umami
 unapprove
