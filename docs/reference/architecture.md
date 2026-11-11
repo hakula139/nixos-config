@@ -34,7 +34,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── corp-domain.nix             # Corp-internal domain
 │   ├── corp-hosts.nix              # Corp-internal hostnames and URLs
 │   ├── llm-models.nix              # Shared model catalog and defaults
-│   ├── platform-settings.nix       # Cross-platform locale, Nix, and GC settings
+│   ├── platform-settings.nix       # Cross-platform locale, time zone, Nix, and GC settings
 │   ├── servers.nix                 # Server inventory (IP, port, provider, host keys, builders)
 │   └── system-manager-paths.nix    # PATH entries provisioned by system-manager activation
 ├── lib/                            # Pure helpers and framework code
