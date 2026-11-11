@@ -42,12 +42,11 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── aria2.nix                   # Shared aria2 download and RPC settings
 │   ├── builders.nix                # mk* host builders
 │   ├── dev-shells.nix              # `devShells.<system>`, the default and browser shells
-│   ├── nu-command/                 # Nushell command adapter over devkit (default.nix) and tests/
+│   ├── nu-command/                 # Nushell command adapter over devkit
 │   ├── overlays.nix                # nixpkgs overlay (channels, CLIs, toolchains, custom packages)
 │   ├── packages.nix                # Base and font package groups for each package set
 │   ├── pre-commit.nix              # Shared devkit hook configuration
 │   ├── proxy.nix                   # Proxy options, wrappers, and environment scripts
-│   ├── script-tests.nix            # `checks.<system>.scripts`, nu-test and bun tests
 │   ├── secrets.nix                 # Secret declarations and path helpers
 │   ├── ssh.nix                     # Builder and SSH configuration from server inventory
 │   ├── systemd.nix                 # Shared systemd hardening and restart policies
@@ -65,6 +64,10 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   └── modules/                    # Home Manager modules (incl. `wsl.nix` workstation bundle)
 ├── packages/                       # Custom package definitions called by lib/overlays.nix
 ├── secrets/                        # agenix-encrypted secrets and recipient rules
+├── tests/                          # `checks.<system>`, one aggregator over per-case directories
+│   ├── default.nix                 # Aggregator importing each check case
+│   ├── nu-command/                 # Nushell command adapter check with its fixtures
+│   └── scripts/                    # `checks.<system>.scripts`, nu-test and bun tests
 ├── agenix-rules.nix                # Root-level agenix entry point for recipient rules
 ├── docs/                           # This knowledge base
 └── .github/workflows/ci.yml        # CI pipeline
