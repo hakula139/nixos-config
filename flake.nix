@@ -203,6 +203,7 @@
 
       repoLib = import ./lib {
         inherit (nixpkgs) lib;
+        inherit (inputs) devkit;
       };
 
       data = import ./data;
@@ -358,7 +359,7 @@
       # Checks
       # --------------------------------------------------------------------------------------------
       checks = forAllSystems (system: {
-        nu-command = import ./lib/nu-command-test.nix {
+        nu-command = import ./lib/nu-command/integration-test.nix {
           pkgs = pkgsFor system;
           inherit repoLib;
         };

@@ -4,11 +4,14 @@
 
 {
   lib,
+  devkit,
 }:
 
 let
   wrapPackage = import ./wrap-package.nix { inherit lib; };
-  mkNuCommand = import ./nu-command.nix { inherit lib wrapPackage; };
+  mkNuCommand = import ./nu-command {
+    inherit lib devkit;
+  };
   proxy = import ./proxy.nix { inherit lib wrapPackage; };
 in
 {
