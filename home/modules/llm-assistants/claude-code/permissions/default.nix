@@ -4,12 +4,12 @@
 
 {
   lib,
-  policy,
+  shared,
 }:
 
 let
   allowRules = import ./allow-rules.nix {
-    inherit lib policy;
+    inherit lib shared;
   };
   denyRules = import ./deny-rules.nix;
 in
@@ -19,9 +19,9 @@ in
     allow = allowRules;
     deny = denyRules;
   };
-
   skipDangerousModePermissionPrompt = true;
+
   autoMode = import ./auto-mode.nix {
-    inherit lib policy;
+    inherit lib shared;
   };
 }

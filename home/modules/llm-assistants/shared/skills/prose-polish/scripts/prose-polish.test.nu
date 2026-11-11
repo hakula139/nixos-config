@@ -13,8 +13,9 @@ const FIXTURES = ($SCRIPT_DIR | path join "fixtures")
 const PROMPT = "Shared rules."
 const REPAIR_PROMPT = "Repair rules."
 
-# Runs the script in a fresh directory with the stub's `rules`, as the wrapper does. `run` is the
-# completed script and `calls` each model call's `model`, `user` message, and `passages`.
+# Runs the script with stub rules and its generated config, as the wrapper does. `run` is the
+# completed script, `calls` records each model call's `model`, `user` message, and `passages`, and
+# `config` holds the record written for the run.
 def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> record {
   let dir = (mktemp --directory)
   let rules_file = ($dir | path join "rules.json")
@@ -25,7 +26,7 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
   | to json
   | save $rules_file
 
-  {
+  let config = {
     modelCall: ($env.NU_TEST_STUBS | path join "model-call")
     phrasing: ""
     maxRepairs: 1
@@ -34,10 +35,15 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
     repairPrompt: $REPAIR_PROMPT
     models: {gemini-3.8-flash: "gateway/gemini-3.8-flash"}
   }
+
+  $config
   | to json
   | save $config_file
 
-  let run = with-env {STUB_LOG: $log, STUB_RULES: $rules_file} {
+  let run = with-env {
+    STUB_LOG: $log
+    STUB_RULES: $rules_file
+  } {
     (
       $stdin
       | ^$nu.current-exe --no-config-file
@@ -52,7 +58,7 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
   } else {
     []
   }
-  {run: $run, calls: $calls}
+  {run: $run, calls: $calls, config: $config}
 }
 
 # A category's case directories, each with the `case.nuon` it holds when it has one, defaulted for
@@ -107,6 +113,20 @@ def long-document [count: int]: nothing -> string {
   let sentence = "The river carries the boat past the quiet mills while the fox sleeps."
   let filler = (1..5 | each { $sentence } | str join " ")
   1..$count | each {|n| $"Paragraph ($n). ($filler)" } | str join "\n\n"
+}
+
+def "test a caller-supplied config replaces the default" [] {
+  let target = (case polish ideographic-indent)
+  let input = (bytes ($target.dir | path join "input.md"))
+  let default = (command [] $input $target.data.rules)
+  let override = (mktemp --directory | path join "config.json")
+
+  $default.config | update model "overridden" | to json | save $override
+  let result = (command [--config $override] $input $target.data.rules)
+
+  assert equal ($default.calls | get model) ["stub"]
+  assert equal $result.run.exit_code 0 $result.run.stderr
+  assert equal ($result.calls | get model) ["overridden"]
 }
 
 def "test the default model and --model" [] {
