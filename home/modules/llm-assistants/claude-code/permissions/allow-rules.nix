@@ -17,9 +17,11 @@ let
   };
 
   # Claude Code's `Bash(ls *)` matches `ls` with or without arguments, but never `lsof`.
-  commandRules = map (command: "Bash(${command} *)") (
-    policy.allowCommands ++ shared.mkSkillScriptPaths "${shared.claudeConfigDir}/skills"
-  );
+  toAllowRule = command: "Bash(${command} *)";
+
+  commandRules = map toAllowRule policy.allowCommands;
+
+  skillRules = map toAllowRule (shared.mkSkillScriptPaths "${shared.claudeConfigDir}/skills");
 
   mcpRules = map (entry: "mcp__${entry.displayName}__${entry.tool}") policy.mcpAllows;
 
@@ -36,4 +38,4 @@ let
     "mcp__ide"
   ];
 in
-commandRules ++ mcpRules ++ toolRules ++ pathRules ++ builtinRules
+commandRules ++ skillRules ++ mcpRules ++ toolRules ++ pathRules ++ builtinRules
