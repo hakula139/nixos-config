@@ -8,3 +8,4 @@ Write so the reader gets it once.
 - Give an inline example (`such as`, `for example`, `e.g.`) only when the reader could not otherwise tell what the general term covers.
 - Keep a parenthetical aside that reads naturally, and don't rewrite it as an appositive.
 - Keep each Markdown paragraph on a single line, with a blank line between paragraphs. Don't hard-wrap at a column limit or put each sentence on its own line. Code blocks and tables are exempt.
+- In Chinese documents and speaker notes, use plain complete statements with natural function words and explicit references. Cut information items and coined aphorisms while keeping hedged suggestions and repetition that helps the audience follow.

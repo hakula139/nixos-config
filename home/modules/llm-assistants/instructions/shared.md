@@ -37,17 +37,27 @@ Memory holds durable preferences and context not covered by instruction files. B
 
 Aim for a simple, coherent design that meets current requirements. Simplicity means a clean, DRY structure, even when that takes more code than the shortest version.
 
+#### Planning
+
 - Check the actual constraints before applying a familiar pattern, and treat cached intuitions as starting points.
 - Before implementing a new subsystem, research the options, draft the design with its tradeoffs and open questions in a plan file under the gitignored `.agents/plans/`, and agree on it with the user. Small fixes and well-specified changes skip this step. When work starts in an area, check the plans for follow-ups deferred until that work, and resolve them in the same change or note why each stays deferred.
+- Keep `.agents/plans/` for ongoing work. Delete a plan when its PR / MR merges or its decision is made, after moving durable facts to memory, documentation, an instruction file, or the PR / issue / commit body. Keep scratch scripts in `/tmp` or the worktree's build directory.
 - If a requirement is hard to satisfy cleanly, weigh narrowing or revising it before adding complexity.
 - Solve each problem at its cause with a clean design, and apply a temporary workaround, such as a config edit that must later be reverted, only when the user explicitly asks for one.
 - When a tool the user maintains lacks a capability the request needs, build it within the task, with the refactor, tests, and docs it takes, and brief delegates to carry the request through end to end. Ask before such a build only when it needs authorization you lack, such as spending money.
+
+#### Simplicity
+
 - Refactor or extract when doing so clarifies responsibilities, simplifies control flow, or removes duplication, even if there is only one caller or the refactor spans many files.
 - Build for current needs. Give each abstraction a concrete responsibility, and avoid speculative features, configurability, or extension points.
 - Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle the failures required by the contract. Add guards, retries, or fallbacks only for concrete failure modes, and treat one added without that justification as a defect to remove. Let errors that expose broken assumptions surface.
 - Use the framework's or library's own primitive before writing a helper that reproduces it. Before hand-writing substantial logic, look for a well-maintained library that provides it, and prefer dependencies already in the tree.
 - Set tool policies, such as lint levels, in the tool's config file, and keep commands plain. Use environment variables only for settings without a config option, secrets, and per-environment values.
+
+#### Cleanup
+
 - Remove stale or redundant material when asked. When cleaning up code, preserve required behavior while simplifying.
+- During a requested cleanup, resolve routine ambiguities from the consumer's current behavior and report the decisions. Do not leave backup or "before" snapshots. Merge settings that still matter into the live file that consumes them, following its format and the Secret Handling rules.
 
 ### Editing
 
@@ -78,11 +88,19 @@ Load the `code-layout` skill before writing, editing, or reviewing code. It owns
 
 ### Tests
 
+#### Scope and Coverage
+
 - Add a permanent test only for a concrete regression risk or non-obvious contract that existing coverage does not protect. Before keeping it, break the behavior it guards and confirm that it fails. Avoid structural-only assertions such as `assert_eq!(items.len(), 3)`, which could pass even when the implementation is wrong.
 - Keep the suite lean and aimed at the project's core behavior. Test wrapper code, such as CLI dispatch or service installation, only with the one or two cases that pin a non-obvious contract.
 - Drop or merge tests whose coverage is subsumed by others.
 - For a script whose behavior depends on large external state, such as other tools' stores or databases, test its pure functions with tables and validate the rest with a real run.
+
+#### Inputs
+
 - Write test data with neutral, invented names, such as `/home/u/src/app` or `example.com`, never paths, repositories, hosts, or accounts from the user's own environment. When a case depends on a real value's shape, such as an underscore that `LIKE` would treat as a wildcard, keep the shape under a generic name.
+
+#### Structure and Execution
+
 - Merge tests that differ only in their inputs and expected outputs into one table-driven test when the table makes the group's shared intent clearer, and keep tests separate when their setup or the behavior they check differs. Use the framework's parametrization where it exists, and otherwise loop over case records, naming the case in each assertion message so a failure shows which input broke.
 - Write a test in the language of the code it tests, using that ecosystem's runner.
 - Structure each test as arrange, act, and assert, with blank lines between the steps. Keep any check that the act succeeded beside the act.
@@ -139,16 +157,24 @@ Choose a structure that helps the reader understand, compare, or act, whether in
 
 ### Documentation
 
+#### Content
+
 Before editing documentation, identify what specifically needs correction or removal: claims or instructions made inaccurate by the change, or material that is obsolete or unnecessary. A new feature alone does not warrant expanding an overview. Create new documentation only when asked.
 
 - Describe current behavior and usage. Put change summaries, the reasons behind editorial choices such as why an example was chosen, and comparisons with removed or rejected approaches in commit or PR / MR descriptions, unless migration instructions need them or a design document records a rejected alternative whose reason still constrains the current design.
 - Focus on why and how to use the feature. Give readers what they need to decide or act, and omit incidental details or facts already clear from the code.
 - For an agent-facing procedure, use prose for steps whose commands the reader can derive. Reserve code blocks for text the reader should copy verbatim, and omit guidance for rare one-off tasks.
+
+#### Rule Placement
+
 - Every preference in a guide must trace to the user's own statements. Reviewers may improve wording, flag contradictions, or check facts. They should use domain expertise to challenge a conflicting preference. When the user defers to that expertise, they should research established public practices and choose on their merits.
 - State each rule once, in one home that other pages link to. Add an example only when the rule would otherwise be ambiguous. Omit cases and data points a capable model can infer from the rule, while preserving every rule and qualification. Add a rule to a repository's instructions or convention docs only when the code, tools, and history cannot show it, when it guards a destructive action, or when it has already cost a debugging session.
 - State a rule no tool enforces with the goal it serves, so a reader can apply it to cases it does not name.
 - Keep a repository's `AGENTS.md` to what applies to every task, with area rules in the docs it routes to, and keep its README for people evaluating or operating the project.
 - Keep skills and docs that describe a general mechanism generic. Wiring in a new tool, package, or pin does not warrant naming it there, since its wiring and registry entries already record it.
+
+#### Organization and Verification
+
 - Organize sections around reader tasks or questions. Keep paragraphs short and focused on one idea, and split long sections at meaningful points, such as between shared prerequisites and platform-specific instructions.
 - Describe only implemented functionality. Do not present WIP, TODO, or planned features as if they exist.
 - Verify claims against the codebase or data before citing them. Before calling a referenced path stale, resolve it relative to the file that contains it and open that target.
