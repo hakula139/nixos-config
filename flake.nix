@@ -79,12 +79,10 @@
     # Hakula's flakes
     # ----------------------------------------------------------------------------------------------
     agent-project-move = {
-      url = "github:hakula139/agent-project-move/v0.1.0";
+      url = "github:hakula139/agent-project-move/v0.2.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        nixpkgs-unstable.follows = "nixpkgs-unstable";
-        home-manager.follows = "home-manager";
-        git-hooks-nix.follows = "git-hooks-nix";
+        devkit.follows = "devkit";
       };
     };
 
