@@ -1,4 +1,4 @@
-**Default to no comment.** Add a comment only when future maintainers need a non-obvious constraint that the code and names cannot convey. Put investigation findings, source provenance, and task-specific caveats in the PR / MR description. Follow the existing comment and section-banner conventions whenever a comment is needed.
+**Default to no comment.** Add a comment only when future maintainers need a non-obvious constraint that the code and names cannot convey. State the constraint's effect on the associated code, since a bare premise that leaves that connection implicit reads as noise. Put investigation findings, source provenance, and task-specific caveats in the PR / MR description. Follow the existing comment and section-banner conventions whenever a comment is needed.
 
 **Docstrings document contracts** according to the project's conventions. Include the non-obvious constraints, units, ownership, errors, or invariants callers need to know. Keep docstrings concise and avoid restating the item's name or implementation.
 
