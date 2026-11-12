@@ -185,7 +185,11 @@ Use only the tools and capabilities available in the current session, within the
 
 ### Terminal Sessions
 
+Keep independent projects in long-lived repository-scoped tmux sessions. Use a coherent workstream or repository-family session only for windows that genuinely share ownership, and reserve additional sessions for genuinely distinct interactive or operational contexts. Name windows for their task or owner.
+
 Once the task is clear, a top-level interactive agent runs `tmux-task-name <short-hyphenated-name>` from its shell tool. The script renames only a default numeric session with one window, one pane, and no Workmux token. Delegated, headless, and background runs never call it. Keep tmux window identities and native agent conversation or pane titles independent of the session name.
+
+Consolidate existing windows only when the user explicitly asks, after checking client attachment and work ownership. Preserve running assistants, their transcripts, and every pane's repository cwd. Never disturb a user's attached active interactive context or close or discard a session with open, unpublished, or otherwise incomplete work. Keep the shared-tree safeguards in force.
 
 ### Dev Shells
 
@@ -214,7 +218,7 @@ When subagents or teammates are available, the top-level interactive agent coord
 - **Budget**: Work directly only when the whole job takes at most three tool calls, such as one lookup or one small edit, or when the user is waiting on a single fact. Delegate everything else without asking, including implementation, review fixes, multi-file exploration, code reviews, research, builds and checks, publication, merges, cleanup, forge syncs, and deployments.
 - **Design**: The coordinator owns design. Before delegating a change whose approach is open, settle it yourself or with the architect, and brief the implementer with the chosen approach, files, interfaces, and non-goals, and have it push before running any slow check. Leave no design choice to the implementer.
 - **Roles**: Choose roles and concurrency within the current authorization, and check each role's tools and permissions, which may differ from the coordinator's.
-- **Repository sessions**: Every change in a repository other than the coordinator's, including one the Budget bullet lets the coordinator make directly, goes to an assistant session started from that repository's checkout in a tmux session opened with `tmux new-session -A -s <dir-name> -c <checkout>`, which names the session after the checkout's directory and attaches to an existing one. WakaTime attributes time by the transcript's `cwd`, which is the assistant's working directory and which subagents share. A linked worktree resolves to the main repository, so the session may still put feature work in Workmux worktrees of the same repository and delegate to subagents.
+- **Repository sessions**: Every change in a repository other than the coordinator's, including one the Budget bullet lets the coordinator make directly, goes to an assistant started or reused from that repository's checkout in a named window under [Terminal Sessions](#terminal-sessions). WakaTime attributes time by the transcript's `cwd`, which subagents inherit. A linked worktree resolves to its main repository, so the assistant may still use that project's Workmux worktrees.
 
 #### Ownership and Approvals
 
@@ -242,7 +246,7 @@ Custom agents set their own model tier.
 - **Mini tier**: The mini tier may run on a cheaper model, so give it only the researcher's read-only lookups and background checks and the operator's approved operations.
 - **Effort**: Effort follows the configured tier within the native client's capabilities, but use higher effort, up to the maximum, when warranted. Explicit user choices and task-specific tier and effort policies take precedence, and if the selected route is unavailable, report that before switching.
 - **Track record**: Load the `model-delegation` skill, which holds each model's track record, once per session before first handing a task to a non-flagship tier or another assistant, and again after a review or after the user corrects a delegate's work.
-- **Workmux**: When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, or `omp`), because Workmux's configured default is static.
+- **Workmux**: When launching a Workmux worker, pass `--agent` for the selected assistant (`codex`, `claude`, or `omp`), because Workmux's configured default is static. When an existing session is the appropriate hub under [Terminal Sessions](#terminal-sessions), use `--parent-session <hub>` and `--background` to place the worker there without stealing focus. Choose a separate session only for a genuinely distinct context.
 - **Codex panes**: After typing a prompt into a Codex pane, send Enter as a separate keystroke and confirm the task started, since Codex panes sometimes miss the submitting Enter.
 
 ### MCP Servers
