@@ -108,12 +108,11 @@ def usage-fields [output: string]: nothing -> record {
 
 def invoke-statusline [
   dir: path
-  --cache-name: string = $CACHE_NAME
   --ccusage-mode: string = "success" # Stub mode: success, fail-blocks, scalar-blocks, or fail-daily
   --fail-mv
   --lock-held
 ]: nothing -> record {
-  let cache = ($dir | path join $cache_name)
+  let cache = ($dir | path join $CACHE_NAME)
   let lock = ($dir | path join $LOCK_NAME)
   let ccusage_log = ($dir | path join "ccusage-calls.jsonl")
   let flock_log = ($dir | path join "flock-calls.jsonl")
@@ -263,19 +262,19 @@ def "test daily query failure preserves stale cache after a successful blocks qu
   assert equal $result.calls (refresh-calls $today)
 }
 
-def "test save failure preserves stale cache and cleans temporary state" [] {
+def "test write-cache reports save failure without temporary state" [] {
   let dir = (mktemp --directory)
-  let today = (utc-today)
-  let cache_name = ((0..239 | each { "u" } | str join) + ".json")
-  let cache = ($dir | path join $cache_name)
-  (cached-usage $today) | save $cache
-  let original = (open --raw $cache)
-  touch -d "5 minutes ago" $cache
+  let cache_parent = ($dir | path join "not-a-directory")
+  touch $cache_parent
+  let cache = ($cache_parent | path join $CACHE_NAME)
 
-  let result = (invoke-statusline $dir --cache-name $cache_name)
+  let save_error = try {
+    write-cache $cache (refreshed-usage (utc-today))
+    ""
+  } catch {|error| $error.msg }
 
-  assert-stale-preserved $result $original
-  assert equal $result.calls (refresh-calls $today)
+  assert equal $save_error "failed to write usage cache"
+  assert equal (ls $dir | get name) [$cache_parent]
 }
 
 def "test publication failure preserves stale cache and cleans temporary state" [] {
