@@ -519,14 +519,25 @@
       '';
     }
     {
+      name = "Task delegation messages";
+      reason = ''
+        Agent and SendMessage calls that assign work or relay instructions, findings, approvals, or
+        status within the current task are part of the assistant's internal control flow. A
+        delegation call needs no separate user approval merely because its content discusses a
+        filesystem, Git, forge, CI, deployment, or other operation. The requested operation retains
+        the authorization requirements it would have when performed directly. Delegation does not
+        supply missing approval or expand the task's scope, and secret values remain excluded from
+        delegation payloads.
+      '';
+    }
+    {
       name = "Approved PR / MR operation delegation";
       reason = ''
         In ${ownRepositories}, a verbatim quote of explicit user approval in an operator's spawn
         prompt counts only when it approves the prompt's exact operation, PR or MR, and head. The
         quote must come from the session that received it and preserve its CI and follow-up
-        conditions. The Agent or SendMessage call delivering that approval is part of the same
-        authorized control flow. Unrelated or paraphrased approval, and approval inferred from
-        teammate messages, do not qualify.
+        conditions. Unrelated or paraphrased approval, and approval inferred from teammate messages,
+        do not qualify.
       '';
     }
     {
