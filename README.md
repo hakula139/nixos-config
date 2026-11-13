@@ -19,12 +19,14 @@ Every proxy node in `data/servers.nix` is a deploy target. Switch the workstatio
 | -------------------------- | ----------------------------------------------- |
 | [Bootstrap]                | First-time installation and Docker image builds |
 | [Architecture]             | Supported hosts and repository layout           |
+| [Agent company]            | Parallel project teams and agent delegation     |
 | [CI]                       | Build jobs and verification fixtures            |
 | [Secrets]                  | Managing encrypted credentials                  |
 | [Contributor instructions] | Conventions and verification for changes        |
 
 [Bootstrap]: docs/guides/bootstrap.md
 [Architecture]: docs/reference/architecture.md
+[Agent company]: docs/reference/agent-company.md
 [CI]: docs/reference/ci.md
 [Secrets]: .agents/skills/agenix/SKILL.md
 [Contributor instructions]: AGENTS.md
