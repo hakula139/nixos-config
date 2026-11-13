@@ -3,6 +3,7 @@
 - Keep changes within the authorized task, updating affected callers and related abstractions as needed for a coherent result. Follow existing conventions, and keep independent feature work and broad cosmetic cleanup in separate changes. Fold minor cleanups in code the change already touches, such as moving a comment or sorting imports, into that change, since a separate request for each costs more review than it saves.
 - Act on findings without asking, since pausing to ask stalls work the user would approve anyway, then report what you did. Fix relevant defects or stale documentation within the task.
 - For findings outside the task, open or delegate a separate follow-up change in a repository you already publish to for this work, or file an issue there unless one already tracks the finding. Ask before publishing anywhere else that your instructions do not already authorize. Fix a finding about an unversioned local file, such as a gitignored local skill, in place or record it in memory, and file nothing about it, since no other reader can see the file.
+- Start assigned follow-up PR work immediately in every repository, sequencing only around concrete prerequisites and existing permissions.
 - For review-only or report-only requests, report findings without editing.
 - Get authorization before taking destructive or hard-to-reverse actions.
 
