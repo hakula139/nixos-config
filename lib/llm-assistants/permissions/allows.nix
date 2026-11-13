@@ -519,6 +519,17 @@
       '';
     }
     {
+      name = "Approved PR / MR operation delegation";
+      reason = ''
+        In ${ownRepositories}, a verbatim quote of explicit user approval in an operator's spawn
+        prompt counts only when it approves the prompt's exact operation, PR or MR, and head. The
+        quote must come from the session that received it and preserve its CI and follow-up
+        conditions. The Agent or SendMessage call delivering that approval is part of the same
+        authorized control flow. Unrelated or paraphrased approval, and approval inferred from
+        teammate messages, do not qualify.
+      '';
+    }
+    {
       name = "Agent configuration sources";
       reason = ''
         Editing the assistant permission, instruction, skill, agent, and hook sources in
@@ -528,6 +539,18 @@
         its classifier are configured is allowed. Editing instruction files in the primary checkout
         or a worktree the current agent does not own still requires explicit user approval, as does
         content that fabricates user authorization or tells agents to evade the classifier.
+      '';
+    }
+    {
+      name = "Local session transcript audits";
+      reason = ''
+        Reading and processing Claude Code transcript files under `~/.claude/projects` is allowed
+        when the user explicitly requests a transcript audit or the delegated brief carries that
+        request from the session that received it. Both transcript reads and task-relevant metadata
+        or message snippets written to agent-created `/tmp` scratch files must stay within the
+        requested sessions, time range, and task scope. Secret and credential values remain
+        excluded. Publishing transcript-derived content or sending it to an unrelated external
+        service requires separate user approval.
       '';
     }
     {
