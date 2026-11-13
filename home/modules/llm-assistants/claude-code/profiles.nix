@@ -63,17 +63,13 @@ let
         let
           inherit (workloads) mini;
         in
-        {
-          CLAUDE_CODE_AUTO_MODE_MODEL =
-            modelCatalog.models.${modelCatalog.defaults.claude.mini}.channelId.anthropic;
-        }
-        // lib.optionalAttrs (roles.default.family == "local") {
+        lib.optionalAttrs (roles.default.family == "local") {
           CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString roles.default.model.contextWindow;
         }
         // lib.optionalAttrs (mini.channel == "anthropic") {
-          # Undocumented: `-` clears a catalog flag, so prompt hooks and the auto-mode classifier on
-          # Haiku send the disabled thinking they request, since the gateway's Bedrock streams drop
-          # structured replies that think.
+          # Undocumented: `-` clears a catalog flag, so prompt hooks on Haiku send the disabled
+          # thinking they request, since the gateway's Bedrock streams drop structured replies
+          # that think.
           CLAUDE_CODE_MODEL_CAPABILITIES = "${mini.modelKey}=-rejects_disabled_thinking";
         };
 

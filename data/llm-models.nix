@@ -123,7 +123,7 @@ in
 
     local = {
       flagship = "kimi-k3.1-pro";
-      standard = "deepseek-v4.1-flash";
+      standard = "kimi-k3.1-pro";
       mini = "deepseek-v4.1-flash";
     };
   };
