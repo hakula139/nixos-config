@@ -119,7 +119,7 @@ let
   profiles = lib.mapAttrs mkProfile (mkProfiles {
     inherit (cfg.auth) enableCorpGateway;
     nativeFamily = "claude";
-    hybridBase = "corp-gateway-anthropic";
+    hybridBase = "corp-gateway-google";
 
     providers = [
       "corp-gateway"
@@ -130,6 +130,7 @@ let
     channels = [
       "anthropic"
       "openai"
+      "google"
       "local"
     ];
   });

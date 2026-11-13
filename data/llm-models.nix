@@ -116,9 +116,9 @@ in
     };
 
     gemini = {
-      flagship = "gemini-4-argon";
+      flagship = "gemini-4-carbon";
       standard = "gemini-4-argon";
-      mini = "gemini-3.8-flash";
+      mini = "gemini-4-hydrogen";
     };
 
     local = {
@@ -203,6 +203,17 @@ in
       };
     };
 
+    "gemini-4-carbon" = geminiCommon // {
+      name = "Gemini 4 Carbon";
+      channelId.google = "openrouter/google/gemini-4-carbon";
+      channelCost.google = {
+        input = 2.0;
+        output = 10.0;
+        cacheRead = 0.1;
+        cacheWrite = 0.1875;
+      };
+    };
+
     "gemini-4-argon" = geminiCommon // {
       name = "Gemini 4 Argon";
       channelId.google = "openrouter/google/gemini-4-argon";
@@ -211,6 +222,17 @@ in
         output = 10.0;
         cacheRead = 0.1;
         cacheWrite = 0.1875;
+      };
+    };
+
+    "gemini-4-hydrogen" = geminiCommon // {
+      name = "Gemini 4 Hydrogen";
+      channelId.google = "openrouter/google/gemini-4-hydrogen";
+      channelCost.google = {
+        input = 1.5;
+        output = 7.5;
+        cacheRead = 0.075;
+        cacheWrite = 0.0833333333333333;
       };
     };
 
