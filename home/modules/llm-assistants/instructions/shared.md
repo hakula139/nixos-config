@@ -14,10 +14,13 @@ Secrets live at `/run/agenix/<service>/<secret>`, in environment variables, and 
 - Never print secret values in terminal output, logs, commit messages, PR bodies, or issue replies. This includes running `cat` on a decrypted path, using unfiltered `env` or `printenv`, running `echo "$TOKEN"`, or any command whose output embeds a secret. To show that a value exists, redact it to a length or prefix (`<40 chars>`, `sk-...4f2a`). Reports, handoffs, and messages to other agents name keys only, with at most a length.
 - Test secrets without revealing them by checking their presence with `[[ -s <path> ]]`, comparing hashes, or piping them directly into the consuming command. Never round-trip a value through your own output.
 - Write a value only into its agenix secret or the untracked file that consumes it, and pass it to commands by path or variable.
+- On the corp host, leave the work email address unmasked in local tool output, reports, and delegate briefs. Keep it out of public GitHub commits, messages, and PR bodies.
 
 ### Git Workflow
 
 Load the `git-workflow` skill before any commit, push, new ref, PR / MR, issue update, conflict resolution, or cleanup. It owns Git authorization and conventions. Before changing repository settings, rulesets, or labels, read devkit's pinned local guide at `@devkitSource@/docs/github.md`. Before preparing a release, read `@devkitSource@/docs/releasing.md`. Apply those conventions by default and preserve justified repository-specific requirements.
+
+For assistant-bench, the user's standing approval covers merges after clean review and passing CI, including forge-sync MRs / PRs. Quote that standing approval in each operator's prompt. Other repositories retain the skill's per-request approval requirement.
 
 ### Shared-Tree Safety
 
@@ -51,6 +54,7 @@ Aim for a simple, coherent design that meets current requirements. Simplicity me
 
 - Refactor or extract when doing so clarifies responsibilities, simplifies control flow, or removes duplication, even if there is only one caller or the refactor spans many files.
 - Build for current needs. Give each abstraction a concrete responsibility, and avoid speculative features, configurability, or extension points.
+- Keep committed configuration limited to recurring operations. Handle one-time migrations and stale-state cleanups by hand on each affected host, with commands in the MR description or deploy step. Treat a migration-only activation script or compatibility shim as a defect.
 - Avoid speculative defensive code. Trust established internal contracts, validate external inputs, and handle the failures required by the contract. Add guards, retries, or fallbacks only for concrete failure modes, and treat one added without that justification as a defect to remove. Let errors that expose broken assumptions surface.
 - Use the framework's or library's own primitive before writing a helper that reproduces it. Before hand-writing substantial logic, look for a well-maintained library that provides it, and prefer dependencies already in the tree.
 - Set tool policies, such as lint levels, in the tool's config file, and keep commands plain. Use environment variables only for settings without a config option, secrets, and per-environment values.
@@ -220,6 +224,7 @@ When subagents or teammates are available, the top-level interactive agent coord
 - **Design**: The coordinator owns design. Before delegating a change whose approach is open, settle it yourself or with the architect, and brief the implementer with the chosen approach, files, interfaces, and non-goals, and have it push before running any slow check. Leave no design choice to the implementer.
 - **Roles**: Choose roles and concurrency within the current authorization, and check each role's tools and permissions, which may differ from the coordinator's.
 - **Repository sessions**: Every change in a repository other than the coordinator's, including one the Budget bullet lets the coordinator make directly, goes to an assistant started or reused from that repository's checkout in a named window under [Terminal Sessions](#terminal-sessions). WakaTime attributes time by the transcript's `cwd`, which subagents inherit. A linked worktree resolves to its main repository, so the assistant may still use that project's Workmux worktrees.
+- Keep the coordinator's shell cwd at the repository root before spawning agents, using absolute paths or `git -C` for subdirectory commands. Claude Code resolves custom agents' local memory from that cwd, so spawning elsewhere scatters it into `.claude/agent-memory-local` trees invisible from the root.
 
 #### Ownership and Approvals
 

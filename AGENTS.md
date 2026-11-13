@@ -43,6 +43,20 @@ Place a file description inside the header banner after the title, and close it 
 
 **`data/corp-domain.nix` can differ from its committed content, and that is expected.** Never delete, restore (`git checkout`, `git restore`), or stage it.
 
+## Change requests
+
+Self-assign every PR / MR and apply exactly one type label. Use this mapping for ordinary changes, keep Renovate's `dependencies` label on its maintenance requests, and follow the latest comparable request for `style`. Use the authenticated account on each forge, then verify the labels and assignees after creation.
+
+| Commit type | Label           |
+| ----------- | --------------- |
+| `fix`       | `bug`           |
+| `feat`      | `enhancement`   |
+| `refactor`  | `refactor`      |
+| `docs`      | `documentation` |
+| `ci`        | `ci`            |
+| `chore`     | `chore`         |
+| `revert`    | `chore`         |
+
 ## Verification
 
 `nix develop -c run-hooks` runs the pre-commit hooks on every tracked file. `nix flake check` checks the flake's structure, evaluating each NixOS host, and runs the script tests, but it runs no hooks and builds no host. For host changes, build each affected output directly, and build `macbook` on a Mac or through CI's macOS job:
