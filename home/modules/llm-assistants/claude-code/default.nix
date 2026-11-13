@@ -85,20 +85,13 @@ in
       # --------------------------------------------------------------------------------------------
       # Status line
       # --------------------------------------------------------------------------------------------
-      statusLinePackage = repoLib.mkNuCommand {
-        inherit pkgs;
-        name = "statusline-command";
-        script = ./scripts/statusline-command.nu;
-        runtimeInputs = [ pkgs.ccusage ];
-
-        config.models = lib.listToAttrs (
-          lib.concatLists (
-            lib.mapAttrsToList (
-              id: model:
-              map (name: lib.nameValuePair name model.name) ([ id ] ++ builtins.attrValues model.channelId)
-            ) modelCatalog.models
-          )
-        );
+      statusLinePackage = import ./scripts/statusline {
+        inherit
+          pkgs
+          lib
+          repoLib
+          modelCatalog
+          ;
       };
 
       statusLineScript = lib.getExe statusLinePackage;
