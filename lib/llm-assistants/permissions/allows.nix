@@ -510,7 +510,10 @@
       reason = ''
         Remote changes to ${ownRepositories} are allowed without separate user approval, including
         pushing commits, creating or updating PRs or MRs, and opening a follow-up PR, MR, or issue
-        (or updating the issue that already tracks it) for a finding from the current work.
+        (or updating the issue that already tracks it) for a finding from the current work. When the
+        user requests cleanup, closing PRs or MRs identified as unnecessary, duplicate, superseded,
+        or abandoned is routine maintenance, including an explanatory comment on the same request.
+        Task-level instructions may identify them by these criteria without listing their numbers.
         Merging or approving PRs or MRs, including automatic or queued merging, still requires
         explicit user approval.
       '';
