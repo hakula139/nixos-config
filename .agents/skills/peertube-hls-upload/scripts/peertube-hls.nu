@@ -197,7 +197,7 @@ def "main identify" [video_uuid: string] {
       --silent
       -H $"Host: ($PEERTUBE_DOMAIN)"
   ])
-  let query = $fetch + " | " + (sh-join [jq $API_JQ_FILTER])
+  let query = $"($fetch) | (sh-join [jq $API_JQ_FILTER])"
   ^ssh $PEERTUBE_HOST (sh-join [
     sudo -u peertube
       bash
