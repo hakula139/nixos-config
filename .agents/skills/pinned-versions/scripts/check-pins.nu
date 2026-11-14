@@ -342,10 +342,8 @@ def registry [root: string]: nothing -> list<record> {
       title: "Repo overrides of nixpkgs packages"
       pins: (
         override-rows $root [
-          {
-            name: "peertube"
-            repo: "Chocobozzz/PeerTube"
-          }
+          {name: "nushell", repo: "nushell/nushell"}
+          {name: "peertube", repo: "Chocobozzz/PeerTube"}
         ]
       )
     }
