@@ -157,8 +157,8 @@
       # Activity Monitor
       # --------------------------------------------------------------------------------------------
       ActivityMonitor = {
-        # Activity Monitor → View → All Processes, Hierarchically
-        ShowCategory = 101;
+        # Activity Monitor → View → All Processes
+        ShowCategory = 100;
 
         # Activity Monitor startup window (Internal)
         OpenMainWindow = true;
