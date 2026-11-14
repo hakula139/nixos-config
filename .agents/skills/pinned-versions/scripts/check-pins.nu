@@ -258,7 +258,7 @@ def registry [root: string]: nothing -> list<record> {
           local: {||
             nix-attr $root "flake.nix" 'github:hakula139/activity-report/(?<v>[^"]+)'
           }
-          upstream: {|| gh-latest-release hakula139/activity-report }
+          upstream: {|| gh-newest-tag hakula139/activity-report }
         }
         {
           pin: "agent-project-move"
