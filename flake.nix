@@ -128,6 +128,8 @@
         devkit.follows = "devkit";
       };
     };
+
+    wakatime-cli.url = "github:hakula139/wakatime-cli/fd3c216cc3b121fc6edc512b1bfe0ecb1810c86e";
   };
 
   # ------------------------------------------------------------------------------------------------
