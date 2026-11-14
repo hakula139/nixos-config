@@ -141,7 +141,7 @@ Choose a structure that helps the reader understand, compare, or act, whether in
 - If any list item contains a nested list, a second paragraph, or a code block, make the entire list loose by leaving a blank line between items and before each nested part.
 - Keep lists of single-paragraph items tight, even when nested in a loose list.
 - Keep a table readable in raw source as well as rendered. When its cells would carry whole sentences, give each item a heading and list its fields under bold labels.
-- Prefer inline links for short local targets and readable one-off links. Use reference links for long or repeated targets when they improve source readability. Prefer shortcut references when the link text is already descriptive, and use a separate reference label only when it adds a useful distinction. Put reference definitions at the end without a heading.
+- Use inline Markdown links, including for long URLs and repeated targets, so each link keeps its destination at the point of use.
 
 ### Punctuation
 
