@@ -1,5 +1,29 @@
 {
   "nodes": {
+    "activity-report": {
+      "inputs": {
+        "devkit": [
+          "devkit"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794668485,
+        "narHash": "sha256-Gng3yVprhYo5TaNucg0S//XCbrjH5vgP5nW583vamLc=",
+        "owner": "hakula139",
+        "repo": "activity-report",
+        "rev": "9948926183e969156c82b17373f66d6be8a4b02a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hakula139",
+        "ref": "v0.1.0",
+        "repo": "activity-report",
+        "type": "github"
+      }
+    },
     "agenix": {
       "inputs": {
         "nixpkgs": [
@@ -548,6 +572,7 @@
     },
     "root": {
       "inputs": {
+        "activity-report": "activity-report",
         "agenix": "agenix",
         "agent-project-move": "agent-project-move",
         "colmena": "colmena",
