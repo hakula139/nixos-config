@@ -77,7 +77,7 @@ def "test only missing extensions are installed, matching IDs case-insensitively
 
   let result = (sync $listing)
 
-  assert equal $result.run.exit_code 0 $result.run.stderr
+  assert equal $result.run {stdout: "" stderr: "" exit_code: 0}
   assert equal $result.changes (installs "example.missing" "example.remote")
 }
 
@@ -93,7 +93,7 @@ def "test pruning uninstalls extensions missing from the list" [] {
 
   let result = (sync $listing --prune)
 
-  assert equal $result.run.exit_code 0 $result.run.stderr
+  assert equal $result.run {stdout: "" stderr: "" exit_code: 0}
   assert equal $result.changes (
     installs "example.missing" "example.remote"
     | append [["--uninstall-extension" "example.extra"]]
@@ -119,8 +119,11 @@ def "test a failed listing skips the sync" [] {
 def "test a failed install warns and the sync continues" [] {
   let result = (sync "" --failing-id "Example.MixedCase")
 
-  assert equal $result.run.exit_code 0 $result.run.stderr
-  assert str contains $result.run.stderr "install failed for Example.MixedCase, continuing sync"
+  assert equal $result.run {
+    stdout: "Extension diagnostic: Example.MixedCase\n"
+    stderr: "Failed Installing Extensions: Example.MixedCase\nCursor extension install failed for Example.MixedCase, continuing sync\n"
+    exit_code: 0
+  }
   assert equal $result.changes (
     installs "example.present" "Example.MixedCase" "example.missing" "example.remote"
   )
