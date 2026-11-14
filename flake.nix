@@ -95,7 +95,7 @@
     };
 
     devkit = {
-      url = "github:hakula139/devkit/v3";
+      url = "github:hakula139/devkit/v3.3.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         nixpkgs-unstable.follows = "nixpkgs-unstable";
