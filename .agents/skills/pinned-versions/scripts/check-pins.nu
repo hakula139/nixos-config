@@ -207,9 +207,10 @@ def override-rows [root: string, overrides: list<record>]: nothing -> list<recor
           if ($unstable | is-empty) {
             "UNKNOWN"
           } else if ($pinned_in_file | is-not-empty) {
-            if (version-at-least $unstable $latest) and (version-at-least $unstable $pinned) {
+            let base = (version-base $pinned)
+            if (version-at-least $unstable $latest) and (version-at-least $unstable $base) {
               "version pin superseded"
-            } else if (version-older $pinned $latest) {
+            } else if (version-older $base $latest) {
               "STALE"
             } else {
               "ok"

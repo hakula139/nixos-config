@@ -109,3 +109,32 @@ def "test version helpers compare naturally and select the newest valid tag" [] 
     assert (version-older $case.older $case.newer) $case.name
   }
 }
+
+def "test version-base strips a commit pin date" [] {
+  let cases = [
+    {
+      name: "commit pin"
+      version: "2.28.0-unstable-2026-11-11"
+      expected: "2.28.0"
+    }
+    {
+      name: "release"
+      version: "2.28.4"
+      expected: "2.28.4"
+    }
+    {
+      name: "pre-release"
+      version: "2.28.4-alpha.1"
+      expected: "2.28.4-alpha.1"
+    }
+    {
+      name: "no release base"
+      version: "0-unstable-2026-02-13"
+      expected: "0"
+    }
+  ]
+
+  for case in $cases {
+    assert equal (version-base $case.version) $case.expected $case.name
+  }
+}
