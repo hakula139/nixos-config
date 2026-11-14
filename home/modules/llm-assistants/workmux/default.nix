@@ -19,7 +19,7 @@ let
     nerdfont = true;
     # Catppuccin owns the window format, and the tmux options below add Workmux's status.
     status_format = false;
-    # activity-report's excludedDirs recognizes Workmux workers by this prefix.
+    # activity-report's excluded_dirs recognizes Workmux workers by this prefix.
     worktree_prefix = "workmux-";
   };
 

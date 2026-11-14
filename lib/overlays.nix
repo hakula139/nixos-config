@@ -9,6 +9,7 @@
 
 [
   inputs.rust-overlay.overlays.default
+  inputs.activity-report.overlays.default
   inputs.oxide-code.overlays.default
 
   (final: _: {

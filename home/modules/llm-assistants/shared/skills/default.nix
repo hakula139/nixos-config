@@ -23,10 +23,7 @@ let
   pluginSkills = inputs.plugins.lib.skills;
   promptFragments = import ../prompt-fragments;
 
-  localSkills = {
-    activity-report = ./activity-report;
-  }
-  // lib.optionalAttrs corpGatewayEnabled {
+  localSkills = lib.optionalAttrs corpGatewayEnabled {
     prose-polish = import ./prose-polish {
       inherit
         pkgs
@@ -43,6 +40,7 @@ let
   };
 
   hostSkills = localSkills // {
+    activity-report = "${config.programs.activity-report.package}/share/skills/activity-report";
     agent-project-move = "${config.programs.agent-project-move.package}/share/skills/agent-project-move";
   };
 
