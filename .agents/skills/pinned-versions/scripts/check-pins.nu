@@ -281,10 +281,8 @@ def registry [root: string]: nothing -> list<record> {
         }
         {
           pin: "wakatime-cli"
-          local: {||
-            abbrev (nix-attr $root "flake.nix" 'github:hakula139/wakatime-cli/(?<v>[^"]+)')
-          }
-          upstream: {|| abbrev (gh-default-head "hakula139/wakatime-cli") }
+          local: {|| nix-attr $root "flake.nix" 'github:hakula139/wakatime-cli/(?<v>[^"]+)' }
+          upstream: {|| gh-newest-release hakula139/wakatime-cli }
         }
       ]
     }
