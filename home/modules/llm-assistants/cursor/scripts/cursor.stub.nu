@@ -20,8 +20,13 @@ def --wrapped main [...args: string] {
       print --no-newline $env.STUB_LISTING
     }
     [_ $id] if $id == $env.STUB_FAILING_ID? => {
+      print $"Extension diagnostic: ($id)"
       print -e $"Failed Installing Extensions: ($id)"
       exit 1
+    }
+    [_ $id] => {
+      print $"Extension info: ($id)"
+      print -e $"Extension progress: ($id)"
     }
   }
 }
