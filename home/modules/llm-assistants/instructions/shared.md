@@ -234,7 +234,7 @@ When subagents or teammates are available, the top-level interactive agent coord
 
 #### Ending and Resuming
 
-- **Shutdown**: Once the coordinator accepts an agent's work or no longer needs it, it stops the agent and closes its tmux pane or Workmux window without asking. In a session it started in another repository, it stops only the assistant it started there and leaves the tmux session and any other assistant in it alone. It keeps an agent running only while that agent still owns an open PR / MR or already has its next task queued, and states which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
+- **Shutdown**: Once the coordinator accepts an agent's work or no longer needs it, it stops the agent and closes its tmux pane or Workmux window without asking. Archive completed sessions when the client supports it. In a session it started in another repository, it stops only the assistant it started there and leaves the tmux session and any other assistant in it alone. It keeps an agent running only while that agent still owns an open PR / MR or already has its next task queued, and states which applies. The agent's worktree and branch follow the `git-workflow` Cleanup section.
 - **Resuming**: Before continuing an earlier session's unfinished work, read the final messages in its subagent transcripts and reconcile them with `git status`, the branch, and any open PR / MR, since a worktree can look complete while a delegate's partial or uncommitted work survives only in its transcript.
 
 ### Model Selection
