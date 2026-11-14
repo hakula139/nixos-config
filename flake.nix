@@ -129,7 +129,7 @@
       };
     };
 
-    wakatime-cli.url = "github:hakula139/wakatime-cli/fd3c216cc3b121fc6edc512b1bfe0ecb1810c86e";
+    wakatime-cli.url = "github:hakula139/wakatime-cli/ea8c76045ac7707e52eb4dfe8b7be09a929c78c8";
   };
 
   # ------------------------------------------------------------------------------------------------
