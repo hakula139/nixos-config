@@ -254,6 +254,13 @@ def registry [root: string]: nothing -> list<record> {
       title: "Versioned flake input refs"
       pins: [
         {
+          pin: "activity-report"
+          local: {||
+            nix-attr $root "flake.nix" 'github:hakula139/activity-report/(?<v>[^"]+)'
+          }
+          upstream: {|| gh-latest-release hakula139/activity-report }
+        }
+        {
           pin: "agent-project-move"
           local: {||
             nix-attr $root "flake.nix" 'github:hakula139/agent-project-move/(?<v>[^"]+)'

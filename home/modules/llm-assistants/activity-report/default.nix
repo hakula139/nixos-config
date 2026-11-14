@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  repoLib,
   hostType,
   isDesktop,
   secretPath,
@@ -17,37 +16,6 @@ let
   cfg = config.hakula.activity-report;
 
   isWork = hostType == "work";
-
-  # ------------------------------------------------------------------------------------------------
-  # Digest
-  # ------------------------------------------------------------------------------------------------
-  digest = repoLib.mkNuCommand {
-    inherit pkgs;
-    name = "activity-digest";
-    script = ./activity-digest.nu;
-
-    runtimeInputs = [
-      pkgs.git
-      pkgs.zstd
-    ];
-
-    config = {
-      inherit (cfg)
-        excludedDirs
-        labels
-        readingMinutes
-        maxMinutes
-        agentMaxMinutes
-        agentIdleMinutes
-        ;
-
-      assistantDirs = {
-        claude = config.lib.llmAssistants.claudeConfigDir;
-        codex = config.lib.llmAssistants.codexConfigDir;
-        omp = config.lib.llmAssistants.ompConfigDir;
-      };
-    };
-  };
 
   # ------------------------------------------------------------------------------------------------
   # Calendar
@@ -65,53 +33,7 @@ in
   # Module options
   # ------------------------------------------------------------------------------------------------
   options.hakula.activity-report = {
-    enable = lib.mkEnableOption "activity-report skill and its digest command";
-
-    excludedDirs = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      # Workmux workers take their prompts from the agent that launched them, so their sessions
-      # count as unattended.
-      default = [ "/[^/]+__worktrees/workmux-" ];
-      description = "Regexes matching session directories excluded from human hours and excerpts";
-    };
-
-    labels = {
-      default = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [ hostType ];
-        description = "Labels of a project without an entry in `labels.projects`";
-      };
-
-      projects = lib.mkOption {
-        type = lib.types.attrsOf (lib.types.listOf lib.types.str);
-        default = { };
-        description = "Labels of each project by directory name, replacing `labels.default`";
-      };
-    };
-
-    readingMinutes = lib.mkOption {
-      type = lib.types.ints.unsigned;
-      default = 10;
-      description = "Minutes a prompt earns after its agent turn ends, for reading the reply";
-    };
-
-    maxMinutes = lib.mkOption {
-      type = lib.types.ints.positive;
-      default = 60;
-      description = "Most minutes a single prompt can earn";
-    };
-
-    agentMaxMinutes = lib.mkOption {
-      type = lib.types.ints.positive;
-      default = 120;
-      description = "Most agent minutes a single turn can earn";
-    };
-
-    agentIdleMinutes = lib.mkOption {
-      type = lib.types.ints.positive;
-      default = 30;
-      description = "Longest gap in minutes between an agent turn's records before the rest of the turn earns no time";
-    };
+    enable = lib.mkEnableOption "activity-report and its skill";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -119,13 +41,27 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      # As an option default, this entry would vanish once a host lists another project.
-      hakula.activity-report.labels.projects.nixos-config = lib.mkDefault [
-        "personal"
-      ];
-      home.packages = [
-        digest
-      ];
+      programs.activity-report = {
+        enable = true;
+        package = pkgs.activity-report;
+        skillDirectories = [ ];
+
+        settings = {
+          # Workmux worker sessions count as unattended since prompts come from the launching agent.
+          excluded_dirs = [ "/[^/]+__worktrees/workmux-" ];
+
+          assistants = {
+            claude = config.lib.llmAssistants.claudeConfigDir;
+            codex = config.lib.llmAssistants.codexConfigDir;
+            omp = config.lib.llmAssistants.ompConfigDir;
+          };
+
+          labels = {
+            default = [ hostType ];
+            projects.nixos-config = lib.mkDefault [ "personal" ];
+          };
+        };
+      };
     })
 
     (lib.mkIf (cfg.enable && isWork && isDesktop) {
