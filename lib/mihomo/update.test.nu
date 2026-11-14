@@ -70,7 +70,7 @@ def run-update [
     ls --all $config_dir
     | get name
     | path basename
-    | filter {|name| $name | str starts-with ".config.staging." }
+    | where {|name| $name | str starts-with ".config.staging." }
   )
 
   {run: $run, target: $target, staging: $staging}
