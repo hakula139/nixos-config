@@ -39,10 +39,16 @@ def --env use-ipc-socket [username: string]: nothing -> nothing {
 
 # Runs one install or uninstall, warning when the CLI rejects it.
 def change-extension [cursor: string, action: string, id: string]: nothing -> nothing {
+  let warning = $"Cursor extension ($action) failed for ($id), continuing sync"
   try {
-    ^$cursor $"--($action)-extension" $id
+    let result = (^$cursor $"--($action)-extension" $id | complete)
+    if $result.exit_code != 0 {
+      print --no-newline $result.stdout
+      print -e --no-newline $result.stderr
+      print -e $warning
+    }
   } catch {
-    print -e $"Cursor extension ($action) failed for ($id), continuing sync"
+    print -e $warning
   }
 }
 
