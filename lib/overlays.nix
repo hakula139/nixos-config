@@ -29,6 +29,7 @@
     agenix = inputs.agenix.packages.${final.stdenv.hostPlatform.system}.default;
     colmena = inputs.colmena.packages.${final.stdenv.hostPlatform.system}.colmena;
     system-manager = inputs.system-manager.packages.${final.stdenv.hostPlatform.system}.default;
+    wakatime-cli = inputs.wakatime-cli.packages.${final.stdenv.hostPlatform.system}.wakatime-cli;
     inherit (inputs.devkit.lib.mkLib final) nu-check nu-test;
     inherit (inputs.llm-agents.packages.${final.stdenv.hostPlatform.system})
       ccusage
@@ -63,7 +64,6 @@
     peertube = final.callPackage ../packages/peertube { };
     peertube-runner = final.callPackage ../packages/peertube/runner.nix { };
     thaw = final.callPackage ../packages/thaw { };
-    wakatime-cli = final.callPackage ../packages/wakatime-cli { };
     zsh-hist = final.callPackage ../packages/zsh-hist { };
   })
 ]

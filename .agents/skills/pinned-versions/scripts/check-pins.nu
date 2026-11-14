@@ -279,6 +279,13 @@ def registry [root: string]: nothing -> list<record> {
           local: {|| nix-attr $root "flake.nix" 'github:hakula139/oxide-code/(?<v>[^"]+)' }
           upstream: {|| gh-newest-release hakula139/oxide-code }
         }
+        {
+          pin: "wakatime-cli"
+          local: {||
+            abbrev (nix-attr $root "flake.nix" 'github:hakula139/wakatime-cli/(?<v>[^"]+)')
+          }
+          upstream: {|| abbrev (gh-default-head "hakula139/wakatime-cli") }
+        }
       ]
     }
     {
@@ -322,14 +329,6 @@ def registry [root: string]: nothing -> list<record> {
           pin: "thaw"
           local: {|| nix-version $root "packages/thaw/default.nix" }
           upstream: {|| gh-newest-release thaw-app/Thaw }
-        }
-        {
-          pin: "wakatime-cli"
-          local: {||
-            let file = "packages/wakatime-cli/default.nix"
-            abbrev (nix-attr $root $file 'rev = "(?<v>[0-9a-f]+)"')
-          }
-          upstream: {|| abbrev (gh-default-head "hakula139/wakatime-cli") }
         }
         {
           pin: "zsh-hist"
