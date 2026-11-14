@@ -26,19 +26,6 @@ def version-older [left: string, right: string]: nothing -> bool {
   not (version-at-least $left $right)
 }
 
-# Compare a manual pin with the latest release and the provider that can replace it.
-def version-pin-status [pinned: string, latest: string, provider: string]: nothing -> string {
-  if ($provider | is-empty) {
-    "UNKNOWN"
-  } else if (version-at-least $provider $latest) and (version-at-least $provider $pinned) {
-    "version pin superseded"
-  } else if (version-older $pinned $latest) {
-    "STALE"
-  } else {
-    "ok"
-  }
-}
-
 # The highest version-shaped tag, optionally including pre-releases.
 def newest-version [tags: list<string>, --allow-pre-release]: nothing -> string {
   let pattern = if $allow_pre_release {
