@@ -79,7 +79,7 @@
     # Hakula's flakes
     # ----------------------------------------------------------------------------------------------
     activity-report = {
-      url = "github:hakula139/activity-report/v0.1.0";
+      url = "github:hakula139/activity-report/v0.2.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         devkit.follows = "devkit";
