@@ -87,7 +87,7 @@
     };
 
     agent-project-move = {
-      url = "github:hakula139/agent-project-move/v0.2.0";
+      url = "github:hakula139/agent-project-move/v0.3.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         devkit.follows = "devkit";
