@@ -268,6 +268,11 @@ def registry [root: string]: nothing -> list<record> {
           upstream: {|| gh-latest-release hakula139/agent-project-move }
         }
         {
+          pin: "devkit"
+          local: {|| nix-attr $root "flake.nix" 'github:hakula139/devkit/(?<v>[^"]+)' }
+          upstream: {|| gh-latest-release hakula139/devkit }
+        }
+        {
           pin: "listenbrainz-scrobbler"
           local: {||
             nix-attr $root "flake.nix" 'github:hakula139/listenbrainz-scrobbler/(?<v>[^"]+)'
