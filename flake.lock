@@ -840,17 +840,17 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1794680861,
-        "narHash": "sha256-2CvA4XkGkxtHyH8ZnH3tgyY1IKXXdpU6sLPXOl3jf30=",
+        "lastModified": 1794683231,
+        "narHash": "sha256-EDxLASsXd7HaFytltR2m4bHl9D/e9yID3U0L4Tag9a4=",
         "owner": "hakula139",
         "repo": "wakatime-cli",
-        "rev": "fd3c216cc3b121fc6edc512b1bfe0ecb1810c86e",
+        "rev": "ea8c76045ac7707e52eb4dfe8b7be09a929c78c8",
         "type": "github"
       },
       "original": {
         "owner": "hakula139",
         "repo": "wakatime-cli",
-        "rev": "fd3c216cc3b121fc6edc512b1bfe0ecb1810c86e",
+        "rev": "ea8c76045ac7707e52eb4dfe8b7be09a929c78c8",
         "type": "github"
       }
     }
