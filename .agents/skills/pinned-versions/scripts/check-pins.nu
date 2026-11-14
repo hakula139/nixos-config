@@ -279,6 +279,13 @@ def registry [root: string]: nothing -> list<record> {
           local: {|| nix-attr $root "flake.nix" 'github:hakula139/oxide-code/(?<v>[^"]+)' }
           upstream: {|| gh-newest-release hakula139/oxide-code }
         }
+        {
+          pin: "wakatime-cli"
+          local: {||
+            abbrev (nix-attr $root "flake.nix" 'github:hakula139/wakatime-cli/(?<v>[^"]+)')
+          }
+          upstream: {|| abbrev (gh-default-head "hakula139/wakatime-cli") }
+        }
       ]
     }
     {
@@ -337,8 +344,10 @@ def registry [root: string]: nothing -> list<record> {
       title: "Repo overrides of nixpkgs packages"
       pins: (
         override-rows $root [
-          {name: "peertube", repo: "Chocobozzz/PeerTube"}
-          {name: "wakatime-cli", repo: "wakatime/wakatime-cli"}
+          {
+            name: "peertube"
+            repo: "Chocobozzz/PeerTube"
+          }
         ]
       )
     }

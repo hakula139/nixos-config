@@ -45,7 +45,7 @@ Update the package's `version` and source hash, staying on the release channel t
 
 Dependencies beyond the source need these hashes:
 
-- `acpx` needs `pnpmDeps.hash`, and `wakatime-cli` needs `vendorHash`.
+- `acpx` needs `pnpmDeps.hash`.
 - `mcp-server-gitlab` needs `npmDepsHash`. Rebuild to validate dependency hashes even when the upstream lockfile appears unchanged.
 - `cloudreve` and `mcp-server-github` fetch release archives with `fetchurl`. Prefetch their bytes without `--unpack`, and update every platform entry, including those unavailable locally.
 
