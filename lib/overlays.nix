@@ -58,7 +58,7 @@
     acpx = final.callPackage ../packages/acpx { };
     browser-tools = final.callPackage ../packages/browser-tools { };
     cloudreve = final.callPackage ../packages/cloudreve { };
-    direnv = final.callPackage ../packages/direnv { inherit (prev) direnv; };
+    direnv = prev.direnv.override { bash = final.unstable.bash; };
     file-formatter = final.callPackage ../packages/file-formatter { inherit repoLib; };
     mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };
     mcp-server-gitlab = final.callPackage ../packages/mcp/mcp-server-gitlab { };
