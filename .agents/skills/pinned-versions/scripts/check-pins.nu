@@ -204,17 +204,10 @@ def override-rows [root: string, overrides: list<record>]: nothing -> list<recor
             ""
           }
 
-          if ($unstable | is-empty) {
+          if ($pinned_in_file | is-not-empty) {
+            version-pin-status $pinned $latest $unstable
+          } else if ($unstable | is-empty) {
             "UNKNOWN"
-          } else if ($pinned_in_file | is-not-empty) {
-            let base = (version-base $pinned)
-            if (version-at-least $unstable $latest) and (version-at-least $unstable $base) {
-              "version pin superseded"
-            } else if (version-older $base $latest) {
-              "STALE"
-            } else {
-              "ok"
-            }
           } else {
             let local_drv = (flake-attr $root $local_attr drvPath)
             let unstable_drv = (flake-attr $root $unstable_attr drvPath)
@@ -325,6 +318,33 @@ def registry [root: string]: nothing -> list<record> {
           upstream: {|| gh-newest-release thaw-app/Thaw }
         }
         {
+          pin: "wakatime-cli"
+          local: {||
+            let file = "packages/wakatime-cli/default.nix"
+            abbrev (nix-attr $root $file 'rev = "(?<v>[0-9a-f]+)"')
+          }
+          upstream: {|| abbrev (gh-default-head "hakula139/wakatime-cli") }
+        }
+        {
+          pin: "wakatime-cli-go"
+          local: {||
+            nix-attr $root "packages/wakatime-cli/default.nix" 'goVersion = "(?<v>[^"]+)"'
+          }
+          upstream: {||
+            let versions = (
+              http get --max-time 30sec "https://go.dev/dl/?mode=json&include=all"
+              | get version
+              | where {|version| $version | str starts-with "go1.27." }
+              | str replace -r "^go" ""
+            )
+            newest-version $versions
+          }
+          status: {|pinned, latest|
+            let provider = (flake-attr $root $"($EVAL_PKGS).unstable.go_1_27" version)
+            version-pin-status $pinned $latest $provider
+          }
+        }
+        {
           pin: "zsh-hist"
           local: {||
             let file = "packages/zsh-hist/default.nix"
@@ -339,7 +359,6 @@ def registry [root: string]: nothing -> list<record> {
       pins: (
         override-rows $root [
           {name: "peertube", repo: "Chocobozzz/PeerTube"}
-          {name: "wakatime-cli", repo: "wakatime/wakatime-cli"}
         ]
       )
     }

@@ -26,10 +26,17 @@ def version-older [left: string, right: string]: nothing -> bool {
   not (version-at-least $left $right)
 }
 
-# The release a commit-pinned version derives from. Nixpkgs writes such a version as
-# `<release>-unstable-<date>`, which no upstream tag matches.
-def version-base [version: string]: nothing -> string {
-  $version | str replace -r -- '-unstable-[0-9]{4}-[0-9]{2}-[0-9]{2}$' ''
+# Compare a manual pin with the latest release and the provider that can replace it.
+def version-pin-status [pinned: string, latest: string, provider: string]: nothing -> string {
+  if ($provider | is-empty) {
+    "UNKNOWN"
+  } else if (version-at-least $provider $latest) and (version-at-least $provider $pinned) {
+    "version pin superseded"
+  } else if (version-older $pinned $latest) {
+    "STALE"
+  } else {
+    "ok"
+  }
 }
 
 # The highest version-shaped tag, optionally including pre-releases.

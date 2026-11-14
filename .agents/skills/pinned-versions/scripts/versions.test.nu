@@ -110,31 +110,48 @@ def "test version helpers compare naturally and select the newest valid tag" [] 
   }
 }
 
-def "test version-base strips a commit pin date" [] {
+def "test version pins become redundant only when the provider covers the pin and latest release" [] {
   let cases = [
     {
-      name: "commit pin"
-      version: "2.28.0-unstable-2026-11-11"
-      expected: "2.28.0"
+      name: "provider and pin behind latest"
+      pinned: "1.2.0"
+      latest: "1.3.0"
+      provider: "1.1.0"
+      expected: "STALE"
     }
     {
-      name: "release"
-      version: "2.28.4"
-      expected: "2.28.4"
+      name: "provider covers pin but not latest"
+      pinned: "1.2.0"
+      latest: "1.3.0"
+      provider: "1.2.0"
+      expected: "STALE"
     }
     {
-      name: "pre-release"
-      version: "2.28.4-alpha.1"
-      expected: "2.28.4-alpha.1"
+      name: "provider covers pin and latest"
+      pinned: "1.2.0"
+      latest: "1.3.0"
+      provider: "1.3.0"
+      expected: "version pin superseded"
     }
     {
-      name: "no release base"
-      version: "0-unstable-2026-02-13"
-      expected: "0"
+      name: "pin ahead of provider and latest"
+      pinned: "1.4.0"
+      latest: "1.3.0"
+      provider: "1.3.0"
+      expected: "ok"
+    }
+    {
+      name: "missing provider"
+      pinned: "1.2.0"
+      latest: "1.3.0"
+      provider: ""
+      expected: "UNKNOWN"
     }
   ]
 
   for case in $cases {
-    assert equal (version-base $case.version) $case.expected $case.name
+    let actual = (version-pin-status $case.pinned $case.latest $case.provider)
+
+    assert equal $actual $case.expected $case.name
   }
 }
