@@ -140,11 +140,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794656067,
-        "narHash": "sha256-BIC+KlXExlovGqmcicW7P8uQdqtx3kFMe0ix6VxnahE=",
+        "lastModified": 1794687934,
+        "narHash": "sha256-1KfBNSwUXQl4qT9bTcXfli3Gllq/Ah/sqEerjaNbZ+0=",
         "owner": "hakula139",
         "repo": "devkit",
-        "rev": "8034b7cf251a9e89f3e100509044d751ad273c35",
+        "rev": "f5a8dab0e3dc8662485c35d7c8f534d7440dd878",
         "type": "github"
       },
       "original": {
