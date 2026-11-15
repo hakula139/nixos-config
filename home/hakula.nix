@@ -25,10 +25,10 @@ let
 in
 {
   imports = [
-    inputs.activity-report.homeModules.default
-    inputs.agent-project-move.homeModules.default
-    inputs.listenbrainz-scrobbler.homeModules.default
-    inputs.oxide-code.homeModules.default
+    inputs.flake-catalog.homeModules.activity-report
+    inputs.flake-catalog.homeModules.agent-project-move
+    inputs.flake-catalog.homeModules.listenbrainz-scrobbler
+    inputs.flake-catalog.homeModules.oxide-code
 
     ./modules/shared.nix
     ./modules/darwin.nix

@@ -20,7 +20,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Skill sources
   # ------------------------------------------------------------------------------------------------
-  pluginSkills = inputs.plugins.lib.skills;
+  pluginSkills = inputs.flake-catalog.lib.skills;
   promptFragments = import ../prompt-fragments;
 
   localSkills = lib.optionalAttrs corpGatewayEnabled {

@@ -31,7 +31,6 @@ lib.mkIf config.hakula.llm-assistants.enable (
     {
       programs.activity-report = {
         enable = true;
-        package = pkgs.activity-report;
         skillDirectories = [ ];
 
         settings = {
