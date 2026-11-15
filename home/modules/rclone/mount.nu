@@ -32,7 +32,7 @@ def --wrapped main [
   }
 
   let mounts = (^mount -t nfs)
-  if ($mounts | str contains (" on " + $mountpoint + " (")) {
+  if ($mounts | str contains $" on ($mountpoint) \(") {
     ^/sbin/umount -f $mountpoint
   }
 
