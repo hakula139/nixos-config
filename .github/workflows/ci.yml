@@ -24,7 +24,7 @@ jobs:
     name: Build ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.runner }}
     needs: flake-check
-    timeout-minutes: 120
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
