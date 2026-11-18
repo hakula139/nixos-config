@@ -1,6 +1,6 @@
 # AGENTS.md: nixos-config
 
-Project-specific rules for any coding assistant working in this repository. `CLAUDE.md` is a symlink to this file.
+Project-specific rules for any coding assistant working in this repository.
 
 ## Read before you edit
 
@@ -8,7 +8,6 @@ Project-specific rules for any coding assistant working in this repository. `CLA
 | --------------------------------------------- | -------------------------- |
 | A Nix module, package, or host                | [Nix conventions]          |
 | A Nushell script or its tests                 | [Nushell conventions]      |
-| A Markdown table of contents                  | [Markdown conventions]     |
 | A secret or a recipient list                  | [Secrets]                  |
 | Host wiring, builders, or the repository tree | [Architecture]             |
 | The workflow or a failing check               | [CI]                       |
@@ -64,7 +63,6 @@ Because the shell hook links the gitignored `.pre-commit-config.yaml` only on sh
 
 [Nix conventions]: docs/conventions/nix.md
 [Nushell conventions]: docs/conventions/nushell.md
-[Markdown conventions]: docs/conventions/markdown.md
 [Secrets]: .agents/skills/agenix/SKILL.md
 [Architecture]: docs/reference/architecture.md
 [CI]: docs/reference/ci.md

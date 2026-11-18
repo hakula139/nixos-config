@@ -4,9 +4,9 @@
 
 {
   lib,
-  enabledServers,
-  mcpOptions,
   shared,
+  mcpOptions,
+  enabledServers,
 }:
 
 let

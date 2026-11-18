@@ -126,6 +126,8 @@ in
       standard = "kimi-k3.1-pro";
       mini = "deepseek-v4.1-flash";
     };
+
+    prose = "gemini-4-carbon";
   };
 
   # Gateway costs are USD per million tokens.

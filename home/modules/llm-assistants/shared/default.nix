@@ -16,12 +16,23 @@
 
 let
   # ------------------------------------------------------------------------------------------------
-  # Prompt fragments
+  # Prompts
   # ------------------------------------------------------------------------------------------------
   promptFragments = import ./prompt-fragments;
 
   # ------------------------------------------------------------------------------------------------
-  # Agent roles
+  # Instructions
+  # ------------------------------------------------------------------------------------------------
+  instructionsDir = "${config.xdg.dataHome}/llm-assistants/instructions";
+
+  instructionSet = import ./instructions {
+    inherit promptFragments;
+    devkitSource = inputs.devkit.outPath;
+    docsDir = instructionsDir;
+  };
+
+  # ------------------------------------------------------------------------------------------------
+  # Agents
   # ------------------------------------------------------------------------------------------------
   roles = import ./agent-roles {
     inherit promptFragments;
@@ -31,10 +42,10 @@ let
   agentRoles = lib.mapAttrs (_: role: role // { description = toLine role.description; }) roles;
 
   # ------------------------------------------------------------------------------------------------
-  # Profiles and gateway
+  # Profiles
   # ------------------------------------------------------------------------------------------------
   profileDefinitions = repoLib.llmAssistants.mkProfileDefinitions {
-    inherit lib modelCatalog corpHosts;
+    inherit lib corpHosts modelCatalog;
   };
 
   corpGateway = profileDefinitions.providers.corp-gateway;
@@ -60,9 +71,6 @@ let
     postEdit = 120;
   };
 
-  # ------------------------------------------------------------------------------------------------
-  # Model calls
-  # ------------------------------------------------------------------------------------------------
   mkModelCall =
     {
       assistant,
@@ -72,13 +80,13 @@ let
       inherit
         pkgs
         lib
-        assistant
         repoLib
+        assistant
         ;
+      gateway = gatewayFor assistant;
       timeouts = timeouts // {
         modelCall = timeout;
       };
-      gateway = gatewayFor assistant;
     };
 in
 {
@@ -86,109 +94,110 @@ in
     ./skills
   ];
 
-  lib.llmAssistants = {
-    # ----------------------------------------------------------------------------------------------
-    # Configuration directories
-    # ----------------------------------------------------------------------------------------------
-    claudeConfigDir = "${config.home.homeDirectory}/.claude";
+  config = lib.mkMerge [
+    {
+      lib.llmAssistants = {
+        # ------------------------------------------------------------------------------------------
+        # Paths
+        # ------------------------------------------------------------------------------------------
+        claudeConfigDir = "${config.home.homeDirectory}/.claude";
 
-    codexConfigDir =
-      if config.home.preferXdgDirectories then
-        "${config.xdg.configHome}/codex"
-      else
-        "${config.home.homeDirectory}/.codex";
+        codexConfigDir =
+          if config.home.preferXdgDirectories then
+            "${config.xdg.configHome}/codex"
+          else
+            "${config.home.homeDirectory}/.codex";
 
-    ompConfigDir = "${config.home.homeDirectory}/.omp/agent";
+        ompConfigDir = "${config.home.homeDirectory}/.omp/agent";
 
-    # ----------------------------------------------------------------------------------------------
-    # Instructions
-    # ----------------------------------------------------------------------------------------------
-    instructions = import ../instructions {
-      inherit promptFragments;
-      devkitSource = inputs.devkit;
-    };
+        # ------------------------------------------------------------------------------------------
+        # Instructions
+        # ------------------------------------------------------------------------------------------
+        inherit instructionsDir;
 
-    # ----------------------------------------------------------------------------------------------
-    # Agent roles
-    # ----------------------------------------------------------------------------------------------
-    inherit agentRoles;
+        instructions = instructionSet.base;
 
-    agentRoleOptions = import ./agent-roles/options.nix {
-      inherit lib agentRoles;
-    };
+        # ------------------------------------------------------------------------------------------
+        # Agents
+        # ------------------------------------------------------------------------------------------
+        inherit agentRoles;
 
-    # ----------------------------------------------------------------------------------------------
-    # Preferences
-    # ----------------------------------------------------------------------------------------------
-    preferences = import ./preferences;
+        agentRoleOptions = import ./agent-roles/options.nix {
+          inherit lib agentRoles;
+        };
 
-    # ----------------------------------------------------------------------------------------------
-    # Auth profiles
-    # ----------------------------------------------------------------------------------------------
-    inherit profileDefinitions;
+        # ------------------------------------------------------------------------------------------
+        # Preferences
+        # ------------------------------------------------------------------------------------------
+        preferences = import ./preferences;
 
-    anthropicProfiles = import ./anthropic-profiles {
-      inherit lib secretPath;
-      inherit (profileDefinitions) providers;
-    };
+        # ------------------------------------------------------------------------------------------
+        # Profiles
+        # ------------------------------------------------------------------------------------------
+        inherit profileDefinitions;
 
-    mkProfileSwitch = import ./profile-switch {
-      inherit pkgs lib repoLib;
-    };
+        anthropicProfiles = import ./anthropic-profiles {
+          inherit lib secretPath;
+          inherit (profileDefinitions) providers;
+        };
 
-    # ----------------------------------------------------------------------------------------------
-    # MCP servers
-    # ----------------------------------------------------------------------------------------------
-    mcp = import ./mcp {
-      inherit
-        config
-        pkgs
-        lib
-        corpGateway
-        corpHosts
-        repoLib
-        secretPath
-        ;
-    };
+        mkProfileSwitch = import ./profile-switch {
+          inherit pkgs lib repoLib;
+        };
 
-    mcpSecrets = import ./mcp/secrets.nix;
+        # ------------------------------------------------------------------------------------------
+        # Permissions
+        # ------------------------------------------------------------------------------------------
+        permissions = repoLib.llmAssistants.mkPermissions {
+          inherit corpHosts;
+        };
 
-    # ----------------------------------------------------------------------------------------------
-    # Permissions
-    # ----------------------------------------------------------------------------------------------
-    permissions = repoLib.llmAssistants.mkPermissions {
-      inherit corpHosts;
-    };
+        # ------------------------------------------------------------------------------------------
+        # MCP servers
+        # ------------------------------------------------------------------------------------------
+        mcp = import ./mcp {
+          inherit
+            config
+            pkgs
+            lib
+            corpGateway
+            corpHosts
+            repoLib
+            secretPath
+            ;
+        };
 
-    # ----------------------------------------------------------------------------------------------
-    # Model calls
-    # ----------------------------------------------------------------------------------------------
-    inherit mkModelCall;
+        mcpSecrets = import ./mcp/secrets.nix;
 
-    # ----------------------------------------------------------------------------------------------
-    # Hooks
-    # ----------------------------------------------------------------------------------------------
-    inherit fileFormatter;
+        # ------------------------------------------------------------------------------------------
+        # Hooks
+        # ------------------------------------------------------------------------------------------
+        inherit fileFormatter mkModelCall;
 
-    mkHooks = import ./hooks {
-      inherit
-        pkgs
-        lib
-        modelCatalog
-        promptFragments
-        fileFormatter
-        timeouts
-        repoLib
-        mkModelCall
-        ;
-      inherit (config.xdg) dataHome;
-    };
+        mkHooks = import ./hooks {
+          inherit
+            pkgs
+            lib
+            modelCatalog
+            repoLib
+            promptFragments
+            fileFormatter
+            mkModelCall
+            timeouts
+            ;
+          inherit (config.xdg) dataHome;
+        };
 
-    # ----------------------------------------------------------------------------------------------
-    # Notifications
-    # ----------------------------------------------------------------------------------------------
-    notify = import ./notify {
-      inherit pkgs lib repoLib;
-    };
-  };
+        notify = import ./notify {
+          inherit pkgs lib repoLib;
+        };
+      };
+    }
+
+    (lib.mkIf config.hakula.llm-assistants.enable {
+      xdg.dataFile = lib.mapAttrs' (
+        name: text: lib.nameValuePair "llm-assistants/instructions/${name}" { inherit text; }
+      ) instructionSet.docs;
+    })
+  ];
 }

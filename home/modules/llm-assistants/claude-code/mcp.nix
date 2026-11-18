@@ -4,9 +4,9 @@
 
 {
   pkgs,
-  enabledServers,
-  mcpOptions,
   shared,
+  mcpOptions,
+  enabledServers,
 }:
 
 let

@@ -7,9 +7,9 @@
   pkgs,
   lib,
   shared,
-  enabledAgents,
   secretPath,
   configDir,
+  enabledAgents,
 }:
 
 let

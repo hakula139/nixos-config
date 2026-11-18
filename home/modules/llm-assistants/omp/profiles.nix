@@ -11,12 +11,14 @@
 }:
 
 let
+  inherit (shared) profileDefinitions;
+
   cfg = config.hakula.omp.auth;
   yaml = pkgs.formats.yaml { };
   configDir = shared.ompConfigDir;
   stateDir = "${config.xdg.stateHome}/omp";
 
-  corpGateway = shared.profileDefinitions.providers.corp-gateway;
+  corpGateway = profileDefinitions.providers.corp-gateway;
   caFile = secretPath corpGateway.caSecret;
 
   # ------------------------------------------------------------------------------------------------
@@ -63,7 +65,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile definitions
   # ------------------------------------------------------------------------------------------------
-  enabledProfiles = shared.profileDefinitions.mkProfiles {
+  enabledProfiles = profileDefinitions.mkProfiles {
     inherit (cfg) enableCorpGateway;
     nativeFamily = "gpt";
     hybridBase = "corp-gateway-google";
@@ -85,9 +87,9 @@ let
     inherit
       pkgs
       lib
+      profileDefinitions
       secretPath
       ;
-    inherit (shared) profileDefinitions;
     profiles = lib.filterAttrs (_: profile: profile.provider != null) enabledProfiles;
   };
 
@@ -114,7 +116,7 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options = shared.profileDefinitions.mkOptions {
+  options = profileDefinitions.mkOptions {
     defaultProfile = if cfg.enableCorpGateway then "corp-gateway-anthropic" else "official";
     enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
   };

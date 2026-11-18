@@ -28,10 +28,14 @@ let
   toolRules = map (tool: toolNames.${tool}) allows.tools;
 
   # A leading `//` makes a Claude Code path rule absolute.
-  pathRules = lib.concatMap (path: [
-    "Read(/${path}/**)"
-    "Edit(/${path}/**)"
-  ]) allows.paths;
+  pathRules =
+    lib.concatMap (path: [
+      "Read(/${path}/**)"
+      "Edit(/${path}/**)"
+    ]) allows.paths
+    ++ [
+      "Read(/${shared.instructionsDir}/**)"
+    ];
 
   # The built-in IDE server is outside the shared MCP registry.
   builtinRules = [

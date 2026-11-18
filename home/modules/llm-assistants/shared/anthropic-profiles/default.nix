@@ -6,8 +6,8 @@
 
 {
   lib,
-  providers,
   secretPath,
+  providers,
 }:
 
 let

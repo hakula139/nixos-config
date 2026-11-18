@@ -12,11 +12,12 @@
 }:
 
 let
+  inherit (shared) agentRoleOptions instructions;
+  inherit (repoLib.llmAssistants) mcpOptions;
+
   cfg = config.hakula.codex;
   shared = config.lib.llmAssistants;
-
-  inherit (shared) agentRoleOptions codexConfigDir instructions;
-  inherit (repoLib.llmAssistants) mcpOptions;
+  configDir = shared.codexConfigDir;
 
   profiles = import ./profiles.nix {
     inherit
@@ -25,9 +26,9 @@ let
       lib
       shared
       secretPath
+      configDir
       ;
     inherit (cfg.agents) enabledAgents;
-    configDir = codexConfigDir;
   };
 in
 {
@@ -74,7 +75,7 @@ in
       };
 
       mcp = import ./mcp.nix {
-        inherit lib mcpOptions shared;
+        inherit lib shared mcpOptions;
         inherit (permissions) mcpApprovals;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
       };
@@ -129,7 +130,7 @@ in
         runtimeInputs = [ pkgs.coreutils ];
 
         config = {
-          configDir = codexConfigDir;
+          inherit configDir;
           activeProfile = "${profiles.stateDir}/active-profile";
           settings = codexSettings;
           keybindings = lib.optionals pkgs.stdenv.isDarwin [
@@ -159,7 +160,7 @@ in
         programs.codex = {
           enable = true;
           package = codexBin;
-          context = instructions.codex;
+          context = instructions;
         };
 
         # ------------------------------------------------------------------------------------------
@@ -168,7 +169,7 @@ in
         home.file = {
           codexRules = {
             # Separate from default.rules, which Codex rewrites on TUI allowlisting.
-            target = "${codexConfigDir}/rules/nixos-config.rules";
+            target = "${configDir}/rules/nixos-config.rules";
             text = permissions.rules;
           };
         };

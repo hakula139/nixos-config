@@ -5,8 +5,9 @@
 {
   lib,
   shared,
-  enabledAgents,
+  agentModels,
   efforts,
+  enabledAgents,
 }:
 
 let
@@ -17,7 +18,7 @@ let
     name: agent:
     let
       settings = agent.claude // {
-        model = shared.profileDefinitions.modelAliases.claude.${agent.workload};
+        model = agentModels.${agent.workload};
         effort = efforts.${agent.workload};
       };
 

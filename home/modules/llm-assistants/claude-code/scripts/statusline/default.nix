@@ -7,8 +7,8 @@
 {
   pkgs,
   lib,
-  repoLib,
   modelCatalog,
+  repoLib,
 }:
 
 repoLib.mkNuCommand {

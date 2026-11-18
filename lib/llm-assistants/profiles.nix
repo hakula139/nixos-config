@@ -4,8 +4,8 @@
 
 {
   lib,
-  modelCatalog,
   corpHosts,
+  modelCatalog,
 }:
 
 let
@@ -95,6 +95,36 @@ let
     local = "openai-responses";
   };
 
+  channelSources = lib.listToAttrs (
+    lib.concatLists (
+      lib.mapAttrsToList (
+        name: profile:
+        lib.optional (profile.provider == "corp-gateway" && profile.channel != null) (
+          lib.nameValuePair profile.channel name
+        )
+      ) providerProfiles
+    )
+  );
+
+  resolveGatewayModel =
+    {
+      modelKey,
+      effortTier,
+    }:
+    let
+      inherit (providerProfiles.${source}) family;
+      model = modelCatalog.models.${modelKey};
+      channel = lib.head (builtins.attrNames model.channelId);
+      source = channelSources.${channel};
+    in
+    {
+      inherit source channel family;
+      api = familyApis.${family};
+      inherit modelKey model;
+      modelId = model.channelId.${channel};
+      effort = workloadPolicy.${family}.${effortTier};
+    };
+
   roleTiers = {
     default = {
       modelTier = "flagship";
@@ -137,17 +167,30 @@ let
           modelId = if channel == null then modelKey else model.channelId.${channel};
           effort = workloadPolicy.${family}.${effortTier};
         };
-    in
-    {
-      inherit (profile) provider nativeWebSearch;
-      oauthTokenSecret = profile.oauthTokenSecret or null;
-      workloads = lib.mapAttrs (
+      tierWorkloads = lib.mapAttrs (
         tier: _:
         resolveWorkload {
           modelTier = tier;
           effortTier = tier;
         }
       ) sources;
+
+      proseWorkload = resolveGatewayModel {
+        modelKey = modelCatalog.defaults.prose;
+        effortTier = "flagship";
+      };
+    in
+    {
+      inherit (profile) provider nativeWebSearch;
+      oauthTokenSecret = profile.oauthTokenSecret or null;
+
+      workloads = tierWorkloads // {
+        prose =
+          if profile.provider == "corp-gateway" && sourceProfiles ? ${proseWorkload.source} then
+            proseWorkload
+          else
+            tierWorkloads.flagship;
+      };
 
       roles = lib.mapAttrs (_: resolveWorkload) roleTiers;
     };
@@ -201,7 +244,7 @@ in
   };
 
   # ------------------------------------------------------------------------------------------------
-  # Profile construction and options
+  # Profile construction
   # ------------------------------------------------------------------------------------------------
   mkProfiles =
     {
@@ -241,9 +284,6 @@ in
 
       sourceProfiles = officialProfiles // enabledProviderProfiles;
 
-      # The hybrid runs its flagship tier on the `hybridBase` gateway profile, whose family need not
-      # match `nativeFamily`, and the other tiers on the local model. Mini-tier work is read-only,
-      # and flagship-tier agents review the standard tier's changes.
       hybridProfiles = lib.optionalAttrs (hybridBase != null) {
         corp-gateway-hybrid = {
           provider = "corp-gateway";
@@ -263,6 +303,9 @@ in
     in
     lib.mapAttrs (resolveProfile sourceProfiles) (sourceProfiles // enabledHybridProfiles);
 
+  # ------------------------------------------------------------------------------------------------
+  # Profile options
+  # ------------------------------------------------------------------------------------------------
   mkOptions =
     {
       defaultProfile,

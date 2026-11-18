@@ -3,12 +3,12 @@
 # ==================================================================================================
 
 {
-  mkNuHook,
-  timeouts,
-  modelCall,
   modelCatalog,
   promptFragments,
+  mkNuHook,
+  modelCall,
   patchInput,
+  timeouts,
 }:
 
 {

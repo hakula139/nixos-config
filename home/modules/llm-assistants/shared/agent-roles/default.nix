@@ -71,6 +71,33 @@ in
     };
   };
 
+  doc-writer = {
+    description = ''
+      Documentation and prose authoring, restructuring, translation, and polishing across English,
+      Chinese, and all languages. Use when drafting, revising, translating, or polishing
+      documentation, guides, READMEs, or prose under the Writing and Documentation guides.
+    '';
+
+    prompt = readPrompt ./prompts/doc-writer.md;
+    workload = "prose";
+
+    claude = {
+      color = "purple";
+      memory = "local";
+    };
+
+    codex = {
+      nicknameCandidates = [
+        "doc-writer"
+        "writer"
+      ];
+    };
+
+    omp = {
+      spawns = "*";
+    };
+  };
+
   implementer = {
     description = ''
       Code writing, feature implementation, and refactoring. Use when you need to delegate a

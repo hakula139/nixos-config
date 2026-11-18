@@ -5,8 +5,8 @@
 {
   pkgs,
   lib,
-  machineSettingsJson,
   systemManagerPaths,
+  machineSettingsJson,
 }:
 
 let

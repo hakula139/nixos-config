@@ -30,7 +30,7 @@ let
 
     ${lib.trim agent.prompt}
 
-    ${lib.trim shared.instructions.omp}
+    ${lib.trim shared.instructions}
   '';
 in
 {

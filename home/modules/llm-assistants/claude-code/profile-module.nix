@@ -39,6 +39,12 @@ lib.types.submodule {
       description = "Auto-compaction window in tokens for each model ID";
     };
 
+    agentModels = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = officialProfile.agentModels;
+      description = "Model identifier for each workload tier, used by custom agents";
+    };
+
     efforts = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       default = defaultEfforts;

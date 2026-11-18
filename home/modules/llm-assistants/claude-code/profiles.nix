@@ -6,10 +6,10 @@
   config,
   pkgs,
   lib,
-  shared,
-  enabledAgents,
   modelCatalog,
+  shared,
   mcpFlag,
+  enabledAgents,
 }:
 
 let
@@ -77,7 +77,9 @@ let
       # Claude Code would hold the first checked action behind its auto-mode ineligibility notice.
       autoModeServerOptOut =
         profile.provider != null
-        && lib.any (workload: workload.channel != "anthropic") (builtins.attrValues workloads);
+        && lib.any (tier: workloads.${tier}.channel != "anthropic") (
+          builtins.attrNames modelAliases.claude
+        );
     in
     auth
     // {
@@ -106,6 +108,14 @@ let
           builtins.attrValues workloads
         )
       );
+
+      agentModels = lib.mapAttrs (
+        tier: workload:
+        if tier == "prose" && isCorpGateway then
+          aliasModelId workload
+        else
+          modelAliases.claude.${tier} or modelAliases.claude.flagship
+      ) workloads;
 
       efforts = lib.mapAttrs (_: workload: workload.effort) workloads;
       modelOverrides = lib.optionalAttrs (lib.any (workload: workload.channel == "anthropic") (
@@ -140,7 +150,9 @@ let
   # ------------------------------------------------------------------------------------------------
   profileType = import ./profile-module.nix {
     inherit lib;
-    defaultEfforts = workloadPolicy.claude;
+    defaultEfforts = workloadPolicy.claude // {
+      prose = workloadPolicy.claude.flagship;
+    };
     officialProfile = profiles.official;
   };
 
@@ -208,14 +220,18 @@ let
   # Custom agents
   # ------------------------------------------------------------------------------------------------
   mkAgentsDir =
-    efforts:
+    {
+      agentModels,
+      efforts,
+    }:
     let
       agents = import ./agents {
         inherit
           lib
           shared
-          enabledAgents
+          agentModels
           efforts
+          enabledAgents
           ;
       };
     in
@@ -264,7 +280,9 @@ let
     in
     pkgs.linkFarm "claude-profile-${name}" {
       "env.sh" = envScript;
-      agents = mkAgentsDir profile.efforts;
+      agents = mkAgentsDir {
+        inherit (profile) agentModels efforts;
+      };
     };
 
   profileBundles = lib.mapAttrs mkProfileBundle cfg.auth.profiles;

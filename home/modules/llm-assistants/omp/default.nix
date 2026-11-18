@@ -12,11 +12,11 @@
 }:
 
 let
-  cfg = config.hakula.omp;
-  shared = config.lib.llmAssistants;
-
   inherit (shared) agentRoleOptions instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
+
+  cfg = config.hakula.omp;
+  shared = config.lib.llmAssistants;
 
   profiles = import ./profiles.nix {
     inherit
@@ -69,7 +69,7 @@ in
       };
 
       mcp = import ./mcp.nix {
-        inherit lib mcpOptions shared;
+        inherit lib shared mcpOptions;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
       };
 
@@ -147,7 +147,7 @@ in
         # Configuration files
         # ------------------------------------------------------------------------------------------
         home.file = {
-          ".omp/agent/AGENTS.md".text = instructions.omp;
+          ".omp/agent/AGENTS.md".text = instructions;
           ".omp/agent/WATCHDOG.md".text = builtins.readFile ./watchdog.md;
           ".omp/agent/extensions/file-formatter.ts".source = pkgs.replaceVars ./file-formatter.ts {
             inherit (shared) fileFormatter;

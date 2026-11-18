@@ -8,13 +8,13 @@
 {
   pkgs,
   lib,
-  dataHome,
   modelCatalog,
+  repoLib,
   promptFragments,
   fileFormatter,
-  timeouts,
-  repoLib,
   mkModelCall,
+  timeouts,
+  dataHome,
 }:
 
 {
@@ -116,12 +116,12 @@ in
 
     commentGate = import ./comment-gate {
       inherit
-        mkNuHook
-        timeouts
-        modelCall
         modelCatalog
         promptFragments
+        mkNuHook
+        modelCall
         patchInput
+        timeouts
         ;
     };
 

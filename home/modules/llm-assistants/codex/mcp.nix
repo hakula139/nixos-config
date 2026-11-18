@@ -4,10 +4,10 @@
 
 {
   lib,
-  enabledServers,
-  mcpApprovals,
-  mcpOptions,
   shared,
+  mcpOptions,
+  mcpApprovals,
+  enabledServers,
 }:
 
 let

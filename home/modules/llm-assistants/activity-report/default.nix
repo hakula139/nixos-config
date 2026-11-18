@@ -6,9 +6,9 @@
   config,
   pkgs,
   lib,
+  secretPath,
   hostType,
   isDesktop,
-  secretPath,
   ...
 }:
 

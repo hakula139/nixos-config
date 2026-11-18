@@ -6,21 +6,21 @@
   config,
   pkgs,
   lib,
-  enableDevToolchains,
   modelCatalog,
   repoLib,
+  enableDevToolchains,
   ...
 }:
 
 let
-  cfg = config.hakula.claude-code;
-  shared = config.lib.llmAssistants;
-
   inherit (shared) agentRoleOptions instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
 
+  cfg = config.hakula.claude-code;
+  shared = config.lib.llmAssistants;
+
   mcp = import ./mcp.nix {
-    inherit pkgs mcpOptions shared;
+    inherit pkgs shared mcpOptions;
     enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
   };
 
@@ -32,8 +32,8 @@ let
       config
       pkgs
       lib
-      shared
       modelCatalog
+      shared
       mcpFlag
       ;
     inherit (cfg.agents) enabledAgents;
@@ -82,19 +82,14 @@ in
         inherit lib enableDevToolchains;
       };
 
-      # --------------------------------------------------------------------------------------------
-      # Status line
-      # --------------------------------------------------------------------------------------------
-      statusLinePackage = import ./scripts/statusline {
+      statusLine = import ./scripts/statusline {
         inherit
           pkgs
           lib
-          repoLib
           modelCatalog
+          repoLib
           ;
       };
-
-      statusLineScript = lib.getExe statusLinePackage;
 
       # --------------------------------------------------------------------------------------------
       # Package wrapper
@@ -128,10 +123,10 @@ in
       settingsJson = json.generate "claude-code-settings.json" (
         import ./settings.nix {
           inherit
+            shared
             hooks
             permissionSettings
             plugins
-            shared
             ;
           profileSettings = profiles.settings;
         }
@@ -164,10 +159,13 @@ in
         # Configuration files
         # ------------------------------------------------------------------------------------------
         home.file = {
-          ".claude/CLAUDE.md".text = instructions.claudeCode;
+          ".claude/CLAUDE.md".text = lib.concatStringsSep "\n" [
+            instructions
+            (builtins.readFile ./instructions.md)
+          ];
           ".claude/settings.json".source = "${configFiles}/settings.json";
           ".claude/statusline-command" = {
-            source = statusLineScript;
+            source = lib.getExe statusLine;
             executable = true;
           };
         };

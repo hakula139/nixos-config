@@ -8,10 +8,10 @@
   lib,
   inputs,
   repoLib,
+  systemManagerPaths,
   flakeConfigName,
   isDesktop,
   isNixOS,
-  systemManagerPaths,
   ...
 }:
 
@@ -55,7 +55,7 @@ in
       # Module imports
       # --------------------------------------------------------------------------------------------
       mcp = import ./mcp.nix {
-        inherit pkgs mcpOptions shared;
+        inherit pkgs shared mcpOptions;
         enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
       };
 

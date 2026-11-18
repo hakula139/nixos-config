@@ -3,11 +3,11 @@
 # ==================================================================================================
 
 {
+  shared,
   hooks,
   permissionSettings,
   plugins,
   profileSettings,
-  shared,
 }:
 
 {

@@ -9,10 +9,10 @@
 {
   pkgs,
   lib,
-  modelCall,
   modelCatalog,
-  promptFragments,
   repoLib,
+  promptFragments,
+  modelCall,
 }:
 
 let
@@ -30,7 +30,7 @@ let
       ;
     inherit (promptFragments) phrasing;
     maxRepairs = 3;
-    model = models.gemini-4-argon;
+    model = models.${modelCatalog.defaults.prose};
     prompt = builtins.readFile ./scripts/prompt.md;
     repairPrompt = builtins.readFile ./scripts/repair-prompt.md;
   };

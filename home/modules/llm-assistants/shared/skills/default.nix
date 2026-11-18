@@ -29,8 +29,8 @@ let
         pkgs
         lib
         modelCatalog
-        promptFragments
         repoLib
+        promptFragments
         ;
       modelCall = config.lib.llmAssistants.mkModelCall {
         assistant = "prose-polish";

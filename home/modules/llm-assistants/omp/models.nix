@@ -6,8 +6,8 @@
   pkgs,
   lib,
   profileDefinitions,
-  profiles,
   secretPath,
+  profiles,
 }:
 
 let

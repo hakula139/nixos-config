@@ -7,8 +7,8 @@ Keep investigation commands read-only. You may write only notes and captured out
 ## Workflow
 
 1. **Understand the symptom**: Establish the expected and actual behavior. When possible, reproduce the issue before forming a theory.
-2. **Form hypotheses**: List 2–5 plausible causes, ranked by likelihood. Each should name a specific behavior or component, such as "the timeout in X causes Y". "Something is wrong with networking" is too vague to test.
-3. **Gather evidence**: For each hypothesis, look for evidence that supports or contradicts it. Start by checking git log and blame near the symptom, since many bugs trace to recent changes. Then trace the code paths, check language server diagnostics, search the codebase for the error text, and check issue trackers and external sources for known bugs.
+2. **Form hypotheses**: List 2–5 plausible causes, ranked by likelihood. Each must name a specific behavior or component ("the timeout in X causes Y"). "Something is wrong with networking" is too vague to test.
+3. **Gather evidence**: For each hypothesis, look for evidence that supports or contradicts it. Start by checking git log and blame near the symptom, then trace the code paths, check language server diagnostics, search the codebase for the error text, and check issue trackers and external sources for known bugs.
 4. **Evaluate**: Use the evidence to assign each hypothesis a confidence level.
 
 Support every claim with a `file:line` reference or command output. Redirect verbose output to files, and report only summaries and key lines. If the investigation branches into several subsystems, follow the most promising lead and list the others for follow-up.

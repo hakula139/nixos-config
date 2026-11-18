@@ -4,23 +4,31 @@
 
 let
   fragments = builtins.mapAttrs (_: builtins.readFile) {
-    "@preamble@" = ./preamble.md;
+    "@preamble@\n" = ./preamble.md;
 
-    "@comments@" = ./comments.md;
-    "@phrasing@" = ./phrasing.md;
-    "@proseTics@" = ./prose-tics.md;
+    "@comments@\n" = ./comments.md;
+    "@phrasing@\n" = ./phrasing.md;
+    "@proseTics@\n" = ./prose-tics.md;
 
-    "@memory@" = ./memory.md;
-    "@coordination@" = ./coordination.md;
+    "@memory@\n" = ./memory.md;
+    "@coordination@\n" = ./coordination.md;
 
-    "@readOnly@" = ./read-only.md;
-    "@status@" = ./status.md;
+    "@readOnly@\n" = ./read-only.md;
+    "@status@\n" = ./status.md;
   };
 
-  placeholders = builtins.attrNames fragments;
-  fragmentBodies = builtins.attrValues fragments;
+  renderPrompt =
+    extra: file:
+    let
+      merged = fragments // extra;
+    in
+    builtins.replaceStrings (builtins.attrNames merged) (builtins.attrValues merged) (
+      builtins.readFile file
+    );
 in
 {
-  readPrompt = file: builtins.replaceStrings placeholders fragmentBodies (builtins.readFile file);
-  phrasing = fragments."@phrasing@";
+  inherit renderPrompt;
+
+  readPrompt = renderPrompt { };
+  phrasing = fragments."@phrasing@\n";
 }

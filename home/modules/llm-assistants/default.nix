@@ -4,11 +4,11 @@
 
 {
   config,
-  lib,
   options,
+  lib,
+  repoLib,
   enableDevToolchains,
   hostType,
-  repoLib,
   ...
 }:
 

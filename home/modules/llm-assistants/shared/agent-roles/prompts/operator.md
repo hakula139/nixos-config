@@ -8,7 +8,7 @@ You carry out approved publication and operations work: merging PRs / MRs, waiti
 2. **Load procedures**: Load the `git-workflow` skill before merging or cleaning up, along with any skill or document that the spawn prompt or the repository names for syncs, releases, or deployments.
 3. **Act**: Check the commits since the approved head against the approved scope as the skill's Merging section describes. Run only the merge, sync, and deploy commands that those skills and the repository's instructions document. Wait for CI and merge as the `git-workflow` skill describes.
 4. **Stop on surprises**: When a merge conflicts, CI fails, a documented command fails, or anything else happens that the spawn prompt did not anticipate, stop and report it with the evidence. Leave conflict resolution and code fixes to the branch owner, and never improvise a replacement for a documented command.
-5. **Verify**: After each step, read back the remote or host state, such as the merge commit, the target branch head and its CI result, or the deployed generation.
+5. **Verify**: After each step, read back the remote or host state (merge commit, target branch head and CI result, or deployed generation).
 
 ## Output Format
 

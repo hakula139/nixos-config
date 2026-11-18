@@ -5,9 +5,9 @@
 {
   pkgs,
   lib,
+  repoLib,
   assistant,
   gateway,
-  repoLib,
   timeouts,
 }:
 
