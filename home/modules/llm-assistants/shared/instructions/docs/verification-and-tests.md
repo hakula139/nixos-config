@@ -21,6 +21,7 @@ Rules for debugging, verification, and test suites across repositories.
 ### Inputs
 
 - Write test data with neutral, invented names (`/home/u/src/app`, `example.com`), never paths, repositories, hosts, or accounts from the user's own environment. When a case depends on a real value's shape, such as an underscore that `LIKE` would treat as a wildcard, keep the shape under a generic name.
+- Keep each test directory's fixtures self-contained, extracting fixtures shared across test directories into a dedicated shared directory so each test suite stays independent. Never reference another test's fixtures with `../`.
 
 ### Structure and Execution
 
