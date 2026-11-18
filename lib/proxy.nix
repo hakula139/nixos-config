@@ -25,7 +25,7 @@ let
   baseNoProxy = [
     "localhost"
     "127.0.0.1"
-    "10.*"
+    "10.0.0.0/8"
   ];
 
   renderNoProxy = proxyCfg: lib.concatStringsSep "," (lib.unique (baseNoProxy ++ proxyCfg.noProxy));
@@ -125,7 +125,7 @@ in
     noProxy = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      description = "Extra domains to bypass the proxy, merged with localhost, 127.0.0.1 and 10.*";
+      description = "Extra domains to bypass the proxy, merged with localhost, 127.0.0.1 and 10.0.0.0/8";
     };
   };
 }
