@@ -38,9 +38,9 @@ services:
       - ~/.claude:/root/.claude
       - ~/.claude.json:/root/.claude.json
       - ~/.codex:/root/.codex
-      - ~/.gitconfig:/root/.gitconfig:ro
-      - ~/.kube:/root/.kube:ro
-      - ~/.netrc:/root/.netrc:ro
+      - ~/.gitconfig:/root/.gitconfig
+      - ~/.kube:/root/.kube
+      - ~/.netrc:/root/.netrc
       - ~/.ssh:/root/.ssh
       - ~/workspace:/root/workspace
       - ${XDG_RUNTIME_DIR}/docker.sock:/var/run/docker.sock
