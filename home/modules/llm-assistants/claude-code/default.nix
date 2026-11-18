@@ -44,8 +44,6 @@ in
   # Module options
   # ------------------------------------------------------------------------------------------------
   options.hakula.claude-code = {
-    enable = lib.mkEnableOption "Claude Code";
-
     auth = profiles.options;
 
     agents = {
@@ -62,7 +60,7 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module config
   # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable (
+  config = lib.mkIf config.hakula.llm-assistants.enable (
     let
       json = pkgs.formats.json { };
 

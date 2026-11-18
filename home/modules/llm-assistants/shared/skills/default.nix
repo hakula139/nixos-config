@@ -85,24 +85,18 @@ lib.mkMerge [
     # ----------------------------------------------------------------------------------------------
     home.file = lib.mkMerge [
       (mkSkillFiles {
-        directory = "${config.lib.llmAssistants.claudeConfigDir}/skills";
+        directory = "${config.lib.llmAssistants.configDirs.claude}/skills";
         recursive = true;
       })
       (mkSkillFiles {
-        directory = "${config.lib.llmAssistants.ompConfigDir}/skills";
+        directory = "${config.lib.llmAssistants.configDirs.omp}/skills";
         recursive = true;
       })
       (mkSkillFiles {
-        directory = "${config.lib.llmAssistants.codexConfigDir}/skills";
+        directory = "${config.lib.llmAssistants.configDirs.codex}/skills";
         recursive = false;
       })
     ];
-
-    # ----------------------------------------------------------------------------------------------
-    # Helper programs
-    # ----------------------------------------------------------------------------------------------
-    hakula.activity-report.enable = true;
-    hakula.agent-project-move.enable = true;
 
     # ----------------------------------------------------------------------------------------------
     # Secrets

@@ -13,8 +13,6 @@
 }:
 
 let
-  cfg = config.hakula.activity-report;
-
   isWork = hostType == "work";
 
   # ------------------------------------------------------------------------------------------------
@@ -28,19 +26,9 @@ let
     "open --raw ${caldavSecret} | from toml | get ${key}"
   ];
 in
-{
-  # ------------------------------------------------------------------------------------------------
-  # Module options
-  # ------------------------------------------------------------------------------------------------
-  options.hakula.activity-report = {
-    enable = lib.mkEnableOption "activity-report and its skill";
-  };
-
-  # ------------------------------------------------------------------------------------------------
-  # Module config
-  # ------------------------------------------------------------------------------------------------
-  config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
+lib.mkIf config.hakula.llm-assistants.enable (
+  lib.mkMerge [
+    {
       programs.activity-report = {
         enable = true;
         package = pkgs.activity-report;
@@ -50,11 +38,7 @@ in
           # Workmux worker sessions count as unattended since prompts come from the launching agent.
           excluded_dirs = [ "/[^/]+__worktrees/workmux-" ];
 
-          assistants = {
-            claude = config.lib.llmAssistants.claudeConfigDir;
-            codex = config.lib.llmAssistants.codexConfigDir;
-            omp = config.lib.llmAssistants.ompConfigDir;
-          };
+          assistants = config.lib.llmAssistants.configDirs;
 
           labels = {
             default = [ hostType ];
@@ -62,9 +46,9 @@ in
           };
         };
       };
-    })
+    }
 
-    (lib.mkIf (cfg.enable && isWork && isDesktop) {
+    (lib.mkIf (isWork && isDesktop) {
       # --------------------------------------------------------------------------------------------
       # Secrets
       # --------------------------------------------------------------------------------------------
@@ -116,5 +100,5 @@ in
         };
       };
     })
-  ];
-}
+  ]
+)

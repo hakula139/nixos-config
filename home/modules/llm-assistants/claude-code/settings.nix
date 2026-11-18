@@ -44,7 +44,7 @@
   tui = "fullscreen";
   statusLine = {
     type = "command";
-    command = "${shared.claudeConfigDir}/statusline-command";
+    command = "${shared.configDirs.claude}/statusline-command";
   };
 
   showThinkingSummaries = true;

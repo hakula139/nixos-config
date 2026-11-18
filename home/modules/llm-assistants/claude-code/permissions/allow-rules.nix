@@ -21,7 +21,7 @@ let
 
   commandRules = map toAllowRule policy.allowCommands;
 
-  skillRules = map toAllowRule (shared.mkSkillScriptPaths "${shared.claudeConfigDir}/skills");
+  skillRules = map toAllowRule (shared.mkSkillScriptPaths "${shared.configDirs.claude}/skills");
 
   mcpRules = map (entry: "mcp__${entry.displayName}__${entry.tool}") policy.mcpAllows;
 

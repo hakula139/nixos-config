@@ -10,9 +10,6 @@
 }:
 
 let
-  inherit (pkgs) workmux;
-  cfg = config.hakula.workmux;
-
   yaml = pkgs.formats.yaml { };
 
   configFile = yaml.generate "workmux-config.yaml" {
@@ -34,52 +31,37 @@ let
   workmuxSkillFiles = lib.genAttrs' workmuxSkills (
     name:
     lib.nameValuePair ".agents/skills/${name}" {
-      source = "${workmux}/share/skills/workmux/${name}";
+      source = "${pkgs.workmux}/share/skills/workmux/${name}";
     }
   );
 in
-{
+lib.mkIf config.hakula.llm-assistants.enable {
   # ------------------------------------------------------------------------------------------------
-  # Module options
+  # Packages
   # ------------------------------------------------------------------------------------------------
-  options.hakula.workmux = {
-    enable = lib.mkEnableOption "Workmux and its agent integrations";
+  home.packages = [
+    pkgs.workmux
+  ];
+
+  # ------------------------------------------------------------------------------------------------
+  # Agent resources
+  # ------------------------------------------------------------------------------------------------
+  home.file = workmuxSkillFiles // {
+    ".omp/agent/extensions/workmux-status.ts".source =
+      "${pkgs.workmux.src}/resources/omp/extensions/workmux-status.ts";
   };
 
   # ------------------------------------------------------------------------------------------------
-  # Module config
+  # tmux integration
   # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable {
-    # ----------------------------------------------------------------------------------------------
-    # Packages
-    # ----------------------------------------------------------------------------------------------
-    home.packages = [
-      workmux
-    ];
+  programs.tmux.extraConfig = lib.mkBefore ''
+    set -g @catppuccin_window_text " #T#{?@workmux_status, #{@workmux_status},}"
+    set -g @catppuccin_window_current_text " #T#{?@workmux_status, #{@workmux_status},}"
+    bind g display-popup -E -w 90% -h 90% '${lib.getExe pkgs.workmux} dashboard'
+  '';
 
-    # ----------------------------------------------------------------------------------------------
-    # Agent resources
-    # ----------------------------------------------------------------------------------------------
-    home.file = lib.mkMerge [
-      workmuxSkillFiles
-      (lib.mkIf config.hakula.omp.enable {
-        ".omp/agent/extensions/workmux-status.ts".source =
-          "${workmux.src}/resources/omp/extensions/workmux-status.ts";
-      })
-    ];
-
-    # ----------------------------------------------------------------------------------------------
-    # tmux integration
-    # ----------------------------------------------------------------------------------------------
-    programs.tmux.extraConfig = lib.mkBefore ''
-      set -g @catppuccin_window_text " #T#{?@workmux_status, #{@workmux_status},}"
-      set -g @catppuccin_window_current_text " #T#{?@workmux_status, #{@workmux_status},}"
-      bind g display-popup -E -w 90% -h 90% '${lib.getExe workmux} dashboard'
-    '';
-
-    # ----------------------------------------------------------------------------------------------
-    # Program configuration
-    # ----------------------------------------------------------------------------------------------
-    xdg.configFile."workmux/config.yaml".source = configFile;
-  };
+  # ------------------------------------------------------------------------------------------------
+  # Program configuration
+  # ------------------------------------------------------------------------------------------------
+  xdg.configFile."workmux/config.yaml".source = configFile;
 }

@@ -8,24 +8,9 @@
   ...
 }:
 
-let
-  cfg = config.hakula.agent-project-move;
-in
-{
-  # ------------------------------------------------------------------------------------------------
-  # Module options
-  # ------------------------------------------------------------------------------------------------
-  options.hakula.agent-project-move = {
-    enable = lib.mkEnableOption "agent-project-move and its skill";
-  };
-
-  # ------------------------------------------------------------------------------------------------
-  # Module config
-  # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable {
-    programs.agent-project-move = {
-      enable = true;
-      skillDirectories = [ ];
-    };
+lib.mkIf config.hakula.llm-assistants.enable {
+  programs.agent-project-move = {
+    enable = true;
+    skillDirectories = [ ];
   };
 }

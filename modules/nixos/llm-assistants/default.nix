@@ -13,10 +13,6 @@ let
   cfg = config.hakula.llm-assistants;
 in
 {
-  imports = [
-    ./claude-code
-  ];
-
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
@@ -29,13 +25,5 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module config
   # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable (
-    lib.mkMerge [
-      {
-        hakula.claude-code.enable = lib.mkDefault true;
-      }
-
-      (repoLib.llmAssistants.mkHomeManagerConfig cfg)
-    ]
-  );
+  config = lib.mkIf cfg.enable (repoLib.llmAssistants.mkHomeManagerConfig cfg);
 }

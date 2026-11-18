@@ -33,7 +33,7 @@ let
   allowRules = map (command: toAllowRule (toPattern command)) policy.allows.commands.readOnly;
 
   skillRules = map (path: toAllowRule (builtins.toJSON path)) (
-    shared.mkSkillScriptPaths "${shared.codexConfigDir}/skills"
+    shared.mkSkillScriptPaths "${shared.configDirs.codex}/skills"
   );
 
   toMcpApprovals =

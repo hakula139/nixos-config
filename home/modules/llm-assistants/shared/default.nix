@@ -100,15 +100,17 @@ in
         # ------------------------------------------------------------------------------------------
         # Paths
         # ------------------------------------------------------------------------------------------
-        claudeConfigDir = "${config.home.homeDirectory}/.claude";
+        configDirs = {
+          claude = "${config.home.homeDirectory}/.claude";
 
-        codexConfigDir =
-          if config.home.preferXdgDirectories then
-            "${config.xdg.configHome}/codex"
-          else
-            "${config.home.homeDirectory}/.codex";
+          codex =
+            if config.home.preferXdgDirectories then
+              "${config.xdg.configHome}/codex"
+            else
+              "${config.home.homeDirectory}/.codex";
 
-        ompConfigDir = "${config.home.homeDirectory}/.omp/agent";
+          omp = "${config.home.homeDirectory}/.omp/agent";
+        };
 
         # ------------------------------------------------------------------------------------------
         # Instructions

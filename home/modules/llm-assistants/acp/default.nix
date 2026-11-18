@@ -11,8 +11,6 @@
 }:
 
 let
-  cfg = config.hakula.acp;
-
   json = pkgs.formats.json { };
 
   # ------------------------------------------------------------------------------------------------
@@ -60,46 +58,18 @@ let
   };
 
   # ------------------------------------------------------------------------------------------------
-  # Agent targets
+  # Client configuration
   # ------------------------------------------------------------------------------------------------
   # Session identity includes argv. Keep paths stable across rebuilds and upstream basenames intact
   # for adapter detection.
   profileBin = name: "${config.home.profileDirectory}/bin/${name}";
 
-  managedAgents = {
-    claude = {
-      enable = config.hakula.claude-code.enable;
-      option = "hakula.claude-code.enable";
-      package = claudeAdapter;
-      argv = [ (profileBin "claude-agent-acp") ];
-    };
-
-    codex = {
-      enable = config.hakula.codex.enable;
-      option = "hakula.codex.enable";
-      package = codexAdapter;
-      argv = [ (profileBin "codex-acp") ];
-    };
+  agents = {
+    claude.argv = [ (profileBin "claude-agent-acp") ];
+    codex.argv = [ (profileBin "codex-acp") ];
   };
 
-  enabledAgents = lib.filterAttrs (_: agent: agent.enable) managedAgents;
-
-  # ------------------------------------------------------------------------------------------------
-  # Client configuration
-  # ------------------------------------------------------------------------------------------------
-  # Missing entries fall back to acpx's unmanaged launch commands.
-  mkUnavailable =
-    name: agent:
-    pkgs.writeShellScript "acpx-${name}-unavailable" ''
-      echo "acpx: the ${name} agent needs ${agent.option} on this host" >&2
-      exit 1
-    '';
-
-  agents = lib.mapAttrs (name: agent: {
-    argv = if agent.enable then agent.argv else [ "${mkUnavailable name agent}" ];
-  }) managedAgents;
-
-  defaultAgent = if config.hakula.codex.enable then "codex" else "claude";
+  defaultAgent = "codex";
 
   configFile = json.generate "acpx-config.json" {
     inherit agents defaultAgent;
@@ -107,27 +77,12 @@ let
     timeout = 600;
   };
 in
-{
-  # ------------------------------------------------------------------------------------------------
-  # Module options
-  # ------------------------------------------------------------------------------------------------
-  options.hakula.acp = {
-    enable = lib.mkEnableOption "acpx client and its Claude Code and Codex adapters";
-  };
+lib.mkIf config.hakula.llm-assistants.enable {
+  home.packages = [
+    acpxBin
+    claudeAdapter
+    codexAdapter
+  ];
 
-  # ------------------------------------------------------------------------------------------------
-  # Module config
-  # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable {
-    assertions = [
-      {
-        assertion = enabledAgents != { };
-        message = "hakula.acp requires Claude Code or Codex to be enabled";
-      }
-    ];
-
-    home.packages = [ acpxBin ] ++ lib.mapAttrsToList (_: agent: agent.package) enabledAgents;
-
-    home.file.".acpx/config.json".source = configFile;
-  };
+  home.file.".acpx/config.json".source = configFile;
 }

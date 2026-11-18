@@ -10,40 +10,26 @@
 }:
 
 let
-  cfg = config.hakula.ccusage;
-
   json = pkgs.formats.json { };
 in
-{
+lib.mkIf config.hakula.llm-assistants.enable {
   # ------------------------------------------------------------------------------------------------
-  # Module options
+  # Packages
   # ------------------------------------------------------------------------------------------------
-  options.hakula.ccusage = {
-    enable = lib.mkEnableOption "ccusage and its usage store configuration";
-  };
+  home.packages = [
+    pkgs.ccusage
+  ];
 
   # ------------------------------------------------------------------------------------------------
-  # Module config
+  # Configuration files
   # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable {
-    # ----------------------------------------------------------------------------------------------
-    # Packages
-    # ----------------------------------------------------------------------------------------------
-    home.packages = [
-      pkgs.ccusage
+  # ccusage discovers configuration for all agents in the Claude directory.
+  xdg.configFile."claude/ccusage.json".source = json.generate "ccusage.json" {
+    pi.stores = [
+      {
+        name = "omp";
+        path = "${config.lib.llmAssistants.configDirs.omp}/sessions";
+      }
     ];
-
-    # ----------------------------------------------------------------------------------------------
-    # Configuration files
-    # ----------------------------------------------------------------------------------------------
-    # ccusage discovers configuration for all agents in the Claude directory.
-    xdg.configFile."claude/ccusage.json".source = json.generate "ccusage.json" {
-      pi.stores = [
-        {
-          name = "omp";
-          path = "${config.lib.llmAssistants.ompConfigDir}/sessions";
-        }
-      ];
-    };
   };
 }

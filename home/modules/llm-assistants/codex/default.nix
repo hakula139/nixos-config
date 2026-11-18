@@ -12,12 +12,12 @@
 }:
 
 let
-  inherit (shared) agentRoleOptions instructions;
+  inherit (shared) agentRoleOptions configDirs instructions;
   inherit (repoLib.llmAssistants) mcpOptions;
 
   cfg = config.hakula.codex;
   shared = config.lib.llmAssistants;
-  configDir = shared.codexConfigDir;
+  configDir = configDirs.codex;
 
   profiles = import ./profiles.nix {
     inherit
@@ -36,8 +36,6 @@ in
   # Module options
   # ------------------------------------------------------------------------------------------------
   options.hakula.codex = {
-    enable = lib.mkEnableOption "OpenAI Codex CLI";
-
     auth = profiles.options;
 
     agents = {
@@ -54,7 +52,7 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module config
   # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable (
+  config = lib.mkIf config.hakula.llm-assistants.enable (
     let
       inherit (shared) notify;
 

@@ -28,8 +28,6 @@ in
   # Module options
   # ------------------------------------------------------------------------------------------------
   options.hakula.oxide-code = {
-    enable = lib.mkEnableOption "oxide-code";
-
     auth = profiles.options;
 
     proxy = repoLib.proxy.mkProxyOptions "oxide-code";
@@ -38,7 +36,7 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module config
   # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable (
+  config = lib.mkIf config.hakula.llm-assistants.enable (
     let
       # --------------------------------------------------------------------------------------------
       # Package wrapper
