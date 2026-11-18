@@ -78,22 +78,6 @@
     # ----------------------------------------------------------------------------------------------
     # Hakula's flakes
     # ----------------------------------------------------------------------------------------------
-    activity-report = {
-      url = "github:hakula139/activity-report/v0.2.0";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        devkit.follows = "devkit";
-      };
-    };
-
-    agent-project-move = {
-      url = "github:hakula139/agent-project-move/v0.3.0";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        devkit.follows = "devkit";
-      };
-    };
-
     devkit = {
       url = "github:hakula139/devkit/v3";
       inputs = {
@@ -103,33 +87,7 @@
       };
     };
 
-    listenbrainz-scrobbler = {
-      url = "github:hakula139/listenbrainz-scrobbler/v0.3.0";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        home-manager.follows = "home-manager";
-        git-hooks-nix.follows = "git-hooks-nix";
-      };
-    };
-
-    oxide-code = {
-      url = "github:hakula139/oxide-code/v0.1.0-alpha.10";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        home-manager.follows = "home-manager";
-        git-hooks-nix.follows = "git-hooks-nix";
-      };
-    };
-
-    plugins = {
-      url = "github:hakula139/plugins";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        devkit.follows = "devkit";
-      };
-    };
-
-    wakatime-cli.url = "github:hakula139/wakatime-cli/v2.28.4-hakula.1";
+    flake-catalog.url = "github:hakula139/flake-catalog";
   };
 
   # ------------------------------------------------------------------------------------------------

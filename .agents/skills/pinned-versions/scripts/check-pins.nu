@@ -251,42 +251,6 @@ def action-pin [pin: string]: nothing -> record {
 def registry [root: string]: nothing -> list<record> {
   [
     {
-      title: "Versioned flake input refs"
-      pins: [
-        {
-          pin: "activity-report"
-          local: {||
-            nix-attr $root "flake.nix" 'github:hakula139/activity-report/(?<v>[^"]+)'
-          }
-          upstream: {|| gh-latest-release hakula139/activity-report }
-        }
-        {
-          pin: "agent-project-move"
-          local: {||
-            nix-attr $root "flake.nix" 'github:hakula139/agent-project-move/(?<v>[^"]+)'
-          }
-          upstream: {|| gh-latest-release hakula139/agent-project-move }
-        }
-        {
-          pin: "listenbrainz-scrobbler"
-          local: {||
-            nix-attr $root "flake.nix" 'github:hakula139/listenbrainz-scrobbler/(?<v>[^"]+)'
-          }
-          upstream: {|| gh-latest-release hakula139/listenbrainz-scrobbler }
-        }
-        {
-          pin: "oxide-code"
-          local: {|| nix-attr $root "flake.nix" 'github:hakula139/oxide-code/(?<v>[^"]+)' }
-          upstream: {|| gh-newest-release hakula139/oxide-code }
-        }
-        {
-          pin: "wakatime-cli"
-          local: {|| nix-attr $root "flake.nix" 'github:hakula139/wakatime-cli/(?<v>[^"]+)' }
-          upstream: {|| gh-newest-release hakula139/wakatime-cli }
-        }
-      ]
-    }
-    {
       title: "OMP extensions (rev + hash)"
       pins: [
         {
