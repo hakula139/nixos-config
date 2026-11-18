@@ -59,28 +59,32 @@ let
 
       isCorpGateway = profile.provider == "corp-gateway";
 
-      corpGatewayEnv =
-        let
-          inherit (workloads) mini;
-        in
-        lib.optionalAttrs (roles.default.family == "local") {
-          CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString roles.default.model.contextWindow;
-        }
-        // lib.optionalAttrs (mini.channel == "anthropic") {
-          # Undocumented: `-` clears a catalog flag, so prompt hooks on Haiku send the disabled
-          # thinking they request, since the gateway's Bedrock streams drop structured replies
-          # that think.
-          CLAUDE_CODE_MODEL_CAPABILITIES = "${mini.modelKey}=-rejects_disabled_thinking";
-        }
-        // lib.optionalAttrs (mini.channel == "google") {
-          # OpenRouter streams Gemini's `thoughtSignature` as a trailing `redacted_thinking` block
-          # after `text`, and Claude Code's single-turn helper keeps only the last block, emptying
-          # prompt-hook and side-query replies while leaving Haiku-tier agents unaffected.
-          ANTHROPIC_SMALL_FAST_MODEL = aliasModelId resolvedProfiles.corp-gateway-local.workloads.mini;
-        };
+      usesSmallFastFallback = isCorpGateway && workloads.mini.channel == "google";
+      smallFastWorkload =
+        if usesSmallFastFallback then
+          resolvedProfiles.corp-gateway-local.workloads.mini
+        else
+          workloads.mini;
+      smallFastId = clientModelId smallFastWorkload;
 
-      # Only the gateway's Bedrock route is known to return `safeguard_results`, so on other routes
-      # Claude Code would hold the first checked action behind its auto-mode ineligibility notice.
+      corpGatewayEnv = {
+        # Undocumented: `-` clears `rejects_disabled_thinking` (matched against lowercased model
+        # IDs), which Claude Code assumes on Haiku 5.5 and uncataloged gateway models, so prompt
+        # hooks and the auto-mode classifier disable thinking.
+        CLAUDE_CODE_MODEL_CAPABILITIES = "${lib.toLower smallFastId}=-rejects_disabled_thinking";
+      }
+      // lib.optionalAttrs (roles.default.family == "local") {
+        CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString roles.default.model.contextWindow;
+      }
+      // lib.optionalAttrs usesSmallFastFallback {
+        # OpenRouter streams Gemini's `thoughtSignature` as a trailing `redacted_thinking` block
+        # after `text`, and Claude Code's single-turn helper keeps only the last block, emptying
+        # prompt-hook and side-query replies while leaving Haiku-tier agents unaffected.
+        ANTHROPIC_SMALL_FAST_MODEL = aliasModelId smallFastWorkload;
+      };
+
+      # Only the gateway's Bedrock route is known to return `safeguard_results`, so other routes opt
+      # out of server checks and run the local auto-mode classifier on the small-fast model.
       autoModeServerOptOut =
         profile.provider != null
         && lib.any (tier: workloads.${tier}.channel != "anthropic") (
@@ -93,7 +97,10 @@ let
         aliasEnv
         // auth.extraEnv or { }
         // lib.optionalAttrs isCorpGateway corpGatewayEnv
-        // lib.optionalAttrs autoModeServerOptOut { CLAUDE_CODE_AUTO_MODE_SERVER = "0"; };
+        // lib.optionalAttrs autoModeServerOptOut {
+          CLAUDE_CODE_AUTO_MODE_MODEL = smallFastId;
+          CLAUDE_CODE_AUTO_MODE_SERVER = "0";
+        };
 
       nativeWebSearch = profile.nativeWebSearch && !isCorpGateway;
       sessionEffort = roles.default.effort;
@@ -157,9 +164,6 @@ let
   # ------------------------------------------------------------------------------------------------
   profileType = import ./profile-module.nix {
     inherit lib;
-    defaultEfforts = workloadPolicy.claude // {
-      prose = workloadPolicy.claude.flagship;
-    };
     officialProfile = profiles.official;
   };
 

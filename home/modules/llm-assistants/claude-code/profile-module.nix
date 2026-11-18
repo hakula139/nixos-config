@@ -4,7 +4,6 @@
 
 {
   lib,
-  defaultEfforts,
   officialProfile,
 }:
 
@@ -47,7 +46,7 @@ lib.types.submodule {
 
     efforts = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      default = defaultEfforts;
+      default = officialProfile.efforts;
       description = "Reasoning effort for each model tier, used by custom agents";
     };
 

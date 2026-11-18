@@ -14,24 +14,28 @@ let
   # ------------------------------------------------------------------------------------------------
   workloadPolicy = {
     claude = {
+      default = "medium";
       flagship = "high";
       standard = "medium";
       mini = "low";
     };
 
     gpt = {
+      default = "medium";
       flagship = "high";
       standard = "medium";
       mini = "low";
     };
 
     gemini = {
+      default = "low";
       flagship = "high";
       standard = "medium";
       mini = "low";
     };
 
     local = {
+      default = "high";
       flagship = "max";
       standard = "high";
       mini = "low";
@@ -41,7 +45,7 @@ let
   roleTiers = {
     default = {
       modelTier = "flagship";
-      effortTier = "standard";
+      effortTier = "default";
     };
 
     plan = {
