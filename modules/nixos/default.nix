@@ -177,19 +177,27 @@ in
     # ----------------------------------------------------------------------------------------------
     users.defaultUserShell = pkgs.zsh;
 
-    users.users = {
-      root.openssh.authorizedKeys.keys = sshCfg.authorizedKeys ++ [ keys.builder ];
-    }
-    // lib.optionalAttrs (cfg.user.name != "root") {
-      ${cfg.user.name} = {
-        isNormalUser = true;
-        extraGroups = [
-          "wheel"
-        ];
-        openssh.authorizedKeys.keys = sshCfg.authorizedKeys;
-        linger = true;
-      };
-    };
+    users.users = lib.mkMerge [
+      {
+        root.openssh.authorizedKeys.keys = sshCfg.authorizedKeys ++ [ keys.builder ];
+      }
+
+      {
+        # Root lingers too, so /run/user/<uid> exists for shells outside a login session, such as
+        # docker exec. Home Manager's tmux secureSocket puts its socket there.
+        ${cfg.user.name}.linger = true;
+      }
+
+      (lib.mkIf (cfg.user.name != "root") {
+        ${cfg.user.name} = {
+          isNormalUser = true;
+          extraGroups = [
+            "wheel"
+          ];
+          openssh.authorizedKeys.keys = sshCfg.authorizedKeys;
+        };
+      })
+    ];
 
     security.sudo.wheelNeedsPassword = false;
 
