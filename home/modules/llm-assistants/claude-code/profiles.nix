@@ -30,18 +30,18 @@ let
   # ------------------------------------------------------------------------------------------------
   anthropicModels = lib.filterAttrs (_: model: model.channelId ? anthropic) modelCatalog.models;
 
+  # Claude Code recognizes catalog keys, and `modelOverrides` maps them to gateway IDs.
+  clientModelId =
+    workload: if workload.channel == "anthropic" then workload.modelKey else workload.modelId;
+
+  aliasModelId =
+    workload:
+    clientModelId workload + lib.optionalString (workload.model.contextWindow >= 1000000) "[1m]";
+
   mkProfile =
     _: profile:
     let
       inherit (profile) roles workloads;
-
-      # Claude Code recognizes catalog keys, and `modelOverrides` maps them to gateway IDs.
-      clientModelId =
-        workload: if workload.channel == "anthropic" then workload.modelKey else workload.modelId;
-
-      aliasModelId =
-        workload:
-        clientModelId workload + lib.optionalString (workload.model.contextWindow >= 1000000) "[1m]";
 
       aliasEnv =
         lib.mapAttrs' (
@@ -71,6 +71,12 @@ let
           # thinking they request, since the gateway's Bedrock streams drop structured replies
           # that think.
           CLAUDE_CODE_MODEL_CAPABILITIES = "${mini.modelKey}=-rejects_disabled_thinking";
+        }
+        // lib.optionalAttrs (mini.channel == "google") {
+          # OpenRouter streams Gemini's `thoughtSignature` as a trailing `redacted_thinking` block
+          # after `text`, and Claude Code's single-turn helper keeps only the last block, emptying
+          # prompt-hook and side-query replies while leaving Haiku-tier agents unaffected.
+          ANTHROPIC_SMALL_FAST_MODEL = aliasModelId resolvedProfiles.corp-gateway-local.workloads.mini;
         };
 
       # Only the gateway's Bedrock route is known to return `safeguard_results`, so on other routes
@@ -126,7 +132,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Profile definitions
   # ------------------------------------------------------------------------------------------------
-  profiles = lib.mapAttrs mkProfile (mkProfiles {
+  resolvedProfiles = mkProfiles {
     inherit (cfg.auth) enableCorpGateway;
     nativeFamily = "claude";
     hybridBase = "corp-gateway-google";
@@ -143,7 +149,9 @@ let
       "google"
       "local"
     ];
-  });
+  };
+
+  profiles = lib.mapAttrs mkProfile resolvedProfiles;
 
   # ------------------------------------------------------------------------------------------------
   # Profile submodule
