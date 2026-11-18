@@ -68,11 +68,8 @@ let
   enabledProfiles = profileDefinitions.mkProfiles {
     inherit (cfg) enableCorpGateway;
     nativeFamily = "gpt";
-    hybridBase = "corp-gateway-google";
+    providers = [ "corp-gateway" ];
 
-    providers = [
-      "corp-gateway"
-    ];
     channels = [
       "anthropic"
       "openai"

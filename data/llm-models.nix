@@ -3,7 +3,10 @@
 # ==================================================================================================
 
 let
-  claudeAdaptiveCommon = {
+  # ------------------------------------------------------------------------------------------------
+  # Family capabilities
+  # ------------------------------------------------------------------------------------------------
+  claudeCommon = {
     vendor = "anthropic";
     apis = [ "anthropic-messages" ];
 
@@ -100,18 +103,133 @@ let
       defaultLevel = "high";
     };
   };
-in
-{
-  defaults = {
+
+  # ------------------------------------------------------------------------------------------------
+  # Gateway costs
+  # ------------------------------------------------------------------------------------------------
+  # USD per million tokens.
+  costs = {
+    claude = {
+      opus = {
+        input = 4.0;
+        output = 20.0;
+        cacheRead = 0.2;
+        cacheWrite = 5.0;
+      };
+
+      sonnet = {
+        input = 2.2;
+        output = 11.0;
+        cacheRead = 0.22;
+        cacheWrite = 2.75;
+      };
+
+      # Prompts over 100k tokens cost 5x these base rates.
+      haiku = {
+        input = 0.1;
+        output = 0.5;
+        cacheRead = 0.01;
+        cacheWrite = 0.125;
+      };
+    };
+
+    gpt = {
+      astra-6-2 = {
+        input = 8.0;
+        output = 40.0;
+        cacheRead = 0.4;
+        cacheWrite = 10.0;
+      };
+
+      astra-6 = {
+        input = 10.0;
+        output = 50.0;
+        cacheRead = 1.0;
+        cacheWrite = 12.5;
+      };
+
+      sol = {
+        input = 2.0;
+        output = 10.0;
+        cacheRead = 0.1;
+        cacheWrite = 2.5;
+      };
+
+      terra = {
+        input = 1.0;
+        output = 5.0;
+        cacheRead = 0.05;
+        cacheWrite = 1.25;
+      };
+
+      luna = {
+        input = 0.1;
+        output = 0.5;
+        cacheRead = 0.01;
+        cacheWrite = 0.125;
+      };
+    };
+
+    gemini = {
+      carbon = {
+        input = 2.0;
+        output = 10.0;
+        cacheRead = 0.1;
+        cacheWrite = 0.1875;
+      };
+
+      argon = {
+        input = 2.0;
+        output = 10.0;
+        cacheRead = 0.1;
+        cacheWrite = 0.1875;
+      };
+
+      hydrogen = {
+        input = 1.5;
+        output = 7.5;
+        cacheRead = 0.075;
+        cacheWrite = 0.0833333333333333;
+      };
+
+      flash = {
+        input = 0.75;
+        output = 3.75;
+        cacheRead = 0.075;
+        cacheWrite = 0.0416666666666667;
+      };
+    };
+
+    local = {
+      kimi = {
+        input = 2.0;
+        output = 10.0;
+        cacheRead = 0.2;
+        cacheWrite = 0;
+      };
+
+      deepseek = {
+        input = 0.15;
+        output = 0.60;
+        cacheRead = 0.003;
+        cacheWrite = 0.15;
+      };
+    };
+  };
+
+  # ------------------------------------------------------------------------------------------------
+  # Tier defaults
+  # ------------------------------------------------------------------------------------------------
+  familyDefaults = {
     claude = {
       flagship = "claude-opus-5-5";
-      standard = "claude-opus-5-5";
+      standard = "claude-sonnet-5-5";
       mini = "claude-haiku-5-5";
     };
 
     gpt = {
-      flagship = "gpt-6.1-sol";
-      standard = "gpt-6.1-sol";
+      flagship = "gpt-6.2-astra";
+      standard = "gpt-6.2-sol";
       mini = "gpt-6-luna";
     };
 
@@ -126,67 +244,78 @@ in
       standard = "kimi-k3.1-pro";
       mini = "deepseek-v4.1-flash";
     };
+  };
+in
+{
+  # ------------------------------------------------------------------------------------------------
+  # Defaults
+  # ------------------------------------------------------------------------------------------------
+  defaults = familyDefaults // {
+    hybrid = {
+      inherit (familyDefaults.gemini) flagship;
+      inherit (familyDefaults.local) standard mini;
+    };
 
     prose = "gemini-4-carbon";
   };
 
-  # Gateway costs are USD per million tokens.
+  # ------------------------------------------------------------------------------------------------
+  # Models
+  # ------------------------------------------------------------------------------------------------
   models = {
-    "claude-opus-5-5" = claudeAdaptiveCommon // {
+    # ----------------------------------------------------------------------------------------------
+    # Claude
+    # ----------------------------------------------------------------------------------------------
+    "claude-opus-5-5" = claudeCommon // {
       name = "Claude Opus 5.5";
-
       channelId.anthropic = "bedrock/global.anthropic.claude-opus-5-5";
-      channelCost.anthropic = {
-        input = 4.0;
-        output = 20.0;
-        cacheRead = 0.2;
-        cacheWrite = 5.0;
-      };
+      channelCost.anthropic = costs.claude.opus;
     };
 
-    "claude-sonnet-5-5" = claudeAdaptiveCommon // {
+    "claude-sonnet-5-5" = claudeCommon // {
       name = "Claude Sonnet 5.5";
       channelId.anthropic = "bedrock/global.anthropic.claude-sonnet-5-5";
-      channelCost.anthropic = {
-        input = 2.2;
-        output = 11.0;
-        cacheRead = 0.22;
-        cacheWrite = 2.75;
-      };
+      channelCost.anthropic = costs.claude.sonnet;
     };
 
-    # Prompts over 100k tokens cost 5x these base rates.
-    "claude-haiku-5-5" = claudeAdaptiveCommon // {
+    "claude-haiku-5-5" = claudeCommon // {
       name = "Claude Haiku 5.5";
       channelId.anthropic = "bedrock/global.anthropic.claude-haiku-5-5";
-      channelCost.anthropic = {
-        input = 0.1;
-        output = 0.5;
-        cacheRead = 0.01;
-        cacheWrite = 0.125;
-      };
+      channelCost.anthropic = costs.claude.haiku;
     };
 
-    "gpt-6-astra" = gptCommon // {
-      name = "GPT-6 Astra";
-      channelId.openai = "openai/gpt-6-astra";
-      channelCost.openai = {
-        input = 10.0;
-        output = 50.0;
-        cacheRead = 1.0;
-        cacheWrite = 12.5;
-      };
+    # ----------------------------------------------------------------------------------------------
+    # GPT
+    # ----------------------------------------------------------------------------------------------
+    "gpt-6.2-astra" = gptCommon // {
+      name = "GPT-6.2 Astra";
+      channelId.openai = "openai/gpt-6.2-astra";
+      channelCost.openai = costs.gpt.astra-6-2;
+    };
+
+    "gpt-6.2-sol" = gptCommon // {
+      name = "GPT-6.2 Sol";
+      channelId.openai = "openai/gpt-6.2-sol";
+      channelCost.openai = costs.gpt.sol;
     };
 
     "gpt-6.1-sol" = gptCommon // {
       name = "GPT-6.1 Sol";
       channelId.openai = "openai/gpt-6.1-sol";
-      channelCost.openai = {
-        input = 2.0;
-        output = 10.0;
-        cacheRead = 0.1;
-        cacheWrite = 2.5;
-      };
+      channelCost.openai = costs.gpt.sol;
+    };
+
+    "gpt-6.1-terra" = gptCommon // {
+      name = "GPT-6.1 Terra";
+      contextWindow = 922000;
+      channelId.openai = "openai/gpt-6.1-terra";
+      channelCost.openai = costs.gpt.terra;
+    };
+
+    "gpt-6-astra" = gptCommon // {
+      name = "GPT-6 Astra";
+      channelId.openai = "openai/gpt-6-astra";
+      channelCost.openai = costs.gpt.astra-6;
     };
 
     "gpt-6-luna" = gptCommon // {
@@ -197,56 +326,49 @@ in
       };
 
       channelId.openai = "openai/gpt-6-luna";
-      channelCost.openai = {
-        input = 0.1;
-        output = 0.5;
-        cacheRead = 0.01;
-        cacheWrite = 0.125;
-      };
+      channelCost.openai = costs.gpt.luna;
     };
 
+    # ----------------------------------------------------------------------------------------------
+    # Gemini
+    # ----------------------------------------------------------------------------------------------
     "gemini-4-carbon" = geminiCommon // {
       name = "Gemini 4 Carbon";
       channelId.google = "openrouter/google/gemini-4-carbon";
-      channelCost.google = {
-        input = 2.0;
-        output = 10.0;
-        cacheRead = 0.1;
-        cacheWrite = 0.1875;
-      };
+      channelCost.google = costs.gemini.carbon;
     };
 
     "gemini-4-argon" = geminiCommon // {
       name = "Gemini 4 Argon";
       channelId.google = "openrouter/google/gemini-4-argon";
-      channelCost.google = {
-        input = 2.0;
-        output = 10.0;
-        cacheRead = 0.1;
-        cacheWrite = 0.1875;
-      };
+      channelCost.google = costs.gemini.argon;
     };
 
     "gemini-4-hydrogen" = geminiCommon // {
       name = "Gemini 4 Hydrogen";
       channelId.google = "openrouter/google/gemini-4-hydrogen";
-      channelCost.google = {
-        input = 1.5;
-        output = 7.5;
-        cacheRead = 0.075;
-        cacheWrite = 0.0833333333333333;
-      };
+      channelCost.google = costs.gemini.hydrogen;
     };
 
     "gemini-3.8-flash" = geminiCommon // {
       name = "Gemini 3.8 Flash";
       channelId.google = "openrouter/google/gemini-3.8-flash";
-      channelCost.google = {
-        input = 0.75;
-        output = 3.75;
-        cacheRead = 0.075;
-        cacheWrite = 0.0416666666666667;
-      };
+      channelCost.google = costs.gemini.flash;
+    };
+
+    # ----------------------------------------------------------------------------------------------
+    # Local
+    # ----------------------------------------------------------------------------------------------
+    "kimi-k3.1-pro" = localCommon // {
+      name = "Kimi K3.1 Pro";
+      vendor = "moonshot";
+
+      contextWindow = 409600;
+      maxTokens = 131072;
+      autoCompactTokens = 320000;
+
+      channelId.local = "local_v2/Kimi-K3.1-Pro";
+      channelCost.local = costs.local.kimi;
     };
 
     "deepseek-v4.1-flash" = localCommon // {
@@ -258,29 +380,7 @@ in
       autoCompactTokens = 400000;
 
       channelId.local = "local_v2/DeepSeek-V4.1-Flash-1017";
-      channelCost.local = {
-        input = 0.15;
-        output = 0.60;
-        cacheRead = 0.003;
-        cacheWrite = 0.15;
-      };
-    };
-
-    "kimi-k3.1-pro" = localCommon // {
-      name = "Kimi K3.1 Pro";
-      vendor = "moonshot";
-
-      contextWindow = 409600;
-      maxTokens = 131072;
-      autoCompactTokens = 320000;
-
-      channelId.local = "local_v2/Kimi-K3.1-Pro";
-      channelCost.local = {
-        input = 2.0;
-        output = 10.0;
-        cacheRead = 0.2;
-        cacheWrite = 0;
-      };
+      channelCost.local = costs.local.deepseek;
     };
   };
 }

@@ -14,116 +14,29 @@ let
   # ------------------------------------------------------------------------------------------------
   workloadPolicy = {
     claude = {
-      standard = "medium";
       flagship = "high";
+      standard = "medium";
       mini = "low";
     };
 
     gpt = {
-      standard = "medium";
       flagship = "high";
+      standard = "medium";
       mini = "low";
     };
 
     gemini = {
-      standard = "medium";
       flagship = "high";
+      standard = "medium";
       mini = "low";
     };
 
     local = {
-      standard = "high";
       flagship = "max";
+      standard = "high";
       mini = "low";
     };
   };
-
-  # ------------------------------------------------------------------------------------------------
-  # Provider profiles
-  # ------------------------------------------------------------------------------------------------
-  providerProfiles = {
-    corp-gateway-anthropic = {
-      provider = "corp-gateway";
-      channel = "anthropic";
-      family = "claude";
-      nativeWebSearch = false;
-    };
-
-    corp-gateway-openai = {
-      provider = "corp-gateway";
-      channel = "openai";
-      family = "gpt";
-      nativeWebSearch = true;
-    };
-
-    corp-gateway-google = {
-      provider = "corp-gateway";
-      channel = "google";
-      family = "gemini";
-      nativeWebSearch = false;
-    };
-
-    corp-gateway-local = {
-      provider = "corp-gateway";
-      channel = "local";
-      family = "local";
-      nativeWebSearch = false;
-    };
-
-    ikuncode = {
-      provider = "ikuncode";
-      channel = null;
-      family = "claude";
-      nativeWebSearch = false;
-    };
-
-    yescode = {
-      provider = "yescode";
-      channel = null;
-      family = "claude";
-      nativeWebSearch = false;
-    };
-  };
-
-  # ------------------------------------------------------------------------------------------------
-  # Profile resolution
-  # ------------------------------------------------------------------------------------------------
-  familyApis = {
-    claude = "anthropic-messages";
-    gpt = "openai-responses";
-    gemini = "openai-responses";
-    local = "openai-responses";
-  };
-
-  channelSources = lib.listToAttrs (
-    lib.concatLists (
-      lib.mapAttrsToList (
-        name: profile:
-        lib.optional (profile.provider == "corp-gateway" && profile.channel != null) (
-          lib.nameValuePair profile.channel name
-        )
-      ) providerProfiles
-    )
-  );
-
-  resolveGatewayModel =
-    {
-      modelKey,
-      effortTier,
-    }:
-    let
-      inherit (providerProfiles.${source}) family;
-      model = modelCatalog.models.${modelKey};
-      channel = lib.head (builtins.attrNames model.channelId);
-      source = channelSources.${channel};
-    in
-    {
-      inherit source channel family;
-      api = familyApis.${family};
-      inherit modelKey model;
-      modelId = model.channelId.${channel};
-      effort = workloadPolicy.${family}.${effortTier};
-    };
 
   roleTiers = {
     default = {
@@ -147,93 +60,214 @@ let
     };
   };
 
-  resolveProfile =
-    sourceProfiles: name: profile:
+  # ------------------------------------------------------------------------------------------------
+  # Provider profiles
+  # ------------------------------------------------------------------------------------------------
+  gatewayChannels = {
+    anthropic = {
+      family = "claude";
+      nativeWebSearch = false;
+    };
+
+    openai = {
+      family = "gpt";
+      nativeWebSearch = true;
+    };
+
+    google = {
+      family = "gemini";
+      nativeWebSearch = false;
+    };
+
+    local = {
+      family = "local";
+      nativeWebSearch = false;
+    };
+  };
+
+  providerProfiles =
+    lib.mapAttrs' (
+      channel: spec:
+      lib.nameValuePair "corp-gateway-${channel}" (
+        spec
+        // {
+          inherit channel;
+          provider = "corp-gateway";
+        }
+      )
+    ) gatewayChannels
+    // {
+      corp-gateway-hybrid = {
+        provider = "corp-gateway";
+        defaultsKey = "hybrid";
+      };
+
+      ikuncode = {
+        provider = "ikuncode";
+        channel = null;
+        family = "claude";
+        nativeWebSearch = false;
+      };
+
+      yescode = {
+        provider = "yescode";
+        channel = null;
+        family = "claude";
+        nativeWebSearch = false;
+      };
+    };
+
+  # ------------------------------------------------------------------------------------------------
+  # Profile resolution
+  # ------------------------------------------------------------------------------------------------
+  familyApis = {
+    claude = "anthropic-messages";
+    gpt = "openai-responses";
+    gemini = "openai-responses";
+    local = "openai-responses";
+  };
+
+  modelChannel = modelKey: lib.head (builtins.attrNames modelCatalog.models.${modelKey}.channelId);
+
+  profileTierModels = profile: modelCatalog.defaults.${profile.defaultsKey or profile.family};
+
+  mkWorkload =
+    {
+      source,
+      channel,
+      family,
+      modelKey,
+      modelId,
+      effortTier,
+    }:
+    {
+      inherit
+        source
+        channel
+        family
+        modelKey
+        modelId
+        ;
+      api = familyApis.${family};
+      model = modelCatalog.models.${modelKey};
+      effort = workloadPolicy.${family}.${effortTier};
+    };
+
+  resolveGatewayModel =
+    {
+      modelKey,
+      effortTier,
+    }:
     let
-      sources = profile.sources or (lib.mapAttrs (_: _: name) workloadPolicy.${profile.family});
+      model = modelCatalog.models.${modelKey};
+      channel = modelChannel modelKey;
+    in
+    mkWorkload {
+      inherit channel modelKey effortTier;
+      source = "corp-gateway-${channel}";
+      inherit (gatewayChannels.${channel}) family;
+      modelId = model.channelId.${channel};
+    };
+
+  resolveProfile =
+    proseSupported: name: profile:
+    let
+      tierModels = profileTierModels profile;
 
       resolveWorkload =
-        { modelTier, effortTier }:
-        let
-          source = sources.${modelTier};
-          inherit (sourceProfiles.${source}) channel family;
-          modelKey = modelCatalog.defaults.${family}.${modelTier};
-          model = modelCatalog.models.${modelKey};
-        in
         {
-          inherit source channel family;
-          api = familyApis.${family};
-          inherit modelKey model;
-          modelId = if channel == null then modelKey else model.channelId.${channel};
-          effort = workloadPolicy.${family}.${effortTier};
-        };
+          modelTier,
+          effortTier,
+        }:
+        let
+          modelKey = tierModels.${modelTier};
+        in
+        if profile.provider == "corp-gateway" then
+          resolveGatewayModel { inherit modelKey effortTier; }
+        else
+          mkWorkload {
+            inherit (profile) channel family;
+            inherit modelKey effortTier;
+            source = name;
+            modelId = modelKey;
+          };
+
       tierWorkloads = lib.mapAttrs (
         tier: _:
         resolveWorkload {
           modelTier = tier;
           effortTier = tier;
         }
-      ) sources;
+      ) tierModels;
 
       proseWorkload = resolveGatewayModel {
         modelKey = modelCatalog.defaults.prose;
         effortTier = "flagship";
       };
+
+      roles = lib.mapAttrs (_: resolveWorkload) roleTiers;
     in
     {
-      inherit (profile) provider nativeWebSearch;
+      inherit (profile) provider;
+      nativeWebSearch =
+        profile.nativeWebSearch or gatewayChannels.${roles.default.channel}.nativeWebSearch;
       oauthTokenSecret = profile.oauthTokenSecret or null;
 
       workloads = tierWorkloads // {
         prose =
-          if profile.provider == "corp-gateway" && sourceProfiles ? ${proseWorkload.source} then
+          if profile.provider == "corp-gateway" && proseSupported then
             proseWorkload
           else
             tierWorkloads.flagship;
       };
 
-      roles = lib.mapAttrs (_: resolveWorkload) roleTiers;
+      inherit roles;
     };
 in
 {
+  # ------------------------------------------------------------------------------------------------
+  # Workload policy
+  # ------------------------------------------------------------------------------------------------
   inherit roleTiers workloadPolicy;
 
   # ------------------------------------------------------------------------------------------------
-  # Provider configuration
+  # Providers
   # ------------------------------------------------------------------------------------------------
-  providers.corp-gateway =
-    let
-      baseUrl = corpHosts.llmGatewayUrl;
-      apiPaths = {
-        anthropic-messages = "anthropic";
-        openai-responses = "v1";
+  providers = {
+    corp-gateway =
+      let
+        baseUrl = corpHosts.llmGatewayUrl;
+        apiPaths = {
+          anthropic-messages = "anthropic";
+          openai-responses = "v1";
+        };
+      in
+      {
+        inherit baseUrl;
+        apiUrls = lib.mapAttrs (_: path: "${baseUrl}/${path}") apiPaths;
+
+        tokenSecretFor = client: "llm-assistants/corp-gateway/${client}-api-key";
+        caSecret = "llm-assistants/corp-gateway/cachain.crt";
+
+        # The gateway injects its MCP tools into every model request unless this header names the
+        # clients to keep. Naming none keeps the tools on the MCP server, and OMP drops empty header
+        # values, so it cannot be blank.
+        extraHeaders.x-bf-mcp-include-clients = "none";
       };
-    in
-    {
-      inherit baseUrl;
-      apiUrls = lib.mapAttrs (_: path: "${baseUrl}/${path}") apiPaths;
 
-      tokenSecretFor = client: "llm-assistants/corp-gateway/${client}-api-key";
-      caSecret = "llm-assistants/corp-gateway/cachain.crt";
-
-      # The gateway injects its MCP tools into every model request unless this header names the
-      # clients to keep. Naming none keeps the tools on the MCP server, and OMP drops empty header
-      # values, so it cannot be blank.
-      extraHeaders.x-bf-mcp-include-clients = "none";
+    ikuncode = {
+      apiUrls.anthropic-messages = "https://api.ikuncode.cc";
+      tokenSecretFor = _: "llm-assistants/ikuncode-api-key";
     };
 
-  providers.ikuncode = {
-    apiUrls.anthropic-messages = "https://api.ikuncode.cc";
-    tokenSecretFor = _: "llm-assistants/ikuncode-api-key";
-  };
-
-  providers.yescode = {
-    apiUrls.anthropic-messages = "https://co.yes.vg";
-    tokenSecretFor = _: "llm-assistants/yescode-api-key";
+    yescode = {
+      apiUrls.anthropic-messages = "https://co.yes.vg";
+      tokenSecretFor = _: "llm-assistants/yescode-api-key";
+    };
   };
 
   # ------------------------------------------------------------------------------------------------
-  # Model mappings
+  # Model aliases
   # ------------------------------------------------------------------------------------------------
   modelAliases = {
     claude = {
@@ -249,7 +283,6 @@ in
   mkProfiles =
     {
       nativeFamily ? null,
-      hybridBase ? null,
       providers,
       channels,
       enableCorpGateway,
@@ -275,33 +308,26 @@ in
         }
       );
 
+      gatewayModelSupported = modelKey: lib.elem (modelChannel modelKey) channels;
+      proseSupported = gatewayModelSupported modelCatalog.defaults.prose;
+
+      gatewayProfileSupported =
+        profile:
+        enableCorpGateway
+        && lib.all gatewayModelSupported (builtins.attrValues (profileTierModels profile));
+
       enabledProviderProfiles = lib.filterAttrs (
         _: profile:
         lib.elem profile.provider providers
-        && (profile.channel == null || lib.elem profile.channel channels)
-        && (profile.provider != "corp-gateway" || enableCorpGateway)
+        && (
+          if profile.provider == "corp-gateway" then
+            gatewayProfileSupported profile
+          else
+            profile.channel == null || lib.elem profile.channel channels
+        )
       ) providerProfiles;
-
-      sourceProfiles = officialProfiles // enabledProviderProfiles;
-
-      hybridProfiles = lib.optionalAttrs (hybridBase != null) {
-        corp-gateway-hybrid = {
-          provider = "corp-gateway";
-          sources = {
-            flagship = hybridBase;
-            standard = "corp-gateway-local";
-            mini = "corp-gateway-local";
-          };
-
-          inherit (sourceProfiles.${hybridBase}) nativeWebSearch;
-        };
-      };
-
-      enabledHybridProfiles = lib.filterAttrs (
-        _: profile: lib.all (source: sourceProfiles ? ${source}) (builtins.attrValues profile.sources)
-      ) hybridProfiles;
     in
-    lib.mapAttrs (resolveProfile sourceProfiles) (sourceProfiles // enabledHybridProfiles);
+    lib.mapAttrs (resolveProfile proseSupported) (officialProfiles // enabledProviderProfiles);
 
   # ------------------------------------------------------------------------------------------------
   # Profile options

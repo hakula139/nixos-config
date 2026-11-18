@@ -135,7 +135,6 @@ let
   resolvedProfiles = mkProfiles {
     inherit (cfg.auth) enableCorpGateway;
     nativeFamily = "claude";
-    hybridBase = "corp-gateway-google";
 
     providers = [
       "corp-gateway"
