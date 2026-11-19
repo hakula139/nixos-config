@@ -20,6 +20,7 @@ let
 
     reasoning = true;
     thinking = {
+      mode = "anthropic-adaptive";
       efforts = [
         "low"
         "medium"
@@ -45,6 +46,7 @@ let
 
     reasoning = true;
     thinking = {
+      mode = "effort";
       efforts = [
         "low"
         "medium"
@@ -73,6 +75,7 @@ let
 
     reasoning = true;
     thinking = {
+      mode = "effort";
       efforts = [
         "low"
         "medium"
@@ -95,6 +98,7 @@ let
 
     reasoning = true;
     thinking = {
+      mode = "effort";
       efforts = [
         "low"
         "high"

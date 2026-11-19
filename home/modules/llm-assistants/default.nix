@@ -29,6 +29,7 @@ let
     "cursor"
     "omp"
     "oxide-code"
+    "t3code"
   ];
 
   cliAssistantNames = lib.remove "cursor" assistantNames;
@@ -85,6 +86,7 @@ in
     ./omp
     ./oxide-code
     ./shared
+    ./t3code
     ./workmux
   ];
 
