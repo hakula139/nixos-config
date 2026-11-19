@@ -4,22 +4,12 @@
 
 {
   config,
-  pkgs,
   lib,
-  caches,
-  isNixOS,
   ...
 }:
 
 let
-  inherit (pkgs.stdenv) isLinux;
   cfg = config.hakula.nix;
-
-  nixConf = ''
-    experimental-features = nix-command flakes
-    extra-substituters = ${lib.concatStringsSep " " caches.substituters}
-    extra-trusted-public-keys = ${lib.concatStringsSep " " caches.trusted-public-keys}
-  '';
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -34,15 +24,7 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module config
   # ------------------------------------------------------------------------------------------------
-  config = lib.mkMerge [
-    {
-      xdg.configFile."nix/nix.conf" = lib.mkIf (isLinux && !isNixOS) {
-        text = nixConf;
-      };
-    }
-
-    (lib.mkIf (cfg.configPath != null) {
-      xdg.configFile."nixos-config/repository".text = cfg.configPath + "\n";
-    })
-  ];
+  config = lib.mkIf (cfg.configPath != null) {
+    xdg.configFile."nixos-config/repository".text = cfg.configPath + "\n";
+  };
 }

@@ -25,6 +25,17 @@ let
       dest = envFile;
     }
   );
+
+  nixCli = pkgs.runCommand "nix-proxy" { } ''
+    install -d $out/bin
+    ln -s ${
+      repoLib.proxy.wrapWithProxy {
+        inherit pkgs;
+        pkg = pkgs.nix;
+        proxyCfg = cfg;
+      }
+    }/bin/nix $out/bin/nix
+  '';
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -56,5 +67,7 @@ in
     };
 
     systemd.services.nix-daemon.serviceConfig.EnvironmentFile = envFile;
+
+    environment.systemPackages = [ (lib.hiPrio nixCli) ];
   };
 }

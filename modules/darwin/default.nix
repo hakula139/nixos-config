@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  caches,
   keys,
   platformSettings,
   repoLib,
@@ -41,6 +40,8 @@ in
     ./ssh
     ./tailscale
     ./tunnel
+
+    ../shared/nix-caches
   ];
 
   # ------------------------------------------------------------------------------------------------
@@ -89,17 +90,12 @@ in
     nix = {
       enable = true;
 
-      settings =
-        platformSettings.nix
-        // {
-          extra-trusted-users = [
-            "hakula"
-          ];
-          builders-use-substitutes = true;
-        }
-        // lib.optionalAttrs config.hakula.cachix.enable {
-          inherit (caches) substituters trusted-public-keys;
-        };
+      settings = platformSettings.nix // {
+        extra-trusted-users = [
+          "hakula"
+        ];
+        builders-use-substitutes = true;
+      };
 
       distributedBuilds = true;
       buildMachines = repoLib.ssh.mkBuildMachines serverList builderKeyPath;

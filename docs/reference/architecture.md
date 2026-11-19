@@ -26,11 +26,11 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── workstations/
 │   │   ├── personal/               # macbook (Darwin)
 │   │   └── work/                   # wsl (NixOS-WSL), wsl-non-nixos (System Manager)
-│   └── images/                     # Buildable images (devvm, work)
+│   └── images/                     # Buildable images (devvm)
 ├── data/                           # Static configuration and inventory
 │   ├── default.nix                 # Index of shared data sets passed as special args
 │   ├── backblaze.nix               # Backblaze B2 S3 endpoint
-│   ├── caches.nix                  # Binary cache substituters and trusted public keys
+│   ├── caches.nix                  # Binary cache URLs and public keys by name
 │   ├── corp-domain.nix             # Corp-internal domain
 │   ├── corp-hosts.nix              # Corp-internal hostnames and URLs
 │   ├── llm-models.nix              # Shared model catalog and defaults
@@ -59,6 +59,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 ├── modules/
 │   ├── darwin/                     # macOS-specific modules
 │   ├── nixos/                      # NixOS service modules (most carry an `enable` option)
+│   ├── shared/                     # Modules imported by more than one tree
 │   └── system-manager/             # System Manager activation, agenix port
 ├── home/
 │   ├── hakula.nix                  # Home Manager entry point

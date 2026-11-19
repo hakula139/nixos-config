@@ -6,7 +6,6 @@
   config,
   pkgs,
   lib,
-  caches,
   keys,
   platformSettings,
   isDesktop,
@@ -37,13 +36,15 @@ in
     ./netdata
     ./nginx
     ./nix-daemon-proxy
-    ./nix-gc
     ./peertube
     ./podman
     ./postgresql
     ./ssh
     ./umami
     ./xray
+
+    ../shared/nix-caches
+    ../shared/nix-gc
   ];
 
   # ------------------------------------------------------------------------------------------------
@@ -118,13 +119,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Nix Configuration
     # ----------------------------------------------------------------------------------------------
-    nix = {
-      settings =
-        platformSettings.nix
-        // lib.optionalAttrs config.hakula.cachix.enable {
-          inherit (caches) substituters trusted-public-keys;
-        };
-    };
+    nix.settings = platformSettings.nix;
 
     nixpkgs.config.allowUnfree = true;
 

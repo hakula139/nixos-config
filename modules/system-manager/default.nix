@@ -27,7 +27,9 @@ in
 {
   imports = [
     ./age.nix
-    ../nixos/nix-gc
+
+    ../shared/nix-caches
+    ../shared/nix-gc
   ]
   ++ map (path: nixosModulesPath + path) [
     "/programs/nh.nix"
