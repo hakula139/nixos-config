@@ -15,6 +15,7 @@ let
   cfg = config.hakula.builders;
 
   remoteServers = lib.filter (s: s.name != hostName) (lib.attrValues servers);
+  builderKeyPath = config.age.secrets.builder-ssh-key.path;
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -42,15 +43,16 @@ in
     # ----------------------------------------------------------------------------------------------
     nix = {
       distributedBuilds = true;
-      buildMachines = repoLib.ssh.mkBuildMachines remoteServers config.age.secrets.builder-ssh-key.path;
+      buildMachines = repoLib.ssh.mkBuildMachines remoteServers builderKeyPath;
       settings.builders-use-substitutes = true;
     };
 
     # ----------------------------------------------------------------------------------------------
     # SSH Configuration (system-wide)
     # ----------------------------------------------------------------------------------------------
-    programs.ssh.extraConfig = repoLib.ssh.mkExtraConfig remoteServers config.age.secrets.builder-ssh-key.path;
-
-    programs.ssh.knownHosts = repoLib.ssh.mkKnownHosts remoteServers;
+    programs.ssh = {
+      extraConfig = repoLib.ssh.mkExtraConfig remoteServers builderKeyPath;
+      knownHosts = repoLib.ssh.mkKnownHosts remoteServers;
+    };
   };
 }

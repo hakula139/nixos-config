@@ -9,5 +9,6 @@
   modelCatalog = import ./llm-models.nix;
   platformSettings = import ./platform-settings.nix;
   servers = import ./servers.nix;
+  ssh = import ./ssh.nix;
   systemManagerPaths = import ./system-manager-paths.nix;
 }

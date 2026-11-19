@@ -22,14 +22,7 @@ let
   mkBucket = suffix: {
     bucket_name = cfg.b2Bucket;
     base_url = "${cdnBaseUrl}/${cfg.b2Bucket}";
-    prefix =
-      (lib.concatStringsSep "/" (
-        lib.filter (p: p != "") [
-          cfg.b2Path
-          suffix
-        ]
-      ))
-      + "/";
+    prefix = "${suffix}/";
   };
 in
 {
@@ -49,13 +42,6 @@ in
       type = lib.types.str;
       example = "hakula";
       description = "Backblaze B2 bucket name for video storage";
-    };
-
-    b2Path = lib.mkOption {
-      type = lib.types.str;
-      default = "";
-      example = "peertube";
-      description = "Base path within the B2 bucket for video storage";
     };
   };
 

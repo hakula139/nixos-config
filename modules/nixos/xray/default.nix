@@ -21,8 +21,6 @@ in
   # ------------------------------------------------------------------------------------------------
   options.hakula.services.xray = {
     enable = lib.mkEnableOption "Xray proxy server";
-
-    ws.enable = lib.mkEnableOption "VLESS + WebSocket mode";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -62,19 +60,20 @@ in
                 };
               };
             }
-          ]
-          ++ lib.optional cfg.ws.enable {
-            tag = "vless-ws";
-            listen = "${config.hakula.network.internalWsSocket},0666";
-            protocol = "vless";
 
-            settings.decryption = "none";
+            {
+              tag = "vless-ws";
+              listen = "${config.hakula.network.internalWsSocket},0666";
+              protocol = "vless";
 
-            streamSettings = {
-              network = "ws";
-              wsSettings.path = "/ws";
-            };
-          };
+              settings.decryption = "none";
+
+              streamSettings = {
+                network = "ws";
+                wsSettings.path = "/ws";
+              };
+            }
+          ];
 
           outbounds = [
             { protocol = "freedom"; }

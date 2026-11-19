@@ -92,7 +92,9 @@ in
 
       {
         description = "Mihomo proxy service";
-        wantedBy = [ "multi-user.target" ];
+        wantedBy = [
+          "multi-user.target"
+        ];
 
         serviceConfig = hardening // {
           Type = "simple";
@@ -118,7 +120,9 @@ in
     # ----------------------------------------------------------------------------------------------
     systemd.timers.mihomo-update = {
       description = "Timer for mihomo subscription updates";
-      wantedBy = [ "timers.target" ];
+      wantedBy = [
+        "timers.target"
+      ];
 
       timerConfig = {
         OnCalendar = "*-*-* 04:00:00";

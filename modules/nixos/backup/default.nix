@@ -32,16 +32,7 @@ let
   restoreTargets = lib.filterAttrs (_: t: t.restoreSnapshot != null) enabledTargets;
   allExtraGroups = lib.unique (lib.flatten (lib.mapAttrsToList (_: t: t.extraGroups) enabledTargets));
 
-  repositoryFor =
-    name:
-    "s3:https://${backblaze.s3Endpoint}/${cfg.b2Bucket}/${
-      lib.concatStringsSep "/" (
-        lib.filter (p: p != "") [
-          cfg.backupPath
-          name
-        ]
-      )
-    }";
+  repositoryFor = name: "s3:https://${backblaze.s3Endpoint}/${cfg.b2Bucket}/${name}";
 
   # Above restic's 15-minute backend retry window, so only a stalled run hits it.
   resticTimeout = "1h";
@@ -82,13 +73,6 @@ in
       type = lib.types.str;
       example = "hakula-backup";
       description = "Backblaze B2 bucket name";
-    };
-
-    backupPath = lib.mkOption {
-      type = lib.types.str;
-      default = "";
-      example = "cloudcone-sc2";
-      description = "Base path within the B2 bucket (each target appends its name)";
     };
 
     schedule = lib.mkOption {

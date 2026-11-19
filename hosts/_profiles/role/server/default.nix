@@ -44,9 +44,5 @@
   hakula.services.netdata.enable = true;
   hakula.services.nginx.enable = true;
   hakula.services.openssh.enable = true;
-
-  hakula.services.xray = {
-    enable = true;
-    ws.enable = true;
-  };
+  hakula.services.xray.enable = true;
 }

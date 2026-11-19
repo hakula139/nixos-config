@@ -384,29 +384,24 @@ in
 
       # Xray WebSocket proxy (with Cloudflare CDN)
       # WebSocket avoids the false positives that Cloudflare's DDoS protection raises against gRPC.
-      virtualHosts."${config.networking.hostName}-cdn.hakula.xyz" =
-        lib.mkIf config.hakula.services.xray.ws.enable
-          (
-            cloudflareVhostConfig
-            // {
-              http2 = false;
+      virtualHosts."${config.networking.hostName}-cdn.hakula.xyz" = cloudflareVhostConfig // {
+        http2 = false;
 
-              locations."/ws" = {
-                proxyPass = xrayWsUpstream;
-                proxyWebsockets = true;
-                extraConfig = ''
-                  proxy_redirect off;
-                  proxy_connect_timeout 60s;
-                  proxy_send_timeout 60s;
-                  proxy_read_timeout 300s;
-                '';
-              };
+        locations."/ws" = {
+          proxyPass = xrayWsUpstream;
+          proxyWebsockets = true;
+          extraConfig = ''
+            proxy_redirect off;
+            proxy_connect_timeout 60s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 300s;
+          '';
+        };
 
-              locations."/" = {
-                return = "302 https://hakula.xyz";
-              };
-            }
-          );
+        locations."/" = {
+          return = "302 https://hakula.xyz";
+        };
+      };
     };
   };
 }

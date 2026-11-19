@@ -25,6 +25,7 @@ let
 
   sshCfg = config.hakula.access.ssh;
   serverList = lib.attrValues servers;
+  builderKeyPath = config.age.secrets.builder-ssh-key.path;
 in
 {
   imports = [
@@ -101,7 +102,7 @@ in
         };
 
       distributedBuilds = true;
-      buildMachines = repoLib.ssh.mkBuildMachines serverList config.age.secrets.builder-ssh-key.path;
+      buildMachines = repoLib.ssh.mkBuildMachines serverList builderKeyPath;
 
       optimise.automatic = true;
     };
@@ -176,9 +177,10 @@ in
     # ----------------------------------------------------------------------------------------------
     # SSH Configuration (system-wide)
     # ----------------------------------------------------------------------------------------------
-    programs.ssh.extraConfig = repoLib.ssh.mkExtraConfig serverList config.age.secrets.builder-ssh-key.path;
-
-    programs.ssh.knownHosts = repoLib.ssh.mkKnownHosts serverList;
+    programs.ssh = {
+      extraConfig = repoLib.ssh.mkExtraConfig serverList builderKeyPath;
+      knownHosts = repoLib.ssh.mkKnownHosts serverList;
+    };
 
     # ----------------------------------------------------------------------------------------------
     # Shell & Environment

@@ -30,7 +30,7 @@ let
     [Database]
     Type = postgres
     Host = /run/postgresql
-    Port = ${toString config.hakula.services.postgresql.port}
+    Port = ${toString config.services.postgresql.settings.port}
     Name = ${dbName}
     User = ${serviceName}
     UnixSocket = true
@@ -57,14 +57,6 @@ in
       default = 5212;
       description = "Port for Cloudreve web interface";
     };
-
-    aria2 = {
-      enable = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = "Enable aria2 for remote download support";
-      };
-    };
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -78,7 +70,7 @@ in
       }
 
       {
-        assertion = !cfg.aria2.enable || config.hakula.services.aria2.enable;
+        assertion = config.hakula.services.aria2.enable;
         message = "Cloudreve aria2 integration requires aria2. Enable it via hakula.services.aria2.enable = true.";
       }
     ];
@@ -91,8 +83,8 @@ in
       group = serviceName;
       extraGroups = [
         redisGroup
-      ]
-      ++ lib.optionals cfg.aria2.enable [ "aria2" ];
+        "aria2"
+      ];
     };
 
     users.groups.${serviceName} = { };
@@ -140,8 +132,6 @@ in
           "network.target"
           "postgresql.service"
           redisUnit
-        ]
-        ++ lib.optionals cfg.aria2.enable [
           "aria2.service"
         ]
         ++ lib.optionals (config.hakula.services.backup.cloudreve.restoreSnapshot or null != null) [
@@ -177,8 +167,8 @@ in
           WorkingDirectory = "%S/%N";
           ReadWritePaths = [
             "%S/%N"
-          ]
-          ++ lib.optionals cfg.aria2.enable [ config.services.aria2.settings.dir ];
+            config.services.aria2.settings.dir
+          ];
         };
       }
     ];

@@ -308,6 +308,7 @@ t3dotgg
 tabdo
 tamasfe
 taplo
+tcpip
 telegramcidr
 timedatectl
 tmp

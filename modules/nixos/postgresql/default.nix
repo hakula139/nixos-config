@@ -19,18 +19,6 @@ in
   # ------------------------------------------------------------------------------------------------
   options.hakula.services.postgresql = {
     enable = lib.mkEnableOption "PostgreSQL database server";
-
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.postgresql_17;
-      description = "PostgreSQL package / version to use for this host";
-    };
-
-    port = lib.mkOption {
-      type = lib.types.port;
-      default = 5432;
-      description = "PostgreSQL listen port";
-    };
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -44,14 +32,14 @@ in
 
     services.postgresql = {
       enable = true;
-      inherit (cfg) package;
+      package = pkgs.postgresql_17;
+
+      # Bind to all interfaces, since PostgreSQL silently skips the podman bridge address
+      # (10.88.0.1) when the bridge does not exist yet at startup. The firewall (podman0 only) and
+      # pg_hba.conf restrict access.
+      enableTCPIP = true;
 
       settings = {
-        # Bind to all interfaces, since PostgreSQL silently skips the podman bridge address
-        # (10.88.0.1) when the bridge does not exist yet at startup. The firewall (podman0 only) and
-        # pg_hba.conf restrict access.
-        listen_addresses = lib.mkForce "*";
-        inherit (cfg) port;
         password_encryption = "scram-sha-256";
       };
     };
@@ -61,7 +49,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Allow podman containers to reach PostgreSQL via the podman bridge.
     networking.firewall.interfaces.${config.hakula.podman.network.interface}.allowedTCPPorts = [
-      cfg.port
+      config.services.postgresql.settings.port
     ];
   };
 }

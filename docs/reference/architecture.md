@@ -36,6 +36,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── llm-models.nix              # Shared model catalog and defaults
 │   ├── platform-settings.nix       # Cross-platform locale, time zone, Nix, and GC settings
 │   ├── servers.nix                 # Server inventory (IP, port, provider, host keys, builders)
+│   ├── ssh.nix                     # SSH port shared by every sshd and client entry
 │   └── system-manager-paths.nix    # PATH entries provisioned by system-manager activation
 ├── lib/                            # Pure helpers and framework code
 │   ├── default.nix                 # Repository helper namespace exposed as repoLib

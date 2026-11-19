@@ -51,12 +51,7 @@
   };
 
   hakula.services.openssh.enable = true;
-
-  hakula.services.tailscale = {
-    enable = true;
-    userspaceNetworking = true;
-  };
-
+  hakula.services.tailscale.enable = true;
   hakula.services.tunnel.enable = true;
 
   # ------------------------------------------------------------------------------------------------

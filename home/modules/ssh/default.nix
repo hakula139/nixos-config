@@ -6,6 +6,7 @@
   config,
   lib,
   servers,
+  ssh,
   ...
 }:
 
@@ -30,6 +31,7 @@ in
 
     settings = {
       "*" = { };
+
       "github.com-hakula139" = {
         HostName = "github.com";
         User = "git";
@@ -48,7 +50,7 @@ in
       "Hakula-Work" = {
         HostName = "wsl";
         User = "hakula";
-        Port = 35060;
+        Port = ssh.port;
         IdentityFile = "${homeDir}/.ssh/id_ed25519";
         ProxyCommand = "tailscale nc %h %p";
         ForwardAgent = true;

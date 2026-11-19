@@ -3,15 +3,12 @@
 # ==================================================================================================
 
 {
-  config,
   pkgs,
   lib,
   ...
 }:
 
 let
-  cfg = config.hakula.fhs-compat;
-
   shims = {
     # Coreutils
     basename = lib.getExe' pkgs.coreutils "basename";
@@ -70,27 +67,11 @@ let
   };
 in
 {
-  # ------------------------------------------------------------------------------------------------
-  # Module options
-  # ------------------------------------------------------------------------------------------------
-  options.hakula.fhs-compat = {
-    enable = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Populate /bin and /usr/bin with FHS-style shims for portable scripts";
-    };
-  };
-
-  # ------------------------------------------------------------------------------------------------
-  # Module config
-  # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable {
-    system.activationScripts.fhsCompatShims.text = ''
-      mkdir -p /bin /usr/bin
-      ln -sfn ${lib.getExe pkgs.bash} /bin/bash
-      ${lib.concatStringsSep "\n" (
-        lib.mapAttrsToList (name: target: "ln -sfn ${target} /usr/bin/${name}") shims
-      )}
-    '';
-  };
+  system.activationScripts.fhsCompatShims.text = ''
+    mkdir -p /bin /usr/bin
+    ln -sfn ${lib.getExe pkgs.bash} /bin/bash
+    ${lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (name: target: "ln -sfn ${target} /usr/bin/${name}") shims
+    )}
+  '';
 }
