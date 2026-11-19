@@ -171,6 +171,7 @@ let
     };
 
     gemini = {
+      # Introductory price through 2026-11-30, then $4 input, $20 output, and $0.20 cache read.
       carbon = {
         input = 2.0;
         output = 10.0;
@@ -178,6 +179,14 @@ let
         cacheWrite = 0.1875;
       };
 
+      neon = {
+        input = 3.0;
+        output = 15.0;
+        cacheRead = 0.15;
+        cacheWrite = 0.0833333333333333;
+      };
+
+      # Same introductory price and 2026-12-01 step as Carbon.
       argon = {
         input = 2.0;
         output = 10.0;
@@ -235,7 +244,7 @@ let
 
     gemini = {
       flagship = "gemini-4-carbon";
-      standard = "gemini-4-argon";
+      standard = "gemini-4-neon";
       mini = "gemini-4-hydrogen";
     };
 
@@ -336,6 +345,12 @@ in
       name = "Gemini 4 Carbon";
       channelId.google = "openrouter/google/gemini-4-carbon";
       channelCost.google = costs.gemini.carbon;
+    };
+
+    "gemini-4-neon" = geminiCommon // {
+      name = "Gemini 4 Neon";
+      channelId.google = "openrouter/google/gemini-4-neon";
+      channelCost.google = costs.gemini.neon;
     };
 
     "gemini-4-argon" = geminiCommon // {
