@@ -224,7 +224,27 @@ let
         cacheWrite = 0.15;
       };
     };
+
+    free = {
+      input = 0;
+      output = 0;
+      cacheRead = 0;
+      cacheWrite = 0;
+    };
   };
+
+  # Local gateway endpoints bill $0 at runtime, while `channelCost` keeps their reference rates for
+  # benchmark accounting.
+  freeChannels = [ "local" ];
+
+  withBilledCost =
+    model:
+    model
+    // {
+      channelBilledCost = builtins.mapAttrs (
+        channel: cost: if builtins.elem channel freeChannels then costs.free else cost
+      ) model.channelCost;
+    };
 
   # ------------------------------------------------------------------------------------------------
   # Tier defaults
@@ -271,7 +291,7 @@ in
   # ------------------------------------------------------------------------------------------------
   # Models
   # ------------------------------------------------------------------------------------------------
-  models = {
+  models = builtins.mapAttrs (_: withBilledCost) {
     # ----------------------------------------------------------------------------------------------
     # Claude
     # ----------------------------------------------------------------------------------------------

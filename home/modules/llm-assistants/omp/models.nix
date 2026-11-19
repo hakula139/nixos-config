@@ -23,7 +23,7 @@ let
       thinking
       ;
     id = model.channelId.${channel};
-    cost = model.channelCost.${channel};
+    cost = model.channelBilledCost.${channel};
   };
 
   # Every workload of one source shares its API, channel, and family.

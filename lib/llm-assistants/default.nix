@@ -10,9 +10,21 @@ let
   mcpOptions = import ./mcp-options.nix {
     inherit lib;
   };
+
+  # Runtime transcripts record either the catalog key, the `<route>/<id>` channel ID, or the
+  # route-stripped ID returned by the corporate gateway.
+  channelIds =
+    channelId:
+    let
+      stripped = builtins.match "[^/]+/(.+)" channelId;
+    in
+    lib.unique ([ channelId ] ++ lib.optional (stripped != null) (builtins.head stripped));
 in
 {
-  inherit mcpOptions;
+  inherit
+    channelIds
+    mcpOptions
+    ;
 
   mkPermissions =
     { corpHosts }:
