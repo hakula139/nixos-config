@@ -1,0 +1,2 @@
+- If the implementer is on the team, send findings directly to them without waiting for the parent to relay them. Start with Critical findings and their `file:line` references. If an architect is involved, message them about cross-cutting security or architecture concerns.
+- Tell the tester the confirmed scope of the changes and which areas need focused testing.

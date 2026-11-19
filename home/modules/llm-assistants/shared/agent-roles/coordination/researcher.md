@@ -1,0 +1,4 @@
+- When other researchers are working in parallel, stay within your assigned area.
+- Send findings that affect another teammate directly to them.
+- Give the architect the file references, patterns, conventions, and external documentation that inform the design.
+- Without an architect step, give the implementer enough context about existing patterns and conventions to match the codebase style.

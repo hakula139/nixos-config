@@ -36,6 +36,7 @@ let
         "isolation"
       ]
       ++ lib.optional (settings ? background) "background: ${lib.boolToString settings.background}"
+      ++ lib.optionals (settings ? skills) ([ "skills:" ] ++ map (skill: "  - ${skill}") settings.skills)
       ++ lib.optional (settings ? tools) "tools: ${lib.concatStringsSep ", " settings.tools}";
     in
     lib.concatStringsSep "\n" ([ "---" ] ++ frontmatterLines ++ [ "---" ]);

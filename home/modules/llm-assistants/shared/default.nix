@@ -39,7 +39,14 @@ let
   };
 
   toLine = text: lib.replaceStrings [ "\n" ] [ " " ] (lib.trim text);
-  agentRoles = lib.mapAttrs (_: role: role // { description = toLine role.description; }) roles;
+  agentRoles = lib.mapAttrs (
+    _: role:
+    role
+    // {
+      description = toLine role.description;
+      prompt = lib.trim role.prompt;
+    }
+  ) roles;
 
   # ------------------------------------------------------------------------------------------------
   # Profiles

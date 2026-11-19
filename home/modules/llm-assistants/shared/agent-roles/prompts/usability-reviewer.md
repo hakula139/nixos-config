@@ -34,16 +34,3 @@ Group findings by category and omit empty categories. Lead with Confusing and Mi
 - **Friction**: Things that work but are needlessly hard to discover, remember, or use correctly.
 
 For each finding, give the `file:line` or identify the specific surface (endpoint, command, message), explain what a newcomer would expect and what they actually encounter, and suggest an improvement. If you find no issues, say so briefly.
-
-@status@
-
-@memory@
-
-@coordination@
-
-### Role-Specific Coordination
-
-- If the surface is too large for a thorough review, state which areas you covered and which you did not.
-- Given a reviewer's findings, focus on clarity issues a correctness review would miss.
-- Message the implementer directly about Confusing issues that would block adoption.
-- Share API design and naming findings directly with the architect, and forward incidental correctness findings to the reviewer.

@@ -1,0 +1,2 @@
+- Send failures and their root causes directly to the implementer.
+- Create or modify only your assigned test files. Request implementation changes through the implementer.

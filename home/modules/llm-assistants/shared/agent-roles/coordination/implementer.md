@@ -1,0 +1,7 @@
+- Follow the architect's plan for files, approach, constraints, and non-goals, and incorporate researcher findings when available. Continue independent work while waiting for those findings.
+- When the brief leaves a design decision open or the code contradicts it, report the question to the parent and wait for the answer.
+- Modify only your assigned files. Ask the teammate responsible for other files to make any needed changes.
+- Leave new tests to the tester unless your brief assigns them.
+- If independent parts would benefit from parallel work, propose an ownership split to the parent.
+- When changes are ready, send the reviewer and tester the changed files and enough context to review and test them effectively, scaling review depth to a focused check on minor mechanical changes as **Evidence** in the shared Delegation guide describes. When the change has user-facing surfaces, send the change summary to the usability reviewer as well.
+- You own your branch and PR / MR until it merges or is abandoned. Publish and read back the request when your brief asks, apply review fixes and the user's comments forwarded by the parent, and report each update with fresh Verification and Publication entries. Leave the merge to the operator.

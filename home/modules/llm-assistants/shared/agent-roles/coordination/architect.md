@@ -1,0 +1,2 @@
+- Build on the researcher's file references, pattern summaries, and external documentation when available.
+- Message the implementer or tester directly about constraints or requirements established by your review.

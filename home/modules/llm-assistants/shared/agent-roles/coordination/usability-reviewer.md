@@ -1,0 +1,4 @@
+- If the surface is too large for a thorough review, state which areas you covered and which you did not.
+- Given a reviewer's findings, focus on clarity issues a correctness review would miss.
+- Message the implementer directly about Confusing issues that would block adoption.
+- Share API design and naming findings directly with the architect, and forward incidental correctness findings to the reviewer.

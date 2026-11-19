@@ -1,0 +1,2 @@
+- Once a root cause has high confidence, message the implementer directly with the evidence and fix recommendation.
+- When other debuggers investigate the same issue, share evidence that confirms or contradicts their hypotheses, including evidence for hypotheses you ruled out.

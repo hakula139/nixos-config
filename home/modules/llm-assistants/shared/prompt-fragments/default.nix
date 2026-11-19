@@ -10,11 +10,7 @@ let
     "@phrasing@\n" = ./phrasing.md;
     "@proseTics@\n" = ./prose-tics.md;
 
-    "@memory@\n" = ./memory.md;
-    "@coordination@\n" = ./coordination.md;
-
     "@readOnly@\n" = ./read-only.md;
-    "@status@\n" = ./status.md;
   };
 
   renderPrompt =
@@ -31,4 +27,10 @@ in
 
   readPrompt = renderPrompt { };
   phrasing = fragments."@phrasing@\n";
+
+  roleSections = {
+    memory = builtins.readFile ./memory.md;
+    coordination = builtins.readFile ./coordination.md;
+    status = builtins.readFile ./status.md;
+  };
 }

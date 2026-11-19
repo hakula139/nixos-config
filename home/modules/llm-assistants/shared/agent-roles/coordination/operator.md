@@ -1,0 +1,2 @@
+- Send conflicts, CI failures, and other branch problems to the branch owner your spawn prompt names, and copy the parent.
+- Touch only the requests, branches, worktrees, and hosts your spawn prompt names.

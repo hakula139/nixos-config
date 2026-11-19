@@ -28,7 +28,7 @@ let
   renderAgent = name: agent: ''
     ${renderFrontmatter name agent}
 
-    ${lib.trim agent.prompt}
+    ${agent.prompt}
 
     ${lib.trim shared.instructions}
   '';
