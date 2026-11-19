@@ -7,7 +7,6 @@
   pkgs,
   lib,
   keys,
-  platformSettings,
   isDesktop,
   repoLib,
   ...
@@ -17,7 +16,6 @@ let
   cfg = config.hakula;
   sshCfg = cfg.access.ssh;
   userConfig = config.users.users.${cfg.user.name};
-  homeConfig = config.home-manager.users.${cfg.user.name} or { };
 
   packages = repoLib.packagesFor pkgs;
 in
@@ -26,12 +24,10 @@ in
     ./aria2
     ./backup
     ./builders
-    ./cachix
     ./clash
     ./cloudreve
     ./earlyoom
     ./fhs-compat
-    ./llm-assistants
     ./mihomo
     ./netdata
     ./nginx
@@ -43,21 +39,18 @@ in
     ./umami
     ./xray
 
+    ../shared/base
+    ../shared/cachix
+    ../shared/llm-assistants
     ../shared/nix-caches
     ../shared/nix-gc
+    ../shared/user
+    ../shared/user-secrets
   ];
 
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options.hakula.access.ssh = {
-    authorizedKeys = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ ];
-      description = "SSH public keys authorized for user login";
-    };
-  };
-
   options.hakula.network = {
     internalHttpsSocket = lib.mkOption {
       type = lib.types.str;
@@ -83,18 +76,13 @@ in
     realitySniHost = lib.mkOption {
       type = lib.types.str;
       default = "hakula.xyz";
+      readOnly = true;
       description = ''
         REALITY SNI host used for TLS camouflage in Xray and SNI-based routing in nginx.
         Steal-oneself: this is our own domain, so Xray's REALITY `dest` borrows the local nginx
         certificate instead of a third-party site.
       '';
     };
-  };
-
-  options.hakula.user.name = lib.mkOption {
-    type = lib.types.str;
-    default = "hakula";
-    description = "Primary user account name";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -104,8 +92,6 @@ in
     # ----------------------------------------------------------------------------------------------
     # Core System
     # ----------------------------------------------------------------------------------------------
-    time.timeZone = platformSettings.timeZone;
-
     i18n = {
       defaultLocale = "en_US.UTF-8";
       supportedLocales = [
@@ -115,13 +101,6 @@ in
     };
 
     console.keyMap = "us";
-
-    # ----------------------------------------------------------------------------------------------
-    # Nix Configuration
-    # ----------------------------------------------------------------------------------------------
-    nix.settings = platformSettings.nix;
-
-    nixpkgs.config.allowUnfree = true;
 
     # ----------------------------------------------------------------------------------------------
     # Boot & Kernel
@@ -170,6 +149,8 @@ in
     # ----------------------------------------------------------------------------------------------
     # Users & Security
     # ----------------------------------------------------------------------------------------------
+    hakula.user.group = userConfig.group;
+
     users.defaultUserShell = pkgs.zsh;
 
     users.users = lib.mkMerge [
@@ -206,17 +187,14 @@ in
     # ----------------------------------------------------------------------------------------------
     # Shell & Environment
     # ----------------------------------------------------------------------------------------------
-    programs.zsh.enable = true;
     environment.shells = [
       pkgs.zsh
     ];
 
-    environment.variables =
-      platformSettings.locale
-      // lib.optionalAttrs config.security.pki.installCACerts {
-        # uv's Python builds use upstream OpenSSL paths instead of the NixOS CA bundle.
-        SSL_CERT_FILE = lib.mkDefault "\${SSL_CERT_FILE-${config.security.pki.caBundle}}";
-      };
+    environment.variables = lib.optionalAttrs config.security.pki.installCACerts {
+      # uv's Python builds use upstream OpenSSL paths instead of the NixOS CA bundle.
+      SSL_CERT_FILE = lib.mkDefault "\${SSL_CERT_FILE-${config.security.pki.caBundle}}";
+    };
 
     # Nix-LD: Run unpatched Linux binaries
     programs.nix-ld = {
@@ -274,20 +252,11 @@ in
     };
 
     # ----------------------------------------------------------------------------------------------
-    # Fonts & Packages
+    # Fonts
     # ----------------------------------------------------------------------------------------------
     fonts = lib.mkIf isDesktop {
       packages = packages.fonts;
       fontconfig.enable = true;
-    };
-
-    environment.systemPackages = packages.base;
-
-    # ----------------------------------------------------------------------------------------------
-    # Secrets Configuration (agenix)
-    # ----------------------------------------------------------------------------------------------
-    age.secrets = repoLib.secrets.mkRequiredUserSecrets {
-      inherit homeConfig userConfig;
     };
   };
 }

@@ -6,8 +6,6 @@
   config,
   pkgs,
   lib,
-  keys,
-  platformSettings,
   repoLib,
   servers,
   ...
@@ -16,11 +14,7 @@
 let
   packages = repoLib.packagesFor pkgs;
   userName = config.hakula.user.name;
-  homeConfig = config.home-manager.users.${userName} or { };
-  userConfig = {
-    name = userName;
-    home = config.users.users.${userName}.home or "/Users/${userName}";
-  };
+  userHome = "/Users/${userName}";
 
   sshCfg = config.hakula.access.ssh;
   serverList = lib.attrValues servers;
@@ -35,35 +29,19 @@ in
     ./betterdisplay
     ./drivedx
     ./keka
-    ./llm-assistants
     ./mihomo
+    ./nh-clean
     ./ssh
     ./tailscale
     ./tunnel
 
+    ../shared/base
+    ../shared/cachix
+    ../shared/llm-assistants
     ../shared/nix-caches
+    ../shared/user
+    ../shared/user-secrets
   ];
-
-  # ------------------------------------------------------------------------------------------------
-  # Module options
-  # ------------------------------------------------------------------------------------------------
-  options.hakula.access.ssh = {
-    authorizedKeys = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = lib.attrValues keys.workstations;
-      description = "SSH public keys authorized for user login";
-    };
-  };
-
-  options.hakula.cachix = {
-    enable = lib.mkEnableOption "Cachix auth token secret";
-  };
-
-  options.hakula.user.name = lib.mkOption {
-    type = lib.types.str;
-    default = "hakula";
-    description = "Primary user account name";
-  };
 
   # ------------------------------------------------------------------------------------------------
   # Module config
@@ -72,16 +50,10 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
+    age.identityPaths = [ "${userHome}/.ssh/id_ed25519" ];
 
-    age.secrets = {
-      builder-ssh-key = repoLib.secrets.mkDarwinUserSecret userName {
-        name = "builders/ssh-key";
-      };
-    }
-    // repoLib.secrets.mkRequiredUserSecrets {
-      inherit homeConfig userConfig;
-      group = "staff";
+    age.secrets.builder-ssh-key = repoLib.secrets.mkDarwinUserSecret userName {
+      name = "builders/ssh-key";
     };
 
     # ----------------------------------------------------------------------------------------------
@@ -90,50 +62,22 @@ in
     nix = {
       enable = true;
 
-      settings = platformSettings.nix // {
+      settings = {
         extra-trusted-users = [
-          "hakula"
+          userName
         ];
         builders-use-substitutes = true;
       };
 
       distributedBuilds = true;
       buildMachines = repoLib.ssh.mkBuildMachines serverList builderKeyPath;
-
-      optimise.automatic = true;
     };
-
-    launchd.daemons.nh-clean = {
-      command = "${lib.getExe pkgs.nh} clean all ${platformSettings.nhCleanArgs}";
-      path = [
-        config.nix.package
-        "/usr/sbin"
-      ];
-      serviceConfig = {
-        StartCalendarInterval = [
-          {
-            Hour = 6;
-            Minute = 0;
-          }
-        ];
-
-        StandardOutPath = "/var/log/nh-clean.log";
-        StandardErrorPath = "/var/log/nh-clean.log";
-      };
-    };
-
-    nixpkgs.config.allowUnfree = true;
-
-    # ----------------------------------------------------------------------------------------------
-    # Core System
-    # ----------------------------------------------------------------------------------------------
-    time.timeZone = platformSettings.timeZone;
 
     # ----------------------------------------------------------------------------------------------
     # Environment
     # ----------------------------------------------------------------------------------------------
     launchd.user.envVariables.PATH = [
-      "${userConfig.home}/.nix-profile/bin"
+      "${userHome}/.nix-profile/bin"
       "/etc/profiles/per-user/${userName}/bin"
       "/run/current-system/sw/bin"
       "/nix/var/nix/profiles/default/bin"
@@ -149,13 +93,15 @@ in
     # ----------------------------------------------------------------------------------------------
     # Users & Security
     # ----------------------------------------------------------------------------------------------
-    users.users.hakula = {
-      name = "hakula";
-      home = "/Users/hakula";
+    hakula.user.group = "staff";
+
+    users.users.${userName} = {
+      name = userName;
+      home = userHome;
       openssh.authorizedKeys.keys = sshCfg.authorizedKeys;
     };
 
-    system.primaryUser = "hakula";
+    system.primaryUser = userName;
 
     security.pam.services.sudo_local = {
       touchIdAuth = true;
@@ -181,17 +127,15 @@ in
     # ----------------------------------------------------------------------------------------------
     # Shell & Environment
     # ----------------------------------------------------------------------------------------------
-    programs.zsh.enable = true;
     environment.shells = [
       pkgs.zsh
     ];
-    environment.variables = platformSettings.locale;
 
     # ----------------------------------------------------------------------------------------------
     # Fonts & Packages
     # ----------------------------------------------------------------------------------------------
     fonts.packages = packages.fonts;
-    environment.systemPackages = packages.base ++ [
+    environment.systemPackages = [
       pkgs.thaw
     ];
   };

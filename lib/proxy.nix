@@ -10,8 +10,8 @@
 let
   proxyVars = [
     "HTTP_PROXY"
-    "HTTPS_PROXY"
     "http_proxy"
+    "HTTPS_PROXY"
     "https_proxy"
   ];
 
@@ -33,15 +33,31 @@ let
   mkProxyScript =
     proxyCfg:
     let
-      proxyUrl = proxyUrlExpr proxyCfg (lib.escapeShellArg proxyCfg.url);
       noProxy = lib.escapeShellArg (renderNoProxy proxyCfg);
+      secretFile = lib.escapeShellArg proxyCfg.secretUrlFile;
+      readUrl =
+        if proxyCfg.secretUrlFile != null then
+          ''
+            if [ -r ${secretFile} ]; then
+              proxy_url=$(cat ${secretFile})
+            else
+              proxy_url=
+            fi''
+        else
+          "proxy_url=${lib.escapeShellArg proxyCfg.url}";
     in
     ''
-      export HTTP_PROXY=${proxyUrl}
-      export HTTPS_PROXY=${proxyUrl}
+      ${readUrl}
+
+      if [ -n "$proxy_url" ]; then
+        export HTTP_PROXY="$proxy_url"
+        export http_proxy="$proxy_url"
+        export HTTPS_PROXY="$proxy_url"
+        export https_proxy="$proxy_url"
+      fi
+      unset proxy_url
+
       export NO_PROXY=${noProxy}
-      export http_proxy=${proxyUrl}
-      export https_proxy=${proxyUrl}
       export no_proxy=${noProxy}
     '';
 
@@ -58,10 +74,10 @@ let
       umask 077
       printf '%s\n' \
         "HTTP_PROXY=${proxyUrl}" \
-        "HTTPS_PROXY=${proxyUrl}" \
-        "NO_PROXY=${noProxy}" \
         "http_proxy=${proxyUrl}" \
+        "HTTPS_PROXY=${proxyUrl}" \
         "https_proxy=${proxyUrl}" \
+        "NO_PROXY=${noProxy}" \
         "no_proxy=${noProxy}" \
         >${lib.escapeShellArg dest}
     '';

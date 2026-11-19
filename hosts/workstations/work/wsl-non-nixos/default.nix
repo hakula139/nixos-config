@@ -4,8 +4,7 @@
 
 {
   config,
-  lib,
-  keys,
+  repo,
   ...
 }:
 
@@ -13,10 +12,9 @@ let
   userName = config.hakula.user.name;
 in
 {
-  # ------------------------------------------------------------------------------------------------
-  # Access (SSH)
-  # ------------------------------------------------------------------------------------------------
-  hakula.access.ssh.authorizedKeys = lib.mkDefault (lib.attrValues keys.workstations);
+  imports = [
+    repo.profiles.role.workstation
+  ];
 
   # ------------------------------------------------------------------------------------------------
   # Home Manager Overrides

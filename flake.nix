@@ -297,8 +297,6 @@
           hostName = "devvm";
           hostType = "work";
           hostModule = ./hosts/images/devvm;
-          enableDevToolchains = true;
-          username = "root";
         };
       };
 

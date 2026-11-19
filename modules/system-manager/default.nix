@@ -7,19 +7,15 @@
   config,
   pkgs,
   lib,
-  platformSettings,
-  repoLib,
   systemManagerPaths,
   ...
 }:
 
 let
   cfg = config.hakula;
-  homeConfig = config.home-manager.users.${cfg.user.name};
   sshCfg = cfg.access.ssh;
   userConfig = config.users.users.${cfg.user.name};
 
-  packages = repoLib.packagesFor pkgs;
   systemManagerHealthCheck = pkgs.writers.writeNuBin "system-manager-health-check" (
     builtins.readFile ./health-check.nu
   );
@@ -28,8 +24,13 @@ in
   imports = [
     ./age.nix
 
+    ../shared/base
+    ../shared/cachix
+    ../shared/llm-assistants
     ../shared/nix-caches
     ../shared/nix-gc
+    ../shared/user
+    ../shared/user-secrets
   ]
   ++ map (path: nixosModulesPath + path) [
     "/programs/nh.nix"
@@ -40,22 +41,13 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options.hakula.access.ssh = {
-    authorizedKeys = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ ];
-      description = "SSH public keys authorized for user login";
-    };
-  };
-
-  options.hakula.user.name = lib.mkOption {
-    type = lib.types.str;
-    default = "hakula";
-    description = "Primary user account name";
-  };
-
   options.programs.zsh = {
     enable = lib.mkEnableOption "zsh shell integration";
+  };
+
+  options.time.timeZone = lib.mkOption {
+    type = lib.types.str;
+    description = "Time zone, applied through /etc/localtime";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -65,6 +57,8 @@ in
     # ----------------------------------------------------------------------------------------------
     # Users
     # ----------------------------------------------------------------------------------------------
+    hakula.user.group = cfg.user.name;
+
     users.groups = {
       keys = { };
       ${cfg.user.name}.gid = lib.mkDefault 1000;
@@ -84,7 +78,7 @@ in
     # ----------------------------------------------------------------------------------------------
     nix = {
       enable = true;
-      settings = platformSettings.nix // {
+      settings = {
         trusted-users = [
           "root"
           cfg.user.name
@@ -98,12 +92,8 @@ in
     # ----------------------------------------------------------------------------------------------
     # Shell & Environment
     # ----------------------------------------------------------------------------------------------
-    programs.zsh.enable = true;
-
-    environment.variables = platformSettings.locale;
-
     environment.etc.localtime = {
-      source = "${pkgs.tzdata}/share/zoneinfo/${platformSettings.timeZone}";
+      source = "${pkgs.tzdata}/share/zoneinfo/${config.time.timeZone}";
       replaceExisting = true;
     };
 
@@ -119,7 +109,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Packages
     # ----------------------------------------------------------------------------------------------
-    environment.systemPackages = packages.base ++ [
+    environment.systemPackages = [
       systemManagerHealthCheck
       pkgs.system-manager
       pkgs.zsh
@@ -129,10 +119,6 @@ in
     # Secrets
     # ----------------------------------------------------------------------------------------------
     age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
-
-    age.secrets = repoLib.secrets.mkRequiredUserSecrets {
-      inherit homeConfig userConfig;
-    };
 
     systemd.services."home-manager-${cfg.user.name}" = lib.mkIf (config.age.secrets != { }) {
       after = [

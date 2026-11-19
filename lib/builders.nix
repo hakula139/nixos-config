@@ -29,13 +29,13 @@ let
       isDesktop,
       isNixOS,
       enableDevToolchains ? false,
-      username ? "hakula",
     }:
+    { config, ... }:
     {
       home-manager = {
         useGlobalPkgs = true;
         useUserPackages = true;
-        users.${username} = import ../home/hakula.nix;
+        users.${config.hakula.user.name} = import ../home/hakula.nix;
         backupFileExtension = "bak";
         extraSpecialArgs = commonSpecialArgs // {
           inherit
@@ -45,8 +45,8 @@ let
             isDesktop
             isNixOS
             enableDevToolchains
-            username
             ;
+          username = config.hakula.user.name;
         };
       };
     };
@@ -61,56 +61,17 @@ let
     { _module.args = { inherit (homeManagerArgs) isDesktop; }; }
   ];
 
-  serverSharedModules =
-    {
-      flakeConfigName,
-      hostName,
-      hostType,
-    }:
-    mkNixosBaseModules {
-      inherit
-        flakeConfigName
-        hostName
-        hostType
-        ;
-      isDesktop = false;
-      isNixOS = true;
-    }
-    ++ [ disko.nixosModules.disko ];
-
   # ------------------------------------------------------------------------------------------------
-  # Server (NixOS)
+  # NixOS system
   # ------------------------------------------------------------------------------------------------
-  mkServer =
+  mkNixosSystem =
     {
       flakeConfigName,
       hostName,
       hostType,
       hostModule,
-    }:
-    {
-      nixpkgs.hostPlatform = "x86_64-linux";
-      imports =
-        serverSharedModules {
-          inherit
-            flakeConfigName
-            hostName
-            hostType
-            ;
-        }
-        ++ [ hostModule ];
-    };
-
-  # ------------------------------------------------------------------------------------------------
-  # WSL workstation (NixOS-WSL)
-  # ------------------------------------------------------------------------------------------------
-  mkWSL =
-    {
-      flakeConfigName,
-      hostName,
-      hostType,
-      hostModule,
-      enableDevToolchains ? true,
+      isDesktop,
+      enableDevToolchains,
     }:
     inputs.nixpkgs.lib.nixosSystem {
       specialArgs = commonSpecialArgs // {
@@ -129,11 +90,60 @@ let
           flakeConfigName
           hostName
           hostType
+          isDesktop
           ;
-        isDesktop = true;
         isNixOS = true;
       }
       ++ [ hostModule ];
+    };
+
+  # ------------------------------------------------------------------------------------------------
+  # Server (NixOS)
+  # ------------------------------------------------------------------------------------------------
+  mkServer =
+    {
+      flakeConfigName,
+      hostName,
+      hostType,
+      hostModule,
+    }:
+    {
+      nixpkgs.hostPlatform = "x86_64-linux";
+      imports =
+        mkNixosBaseModules {
+          inherit
+            flakeConfigName
+            hostName
+            hostType
+            ;
+          isDesktop = false;
+          isNixOS = true;
+        }
+        ++ [
+          disko.nixosModules.disko
+          hostModule
+        ];
+    };
+
+  # ------------------------------------------------------------------------------------------------
+  # WSL workstation (NixOS-WSL)
+  # ------------------------------------------------------------------------------------------------
+  mkWSL =
+    {
+      flakeConfigName,
+      hostName,
+      hostType,
+      hostModule,
+    }:
+    mkNixosSystem {
+      inherit
+        flakeConfigName
+        hostName
+        hostType
+        hostModule
+        ;
+      isDesktop = true;
+      enableDevToolchains = true;
     };
 
   # ------------------------------------------------------------------------------------------------
@@ -164,7 +174,6 @@ let
         agenix.darwinModules.default
         home-manager.darwinModules.home-manager
         (mkHomeManagerConfig {
-          enableDevToolchains = true;
           inherit
             flakeConfigName
             hostName
@@ -172,6 +181,7 @@ let
             ;
           isDesktop = true;
           isNixOS = false;
+          enableDevToolchains = true;
         })
         hostModule
       ];
@@ -186,25 +196,22 @@ let
       hostName,
       hostType,
       hostModule,
-      enableDevToolchains ? true,
-      isDesktop ? true,
     }:
     system-manager.lib.makeSystemConfig {
       modules = [
         {
           nixpkgs.hostPlatform = "x86_64-linux";
-          nixpkgs.config.allowUnfree = true;
         }
         home-manager.nixosModules.home-manager
         (mkHomeManagerConfig {
           inherit
-            enableDevToolchains
             flakeConfigName
             hostName
             hostType
-            isDesktop
             ;
+          isDesktop = true;
           isNixOS = false;
+          enableDevToolchains = true;
         })
         ../modules/system-manager
         hostModule
@@ -224,41 +231,24 @@ let
       hostName,
       hostType,
       hostModule,
-      enableDevToolchains ? false,
-      tag ? "latest",
-      username ? "hakula",
     }:
     let
       pkgs = pkgsFor "x86_64-linux";
-      nixosConfig = inputs.nixpkgs.lib.nixosSystem {
-        specialArgs = commonSpecialArgs // {
-          inherit hostName hostType;
-        };
-
-        modules = [
-          {
-            nixpkgs.hostPlatform = "x86_64-linux";
-            nixpkgs.overlays = overlays;
-          }
-        ]
-        ++ mkNixosBaseModules {
-          inherit
-            enableDevToolchains
-            flakeConfigName
-            hostName
-            hostType
-            username
-            ;
-          isDesktop = false;
-          isNixOS = true;
-        }
-        ++ [ hostModule ];
+      nixosConfig = mkNixosSystem {
+        inherit
+          flakeConfigName
+          hostName
+          hostType
+          hostModule
+          ;
+        isDesktop = false;
+        enableDevToolchains = true;
       };
       inherit (nixosConfig.config.system.build) toplevel;
     in
     pkgs.dockerTools.buildLayeredImageWithNixDb {
       name = hostName;
-      inherit tag;
+      tag = "latest";
       contents = [ toplevel ];
       config = {
         Cmd = [ "${toplevel}/init" ];
@@ -267,7 +257,6 @@ let
 in
 {
   inherit
-    mkHomeManagerConfig
     mkServer
     mkWSL
     mkDarwin

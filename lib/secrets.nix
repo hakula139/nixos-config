@@ -49,8 +49,7 @@ in
   mkRequiredUserSecrets =
     {
       homeConfig,
-      userConfig,
-      group ? null,
+      user,
     }:
     let
       inherit (homeConfig.hakula.secrets) required;
@@ -69,8 +68,8 @@ in
       _: spec:
       mkSecret {
         inherit (spec) name path;
-        owner = userConfig.name;
-        group = if group != null then group else userConfig.group or userConfig.name;
+        owner = user.name;
+        inherit (user) group;
       }
     ) required;
 }

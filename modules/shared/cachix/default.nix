@@ -1,5 +1,5 @@
 # ==================================================================================================
-# LLM Assistants Integration
+# Cachix (Binary Cache Tooling)
 # ==================================================================================================
 
 {
@@ -10,20 +10,23 @@
 }:
 
 let
-  cfg = config.hakula.llm-assistants;
+  cfg = config.hakula.cachix;
+  user = config.hakula.user;
 in
 {
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options.hakula.llm-assistants = repoLib.llmAssistants.mkOptions {
-    inherit (repoLib.proxy) mkProxyOptions;
-    enableDescription = "LLM assistants for the primary Home Manager user";
-    defaultUser = "hakula";
-  };
+  options.hakula.cachix.enable = lib.mkEnableOption "Cachix auth token secret";
 
   # ------------------------------------------------------------------------------------------------
   # Module config
   # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable (repoLib.llmAssistants.mkHomeManagerConfig cfg);
+  config = lib.mkIf cfg.enable {
+    age.secrets.cachix-auth-token = repoLib.secrets.mkSecret {
+      name = "cachix/auth-token";
+      owner = user.name;
+      inherit (user) group;
+    };
+  };
 }
