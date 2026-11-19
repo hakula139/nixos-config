@@ -72,31 +72,9 @@ jobs:
         uses: hakula139/devkit/.github/actions/setup-nix@v3
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
-      - name: Configure extra binary caches
-        run: |
-          set -euo pipefail
-          substituters=$(
-            nix eval --raw --file data/caches.nix \
-              --apply 'c: builtins.concatStringsSep " " c.substituters'
-          )
-          trusted_public_keys=$(
-            nix eval --raw --file data/caches.nix \
-              --apply 'c: builtins.concatStringsSep " " c.trusted-public-keys'
-          )
-          {
-            printf 'NIX_CONFIG<<EOF_NIX_CONFIG\n'
-            printf 'extra-substituters = %s\n' "$substituters"
-            printf 'extra-trusted-public-keys = %s\n' "$trusted_public_keys"
-            printf 'EOF_NIX_CONFIG\n'
-          } >> "$GITHUB_ENV"
-
-      - name: Verify binary caches
-        run: |
-          set -euo pipefail
-          nix config show substituters
-          nix config show trusted-public-keys
-          nix config show substituters | grep -q 'https://cache.numtide.com'
+          extra_nix_config: |
+            extra-substituters = https://cache.numtide.com
+            extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
 
       - name: Check deployment derivation
         if: matrix.config.deploy
