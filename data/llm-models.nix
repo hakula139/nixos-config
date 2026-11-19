@@ -118,10 +118,10 @@ let
       };
 
       sonnet = {
-        input = 2.2;
-        output = 11.0;
-        cacheRead = 0.22;
-        cacheWrite = 2.75;
+        input = 2.0;
+        output = 10.0;
+        cacheRead = 0.1;
+        cacheWrite = 2.5;
       };
 
       # Prompts over 100k tokens cost 5x these base rates.
