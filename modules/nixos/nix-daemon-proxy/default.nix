@@ -29,10 +29,10 @@ let
   nixCli = pkgs.runCommand "nix-proxy" { } ''
     install -d $out/bin
     ln -s ${
-      repoLib.proxy.wrapWithProxy {
+      repoLib.wrapPackage {
         inherit pkgs;
         pkg = pkgs.nix;
-        proxyCfg = cfg;
+        wrapArgs = repoLib.proxy.mkProxyWrapArgs cfg;
       }
     }/bin/nix $out/bin/nix
   '';

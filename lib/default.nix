@@ -10,7 +10,7 @@
 let
   wrapPackage = import ./wrap-package.nix { inherit lib; };
   mkNuCommand = import ./nu-command { inherit lib devkit; };
-  proxy = import ./proxy.nix { inherit lib wrapPackage; };
+  proxy = import ./proxy.nix { inherit lib; };
 in
 {
   inherit

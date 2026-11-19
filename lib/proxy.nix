@@ -4,7 +4,6 @@
 
 {
   lib,
-  wrapPackage,
 }:
 
 let
@@ -82,39 +81,19 @@ let
         >${lib.escapeShellArg dest}
     '';
 
-  wrapWithProxy =
-    {
-      pkgs,
-      pkg,
-      proxyCfg,
-      name ? pkg.name,
-      bin ? pkg.pname or pkg.name,
-    }:
-    if !proxyCfg.enable then
-      pkg
-    else
-      let
-        proxyRunScript = pkgs.writeShellScript "${bin}-proxy-env" (mkProxyScript proxyCfg);
-      in
-      wrapPackage {
-        inherit
-          pkgs
-          pkg
-          name
-          bin
-          ;
-        wrapArgs = [
-          "--run"
-          "source ${proxyRunScript}"
-        ];
-      };
+  mkProxyWrapArgs =
+    proxyCfg:
+    lib.optionals proxyCfg.enable [
+      "--run"
+      (mkProxyScript proxyCfg)
+    ];
 in
 {
   inherit
     mkProxyScript
     mkProxyEnvFileScript
+    mkProxyWrapArgs
     proxyVars
-    wrapWithProxy
     ;
 
   # Shell snippet that clears proxy env vars. Use in scripts that must reach the network bypassing
@@ -122,6 +101,11 @@ in
   # internal endpoints that do not honor NO_PROXY). Nushell callers take `proxyVars` and `hide-env`
   # instead, since `unset` has no equivalent.
   clearProxyEnv = "unset ${lib.concatStringsSep " " proxyVars}";
+
+  # Shell snippet for Node wrappers. Node's built-in fetch ignores HTTP_PROXY unless
+  # NODE_USE_ENV_PROXY is set, and Node ignores CIDR entries in NO_PROXY, so this stays out of the
+  # shared proxy environment.
+  nodeProxyScript = "export NODE_USE_ENV_PROXY=1";
 
   mkProxyOptions = name: {
     enable = lib.mkEnableOption "HTTP proxy for ${name}";

@@ -95,10 +95,7 @@ in
           pkgs.poppler-utils
         ])
       ]
-      ++ lib.optionals cfg.proxy.enable [
-        "--run"
-        (repoLib.proxy.mkProxyScript cfg.proxy)
-      ]
+      ++ repoLib.proxy.mkProxyWrapArgs cfg.proxy
       ++ [
         "--add-flags"
         "--config ${settingsConfigFile}"

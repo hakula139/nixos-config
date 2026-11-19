@@ -99,10 +99,7 @@ in
             ":"
             (lib.makeBinPath [ pkgs.bubblewrap ])
           ]
-          ++ lib.optionals cfg.proxy.enable [
-            "--run"
-            (repoLib.proxy.mkProxyScript cfg.proxy)
-          ];
+          ++ repoLib.proxy.mkProxyWrapArgs cfg.proxy;
       };
 
       # --------------------------------------------------------------------------------------------

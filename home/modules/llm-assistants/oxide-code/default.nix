@@ -41,12 +41,7 @@ in
       # --------------------------------------------------------------------------------------------
       # Package wrapper
       # --------------------------------------------------------------------------------------------
-      wrapArgs =
-        profiles.wrapArgs
-        ++ lib.optionals cfg.proxy.enable [
-          "--run"
-          (repoLib.proxy.mkProxyScript cfg.proxy)
-        ];
+      wrapArgs = profiles.wrapArgs ++ repoLib.proxy.mkProxyWrapArgs cfg.proxy;
 
       oxBin = repoLib.wrapPackage {
         inherit pkgs wrapArgs;
