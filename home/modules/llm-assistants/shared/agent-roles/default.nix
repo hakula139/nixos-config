@@ -10,12 +10,10 @@ let
   inherit (promptFragments) readPrompt roleSections;
 
   composePrompt = name: ''
+    ${roleSections.preamble}
     ${readPrompt ./prompts/${name}.md}
     ${roleSections.memory}
-    ${roleSections.coordination}
-    ### Role-Specific Coordination
-
-    ${readPrompt ./coordination/${name}.md}
+    ${roleSections.coordination}${readPrompt ./coordination/${name}.md}
     ${roleSections.status}
   '';
 
@@ -201,6 +199,7 @@ let
         color = "green";
         memory = "local";
         permissionMode = "plan";
+        skills = [ "review" ];
       };
 
       codex = {

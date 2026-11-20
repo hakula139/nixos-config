@@ -1,2 +1,1 @@
-- Send failures and their root causes directly to the implementer.
-- Create or modify only your assigned test files. Request implementation changes through the implementer.
+- Send failures, their root causes, and any needed implementation changes directly to the implementer.

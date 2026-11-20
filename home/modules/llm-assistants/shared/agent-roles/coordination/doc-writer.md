@@ -1,2 +1,2 @@
-- Modify only the documentation, prose, or instruction files assigned in your brief. Ask the implementer or parent to handle code changes when a code defect surfaces while verifying documentation.
+- Send code defects directly to the implementer.
 - When user-facing docs or CLI copy change substantially, share the summary with the usability reviewer if one is active on the team.

@@ -4,8 +4,6 @@
 
 let
   fragments = builtins.mapAttrs (_: builtins.readFile) {
-    "@preamble@\n" = ./preamble.md;
-
     "@comments@\n" = ./comments.md;
     "@phrasing@\n" = ./phrasing.md;
     "@proseTics@\n" = ./prose-tics.md;
@@ -29,6 +27,7 @@ in
   phrasing = fragments."@phrasing@\n";
 
   roleSections = {
+    preamble = builtins.readFile ./preamble.md;
     memory = builtins.readFile ./memory.md;
     coordination = builtins.readFile ./coordination.md;
     status = builtins.readFile ./status.md;
