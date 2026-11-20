@@ -37,7 +37,7 @@ def paint [text: string, color: string]: nothing -> string {
 }
 
 def labeled [label: string, value: string, color: string = "green"]: nothing -> string {
-  $"(dim ($label + ":")) (paint $value $color)"
+  $"(dim $"($label):") (paint $value $color)"
 }
 
 def usd [amount: float]: nothing -> string {
@@ -52,7 +52,11 @@ def usd [amount: float]: nothing -> string {
 # Git info
 # --------------------------------------------------------------------------------------------------
 
-const NO_BRANCH = {branch: "", ahead: 0, behind: 0}
+const NO_BRANCH = {
+  branch: ""
+  ahead: 0
+  behind: 0
+}
 
 def git-status [cwd: string]: nothing -> list<string> {
   let result = (
@@ -104,7 +108,7 @@ def work-counts [
 ]: nothing -> record<staged: int, modified: int, untracked: int> {
   let codes = ($entries | each { str substring 0..<2 })
   {
-    staged: ($codes | where ($it | str substring 0..<1) in ["M", "A"] | length)
+    staged: ($codes | where ($it | str substring 0..<1) in ["M" "A"] | length)
     modified: ($codes | where $it == " M" | length)
     untracked: ($codes | where $it == "??" | length)
   }
@@ -120,18 +124,19 @@ def format-git-info [cwd: string]: nothing -> string {
   let work = (work-counts ($output | skip 1))
   let marks = (
     [
-      {symbol: "»", n: $branch.ahead}
-      {symbol: "«", n: $branch.behind}
-      {symbol: "+", n: $work.staged}
-      {symbol: "!", n: $work.modified}
-      {symbol: "?", n: $work.untracked}
+      [symbol n];
+      ["»" $branch.ahead]
+      ["«" $branch.behind]
+      ["+" $work.staged]
+      ["!" $work.modified]
+      ["?" $work.untracked]
     ]
     | where n > 0
     | each {|mark| $" ($mark.symbol)($mark.n)" }
     | str join
   )
 
-  $" (paint $branch.branch green)(paint $marks yellow) "
+  $" (paint $branch.branch "green")(paint $marks "yellow") "
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -183,7 +188,13 @@ def format-claude-info [input: record]: nothing -> record<ctx: string, sess: str
     labeled "Ctx" "0%"
   } else {
     let percent = ($used * 100 // $size)
-    let color = if $percent >= 80 { "red" } else if $percent >= 50 { "yellow" } else { "green" }
+    let color = if $percent >= 80 {
+      "red"
+    } else if $percent >= 50 {
+      "yellow"
+    } else {
+      "green"
+    }
     labeled "Ctx" $"($percent)% \(($used // 1000)k/($size // 1000)k)" $color
   }
 
@@ -223,7 +234,7 @@ def read-cache [cache: path, max_age: duration]: nothing -> record {
   } catch {
     null
   })
-  if ($cached != null and (cache-valid $cached)) {
+  if $cached != null and (cache-valid $cached) {
     $cached
   } else {
     {}
@@ -277,7 +288,7 @@ def current-usage []: nothing -> record {
 
 # Contenders must lock the same inode, so the lock file stays allocated and is never deleted.
 def lock-path [cache: path]: nothing -> path {
-  ($cache | path dirname) | path join $CCUSAGE_LOCK_NAME
+  $cache | path dirname | path join $CCUSAGE_LOCK_NAME
 }
 
 def temp-cache-path [cache: path]: nothing -> path {
@@ -287,7 +298,9 @@ def temp-cache-path [cache: path]: nothing -> path {
 def write-cache [cache: path, data: record]: nothing -> nothing {
   let tmp = (temp-cache-path $cache)
   try {
-    $data | to json | save --force --raw $tmp
+    $data
+    | to json
+    | save --force --raw $tmp
   } catch {
     ^rm -f $tmp | complete | ignore
     error make {msg: "failed to write usage cache"}
@@ -348,17 +361,17 @@ def format-ccusage-info [data: record]: nothing -> record<block: string, daily: 
   let suffix = if ($details | is-empty) {
     ""
   } else {
-    " " + (paint $"\(($details)\)" yellow)
+    $" (paint $"\(($details)\)" "yellow")"
   }
 
   {
     block: (if ($data.has_block? | default false) {
-      $"(labeled "Block" (usd ($data.block_cost? | default 0.0)) cyan)($suffix)"
+      $"(labeled "Block" (usd ($data.block_cost? | default 0.0)) "cyan")($suffix)"
     } else {
       ""
     })
     daily: (if ($data.has_daily? | default false) {
-      labeled "Today" (usd ($data.daily_cost? | default 0.0)) cyan
+      labeled "Today" (usd ($data.daily_cost? | default 0.0)) "cyan"
     } else {
       ""
     })
@@ -390,7 +403,7 @@ def main [
   } else {
     $cwd | path basename
   }
-  let row1 = $"(paint $dir_name blue_bold)(format-git-info $cwd)"
+  let row1 = $"(paint $dir_name "blue_bold")(format-git-info $cwd)"
 
   let model = (model-name $input $config.models)
   let claude = (format-claude-info $input)
@@ -398,7 +411,7 @@ def main [
 
   let row2 = (
     [
-      (if ($model | is-not-empty) { paint $model cyan })
+      (if ($model | is-not-empty) { paint $model "cyan" })
       $claude.ctx
       $claude.sess
       $ccusage.block

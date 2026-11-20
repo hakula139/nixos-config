@@ -89,7 +89,7 @@ def main [
     return
   }
 
-  let target = ([$config.profilesDir $"($profile).($config.extension)"] | path join)
+  let target = ($config.profilesDir | path join $"($profile).($config.extension)")
   if $profile not-in (profile-names $config) {
     print -e $"Unknown profile: ($profile)"
     print -e ""

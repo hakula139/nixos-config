@@ -15,7 +15,7 @@ def invoke [payload: record, vars: record]: nothing -> record {
   let log = ($dir | path join "calls.jsonl")
   let run = with-env (
     {
-      PATH: (($env.PATH | prepend $env.NU_TEST_STUBS) | str join ":")
+      PATH: ($env.PATH | prepend $env.NU_TEST_STUBS | str join ":")
       STUB_LOG: $log
     }
     | merge $vars
@@ -25,7 +25,15 @@ def invoke [payload: record, vars: record]: nothing -> record {
     | run-script $SCRIPT
   }
 
-  {run: $run, calls: (if ($log | path exists) { open $log | from json --objects } else { [] })}
+  let calls = if ($log | path exists) {
+    open $log | from json --objects
+  } else {
+    []
+  }
+  {
+    run: $run
+    calls: $calls
+  }
 }
 
 def "test remove deletes through workmux and fails while the directory remains" [] {
@@ -38,14 +46,24 @@ def "test remove deletes through workmux and fails while the directory remains" 
       present: true
       leaves: false
       exit_code: 0
-      calls: [{cwd: $worktree, args: ["remove" "--force" "demo"]}]
+      calls: [
+        {
+          cwd: $worktree
+          args: ["remove" "--force" "demo"]
+        }
+      ]
     }
     {
       label: "deferred"
       present: true
       leaves: true
       exit_code: 1
-      calls: [{cwd: $worktree, args: ["remove" "--force" "demo"]}]
+      calls: [
+        {
+          cwd: $worktree
+          args: ["remove" "--force" "demo"]
+        }
+      ]
     }
     {
       label: "missing"
@@ -58,7 +76,9 @@ def "test remove deletes through workmux and fails while the directory remains" 
 
   for case in $cases {
     rm --recursive --force $worktree
-    if $case.present { mkdir $worktree }
+    if $case.present {
+      mkdir $worktree
+    }
 
     let result = (
       invoke {worktree_path: $worktree} {

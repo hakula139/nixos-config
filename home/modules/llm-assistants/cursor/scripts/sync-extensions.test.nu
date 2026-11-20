@@ -74,7 +74,11 @@ def "test only missing extensions are installed, matching IDs case-insensitively
 
   let result = (sync $listing)
 
-  assert equal $result.run {stdout: "" stderr: "" exit_code: 0}
+  assert equal $result.run {
+    stdout: ""
+    stderr: ""
+    exit_code: 0
+  }
   assert equal $result.changes (installs "example.missing" "example.remote")
 }
 
@@ -90,7 +94,11 @@ def "test pruning uninstalls extensions missing from the list" [] {
 
   let result = (sync $listing --prune)
 
-  assert equal $result.run {stdout: "" stderr: "" exit_code: 0}
+  assert equal $result.run {
+    stdout: ""
+    stderr: ""
+    exit_code: 0
+  }
   assert equal $result.changes (
     installs "example.missing" "example.remote"
     | append [["--uninstall-extension" "example.extra"]]

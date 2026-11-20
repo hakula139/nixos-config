@@ -25,7 +25,11 @@ def main [] {
   } else {
     0
   }
-  {model: $request.model, user: $request.user, passages: $passages}
+  {
+    model: $request.model
+    user: $request.user
+    passages: $passages
+  }
   | to json --raw
   | $"($in)\n"
   | save --append $env.STUB_LOG
@@ -52,7 +56,10 @@ def main [] {
     passages: (
       $passages
       | each {|passage|
-        {id: $passage.id, text: ($passage.text | str replace --all $rule.find $rule.replace)}
+        {
+          id: $passage.id
+          text: ($passage.text | str replace --all $rule.find $rule.replace)
+        }
       }
     )
   }

@@ -27,7 +27,10 @@ def hook-hash [event: string, matcher: any, handler: record]: nothing -> string 
   } else {
     $normalized | insert statusMessage $status
   }
-  let identity = {event_name: $event, hooks: [($described | sort)]}
+  let identity = {
+    event_name: $event
+    hooks: [($described | sort)]
+  }
   let keyed = if $matcher == null {
     $identity
   } else {
@@ -77,12 +80,7 @@ def main [
   --config: path # Wrapper-supplied JSON with the config directory, profile link, and settings
 ] {
   let config = (open $config)
-  (
-    ^install
-      -d
-      -m 0700
-      $config.configDir
-  )
+  ^install -d -m 0700 $config.configDir
   let config_dir = ($config.configDir | path expand --strict)
   let target = ($config_dir | path join "config.toml")
 

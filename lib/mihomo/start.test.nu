@@ -45,7 +45,12 @@ def "test mihomo replaces the start process unless a failed update finds no conf
 
     # Only an exec leaves mihomo a direct child of this test process.
     let expected = if $case.status == 0 {
-      [{args: [-d $config_dir -ext-ui $external_ui], ppid: $nu.pid}]
+      [
+        {
+          args: [-d $config_dir -ext-ui $external_ui]
+          ppid: $nu.pid
+        }
+      ]
     } else {
       []
     }

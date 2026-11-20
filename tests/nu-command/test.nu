@@ -8,7 +8,10 @@ use std/assert
 
 def main [configured: path, plain: path, with_lib: path, bundled: path] {
   assert equal (^$configured | from json) {
-    config: { name: "adapter", nested: { value: 2 } }
+    config: {
+      name: "adapter"
+      nested: {value: 2}
+    }
     mode: "fast"
     count: 3
   }

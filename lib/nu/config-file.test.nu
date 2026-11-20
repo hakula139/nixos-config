@@ -10,7 +10,9 @@ use ./config-file.nu [open-record save-atomic]
 def "test open-record reads a record" [] {
   let dir = (mktemp --directory)
   let path = ($dir | path join "settings.json")
-  {a: {b: 1}} | to json | save $path
+  {a: {b: 1}}
+  | to json
+  | save $path
 
   assert equal (open-record $path) {a: {b: 1}}
 }
@@ -20,7 +22,9 @@ def "test open-record falls back to an empty record" [] {
   let empty = ($dir | path join "empty.json")
   let list = ($dir | path join "list.json")
   "" | save $empty
-  [1 2] | to json | save $list
+  [1 2]
+  | to json
+  | save $list
 
   assert equal (open-record ($dir | path join "missing.json")) {}
   assert equal (open-record $empty) {}
@@ -58,7 +62,12 @@ def "test save-atomic removes the temporary file when the replace fails" [] {
   "old" | save $target
 
   let failed = with-env {PATH: ($env.PATH | prepend $bin)} {
-    try { save-atomic "new" $target; false } catch { true }
+    try {
+      save-atomic "new" $target
+      false
+    } catch {
+      true
+    }
   }
 
   assert $failed

@@ -19,7 +19,13 @@ def main [
   loop {
     for row in (^tmux list-clients -F $FORMAT | lines | parse "{client}|{session}") {
       if not ($recorded | any {|entry| $entry.client == $row.client }) {
-        $recorded = ($recorded | append {client: $row.client, session: $row.session})
+        $recorded = (
+          $recorded
+          | append {
+            client: $row.client
+            session: $row.session
+          }
+        )
       }
     }
     if not ($restore in (job list | get id)) {

@@ -137,7 +137,7 @@ def file-size [path: string]: nothing -> int {
 # `ssh` hands its command to the remote shell, so every interpolated value needs POSIX quoting. A
 # literal `'` closes the quote, emits an escaped one, and reopens.
 def sh-quote [value: string]: nothing -> string {
-  "'" + ($value | str replace --all "'" "'\\''") + "'"
+  $"'($value | str replace --all "'" "'\\''")'"
 }
 
 def sh-join [args: list<string>]: nothing -> string {
@@ -271,7 +271,9 @@ def "main transcode" [
           $m3u8
       )
     }
-    _ => { die $"unknown mode: ($mode) \(use 'remux' or 're-encode'\)" }
+    _ => {
+      die $"unknown mode: ($mode) \(use 'remux' or 're-encode'\)"
+    }
   }
 
   print ""
@@ -334,7 +336,10 @@ def "main db-update-size" [file_id: string, file_uuid: string, resolution: strin
   let new_size = (file-size $fmp4)
   print $"Updating videoFile id=($file_id) size to ($new_size)..."
 
-  pt-psql $SQL_UPDATE_SIZE {size: $new_size, id: $file_id}
+  pt-psql $SQL_UPDATE_SIZE {
+    size: $new_size
+    id: $file_id
+  }
 }
 
 # Update a videoFile row's ffprobe metadata from the local fmp4.
@@ -363,7 +368,10 @@ def "main db-update-meta" [file_id: string, file_uuid: string, resolution: strin
     | from json
     | to json -r
   )
-  pt-psql $SQL_UPDATE_META {metadata: $metadata, id: $file_id}
+  pt-psql $SQL_UPDATE_META {
+    metadata: $metadata
+    id: $file_id
+  }
 }
 
 # Print the x264 encoding parameters recorded in a local file or remote URL.
@@ -371,7 +379,8 @@ def "main verify" [target: string] {
   let output = (
     if ($target =~ "^https?://") {
       print "Fetching first 256 KB from remote..."
-      http get --raw --headers ["Range" "bytes=0-262143"] $target | ^strings
+      http get --raw --headers ["Range" "bytes=0-262143"] $target
+      | ^strings
     } else {
       require-file $target "file not found"
       ^strings -- $target
@@ -396,7 +405,9 @@ def "main purge-urls" [video_uuid: string, ...filenames: string] {
 
   let prefix = (cdn-prefix $video_uuid)
   print "Cloudflare CDN URLs to purge:"
-  for filename in $filenames { print $"  ($prefix)/($filename)" }
+  for filename in $filenames {
+    print $"  ($prefix)/($filename)"
+  }
 }
 
 # --------------------------------------------------------------------------------------------------

@@ -30,7 +30,10 @@ def run-event [
   | str replace --regex "^#!.*" $"#!($nu.current-exe) --no-config-file"
   | save $parser
   ^chmod +x $parser
-  {fileFormatter: ($env.NU_TEST_STUBS | path join "file-formatter"), patchInput: $parser}
+  {
+    fileFormatter: ($env.NU_TEST_STUBS | path join "file-formatter")
+    patchInput: $parser
+  }
   | to json
   | save $config_file
 
@@ -66,7 +69,10 @@ def run-event [
 def "test edits forward paths from the event cwd" [] {
   let cases = [
     {
-      input: {tool_name: "Write", tool_input: {file_path: "notes.md"}}
+      input: {
+        tool_name: "Write"
+        tool_input: {file_path: "notes.md"}
+      }
       paths: ["notes.md"]
     }
     {
@@ -115,7 +121,12 @@ def "test edits forward paths from the event cwd" [] {
     let expected = if ($case.paths | is-empty) {
       []
     } else {
-      [{cwd: $cwd, args: ($case.paths | each {|path| $cwd | path join $path | path expand })}]
+      [
+        {
+          cwd: $cwd
+          args: ($case.paths | each {|path| $cwd | path join $path | path expand })
+        }
+      ]
     }
     assert equal $result.calls $expected ($case | to nuon)
     assert equal $result.run.stdout ""
@@ -124,7 +135,10 @@ def "test edits forward paths from the event cwd" [] {
 
 def "test failed hook reports reach the hook response" [] {
   let cwd = (mktemp --directory | path expand)
-  let input = {tool_name: "Edit", tool_input: {file_path: "notes.md"}}
+  let input = {
+    tool_name: "Edit"
+    tool_input: {file_path: "notes.md"}
+  }
   let report = "runner text one\n\nrunner text two"
 
   let result = (
@@ -134,7 +148,12 @@ def "test failed hook reports reach the hook response" [] {
       --stderr "formatter warning"
   )
 
-  assert equal $result.calls [{cwd: $cwd, args: [($cwd | path join "notes.md" | path expand)]}]
+  assert equal $result.calls [
+    {
+      cwd: $cwd
+      args: [($cwd | path join "notes.md" | path expand)]
+    }
+  ]
   assert equal ($result.run.stdout | from json) {
     hookSpecificOutput: {
       hookEventName: "PostToolUse"
@@ -145,7 +164,13 @@ def "test failed hook reports reach the hook response" [] {
 }
 
 def "test malformed input exits cleanly without calling the formatter" [] {
-  for input in ["not json" {tool_name: "Write", tool_input: {}}] {
+  for input in [
+    "not json"
+    {
+      tool_name: "Write"
+      tool_input: {}
+    }
+  ] {
     let cwd = (mktemp --directory | path expand)
 
     let result = (run-event $input $cwd)

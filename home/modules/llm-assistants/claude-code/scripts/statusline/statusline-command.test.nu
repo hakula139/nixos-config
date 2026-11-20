@@ -44,7 +44,7 @@ def refreshed-usage [today: string]: nothing -> record {
 
 def expected-flock-call [cache: path]: nothing -> record {
   {
-    lock: (($cache | path dirname) | path join $LOCK_NAME)
+    lock: ($cache | path dirname | path join $LOCK_NAME)
     command: [
       $nu.current-exe
       $SCRIPT
@@ -132,10 +132,10 @@ def invoke-statusline [
     STUB_MV_FAIL: (if $fail_mv { "1" } else { "0" })
     TZ: "UTC"
   } {
-    {workspace: {current_dir: $cwd}}
-    | to json
-    | (
-      run-script $SCRIPT
+    (
+      {workspace: {current_dir: $cwd}}
+      | to json
+      | run-script $SCRIPT
         --config $config
         --cache $cache
     )
@@ -212,7 +212,7 @@ def "test blocks query failure preserves stale cache without publishing partial 
   let original = (open --raw $cache)
   touch -d "5 minutes ago" $cache
 
-  let result = (invoke-statusline $dir --ccusage-mode fail-blocks)
+  let result = (invoke-statusline $dir --ccusage-mode "fail-blocks")
 
   assert-stale-preserved $result $original
   assert equal $result.calls [(blocks-call)]
@@ -226,7 +226,7 @@ def "test scalar blocks response preserves stale cache without querying daily" [
   let original = (open --raw $cache)
   touch -d "5 minutes ago" $cache
 
-  let result = (invoke-statusline $dir --ccusage-mode scalar-blocks)
+  let result = (invoke-statusline $dir --ccusage-mode "scalar-blocks")
 
   assert-stale-preserved $result $original
   assert equal $result.calls [(blocks-call)]
@@ -241,7 +241,9 @@ def "test scalar blocks response preserves stale cache without querying daily" [
     try {
       ccusage-json [blocks --active]
       ""
-    } catch {|error| $error.msg }
+    } catch {|error|
+      $error.msg
+    }
   }
   assert equal $shape_error "ccusage blocks --active returned invalid JSON"
   assert equal (read-calls $shape_log) [(blocks-call)]
@@ -255,7 +257,7 @@ def "test daily query failure preserves stale cache after a successful blocks qu
   let original = (open --raw $cache)
   touch -d "5 minutes ago" $cache
 
-  let result = (invoke-statusline $dir --ccusage-mode fail-daily)
+  let result = (invoke-statusline $dir --ccusage-mode "fail-daily")
 
   assert-stale-preserved $result $original
   assert equal $result.calls (refresh-calls $today)
@@ -270,7 +272,9 @@ def "test write-cache reports save failure without temporary state" [] {
   let save_error = try {
     write-cache $cache (refreshed-usage (utc-today))
     ""
-  } catch {|error| $error.msg }
+  } catch {|error|
+    $error.msg
+  }
 
   assert equal $save_error "failed to write usage cache"
   assert equal (ls $dir | get name) [$cache_parent]
@@ -293,8 +297,9 @@ def "test publication failure preserves stale cache and cleans temporary state" 
 def "test held lock respects stale fallback age bound" [] {
   let today = (utc-today)
   let cases = [
-    {name: "five-minute stale", age: "5 minutes ago", expected_stale: true}
-    {name: "eleven-minute expired", age: "11 minutes ago", expected_stale: false}
+    [name age expected_stale];
+    ["five-minute stale" "5 minutes ago" true]
+    ["eleven-minute expired" "11 minutes ago" false]
   ]
   for case in $cases {
     let dir = (mktemp --directory)
@@ -310,7 +315,10 @@ def "test held lock respects stale fallback age bound" [] {
         daily: "Today: $8.25"
       }
     } else {
-      {block: "", daily: ""}
+      {
+        block: ""
+        daily: ""
+      }
     }
     assert equal $result.run.exit_code 0 $"($case.name): ($result.run.stderr)"
     let expected_flock = [(expected-flock-call $result.cache)]
@@ -329,6 +337,9 @@ def "test held lock without cache renders no usage" [] {
 
   assert equal $result.flock_calls [(expected-flock-call $result.cache)]
   assert equal $result.calls []
-  assert equal $result.usage {block: "", daily: ""}
+  assert equal $result.usage {
+    block: ""
+    daily: ""
+  }
   assert ($result.lock | path exists)
 }

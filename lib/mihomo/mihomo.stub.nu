@@ -10,13 +10,16 @@
 
 def --wrapped main [...args: string] {
   if "STUB_LOG" in $env {
-    {args: $args, ppid: (ps | where pid == $nu.pid | get 0.ppid)}
+    {
+      args: $args
+      ppid: (ps | where pid == $nu.pid | get 0.ppid)
+    }
     | to json --raw
     | $"($in)\n"
     | save --append $env.STUB_LOG
   }
 
-  if ("-t" in $args) {
+  if "-t" in $args {
     exit ($env.STUB_MIHOMO_STATUS | into int)
   }
 }

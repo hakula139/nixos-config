@@ -19,7 +19,10 @@ def render-inbound [
       if $flow == null {
         {id: $user.uuid}
       } else {
-        {id: $user.uuid, flow: $flow}
+        {
+          id: $user.uuid
+          flow: $flow
+        }
       }
     }
   )

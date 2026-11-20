@@ -57,7 +57,10 @@ def setup-repo [root: string, --with-origin]: nothing -> record {
     )
     ^git -C $app remote set-head origin main
   }
-  {root: $root, app: $app}
+  {
+    root: $root
+    app: $app
+  }
 }
 
 def git-rev [repo: string, ref: string]: nothing -> string {
@@ -69,7 +72,7 @@ def invoke [payload: record, vars: record]: nothing -> record {
   let log = ($dir | path join "calls.jsonl")
   let run = with-env (
     {
-      PATH: (($env.PATH | prepend $env.NU_TEST_STUBS) | str join ":")
+      PATH: ($env.PATH | prepend $env.NU_TEST_STUBS | str join ":")
       STUB_LOG: $log
     }
     | merge $vars
@@ -79,7 +82,15 @@ def invoke [payload: record, vars: record]: nothing -> record {
     | run-script $SCRIPT
   }
 
-  {run: $run, calls: (if ($log | path exists) { open $log | from json --objects } else { [] })}
+  let calls = if ($log | path exists) {
+    open $log | from json --objects
+  } else {
+    []
+  }
+  {
+    run: $run
+    calls: $calls
+  }
 }
 
 def "test create provisions or reuses a worktree" [] {
@@ -96,16 +107,17 @@ def "test create provisions or reuses a worktree" [] {
       existing: ""
       stdout: $created
       calls: [
-        {cwd: $repo.app, args: ["path" "demo"]}
+        {
+          cwd: $repo.app
+          args: ["path" "demo"]
+        }
         {
           cwd: $repo.app
           args: [
             "add"
             "worktree-demo"
-            "--base"
-            "origin/main"
-            "--name"
-            "demo"
+            "--base" "origin/main"
+            "--name" "demo"
             "--no-hooks"
             "--headless"
             "--json"
@@ -119,16 +131,17 @@ def "test create provisions or reuses a worktree" [] {
       existing: ""
       stdout: $created
       calls: [
-        {cwd: $remote_less.app, args: ["path" "demo"]}
+        {
+          cwd: $remote_less.app
+          args: ["path" "demo"]
+        }
         {
           cwd: $remote_less.app
           args: [
             "add"
             "worktree-demo"
-            "--base"
-            $fallback
-            "--name"
-            "demo"
+            "--base" $fallback
+            "--name" "demo"
             "--no-hooks"
             "--headless"
             "--json"
@@ -141,7 +154,12 @@ def "test create provisions or reuses a worktree" [] {
       cwd: $repo.app
       existing: $created
       stdout: $created
-      calls: [{cwd: $repo.app, args: ["path" "demo"]}]
+      calls: [
+        {
+          cwd: $repo.app
+          args: ["path" "demo"]
+        }
+      ]
     }
     {
       label: "different basename"
@@ -149,16 +167,17 @@ def "test create provisions or reuses a worktree" [] {
       existing: $other
       stdout: $created
       calls: [
-        {cwd: $repo.app, args: ["path" "demo"]}
+        {
+          cwd: $repo.app
+          args: ["path" "demo"]
+        }
         {
           cwd: $repo.app
           args: [
             "add"
             "worktree-demo"
-            "--base"
-            "origin/main"
-            "--name"
-            "demo"
+            "--base" "origin/main"
+            "--name" "demo"
             "--no-hooks"
             "--headless"
             "--json"
@@ -170,7 +189,10 @@ def "test create provisions or reuses a worktree" [] {
 
   for case in $cases {
     let result = (
-      invoke {name: "demo", cwd: $case.cwd} {
+      invoke {
+        name: "demo"
+        cwd: $case.cwd
+      } {
         STUB_EXISTING_PATH: $case.existing
         STUB_ADD_PATH: $created
       }

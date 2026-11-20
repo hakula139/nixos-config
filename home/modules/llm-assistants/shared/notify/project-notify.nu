@@ -21,7 +21,7 @@ def main [
     } catch {
       null
     }
-    if (($parsed | describe) | str starts-with "record") {
+    if ($parsed | describe | str starts-with "record") {
       let payload_cwd = ($parsed | get -o cwd)
       if ($payload_cwd | is-not-empty) {
         $project = ($payload_cwd | path basename)

@@ -46,18 +46,18 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
     STUB_RULES: $rules_file
   } {
     $stdin
-    | (
-      run-script $SCRIPT
-        --config $config_file
-        ...$args
-    )
+    | run-script $SCRIPT --config $config_file ...$args
   }
   let calls = if ($log | path exists) {
     open $log | from json --objects
   } else {
     []
   }
-  {run: $run, calls: $calls, config: $config}
+  {
+    run: $run
+    calls: $calls
+    config: $config
+  }
 }
 
 # A category's case directories, each with the `case.nuon` it holds when it has one, defaulted for
@@ -74,8 +74,19 @@ def cases [category: string]: nothing -> list<record> {
     } else {
       {}
     }
-    let data = ({rules: [], args: [], forwarded: ""} | merge $given)
-    {name: ($dir | path basename), dir: $dir, data: $data}
+    let data = (
+      {
+        rules: []
+        args: []
+        forwarded: ""
+      }
+      | merge $given
+    )
+    {
+      name: ($dir | path basename)
+      dir: $dir
+      data: $data
+    }
   }
 }
 
@@ -102,8 +113,18 @@ def modes [case: record, rules: list<record>, args: list<string>]: nothing -> li
   let untouched = ((ls $path | get 0.modified) == $modified)
   let piped = (command $args (bytes $input) $rules)
   [
-    {name: "file", ...$file, output: (bytes $path), untouched: $untouched}
-    {name: "stdin", ...$piped, output: ($piped.run.stdout | encode utf-8), untouched: true}
+    {
+      name: "file"
+      ...$file
+      output: (bytes $path)
+      untouched: $untouched
+    }
+    {
+      name: "stdin"
+      ...$piped
+      output: ($piped.run.stdout | encode utf-8)
+      untouched: true
+    }
   ]
 }
 
@@ -115,12 +136,15 @@ def long-document [count: int]: nothing -> string {
 }
 
 def "test a caller-supplied config replaces the default" [] {
-  let target = (case polish ideographic-indent)
+  let target = (case "polish" "ideographic-indent")
   let input = (bytes ($target.dir | path join "input.md"))
   let default = (command [] $input $target.data.rules)
   let override = (mktemp --directory | path join "config.json")
 
-  $default.config | update model "overridden" | to json | save $override
+  $default.config
+  | update model "overridden"
+  | to json
+  | save $override
   let result = (command [--config $override] $input $target.data.rules)
 
   assert equal ($default.calls | get model) ["stub"]
@@ -129,20 +153,20 @@ def "test a caller-supplied config replaces the default" [] {
 }
 
 def "test the default model and --model" [] {
-  let target = (case polish ideographic-indent)
+  let target = (case "polish" "ideographic-indent")
   let input = (bytes ($target.dir | path join "input.md"))
 
   let default = (command [] $input $target.data.rules)
   assert equal $default.run.exit_code 0 $default.run.stderr
   assert equal ($default.calls | get model) ["stub"]
 
-  let chosen = (command [--model gemini-3.8-flash] $input $target.data.rules)
+  let chosen = (command [--model "gemini-3.8-flash"] $input $target.data.rules)
   assert equal $chosen.run.exit_code 0 $chosen.run.stderr
   assert equal ($chosen.calls | get model) ["gateway/gemini-3.8-flash"]
 }
 
 def "test polish cases" [] {
-  for case in (cases polish) {
+  for case in (cases "polish") {
     let expected = (bytes ($case.dir | path join "expected.md"))
 
     for mode in (modes $case $case.data.rules []) {
@@ -156,7 +180,7 @@ def "test polish cases" [] {
 }
 
 def "test skip cases" [] {
-  for case in (cases skip) {
+  for case in (cases "skip") {
     let input = (bytes ($case.dir | path join "input.md"))
 
     for mode in (modes $case [] []) {
@@ -173,7 +197,7 @@ def "test skip cases" [] {
 def "test refuse cases" [] {
   let kept = "prose-polish: kept this passage because its rewrite failed a check:"
 
-  for case in (cases refuse) {
+  for case in (cases "refuse") {
     let input = (bytes ($case.dir | path join "input.md"))
     let report = $"($kept) ($case.data.problem)\n($input | decode utf-8 | str trim)\n"
 
@@ -188,7 +212,7 @@ def "test refuse cases" [] {
 }
 
 def "test a refused rewrite is retried with its reason" [] {
-  let target = (case polish repair-succeeds)
+  let target = (case "polish" "repair-succeeds")
   let document = (bytes ($target.dir | path join "input.md"))
   let opening = $target.data.rules.0
   let repair = $target.data.rules.1
@@ -200,10 +224,14 @@ def "test a refused rewrite is retried with its reason" [] {
   )
   let rejected = ($paragraph | str replace $opening.find $opening.replace)
   let problem = 'the rewrite dropped the code span "`utilizes`" and added "`uses`"'
+  let add_semicolon = {
+    find: "，"
+    replace: "; "
+  }
 
   let variants = [
     [name repair];
-    ["add a semicolon" {find: "，", replace: "; "}]
+    ["add a semicolon" $add_semicolon]
     ["malformed reply" {reply: "{"}]
   ]
 
@@ -229,7 +257,10 @@ def "test a refused rewrite is retried with its reason" [] {
 
 def "test a long document is batched with the whole document as context" [] {
   let document = (long-document 60)
-  let rule = {find: "river", replace: "stream"}
+  let rule = {
+    find: "river"
+    replace: "stream"
+  }
 
   let result = (command [] ($document | encode utf-8) [$rule])
   let calls = $result.calls
@@ -246,7 +277,10 @@ def "test a long document is batched with the whole document as context" [] {
 
 def "test a failed later batch leaves the file untouched" [] {
   let document = (long-document 60)
-  let rule = {find: "river", replace: "stream"}
+  let rule = {
+    find: "river"
+    replace: "stream"
+  }
   let path = (mktemp --directory | path join "input.md")
   $document | save --raw $path
 
@@ -259,8 +293,14 @@ def "test a failed later batch leaves the file untouched" [] {
 def "test a long document repairs each batch with the whole document as context" [] {
   let document = (long-document 60)
   let paragraphs = ($document | split row "\n\n")
-  let opening = {find: "river", replace: "river;"}
-  let repair = {find: "river", replace: "stream"}
+  let opening = {
+    find: "river"
+    replace: "river;"
+  }
+  let repair = {
+    find: "river"
+    replace: "stream"
+  }
   let repaired = ($document | str replace --all "river" "stream")
   let head = ($paragraphs | first 55 | str join "\n\n")
   let tail = ($paragraphs | skip 55 | str join "\n\n")
@@ -293,7 +333,7 @@ def "test a long document repairs each batch with the whole document as context"
 }
 
 def "test fail cases" [] {
-  for case in (cases fail) {
+  for case in (cases "fail") {
     let report = $"($case.data.forwarded)prose-polish: ($case.data.stderr)\n"
 
     for mode in (modes $case $case.data.rules $case.data.args) {

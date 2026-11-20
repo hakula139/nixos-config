@@ -25,8 +25,9 @@ def main [
     stream: false
     tool_choice: "none"
     messages: [
-      {role: "system", content: $request.system}
-      {role: "user", content: $request.user}
+      [role content];
+      ["system" $request.system]
+      ["user" $request.user]
     ]
   }
   let shaped = if ($request | get -o json | default false) {

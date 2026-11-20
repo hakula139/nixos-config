@@ -9,7 +9,10 @@
 
 def --wrapped main [...args: string] {
   let body = (^cat | from json)
-  {args: $args, body: $body}
+  {
+    args: $args
+    body: $body
+  }
   | to json --raw
   | $"($in)\n"
   | save --append $env.STUB_LOG

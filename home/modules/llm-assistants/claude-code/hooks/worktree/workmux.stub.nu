@@ -9,7 +9,10 @@
 # ==================================================================================================
 
 def --wrapped main [...args: string] {
-  {cwd: $env.PWD, args: $args}
+  {
+    cwd: $env.PWD
+    args: $args
+  }
   | to json --raw
   | $"($in)\n"
   | save --append $env.STUB_LOG
@@ -25,15 +28,19 @@ def --wrapped main [...args: string] {
       print $path
     }
     "add" => {
-      {schema_version: 1, worktree_path: $env.STUB_ADD_PATH} | to json --raw
+      {
+        schema_version: 1
+        worktree_path: $env.STUB_ADD_PATH
+      }
+      | to json --raw
     }
     "remove" => {
       let leaves = ($env.STUB_REMOVE_LEAVES? | default "")
       if ($leaves | is-empty) {
-        ^rm --recursive --force $env.STUB_REMOVE_PATH
+        ^rm -rf $env.STUB_REMOVE_PATH
         exit 0
       }
     }
-    _ => { }
+    _ => {}
   }
 }

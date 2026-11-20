@@ -27,36 +27,60 @@ def call [request: record, reply: record]: nothing -> record {
 
   $"($TOKEN)\n" | save $token_file
   {
-    gateway: {baseUrl: "https://gateway.test", tokenFile: $token_file, caFile: "/ca.pem"}
+    gateway: {
+      baseUrl: "https://gateway.test"
+      tokenFile: $token_file
+      caFile: "/ca.pem"
+    }
     curl: ($env.NU_TEST_STUBS | path join "curl")
     curlArgs: $CURL_ARGS
   }
   | to json
   | save $config_file
 
-  let run = with-env {STUB_LOG: $log, STUB_REPLY: ($reply | to json)} {
+  let run = with-env {
+    STUB_LOG: $log
+    STUB_REPLY: ($reply | to json)
+  } {
     $request
     | to json
     | run-script $SCRIPT --config $config_file
   }
-  {run: $run, calls: (open $log | from json --objects), token_file: $token_file}
+  {
+    run: $run
+    calls: (open $log | from json --objects)
+    token_file: $token_file
+  }
 }
 
 def reply [content: string, finish: string]: nothing -> record {
-  {choices: [{finish_reason: $finish, message: {content: $content}}]}
+  {
+    choices: [
+      {
+        finish_reason: $finish
+        message: {content: $content}
+      }
+    ]
+  }
 }
 
 def "test a request passes the token by file and prints the reply" [] {
-  let request = {model: "stub", maxTokens: 64, system: "Judge.", user: "Text.", json: true}
+  let request = {
+    model: "stub"
+    maxTokens: 64
+    system: "Judge."
+    user: "Text."
+    json: true
+  }
 
-  let result = (call $request (reply "ok: true" stop))
+  let result = (call $request (reply "ok: true" "stop"))
   assert equal $result.run.exit_code 0 $result.run.stderr
 
   assert equal $result.run.stdout "ok: true"
   assert equal $result.calls [
     {
       args: [
-        https://gateway.test/v1/chat/completions
+        "https://gateway.test/v1/chat/completions"
         ...$CURL_ARGS
         --ipv4
         --cacert "/ca.pem"
@@ -70,7 +94,11 @@ def "test a request passes the token by file and prints the reply" [] {
         max_tokens: 64
         stream: false
         tool_choice: "none"
-        messages: [{role: "system", content: "Judge."}, {role: "user", content: "Text."}]
+        messages: [
+          [role content];
+          ["system" "Judge."]
+          ["user" "Text."]
+        ]
         response_format: {type: "json_object"}
       }
     }
@@ -78,9 +106,14 @@ def "test a request passes the token by file and prints the reply" [] {
 }
 
 def "test a reply cut short fails with its finish reason" [] {
-  let request = {model: "stub", maxTokens: 64, system: "Judge.", user: "Text."}
+  let request = {
+    model: "stub"
+    maxTokens: 64
+    system: "Judge."
+    user: "Text."
+  }
 
-  let result = (call $request (reply "ok:" length))
+  let result = (call $request (reply "ok:" "length"))
 
   assert equal $result.run.exit_code 1
   assert equal $result.run.stdout ""

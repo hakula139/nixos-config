@@ -103,9 +103,9 @@ def "test hostname transitions preserve unrelated entries and are idempotent" []
 }
 
 def "test an unreadable hosts file does not produce a replacement entry" [] {
-  let hosts_file = ((mktemp --directory) | path join "missing")
+  let hosts_file = (mktemp --directory | path join "missing")
 
-  let run = run-script $SCRIPT $hosts_file new-gateway.example.test
+  let run = run-script $SCRIPT $hosts_file "new-gateway.example.test"
 
   assert not equal $run.exit_code 0
   assert equal $run.stdout ""

@@ -17,7 +17,7 @@ def --wrapped main [...args: string] {
   let reply = (
     $env.STUB_REPLIES
     | from json
-    | where {|reply| $reply.action == $args.0 and $reply.target == ($args | last)}
+    | where {|reply| $reply.action == $args.0 and $reply.target == ($args | last) }
     | first 1
     | get -o 0
     | default {}

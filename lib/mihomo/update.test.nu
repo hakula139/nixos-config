@@ -14,7 +14,10 @@ const SUBSCRIPTION = ($SCRIPT_DIR | path join "fixtures/update/subscription/conf
 const PREVIOUS = "log-level: info\n"
 const SECRET = "test-secret"
 const SUBSCRIPTION_URL = "https://sub.example.com/x"
-const BASE_TUN = {enable: false, stack: "gvisor"}
+const BASE_TUN = {
+  enable: false
+  stack: "gvisor"
+}
 
 def run-update [
   curl_status: int
@@ -70,7 +73,11 @@ def run-update [
     | where {|name| $name | str starts-with ".config.staging." }
   )
 
-  {run: $run, target: $target, staging: $staging}
+  {
+    run: $run
+    target: $target
+    staging: $staging
+  }
 }
 
 def "test the update stages, validates, and replaces the config" [] {

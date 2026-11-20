@@ -11,7 +11,7 @@ def --wrapped main [...args: string] {
   let mode = ($env.CCUSAGE_MODE? | default "success")
   {
     args: $args
-    lock_exists: (if ($lock | is-empty) { false } else { $lock | path exists })
+    lock_exists: (($lock | is-not-empty) and ($lock | path exists))
   }
   | to json --raw
   | $"($in)\n"

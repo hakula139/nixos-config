@@ -17,7 +17,12 @@ def gate [env_vars: record]: nothing -> any {
   let config_file = ($dir | path join "config.json")
 
   let model_call = ($env.NU_TEST_STUBS | path join "model-call")
-  {modelCall: $model_call, model: "stub", prompt: "", patchInput: ""}
+  {
+    modelCall: $model_call
+    model: "stub"
+    prompt: ""
+    patchInput: ""
+  }
   | to json
   | save $config_file
 

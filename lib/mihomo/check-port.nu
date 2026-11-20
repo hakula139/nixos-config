@@ -13,7 +13,11 @@ def main [
   --pid: int # Main process PID, which the unit passes as $MAINPID
 ] {
   loop {
-    let comm = (try { open $"/proc/($pid)/comm" | str trim } catch { "" })
+    let comm = try {
+      open $"/proc/($pid)/comm" | str trim
+    } catch {
+      ""
+    }
     if $comm == "mihomo" {
       break
     }

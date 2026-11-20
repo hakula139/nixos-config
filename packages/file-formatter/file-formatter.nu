@@ -92,7 +92,13 @@ def failed-hooks [output: string]: nothing -> list<string> {
 
 # The hooks that fail on `paths`.
 def check [root: string, paths: list<string>]: nothing -> list<string> {
-  let status = (do { cd $root; ^direnv status --json } | from json)
+  let status = (
+    do {
+      cd $root
+      ^direnv status --json
+    }
+    | from json
+  )
   let allowed = ($status.state.foundRC?.allowed? == 0)
   let before = (path-digests $paths)
   let first = (run-gate $root $paths [] --via-direnv=$allowed)

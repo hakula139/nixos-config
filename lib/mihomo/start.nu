@@ -14,7 +14,7 @@ def main [
   try {
     ^mihomo-update
   } catch {
-    if (($config_dir | path join "config.yaml") | path exists) {
+    if ($config_dir | path join "config.yaml" | path exists) {
       print --stderr "Warning: subscription update failed, starting mihomo from the previous config"
     } else {
       print --stderr $"Error: subscription update failed and no config exists in ($config_dir)"

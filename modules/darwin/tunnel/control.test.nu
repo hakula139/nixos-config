@@ -52,11 +52,14 @@ def launchctl-calls [result: record]: nothing -> list<record> {
   $result.calls
   | where command == "launchctl"
   | select command args
-  | sort-by {|call| $call.args | last}
+  | sort-by {|call| $call.args | last }
 }
 
 def "test startup targets the configured account and checks Tailscale first" [] {
-  let id_call = {command: "id", args: [-u example-user]}
+  let id_call = {
+    command: "id"
+    args: [-u example-user]
+  }
 
   let result = (control [up $HOST])
   assert equal $result.run.exit_code 0 $result.run.stderr
@@ -67,8 +70,9 @@ def "test startup targets the configured account and checks Tailscale first" [] 
     args: [status --json]
   }
   assert equal (launchctl-calls $result) [
-    {command: "launchctl", args: [kickstart -k $SSH]}
-    {command: "launchctl", args: [kickstart -k $RELAY]}
+    [command args];
+    ["launchctl" [kickstart -k $SSH]]
+    ["launchctl" [kickstart -k $RELAY]]
   ]
 }
 
@@ -113,7 +117,12 @@ def "test a stopped Tailscale backend cannot start either tunnel service" [] {
 def "test a startup failure reports the affected component and how to stop partial startup" [] {
   for target in [$SSH $RELAY] {
     let replies = [
-      {action: "kickstart", target: $target, exit_code: 5, stderr: "service disabled"}
+      {
+        action: "kickstart"
+        target: $target
+        exit_code: 5
+        stderr: "service disabled"
+      }
     ]
 
     let result = (control [up $HOST] $replies)
@@ -142,16 +151,18 @@ def "test stopping tolerates an already stopped process for either service" [] {
 
   for case in $cases {
     let replies = [
-      {action: "kill", target: $RELAY, exit_code: $case.relay}
-      {action: "kill", target: $SSH, exit_code: $case.ssh}
+      [action target exit_code];
+      ["kill" $RELAY $case.relay]
+      ["kill" $SSH $case.ssh]
     ]
 
     let result = (control [down] $replies)
     assert equal $result.run.exit_code 0 $"($case.name): ($result.run.stderr)"
 
     assert equal (launchctl-calls $result) [
-      {command: "launchctl", args: [kill SIGTERM $SSH]}
-      {command: "launchctl", args: [kill SIGTERM $RELAY]}
+      [command args];
+      ["launchctl" [kill SIGTERM $SSH]]
+      ["launchctl" [kill SIGTERM $RELAY]]
     ] $case.name
   }
 }
@@ -159,7 +170,12 @@ def "test stopping tolerates an already stopped process for either service" [] {
 def "test an unexpected stop failure is reported after both services are attempted" [] {
   for target in [$RELAY $SSH] {
     let replies = [
-      {action: "kill", target: $target, exit_code: 5, stderr: "permission denied"}
+      {
+        action: "kill"
+        target: $target
+        exit_code: 5
+        stderr: "permission denied"
+      }
     ]
 
     let result = (control [down] $replies)
@@ -167,16 +183,18 @@ def "test an unexpected stop failure is reported after both services are attempt
     assert not equal $result.run.exit_code 0 $target
     assert str contains $result.run.stderr "permission denied" $target
     assert equal (launchctl-calls $result) [
-      {command: "launchctl", args: [kill SIGTERM $SSH]}
-      {command: "launchctl", args: [kill SIGTERM $RELAY]}
+      [command args];
+      ["launchctl" [kill SIGTERM $SSH]]
+      ["launchctl" [kill SIGTERM $RELAY]]
     ] $target
   }
 }
 
 def "test status preserves the launchd details of both components" [] {
   let replies = [
-    {action: "print", target: $RELAY, stdout: "relay: state = not running\nlast exit code = 0"}
-    {action: "print", target: $SSH, stdout: "ssh: state = running\npid = 1234"}
+    [action target stdout];
+    ["print" $RELAY "relay: state = not running\nlast exit code = 0"]
+    ["print" $SSH "ssh: state = running\npid = 1234"]
   ]
 
   let result = (control [status] $replies)
@@ -186,8 +204,9 @@ def "test status preserves the launchd details of both components" [] {
     assert str contains $result.run.stdout $reply.stdout $reply.target
   }
   assert equal (launchctl-calls $result) [
-    {command: "launchctl", args: [print $SSH]}
-    {command: "launchctl", args: [print $RELAY]}
+    [command args];
+    ["launchctl" [print $SSH]]
+    ["launchctl" [print $RELAY]]
   ]
 }
 

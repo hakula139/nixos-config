@@ -60,8 +60,19 @@ const BANNER_RULE = '(?m)^\s*(?://|#|--|;)\s*[=*_-]{4,}\s*$'
 def payload [input: record, config: record]: nothing -> list<record> {
   let args = $input.tool_input
   match $input.tool_name {
-    "Write" => [{path: $args.file_path, text: $args.content}]
-    "Edit" => [{path: $args.file_path, before: $args.old_string, text: $args.new_string}]
+    "Write" => [
+      {
+        path: $args.file_path
+        text: $args.content
+      }
+    ]
+    "Edit" => [
+      {
+        path: $args.file_path
+        before: $args.old_string
+        text: $args.new_string
+      }
+    ]
     "apply_patch" => {
       let parser = $config.patchInput
       $args.command
@@ -69,7 +80,10 @@ def payload [input: record, config: record]: nothing -> list<record> {
       | from json
       | where action != "Delete"
       | each {|file|
-        {path: $file.path, text: ($file.added | str join "\n")}
+        {
+          path: $file.path
+          text: ($file.added | str join "\n")
+        }
       }
     }
     _ => []

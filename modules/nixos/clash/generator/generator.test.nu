@@ -10,9 +10,10 @@ const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "generator.py")
 
 const SERVERS = [
-  {id: "sg-1", ip: "192.0.2.10", level: "user"}
-  {id: "us-2", ip: "2001:db8::20", level: "user"}
-  {id: "us-1", ip: "198.51.100.30", level: "admin"}
+  [id ip level];
+  ["sg-1" "192.0.2.10" "user"]
+  ["us-2" "2001:db8::20" "user"]
+  ["us-1" "198.51.100.30" "admin"]
 ]
 
 # The output directory starts with a stale subscription.
@@ -42,7 +43,10 @@ def generate [users: record]: nothing -> record {
       --output-dir $output
     | complete
   )
-  {run: $run, output: $output}
+  {
+    run: $run
+    output: $output
+  }
 }
 
 def subscription [output: string, uuid: string]: nothing -> record {
@@ -58,13 +62,24 @@ def subscriptions [output: string]: nothing -> list<string> {
 
 def "test each user gets the servers their level admits" [] {
   let result = (generate {
-    alice: {uuid: "alice-uuid", shortId: "00", level: "admin"}
-    bob: {uuid: "0123", shortId: "b2"}
-    eve: {uuid: "eve-uuid", shortId: "e5", level: "root"}
+    alice: {
+      uuid: "alice-uuid"
+      shortId: "00"
+      level: "admin"
+    }
+    bob: {
+      uuid: "0123"
+      shortId: "b2"
+    }
+    eve: {
+      uuid: "eve-uuid"
+      shortId: "e5"
+      level: "root"
+    }
   })
   assert equal $result.run.exit_code 0 $result.run.stderr
 
-  let alice = (subscription $result.output alice-uuid)
+  let alice = (subscription $result.output "alice-uuid")
   let reality = ($alice.proxies | where network == "tcp")
   assert equal ($reality | get server) ["us-1.hakula.xyz" "us-2.hakula.xyz" "sg-1.hakula.xyz"]
   assert equal ($reality | get reality-opts.short-id | uniq) ["00"]
@@ -86,13 +101,20 @@ def "test each user gets the servers their level admits" [] {
 
 def "test every subscription sends the whole fleet direct" [] {
   let result = (generate {
-    alice: {uuid: "alice-uuid", shortId: "a1", level: "admin"}
-    bob: {uuid: "bob-uuid", shortId: "b2"}
+    alice: {
+      uuid: "alice-uuid"
+      shortId: "a1"
+      level: "admin"
+    }
+    bob: {
+      uuid: "bob-uuid"
+      shortId: "b2"
+    }
   })
   assert equal $result.run.exit_code 0 $result.run.stderr
 
-  let alice = (subscription $result.output alice-uuid)
-  let bob = (subscription $result.output bob-uuid)
+  let alice = (subscription $result.output "alice-uuid")
+  let bob = (subscription $result.output "bob-uuid")
   let payload = [
     "DOMAIN-SUFFIX,hakula.xyz"
     "IP-CIDR,198.51.100.30/32"
@@ -106,7 +128,12 @@ def "test every subscription sends the whole fleet direct" [] {
 }
 
 def "test no valid users fails and keeps existing subscriptions" [] {
-  let result = (generate {eve: {uuid: "eve-uuid", level: "admin"}})
+  let result = (generate {
+    eve: {
+      uuid: "eve-uuid"
+      level: "admin"
+    }
+  })
 
   assert equal $result.run.exit_code 1
   assert str contains $result.run.stderr "User eve is missing required fields: uuid, shortId"

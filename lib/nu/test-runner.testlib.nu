@@ -17,12 +17,6 @@ export def --wrapped run-script [script: path, ...args: string]: any -> record {
   }
 
   $in
-  | (
-    ^$nu.current-exe
-      --no-config-file
-      ...$include_args
-      $script
-      ...$args
-  )
+  | ^$nu.current-exe --no-config-file ...$include_args $script ...$args
   | complete
 }

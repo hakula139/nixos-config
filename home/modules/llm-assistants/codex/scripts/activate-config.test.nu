@@ -11,7 +11,11 @@ const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "activate-config.nu")
 
 def command [command: string, extra: record = {}]: nothing -> record {
-  {type: "command", command: $command} | merge $extra
+  {
+    type: "command"
+    command: $command
+  }
+  | merge $extra
 }
 
 def "test activation records golden hook hashes and keeps other state" [] {
@@ -22,7 +26,10 @@ def "test activation records golden hook hashes and keeps other state" [] {
   let project_key = "/repo/.codex/config.toml:stop:0:0"
 
   let prior_state = {
-    (do $key stop 0 0): {enabled: false, trusted_hash: "sha256:stale"}
+    (do $key stop 0 0): {
+      enabled: false
+      trusted_hash: "sha256:stale"
+    }
     $project_key: {trusted_hash: "sha256:project"}
   }
   {hooks: {state: $prior_state}}
@@ -40,12 +47,20 @@ def "test activation records golden hook hashes and keeps other state" [] {
           {
             matcher: $edits
             hooks: [
-              (command "/bin/format" {timeout: 120, statusMessage: "Formatting edited files"})
+              (command "/bin/format" {
+                timeout: 120
+                statusMessage: "Formatting edited files"
+              })
             ]
           }
           {
             matcher: $edits
-            hooks: [(command "/bin/gate" {timeout: 100, statusMessage: "Checking"})]
+            hooks: [
+              (command "/bin/gate" {
+                timeout: 100
+                statusMessage: "Checking"
+              })
+            ]
           }
           {
             hooks: [(command "/bin/status working")]
@@ -54,7 +69,12 @@ def "test activation records golden hook hashes and keeps other state" [] {
         SessionStart: [
           {
             matcher: "compact"
-            hooks: [(command "/bin/restore" {timeout: 10, statusMessage: "Restoring context"})]
+            hooks: [
+              (command "/bin/restore" {
+                timeout: 10
+                statusMessage: "Restoring context"
+              })
+            ]
           }
           {
             matcher: "startup|resume|clear"
@@ -69,7 +89,12 @@ def "test activation records golden hook hashes and keeps other state" [] {
         UserPromptSubmit: [{hooks: [(command "/bin/status working")]}]
         SessionEnd: [{hooks: [(command "/bin/end" {timeout: 5})]}]
         Interrupt: [{hooks: [(command "/bin/interrupted") (command "/bin/abort" {timeout: 0})]}]
-        Stop: [{matcher: "ignored", hooks: [(command "/bin/status done")]}]
+        Stop: [
+          {
+            matcher: "ignored"
+            hooks: [(command "/bin/status done")]
+          }
+        ]
       }
     }
     keybindings: []
@@ -121,7 +146,12 @@ def "test activation trusts hooks at the canonical config path" [] {
       $canonical
     }
     let config_file = ($dir | path join "activation.json")
-    let keybindings = [{command: "hotkeyWindow", key: "Ctrl+Space"}]
+    let keybindings = [
+      {
+        command: "hotkeyWindow"
+        key: "Ctrl+Space"
+      }
+    ]
     {
       configDir: $config_dir
       activeProfile: ($dir | path join "missing-profile")
@@ -150,10 +180,11 @@ def "test activation trusts hooks at the canonical config path" [] {
 
 def "test activation imports only profiles in the canonical config directory" [] {
   for case in [
-    {configAlias: false, profileAlias: false, contained: true}
-    {configAlias: true, profileAlias: false, contained: true}
-    {configAlias: false, profileAlias: true, contained: true}
-    {configAlias: true, profileAlias: true, contained: false}
+    [configAlias profileAlias contained];
+    [false false true]
+    [true false true]
+    [false true true]
+    [true true false]
   ] {
     let dir = (mktemp --directory | path expand --strict)
     let canonical = ($dir | path join "config")
@@ -176,7 +207,11 @@ def "test activation imports only profiles in the canonical config directory" []
     {
       configDir: (if $case.configAlias { $alias } else { $canonical })
       activeProfile: $active
-      settings: {tools: {}, mcp_servers: {}, hooks: {}}
+      settings: {
+        tools: {}
+        mcp_servers: {}
+        hooks: {}
+      }
       keybindings: []
     }
     | to json

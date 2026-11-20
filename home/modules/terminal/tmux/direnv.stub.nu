@@ -9,7 +9,10 @@
 # ==================================================================================================
 
 def --wrapped main [...args: string] {
-  {tool: "direnv", args: $args}
+  {
+    tool: "direnv"
+    args: $args
+  }
   | to json --raw
   | $"($in)\n"
   | save --append $env.STUB_LOG

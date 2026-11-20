@@ -11,9 +11,20 @@ const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "render-config.nu")
 
 const USERS = {
-  alice: {uuid: "alice-uuid", shortId: "a1", level: "admin"}
-  bob: {uuid: "bob-uuid", shortId: "b2", level: "user"}
-  carol: {uuid: "carol-uuid", shortId: "c3"}
+  alice: {
+    uuid: "alice-uuid"
+    shortId: "a1"
+    level: "admin"
+  }
+  bob: {
+    uuid: "bob-uuid"
+    shortId: "b2"
+    level: "user"
+  }
+  carol: {
+    uuid: "carol-uuid"
+    shortId: "c3"
+  }
 }
 
 const SETTINGS = {
@@ -21,7 +32,10 @@ const SETTINGS = {
     {
       tag: "vless-reality"
       settings: {decryption: "none"}
-      streamSettings: {security: "reality", realitySettings: {dest: "/run/nginx/https.sock"}}
+      streamSettings: {
+        security: "reality"
+        realitySettings: {dest: "/run/nginx/https.sock"}
+      }
     }
     {
       tag: "vless-ws"
@@ -57,17 +71,25 @@ def render [min_level: string]: nothing -> record {
   | save $config_file
 
   let run = run-script $SCRIPT --config $config_file
-  {run: $run, output: $output}
+  {
+    run: $run
+    output: $output
+  }
 }
 
 def "test an admin server admits only admins" [] {
-  let result = (render admin)
+  let result = (render "admin")
   assert equal $result.run.exit_code 0 $result.run.stderr
 
   let config = (open $result.output)
   let reality = ($config.inbounds | where tag == "vless-reality" | first)
   let ws = ($config.inbounds | where tag == "vless-ws" | first)
-  assert equal $reality.settings.clients [{id: "alice-uuid", flow: "xtls-rprx-vision"}]
+  assert equal $reality.settings.clients [
+    {
+      id: "alice-uuid"
+      flow: "xtls-rprx-vision"
+    }
+  ]
   assert equal $reality.streamSettings.realitySettings {
     dest: "/run/nginx/https.sock"
     privateKey: "private-key"
@@ -80,7 +102,7 @@ def "test an admin server admits only admins" [] {
 }
 
 def "test a user server admits every level, reading a missing level as user" [] {
-  let result = (render user)
+  let result = (render "user")
   assert equal $result.run.exit_code 0 $result.run.stderr
 
   let reality = (open $result.output | get inbounds | where tag == "vless-reality" | first)
@@ -89,7 +111,7 @@ def "test a user server admits every level, reading a missing level as user" [] 
 }
 
 def "test an unknown minimum level fails without writing a config" [] {
-  let result = (render owner)
+  let result = (render "owner")
 
   assert equal $result.run.exit_code 1
   assert str contains $result.run.stderr "Unknown minimum level: owner"

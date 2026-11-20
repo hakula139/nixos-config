@@ -26,8 +26,9 @@ def main [
 
   let uid = (^id -u $user_name | str trim)
   let targets = [
-    {name: "ssh", target: $"gui/($uid)/com.hakula.tunnel"}
-    {name: "relay", target: "system/org.nixos.tunnel"}
+    [name target];
+    ["ssh" $"gui/($uid)/com.hakula.tunnel"]
+    ["relay" "system/org.nixos.tunnel"]
   ]
 
   match $action {

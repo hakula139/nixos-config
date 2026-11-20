@@ -76,7 +76,13 @@ def pieces [text: string]: nothing -> list<record> {
   mut out = if ($front | is-empty) {
     []
   } else {
-    [{block: $front, sep: "", prose: false}]
+    [
+      {
+        block: $front
+        sep: ""
+        prose: false
+      }
+    ]
   }
 
   mut delimiter = ""
@@ -125,7 +131,7 @@ def unix [text: string]: nothing -> string {
 # A rewrite takes back the line endings its own piece arrived with.
 def match-endings [sample: string, text: string]: nothing -> string {
   if ($sample | str contains "\r\n") {
-    (unix $text) | str replace --all "\n" "\r\n"
+    unix $text | str replace --all "\n" "\r\n"
   } else {
     $text
   }
@@ -134,7 +140,7 @@ def match-endings [sample: string, text: string]: nothing -> string {
 # The document with each accepted rewrite in its piece, leaving every other byte as it arrived.
 def assemble [text: string, edits: list<record>]: nothing -> string {
   mut out = []
-  for slot in ((pieces $text) | enumerate) {
+  for slot in (pieces $text | enumerate) {
     let row = ($edits | where {|edit| $edit.index == $slot.index } | get -o 0)
     let block = if $row == null {
       $slot.item.block
@@ -189,7 +195,10 @@ def document-targets [text: string]: nothing -> list<record> {
   | where {|slot| polishable $slot.item }
   | each {|slot|
     let block = (trim-margins $slot.item.block)
-    {index: $slot.index, before: (unix $block)}
+    {
+      index: $slot.index
+      before: (unix $block)
+    }
   }
 }
 
@@ -239,7 +248,7 @@ def adds-mark [before: string, after: string]: nothing -> list<string> {
 
 def violations [before: string, after: string]: nothing -> list<string> {
   mut found = []
-  for pair in ((spans $before) | zip (spans $after)) {
+  for pair in (spans $before | zip (spans $after)) {
     let previous = $pair.0
     let current = $pair.1
     if ($previous.spans | sort) != ($current.spans | sort) {
@@ -268,7 +277,11 @@ def violations [before: string, after: string]: nothing -> list<string> {
 
 def grade [target: record, raw: string]: nothing -> record {
   let after = (reframe $target.before $raw)
-  $target | merge {after: $after, problem: (violations $target.before $after | str join "; ")}
+  $target
+  | merge {
+    after: $after
+    problem: (violations $target.before $after | str join "; ")
+  }
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -318,7 +331,7 @@ def call-model [
   } catch {
     null
   }
-  if (not ($parsed | describe | str starts-with "record")) {
+  if not ($parsed | describe | str starts-with "record") {
     return []
   }
   # An id mismatch also catches a short, long, or id-less reply, and a rewrite landing in another
@@ -403,7 +416,12 @@ def rewrite [found: list<record>, context: string, config: record]: nothing -> a
   let passages = (
     $found
     | enumerate
-    | each {|slot| {id: $slot.index, text: $slot.item.before} }
+    | each {|slot|
+      {
+        id: $slot.index
+        text: $slot.item.before
+      }
+    }
   )
   let opening = (call-batches $passages [] $context $config)
   if ($opening | length) != ($passages | length) {

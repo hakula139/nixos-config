@@ -13,9 +13,26 @@ const SCRIPT = ($SCRIPT_DIR | path join "file-formatter.nu")
 const REPORT_PREFIX = "The pre-commit hooks reported problems in the edited files."
 
 # A gate in which each hook record runs its `entry` on files matching its `files`.
-def gate [...hooks: record]: nothing -> string {
-  let hooks = ($hooks | each {|hook| $hook | merge {name: $hook.id, language: "system"} })
-  {repos: [{repo: "local", hooks: $hooks}]} | to yaml
+def gate [hooks: list<record>]: nothing -> string {
+  let hooks = (
+    $hooks
+    | each {|hook|
+      $hook
+      | merge {
+        name: $hook.id
+        language: "system"
+      }
+    }
+  )
+  {
+    repos: [
+      {
+        repo: "local"
+        hooks: $hooks
+      }
+    ]
+  }
+  | to yaml
 }
 
 source $SCRIPT
@@ -57,9 +74,9 @@ def write-marker-envrc [repo: string]: nothing -> nothing {
 
 # Allows the `.envrc` in `dir`.
 def allow-envrc [dir: string]: nothing -> nothing {
-  let allowed = (
-    with-env { XDG_DATA_HOME: ($env.TMPDIR | path join "data") } { ^direnv allow $dir | complete }
-  )
+  let allowed = with-env {XDG_DATA_HOME: ($env.TMPDIR | path join "data")} {
+    ^direnv allow $dir | complete
+  }
   assert equal $allowed.exit_code 0 $allowed.stderr
 }
 
@@ -88,7 +105,12 @@ def "test help prints the usage" [] {
 
 def "test paths from two repositories, an outside path and a deleted path" [] {
   let base = ($env.TMPDIR | path join "repo-pair")
-  let config = (gate {id: "nixfmt", entry: "nixfmt", files: '\.nix$'})
+  let config = (
+    gate [
+      [id entry files];
+      ["nixfmt" "nixfmt" '\.nix$']
+    ]
+  )
   let first = (make-repo ($base | path join "first") $config)
   let second = (make-repo ($base | path join "second") $config)
   let sub = ($first | path join "sub")
@@ -116,7 +138,12 @@ def "test paths from two repositories, an outside path and a deleted path" [] {
 }
 
 def "test repositories without an installed hook or a gate config are skipped" [] {
-  let config = (gate {id: "nixfmt", entry: "nixfmt", files: '\.nix$'})
+  let config = (
+    gate [
+      [id entry files];
+      ["nixfmt" "nixfmt" '\.nix$']
+    ]
+  )
   let cases = [
     {
       name: "no installed hook"
@@ -141,7 +168,12 @@ def "test repositories without an installed hook or a gate config are skipped" [
 }
 
 def "test an allowed, blocked, or absent envrc decides the gate environment" [] {
-  let config = (gate {id: "marker", entry: "bash marker.sh", files: '\.txt$'})
+  let config = (
+    gate [
+      [id entry files];
+      ["marker" "bash marker.sh" '\.txt$']
+    ]
+  )
   let allowed = (make-repo ($env.TMPDIR | path join "repo-envrc-allowed") $config)
   let blocked = (make-repo ($env.TMPDIR | path join "repo-envrc-blocked") $config)
   let none = (make-repo ($env.TMPDIR | path join "repo-envrc-none") $config)
@@ -153,9 +185,10 @@ def "test an allowed, blocked, or absent envrc decides the gate environment" [] 
   allow-envrc $allowed
 
   let cases = [
-    {name: "allowed", repo: $allowed, exit_code: 0}
-    {name: "blocked", repo: $blocked, exit_code: 1}
-    {name: "absent", repo: $none, exit_code: 1}
+    [name repo exit_code];
+    ["allowed" $allowed 0]
+    ["blocked" $blocked 1]
+    ["absent" $none 1]
   ]
   for case in $cases {
     let file = ($case.repo | path join "notes.txt")
@@ -202,7 +235,12 @@ def "test a caller direnv diff that hides prek still runs the gate" [] {
   let diff = ($generated.stdout | str trim)
   assert ($diff | is-not-empty)
 
-  let config = (gate {id: "marker", entry: "bash marker.sh", files: '\.txt$'})
+  let config = (
+    gate [
+      [id entry files];
+      ["marker" "bash marker.sh" '\.txt$']
+    ]
+  )
   let repo = (make-repo ($env.TMPDIR | path join "repo-envrc-diff") $config)
   write-marker-envrc $repo
   write-marker-script $repo
@@ -210,19 +248,23 @@ def "test a caller direnv diff that hides prek still runs the gate" [] {
   "content\n" | save $file
   allow-envrc $repo
 
-  let result = (with-env { DIRENV_DIFF: $diff } { run-formatter $env.TMPDIR $file })
+  let result = with-env {DIRENV_DIFF: $diff} {
+    run-formatter $env.TMPDIR $file
+  }
 
   assert equal $result.run.exit_code 0 $result.run.stderr
   assert equal $result.report ""
 }
 
 def "test a failing hook is reported" [] {
-  let repo = (
-    make-repo ($env.TMPDIR | path join "repo-lint") (gate
-      {id: "lint", entry: "bash lint.sh", files: '\.txt$'}
-      {id: "ok", entry: "true", files: '\.txt$'}
-    )
+  let config = (
+    gate [
+      [id entry files];
+      ["lint" "bash lint.sh" '\.txt$']
+      ["ok" "true" '\.txt$']
+    ]
   )
+  let repo = (make-repo ($env.TMPDIR | path join "repo-lint") $config)
   (
     r#'
     #!/bin/sh
@@ -248,7 +290,12 @@ def "test a failing hook is reported" [] {
 }
 
 def "test a fixer hook that rewrites a file is not reported" [] {
-  let config = (gate {id: "fixer", entry: "bash fix.sh", files: '\.txt$'})
+  let config = (
+    gate [
+      [id entry files];
+      ["fixer" "bash fix.sh" '\.txt$']
+    ]
+  )
   let repo = (make-repo ($env.TMPDIR | path join "repo-fixer") $config)
   (
     r#'
@@ -278,10 +325,12 @@ def "test a fixer hook that rewrites a file is not reported" [] {
 
 def "test only the failed hooks are rerun after a fixer rewrites the file" [] {
   let config = (
-    gate
-      {id: "check", entry: "bash check.sh", files: '\.txt$'}
-      {id: "fix", entry: "bash fix.sh", files: '\.txt$'}
-      {id: "lint", entry: "bash lint.sh", files: '\.txt$'}
+    gate [
+      [id entry files];
+      ["check" "bash check.sh" '\.txt$']
+      ["fix" "bash fix.sh" '\.txt$']
+      ["lint" "bash lint.sh" '\.txt$']
+    ]
   )
   let repo = (make-repo ($env.TMPDIR | path join "repo-rerun") $config)
   (

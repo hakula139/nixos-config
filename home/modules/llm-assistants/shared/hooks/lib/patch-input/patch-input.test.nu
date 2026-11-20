@@ -45,8 +45,9 @@ def "test reports each file with only its added lines" [] {
   # editorconfig-checker-enable
 
   assert equal (parse-patch $patch) [
-    {action: "Add", path: "docs/new.md", added: ["# Title" "" "Body"]}
-    {action: "Update", path: "src/new.rs", added: ["let added = 3;"]}
-    {action: "Delete", path: "src/gone.rs", added: []}
+    [action path added];
+    ["Add" "docs/new.md" ["# Title" "" "Body"]]
+    ["Update" "src/new.rs" ["let added = 3;"]]
+    ["Delete" "src/gone.rs" []]
   ]
 }

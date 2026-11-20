@@ -10,10 +10,17 @@
 
 # The session name comes last because it may contain the separator. An unknown pane prints empty
 # fields, since display-message tolerates a missing target.
-const FORMAT = ([
-  "#{pane_id}" "#{session_id}" "#{session_windows}" "#{window_panes}" "#{@workmux_token}"
-  "#{session_name}"
-] | str join "|")
+const FORMAT = (
+  [
+    "#{pane_id}"
+    "#{session_id}"
+    "#{session_windows}"
+    "#{window_panes}"
+    "#{@workmux_token}"
+    "#{session_name}"
+  ]
+  | str join "|"
+)
 
 # A line of FORMAT output
 const FIELDS = (

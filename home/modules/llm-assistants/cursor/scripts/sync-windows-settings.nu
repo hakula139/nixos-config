@@ -51,9 +51,9 @@ def main [
 ]: nothing -> nothing {
   let config = (open $config)
   let app_data = (^$config.windowsInterop APPDATA | str trim)
-  let target_dir = ([$app_data "Cursor/User"] | path join)
-  let settings_target = ([$target_dir "settings.json"] | path join)
-  let keybindings_target = ([$target_dir "keybindings.json"] | path join)
+  let target_dir = ($app_data | path join "Cursor/User")
+  let settings_target = ($target_dir | path join "settings.json")
+  let keybindings_target = ($target_dir | path join "keybindings.json")
   mkdir $target_dir
 
   let settings = (merge-settings $config.settingsFile $settings_target)

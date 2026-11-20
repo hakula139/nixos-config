@@ -59,24 +59,48 @@ def caller-path []: nothing -> string {
 def "test outside a dev shell tmux runs unchanged" [] {
   let run = (wrap [new-session -A -s work])
 
-  assert equal $run.calls [{tool: "tmux", args: [new-session -A -s work], path: (caller-path)}]
+  assert equal $run.calls [
+    {
+      tool: "tmux"
+      args: [new-session -A -s work]
+      path: (caller-path)
+    }
+  ]
 }
 
 def "test a direnv shell is reverted before tmux runs" [] {
-  let run = (wrap [new-window] {DIRENV_DIFF: "diff", IN_NIX_SHELL: "impure"})
+  let run = (
+    wrap [new-window] {
+      DIRENV_DIFF: "diff"
+      IN_NIX_SHELL: "impure"
+    }
+  )
 
   assert equal $run.calls [
-    {tool: "direnv", args: [exec "/" $run.script new-window]}
-    {tool: "tmux", args: [new-window], path: (caller-path)}
+    {
+      tool: "direnv"
+      args: [exec "/" $run.script new-window]
+    }
+    {
+      tool: "tmux"
+      args: [new-window]
+      path: (caller-path)
+    }
   ]
 }
 
 def "test a Nix shell client borrows the running server PATH" [] {
-  let run = (wrap [new-window "cargo run"] {IN_NIX_SHELL: "impure", STUB_SERVER_PATH: $SERVER_PATH})
+  let run = (
+    wrap [new-window "cargo run"] {
+      IN_NIX_SHELL: "impure"
+      STUB_SERVER_PATH: $SERVER_PATH
+    }
+  )
 
   assert equal $run.calls [
-    {tool: "tmux", args: [-N show-environment -g PATH], path: (caller-path)}
-    {tool: "tmux", args: [-N new-window "cargo run"], path: $SERVER_PATH}
+    [tool args path];
+    ["tmux" [-N show-environment -g PATH] (caller-path)]
+    ["tmux" [-N new-window "cargo run"] $SERVER_PATH]
   ]
 }
 
@@ -90,19 +114,36 @@ def "test a Nix shell nested in a direnv shell is still caught" [] {
   let run = (wrap [split-window] $env_vars)
 
   assert equal $run.calls [
-    {tool: "direnv", args: [exec "/" $run.script split-window]}
-    {tool: "tmux", args: [-N show-environment -g PATH], path: (caller-path)}
-    {tool: "tmux", args: [-N split-window], path: $SERVER_PATH}
+    {
+      tool: "direnv"
+      args: [exec "/" $run.script split-window]
+    }
+    {
+      tool: "tmux"
+      args: [-N show-environment -g PATH]
+      path: (caller-path)
+    }
+    {
+      tool: "tmux"
+      args: [-N split-window]
+      path: $SERVER_PATH
+    }
   ]
 }
 
 def "test every socket flag reaches the server probe" [] {
   let argv = [-S "/tmp/sock" -L name new-window]
-  let run = (wrap $argv {NIX_BUILD_TOP: "/tmp/nix-shell", STUB_SERVER_PATH: $SERVER_PATH})
+  let run = (
+    wrap $argv {
+      NIX_BUILD_TOP: "/tmp/nix-shell"
+      STUB_SERVER_PATH: $SERVER_PATH
+    }
+  )
 
   assert equal $run.calls [
-    {tool: "tmux", args: [-S "/tmp/sock" -L name -N show-environment -g PATH], path: (caller-path)}
-    {tool: "tmux", args: [-N ...$argv], path: $SERVER_PATH}
+    [tool args path];
+    ["tmux" [-S "/tmp/sock" -L name -N show-environment -g PATH] (caller-path)]
+    ["tmux" [-N ...$argv] $SERVER_PATH]
   ]
 }
 
@@ -110,7 +151,10 @@ def "test the tmux exit status passes through" [] {
   let cases = [
     {}
     {DIRENV_DIFF: "diff"}
-    {IN_NIX_SHELL: "impure", STUB_SERVER_PATH: $SERVER_PATH}
+    {
+      IN_NIX_SHELL: "impure"
+      STUB_SERVER_PATH: $SERVER_PATH
+    }
     {IN_NIX_SHELL: "impure"}
   ]
 

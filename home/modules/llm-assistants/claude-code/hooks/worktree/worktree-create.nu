@@ -13,8 +13,7 @@ def base-ref [cwd: string]: nothing -> string {
   let remote = (
     ^git
       -C $cwd
-      rev-parse
-        --abbrev-ref origin/HEAD
+      rev-parse --abbrev-ref origin/HEAD
     | complete
   )
   if $remote.exit_code == 0 {

@@ -106,7 +106,10 @@ def nudge [config: record, input: record]: nothing -> any {
   # SessionStart gives the model `additionalContext`, while `systemMessage` reaches only the user.
   {
     systemMessage: $"Memory consolidation is due after ($sessions) sessions, so Claude will dream in a background agent."
-    hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $context}
+    hookSpecificOutput: {
+      hookEventName: "SessionStart"
+      additionalContext: $context
+    }
   }
   | to json --raw
 }

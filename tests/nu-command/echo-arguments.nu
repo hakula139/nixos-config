@@ -9,9 +9,11 @@ def main [
   --mode: string
   --count: int
 ] {
-  print ({
+  {
     config: (if $config == null { null } else { open $config })
     mode: $mode
     count: $count
-  } | to json --raw)
+  }
+  | to json --raw
+  | print $in
 }

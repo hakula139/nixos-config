@@ -11,8 +11,15 @@ def main [] {
   let input = (^cat | from json)
   let worktree = $input.worktree_path
 
-  if not ($worktree | path exists) { exit 0 }
+  if not ($worktree | path exists) {
+    exit 0
+  }
 
-  do { cd $worktree; ^workmux remove --force ($worktree | path basename) }
-  if ($worktree | path exists) { exit 1 }
+  do {
+    cd $worktree
+    ^workmux remove --force ($worktree | path basename)
+  }
+  if ($worktree | path exists) {
+    exit 1
+  }
 }

@@ -16,7 +16,10 @@ def --wrapped main [--nonblock, lock: path, ...command: string] {
     exit 2
   }
 
-  {lock: $lock, command: $command}
+  {
+    lock: $lock
+    command: $command
+  }
   | to json --raw
   | $"($in)\n"
   | save --append $env.FLOCK_LOG
