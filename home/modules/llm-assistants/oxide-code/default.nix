@@ -11,7 +11,6 @@
 }:
 
 let
-  cfg = config.hakula.oxide-code;
   shared = config.lib.llmAssistants;
 
   profiles = import ./profiles.nix {
@@ -29,8 +28,6 @@ in
   # ------------------------------------------------------------------------------------------------
   options.hakula.oxide-code = {
     auth = profiles.options;
-
-    proxy = repoLib.proxy.mkProxyOptions "oxide-code";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -41,7 +38,7 @@ in
       # --------------------------------------------------------------------------------------------
       # Package wrapper
       # --------------------------------------------------------------------------------------------
-      wrapArgs = profiles.wrapArgs ++ repoLib.proxy.mkProxyWrapArgs cfg.proxy;
+      wrapArgs = profiles.wrapArgs ++ repoLib.proxy.mkProxyWrapArgs config.hakula.llm-assistants.proxy;
 
       oxBin = repoLib.wrapPackage {
         inherit pkgs wrapArgs;

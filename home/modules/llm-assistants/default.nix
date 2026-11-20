@@ -32,7 +32,6 @@ let
     "t3code"
   ];
 
-  cliAssistantNames = lib.remove "cursor" assistantNames;
   mcpAssistantNames = lib.filter (name: options.hakula.${name} ? mcp) assistantNames;
 
   mcpAssistants = map (name: config.hakula.${name}) (
@@ -65,13 +64,6 @@ let
   requiredMcpSecretKeys = lib.unique (lib.concatMap (s: mcpServerSecrets.${s} or [ ]) activeServers);
 
   requiredMcpSecrets = lib.getAttrs requiredMcpSecretKeys mcpSecrets;
-
-  assistantProxy = {
-    enable = lib.mkDefault true;
-    url = lib.mkDefault cfg.proxy.url;
-    secretUrlFile = lib.mkDefault cfg.proxy.secretUrlFile;
-    noProxy = lib.mkDefault cfg.proxy.noProxy;
-  };
 in
 {
   imports = [
@@ -129,10 +121,6 @@ in
       hakula = lib.mkMerge [
         (lib.genAttrs mcpAssistantNames (_: {
           mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-        }))
-
-        (lib.genAttrs cliAssistantNames (_: {
-          proxy = lib.mkIf cfg.proxy.enable assistantProxy;
         }))
 
         {

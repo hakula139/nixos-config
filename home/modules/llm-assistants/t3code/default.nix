@@ -26,8 +26,6 @@ in
   # ------------------------------------------------------------------------------------------------
   options.hakula.t3code = {
     lan = lib.mkEnableOption "serving the LAN and tailnet instead of only loopback";
-
-    proxy = repoLib.proxy.mkProxyOptions "T3 Code";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -37,8 +35,9 @@ in
     let
       enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
       corpGateway = shared.profileDefinitions.providers.corp-gateway;
-
       caFile = secretPath corpGateway.caSecret;
+
+      proxyCfg = config.hakula.llm-assistants.proxy;
 
       # --------------------------------------------------------------------------------------------
       # Package wrapper
@@ -64,17 +63,14 @@ in
         ":"
         runtimePath
       ]
-      ++ lib.optionals cfg.proxy.enable [
-        "--run"
-        (repoLib.proxy.mkProxyScript cfg.proxy)
-      ];
+      ++ repoLib.proxy.mkProxyWrapArgs proxyCfg;
 
-      # Electron rejects most NODE_OPTIONS entries, so only the CLI server gets the proxy flag.
+      # Electron cancels fetch when NODE_USE_ENV_PROXY=1 is set, so only the CLI server exports it.
       cliWrapArgs =
         baseWrapArgs
-        ++ lib.optionals cfg.proxy.enable [
+        ++ lib.optionals proxyCfg.enable [
           "--run"
-          ''export NODE_OPTIONS="''${NODE_OPTIONS:+$NODE_OPTIONS }--use-env-proxy"''
+          repoLib.proxy.nodeProxyScript
         ];
 
       envVars = lib.optionalAttrs enableCorpGateway {

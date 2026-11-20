@@ -45,8 +45,6 @@ in
     };
 
     mcp = mcpOptions.mkMcpOptions { names = mcpOptions.commonServerNames; };
-
-    proxy = repoLib.proxy.mkProxyOptions "Codex";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -99,7 +97,7 @@ in
             ":"
             (lib.makeBinPath [ pkgs.bubblewrap ])
           ]
-          ++ repoLib.proxy.mkProxyWrapArgs cfg.proxy;
+          ++ repoLib.proxy.mkProxyWrapArgs config.hakula.llm-assistants.proxy;
       };
 
       # --------------------------------------------------------------------------------------------

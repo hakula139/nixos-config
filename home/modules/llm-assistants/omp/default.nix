@@ -42,8 +42,6 @@ in
     };
 
     mcp = mcpOptions.mkMcpOptions { names = mcpOptions.commonServerNames; };
-
-    proxy = repoLib.proxy.mkProxyOptions "OMP";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -95,7 +93,7 @@ in
           pkgs.poppler-utils
         ])
       ]
-      ++ repoLib.proxy.mkProxyWrapArgs cfg.proxy
+      ++ repoLib.proxy.mkProxyWrapArgs config.hakula.llm-assistants.proxy
       ++ [
         "--add-flags"
         "--config ${settingsConfigFile}"

@@ -53,8 +53,6 @@ in
     };
 
     mcp = mcpOptions.mkMcpOptions { names = mcpOptions.commonServerNames; };
-
-    proxy = repoLib.proxy.mkProxyOptions "Claude Code";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -92,7 +90,7 @@ in
       # --------------------------------------------------------------------------------------------
       # Package wrapper
       # --------------------------------------------------------------------------------------------
-      wrapArgs = profiles.wrapArgs ++ repoLib.proxy.mkProxyWrapArgs cfg.proxy;
+      wrapArgs = profiles.wrapArgs ++ repoLib.proxy.mkProxyWrapArgs config.hakula.llm-assistants.proxy;
 
       claudeCodeBin = repoLib.wrapPackage {
         inherit pkgs wrapArgs;
