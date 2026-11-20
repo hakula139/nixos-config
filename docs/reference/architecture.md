@@ -43,7 +43,6 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── aria2.nix                   # Shared aria2 download and RPC settings
 │   ├── builders.nix                # mk* host builders
 │   ├── dev-shells.nix              # `devShells.<system>`, the default and browser shells
-│   ├── nu-command/                 # Nushell command adapter over devkit
 │   ├── overlays.nix                # nixpkgs overlay (channels, CLIs, toolchains, custom packages)
 │   ├── packages.nix                # Base and font package groups for each package set
 │   ├── pre-commit.nix              # Shared devkit hook configuration
@@ -55,6 +54,8 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── wrap-package.nix            # Package wrappers preserving upstream launcher identity
 │   ├── llm-assistants/             # Assistant options, permissions, and profiles
 │   ├── mihomo/                     # Shared mihomo settings, update / start / port-check commands
+│   ├── nu/                         # Nushell modules shared through mkNuCommand `libDirs`
+│   ├── nu-command/                 # Nushell command adapter over devkit
 │   └── wsl/                        # Windows interop helpers (windows-interop.nu)
 ├── modules/
 │   ├── darwin/                     # macOS-specific modules

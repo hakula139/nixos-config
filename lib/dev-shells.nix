@@ -22,6 +22,12 @@ in
     ++ tooling.all;
 
     inputsFrom = [ preCommit ];
+
+    # The checked-in scripts `use` the shared modules by name, which `nu`, `nu-check`, and `nu-test`
+    # resolve through this variable.
+    shellHook = ''
+      export NU_LIB_DIRS="$(git rev-parse --show-toplevel)/lib/nu"
+    '';
   };
 
   browser = pkgs.mkShell {

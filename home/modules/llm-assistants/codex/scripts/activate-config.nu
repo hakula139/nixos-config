@@ -4,17 +4,7 @@
 # Codex Config Activation
 # ==================================================================================================
 
-def save-config [content: string, target: string] {
-  let temporary = (mktemp --tmpdir-path ($target | path dirname) ".config.XXXXXXXXXX")
-
-  try {
-    $content | save --force $temporary
-    ^mv --force $temporary $target
-  } catch {|error|
-    rm --force $temporary
-    error make $error
-  }
-}
+use config-file.nu [open-record save-atomic]
 
 # Mirrors Codex 0.163's `hook_hash` for command handlers without `additionalContextLimit`: the
 # SHA-256 of the key-sorted JSON identity of the event, its matcher, and the handler with its
@@ -96,11 +86,7 @@ def main [
   let config_dir = ($config.configDir | path expand --strict)
   let target = ($config_dir | path join "config.toml")
 
-  mut current = if ($target | path exists) {
-    open --raw $target | from toml
-  } else {
-    {}
-  }
+  mut current = (open-record $target)
 
   # Native profile files may contain project trust and hook review state.
   if ($config.activeProfile | path exists) {
@@ -121,7 +107,7 @@ def main [
     $settings = ($settings | upsert hooks.state $hook_state)
   }
 
-  save-config ($settings | to toml) $target
+  save-atomic ($settings | to toml) $target
 
   if not ($config.keybindings | is-empty) {
     let keybindings_target = ($config_dir | path join "keybindings.json")
@@ -136,6 +122,6 @@ def main [
       | where {|binding| $binding.command not-in $config.keybindings.command }
       | append $config.keybindings
     )
-    save-config ($keybindings | to json) $keybindings_target
+    save-atomic ($keybindings | to json) $keybindings_target
   }
 }

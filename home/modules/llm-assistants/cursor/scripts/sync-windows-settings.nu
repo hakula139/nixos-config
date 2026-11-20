@@ -7,6 +7,8 @@
 # Windows-side keybindings.json with the Nix-managed one.
 # ==================================================================================================
 
+use config-file.nu [save-atomic]
+
 # Cursor grows remote.SSH.remotePlatform (a host -> OS map) at runtime as new Remote-SSH hosts are
 # added on Windows. Those entries are preserved, with Nix winning on shared keys.
 const MERGE_KEY = "remote.SSH.remotePlatform"
@@ -39,7 +41,7 @@ def write-if-changed [label: string, rendered: string, target: path]: nothing ->
     return
   }
 
-  $rendered | save --raw --force $target
+  save-atomic $rendered $target
   print $"($label): synced to ($target)"
 }
 

@@ -78,6 +78,7 @@ def "test activation records golden hook hashes and keeps other state" [] {
 
   let run = (
     ^$nu.current-exe --no-config-file
+      --include-path ($env.NU_LIB_DIRS | str join (char esep))
       $SCRIPT --config $config_file
     | complete
   )
@@ -140,6 +141,7 @@ def "test activation trusts hooks at the canonical config path" [] {
 
     let run = (
       ^$nu.current-exe --no-config-file
+        --include-path ($env.NU_LIB_DIRS | str join (char esep))
         $SCRIPT --config $config_file
       | complete
     )
@@ -191,6 +193,7 @@ def "test activation imports only profiles in the canonical config directory" []
 
     let run = (
       ^$nu.current-exe --no-config-file
+        --include-path ($env.NU_LIB_DIRS | str join (char esep))
         $SCRIPT --config $config_file
       | complete
     )

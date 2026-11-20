@@ -37,11 +37,16 @@ let
     script = ./fixtures/use-lib.nu;
     libDirs = [ ./fixtures/libs ];
   };
+
+  bundled = command {
+    script = ./open-missing.nu;
+  };
 in
 pkgs.runCommand "nu-command-check" { nativeBuildInputs = [ pkgs.nushell ]; } ''
   nu --no-config-file ${./test.nu} \
     ${pkgs.lib.getExe configured} \
     ${pkgs.lib.getExe plain} \
-    ${pkgs.lib.getExe withLib}
+    ${pkgs.lib.getExe withLib} \
+    ${pkgs.lib.getExe bundled}
   touch "$out"
 ''

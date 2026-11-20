@@ -48,6 +48,7 @@ def activate [base_dir: path, user_settings?: string]: nothing -> path {
 
   let run = (
     ^$nu.current-exe --no-config-file
+      --include-path ($env.NU_LIB_DIRS | str join (char esep))
       $SCRIPT --config $config_file
     | complete
   )

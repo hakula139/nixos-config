@@ -4,6 +4,8 @@
 # Auth Profile Switcher
 # ==================================================================================================
 
+use config-file.nu [open-record save-atomic]
+
 # `glob` rather than `ls`, which raises when no profile has been written yet.
 def profile-names [config: record]: nothing -> list<string> {
   glob ($config.profilesDir | path join $"*.($config.extension)")
@@ -45,11 +47,7 @@ def list-profiles [config: record, active_link: string, --stderr]: nothing -> no
 }
 
 def write-config [config: record, profile: path] {
-  let current = if ($config.configFile | path exists) {
-    open $config.configFile
-  } else {
-    {}
-  }
+  let current = (open-record $config.configFile)
   let reset_paths = ($config.resetKeys | each { split row "." | into cell-path })
   let settings = (
     $current
@@ -60,17 +58,8 @@ def write-config [config: record, profile: path] {
     "toml" => { $settings | to toml }
     "yml" | "yaml" => { $settings | to yaml }
   }
-  let directory = ($config.configFile | path dirname)
-  mkdir $directory
-  let temporary = (mktemp --tmpdir-path $directory ".profile-config.XXXXXXXXXX")
-
-  try {
-    $serialized | save --force $temporary
-    ^mv --force $temporary $config.configFile
-  } catch {|error|
-    rm --force $temporary
-    error make $error
-  }
+  mkdir ($config.configFile | path dirname)
+  save-atomic $serialized $config.configFile
 }
 
 # Switch the active auth profile, or list the available ones.

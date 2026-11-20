@@ -139,6 +139,7 @@
         import ./lib/pre-commit.nix {
           pkgs = pkgsFor system;
           inherit inputs;
+          nuLibDirs = [ ./lib/nu ];
         };
 
       # --------------------------------------------------------------------------------------------
