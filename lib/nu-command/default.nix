@@ -5,6 +5,7 @@
 {
   lib,
   devkit,
+  nuModules,
 }:
 
 {
@@ -25,12 +26,6 @@ let
     lib.optionalAttrs (config != null) { config = json.generate "${name}.json" config; } // flags;
 
   dk = devkit.lib.mkLib pkgs;
-
-  # The shared Nushell modules, which a script `use`s by file name, such as `config-file.nu`.
-  nuModules = lib.fileset.toSource {
-    root = ../nu;
-    fileset = lib.fileset.fileFilter (file: !(lib.hasSuffix ".test.nu" file.name)) ../nu;
-  };
 in
 dk.writeNuApplication {
   inherit

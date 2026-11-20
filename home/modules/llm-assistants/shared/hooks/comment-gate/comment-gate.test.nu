@@ -6,6 +6,7 @@
 
 use std/assert
 use std-rfc/str
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "comment-gate.nu")
@@ -36,13 +37,9 @@ def gate [env_vars: record]: nothing -> any {
   }
 
   let run = with-env $env_vars {
-    (
-      $payload
-      | to json
-      | ^$nu.current-exe --no-config-file
-        $SCRIPT --config $config_file
-      | complete
-    )
+    $payload
+    | to json
+    | run-script $SCRIPT --config $config_file
   }
   assert equal $run.exit_code 0 $run.stderr
 

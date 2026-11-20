@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "activate-config.nu")
@@ -76,12 +77,7 @@ def "test activation records golden hook hashes and keeps other state" [] {
   | to json
   | save $config_file
 
-  let run = (
-    ^$nu.current-exe --no-config-file
-      --include-path ($env.NU_LIB_DIRS | str join (char esep))
-      $SCRIPT --config $config_file
-    | complete
-  )
+  let run = run-script $SCRIPT --config $config_file
   assert equal $run.exit_code 0 $run.stderr
 
   let trusted = (
@@ -139,12 +135,7 @@ def "test activation trusts hooks at the canonical config path" [] {
     | to json
     | save $config_file
 
-    let run = (
-      ^$nu.current-exe --no-config-file
-        --include-path ($env.NU_LIB_DIRS | str join (char esep))
-        $SCRIPT --config $config_file
-      | complete
-    )
+    let run = run-script $SCRIPT --config $config_file
     assert equal $run.exit_code 0 $run.stderr
 
     let key = $"($canonical)/config.toml:stop:0:0"
@@ -191,12 +182,7 @@ def "test activation imports only profiles in the canonical config directory" []
     | to json
     | save $config_file
 
-    let run = (
-      ^$nu.current-exe --no-config-file
-        --include-path ($env.NU_LIB_DIRS | str join (char esep))
-        $SCRIPT --config $config_file
-      | complete
-    )
+    let run = run-script $SCRIPT --config $config_file
     assert equal $run.exit_code 0 $run.stderr
 
     let projects = (open ($canonical | path join "config.toml") | get -o projects)

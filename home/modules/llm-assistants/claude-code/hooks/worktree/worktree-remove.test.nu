@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "worktree-remove.nu")
@@ -19,13 +20,9 @@ def invoke [payload: record, vars: record]: nothing -> record {
     }
     | merge $vars
   ) {
-    (
-      $payload
-      | to json
-      | ^$nu.current-exe --no-config-file
-        $SCRIPT
-      | complete
-    )
+    $payload
+    | to json
+    | run-script $SCRIPT
   }
 
   {run: $run, calls: (if ($log | path exists) { open $log | from json --objects } else { [] })}

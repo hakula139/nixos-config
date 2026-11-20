@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "update.nu")
@@ -59,11 +60,7 @@ def run-update [
     STUB_CURL_BODY: $body
     STUB_MIHOMO_STATUS: ($mihomo_status | into string)
   } {
-    (
-      ^$nu.current-exe --no-config-file
-        $SCRIPT --config $config_file
-      | complete
-    )
+    run-script $SCRIPT --config $config_file
   }
 
   let staging = (

@@ -6,14 +6,19 @@
 
 use std/assert
 use std-rfc/str
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "patch-input.nu")
 
 def parse-patch [patch: string]: nothing -> list<record> {
-  $patch
-  | ^$nu.current-exe --no-config-file $SCRIPT
-  | from json
+  let run = (
+    $patch
+    | run-script $SCRIPT
+  )
+  assert equal $run.exit_code 0 $run.stderr
+
+  $run.stdout | from json
 }
 
 def "test reports each file with only its added lines" [] {

@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "control.nu")
@@ -33,12 +34,10 @@ def control [
     STUB_UP_FLAG: $up_flag
   } {
     (
-      ^$nu.current-exe --no-config-file
-        $SCRIPT
-          --user-name example-user
-          --up-flag $up_flag
-          ...$argv
-      | complete
+      run-script $SCRIPT
+        --user-name example-user
+        --up-flag $up_flag
+        ...$argv
     )
   }
 

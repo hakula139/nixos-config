@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "sync-extensions.nu")
@@ -50,11 +51,7 @@ def sync [
     STUB_LISTING_EXIT: ($listing_exit | into string)
     STUB_FAILING_ID: $failing_id
   } {
-    (
-      ^$nu.current-exe --no-config-file
-        $SCRIPT --config $config
-      | complete
-    )
+    run-script $SCRIPT --config $config
   }
 
   {

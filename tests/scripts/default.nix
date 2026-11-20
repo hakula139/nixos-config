@@ -28,8 +28,7 @@ let
 in
 pkgs.runCommand "script-tests"
   {
-    # The checked-in scripts `use` the shared modules by name.
-    env.NU_LIB_DIRS = "${../../lib/nu}";
+    env.NU_LIB_DIRS = "${repoLib.nuTestLib}";
 
     nativeBuildInputs = [
       pkgs.direnv

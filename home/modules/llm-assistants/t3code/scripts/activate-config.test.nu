@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "activate-config.nu")
@@ -46,12 +47,7 @@ def activate [base_dir: path, user_settings?: string]: nothing -> path {
   | to json
   | save --force $config_file
 
-  let run = (
-    ^$nu.current-exe --no-config-file
-      --include-path ($env.NU_LIB_DIRS | str join (char esep))
-      $SCRIPT --config $config_file
-    | complete
-  )
+  let run = run-script $SCRIPT --config $config_file
   assert equal $run.exit_code 0 $run.stderr
 
   $target

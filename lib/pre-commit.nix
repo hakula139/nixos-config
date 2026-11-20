@@ -5,7 +5,7 @@
 {
   pkgs,
   inputs,
-  nuLibDirs ? [ ],
+  repoLib,
 }:
 
 (inputs.devkit.lib.mkLib pkgs).preCommit {
@@ -16,7 +16,7 @@
     end-of-file-fixer.excludes = [ "\\.age$" ];
     nu-check = {
       enable = true;
-      settings.libDirs = nuLibDirs;
+      settings.libDirs = [ repoLib.nuTestLib ];
     };
     prettier.enable = true;
     ruff.enable = true;

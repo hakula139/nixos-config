@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "render-config.nu")
@@ -55,11 +56,7 @@ def render [min_level: string]: nothing -> record {
   | to json
   | save $config_file
 
-  let run = (
-    ^$nu.current-exe --no-config-file
-      $SCRIPT --config $config_file
-    | complete
-  )
+  let run = run-script $SCRIPT --config $config_file
   {run: $run, output: $output}
 }
 

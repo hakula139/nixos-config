@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "model-call.nu")
@@ -34,13 +35,9 @@ def call [request: record, reply: record]: nothing -> record {
   | save $config_file
 
   let run = with-env {STUB_LOG: $log, STUB_REPLY: ($reply | to json)} {
-    (
-      $request
-      | to json
-      | ^$nu.current-exe --no-config-file
-        $SCRIPT --config $config_file
-      | complete
-    )
+    $request
+    | to json
+    | run-script $SCRIPT --config $config_file
   }
   {run: $run, calls: (open $log | from json --objects), token_file: $token_file}
 }

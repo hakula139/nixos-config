@@ -137,9 +137,8 @@
       preCommitFor =
         system:
         import ./lib/pre-commit.nix {
+          inherit inputs repoLib;
           pkgs = pkgsFor system;
-          inherit inputs;
-          nuLibDirs = [ ./lib/nu ];
         };
 
       # --------------------------------------------------------------------------------------------

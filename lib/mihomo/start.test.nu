@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "start.nu")
@@ -34,11 +35,9 @@ def "test mihomo replaces the start process unless a failed update finds no conf
       STUB_UPDATE_STATUS: ($case.update_status | into string)
     } {
       (
-        ^$nu.current-exe --no-config-file
-          $SCRIPT
-            --config-dir $config_dir
-            --external-ui $external_ui
-        | complete
+        run-script $SCRIPT
+          --config-dir $config_dir
+          --external-ui $external_ui
       )
     }
     let context = $"($case.name): ($run.stderr)"

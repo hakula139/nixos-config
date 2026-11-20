@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "prose-polish.nu")
@@ -44,13 +45,11 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
     STUB_LOG: $log
     STUB_RULES: $rules_file
   } {
-    (
-      $stdin
-      | ^$nu.current-exe --no-config-file
-        $SCRIPT
-          --config $config_file
-          ...$args
-      | complete
+    $stdin
+    | (
+      run-script $SCRIPT
+        --config $config_file
+        ...$args
     )
   }
   let calls = if ($log | path exists) {

@@ -6,12 +6,13 @@
 
 use std/assert
 use std-rfc/str
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "hosts.nu")
 
 def rewrite [hosts_file: path, hostname: string]: nothing -> string {
-  let run = (^$nu.current-exe --no-config-file $SCRIPT $hosts_file $hostname | complete)
+  let run = run-script $SCRIPT $hosts_file $hostname
   assert equal $run.exit_code 0 $run.stderr
 
   $run.stdout
@@ -104,10 +105,7 @@ def "test hostname transitions preserve unrelated entries and are idempotent" []
 def "test an unreadable hosts file does not produce a replacement entry" [] {
   let hosts_file = ((mktemp --directory) | path join "missing")
 
-  let run = (
-    ^$nu.current-exe --no-config-file $SCRIPT $hosts_file new-gateway.example.test
-    | complete
-  )
+  let run = run-script $SCRIPT $hosts_file new-gateway.example.test
 
   assert not equal $run.exit_code 0
   assert equal $run.stdout ""

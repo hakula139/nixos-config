@@ -8,15 +8,32 @@
 }:
 
 let
-  wrapPackage = import ./wrap-package.nix { inherit lib; };
-  mkNuCommand = import ./nu-command { inherit lib devkit; };
+  nuRuntimeFiles = lib.fileset.fileFilter (
+    file: !(lib.hasSuffix ".test.nu" file.name || lib.hasSuffix ".testlib.nu" file.name)
+  ) ./nu;
+
+  nuModules = lib.fileset.toSource {
+    root = ./nu;
+    fileset = nuRuntimeFiles;
+  };
+
+  nuTestLib = lib.fileset.toSource {
+    root = ./nu;
+    fileset = lib.fileset.union nuRuntimeFiles (
+      lib.fileset.fileFilter (file: lib.hasSuffix ".testlib.nu" file.name) ./nu
+    );
+  };
+
+  mkNuCommand = import ./nu-command { inherit lib devkit nuModules; };
   proxy = import ./proxy.nix { inherit lib; };
+  wrapPackage = import ./wrap-package.nix { inherit lib; };
 in
 {
   inherit
-    wrapPackage
     mkNuCommand
+    nuTestLib
     proxy
+    wrapPackage
     ;
 
   aria2 = import ./aria2.nix;

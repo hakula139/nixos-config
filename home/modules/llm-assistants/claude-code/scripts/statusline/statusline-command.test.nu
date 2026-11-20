@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "statusline-command.nu")
@@ -131,14 +132,12 @@ def invoke-statusline [
     STUB_MV_FAIL: (if $fail_mv { "1" } else { "0" })
     TZ: "UTC"
   } {
-    (
-      {workspace: {current_dir: $cwd}}
-      | to json
-      | ^$nu.current-exe --no-config-file
-        $SCRIPT
+    {workspace: {current_dir: $cwd}}
+    | to json
+    | (
+      run-script $SCRIPT
         --config $config
         --cache $cache
-      | complete
     )
   }
 

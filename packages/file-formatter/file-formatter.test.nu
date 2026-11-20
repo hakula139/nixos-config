@@ -6,6 +6,7 @@
 
 use std/assert
 use std-rfc/str
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "file-formatter.nu")
@@ -69,7 +70,7 @@ def run-formatter [cwd: string, ...paths: string]: nothing -> record {
       XDG_DATA_HOME: ($env.TMPDIR | path join "data")
     } {
       cd $cwd
-      ^$nu.current-exe --no-config-file $SCRIPT -- ...$paths | complete
+      run-script $SCRIPT -- ...$paths
     }
   )
   {
@@ -79,11 +80,7 @@ def run-formatter [cwd: string, ...paths: string]: nothing -> record {
 }
 
 def "test help prints the usage" [] {
-  let result = (
-    ^$nu.current-exe --no-config-file
-      $SCRIPT --help
-    | complete
-  )
+  let result = run-script $SCRIPT --help
 
   assert equal $result.exit_code 0
   assert ($result.stdout | str contains "Usage")

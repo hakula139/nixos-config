@@ -39,7 +39,7 @@ let
   };
 
   bundled = command {
-    script = ./open-missing.nu;
+    script = ./fixtures/open-missing.nu;
   };
 in
 pkgs.runCommand "nu-command-check" { nativeBuildInputs = [ pkgs.nushell ]; } ''

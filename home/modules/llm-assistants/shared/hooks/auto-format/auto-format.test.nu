@@ -5,6 +5,7 @@
 # ==================================================================================================
 
 use std/assert
+use test-runner.testlib.nu [run-script]
 
 const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "auto-format.nu")
@@ -47,12 +48,8 @@ def run-event [
     STUB_EXIT: $exit_code
     STUB_STDERR: $stderr
   } {
-    (
-      $payload
-      | ^$nu.current-exe --no-config-file
-        $SCRIPT --config $config_file
-      | complete
-    )
+    $payload
+    | run-script $SCRIPT --config $config_file
   }
   assert equal $run.exit_code 0 $run.stderr
 
