@@ -32,8 +32,16 @@ let
   };
 
   plain = command { };
+
+  withLib = command {
+    script = ./fixtures/use-lib.nu;
+    libDirs = [ ./fixtures/libs ];
+  };
 in
 pkgs.runCommand "nu-command-check" { nativeBuildInputs = [ pkgs.nushell ]; } ''
-  nu --no-config-file ${./test.nu} ${pkgs.lib.getExe configured} ${pkgs.lib.getExe plain}
+  nu --no-config-file ${./test.nu} \
+    ${pkgs.lib.getExe configured} \
+    ${pkgs.lib.getExe plain} \
+    ${pkgs.lib.getExe withLib}
   touch "$out"
 ''

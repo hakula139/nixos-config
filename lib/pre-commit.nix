@@ -5,6 +5,7 @@
 {
   pkgs,
   inputs,
+  nuLibDirs ? [ ],
 }:
 
 (inputs.devkit.lib.mkLib pkgs).preCommit {
@@ -13,7 +14,10 @@
   hooks = {
     doctoc.enable = true;
     end-of-file-fixer.excludes = [ "\\.age$" ];
-    nu-check.enable = true;
+    nu-check = {
+      enable = true;
+      settings.libDirs = nuLibDirs;
+    };
     prettier.enable = true;
     ruff.enable = true;
     ruff-format.enable = true;

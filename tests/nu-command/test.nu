@@ -3,12 +3,13 @@
 # ==================================================================================================
 # Nushell Command Test
 # ==================================================================================================
-# Asserts the adapter's translation of `config` and `flags`, which devkit's tests do not cover.
+# Asserts the adapter's translation of `config`, `flags`, and `libDirs`, which devkit's tests do
+# not cover.
 # ==================================================================================================
 
 use std/assert
 
-def main [configured: path, plain: path] {
+def main [configured: path, plain: path, with_lib: path] {
   assert equal (^$configured | from json) {
     config: { name: "adapter", nested: { value: 2 } }
     mode: "fast"
@@ -20,4 +21,6 @@ def main [configured: path, plain: path] {
     mode: null
     count: null
   }
+
+  assert equal (^$with_lib | str trim) "hello adapter"
 }

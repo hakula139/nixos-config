@@ -130,11 +130,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794923342,
-        "narHash": "sha256-x2TyZ5oMuSe6Pi0gvBYU8m3ciS7nW1Qlw7inZ7w5ZNk=",
+        "lastModified": 1795147333,
+        "narHash": "sha256-Wiexig9XzXNIqG3QSKM1smhQyFV3UYyw/xNGCPYXkdg=",
         "owner": "hakula139",
         "repo": "devkit",
-        "rev": "d4ce90a2d4039e6218f744fc5b87a60d59824df5",
+        "rev": "1b5f01fa2af3c77cecbb7e624a5e855ed6e2b80c",
         "type": "github"
       },
       "original": {

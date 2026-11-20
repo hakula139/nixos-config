@@ -12,6 +12,7 @@
   name,
   script,
   runtimeInputs ? [ ],
+  libDirs ? [ ],
   config ? null,
   flags ? { },
   makeWrapperArgs ? [ ],
@@ -26,10 +27,14 @@ let
   dk = devkit.lib.mkLib pkgs;
 in
 dk.writeNuApplication {
-  inherit name runtimeInputs;
+  inherit
+    name
+    runtimeInputs
+    libDirs
+    makeWrapperArgs
+    ;
 
   text = builtins.readFile script;
 
   flags = wrapperFlags;
-  inherit makeWrapperArgs;
 }

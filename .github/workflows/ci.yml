@@ -9,9 +9,6 @@ on:
     - cron: '0 20 * * *' # Nominally 04:00 Asia/Shanghai; GitHub may delay it
   workflow_dispatch:
 
-env:
-  CACHIX_NAME: hakula
-
 jobs:
   flake-check:
     uses: hakula139/devkit/.github/workflows/nix.yml@v3
@@ -93,20 +90,9 @@ jobs:
 
       - name: Pin critical store paths
         if: matrix.config.cachix_pins && github.ref == 'refs/heads/main'
-        env:
-          CACHIX_PINS: ${{ toJSON(matrix.config.cachix_pins) }}
-        run: |
-          set -euo pipefail
-          jq -r 'to_entries[] | [.key, .value] | @tsv' <<< "$CACHIX_PINS" |
-            while IFS=$'\t' read -r pin_name pin_root; do
-              store_path=$(
-                nix build "$pin_root" \
-                  --no-link \
-                  --print-out-paths
-              )
-              cachix push "$CACHIX_NAME" "$store_path"
-              cachix pin "$CACHIX_NAME" "$pin_name" "$store_path" --keep-revisions 2
-            done
+        uses: hakula139/devkit/.github/actions/cachix-pin@v3
+        with:
+          pins: ${{ toJSON(matrix.config.cachix_pins) }}
 
       - name: Check system closure size
         run: |
