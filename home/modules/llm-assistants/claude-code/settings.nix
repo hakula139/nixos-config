@@ -66,6 +66,7 @@
   # Sessions
   # ------------------------------------------------------------------------------------------------
   crossSessionInbound = "accept";
+  teammateMode = "in-process";
 
   awaySummaryEnabled = false;
 
