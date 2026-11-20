@@ -1,6 +1,6 @@
 ## Read before you act
 
-Read the linked guide before starting work in its area, applying devkit's guides by default while preserving justified repository-specific requirements:
+Before your first edit or command in any installed or repository-local skill's area, load every matching skill if it is not already in context. Read the linked guide before starting work in its area, applying devkit's guides by default while preserving justified repository-specific requirements:
 
 | When the task involves                                                | Read                                     |
 | --------------------------------------------------------------------- | ---------------------------------------- |
@@ -38,7 +38,7 @@ Secrets live at `/run/agenix/<service>/<secret>`, in environment variables, and 
 
 ## Environment and Shell
 
-The configuration repository is nixos-config (`${XDG_CONFIG_HOME:-$HOME/.config}/nixos-config/repository`), whose `AGENTS.md` locates the sources. Prefer relevant installed skills, and if a tool or the environment misbehaves, hand the repair to `harness-repair` and continue the main task.
+The configuration repository is nixos-config (`${XDG_CONFIG_HOME:-$HOME/.config}/nixos-config/repository`), whose `AGENTS.md` locates the sources. If a tool or the environment misbehaves, hand the repair to `harness-repair` and continue the main task.
 
 - **Terminal sessions**: Once the task is clear, a top-level interactive agent runs `tmux-task-name <short-hyphenated-name>` (delegated, headless, and background runs skip it). See [Terminals and Workmux] for session layout, Workmux workers, and interactive panes.
 - **Dev shells**: Enter a repository's dev shell only from within that repository so its hook does not install Git hooks elsewhere. Get standalone tools from `PATH`, `nix shell nixpkgs#<pkg> -c`, or `nix develop nixos-config#browser`.
