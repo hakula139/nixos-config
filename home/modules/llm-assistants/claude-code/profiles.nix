@@ -49,6 +49,7 @@ let
           lib.nameValuePair "ANTHROPIC_DEFAULT_${lib.toUpper alias}_MODEL" (aliasModelId workloads.${tier})
         ) modelAliases.claude
         // {
+          ANTHROPIC_DEFAULT_MODEL = modelAliases.claude.${profile.defaultModelTier};
           CLAUDE_CODE_SUBAGENT_MODEL = modelAliases.claude.${roleTiers.task.modelTier};
         };
 
@@ -410,7 +411,6 @@ in
   ];
 
   settings = {
-    model = modelAliases.claude.${roleTiers.default.modelTier};
     processWrapper = "${processWrapper}";
   };
 }

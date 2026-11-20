@@ -80,6 +80,7 @@ let
 
     google = {
       family = "gemini";
+      defaultModelTier = "standard";
       nativeWebSearch = false;
     };
 
@@ -209,10 +210,19 @@ let
         effortTier = "flagship";
       };
 
-      roles = lib.mapAttrs (_: resolveWorkload) roleTiers;
+      profileRoleTiers =
+        roleTiers
+        // lib.optionalAttrs (profile ? defaultModelTier) {
+          default = roleTiers.default // {
+            modelTier = profile.defaultModelTier;
+          };
+        };
+
+      roles = lib.mapAttrs (_: resolveWorkload) profileRoleTiers;
     in
     {
       inherit (profile) provider;
+      defaultModelTier = profileRoleTiers.default.modelTier;
       nativeWebSearch =
         profile.nativeWebSearch or gatewayChannels.${roles.default.channel}.nativeWebSearch;
       oauthTokenSecret = profile.oauthTokenSecret or null;
