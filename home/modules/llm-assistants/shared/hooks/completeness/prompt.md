@@ -13,6 +13,7 @@ Return `ok: true` when every open item is one of these:
 - **Done.** The transcript supports each claim of success, no check fails, and in-scope docs and tests are updated. Work finished in an earlier turn counts, and so does a delegate's report already relayed in one.
 - **The user's decision.** The assistant asks about a new subsystem's design or the choices it recorded, or seeks authorization for an action that needs it, including one a permission check denied. Findings from a review-only or report-only request count too.
 - **Delegated or waiting.** A running subagent or teammate owns it and has not delivered its result yet, even if it has not acknowledged the assignment, or a process the assistant started, such as CI, a queued auto-merge, or a timer, is still running. Steps that depend on those results wait too.
+- **Left by an empty response.** The assistant's final response came back empty, so `last_assistant_message` is missing or empty. Claude Code has already retried that response once, and another block would only repeat it.
 
 ## Block the stop
 
@@ -31,4 +32,4 @@ Many turns are complete or are check-ins where the user, or in a teammate's sess
 
 ## Output
 
-Reply with a single JSON object and no other text, always including a `reason`. Set `ok: true`, or `ok: false` with a `reason` naming the item and whether to finish or delegate it. If the item cannot be completed in this session and the assistant has reported that, add `impossible: true`.
+Reply with a single JSON object and no other text, always including a `reason`. Set `ok: true`, or `ok: false` with a `reason` naming the item and whether to finish or delegate it. If the item cannot be completed in this session and the assistant has reported that, set `ok: false` with `impossible: true`.
