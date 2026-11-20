@@ -82,8 +82,14 @@ in
       };
 
       remoteFiles = import ./remote.nix {
-        inherit pkgs lib systemManagerPaths;
+        inherit
+          pkgs
+          lib
+          repoLib
+          systemManagerPaths
+          ;
         inherit (settings) machineSettingsJson;
+        proxyCfg = config.hakula.llm-assistants.proxy;
       };
 
       windowsSync = import ./windows-sync.nix {

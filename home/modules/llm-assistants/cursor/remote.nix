@@ -5,8 +5,10 @@
 {
   pkgs,
   lib,
+  repoLib,
   systemManagerPaths,
   machineSettingsJson,
+  proxyCfg,
 }:
 
 let
@@ -26,6 +28,8 @@ let
     export PATH
 
     export TMUX_TMPDIR="''${XDG_RUNTIME_DIR:-"/run/user/$(id -u)"}"
+
+    ${lib.optionalString proxyCfg.enable (repoLib.proxy.mkProxyScript proxyCfg)}
   '';
 in
 {
