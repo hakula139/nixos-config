@@ -204,11 +204,11 @@
         "nixpkgs-unstable": "nixpkgs-unstable_3"
       },
       "locked": {
-        "lastModified": 1794923342,
-        "narHash": "sha256-x2TyZ5oMuSe6Pi0gvBYU8m3ciS7nW1Qlw7inZ7w5ZNk=",
+        "lastModified": 1795147333,
+        "narHash": "sha256-Wiexig9XzXNIqG3QSKM1smhQyFV3UYyw/xNGCPYXkdg=",
         "owner": "hakula139",
         "repo": "devkit",
-        "rev": "d4ce90a2d4039e6218f744fc5b87a60d59824df5",
+        "rev": "1b5f01fa2af3c77cecbb7e624a5e855ed6e2b80c",
         "type": "github"
       },
       "original": {
@@ -351,11 +351,11 @@
         "wakatime-cli": "wakatime-cli"
       },
       "locked": {
-        "lastModified": 1795001350,
-        "narHash": "sha256-6SCM60rP5jA8En6fVag+fSq+tnWsodpnvZNyubFQk2g=",
+        "lastModified": 1795158240,
+        "narHash": "sha256-Hb7Wr7wzFmiIInLV7b+gk3Q5AVlmXTvnoUmh0vA9HgQ=",
         "owner": "hakula139",
         "repo": "flake-catalog",
-        "rev": "f978056a1b783e444d5863f76af43dbac951224d",
+        "rev": "aea178ae06342986704897fbf2dd59361593e47a",
         "type": "github"
       },
       "original": {
@@ -1272,11 +1272,11 @@
         "nixpkgs": "nixpkgs_6"
       },
       "locked": {
-        "lastModified": 1794970681,
-        "narHash": "sha256-xTjTATkmyC2B+zUs7sSFjBgN3+ESNIpQ6+MUOl8YuNM=",
+        "lastModified": 1795093657,
+        "narHash": "sha256-vXrmX7z3HuNnqXQpUBC74Xzsg42sybg7GHopP5K1pr0=",
         "owner": "hakula139",
         "repo": "plugins",
-        "rev": "afa5a92569dd83b2c6b07b2ff40fa7899c3fb016",
+        "rev": "77e971d80ccfd873bd6e0e86bd0a9bcf4f64524a",
         "type": "github"
       },
       "original": {
