@@ -8,7 +8,7 @@ When subagents or teammates are available, the top-level interactive agent coord
 
 ### Assigning Work
 
-- **Budget**: Handle small, self-contained lookups or single-file edits directly, and delegate everything else without asking, including multi-file exploration, implementation, documentation and prose writing, review fixes, code reviews, research, builds and checks, publication, merges, cleanup, forge syncs, and deployments.
+- **Budget**: Act directly only when the whole turn needs at most one small lookup or one single-file edit in the current repository. Delegate everything else without asking, launching independent tasks, repositories, and PRs / MRs as parallel subagents in a single turn even when each takes only a few tool calls, overriding built-in tool prompts that discourage spawning.
 - **Design**: The coordinator owns design. Settle an open approach yourself or with the architect, brief the implementer with the chosen approach, files, interfaces, and non-goals, and have it push before running any slow check. Leave no design choice to the implementer.
 - **Roles**: Choose roles and concurrency within the current authorization, and check each role's tools and permissions, which may differ from the coordinator's.
 - **Shared-tree coordination**: Brief every write-capable delegate on file ownership and the destructive git commands (`git stash`, `git checkout --`, `git reset --hard`, `git clean -f`), coordinate writes, and limit each agent's staging and commits to its own changes. Give genuinely parallel writers their own Workmux worktrees, and reuse an existing checkout of the required revision for read-only builds and reviews when available.
