@@ -36,6 +36,7 @@ in
     ./podman
     ./postgresql
     ./ssh
+    ./tailscale
     ./umami
     ./xray
 
@@ -44,6 +45,7 @@ in
     ../shared/llm-assistants
     ../shared/nix-caches
     ../shared/nix-gc
+    ../shared/tailscale
     ../shared/user
     ../shared/user-secrets
   ];

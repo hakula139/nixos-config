@@ -39,6 +39,7 @@ in
     ../shared/cachix
     ../shared/llm-assistants
     ../shared/nix-caches
+    ../shared/tailscale
     ../shared/user
     ../shared/user-secrets
   ];

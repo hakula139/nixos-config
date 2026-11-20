@@ -27,7 +27,7 @@
   # ------------------------------------------------------------------------------------------------
   hakula.services.mihomo.enable = true;
   hakula.services.openssh.enable = true;
-  services.tailscale.enable = true;
+  hakula.services.tailscale.enable = true;
 
   # ------------------------------------------------------------------------------------------------
   # Home Manager Overrides
