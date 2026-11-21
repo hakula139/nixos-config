@@ -49,6 +49,19 @@ def "test save-atomic creates a missing target" [] {
   save-atomic "{}" $target
 
   assert equal (open --raw $target) "{}"
+  assert equal (ls --long $target | get mode.0) "rw-------"
+}
+
+def "test save-atomic publishes the requested mode" [] {
+  let dir = (mktemp --directory)
+  let target = ($dir | path join "shared.json")
+  "old" | save $target
+  chmod 600 $target
+
+  save-atomic "{}" $target --mode "0644"
+
+  assert equal (open --raw $target) "{}"
+  assert equal (ls --long $target | get mode.0) "rw-r--r--"
 }
 
 def "test save-atomic removes the temporary file when the replace fails" [] {
