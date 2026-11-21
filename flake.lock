@@ -130,11 +130,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795147333,
-        "narHash": "sha256-Wiexig9XzXNIqG3QSKM1smhQyFV3UYyw/xNGCPYXkdg=",
+        "lastModified": 1795289466,
+        "narHash": "sha256-drfskX2h67EfUsPwM7WaN+IWeabTcbiEWXUdCGg223I=",
         "owner": "hakula139",
         "repo": "devkit",
-        "rev": "1b5f01fa2af3c77cecbb7e624a5e855ed6e2b80c",
+        "rev": "df16cc533cdf8ba99c9b1b5d606f729df5e5dc68",
         "type": "github"
       },
       "original": {
@@ -351,11 +351,11 @@
         "wakatime-cli": "wakatime-cli"
       },
       "locked": {
-        "lastModified": 1795287449,
-        "narHash": "sha256-Kslrg8E9GmXyDT1BoTEOIcbwj1VxFZ28hKXpDtIS6/Q=",
+        "lastModified": 1795290804,
+        "narHash": "sha256-lqLjg1x0dwqZdigEJGgte1C2eb6dZDpqtoHzM7Nufsg=",
         "owner": "hakula139",
         "repo": "flake-catalog",
-        "rev": "050cc6e5ae22848fb455176199497ca664a3d61a",
+        "rev": "5353339f5535182765fe5fb1feca6f7c9ddb0860",
         "type": "github"
       },
       "original": {
@@ -896,11 +896,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1795219514,
-        "narHash": "sha256-AlxiGWrWWSMV+RUH7etGaIoowUxLt964eLz+deyPuhI=",
+        "lastModified": 1795241446,
+        "narHash": "sha256-v8/CnsHh4/p58E5d0k208omIYUUu6EruiKRIYYNNuE0=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "ed26b9705c2b8300c822a22cf1f033e6b44039d7",
+        "rev": "a59764a6424689d67c1bd9070fd48afa44a47ee0",
         "type": "github"
       },
       "original": {
@@ -1103,11 +1103,11 @@
     },
     "nixpkgs-unstable_8": {
       "locked": {
-        "lastModified": 1795085501,
-        "narHash": "sha256-S5keGWzaKpuXo9MNoIC2FfTIuTyTnx8P4NhYJMEsTLI=",
+        "lastModified": 1795234589,
+        "narHash": "sha256-f/VVvxf5RsQgWVhUtefoca5ktVg0DA2bnkMOcmSnozo=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "0bb8272318b4ca41bf0edc6224df3e3e3046b70d",
+        "rev": "2786a2a72088ecf32aea5b3ec52099e6a7cff78f",
         "type": "github"
       },
       "original": {
@@ -1360,11 +1360,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795168384,
-        "narHash": "sha256-aQ4Ns5O78Pg6B1i2hNRbI1HpRtnZst/jW34MSOOeaX4=",
+        "lastModified": 1795253373,
+        "narHash": "sha256-Vg6Sg8gJCDG9qpVEdOZX+72Z50MLwdnwtfZ8FNBwiYI=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "a5c999945da3991d7aa3cc2a6075cfd22bd387e9",
+        "rev": "52db20539ec0ba063479d66092992d9efcf456ff",
         "type": "github"
       },
       "original": {
@@ -1499,13 +1499,13 @@
       "locked": {
         "lastModified": 1795286792,
         "narHash": "sha256-TtstCeqvIPnYEZsB4wp+NzcpXwFO1FabiMPxReAIpAM=",
-        "owner": "hakula139",
+        "owner": "hakulab",
         "repo": "wakatime-cli",
         "rev": "cbcee226cc46cfbf490a5652584b8090157520cb",
         "type": "github"
       },
       "original": {
-        "owner": "hakula139",
+        "owner": "hakulab",
         "repo": "wakatime-cli",
         "type": "github"
       }
