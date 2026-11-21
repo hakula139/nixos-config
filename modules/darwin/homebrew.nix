@@ -79,17 +79,16 @@ in
     # ----------------------------------------------------------------------------------------------
     masApps = {
       "AdGuard for Safari" = 1440147259;
-      Bitwarden = 1352778147;
+      "Bitwarden" = 1352778147;
       "Dark Reader for Safari" = 1438243180;
-      Keynote = 409183694;
-      Numbers = 409203825;
-      ONEW = 1670048788;
-      Pages = 409201541;
+      "Keynote" = 409183694;
+      "Numbers" = 409203825;
+      "Pages" = 409201541;
       "Steam Link" = 1246969117;
-      Userscripts = 1463298887;
-      WeChat = 836500024;
+      "Userscripts" = 1463298887;
+      "WeChat" = 836500024;
       "Windows App" = 1295203466;
-      Xcode = 497799835;
+      "Xcode" = 497799835;
     };
   };
 
