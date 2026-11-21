@@ -216,6 +216,7 @@ numtide
 nuon
 nvcr
 nvim
+ONEW
 oomd
 optimise
 osascript
