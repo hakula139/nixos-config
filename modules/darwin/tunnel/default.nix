@@ -40,7 +40,6 @@ let
     };
 
     # Keep descriptor 9 open across target selection and launchctl calls.
-    # cspell:ignore EUID lockf
     makeWrapperArgs = [
       "--run"
       ''
