@@ -48,7 +48,10 @@ def control [
       with-env {STUB_REPLIES: "[]"} { do $invoke $follow_up }
     }
 
-    {first: $first, follow_up: $follow_up_run}
+    {
+      first: $first
+      follow_up: $follow_up_run
+    }
   }
 
   {
@@ -81,16 +84,24 @@ def "test startup targets the configured account and checks Tailscale first" [] 
   }
   assert equal (launchctl-calls $result) [
     [command args];
-    ["launchctl" [kickstart $SSH]]
+    ["launchctl" [kickstart -k $SSH]]
     ["launchctl" [kickstart $RELAY]]
   ]
 }
 
-def "test startup writes the host to the up flag before starting either service" [] {
-  let result = (control [up $HOST])
+def "test startup with no selection replaces any previous SSH job once" [] {
+  let argv = [up $HOST]
+  let result = (control --follow-up $argv $argv)
   assert equal $result.run.exit_code 0 $result.run.stderr
+  assert equal $result.follow_up.exit_code 0 $result.follow_up.stderr
 
-  assert equal ($result.calls | where command == "launchctl" | get up_host) [$HOST $HOST]
+  assert equal (launchctl-calls $result | get args) [
+    [kickstart -k $SSH]
+    [kickstart $RELAY]
+    [kickstart $SSH]
+    [kickstart $RELAY]
+  ]
+  assert equal ($result.calls | where command == "launchctl" | get up_host) [$HOST $HOST $HOST $HOST]
 }
 
 def "test startup preserves both jobs for the selected target" [] {
@@ -148,7 +159,7 @@ def "test a startup failure reports the affected component and how to stop parti
     assert not equal $result.run.exit_code 0 $target
     assert str contains $result.run.stderr "service disabled" $target
     assert str contains $result.run.stderr "sudo tunnel down" $target
-    assert str contains $result.run.stdout "Ensuring ssh service..." $target
+    assert str contains $result.run.stdout "Starting ssh service..." $target
     assert not ($result.run.stdout | str contains "Tunnel startup requested") $target
   }
 }
@@ -156,13 +167,19 @@ def "test a startup failure reports the affected component and how to stop parti
 def "test retrying a partial startup only restarts SSH after an unfinished switch" [] {
   let cases = [
     [previous target first retry];
-    [null $SSH [[kickstart $SSH]] [kickstart $SSH]]
+    [null $SSH [[kickstart -k $SSH]] [kickstart -k $SSH]]
     [$HOST $SSH [[kickstart -k $SSH]] [kickstart -k $SSH]]
     [$HOST $RELAY [[kickstart -k $SSH] [kickstart $RELAY]] [kickstart $SSH]]
   ]
 
   for case in $cases {
-    let replies = [{action: "kickstart", target: $case.target, exit_code: 5}]
+    let replies = [
+      {
+        action: "kickstart"
+        target: $case.target
+        exit_code: 5
+      }
+    ]
 
     let argv = [up "other-host"]
     let result = (control --flag $case.previous --follow-up $argv $argv $replies)
@@ -175,7 +192,13 @@ def "test retrying a partial startup only restarts SSH after an unfinished switc
 }
 
 def "test startup after a failed SSH stop replaces the previous job" [] {
-  let replies = [{action: "kill", target: $SSH, exit_code: 5}]
+  let replies = [
+    {
+      action: "kill"
+      target: $SSH
+      exit_code: 5
+    }
+  ]
 
   let result = (control --flag $HOST --follow-up [up "other-host"] [down] $replies)
   assert not equal $result.run.exit_code 0
@@ -282,7 +305,13 @@ def "test status names the host only while the up flag holds one" [] {
 }
 
 def "test status identifies a pending target after a failed switch" [] {
-  let replies = [{action: "kickstart", target: $SSH, exit_code: 5}]
+  let replies = [
+    {
+      action: "kickstart"
+      target: $SSH
+      exit_code: 5
+    }
+  ]
 
   let result = (control --flag $HOST --follow-up [status] [up "other-host"] $replies)
   assert not equal $result.run.exit_code 0

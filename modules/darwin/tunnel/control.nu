@@ -4,27 +4,15 @@
 # Network Tunnel Control
 # ==================================================================================================
 
+use config-file.nu [save-atomic]
+
 def selected-host [up_flag: path] {
   if ($up_flag | path exists) { open --raw $up_flag }
 }
 
-def select-host [host: string, up_flag: path] {
-  let temporary = (
-    mktemp --tmpdir-path ($up_flag | path dirname) $".($up_flag | path basename).XXXXXXXXXX"
-  )
-  try {
-    $host | save --force $temporary
-    ^chmod 644 $temporary
-    ^mv --force $temporary $up_flag
-  } catch {|error|
-    rm --force $temporary
-    error make $error
-  }
-}
-
 def start-service [service: record, --restart] {
   let flags = if $restart { [-k] } else { [] }
-  let action = if $restart { "Switching" } else { "Ensuring" }
+  let action = if $restart { "Starting" } else { "Ensuring" }
   print $"($action) ($service.name) service..."
 
   let result = (^launchctl kickstart ...$flags $service.target | complete)
@@ -75,18 +63,17 @@ def main [
       }
 
       let previous = (selected-host $up_flag)
+      # An interrupted down can leave SSH running after removing the host marker.
       let changed = $previous != $host
-      if $changed and ($previous | is-not-empty) {
+      let restart_ssh = $changed or ($switch_pending | path exists)
+      if $changed {
         # A failed restart can leave SSH on the previous host.
         touch $switch_pending
-      }
-
-      if $changed {
-        select-host $host $up_flag
+        save-atomic $host $up_flag --mode "0644"
       }
 
       for service in $targets {
-        let restart = $service.name == "ssh" and ($switch_pending | path exists)
+        let restart = $service.name == "ssh" and $restart_ssh
         start-service $service --restart=$restart
         if $restart {
           rm --force $switch_pending
@@ -103,9 +90,6 @@ def main [
       for service in $targets {
         let result = (^launchctl kill SIGTERM $service.target | complete)
         if $result.exit_code not-in [0 3] {
-          if $service.name == "ssh" {
-            touch $switch_pending
-          }
           $failures = ($failures | append $"($service.name): ($result.stderr | str trim)")
         }
       }

@@ -12,14 +12,17 @@ export def open-record [path: path]: nothing -> record {
   if ($content | describe | str starts-with "record") { $content } else { {} }
 }
 
-# Replace a file atomically.
-export def save-atomic [content: string, target: path] {
+# Replace a file atomically, optionally setting its mode before publication.
+export def save-atomic [content: string, target: path, --mode: string] {
   let temporary = (
     mktemp --tmpdir-path ($target | path dirname) $".($target | path basename).XXXXXXXXXX"
   )
 
   try {
     $content | save --raw --force $temporary
+    if $mode != null {
+      ^chmod $mode $temporary
+    }
     ^mv --force $temporary $target
   } catch {|error|
     rm --force $temporary
