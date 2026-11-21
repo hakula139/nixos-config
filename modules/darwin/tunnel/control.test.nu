@@ -19,11 +19,21 @@ def control [
   replies: list<record> = []
   state: string = "Running"
   --flag: string
+  --follow-up: list<string>
 ]: nothing -> record {
   let log = (mktemp)
   let up_flag = (mktemp --directory | path join "tunnel.up")
   if $flag != null {
     $flag | save $up_flag
+  }
+
+  let invoke = {|args|
+    (
+      run-script $SCRIPT
+        --user-name example-user
+        --up-flag $up_flag
+        ...$args
+    )
   }
 
   let run = with-env {
@@ -33,16 +43,17 @@ def control [
     STUB_TAILSCALE_STATE: $state
     STUB_UP_FLAG: $up_flag
   } {
-    (
-      run-script $SCRIPT
-        --user-name example-user
-        --up-flag $up_flag
-        ...$argv
-    )
+    let first = (do $invoke $argv)
+    let follow_up_run = if $follow_up != null {
+      with-env {STUB_REPLIES: "[]"} { do $invoke $follow_up }
+    }
+
+    {first: $first, follow_up: $follow_up_run}
   }
 
   {
-    run: $run
+    run: $run.first
+    follow_up: $run.follow_up
     calls: (open --raw $log | from json --objects)
     up_flag: ($up_flag | path exists)
   }
@@ -52,7 +63,6 @@ def launchctl-calls [result: record]: nothing -> list<record> {
   $result.calls
   | where command == "launchctl"
   | select command args
-  | sort-by {|call| $call.args | last }
 }
 
 def "test startup targets the configured account and checks Tailscale first" [] {
@@ -71,8 +81,8 @@ def "test startup targets the configured account and checks Tailscale first" [] 
   }
   assert equal (launchctl-calls $result) [
     [command args];
-    ["launchctl" [kickstart -k $SSH]]
-    ["launchctl" [kickstart -k $RELAY]]
+    ["launchctl" [kickstart $SSH]]
+    ["launchctl" [kickstart $RELAY]]
   ]
 }
 
@@ -83,12 +93,20 @@ def "test startup writes the host to the up flag before starting either service"
   assert equal ($result.calls | where command == "launchctl" | get up_host) [$HOST $HOST]
 }
 
-def "test rerunning startup replaces the host in the up flag" [] {
+def "test startup preserves both jobs for the selected target" [] {
+  let result = (control --flag $HOST [up $HOST])
+  assert equal $result.run.exit_code 0 $result.run.stderr
+
+  assert equal (launchctl-calls $result | get args) [[kickstart $SSH] [kickstart $RELAY]]
+}
+
+def "test switching replaces the host and restarts only SSH" [] {
   let result = (control --flag $HOST [up "other-host"])
   assert equal $result.run.exit_code 0 $result.run.stderr
 
   let hosts = ($result.calls | where command == "launchctl" | get up_host)
   assert equal $hosts ["other-host" "other-host"]
+  assert equal (launchctl-calls $result | get args) [[kickstart -k $SSH] [kickstart $RELAY]]
 }
 
 def "test startup without a host starts nothing" [] {
@@ -130,8 +148,45 @@ def "test a startup failure reports the affected component and how to stop parti
     assert not equal $result.run.exit_code 0 $target
     assert str contains $result.run.stderr "service disabled" $target
     assert str contains $result.run.stderr "sudo tunnel down" $target
-    assert equal $result.run.stdout "" $target
+    assert str contains $result.run.stdout "Ensuring ssh service..." $target
+    assert not ($result.run.stdout | str contains "Tunnel startup requested") $target
   }
+}
+
+def "test retrying a partial startup only restarts SSH after an unfinished switch" [] {
+  let cases = [
+    [previous target first retry];
+    [null $SSH [[kickstart $SSH]] [kickstart $SSH]]
+    [$HOST $SSH [[kickstart -k $SSH]] [kickstart -k $SSH]]
+    [$HOST $RELAY [[kickstart -k $SSH] [kickstart $RELAY]] [kickstart $SSH]]
+  ]
+
+  for case in $cases {
+    let replies = [{action: "kickstart", target: $case.target, exit_code: 5}]
+
+    let argv = [up "other-host"]
+    let result = (control --flag $case.previous --follow-up $argv $argv $replies)
+    assert not equal $result.run.exit_code 0
+    assert equal $result.follow_up.exit_code 0 $result.follow_up.stderr
+
+    let expected = ($case.first | append [$case.retry [kickstart $RELAY]])
+    assert equal (launchctl-calls $result | get args) $expected
+  }
+}
+
+def "test startup after a failed SSH stop replaces the previous job" [] {
+  let replies = [{action: "kill", target: $SSH, exit_code: 5}]
+
+  let result = (control --flag $HOST --follow-up [up "other-host"] [down] $replies)
+  assert not equal $result.run.exit_code 0
+  assert equal $result.follow_up.exit_code 0 $result.follow_up.stderr
+
+  assert equal (launchctl-calls $result | get args) [
+    [kill SIGTERM $SSH]
+    [kill SIGTERM $RELAY]
+    [kickstart -k $SSH]
+    [kickstart $RELAY]
+  ]
 }
 
 def "test stopping removes the up flag before stopping either service" [] {
@@ -224,4 +279,14 @@ def "test status names the host only while the up flag holds one" [] {
 
     assert equal $result.run.stdout $case.stdout $"flag: ($case.flag | to nuon)"
   }
+}
+
+def "test status identifies a pending target after a failed switch" [] {
+  let replies = [{action: "kickstart", target: $SSH, exit_code: 5}]
+
+  let result = (control --flag $HOST --follow-up [status] [up "other-host"] $replies)
+  assert not equal $result.run.exit_code 0
+  assert equal $result.follow_up.exit_code 0 $result.follow_up.stderr
+
+  assert str contains $result.follow_up.stdout "host: other-host\nSSH target switch pending."
 }

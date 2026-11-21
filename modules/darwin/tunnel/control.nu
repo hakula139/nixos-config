@@ -4,6 +4,37 @@
 # Network Tunnel Control
 # ==================================================================================================
 
+def selected-host [up_flag: path] {
+  if ($up_flag | path exists) { open --raw $up_flag }
+}
+
+def select-host [host: string, up_flag: path] {
+  let temporary = (
+    mktemp --tmpdir-path ($up_flag | path dirname) $".($up_flag | path basename).XXXXXXXXXX"
+  )
+  try {
+    $host | save --force $temporary
+    ^chmod 644 $temporary
+    ^mv --force $temporary $up_flag
+  } catch {|error|
+    rm --force $temporary
+    error make $error
+  }
+}
+
+def start-service [service: record, --restart] {
+  let flags = if $restart { [-k] } else { [] }
+  let action = if $restart { "Switching" } else { "Ensuring" }
+  print $"($action) ($service.name) service..."
+
+  let result = (^launchctl kickstart ...$flags $service.target | complete)
+  if $result.exit_code != 0 {
+    error make {
+      msg: $"Could not start ($service.name): ($result.stderr | str trim). Run sudo tunnel down to stop both services."
+    }
+  }
+}
+
 # Start or stop both tunnel services. Startup requires Tailscale to be connected, and launchd then
 # restarts a failed service until tunnel down or a reboot.
 def main [
@@ -30,6 +61,7 @@ def main [
     ["ssh" $"gui/($uid)/com.hakula.tunnel"]
     ["relay" "system/org.nixos.tunnel"]
   ]
+  let switch_pending = $"($up_flag).switch-pending"
 
   match $action {
     "up" => {
@@ -42,14 +74,22 @@ def main [
         error make {msg: $"Tailscale is ($state). Run sudo tailscale up first."}
       }
 
-      $host | save --force $up_flag
+      let previous = (selected-host $up_flag)
+      let changed = $previous != $host
+      if $changed and ($previous | is-not-empty) {
+        # A failed restart can leave SSH on the previous host.
+        touch $switch_pending
+      }
+
+      if $changed {
+        select-host $host $up_flag
+      }
 
       for service in $targets {
-        let result = (^launchctl kickstart -k $service.target | complete)
-        if $result.exit_code != 0 {
-          error make {
-            msg: $"Could not start ($service.name): ($result.stderr | str trim). Run sudo tunnel down to stop both services."
-          }
+        let restart = $service.name == "ssh" and ($switch_pending | path exists)
+        start-service $service --restart=$restart
+        if $restart {
+          rm --force $switch_pending
         }
       }
 
@@ -57,12 +97,15 @@ def main [
     }
 
     "down" => {
-      rm --force $up_flag
+      rm --force $up_flag $switch_pending
 
       mut failures = []
       for service in $targets {
         let result = (^launchctl kill SIGTERM $service.target | complete)
         if $result.exit_code not-in [0 3] {
+          if $service.name == "ssh" {
+            touch $switch_pending
+          }
           $failures = ($failures | append $"($service.name): ($result.stderr | str trim)")
         }
       }
@@ -75,9 +118,12 @@ def main [
     }
 
     "status" => {
-      let host = (if ($up_flag | path exists) { open --raw $up_flag })
+      let host = (selected-host $up_flag)
       if ($host | is-not-empty) {
         print $"host: ($host)"
+        if ($switch_pending | path exists) {
+          print "SSH target switch pending."
+        }
       }
 
       for service in $targets {
