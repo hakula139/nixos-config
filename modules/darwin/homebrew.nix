@@ -83,13 +83,13 @@ in
       "Dark Reader for Safari" = 1438243180;
       Keynote = 409183694;
       Numbers = 409203825;
-      ONEW = 1670048788;
       Pages = 409201541;
       "Steam Link" = 1246969117;
       Userscripts = 1463298887;
       WeChat = 836500024;
       "Windows App" = 1295203466;
       Xcode = 497799835;
+      "持仓手记" = 6785786552;
     };
   };
 
