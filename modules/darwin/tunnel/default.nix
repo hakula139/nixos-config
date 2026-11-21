@@ -38,17 +38,6 @@ let
       user-name = userName;
       up-flag = upFlag;
     };
-
-    # Keep descriptor 9 open across target selection and launchctl calls.
-    makeWrapperArgs = [
-      "--run"
-      ''
-        if [[ $EUID == 0 && ''${1-} != status ]]; then
-          exec 9<>${lib.escapeShellArg "${upFlag}.lock"} || exit "$?"
-          /usr/bin/lockf -t 0 9 || exit "$?"
-        fi
-      ''
-    ];
   };
 
   relayCommand = [

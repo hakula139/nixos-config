@@ -25,6 +25,7 @@ def start-service [service: record, --restart] {
 
 # Start or stop both tunnel services. Startup requires Tailscale to be connected, and launchd then
 # restarts a failed service until tunnel down or a reboot.
+# Run up and down one at a time.
 def main [
   action: string # One of up, down, or status, with up and down run under sudo
   host?: string # SSH configuration entry that up connects through
