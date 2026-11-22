@@ -79,7 +79,7 @@
     # Hakula's flakes
     # ----------------------------------------------------------------------------------------------
     devkit = {
-      url = "github:hakula139/devkit/v3";
+      url = "github:hakulab/devkit/v3";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         nixpkgs-unstable.follows = "nixpkgs-unstable";

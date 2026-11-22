@@ -11,7 +11,7 @@ on:
 
 jobs:
   flake-check:
-    uses: hakula139/devkit/.github/workflows/nix.yml@v3
+    uses: hakulab/devkit/.github/workflows/nix.yml@v3
     with:
       macos: false
     secrets:
@@ -66,7 +66,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up Nix
-        uses: hakula139/devkit/.github/actions/setup-nix@v3
+        uses: hakulab/devkit/.github/actions/setup-nix@v3
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
           extra_nix_config: |
@@ -90,7 +90,7 @@ jobs:
 
       - name: Pin critical store paths
         if: matrix.config.cachix_pins && github.ref == 'refs/heads/main'
-        uses: hakula139/devkit/.github/actions/cachix-pin@v3
+        uses: hakulab/devkit/.github/actions/cachix-pin@v3
         with:
           pins: ${{ toJSON(matrix.config.cachix_pins) }}
 
@@ -108,4 +108,4 @@ jobs:
       actions: read
     steps:
       - name: Check results
-        uses: hakula139/devkit/.github/actions/ci-result@v3
+        uses: hakulab/devkit/.github/actions/ci-result@v3
