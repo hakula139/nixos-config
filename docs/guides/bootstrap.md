@@ -34,7 +34,7 @@ On older WSL versions, use `wsl --import NixOS C:\WSL\NixOS .\nixos.wsl`.
 Inside the new distro, copy the agenix identity from the Windows side and apply the managed configuration:
 
 ```bash
-git clone https://github.com/hakula139/nixos-config ~/nixos-config
+git clone https://github.com/hakulab/nixos-config ~/nixos-config
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 cp /mnt/c/Users/<name>/.ssh/id_ed25519     ~/.ssh/id_ed25519
