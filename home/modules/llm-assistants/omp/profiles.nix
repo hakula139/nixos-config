@@ -27,7 +27,6 @@ let
   mkProfile =
     _:
     {
-      roles,
       workloads,
       ...
     }:
@@ -43,7 +42,6 @@ let
     in
     {
       modelRoles = lib.mapAttrs (_: mkRole) workloads // {
-        default = mkRole roles.default;
         plan = "@flagship";
         task = "@standard";
         slow = "@flagship";

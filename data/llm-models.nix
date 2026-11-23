@@ -255,24 +255,28 @@ let
   # ------------------------------------------------------------------------------------------------
   familyDefaults = {
     claude = {
+      default = "claude-opus-5-5";
       flagship = "claude-opus-5-5";
       standard = "claude-sonnet-5-5";
       mini = "claude-haiku-5-5";
     };
 
     gpt = {
+      default = "gpt-6.2-sol";
       flagship = "gpt-6.2-astra";
       standard = "gpt-6.2-sol";
       mini = "gpt-6-luna";
     };
 
     gemini = {
+      default = "gemini-4-neon";
       flagship = "gemini-4-carbon";
       standard = "gemini-4-neon";
       mini = "gemini-4-hydrogen";
     };
 
     local = {
+      default = "kimi-k3.1-pro";
       flagship = "kimi-k3.1-pro";
       standard = "kimi-k3.1-pro";
       mini = "deepseek-v4.1-flash";
@@ -285,7 +289,7 @@ in
   # ------------------------------------------------------------------------------------------------
   defaults = familyDefaults // {
     hybrid = {
-      inherit (familyDefaults.gemini) flagship;
+      inherit (familyDefaults.gemini) default flagship;
       inherit (familyDefaults.local) standard mini;
     };
 

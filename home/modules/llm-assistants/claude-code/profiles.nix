@@ -43,13 +43,21 @@ let
     let
       inherit (profile) roles workloads;
 
+      defaultTier = lib.findFirst (tier: workloads.${tier}.modelKey == workloads.default.modelKey) null [
+        "flagship"
+        "standard"
+      ];
+
+      defaultModel =
+        if defaultTier != null then modelAliases.claude.${defaultTier} else aliasModelId workloads.default;
+
       aliasEnv =
         lib.mapAttrs' (
           tier: alias:
           lib.nameValuePair "ANTHROPIC_DEFAULT_${lib.toUpper alias}_MODEL" (aliasModelId workloads.${tier})
         ) modelAliases.claude
         // {
-          ANTHROPIC_DEFAULT_MODEL = modelAliases.claude.${profile.defaultModelTier};
+          ANTHROPIC_DEFAULT_MODEL = defaultModel;
           CLAUDE_CODE_SUBAGENT_MODEL = modelAliases.claude.${roleTiers.task.modelTier};
         };
 
@@ -127,6 +135,8 @@ let
         tier: workload:
         if tier == "prose" && isCorpGateway then
           aliasModelId workload
+        else if tier == "default" then
+          defaultModel
         else
           modelAliases.claude.${tier} or modelAliases.claude.flagship
       ) workloads;
