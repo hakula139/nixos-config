@@ -153,7 +153,9 @@ let
   # ------------------------------------------------------------------------------------------------
   # GitHub
   # ------------------------------------------------------------------------------------------------
+  curlBin = lib.getExe pkgs.curl;
   ghBin = lib.getExe config.programs.gh.package;
+  githubPatFile = secretPath "github/pat";
   githubBin = mkServer {
     name = "github";
     command = [
@@ -161,9 +163,28 @@ let
       "stdio"
     ];
 
+    # Fall back only on HTTP 401 so offline or transient failures do not switch credentials.
     setup = ''
       if [[ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]] \
-        && token=$(${esc ghBin} auth token 2>/dev/null); then
+        && token=$(${esc ghBin} auth token 2>/dev/null) \
+        && [[ -n "$token" ]]; then
+        if [[ -s ${esc githubPatFile} ]]; then
+          status=$(
+            printf 'Authorization: Bearer %s\n' "$token" \
+              | ${esc curlBin} https://api.github.com/rate_limit \
+                -fsSL \
+                --connect-timeout 3 \
+                --max-time 5 \
+                -o /dev/null \
+                -w '%{http_code}' \
+                --header @- \
+                2>/dev/null \
+              || true
+          )
+          if [[ "$status" == 401 ]]; then
+            token="$(<${esc githubPatFile})"
+          fi
+        fi
         export GITHUB_PERSONAL_ACCESS_TOKEN="$token"
       fi
     '';
