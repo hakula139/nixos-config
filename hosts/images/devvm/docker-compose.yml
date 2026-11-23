@@ -16,6 +16,7 @@ services:
     # Environment
     # ----------------------------------------------------------------------------------------------
     environment:
+      container: docker
       USER: root
       HOME: /root
       HOST_HOME: ${HOME}
@@ -43,10 +44,13 @@ services:
       - ~/.netrc:/root/.netrc
       - ~/.ssh:/root/.ssh
       - ~/workspace:/root/workspace
-      - ${XDG_RUNTIME_DIR}/docker.sock:/var/run/docker.sock
+      - ${XDG_RUNTIME_DIR}/docker.sock:/run/docker.sock
 
+    # NixOS mounts its own /run when none exists, hiding the bound socket. Its activation remount
+    # cannot change Docker's default 1777 mode, so request the 755 mode from specialFileSystems.
     tmpfs:
-      - /tmp
+      - /run:mode=755
+      - /tmp:exec
 
     # ----------------------------------------------------------------------------------------------
     # Resource Tuning

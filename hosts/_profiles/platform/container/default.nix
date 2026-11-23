@@ -4,7 +4,6 @@
 
 {
   config,
-  lib,
   repo,
   ...
 }:
@@ -23,22 +22,35 @@ in
   # ------------------------------------------------------------------------------------------------
   boot.isContainer = true;
 
-  # Agenix needs an identity path for secret decryption. Containers don't run openssh, so we use a
-  # dedicated key stored in the persistent Docker volume.
-  age.identityPaths = [ "/root/.config/agenix/identity" ];
+  # ------------------------------------------------------------------------------------------------
+  # Systemd
+  # ------------------------------------------------------------------------------------------------
+  systemd = {
+    # Rootless containers cannot mount debugfs or tracefs, even with a user-namespace CAP_SYS_RAWIO.
+    suppressedSystemUnits = [
+      "sys-kernel-debug.mount"
+      "sys-kernel-tracing.mount"
+    ];
+
+    tmpfiles.rules = [
+      "d /nix/var/nix/profiles/per-user/${username} 0755 ${username} root -"
+    ];
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Networking
   # ------------------------------------------------------------------------------------------------
   networking = {
-    domain = lib.mkForce null;
-    firewall.enable = lib.mkForce false;
+    firewall.enable = false;
+    # Docker mounts /etc/resolv.conf read-only, so resolvconf and stage 2 must not rewrite it.
+    resolvconf.enable = false;
+    useDHCP = false;
   };
 
   # ------------------------------------------------------------------------------------------------
-  # Directory Management
+  # Secrets
   # ------------------------------------------------------------------------------------------------
-  systemd.tmpfiles.rules = [
-    "d /nix/var/nix/profiles/per-user/${username} 0755 ${username} root -"
-  ];
+  # Agenix needs an identity path for secret decryption. Containers don't run openssh, so we use a
+  # dedicated key stored in the persistent Docker volume.
+  age.identityPaths = [ "/root/.config/agenix/identity" ];
 }

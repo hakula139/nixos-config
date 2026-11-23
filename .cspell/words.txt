@@ -53,6 +53,7 @@ dbaeumer
 dbengine
 dbname
 dbus
+debugfs
 debugpy
 devkit
 devvm
@@ -263,6 +264,7 @@ quic
 qwen
 raine
 raku
+rawio
 rclone
 recents
 recommendedoptimisation
@@ -273,6 +275,7 @@ remux
 repoints
 rerere
 resolv
+resolvconf
 resolvectl
 retag
 reuseaddr
@@ -321,6 +324,7 @@ tojson
 tomlkit
 tomlq
 toolsai
+tracefs
 tsdown
 tulpn
 tzdata
