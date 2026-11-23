@@ -21,7 +21,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 ├── hosts/
 │   ├── _profiles/
 │   │   ├── platform/               # Hardware / runtime shape (cloudcone-sc2, container, wsl, ...)
-│   │   └── role/                   # Server or workstation role, unused by system-manager hosts
+│   │   └── role/                   # Server or workstation role
 │   ├── servers/                    # NixOS servers (us-1, us-4), all personal
 │   ├── workstations/
 │   │   ├── personal/               # macbook (Darwin)

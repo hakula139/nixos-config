@@ -76,15 +76,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Nix Configuration
     # ----------------------------------------------------------------------------------------------
-    nix = {
-      enable = true;
-      settings = {
-        trusted-users = [
-          "root"
-          cfg.user.name
-        ];
-      };
-    };
+    nix.enable = true;
 
     # System Manager restarts changed units even when inactive, and upstream nh.nix leaves this on.
     systemd.services.nh-clean.restartIfChanged = false;

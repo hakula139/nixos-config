@@ -62,16 +62,9 @@ in
     # ----------------------------------------------------------------------------------------------
     nix = {
       enable = true;
-
-      settings = {
-        extra-trusted-users = [
-          userName
-        ];
-        builders-use-substitutes = true;
-      };
-
       distributedBuilds = true;
       buildMachines = repoLib.ssh.mkBuildMachines serverList builderKeyPath;
+      settings.builders-use-substitutes = true;
     };
 
     # ----------------------------------------------------------------------------------------------
