@@ -1,6 +1,6 @@
 # Nushell
 
-General Nushell conventions and traps live in the `nushell` skill from [hakula139/plugins](https://github.com/hakula139/plugins). This page covers the choices, packaging, and test setup specific to nixos-config.
+General Nushell conventions and traps live in the `nushell` skill from [hakulab/plugins](https://github.com/hakulab/plugins). This page covers the choices, packaging, and test setup specific to nixos-config.
 
 ## Scripts
 

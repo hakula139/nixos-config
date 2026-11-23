@@ -8,6 +8,7 @@
 
 let
   scopes = [
+    "github.com/hakulab"
     "github.com/hakula139"
     corpHosts.gitlab
   ];
