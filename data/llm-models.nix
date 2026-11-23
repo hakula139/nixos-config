@@ -289,8 +289,8 @@ in
   # ------------------------------------------------------------------------------------------------
   defaults = familyDefaults // {
     hybrid = {
-      inherit (familyDefaults.gemini) default flagship;
-      inherit (familyDefaults.local) standard mini;
+      inherit (familyDefaults.gemini) default flagship standard;
+      inherit (familyDefaults.local) mini;
     };
 
     prose = "gemini-4-carbon";
