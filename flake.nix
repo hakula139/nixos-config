@@ -87,7 +87,7 @@
       };
     };
 
-    flake-catalog.url = "github:hakula139/flake-catalog";
+    flake-catalog.url = "github:hakulab/flake-catalog";
   };
 
   # ------------------------------------------------------------------------------------------------

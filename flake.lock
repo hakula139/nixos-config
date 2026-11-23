@@ -206,13 +206,13 @@
       "locked": {
         "lastModified": 1795147333,
         "narHash": "sha256-Wiexig9XzXNIqG3QSKM1smhQyFV3UYyw/xNGCPYXkdg=",
-        "owner": "hakula139",
+        "owner": "hakulab",
         "repo": "devkit",
         "rev": "1b5f01fa2af3c77cecbb7e624a5e855ed6e2b80c",
         "type": "github"
       },
       "original": {
-        "owner": "hakula139",
+        "owner": "hakulab",
         "ref": "v3",
         "repo": "devkit",
         "type": "github"
@@ -351,15 +351,15 @@
         "wakatime-cli": "wakatime-cli"
       },
       "locked": {
-        "lastModified": 1795290804,
-        "narHash": "sha256-lqLjg1x0dwqZdigEJGgte1C2eb6dZDpqtoHzM7Nufsg=",
-        "owner": "hakula139",
+        "lastModified": 1795329920,
+        "narHash": "sha256-asMFIyp0ZeZYB2JzA+mLwS0FIzz0n4YTByT6KHmYm6w=",
+        "owner": "hakulab",
         "repo": "flake-catalog",
-        "rev": "5353339f5535182765fe5fb1feca6f7c9ddb0860",
+        "rev": "a4b1f8409bd51da2f8e3f557ff4cb10eebf1b07d",
         "type": "github"
       },
       "original": {
-        "owner": "hakula139",
+        "owner": "hakulab",
         "repo": "flake-catalog",
         "type": "github"
       }
