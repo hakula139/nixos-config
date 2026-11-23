@@ -13,8 +13,6 @@
 let
   inherit (corpHosts) wildcardDomain;
 
-  commonMcpServers = repoLib.llmAssistants.mcpOptions.corpServerNames;
-
   proxyUrlSecret = "devvm/proxy-url";
   proxyNoProxy = [
     wildcardDomain
@@ -74,6 +72,7 @@ in
 
       hakula.llm-assistants = {
         enable = lib.mkDefault true;
+        mcp.disabledServers = repoLib.llmAssistants.mcpOptions.publicServerNames;
         proxy = {
           enable = true;
           secretUrlFile = secretPath proxyUrlSecret;
@@ -81,14 +80,7 @@ in
         };
       };
 
-      hakula.claude-code = {
-        auth.defaultProfile = "corp-gateway-anthropic";
-        mcp.enabledServers = commonMcpServers;
-      };
-
-      hakula.codex.mcp.enabledServers = commonMcpServers;
-
-      hakula.omp.mcp.enabledServers = commonMcpServers;
+      hakula.claude-code.auth.defaultProfile = "corp-gateway-hybrid";
 
       # --------------------------------------------------------------------------------------------
       # Secrets

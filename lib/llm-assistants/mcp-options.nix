@@ -40,6 +40,8 @@ let
     "mirrorCatalog"
   ];
 
+  publicServerNames = lib.subtractLists corpServerNames allServerNames;
+
   mkEnabledServersOption =
     {
       description,
@@ -82,6 +84,7 @@ in
     allServerNames
     commonServerNames
     corpServerNames
+    publicServerNames
     serverDisplayNames
     mkEnabledServersOption
     mkDisabledServersOption

@@ -7,9 +7,9 @@
   pkgs,
   lib,
   inputs,
-  enableDevToolchains,
   repo,
   repoLib,
+  enableDevToolchains,
   ...
 }:
 
@@ -18,24 +18,6 @@ let
   tooling = repoLib.toolingFor pkgs;
 in
 {
-  # ------------------------------------------------------------------------------------------------
-  # Nix registry
-  # ------------------------------------------------------------------------------------------------
-  # Home Manager's `flake` option also copies `revCount`, which only a full clone reports, so a
-  # local checkout would evaluate to different derivations than CI and miss its binary cache.
-  nix.registry.nixos-config.to = {
-    type = "path";
-    path = inputs.self.outPath;
-  }
-  // lib.filterAttrs (
-    name: _:
-    lib.elem name [
-      "lastModified"
-      "narHash"
-      "rev"
-    ]
-  ) inputs.self;
-
   # ------------------------------------------------------------------------------------------------
   # Services (shared)
   # ------------------------------------------------------------------------------------------------
