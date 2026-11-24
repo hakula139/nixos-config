@@ -305,7 +305,7 @@ in
     # ----------------------------------------------------------------------------------------------
     "claude-opus-5-5" = claudeCommon // {
       name = "Claude Opus 5.5";
-      channelId.anthropic = "bedrock/global.anthropic.claude-opus-5-5";
+      channelId.anthropic = "azure/claude-opus-5-5";
       channelCost.anthropic = costs.claude.opus;
     };
 
