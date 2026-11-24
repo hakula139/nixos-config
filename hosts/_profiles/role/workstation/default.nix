@@ -29,4 +29,6 @@
   # Assistant Tooling
   # ------------------------------------------------------------------------------------------------
   hakula.llm-assistants.enable = lib.mkDefault true;
+
+  home-manager.users.${config.hakula.user.name}.hakula.t3code.enable = lib.mkDefault true;
 }

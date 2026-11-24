@@ -25,13 +25,14 @@ in
   # Module options
   # ------------------------------------------------------------------------------------------------
   options.hakula.t3code = {
+    enable = lib.mkEnableOption "T3 Code";
     lan = lib.mkEnableOption "serving the LAN and tailnet instead of only loopback";
   };
 
   # ------------------------------------------------------------------------------------------------
   # Module config
   # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf config.hakula.llm-assistants.enable (
+  config = lib.mkIf (config.hakula.llm-assistants.enable && cfg.enable) (
     let
       enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
       corpGateway = shared.profileDefinitions.providers.corp-gateway;
