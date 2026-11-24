@@ -92,8 +92,8 @@ let
         ANTHROPIC_SMALL_FAST_MODEL = aliasModelId smallFastWorkload;
       };
 
-      # Only the gateway's Bedrock route is known to return `safeguard_results`, so other routes opt
-      # out of server checks and run the local auto-mode classifier on the small-fast model.
+      # Only the Anthropic channel provides `safeguard_results` for server-side auto-mode
+      # checks. Other channels use the local auto-mode classifier on the small-fast model.
       autoModeServerOptOut =
         profile.provider != null
         && lib.any (tier: workloads.${tier}.channel != "anthropic") (
