@@ -1,10 +1,8 @@
 ---
 name: prose-polish
 description: >-
-  Polish the style of prose in a Markdown file or draft with a chosen model, in any language, under
-  fidelity checks that keep structure, code, links, numbers, and quotations intact. Use when asked to
-  polish, smooth, or restyle prose, or to polish with a specific model such as Gemini 3.8 Flash.
-  Content changes are out of scope, since the rewriter may add no claims.
+  Polish, smooth, or restyle Markdown prose in any language with a chosen model, preserving structure,
+  code, links, numbers, and quotations. Content changes are out of scope.
 ---
 
 # Prose Polish
@@ -13,7 +11,7 @@ The bundled script is the only way prose is polished here. It sends each eligibl
 
 ## Workflow
 
-1. Pick the model. Use the one the user names, or choose one suited to the text, and pass it with `--model`, which takes a key from the model catalog such as `gemini-3.8-flash`. Without `--model`, the script uses `gemini-4-carbon`. [references/evaluation.md](references/evaluation.md) records the blind rewriter reviews and the principles for changing the model or prompts.
+1. Pick the model. Use the one the user names, or choose one suited to the text, and pass it with `--model`, which takes a key from the model catalog such as `gemini-4-hydrogen`. Without `--model`, the script uses `gemini-4-neon`. [references/evaluation.md](references/evaluation.md) records the blind rewriter reviews and the principles for changing the model or prompts.
 
 2. Run the script. Resolve `<skill-dir>` to this skill's directory.
 

@@ -489,7 +489,7 @@ def gateway-model [config: record, key: any]: nothing -> string {
 def main [
   path?: path # Document to rewrite in place, read from stdin when omitted
   --config: path # Wrapper-supplied JSON with the models, model call, and prompts
-  --model (-m): string # Model catalog key, such as gemini-3.8-flash, in place of the default
+  --model (-m): string # Model catalog key, such as gemini-4-neon, in place of the default
 ] {
   let config = (open $config)
   let config = ($config | update model (gateway-model $config $model))

@@ -146,7 +146,7 @@ At 3.5 this draft sits mid-scale. The arm carrying coding history in section 3.4
 
 ### 3.7 Automatic English rewriting
 
-After the Chinese rounds, a rewriter on Gemini 3.8 Flash, with a language-agnostic prompt and no English-specific instructions, was replayed over four weeks of traffic that an automatic pass had polished before each write. English made up 99.5% of the polished passages. The rewriter lowered the share of English passages carrying a writing tic from 6.8% to 5.5%, while rewriting 78% of passages that carried none, and each rewritten tool call waited 41 seconds on average. This was a count against the writing rules, without blind human scores.
+After the Chinese rounds, a rewriter with a language-agnostic prompt and no English-specific instructions was replayed over four weeks of traffic that an automatic pass had polished before each write. English made up 99.5% of the polished passages. The rewriter lowered the share of English passages carrying a writing tic from 6.8% to 5.5%, while rewriting 78% of passages that carried none, and each rewritten tool call waited 41 seconds on average. This was a count against the writing rules, without blind human scores.
 
 ## 4. Principles
 

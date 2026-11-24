@@ -190,26 +190,11 @@ let
         cacheWrite = 0.0833333333333333;
       };
 
-      # Same introductory price and 2026-12-01 step as Carbon.
-      argon = {
-        input = 2.0;
-        output = 10.0;
-        cacheRead = 0.1;
-        cacheWrite = 0.1875;
-      };
-
       hydrogen = {
         input = 1.5;
         output = 7.5;
         cacheRead = 0.075;
         cacheWrite = 0.0833333333333333;
-      };
-
-      flash = {
-        input = 0.75;
-        output = 3.75;
-        cacheRead = 0.075;
-        cacheWrite = 0.0416666666666667;
       };
     };
 
@@ -270,7 +255,7 @@ let
 
     gemini = {
       default = "gemini-4-neon";
-      flagship = "gemini-4-carbon";
+      flagship = "gemini-4-neon";
       standard = "gemini-4-neon";
       mini = "gemini-4-hydrogen";
     };
@@ -293,7 +278,7 @@ in
       inherit (familyDefaults.local) mini;
     };
 
-    prose = "gemini-4-carbon";
+    prose = "gemini-4-neon";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -377,26 +362,14 @@ in
 
     "gemini-4-neon" = geminiCommon // {
       name = "Gemini 4 Neon";
-      channelId.google = "openrouter/google/gemini-4-neon";
+      channelId.google = "gemini/gemini-4-neon";
       channelCost.google = costs.gemini.neon;
-    };
-
-    "gemini-4-argon" = geminiCommon // {
-      name = "Gemini 4 Argon";
-      channelId.google = "openrouter/google/gemini-4-argon";
-      channelCost.google = costs.gemini.argon;
     };
 
     "gemini-4-hydrogen" = geminiCommon // {
       name = "Gemini 4 Hydrogen";
-      channelId.google = "openrouter/google/gemini-4-hydrogen";
+      channelId.google = "gemini/gemini-4-hydrogen";
       channelCost.google = costs.gemini.hydrogen;
-    };
-
-    "gemini-3.8-flash" = geminiCommon // {
-      name = "Gemini 3.8 Flash";
-      channelId.google = "openrouter/google/gemini-3.8-flash";
-      channelCost.google = costs.gemini.flash;
     };
 
     # ----------------------------------------------------------------------------------------------

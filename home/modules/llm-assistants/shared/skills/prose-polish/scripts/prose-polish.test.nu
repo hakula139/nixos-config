@@ -34,7 +34,7 @@ def command [args: list<string>, stdin: any, rules: list<record>]: nothing -> re
     model: "stub"
     prompt: $PROMPT
     repairPrompt: $REPAIR_PROMPT
-    models: {gemini-3.8-flash: "gateway/gemini-3.8-flash"}
+    models: {gemini-4-neon: "gateway/gemini-4-neon"}
   }
 
   $config
@@ -160,9 +160,9 @@ def "test the default model and --model" [] {
   assert equal $default.run.exit_code 0 $default.run.stderr
   assert equal ($default.calls | get model) ["stub"]
 
-  let chosen = (command [--model "gemini-3.8-flash"] $input $target.data.rules)
+  let chosen = (command [--model "gemini-4-neon"] $input $target.data.rules)
   assert equal $chosen.run.exit_code 0 $chosen.run.stderr
-  assert equal ($chosen.calls | get model) ["gateway/gemini-3.8-flash"]
+  assert equal ($chosen.calls | get model) ["gateway/gemini-4-neon"]
 }
 
 def "test polish cases" [] {
