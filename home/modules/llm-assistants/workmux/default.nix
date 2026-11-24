@@ -57,7 +57,7 @@ lib.mkIf config.hakula.llm-assistants.enable {
   programs.tmux.extraConfig = lib.mkBefore ''
     set -g @catppuccin_window_text " #T#{?@workmux_status, #{@workmux_status},}"
     set -g @catppuccin_window_current_text " #T#{?@workmux_status, #{@workmux_status},}"
-    bind g display-popup -E -w 90% -h 90% '${lib.getExe pkgs.workmux} dashboard'
+    bind g display-popup -EE -w 90% -h 90% 'workmux dashboard'
   '';
 
   # ------------------------------------------------------------------------------------------------
