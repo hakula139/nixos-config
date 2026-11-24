@@ -1,7 +1,5 @@
 # AGENTS.md: nixos-config
 
-Project-specific rules for any coding assistant working in this repository.
-
 ## Read before you edit
 
 | When the task involves                        | Read                       |
@@ -44,7 +42,7 @@ Place a file description inside the header banner after the title, and close it 
 
 ## Verification
 
-`nix develop -c run-hooks` runs the pre-commit hooks on every tracked file. `nix flake check` checks the flake's structure, evaluating each NixOS host, and runs the script tests, but it runs no hooks and builds no host. For host changes, build each affected output directly, and build `macbook` on a Mac or through CI's macOS job:
+`nix develop -c run-hooks` runs the pre-commit hooks, while `nix flake check` evaluates every NixOS host and runs script tests without building hosts or running hooks. Build affected host outputs directly, and build `macbook` on a Mac or through CI's macOS job:
 
 ```bash
 nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
