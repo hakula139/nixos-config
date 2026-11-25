@@ -87,6 +87,13 @@ let
     add_header Pragma 'no-cache' always;
     add_header Expires '0' always;
   '';
+
+  proxyNoCacheExtraConfig = ''
+    proxy_hide_header Cache-Control;
+    proxy_hide_header Pragma;
+    proxy_hide_header Expires;
+  ''
+  + noCacheExtraConfig;
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -285,6 +292,7 @@ in
           locations."/" = {
             alias = "/var/lib/clash-generator/";
             extraConfig = ''
+              access_log off;
               default_type application/x-yaml;
               add_header Content-Disposition 'attachment; filename="clash.yaml"';
               ${noCacheExtraConfig}
@@ -303,21 +311,6 @@ in
         // {
           extraConfig = cloudflareVhostConfig.extraConfig + longTimeoutExtraConfig;
 
-          locations."= /index.html" = {
-            proxyPass = cloudreveUpstream;
-            extraConfig = noCacheExtraConfig;
-          };
-
-          locations."= /sw.js" = {
-            proxyPass = cloudreveUpstream;
-            extraConfig = noCacheExtraConfig;
-          };
-
-          locations."= /manifest.json" = {
-            proxyPass = cloudreveUpstream;
-            extraConfig = noCacheExtraConfig;
-          };
-
           locations."/api/v4/ws" = {
             proxyPass = cloudreveUpstream;
             proxyWebsockets = true;
@@ -333,6 +326,10 @@ in
             extraConfig = noBufferingExtraConfig;
           };
 
+          locations."/assets/" = {
+            proxyPass = cloudreveUpstream;
+          };
+
           locations."/dav" = {
             proxyPass = cloudreveUpstream;
             extraConfig = noBufferingExtraConfig;
@@ -340,6 +337,7 @@ in
 
           locations."/" = {
             proxyPass = cloudreveUpstream;
+            extraConfig = proxyNoCacheExtraConfig;
           };
         }
       );
