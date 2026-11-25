@@ -40,6 +40,8 @@ Place a file description inside the header banner after the title, and close it 
 
 **`data/corp-domain.nix` can differ from its committed content, and that is expected.** Never delete, restore (`git checkout`, `git restore`), or stage it.
 
+**Never merge a `nixos-config` PR / MR without explicit approval for that PR / MR.** Broad merge approval for other repositories does not cover this repository.
+
 ## Verification
 
 `nix develop -c run-hooks` runs the pre-commit hooks, while `nix flake check` evaluates every NixOS host and runs script tests without building hosts or running hooks. Build affected host outputs directly, and build `macbook` on a Mac or through CI's macOS job:
