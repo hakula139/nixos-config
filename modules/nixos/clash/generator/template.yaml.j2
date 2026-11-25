@@ -49,12 +49,11 @@ rule-providers:
 {%- endfor %}
 
   Telemetry:
-    type: inline
+    type: http
     behavior: domain
-    payload:
-{%- for domain in telemetry_domains %}
-      - {{ domain }}
-{%- endfor %}
+    url: https://clash.hakula.xyz/rules/telemetry.yaml
+    path: ./ruleset/telemetry.yaml
+    interval: 86400
 
   Reject:
     type: http

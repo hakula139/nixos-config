@@ -4,19 +4,30 @@
 
 {
   config,
+  pkgs,
   lib,
   repoLib,
+  telemetryDomains,
   ...
 }:
 
 let
-  cfg = config.hakula.services.nginx;
   inherit (config.hakula.network)
     internalHttpsSocket
     internalRealitySocket
     internalWsSocket
     realitySniHost
     ;
+
+  cfg = config.hakula.services.nginx;
+  yaml = pkgs.formats.yaml { };
+
+  # ------------------------------------------------------------------------------------------------
+  # Clash
+  # ------------------------------------------------------------------------------------------------
+  telemetryRulesFile = yaml.generate "telemetry.yaml" {
+    payload = repoLib.telemetry.clashDomains telemetryDomains;
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Cloudflare
@@ -262,6 +273,14 @@ in
           extraConfig = cloudflareVhostConfig.extraConfig + ''
             absolute_redirect off;
           '';
+
+          locations."= /rules/telemetry.yaml" = {
+            alias = telemetryRulesFile;
+            extraConfig = ''
+              default_type "text/yaml; charset=utf-8";
+              add_header Cache-Control 'public, max-age=3600, s-maxage=3600';
+            '';
+          };
 
           locations."/" = {
             alias = "/var/lib/clash-generator/";
