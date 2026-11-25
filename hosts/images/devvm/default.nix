@@ -5,6 +5,7 @@
 {
   lib,
   corpHosts,
+  keys,
   repo,
   repoLib,
   ...
@@ -46,6 +47,26 @@ in
   # User Configuration
   # ------------------------------------------------------------------------------------------------
   hakula.user.name = "root";
+  hakula.access.ssh.authorizedKeys = lib.attrValues keys.workstations;
+
+  # ------------------------------------------------------------------------------------------------
+  # Services
+  # ------------------------------------------------------------------------------------------------
+  hakula.services.openssh = {
+    enable = true;
+    ports = [ 2222 ];
+  };
+
+  services.openssh = {
+    # Persist the host key in the devvm-root volume so container recreations keep the same identity.
+    hostKeys = [
+      {
+        path = "/root/.config/ssh/ssh_host_ed25519_key";
+        type = "ed25519";
+      }
+    ];
+    settings.PubkeyAuthentication = true;
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Home Manager Overrides

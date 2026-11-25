@@ -79,4 +79,4 @@ docker load < result
 docker compose -f hosts/images/devvm/docker-compose.yml up -d
 ```
 
-Attach with the VS Code / Cursor Dev Containers command.
+Attach with the VS Code / Cursor Dev Containers command, or connect over SSH on port `2222` as `root`.
