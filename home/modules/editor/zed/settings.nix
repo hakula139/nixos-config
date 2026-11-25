@@ -35,62 +35,79 @@ let
   # User settings
   # ------------------------------------------------------------------------------------------------
   userSettings = {
-    base_keymap = "VSCode";
-
-    theme = {
-      mode = "system";
-      light = "Catppuccin Latte";
-      dark = "Catppuccin Mocha";
-    };
-    icon_theme = {
-      mode = "system";
-      light = "Catppuccin Latte";
-      dark = "Catppuccin Mocha";
-    };
-
-    buffer_font_family = "Maple Mono NF CN";
+    # ----------------------------------------------------------------------------------------------
+    # Appearance
+    # ----------------------------------------------------------------------------------------------
     buffer_font_fallbacks = [ "Sarasa Mono SC" ];
+    buffer_font_family = "Maple Mono NF CN";
     buffer_font_size = 16;
 
-    tab_size = 2;
+    icon_theme = {
+      dark = "Catppuccin Mocha";
+      light = "Catppuccin Latte";
+      mode = "system";
+    };
+    theme = {
+      dark = "Catppuccin Mocha";
+      light = "Catppuccin Latte";
+      mode = "system";
+    };
+
+    # ----------------------------------------------------------------------------------------------
+    # Editor
+    # ----------------------------------------------------------------------------------------------
     autosave = "off";
+    base_keymap = "VSCode";
     ensure_final_newline_on_save = false;
     format_on_save = "on";
-    load_direnv = "shell_hook";
-
-    inlay_hints.enabled = true;
     git.inline_blame.enabled = true;
+    inlay_hints.enabled = true;
+    load_direnv = "shell_hook";
+    session.trust_all_worktrees = true;
+    tab_size = 2;
 
+    telemetry = {
+      diagnostics = false;
+      metrics = false;
+    };
+
+    # ----------------------------------------------------------------------------------------------
+    # Terminal
+    # ----------------------------------------------------------------------------------------------
     terminal = {
-      font_family = "Maple Mono NF CN";
       font_fallbacks = [
         "JetBrainsMono Nerd Font"
         "Sarasa Term SC"
       ];
+      font_family = "Maple Mono NF CN";
       font_size = 14;
     };
 
+    # ----------------------------------------------------------------------------------------------
+    # Languages & LSP
+    # ----------------------------------------------------------------------------------------------
     languages = {
       Markdown = {
         formatter.external = {
-          command = "prettier";
           arguments = [
             "--stdin-filepath"
             "{buffer_path}"
           ];
+          command = "prettier";
         };
       };
 
       Nix = {
+        formatter.external.command = "nixfmt";
         language_servers = [
           "nixd"
           "!nil"
           "..."
         ];
-        formatter.external.command = "nixfmt";
       };
 
       Python = {
+        formatter.language_server.name = "ruff";
         language_servers = [
           "pyrefly"
           "ruff"
@@ -99,19 +116,37 @@ let
           "!pylsp"
           "..."
         ];
-        formatter.language_server.name = "ruff";
       };
 
       Rust = {
+        formatter = "language_server";
         language_servers = [
           "rust-analyzer"
           "..."
         ];
-        formatter = "language_server";
       };
     };
 
-    lsp.pyrefly.initialization_options.python.pyrefly.displayTypeErrors = "force-on";
+    lsp.pyrefly.initialization_options.python.pyrefly.typeCheckingMode = "default";
+
+    # ----------------------------------------------------------------------------------------------
+    # Agent servers
+    # ----------------------------------------------------------------------------------------------
+    agent_servers = {
+      "Claude Code" = {
+        args = [ ];
+        command = "claude-agent-acp";
+        env = { };
+        type = "custom";
+      };
+
+      Codex = {
+        args = [ ];
+        command = "codex-acp";
+        env = { };
+        type = "custom";
+      };
+    };
   };
 
   # ------------------------------------------------------------------------------------------------
