@@ -72,6 +72,7 @@ in
       "wetype"
       "whatpulse/whatpulse/whatpulse_chmodbpf"
       "whatpulse/whatpulse/whatpulse"
+      "zed"
     ];
 
     # ----------------------------------------------------------------------------------------------

@@ -44,6 +44,8 @@ in
       mirroredNetworking.enable = lib.mkDefault true;
     };
 
+    hakula.zed.windowsSync.enable = lib.mkDefault true;
+
     hakula.fonts.windowsSync.enable = lib.mkDefault true;
   };
 }

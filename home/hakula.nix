@@ -35,6 +35,7 @@ in
     ./modules/wsl.nix
     ./modules/stale-links.nix
     ./modules/corp-mirrors
+    ./modules/editor
     ./modules/fonts
     ./modules/git
     ./modules/llm-assistants
@@ -80,6 +81,8 @@ in
       prune = true;
     };
   };
+
+  hakula.zed.enable = true;
 
   hakula.nix.configPath = lib.mkDefault "${homeDir}/gitlab/nixos-config";
 }

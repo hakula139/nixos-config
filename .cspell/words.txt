@@ -13,6 +13,7 @@ autocd
 autocmd
 awscli
 backblazeb2
+basedpyright
 bdelete
 bframes
 binfmt
@@ -255,8 +256,10 @@ pushd
 pycache
 pydantic
 pydocstyle
+pylsp
 pypi
 pyproject
+pyrefly
 pyright
 pytest
 qdisc
@@ -327,6 +330,7 @@ toolsai
 tracefs
 tsdown
 tulpn
+typst
 tzdata
 ulimits
 umami
