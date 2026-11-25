@@ -54,6 +54,8 @@ let
       mode = "system";
     };
 
+    theme_overrides."Catppuccin Mocha"."terminal.background" = "#0F111A";
+
     tabs = {
       file_icons = true;
       git_status = true;
@@ -65,6 +67,16 @@ let
       "Microsoft YaHei UI"
     ];
     ui_font_family = ".SystemUIFont";
+
+    # ----------------------------------------------------------------------------------------------
+    # Panels
+    # ----------------------------------------------------------------------------------------------
+    agent.dock = "right";
+    collaboration_panel.button = false;
+    git_panel.dock = "left";
+    notification_panel.button = false;
+    outline_panel.dock = "left";
+    project_panel.dock = "left";
 
     # ----------------------------------------------------------------------------------------------
     # Editor
@@ -169,7 +181,19 @@ let
   # ------------------------------------------------------------------------------------------------
   # Keymaps
   # ------------------------------------------------------------------------------------------------
+  terminalPassthroughKeys = map (key: "ctrl-${key}") (
+    lib.stringToCharacters "abcdefghijklmnopqrstuvwxyz"
+  );
+
   userKeymaps = [
+    {
+      context = "Terminal";
+      bindings = lib.genAttrs terminalPassthroughKeys (key: [
+        "terminal::SendKeystroke"
+        key
+      ]);
+    }
+
     {
       context = "Workspace";
       bindings = {
@@ -182,6 +206,7 @@ let
   # Windows sync artifacts
   # ------------------------------------------------------------------------------------------------
   windowsSettings = lib.recursiveUpdate userSettings {
+    agent_buffer_font_size = 18;
     auto_install_extensions = lib.genAttrs extensions (_: true);
     buffer_font_size = 18;
     terminal = {
