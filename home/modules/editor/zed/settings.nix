@@ -47,10 +47,16 @@ let
       light = "Catppuccin Latte";
       mode = "system";
     };
+
     theme = {
       dark = "Catppuccin Mocha";
       light = "Catppuccin Latte";
       mode = "system";
+    };
+
+    tabs = {
+      file_icons = true;
+      git_status = true;
     };
 
     # ----------------------------------------------------------------------------------------------
@@ -58,12 +64,15 @@ let
     # ----------------------------------------------------------------------------------------------
     autosave = "off";
     base_keymap = "VSCode";
+    diagnostics.inline.enabled = true;
     ensure_final_newline_on_save = false;
     format_on_save = "on";
     git.inline_blame.enabled = true;
     inlay_hints.enabled = true;
     load_direnv = "shell_hook";
+    preferred_line_length = 100;
     session.trust_all_worktrees = true;
+    show_wrap_guides = true;
     tab_size = 2;
 
     telemetry = {
@@ -81,6 +90,7 @@ let
       ];
       font_family = "Maple Mono NF CN";
       font_size = 14;
+      option_as_meta = true;
     };
 
     # ----------------------------------------------------------------------------------------------
@@ -166,8 +176,16 @@ let
   # ------------------------------------------------------------------------------------------------
   windowsSettings = lib.recursiveUpdate userSettings {
     auto_install_extensions = lib.genAttrs extensions (_: true);
-    buffer_font_size = 15;
-    terminal.font_size = 13;
+    buffer_font_size = 18;
+    terminal = {
+      # Clear multiline nix-direnv hooks that break Zed's `wsl.exe --` terminal launch.
+      env = {
+        buildPhase = "";
+        shellHook = "";
+      };
+      font_size = 16;
+    };
+    ui_font_size = 19;
   };
 
   windowsSettingsJson = json.generate "zed-windows-settings.json" windowsSettings;
