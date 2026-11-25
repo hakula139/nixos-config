@@ -2,15 +2,14 @@
 
 ## Read before you edit
 
-| When the task involves                        | Read                       |
-| --------------------------------------------- | -------------------------- |
-| A Nix module, package, or host                | [Nix conventions]          |
-| A Nushell script or its tests                 | [Nushell conventions]      |
-| A secret or a recipient list                  | [Secrets]                  |
-| Host wiring, builders, or the repository tree | [Architecture]             |
-| The workflow or a failing check               | [CI]                       |
-| First-time setup on any platform              | [Bootstrap]                |
-| A deployment with nixsw or nixdp              | [Applying a configuration] |
+| When the task involves                        | Read                  |
+| --------------------------------------------- | --------------------- |
+| A Nix module, package, or host                | [Nix conventions]     |
+| A Nushell script or its tests                 | [Nushell conventions] |
+| A secret or a recipient list                  | [Secrets]             |
+| Host wiring, builders, or the repository tree | [Architecture]        |
+| First-time setup on any platform              | [Bootstrap]           |
+| A deployment with nixsw or nixdp              | [Deployment]          |
 
 ## Script language
 
@@ -56,15 +55,17 @@ Host out paths change on every source edit because `home/modules/nix/default.nix
 
 Because the shell hook links the gitignored `.pre-commit-config.yaml` only on shell entry, run `nix develop` once in each worktree, and again after any rebase or merge that changes the hook configuration.
 
+[The GitHub Actions workflow] runs only on GitHub, so a branch or MR that exists only on GitLab never triggers it. Paths with a `fixtures` component are exempt from pre-commit hooks, cspell, and Git line-ending conversion so script-test fixtures keep exact bytes.
+
 ## Documentation maintenance
 
 - Keep the repository tree in [Architecture] accurate at its current depth, and add prose below it only for knowledge every module author needs.
-- Update the architecture's host table when host wiring changes, and the README's usage instructions when commands change.
+- Update the architecture's host table when host wiring changes, and the README and [Deployment] when deployment commands change.
 
 [Nix conventions]: docs/conventions/nix.md
 [Nushell conventions]: docs/conventions/nushell.md
 [Secrets]: .agents/skills/agenix/SKILL.md
 [Architecture]: docs/reference/architecture.md
-[CI]: docs/reference/ci.md
 [Bootstrap]: docs/guides/bootstrap.md
-[Applying a configuration]: README.md#applying-a-configuration
+[Deployment]: docs/guides/deployment.md
+[The GitHub Actions workflow]: .github/workflows/ci.yml

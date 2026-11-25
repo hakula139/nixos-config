@@ -1,6 +1,6 @@
 # Bootstrap
 
-These steps install a managed configuration or build the `devvm` image, while later updates go through [`nixsw` and `nixdp`](../../README.md#applying-a-configuration). Run commands that take a `.#...` flake reference from the repository root.
+These steps install a managed configuration or build the `devvm` image, while later updates go through [`nixsw` and `nixdp`](deployment.md). Run commands that take a `.#...` flake reference from the repository root.
 
 ## NixOS server
 

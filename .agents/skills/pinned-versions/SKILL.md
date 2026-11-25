@@ -85,7 +85,7 @@ The `npx` and `uvx` MCP wrappers float on each package's latest release, so they
 
 ## GitHub Actions
 
-Renovate owns these refs. Review its PRs for breaking changes, and run local workflow checks. Upstream can move an existing major tag without a PR, so verify an actual GitHub Actions run for runtime behavior. GitHub CI runs only on GitHub, so a GitLab-only MR triggers none. See [CI](../../../docs/reference/ci.md) for triggers.
+Renovate owns these refs. Review its PRs for breaking changes, and run local workflow checks. Upstream can move an existing major tag without a PR, so verify an actual GitHub Actions run for runtime behavior. GitHub CI runs only on GitHub, so a GitLab-only MR triggers none. See [the GitHub Actions workflow](../../../.github/workflows/ci.yml) for triggers.
 
 ## Verification
 

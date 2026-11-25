@@ -7,26 +7,22 @@ Personal Nix configuration for NixOS servers, WSL workstations, macOS, and devel
 
 ## Applying a configuration
 
-After initial setup, run `nixsw` from the repository root in the managed Zsh environment to apply the local configuration. `nixdp` aliases `colmena apply` and accepts its flags: `nixdp` deploys every server, and `nixdp --on us-4` or `nixdp --on @cloudcone` selects hosts.
-
-The servers build on target and substitute what GitHub CI pushes to Cachix, so wait for the CI run on the synced commit to finish before running `nixdp`.
-
-Every proxy node in `data/servers.nix` is a deploy target. Switch the workstation's proxy client to another node before deploying a node, because activation can restart its nginx or Xray and cut off a session routed through it. When proxy credentials rotate, deploy the subscription host `us-4` first through an undeployed node, then refresh the client's subscription before deploying the rest.
+Run `nixsw` from the repository root to apply the local configuration, and `nixdp` to deploy NixOS servers. See [Deployment] for targeting flags and server deployment rules.
 
 ## Documentation
 
 | Document                   | Description                                     |
 | -------------------------- | ----------------------------------------------- |
 | [Bootstrap]                | First-time installation and Docker image builds |
+| [Deployment]               | Applying configurations and deploying servers   |
 | [Architecture]             | Supported hosts and repository layout           |
 | [Agent company]            | Parallel project teams and agent delegation     |
-| [CI]                       | Build jobs and verification fixtures            |
 | [Secrets]                  | Managing encrypted credentials                  |
 | [Contributor instructions] | Conventions and verification for changes        |
 
 [Bootstrap]: docs/guides/bootstrap.md
+[Deployment]: docs/guides/deployment.md
 [Architecture]: docs/reference/architecture.md
 [Agent company]: docs/reference/agent-company.md
-[CI]: docs/reference/ci.md
 [Secrets]: .agents/skills/agenix/SKILL.md
 [Contributor instructions]: AGENTS.md
