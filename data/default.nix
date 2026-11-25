@@ -11,4 +11,5 @@
   servers = import ./servers.nix;
   ssh = import ./ssh.nix;
   systemManagerPaths = import ./system-manager-paths.nix;
+  telemetryDomains = import ./telemetry-domains.nix;
 }

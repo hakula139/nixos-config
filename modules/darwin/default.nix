@@ -8,6 +8,7 @@
   lib,
   repoLib,
   servers,
+  telemetryDomains,
   ...
 }:
 
@@ -19,6 +20,16 @@ let
   sshCfg = config.hakula.access.ssh;
   serverList = lib.attrValues servers;
   builderKeyPath = config.age.secrets.builder-ssh-key.path;
+
+  updateTelemetryHosts = lib.getExe (
+    repoLib.hosts.mkUpdateScript {
+      inherit pkgs;
+      name = "update-telemetry-hosts";
+      owner = "telemetry";
+      entries = repoLib.telemetry.hostsEntries telemetryDomains;
+      group = "wheel";
+    }
+  );
 in
 {
   imports = [
@@ -102,6 +113,9 @@ in
       reattach = true;
     };
 
+    # ----------------------------------------------------------------------------------------------
+    # Networking
+    # ----------------------------------------------------------------------------------------------
     # Network → Firewall
     networking.applicationFirewall = {
       enable = true;
@@ -109,6 +123,8 @@ in
       allowSigned = false;
       allowSignedApp = false;
     };
+
+    system.activationScripts.postActivation.text = lib.mkAfter "${updateTelemetryHosts}\n";
 
     # ----------------------------------------------------------------------------------------------
     # SSH Configuration (system-wide)

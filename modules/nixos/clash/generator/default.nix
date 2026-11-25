@@ -6,7 +6,9 @@
   config,
   pkgs,
   lib,
+  repoLib,
   servers,
+  telemetryDomains,
 }:
 
 let
@@ -24,6 +26,9 @@ let
       level = server.proxyLevel;
     }) (lib.attrValues servers)
   );
+  telemetryDomainsFile = json.generate "clash-telemetry-domains.json" (
+    repoLib.telemetry.clashDomains telemetryDomains
+  );
 in
 pkgs.writeShellScript "clash-generator" ''
   set -euo pipefail
@@ -31,9 +36,10 @@ pkgs.writeShellScript "clash-generator" ''
   outputDir="''${STATE_DIRECTORY:-/var/lib/clash-generator}"
 
   ${lib.getExe' pythonEnv "python3"} ${generator} \
-    -u "${config.age.secrets.clash-users.path}" \
-    -S "${serversFile}" \
-    -t "${template}" \
-    -s "${config.hakula.network.realitySniHost}" \
-    -o "$outputDir"
+    --users-path "${config.age.secrets.clash-users.path}" \
+    --servers-path "${serversFile}" \
+    --telemetry-domains-path "${telemetryDomainsFile}" \
+    --template-path "${template}" \
+    --sni-host "${config.hakula.network.realitySniHost}" \
+    --output-dir "$outputDir"
 ''

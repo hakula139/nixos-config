@@ -8,6 +8,8 @@
   lib,
   inputs,
   repo,
+  repoLib,
+  telemetryDomains,
   ...
 }:
 
@@ -20,6 +22,15 @@ let
   dockerCredentialDesktop = pkgs.linkFarm "docker-credential-desktop" {
     "bin/docker-credential-desktop.exe" = "/usr/bin/docker-credential-desktop.exe";
   };
+
+  updateTelemetryHosts = lib.getExe (
+    repoLib.hosts.mkUpdateScript {
+      inherit pkgs;
+      name = "update-telemetry-hosts";
+      owner = "telemetry";
+      entries = repoLib.telemetry.hostsEntries telemetryDomains;
+    }
+  );
 in
 {
   imports = [
@@ -52,6 +63,25 @@ in
   # Networking
   # ------------------------------------------------------------------------------------------------
   networking.firewall.enable = false;
+
+  # WSL regenerates /etc/hosts at distro start, so apply managed entries on activation and boot.
+  system.activationScripts.telemetryHosts.text = "${updateTelemetryHosts}\n";
+
+  systemd.services.telemetry-hosts = {
+    description = "Apply managed telemetry entries to /etc/hosts";
+    wantedBy = [
+      "multi-user.target"
+    ];
+    after = [
+      "local-fs.target"
+    ];
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${updateTelemetryHosts}";
+    };
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Containers

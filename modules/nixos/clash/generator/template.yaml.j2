@@ -47,64 +47,71 @@ rule-providers:
 {%- for rule in fleet_rules %}
       - {{ rule }}
 {%- endfor %}
+
   Telemetry:
     type: inline
     behavior: domain
     payload:
-      - a-api.anthropic.com
-      - a-cdn.anthropic.com
-      - +.browser-intake-us5-datadoghq.com
-      - +.logs.us5.datadoghq.com
-      - +.ingest.us.sentry.io
-      - api3.siftscience.com
+{%- for domain in telemetry_domains %}
+      - {{ domain }}
+{%- endfor %}
+
   Reject:
     type: http
     behavior: domain
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt
     path: ./ruleset/reject.yaml
     interval: 86400
+
   iCloud:
     type: http
     behavior: domain
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/icloud.txt
     path: ./ruleset/icloud.yaml
     interval: 86400
+
   Apple:
     type: http
     behavior: domain
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt
     path: ./ruleset/apple.yaml
     interval: 86400
+
   Google:
     type: http
     behavior: domain
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt
     path: ./ruleset/google.yaml
     interval: 86400
+
   GFW:
     type: http
     behavior: domain
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt
     path: ./ruleset/gfw.yaml
     interval: 86400
+
   Proxy:
     type: http
     behavior: domain
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt
     path: ./ruleset/proxy.yaml
     interval: 86400
+
   Direct:
     type: http
     behavior: domain
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt
     path: ./ruleset/direct.yaml
     interval: 86400
+
   LAN:
     type: http
     behavior: ipcidr
     url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt
     path: ./ruleset/lancidr.yaml
     interval: 86400
+
   Telegram:
     type: http
     behavior: ipcidr

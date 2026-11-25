@@ -37,7 +37,8 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── platform-settings.nix       # Cross-platform locale, time zone, Nix, and GC settings
 │   ├── servers.nix                 # Server inventory (IP, port, provider, host keys, builders)
 │   ├── ssh.nix                     # SSH port shared by every sshd and client entry
-│   └── system-manager-paths.nix    # PATH entries provisioned by system-manager activation
+│   ├── system-manager-paths.nix    # PATH entries provisioned by system-manager activation
+│   └── telemetry-domains.nix       # Exact and wildcard suffix telemetry domains
 ├── lib/                            # Pure helpers and framework code
 │   ├── default.nix                 # Repository helper namespace exposed as repoLib
 │   ├── aria2.nix                   # Shared aria2 download and RPC settings
@@ -50,8 +51,10 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── secrets.nix                 # Secret declarations and path helpers
 │   ├── ssh.nix                     # Builder and SSH configuration from server inventory
 │   ├── systemd.nix                 # Shared systemd hardening and restart policies
+│   ├── telemetry.nix               # Clash and /etc/hosts telemetry blocking helpers
 │   ├── tooling.nix                 # Shared development tool groups
 │   ├── wrap-package.nix            # Package wrappers preserving upstream launcher identity
+│   ├── hosts/                      # Shared `/etc/hosts` updater script and Nix helper
 │   ├── llm-assistants/             # Assistant options, permissions, and profiles
 │   ├── mihomo/                     # Shared mihomo settings, update / start / port-check commands
 │   ├── nu/                         # Shared Nushell modules (`*.nu`) and test helpers (`*.testlib.nu`)

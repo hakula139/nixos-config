@@ -8,6 +8,7 @@
   lib,
   repoLib,
   servers,
+  telemetryDomains,
   ...
 }:
 
@@ -32,7 +33,9 @@ in
           config
           pkgs
           lib
+          repoLib
           servers
+          telemetryDomains
           ;
       };
     in

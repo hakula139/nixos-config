@@ -242,7 +242,7 @@
   "python.pyrefly.typeCheckingMode": "default",
   "python.terminal.activateEnvironment": false,
   "python.terminal.useEnvFile": true,
-  "redhat.telemetry.enabled": true,
+  "redhat.telemetry.enabled": false,
   "remote.autoForwardPortsSource": "hybrid",
   "remote.extensionKind": {
     "WakaTime.vscode-wakatime": ["ui"]
@@ -259,6 +259,7 @@
   "search.smartCase": true,
   "search.useGlobalIgnoreFiles": true,
   "search.useParentIgnoreFiles": true,
+  "telemetry.telemetryLevel": "off",
   "terminal.external.osxExec": "Warp.app",
   "terminal.integrated.defaultProfile.linux": "tmux",
   "terminal.integrated.defaultProfile.osx": "tmux",

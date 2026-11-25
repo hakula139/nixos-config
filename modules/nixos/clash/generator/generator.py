@@ -93,10 +93,16 @@ def build_fleet_rules(servers: list[ServerConfig]) -> list[str]:
     return [f'IP-CIDR,{ipaddress.ip_network(server["ip"])}' for server in servers]
 
 
+def load_telemetry_domains(path: Path) -> list[str]:
+    with open(path) as f:
+        return cast(list[str], json.load(f))
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--users-path', type=Path, required=True)
     parser.add_argument('-S', '--servers-path', type=Path, required=True)
+    parser.add_argument('-T', '--telemetry-domains-path', type=Path, required=True)
     parser.add_argument('-t', '--template-path', type=Path, required=True)
     parser.add_argument('-s', '--sni-host', type=str, required=True)
     parser.add_argument('-o', '--output-dir', type=Path, required=True)
@@ -203,6 +209,7 @@ def main() -> int:
 
     servers = load_servers(args.servers_path)
     fleet_rules = build_fleet_rules(servers)
+    telemetry_domains = load_telemetry_domains(args.telemetry_domains_path)
 
     template = load_template(args.template_path)
     if template is None:
@@ -217,6 +224,7 @@ def main() -> int:
             config = template.render(
                 servers=user_servers,
                 fleet_rules=fleet_rules,
+                telemetry_domains=telemetry_domains,
                 uuid=user['uuid'],
                 short_id=user['shortId'],
                 sni_host=args.sni_host,

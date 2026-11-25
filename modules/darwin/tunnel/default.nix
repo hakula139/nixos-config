@@ -22,7 +22,17 @@ let
 
   upFlag = "/var/run/tunnel.up";
 
-  hostsScript = lib.getExe (pkgs.writers.writeNuBin "tunnel-hosts" (builtins.readFile ./hosts.nu));
+  updateTunnelHosts = lib.getExe (
+    repoLib.hosts.mkUpdateScript {
+      inherit pkgs;
+      name = "update-tunnel-hosts";
+      owner = "tunnel";
+      entries = lib.optionals cfg.enable [
+        "127.0.0.1 ${gatewayHost}"
+      ];
+      group = "wheel";
+    }
+  );
 
   controlPackage = repoLib.mkNuCommand {
     inherit pkgs;
@@ -105,18 +115,7 @@ in
       # --------------------------------------------------------------------------------------------
       # Hosts file
       # --------------------------------------------------------------------------------------------
-      system.activationScripts.postActivation.text = lib.mkAfter ''
-        hostsTmp=$(mktemp)
-        ${hostsScript} /etc/hosts \
-          ${lib.escapeShellArg (lib.optionalString cfg.enable gatewayHost)} \
-          >"$hostsTmp"
-
-        install -m0644 \
-          -o root \
-          -g wheel \
-          "$hostsTmp" /etc/hosts
-        rm -f "$hostsTmp"
-      '';
+      system.activationScripts.postActivation.text = lib.mkAfter "${updateTunnelHosts}\n";
     }
 
     (lib.mkIf cfg.enable {

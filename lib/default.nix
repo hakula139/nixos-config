@@ -37,12 +37,14 @@ in
     ;
 
   aria2 = import ./aria2.nix;
+  hosts = import ./hosts { inherit mkNuCommand; };
   llmAssistants = import ./llm-assistants { inherit lib; };
   mihomo = import ./mihomo { inherit lib mkNuCommand proxy; };
   packagesFor = pkgs: import ./packages.nix { inherit pkgs; };
   secrets = import ./secrets.nix { inherit lib; };
   ssh = import ./ssh.nix { inherit lib; };
   systemd = import ./systemd.nix { inherit lib; };
+  telemetry = import ./telemetry.nix { inherit lib; };
   toolingFor = pkgs: import ./tooling.nix { inherit pkgs; };
   wsl = import ./wsl { inherit lib; };
 }

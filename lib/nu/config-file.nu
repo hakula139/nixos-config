@@ -12,8 +12,8 @@ export def open-record [path: path]: nothing -> record {
   if ($content | describe | str starts-with "record") { $content } else { {} }
 }
 
-# Replace a file atomically, optionally setting its mode before publication.
-export def save-atomic [content: string, target: path, --mode: string] {
+# Replace a file atomically, optionally setting its mode and ownership before publication.
+export def save-atomic [content: string, target: path, --mode: string, --owner: string] {
   let temporary = (
     mktemp --tmpdir-path ($target | path dirname) $".($target | path basename).XXXXXXXXXX"
   )
@@ -22,6 +22,9 @@ export def save-atomic [content: string, target: path, --mode: string] {
     $content | save --raw --force $temporary
     if $mode != null {
       ^chmod $mode $temporary
+    }
+    if $owner != null {
+      ^chown $owner $temporary
     }
     ^mv --force $temporary $target
   } catch {|error|

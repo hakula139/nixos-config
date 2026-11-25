@@ -74,24 +74,29 @@ in
           repoLib.proxy.nodeProxyScript
         ];
 
-      envVars = lib.optionalAttrs enableCorpGateway {
+      envVars = {
+        T3CODE_OTEL_SDK_DISABLED = "true";
+        T3CODE_POSTHOG_HOST = "http://127.0.0.1:0";
+        T3CODE_TELEMETRY_ENABLED = "false";
+      }
+      // lib.optionalAttrs enableCorpGateway {
         NODE_EXTRA_CA_CERTS = caFile;
       };
 
       t3CliPkg = repoLib.wrapPackage {
         inherit pkgs envVars;
-        wrapArgs = cliWrapArgs;
         pkg = upstreamPkg;
         name = "t3code-cli-${upstreamPkg.version}";
         bin = "t3";
+        wrapArgs = cliWrapArgs;
       };
 
       t3DesktopPkg = repoLib.wrapPackage {
         inherit pkgs envVars;
-        wrapArgs = baseWrapArgs;
         pkg = t3CliPkg;
         name = "t3code-${upstreamPkg.version}";
         bin = "t3code-desktop";
+        wrapArgs = baseWrapArgs;
       };
 
       # Headless hosts expose only the CLI, leaving the Electron app off PATH and out of menus.

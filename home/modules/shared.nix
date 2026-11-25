@@ -199,6 +199,10 @@ in
   # Environment Variables
   # ------------------------------------------------------------------------------------------------
   home.sessionVariables = {
+    # Telemetry
+    DO_NOT_TRACK = "1";
+    HOMEBREW_NO_ANALYTICS = "1";
+
     # Node.js
     PNPM_HOME = "${config.xdg.dataHome}/pnpm";
   }

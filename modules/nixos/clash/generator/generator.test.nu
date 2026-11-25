@@ -16,11 +16,18 @@ const SERVERS = [
   ["us-1" "198.51.100.30" "admin"]
 ]
 
+const TELEMETRY_DOMAINS = [
+  "+.posthog.com"
+  "a-api.anthropic.com"
+  "ingest.t3.codes"
+]
+
 # The output directory starts with a stale subscription.
 def generate [users: record]: nothing -> record {
   let dir = (mktemp --directory)
   let users_file = ($dir | path join "users.json")
   let servers_file = ($dir | path join "servers.json")
+  let telemetry_file = ($dir | path join "telemetry.json")
   let output = ($dir | path join "out")
 
   $users
@@ -31,6 +38,10 @@ def generate [users: record]: nothing -> record {
   | to json
   | save $servers_file
 
+  $TELEMETRY_DOMAINS
+  | to json
+  | save $telemetry_file
+
   mkdir $output
   "stale" | save ($output | path join "stale-uuid.yaml")
 
@@ -38,6 +49,7 @@ def generate [users: record]: nothing -> record {
     ^python3 $SCRIPT
       --users-path $users_file
       --servers-path $servers_file
+      --telemetry-domains-path $telemetry_file
       --template-path ($SCRIPT_DIR | path join "template.yaml.j2")
       --sni-host sni.example.com
       --output-dir $output
@@ -125,6 +137,8 @@ def "test every subscription sends the whole fleet direct" [] {
   assert equal ($alice.rules | first) "RULE-SET,Hakula,DIRECT,no-resolve"
   assert equal $alice.rule-providers.Hakula.payload $payload
   assert equal $bob.rule-providers.Hakula.payload $payload
+  assert equal $alice.rule-providers.Telemetry.payload $TELEMETRY_DOMAINS
+  assert equal $bob.rule-providers.Telemetry.payload $TELEMETRY_DOMAINS
 }
 
 def "test no valid users fails and keeps existing subscriptions" [] {
