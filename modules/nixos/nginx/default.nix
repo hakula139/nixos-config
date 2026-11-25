@@ -279,11 +279,13 @@ in
         // {
           extraConfig = cloudflareVhostConfig.extraConfig + ''
             absolute_redirect off;
+            access_log off;
           '';
 
           locations."= /rules/telemetry.yaml" = {
             alias = telemetryRulesFile;
             extraConfig = ''
+              access_log /var/log/nginx/access.log main;
               default_type "text/yaml; charset=utf-8";
               add_header Cache-Control 'public, max-age=3600, s-maxage=3600';
             '';
@@ -292,7 +294,6 @@ in
           locations."/" = {
             alias = "/var/lib/clash-generator/";
             extraConfig = ''
-              access_log off;
               default_type application/x-yaml;
               add_header Content-Disposition 'attachment; filename="clash.yaml"';
               ${noCacheExtraConfig}
@@ -311,12 +312,12 @@ in
         // {
           extraConfig = cloudflareVhostConfig.extraConfig + longTimeoutExtraConfig;
 
-          locations."/api/v4/ws" = {
+          locations."/api/v4/file/archive/" = {
             proxyPass = cloudreveUpstream;
-            proxyWebsockets = true;
+            extraConfig = noBufferingExtraConfig;
           };
 
-          locations."/api/v4/file/download" = {
+          locations."/api/v4/file/content/" = {
             proxyPass = cloudreveUpstream;
             extraConfig = noBufferingExtraConfig;
           };
@@ -326,6 +327,10 @@ in
             extraConfig = noBufferingExtraConfig;
           };
 
+          locations."/api/" = {
+            proxyPass = cloudreveUpstream;
+          };
+
           locations."/assets/" = {
             proxyPass = cloudreveUpstream;
           };
@@ -333,6 +338,10 @@ in
           locations."/dav" = {
             proxyPass = cloudreveUpstream;
             extraConfig = noBufferingExtraConfig;
+          };
+
+          locations."/f/" = {
+            proxyPass = cloudreveUpstream;
           };
 
           locations."/" = {
