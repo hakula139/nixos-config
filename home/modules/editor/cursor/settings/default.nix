@@ -34,10 +34,16 @@ let
     tmux = {
       args = [
         "-lc"
-        ''exec tmux new-session -A -s "''${PWD##*/}"''
+        ''
+          if command -v tmux >/dev/null 2>&1 && [ -z "''${TMUX:-}" ]; then
+            exec tmux new-session -A -s "''${PWD##*/}"
+          else
+            exec "''${SHELL:-/bin/sh}" -l
+          fi
+        ''
       ];
       icon = "terminal-tmux";
-      path = "bash";
+      path = "sh";
     };
     zsh = {
       args = [

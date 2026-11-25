@@ -14,21 +14,43 @@ let
   # Extensions
   # ------------------------------------------------------------------------------------------------
   extensions = [
+    # Theme & Icons
     "catppuccin"
     "catppuccin-icons"
+
+    # Languages & Data Formats
+    "basher"
     "csv"
-    "docker-compose"
-    "dockerfile"
     "haskell"
+    "html"
+    "html-jinja"
+    "jinja2"
     "latex"
+    "mermaid"
+    "neocmake"
     "nix"
     "nu"
     "proto"
+    "rainbow-csv"
     "sql"
     "toml"
     "typst"
     "vue"
     "xml"
+
+    # Linters & Spell Checker
+    "cspell"
+    "markdownlint"
+
+    # Containers, Kubernetes & CI
+    "docker-compose"
+    "dockerfile"
+    "github-actions"
+    "gitlab-ci-ls"
+    "helm"
+
+    # Utilities
+    "wakatime"
   ];
 
   # ------------------------------------------------------------------------------------------------
@@ -110,6 +132,20 @@ let
       font_family = "Maple Mono NF CN";
       font_size = 14;
       option_as_meta = true;
+
+      shell.with_arguments = {
+        args = [
+          "-lc"
+          ''
+            if command -v tmux >/dev/null 2>&1 && [ -z "''${TMUX:-}" ]; then
+              exec tmux new-session -A -s "''${PWD##*/}"
+            else
+              exec "''${SHELL:-/bin/sh}" -l
+            fi
+          ''
+        ];
+        program = "sh";
+      };
     };
 
     # ----------------------------------------------------------------------------------------------

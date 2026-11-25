@@ -193,6 +193,7 @@ msftncsi
 myip
 mypy
 nbsp
+neocmake
 netrc
 networkctl
 networkd
