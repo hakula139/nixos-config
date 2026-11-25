@@ -74,7 +74,6 @@ in
     ./claude-code
     ./codex
     ./ctx7
-    ./cursor
     ./omp
     ./oxide-code
     ./shared
