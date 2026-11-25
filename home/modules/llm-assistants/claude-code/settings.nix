@@ -65,6 +65,9 @@
   # ------------------------------------------------------------------------------------------------
   # Sessions
   # ------------------------------------------------------------------------------------------------
+  # Claude Code v2.1.89+ rejects 0 (minimum 1), so 99999 disables automatic deletion.
+  cleanupPeriodDays = 99999;
+
   crossSessionInbound = "accept";
   teammateMode = "in-process";
 
