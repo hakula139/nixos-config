@@ -206,7 +206,7 @@ let
   # Windows sync artifacts
   # ------------------------------------------------------------------------------------------------
   windowsSettings = lib.recursiveUpdate userSettings {
-    agent_buffer_font_size = 18;
+    agent_buffer_font_size = 16;
     auto_install_extensions = lib.genAttrs extensions (_: true);
     buffer_font_size = 18;
     terminal = {
