@@ -28,10 +28,6 @@ let
     model = shared.profileDefinitions.modelAliases.claude.flagship;
   };
 
-  emptyResponseWarn = import ./empty-response-warn {
-    inherit sharedHooks;
-  };
-
   teammateIdle = import ./teammate-idle {
     inherit pkgs lib;
   };
@@ -47,7 +43,6 @@ let
       autoFormat
       commentGate
       completeness
-      emptyResponseWarn
       teammateIdle
       worktree.create
       worktree.remove
