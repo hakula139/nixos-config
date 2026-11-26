@@ -43,6 +43,12 @@ let
     runtimeInputs = [ pkgs.tmux ];
   };
 
+  # Set before lib.mkBefore (order 500) so modules such as workmux can append to it with `set -ag`.
+  catppuccinWindowText = ''
+    set -g @catppuccin_window_text " #{?automatic-rename,#T,#W}"
+    set -g @catppuccin_window_current_text " #{?automatic-rename,#T,#W}"
+  '';
+
   # The plugin wrapper starts nested tmux clients, which deadlock the config queue if the initial
   # client exits while they run synchronously, and can be interrupted midway when backgrounded.
   catppuccinPluginDir = "${pkgs.tmuxPlugins.catppuccin}/share/tmux-plugins/catppuccin";
@@ -120,11 +126,14 @@ in
     # ----------------------------------------------------------------------------------------------
     # Extra configuration
     # ----------------------------------------------------------------------------------------------
-    extraConfig = lib.concatStringsSep "\n" [
-      (lib.fileContents ./tmux.conf)
-      nushellConfig
-      catppuccinConfig
-      persistenceConfig
+    extraConfig = lib.mkMerge [
+      (lib.mkOrder 400 catppuccinWindowText)
+      (lib.concatStringsSep "\n" [
+        (lib.fileContents ./tmux.conf)
+        nushellConfig
+        catppuccinConfig
+        persistenceConfig
+      ])
     ];
   };
 }
