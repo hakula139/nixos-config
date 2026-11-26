@@ -1,0 +1,4 @@
+interface:
+  display_name: 'sops'
+  short_description: 'Edit and re-key sops-nix secrets safely'
+  default_prompt: 'Use $sops to edit, re-key, or verify these sops-nix secrets without overwriting plaintext.'

@@ -31,7 +31,7 @@ pkgs.writeShellScript "clash-generator" ''
   outputDir="''${STATE_DIRECTORY:-/var/lib/clash-generator}"
 
   ${lib.getExe' pythonEnv "python3"} ${generator} \
-    --users-path "${config.age.secrets.clash-users.path}" \
+    --users-path "${config.sops.secrets.clash-users.path}" \
     --servers-path "${serversFile}" \
     --template-path "${template}" \
     --sni-host "${config.hakula.network.realitySniHost}" \

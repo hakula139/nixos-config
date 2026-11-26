@@ -17,12 +17,12 @@ let
   userConfig = config.users.users.${cfg.user.name};
 
   systemManagerHealthCheck = pkgs.writers.writeNuBin "system-manager-health-check" (
-    builtins.readFile ./health-check.nu
+    builtins.readFile ./scripts/health-check.nu
   );
 in
 {
   imports = [
-    ./age.nix
+    ./sops.nix
 
     ../shared/base
     ../shared/cachix
@@ -110,14 +110,14 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.identityPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
+    sops.age.sshKeyPaths = [ "${userConfig.home}/.ssh/id_ed25519" ];
 
-    systemd.services."home-manager-${cfg.user.name}" = lib.mkIf (config.age.secrets != { }) {
+    systemd.services."home-manager-${cfg.user.name}" = lib.mkIf (config.sops.secrets != { }) {
       after = [
-        "agenix-install-secrets.service"
+        "sops-install-secrets.service"
       ];
       requires = [
-        "agenix-install-secrets.service"
+        "sops-install-secrets.service"
       ];
     };
   };

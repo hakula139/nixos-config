@@ -3,7 +3,7 @@
 # ==================================================================================================
 
 let
-  keys = import ../secrets/keys.nix;
+  keys = import ./keys.nix;
   ssh = import ./ssh.nix;
 in
 {

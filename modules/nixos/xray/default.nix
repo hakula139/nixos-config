@@ -83,8 +83,8 @@ in
         clientFlows.vless-reality = "xtls-rprx-vision";
         minLevel = servers.${hostName}.proxyLevel;
 
-        usersFile = config.age.secrets.xray-users.path;
-        privateKeyFile = config.age.secrets.xray-reality-private-key.path;
+        usersFile = config.sops.secrets.xray-users.path;
+        privateKeyFile = config.sops.secrets.xray-reality-private-key.path;
         outputFile = configFile;
       };
 
@@ -100,12 +100,14 @@ in
       # --------------------------------------------------------------------------------------------
       # Secrets
       # --------------------------------------------------------------------------------------------
-      age.secrets.xray-users = repoLib.secrets.mkSecret {
+      sops.secrets.xray-users = repoLib.secrets.mkSecret {
         name = "xray/users.json";
+        restartUnits = [ "xray-config.service" ];
       };
 
-      age.secrets.xray-reality-private-key = repoLib.secrets.mkSecret {
+      sops.secrets.xray-reality-private-key = repoLib.secrets.mkSecret {
         name = "xray/reality-private-key";
+        restartUnits = [ "xray-config.service" ];
       };
 
       # --------------------------------------------------------------------------------------------
@@ -174,9 +176,6 @@ in
       # `requiredBy` also propagates restarts, so Xray reloads whenever the config is re-rendered.
       systemd.services.xray-config = {
         description = "Render Xray config from proxy users";
-        after = [
-          "agenix.service"
-        ];
         before = [
           "xray.service"
         ];
@@ -191,11 +190,6 @@ in
           RuntimeDirectory = "xray-config";
           RuntimeDirectoryMode = "0700";
         };
-
-        restartTriggers = [
-          config.age.secrets.xray-users.file
-          config.age.secrets.xray-reality-private-key.file
-        ];
       };
     }
   );

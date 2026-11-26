@@ -18,10 +18,10 @@ assert lib.assertOneOf "hostType" hostType [
 ];
 
 let
-  inherit (config.lib.llmAssistants) mcpSecrets;
   inherit (repoLib.llmAssistants) mcpOptions;
 
   cfg = config.hakula.llm-assistants;
+  corpGateway = config.lib.llmAssistants.profileDefinitions.providers.corp-gateway;
 
   assistantNames = [
     "claude-code"
@@ -44,8 +44,8 @@ let
     ];
 
     bifrost = [
-      "llm-assistants/corp-gateway/claude-code-api-key"
-      "llm-assistants/corp-gateway/cachain.crt"
+      (corpGateway.tokenSecretFor "claude-code")
+      corpGateway.caSecret
     ];
 
     exa = [
@@ -63,7 +63,7 @@ let
 
   requiredMcpSecretKeys = lib.unique (lib.concatMap (s: mcpServerSecrets.${s} or [ ]) activeServers);
 
-  requiredMcpSecrets = lib.getAttrs requiredMcpSecretKeys mcpSecrets;
+  requiredMcpSecrets = lib.genAttrs requiredMcpSecretKeys (_: { });
 in
 {
   imports = [

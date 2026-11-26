@@ -250,7 +250,7 @@ in
         inherit baseUrl;
         apiUrls = lib.mapAttrs (_: path: "${baseUrl}/${path}") apiPaths;
 
-        tokenSecretFor = client: "llm-assistants/corp-gateway/${client}-api-key";
+        tokenSecretFor = client: "llm-assistants/corp-gateway/api-key/${client}";
         caSecret = "llm-assistants/corp-gateway/cachain.crt";
 
         # The gateway injects its MCP tools into every model request unless this header names the

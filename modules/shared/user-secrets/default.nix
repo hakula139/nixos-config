@@ -1,7 +1,7 @@
 # ==================================================================================================
 # User Secrets
 # ==================================================================================================
-# Declares an agenix secret for each entry the primary user's Home Manager configuration requires.
+# Declares a SOPS secret for each entry the primary user's Home Manager configuration requires.
 # ==================================================================================================
 
 {
@@ -18,5 +18,5 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module config
   # ------------------------------------------------------------------------------------------------
-  config.age.secrets = repoLib.secrets.mkRequiredUserSecrets { inherit homeConfig user; };
+  config.sops.secrets = repoLib.secrets.mkRequiredUserSecrets { inherit homeConfig user; };
 }

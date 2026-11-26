@@ -131,10 +131,8 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.secrets.cloudflare-credentials = repoLib.secrets.mkSecret {
-      name = "cloudflare/credentials";
-      owner = "acme";
-      group = "acme";
+    sops.secrets.cloudflare-dns-api-token = repoLib.secrets.mkSecret {
+      name = "cloudflare/dns-api-token";
     };
 
     # ----------------------------------------------------------------------------------------------
@@ -146,7 +144,7 @@ in
       defaults = {
         email = "i@hakula.xyz";
         dnsProvider = "cloudflare";
-        environmentFile = config.age.secrets.cloudflare-credentials.path;
+        credentialFiles.CF_DNS_API_TOKEN_FILE = config.sops.secrets.cloudflare-dns-api-token.path;
         dnsResolver = "1.1.1.1:53";
       };
 

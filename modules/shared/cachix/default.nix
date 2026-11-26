@@ -23,7 +23,7 @@ in
   # Module config
   # ------------------------------------------------------------------------------------------------
   config = lib.mkIf cfg.enable {
-    age.secrets.cachix-auth-token = repoLib.secrets.mkSecret {
+    sops.secrets.cachix-auth-token = repoLib.secrets.mkSecret {
       name = "cachix/auth-token";
       owner = user.name;
       inherit (user) group;

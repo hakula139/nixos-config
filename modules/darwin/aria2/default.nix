@@ -16,7 +16,7 @@ let
   cfg = config.hakula.services.aria2;
   userName = config.hakula.user.name;
   homeConfig = config.home-manager.users.${userName};
-  rpcConfig = config.age.secrets.aria2-rpc-config.path;
+  rpcConfig = config.sops.templates."aria2-rpc.conf".path;
 
   stateDir = "${homeConfig.xdg.stateHome}/aria2";
   sessionFile = "${stateDir}/session";
@@ -62,9 +62,16 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.secrets = lib.mkIf cfg.enable {
-      aria2-rpc-config = repoLib.secrets.mkDarwinUserSecret userName {
-        name = "aria2/rpc-config-macbook";
+    sops = lib.mkIf cfg.enable {
+      secrets.aria2-rpc-secret = repoLib.secrets.mkSecret {
+        name = "aria2/rpc-secret";
+        owner = userName;
+      };
+
+      templates."aria2-rpc.conf" = {
+        owner = userName;
+        group = "staff";
+        content = "rpc-secret=${config.sops.placeholder.aria2-rpc-secret}\n";
       };
     };
 

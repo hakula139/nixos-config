@@ -35,7 +35,7 @@ in
   options.hakula.secrets.required = lib.mkOption {
     type = lib.types.attrsOf secretSpecType;
     default = { };
-    description = "User-owned age secrets required by this Home Manager configuration";
+    description = "User-owned SOPS secrets required by this Home Manager configuration";
   };
 
   # Module arg so consumers don't have to pull config.hakula.secrets.required.<name>.path.

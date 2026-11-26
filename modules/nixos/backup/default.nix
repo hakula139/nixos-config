@@ -133,13 +133,13 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.secrets.backup-env = repoLib.secrets.mkSecret {
+    sops.secrets.backup-env = repoLib.secrets.mkSecret {
       name = "backup/env";
       owner = serviceName;
       group = serviceName;
     };
 
-    age.secrets.backup-restic-password = repoLib.secrets.mkSecret {
+    sops.secrets.backup-restic-password = repoLib.secrets.mkSecret {
       name = "backup/restic-password";
       owner = serviceName;
       group = serviceName;
@@ -167,8 +167,8 @@ in
       {
         initialize = true;
         repository = repositoryFor name;
-        environmentFile = config.age.secrets.backup-env.path;
-        passwordFile = config.age.secrets.backup-restic-password.path;
+        environmentFile = config.sops.secrets.backup-env.path;
+        passwordFile = config.sops.secrets.backup-restic-password.path;
 
         paths = if targetCfg.paths != [ ] then targetCfg.paths else [ stateDir ];
 
@@ -331,7 +331,7 @@ in
             serviceConfig = {
               Type = "oneshot";
               UMask = "0077";
-              EnvironmentFile = config.age.secrets.backup-env.path;
+              EnvironmentFile = config.sops.secrets.backup-env.path;
               TimeoutStartSec = resticTimeout;
             };
 
@@ -344,7 +344,7 @@ in
 
             environment = {
               RESTIC_REPOSITORY = repositoryFor name;
-              RESTIC_PASSWORD_FILE = config.age.secrets.backup-restic-password.path;
+              RESTIC_PASSWORD_FILE = config.sops.secrets.backup-restic-password.path;
             };
 
             script = ''

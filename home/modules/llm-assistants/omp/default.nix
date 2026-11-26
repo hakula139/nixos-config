@@ -132,7 +132,7 @@ in
         # Secrets
         # ------------------------------------------------------------------------------------------
         hakula.secrets.required = {
-          inherit (shared.mcpSecrets) "llm-assistants/mcp/exa-api-key";
+          "llm-assistants/mcp/exa-api-key" = { };
           "llm-assistants/telegram-bot-token" = { };
         };
 

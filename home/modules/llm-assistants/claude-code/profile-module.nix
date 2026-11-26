@@ -62,7 +62,7 @@ lib.types.submodule {
       type = lib.types.nullOr lib.types.str;
       default = null;
       description = ''
-        Name of the agenix secret containing the auth token (required for `oauth-token` and
+        Name of the SOPS secret containing the auth token (required for `oauth-token` and
         `api-key`, forbidden for `subscription`)
       '';
     };

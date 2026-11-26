@@ -15,13 +15,14 @@ def is-activated [app: path]: nothing -> bool {
   $status.stdout | lines | parse -r '^Activation Status:\s*Activated\s*$' | is-not-empty
 }
 
-# Activate BetterDisplay from an agenix license. Missing prerequisites are skipped until the launch
+# Activate BetterDisplay from a SOPS license. Missing prerequisites are skipped until the launch
 # agent runs again.
 def main [
   --app: path # Wrapper-supplied BetterDisplay executable
-  --license-file: path # Wrapper-supplied JSON file containing the purchase email and license key
+  --email-file: path # Wrapper-supplied file containing the purchase email
+  --key-file: path # Wrapper-supplied file containing the license key
 ] {
-  if not ($app | path exists) or not ($license_file | path exists) {
+  if not ($app | path exists) or not ($email_file | path exists) or not ($key_file | path exists) {
     return
   }
 
@@ -29,12 +30,13 @@ def main [
     return
   }
 
-  let license = open --raw $license_file | from json
+  let email = open --raw $email_file | str trim
+  let key = open --raw $key_file | str trim
   let result = (
     ^$app manageLicense
       -activate
-      $"-email=($license.email)"
-      $"-key=($license.key)"
+      $"-email=($email)"
+      $"-key=($key)"
     | complete
   )
   if $result.exit_code != 0 or not (is-activated $app) {

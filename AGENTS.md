@@ -2,14 +2,14 @@
 
 ## Read before you edit
 
-| When the task involves                        | Read                  |
-| --------------------------------------------- | --------------------- |
-| A Nix module, package, or host                | [Nix conventions]     |
-| A Nushell script or its tests                 | [Nushell conventions] |
-| A secret or a recipient list                  | [Secrets]             |
-| Host wiring, builders, or the repository tree | [Architecture]        |
-| First-time setup on any platform              | [Bootstrap]           |
-| A deployment with nixsw or nixdp              | [Deployment]          |
+| When the task involves                        | Read                                               |
+| --------------------------------------------- | -------------------------------------------------- |
+| A Nix module, package, or host                | [Nix conventions](docs/conventions/nix.md)         |
+| A Nushell script or its tests                 | [Nushell conventions](docs/conventions/nushell.md) |
+| A secret or a recipient list                  | [Secrets](.agents/skills/sops/SKILL.md)            |
+| Host wiring, builders, or the repository tree | [Architecture](docs/reference/architecture.md)     |
+| First-time setup on any platform              | [Bootstrap](docs/guides/bootstrap.md)              |
+| A deployment with nixsw or nixdp              | [Deployment](docs/guides/deployment.md)            |
 
 ## Script language
 
@@ -35,8 +35,6 @@ Place a file description inside the header banner after the title, and close it 
 
 ## Repository safeguards
 
-**Never let an agenix command overwrite a secret with empty or unintended plaintext.** Follow the `agenix` skill.
-
 **`data/corp-domain.nix` can differ from its committed content, and that is expected.** Never delete, restore (`git checkout`, `git restore`), or stage it.
 
 **Never merge a `nixos-config` PR / MR without explicit approval for that PR / MR.** Broad merge approval for other repositories does not cover this repository.
@@ -55,17 +53,9 @@ Host out paths change on every source edit because `home/modules/nix/default.nix
 
 Because the shell hook links the gitignored `.pre-commit-config.yaml` only on shell entry, run `nix develop` once in each worktree, and again after any rebase or merge that changes the hook configuration.
 
-[The GitHub Actions workflow] runs only on GitHub, so a branch or MR that exists only on GitLab never triggers it. Paths with a `fixtures` component are exempt from pre-commit hooks, cspell, and Git line-ending conversion so script-test fixtures keep exact bytes.
+[The GitHub Actions workflow](.github/workflows/ci.yml) runs only on GitHub, so a branch or MR that exists only on GitLab never triggers it. Paths with a `fixtures` component are exempt from pre-commit hooks, cspell, and Git line-ending conversion so script-test fixtures keep exact bytes.
 
 ## Documentation maintenance
 
-- Keep the repository tree in [Architecture] accurate at its current depth, and add prose below it only for knowledge every module author needs.
-- Update the architecture's host table when host wiring changes, and the README and [Deployment] when deployment commands change.
-
-[Nix conventions]: docs/conventions/nix.md
-[Nushell conventions]: docs/conventions/nushell.md
-[Secrets]: .agents/skills/agenix/SKILL.md
-[Architecture]: docs/reference/architecture.md
-[Bootstrap]: docs/guides/bootstrap.md
-[Deployment]: docs/guides/deployment.md
-[The GitHub Actions workflow]: .github/workflows/ci.yml
+- Keep the repository tree in [Architecture](docs/reference/architecture.md) accurate at its current depth, and add prose below it only for knowledge every module author needs.
+- Update the architecture's host table when host wiring changes, and the README and [Deployment](docs/guides/deployment.md) when deployment commands change.

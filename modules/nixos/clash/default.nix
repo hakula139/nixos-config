@@ -50,10 +50,11 @@ in
       # --------------------------------------------------------------------------------------------
       # Secrets
       # --------------------------------------------------------------------------------------------
-      age.secrets.clash-users = repoLib.secrets.mkSecret {
+      sops.secrets.clash-users = repoLib.secrets.mkSecret {
         name = "xray/users.json";
         owner = "clashgen";
         group = "clashgen";
+        restartUnits = [ "clash-generator.service" ];
       };
 
       # --------------------------------------------------------------------------------------------
@@ -61,9 +62,6 @@ in
       # --------------------------------------------------------------------------------------------
       systemd.services.clash-generator = {
         description = "Generate Clash subscription configs from user data";
-        after = [
-          "agenix.service"
-        ];
         wantedBy = [
           "multi-user.target"
         ];
@@ -77,10 +75,6 @@ in
           StateDirectoryMode = "0750";
           WorkingDirectory = "%S/%N";
         };
-
-        restartTriggers = [
-          config.age.secrets.clash-users.file
-        ];
       };
     }
   );

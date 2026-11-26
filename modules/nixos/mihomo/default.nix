@@ -24,8 +24,8 @@ let
       corpHosts
       hostType
       ;
-    secretFile = config.age.secrets.mihomo-secret.path;
-    subscriptionUrlFile = config.age.secrets.mihomo-subscription-url.path;
+    secretFile = config.sops.secrets.mihomo-secret.path;
+    subscriptionUrlFile = config.sops.secrets.mihomo-subscription-url.path;
   };
 
   hardening = repoLib.systemd.hardening // {
@@ -72,16 +72,18 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.secrets.mihomo-secret = repoLib.secrets.mkSecret {
+    sops.secrets.mihomo-secret = repoLib.secrets.mkSecret {
       name = "mihomo/secret";
       owner = "mihomo";
       group = "mihomo";
+      restartUnits = [ "mihomo.service" ];
     };
 
-    age.secrets.mihomo-subscription-url = repoLib.secrets.mkSecret {
+    sops.secrets.mihomo-subscription-url = repoLib.secrets.mkSecret {
       name = "mihomo/subscription-url";
       owner = "mihomo";
       group = "mihomo";
+      restartUnits = [ "mihomo.service" ];
     };
 
     # ----------------------------------------------------------------------------------------------

@@ -22,8 +22,8 @@ let
       corpHosts
       hostType
       ;
-    secretFile = config.age.secrets.mihomo-secret.path;
-    subscriptionUrlFile = config.age.secrets.mihomo-subscription-url.path;
+    secretFile = config.sops.secrets.mihomo-secret.path;
+    subscriptionUrlFile = config.sops.secrets.mihomo-subscription-url.path;
   };
 
   label = config.launchd.daemons.mihomo.serviceConfig.Label;
@@ -49,12 +49,12 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.secrets.mihomo-secret = repoLib.secrets.mkSecret {
+    sops.secrets.mihomo-secret = repoLib.secrets.mkSecret {
       name = "mihomo/secret";
       group = "wheel";
     };
 
-    age.secrets.mihomo-subscription-url = repoLib.secrets.mkSecret {
+    sops.secrets.mihomo-subscription-url = repoLib.secrets.mkSecret {
       name = "mihomo/subscription-url";
       group = "wheel";
     };

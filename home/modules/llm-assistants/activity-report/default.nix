@@ -18,12 +18,9 @@ let
   # ------------------------------------------------------------------------------------------------
   # Calendar
   # ------------------------------------------------------------------------------------------------
-  caldavSecret = secretPath "feishu/caldav";
   readCaldav = key: [
-    (lib.getExe pkgs.nushell)
-    "--no-config-file"
-    "--commands"
-    "open --raw ${caldavSecret} | from toml | get ${key}"
+    (lib.getExe' pkgs.coreutils "cat")
+    (secretPath "feishu/caldav/${key}")
   ];
 in
 lib.mkIf config.hakula.llm-assistants.enable (
@@ -51,7 +48,11 @@ lib.mkIf config.hakula.llm-assistants.enable (
       # --------------------------------------------------------------------------------------------
       # Secrets
       # --------------------------------------------------------------------------------------------
-      hakula.secrets.required."feishu/caldav" = { };
+      hakula.secrets.required = {
+        "feishu/caldav/password" = { };
+        "feishu/caldav/url" = { };
+        "feishu/caldav/username" = { };
+      };
 
       # --------------------------------------------------------------------------------------------
       # Calendar

@@ -33,6 +33,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── caches.nix                  # Binary cache URLs and public keys by name
 │   ├── corp-domain.nix             # Corp-internal domain
 │   ├── corp-hosts.nix              # Corp-internal hostnames and URLs
+│   ├── keys.nix                    # SSH public keys (users, servers, workstations, builder)
 │   ├── llm-models.nix              # Shared model catalog and defaults
 │   ├── platform-settings.nix       # Cross-platform locale, time zone, Nix, and GC settings
 │   ├── servers.nix                 # Server inventory (IP, port, provider, host keys, builders)
@@ -48,7 +49,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── packages.nix                # Base and font package groups for each package set
 │   ├── pre-commit.nix              # Shared devkit hook configuration
 │   ├── proxy.nix                   # Proxy options, wrappers, and environment scripts
-│   ├── secrets.nix                 # Secret declarations and path helpers
+│   ├── secrets.nix                 # Secret catalog, declarations, and path helpers
 │   ├── ssh.nix                     # Builder and SSH configuration from server inventory
 │   ├── systemd.nix                 # Shared systemd hardening and restart policies
 │   ├── telemetry.nix               # Clash and /etc/hosts telemetry blocking helpers
@@ -64,17 +65,17 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── darwin/                     # macOS-specific modules
 │   ├── nixos/                      # NixOS service modules (most carry an `enable` option)
 │   ├── shared/                     # Modules imported by more than one tree
-│   └── system-manager/             # System Manager activation, agenix port
+│   └── system-manager/             # System Manager activation, sops-nix port
 ├── home/
 │   ├── hakula.nix                  # Home Manager entry point
 │   └── modules/                    # Home Manager modules (incl. `wsl.nix` workstation bundle)
 ├── packages/                       # Custom package definitions called by lib/overlays.nix
-├── secrets/                        # agenix-encrypted secrets and recipient rules
+├── secrets/                        # SOPS-encrypted secrets (YAML bundles and native formats)
 ├── tests/                          # `checks.<system>`, one aggregator over per-case directories
 │   ├── default.nix                 # Aggregator importing each check case
 │   ├── nu-command/                 # Nushell command adapter check with its fixtures
 │   └── scripts/                    # `checks.<system>.scripts`, nu-test and bun tests
-├── agenix-rules.nix                # Root-level agenix entry point for recipient rules
+├── .sops.yaml                      # SOPS age recipients and file creation rules
 ├── docs/                           # This knowledge base
 └── .github/workflows/ci.yml        # CI pipeline
 ```

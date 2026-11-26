@@ -13,7 +13,8 @@
 let
   userName = config.hakula.user.name;
   app = "/Applications/BetterDisplay.app/Contents/MacOS/BetterDisplay";
-  licenseFile = config.age.secrets.betterdisplay-license.path;
+  emailFile = config.sops.secrets.betterdisplay-email.path;
+  keyFile = config.sops.secrets.betterdisplay-key.path;
 
   activateLicense = repoLib.mkNuCommand {
     inherit pkgs;
@@ -22,7 +23,8 @@ let
 
     flags = {
       inherit app;
-      license-file = licenseFile;
+      email-file = emailFile;
+      key-file = keyFile;
     };
   };
 in
@@ -37,8 +39,16 @@ in
   # ------------------------------------------------------------------------------------------------
   # Secrets
   # ------------------------------------------------------------------------------------------------
-  age.secrets.betterdisplay-license = repoLib.secrets.mkDarwinUserSecret userName {
-    name = "betterdisplay/license";
+  sops.secrets = {
+    betterdisplay-email = repoLib.secrets.mkSecret {
+      name = "betterdisplay/email";
+      owner = userName;
+    };
+
+    betterdisplay-key = repoLib.secrets.mkSecret {
+      name = "betterdisplay/key";
+      owner = userName;
+    };
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -51,7 +61,8 @@ in
       RunAtLoad = true;
       WatchPaths = [
         "/Applications/BetterDisplay.app"
-        licenseFile
+        emailFile
+        keyFile
       ];
 
       ProcessType = "Background";

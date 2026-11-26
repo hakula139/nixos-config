@@ -112,7 +112,7 @@ in
           options = {
             remote = lib.mkOption {
               type = lib.types.str;
-              description = "Remote and path from the agenix-managed rclone config";
+              description = "Remote and path from the SOPS-managed rclone config";
               example = "b2:bucket";
             };
 

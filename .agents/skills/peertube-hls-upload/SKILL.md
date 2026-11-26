@@ -28,16 +28,13 @@ The script targets `v.hakula.xyz`, database `peertube`, and bucket `hakula-video
 
 Local commands need Nushell, Python 3, FFmpeg / ffprobe, and Nix. `verify` also uses `strings` and `grep`. Database commands require SSH access to `CloudCone-US-1` and `sudo -u peertube psql -d peertube`. The upload helper obtains `awscli2` through `nix shell`.
 
-For S3 reads and uploads, decrypt credentials directly into the shell without printing them or enabling shell tracing:
+For S3 reads and uploads, inject decrypted credentials directly into the command without printing them or polluting the shell:
 
 ```bash
-peertube_credentials=$(agenix -d secrets/peertube/env.age -i ~/.ssh/CloudCone/id_ed25519) || exit 1
-eval "$peertube_credentials"
-unset peertube_credentials
-export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+sops exec-env secrets/peertube.env '"$hls" <subcommand> ...'
 ```
 
-Decryption requires the corresponding agenix identity at the path shown. The repository's root `agenix-rules.nix` maps these paths to the recipient rules. Load the `agenix` skill for execution from other directories.
+If `~/.config/sops/age/keys.txt` does not contain the CloudCone age key, pass `SOPS_AGE_KEY="$(ssh-to-age -private-key -i ~/.ssh/CloudCone/id_ed25519)"` in the command prefix using `sops` and `ssh-to-age` from `nix develop`. Load the `sops` skill for recipient rules and key handling.
 
 ## Prepare the rendition
 

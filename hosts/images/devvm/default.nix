@@ -34,7 +34,7 @@ in
   # ------------------------------------------------------------------------------------------------
   hakula.nix-daemon.proxy = {
     enable = true;
-    secretUrlFile = repoLib.secrets.secretPath proxyUrlSecret;
+    secretName = proxyUrlSecret;
     noProxy = proxyNoProxy;
   };
 

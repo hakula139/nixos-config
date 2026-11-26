@@ -52,16 +52,18 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.secrets.peertube-env = repoLib.secrets.mkSecret {
+    sops.secrets.peertube-env = repoLib.secrets.mkSecret {
       name = "peertube/env";
       owner = "peertube";
       group = "peertube";
+      restartUnits = [ "peertube.service" ];
     };
 
-    age.secrets.peertube-secret = repoLib.secrets.mkSecret {
+    sops.secrets.peertube-secret = repoLib.secrets.mkSecret {
       name = "peertube/secret";
       owner = "peertube";
       group = "peertube";
+      restartUnits = [ "peertube.service" ];
     };
 
     # ----------------------------------------------------------------------------------------------
@@ -79,8 +81,8 @@ in
       database.createLocally = true;
       redis.createLocally = true;
 
-      secrets.secretsFile = config.age.secrets.peertube-secret.path;
-      serviceEnvironmentFile = config.age.secrets.peertube-env.path;
+      secrets.secretsFile = config.sops.secrets.peertube-secret.path;
+      serviceEnvironmentFile = config.sops.secrets.peertube-env.path;
 
       settings = {
         object_storage = {

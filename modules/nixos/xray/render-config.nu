@@ -49,7 +49,7 @@ def main [
   let users = (
     open --raw $config.usersFile
     | from json
-    | values
+    | get users
     | where {|user| ($user.level? | default "user") in $allowed_levels }
   )
   let private_key = (open --raw $config.privateKeyFile | decode utf-8 | str trim)

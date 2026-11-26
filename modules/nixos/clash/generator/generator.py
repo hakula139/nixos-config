@@ -151,13 +151,25 @@ def load_users(path: Path) -> dict[str, UserConfig]:
         logging.error('Invalid JSON in users file: %s', e)
         return {}
 
-    if not isinstance(data, dict):
-        logging.error('Users file must contain an object mapping names to users')
+    if not isinstance(data, dict) or not isinstance(data.get('users'), list):
+        logging.error('Users file must contain an object with a "users" array')
         return {}
 
     users: dict[str, UserConfig] = {}
-    for name, user_data in cast(dict[str, Any], data).items():
-        user_config = build_user_config(name, user_data)
+    for idx, entry in enumerate(cast(list[Any], data['users'])):
+        if not isinstance(entry, dict):
+            logging.warning('User entry at index %d has invalid format', idx)
+            continue
+
+        entry_dict = cast(dict[str, Any], entry)
+        name = entry_dict.get('name')
+        if not isinstance(name, str) or not name:
+            logging.warning(
+                'User entry at index %d is missing required field: name', idx
+            )
+            continue
+
+        user_config = build_user_config(name, entry_dict)
         if user_config is not None:
             users[name] = user_config
 

@@ -62,20 +62,25 @@ def subscriptions [output: string]: nothing -> list<string> {
 
 def "test each user gets the servers their level admits" [] {
   let result = (generate {
-    alice: {
-      uuid: "alice-uuid"
-      shortId: "00"
-      level: "admin"
-    }
-    bob: {
-      uuid: "0123"
-      shortId: "b2"
-    }
-    eve: {
-      uuid: "eve-uuid"
-      shortId: "e5"
-      level: "root"
-    }
+    users: [
+      {
+        name: "alice"
+        uuid: "alice-uuid"
+        shortId: "00"
+        level: "admin"
+      }
+      {
+        name: "bob"
+        uuid: "0123"
+        shortId: "b2"
+      }
+      {
+        name: "eve"
+        uuid: "eve-uuid"
+        shortId: "e5"
+        level: "root"
+      }
+    ]
   })
   assert equal $result.run.exit_code 0 $result.run.stderr
 
@@ -101,15 +106,19 @@ def "test each user gets the servers their level admits" [] {
 
 def "test every subscription sends the whole fleet direct" [] {
   let result = (generate {
-    alice: {
-      uuid: "alice-uuid"
-      shortId: "a1"
-      level: "admin"
-    }
-    bob: {
-      uuid: "bob-uuid"
-      shortId: "b2"
-    }
+    users: [
+      {
+        name: "alice"
+        uuid: "alice-uuid"
+        shortId: "a1"
+        level: "admin"
+      }
+      {
+        name: "bob"
+        uuid: "bob-uuid"
+        shortId: "b2"
+      }
+    ]
   })
   assert equal $result.run.exit_code 0 $result.run.stderr
 
@@ -139,10 +148,13 @@ def "test every subscription sends the whole fleet direct" [] {
 
 def "test no valid users fails and keeps existing subscriptions" [] {
   let result = (generate {
-    eve: {
-      uuid: "eve-uuid"
-      level: "admin"
-    }
+    users: [
+      {
+        name: "eve"
+        uuid: "eve-uuid"
+        level: "admin"
+      }
+    ]
   })
 
   assert equal $result.run.exit_code 1

@@ -11,20 +11,25 @@ const SCRIPT_DIR = path self "."
 const SCRIPT = ($SCRIPT_DIR | path join "render-config.nu")
 
 const USERS = {
-  alice: {
-    uuid: "alice-uuid"
-    shortId: "a1"
-    level: "admin"
-  }
-  bob: {
-    uuid: "bob-uuid"
-    shortId: "b2"
-    level: "user"
-  }
-  carol: {
-    uuid: "carol-uuid"
-    shortId: "c3"
-  }
+  users: [
+    {
+      name: "alice"
+      uuid: "alice-uuid"
+      shortId: "a1"
+      level: "admin"
+    }
+    {
+      name: "bob"
+      uuid: "bob-uuid"
+      shortId: "b2"
+      level: "user"
+    }
+    {
+      name: "carol"
+      uuid: "carol-uuid"
+      shortId: "c3"
+    }
+  ]
 }
 
 const SETTINGS = {

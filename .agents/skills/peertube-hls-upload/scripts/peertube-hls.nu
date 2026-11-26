@@ -9,6 +9,8 @@
 # Run with --help for usage.
 # ==================================================================================================
 
+use std-rfc/str
+
 const SCRIPT_DIR = path self "."
 
 # --------------------------------------------------------------------------------------------------
@@ -31,86 +33,47 @@ const X264_PROFILE = "high"
 const X264_B_STRATEGY = "1"
 const X264_BF = "16"
 
-const CREDENTIAL_HINT = 'B2 credentials not set. Run in Bash from the repository root:
-  peertube_credentials=$(agenix -d secrets/peertube/env.age -i ~/.ssh/CloudCone/id_ed25519) || exit 1
-  eval "$peertube_credentials"
-  unset peertube_credentials
-  export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY'
-
-# --------------------------------------------------------------------------------------------------
-# Queries
-# --------------------------------------------------------------------------------------------------
-
-const API_JQ_FILTER = r#'{
-  uuid, name, state,
-  files: [.files[] | {resolution: .resolution.id, size}],
-  streamingPlaylists: [.streamingPlaylists[] | {
-    type, playlistUrl,
-    files: [.files[] | {resolution: .resolution.id, size, fps}]
-  }]
-}'#
-
-const SQL_HLS_FILES = r#'
-SELECT vf.id, vf.resolution, vf.fps, vf.width, vf.height, vf.size, vf.filename, vf.storage
-FROM "videoFile" vf
-JOIN "videoStreamingPlaylist" vsp
-  ON vsp.id = vf."videoStreamingPlaylistId"
-JOIN video v
-  ON v.id = vsp."videoId"
-WHERE v.uuid = :'uuid'
-ORDER BY vf.resolution;
-'#
-
-const SQL_PLAYLIST_META = r#'
-SELECT vsp."playlistFilename", vsp."segmentsSha256Filename"
-FROM "videoStreamingPlaylist" vsp
-JOIN video v
-  ON v.id = vsp."videoId"
-WHERE v.uuid = :'uuid';
-'#
-
-const SQL_UPDATE_SIZE = r#'
-UPDATE "videoFile"
-SET size = :size
-WHERE id = :id;
-'#
-
-const SQL_UPDATE_META = r#'
-UPDATE "videoFile"
-SET metadata = :'metadata'
-WHERE id = :id;
-'#
-
 # --------------------------------------------------------------------------------------------------
 # Helpers
 # --------------------------------------------------------------------------------------------------
 
-def die [msg: string] {
-  print -e $"error: ($msg)"
+def die [msg: string]: nothing -> nothing {
+  print --stderr $"error: ($msg)"
   exit 1
 }
 
-def require-uuid [value: string] {
+def require-uuid [value: string]: nothing -> nothing {
   if not ($value =~ "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$") {
     die $"invalid UUID: ($value)"
   }
 }
 
-def require-int [value: string] {
+def require-int [value: string]: nothing -> nothing {
   if not ($value =~ "^[0-9]+$") {
     die $"invalid integer: ($value)"
   }
 }
 
-def require-file [path: string, label: string] {
+def require-file [path: string, label: string]: nothing -> nothing {
   if not ($path | path exists) {
     die $"($label): ($path)"
   }
 }
 
-def require-b2-credentials [] {
+def require-b2-credentials []: nothing -> nothing {
   if ($env.AWS_ACCESS_KEY_ID? | is-empty) or ($env.AWS_SECRET_ACCESS_KEY? | is-empty) {
-    die $CREDENTIAL_HINT
+    die (
+      '
+      B2 credentials not set. Run from the repository root with sops exec-env:
+
+        sops exec-env secrets/peertube.env "$hls <subcommand> ..."
+
+      If ~/.config/sops/age/keys.txt does not hold the CloudCone key, prefix with:
+
+        SOPS_AGE_KEY="$(ssh-to-age -private-key -i ~/.ssh/CloudCone/id_ed25519)"
+      '
+      | str dedent
+    )
   }
 }
 
@@ -146,7 +109,7 @@ def sh-join [args: list<string>]: nothing -> string {
   | str join " "
 }
 
-def b2-upload [src: string, dst: string] {
+def b2-upload [src: string, dst: string]: nothing -> nothing {
   let name = ($src | path basename)
   let content_type = match ($name | path parse | get extension) {
     "mp4" => "video/mp4"
@@ -165,7 +128,7 @@ def b2-upload [src: string, dst: string] {
 }
 
 # Values bind through psql's `-v`, so nothing is escaped into the statement itself.
-def pt-psql [sql: string, params: record = {}] {
+def pt-psql [sql: string, params: record = {}]: nothing -> nothing {
   let bindings = (
     $params
     | items {|k, v| [-v $"($k)=($v)"] }
@@ -197,7 +160,20 @@ def "main identify" [video_uuid: string] {
       --silent
       -H $"Host: ($PEERTUBE_DOMAIN)"
   ])
-  let query = $"($fetch) | (sh-join [jq $API_JQ_FILTER])"
+  let jq_filter = (
+    "
+    {
+      uuid, name, state,
+      files: [.files[] | {resolution: .resolution.id, size}],
+      streamingPlaylists: [.streamingPlaylists[] | {
+        type, playlistUrl,
+        files: [.files[] | {resolution: .resolution.id, size, fps}]
+      }]
+    }
+    "
+    | str dedent
+  )
+  let query = $"($fetch) | (sh-join [jq $jq_filter])"
   ^ssh $PEERTUBE_HOST (sh-join [
     sudo -u peertube
       bash
@@ -206,10 +182,31 @@ def "main identify" [video_uuid: string] {
   ])
 
   print "\n=== DB: HLS file details ==="
-  pt-psql $SQL_HLS_FILES {uuid: $video_uuid}
+  pt-psql (
+    r#'
+    SELECT vf.id, vf.resolution, vf.fps, vf.width, vf.height, vf.size, vf.filename, vf.storage
+    FROM "videoFile" vf
+    JOIN "videoStreamingPlaylist" vsp
+      ON vsp.id = vf."videoStreamingPlaylistId"
+    JOIN video v
+      ON v.id = vsp."videoId"
+    WHERE v.uuid = :'uuid'
+    ORDER BY vf.resolution;
+    '#
+    | str dedent
+  ) {uuid: $video_uuid}
 
   print "\n=== DB: Streaming playlist metadata ==="
-  pt-psql $SQL_PLAYLIST_META {uuid: $video_uuid}
+  pt-psql (
+    r#'
+    SELECT vsp."playlistFilename", vsp."segmentsSha256Filename"
+    FROM "videoStreamingPlaylist" vsp
+    JOIN video v
+      ON v.id = vsp."videoId"
+    WHERE v.uuid = :'uuid';
+    '#
+    | str dedent
+  ) {uuid: $video_uuid}
 }
 
 # Transcode a source video to HLS fragmented MP4. `fps` is required for re-encode mode.
@@ -336,7 +333,14 @@ def "main db-update-size" [file_id: string, file_uuid: string, resolution: strin
   let new_size = (file-size $fmp4)
   print $"Updating videoFile id=($file_id) size to ($new_size)..."
 
-  pt-psql $SQL_UPDATE_SIZE {
+  pt-psql (
+    '
+    UPDATE "videoFile"
+    SET size = :size
+    WHERE id = :id;
+    '
+    | str dedent
+  ) {
     size: $new_size
     id: $file_id
   }
@@ -366,9 +370,16 @@ def "main db-update-meta" [file_id: string, file_uuid: string, resolution: strin
   let metadata = (
     open --raw $metadata_file
     | from json
-    | to json -r
+    | to json --raw
   )
-  pt-psql $SQL_UPDATE_META {
+  pt-psql (
+    r#'
+    UPDATE "videoFile"
+    SET metadata = :'metadata'
+    WHERE id = :id;
+    '#
+    | str dedent
+  ) {
     metadata: $metadata
     id: $file_id
   }

@@ -11,10 +11,10 @@
 
 let
   inherit (inputs)
-    agenix
     disko
     home-manager
     nix-darwin
+    sops-nix
     system-manager
     ;
 
@@ -55,7 +55,7 @@ let
   # Shared NixOS modules
   # ------------------------------------------------------------------------------------------------
   mkNixosBaseModules = homeManagerArgs: [
-    agenix.nixosModules.default
+    sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
     (mkHomeManagerConfig homeManagerArgs)
     { _module.args = { inherit (homeManagerArgs) isDesktop; }; }
@@ -171,7 +171,7 @@ let
           nixpkgs.hostPlatform = "aarch64-darwin";
           nixpkgs.overlays = overlays;
         }
-        agenix.darwinModules.default
+        sops-nix.darwinModules.sops
         home-manager.darwinModules.home-manager
         (mkHomeManagerConfig {
           inherit

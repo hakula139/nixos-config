@@ -19,7 +19,7 @@ let
 
   sshCfg = config.hakula.access.ssh;
   serverList = lib.attrValues servers;
-  builderKeyPath = config.age.secrets.builder-ssh-key.path;
+  builderKeyPath = config.sops.secrets.builder-ssh-key.path;
 
   updateTelemetryHosts = lib.getExe (
     repoLib.hosts.mkUpdateScript {
@@ -62,10 +62,11 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.identityPaths = [ "${userHome}/.ssh/id_ed25519" ];
+    sops.age.sshKeyPaths = [ "${userHome}/.ssh/id_ed25519" ];
 
-    age.secrets.builder-ssh-key = repoLib.secrets.mkDarwinUserSecret userName {
+    sops.secrets.builder-ssh-key = repoLib.secrets.mkSecret {
       name = "builders/ssh-key";
+      owner = userName;
     };
 
     # ----------------------------------------------------------------------------------------------

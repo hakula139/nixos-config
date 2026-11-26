@@ -54,11 +54,24 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.secrets.umami-env = repoLib.secrets.mkSecret {
-      name = "umami/env";
-      owner = "root";
+    sops.secrets.umami-db-password = repoLib.secrets.mkSecret {
+      name = "umami/db-password";
+      owner = "postgres";
       group = "postgres";
-      mode = "0440"; # postgresql postStart needs to read this file
+      restartUnits = [ "postgresql-setup.service" ];
+    };
+
+    sops.secrets.umami-app-secret = repoLib.secrets.mkSecret {
+      name = "umami/app-secret";
+      owner = "root";
+    };
+
+    sops.templates."umami.env" = {
+      restartUnits = [ "podman-${serviceName}.service" ];
+      content = ''
+        DATABASE_URL=postgresql://${serviceName}:${config.sops.placeholder.umami-db-password}@10.88.0.1:5432/${dbName}
+        APP_SECRET=${config.sops.placeholder.umami-app-secret}
+      '';
     };
 
     # ----------------------------------------------------------------------------------------------
@@ -82,11 +95,11 @@ in
     systemd.services.postgresql-setup = {
       postStart = lib.mkAfter ''
         set -euo pipefail
-        source ${config.age.secrets.umami-env.path}
+        db_password=$(< ${config.sops.secrets.umami-db-password.path})
 
         psql \
           -v ON_ERROR_STOP=1 \
-          -c "ALTER ROLE ${serviceName} WITH PASSWORD '$DB_PASSWORD';"
+          -c "ALTER ROLE ${serviceName} WITH PASSWORD '$db_password';"
       '';
     };
 
@@ -107,7 +120,7 @@ in
       };
 
       environmentFiles = [
-        config.age.secrets.umami-env.path
+        config.sops.templates."umami.env".path
       ];
     };
 

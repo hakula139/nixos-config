@@ -8,12 +8,12 @@
     # Local / system state
     # ----------------------------------------------------------------------------------------------
     {
-      command = "agenix";
-      reason = "Reads or rewrites encrypted secrets.";
-    }
-    {
       command = "rm";
       reason = "Irreversible deletion, except own /tmp scratch and build output.";
+    }
+    {
+      command = "sops";
+      reason = "Reads or rewrites encrypted secrets.";
     }
     {
       command = "sudo";

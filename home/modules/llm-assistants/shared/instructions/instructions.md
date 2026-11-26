@@ -24,11 +24,11 @@ Before your first edit or command in any installed or repository-local skill's a
 
 ### Secret Handling
 
-Secrets live at `/run/agenix/<service>/<secret>`, in environment variables, and in credential files such as `.env`. Use them by path or pipe when needed, and never store their values anywhere durable.
+Secrets live at `/run/secrets/<service>/<secret>`, in environment variables, and in credential files such as `.env`. Use them by path or pipe when needed, and never store their values anywhere durable.
 
 - Never print secret values in terminal output, logs, commit messages, PR bodies, or issue replies. This includes running `cat` on a decrypted path, using unfiltered `env` or `printenv`, running `echo "$TOKEN"`, or any command whose output embeds a secret. Redact proof of presence to a length or prefix (`<40 chars>`, `sk-...4f2a`), and name only keys (with at most a length) in reports, handoffs, and messages to other agents.
 - Test secrets without revealing them by checking presence with `[[ -s <path> ]]`, comparing hashes, or piping them directly into the consuming command. Never round-trip a value through your own output.
-- Write a value only into its agenix secret or the untracked file that consumes it, and pass it to commands by path or variable.
+- Write a value only into its SOPS secret or the untracked file that consumes it, and pass it to commands by path or variable.
 
 ### Shared-Tree Safety
 

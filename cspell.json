@@ -15,8 +15,9 @@
   "ignorePaths": [
     "**/*.patch",
     "**/fixtures/**",
+    ".sops.yaml",
     "data/corp-domain.nix",
     "flake.lock",
-    "secrets/**/*.age"
+    "secrets/**"
   ]
 }

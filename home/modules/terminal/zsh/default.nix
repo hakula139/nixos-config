@@ -51,7 +51,7 @@ let
   # System Manager switch commands
   # ------------------------------------------------------------------------------------------------
   systemManagerProfile = "/nix/var/nix/profiles/system-manager-profiles/system-manager";
-  systemManagerHealthCheck = "system-manager-health-check agenix-install-secrets.service home-manager-${username}.service";
+  systemManagerHealthCheck = "system-manager-health-check sops-install-secrets.service home-manager-${username}.service";
 
   systemManagerNixswScript = pkgs.writeShellScript "nixsw" ''
     set -euo pipefail

@@ -26,15 +26,12 @@ in
   # ------------------------------------------------------------------------------------------------
   # Secrets
   # ------------------------------------------------------------------------------------------------
-  age.secrets.drivedx-license =
-    repoLib.secrets.mkDarwinUserSecret userName {
-      name = "drivedx/license";
-      mode = "0600";
-      path = licensePath;
-    }
-    // {
-      symlink = false;
-    };
+  sops.secrets.drivedx-license = repoLib.secrets.mkSecret {
+    name = "drivedx/license";
+    owner = userName;
+    mode = "0600";
+    path = licensePath;
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Directory management

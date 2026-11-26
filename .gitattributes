@@ -1,4 +1,4 @@
 * text=auto
-*.age binary
+secrets/builders-ssh-key binary
 flake.lock linguist-generated
 **/fixtures/** -text

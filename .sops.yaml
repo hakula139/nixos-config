@@ -1,0 +1,134 @@
+# ==================================================================================================
+# SOPS Encryption Rules
+# ==================================================================================================
+
+stores:
+  json:
+    indent: 2
+  yaml:
+    indent: 2
+
+keys:
+  # User SSH keys (~/.ssh/<provider>/id_ed25519)
+  - &cloudcone age1z33d7n5tnq0rx8xz6ezh44yvywacprpjnhyrmjf26ktm7alqs3wqh2qvt7
+  - &dmit age1d4rdad5tgw827e05jy7kqp040fxet5dvlvzrkz5kh79wqq6wp3ls7mgm6u
+
+  # Server SSH host keys (/etc/ssh/ssh_host_ed25519_key)
+  - &devvm age134twkylks6phgztac8m6c32h2ye050xmnl0f52mt4ukaptvgm9sqnskmeu
+  - &us_1 age1amm3msgxv4np92qtsgv6m3e3uznsyuj9gwdc2ymg50y5r24rqezqu4v00j
+  - &us_4 age1830hsfn9zyug494xyw8xq50j99z34fd4svtwcuzjrrkehm7q3u7q5zwady
+
+  # Workstation SSH keys (~/.ssh/id_ed25519)
+  - &macbook age1sgf5rfn2kwnxvye2zz5jswp60qnts504xg405swq8c0ze0xd4sdqu9gdk9
+  - &wsl age1652xvxdqwmdhtqja9vxzc00cyxjjp4v8eut3mvxwqttquflwhuksegk78u
+
+creation_rules:
+  # ------------------------------------------------------------------------------------------------
+  # Shared domain bundles (YAML)
+  # ------------------------------------------------------------------------------------------------
+  - path_regex: ^secrets/common\.yaml$
+    key_groups:
+      - age:
+          - *cloudcone
+          - *devvm
+          - *dmit
+          - *macbook
+          - *us_1
+          - *us_4
+          - *wsl
+
+  - path_regex: ^secrets/corp\.yaml$
+    key_groups:
+      - age:
+          - *devvm
+          - *macbook
+          - *wsl
+
+  - path_regex: ^secrets/macbook\.yaml$
+    key_groups:
+      - age:
+          - *macbook
+
+  - path_regex: ^secrets/servers\.yaml$
+    key_groups:
+      - age:
+          - *cloudcone
+          - *devvm
+          - *dmit
+          - *us_1
+          - *us_4
+
+  - path_regex: ^secrets/us-1\.yaml$
+    key_groups:
+      - age:
+          - *cloudcone
+          - *dmit
+          - *us_1
+
+  - path_regex: ^secrets/us-4\.yaml$
+    key_groups:
+      - age:
+          - *cloudcone
+          - *dmit
+          - *us_4
+
+  - path_regex: ^secrets/workstations\.yaml$
+    key_groups:
+      - age:
+          - *macbook
+          - *wsl
+
+  - path_regex: ^secrets/wsl\.yaml$
+    key_groups:
+      - age:
+          - *wsl
+
+  # ------------------------------------------------------------------------------------------------
+  # Structured & binary files (whole-file decryption)
+  # ------------------------------------------------------------------------------------------------
+  - path_regex: ^secrets/backup\.env$
+    key_groups:
+      - age:
+          - *cloudcone
+          - *devvm
+          - *dmit
+          - *us_1
+          - *us_4
+
+  - path_regex: ^secrets/builders-ssh-key$
+    key_groups:
+      - age:
+          - *cloudcone
+          - *devvm
+          - *dmit
+          - *macbook
+          - *us_1
+          - *us_4
+
+  - path_regex: ^secrets/peertube\.env$
+    key_groups:
+      - age:
+          - *cloudcone
+          - *dmit
+          - *us_1
+
+  - path_regex: ^secrets/rclone\.ini$
+    key_groups:
+      - age:
+          - *macbook
+
+  - path_regex: ^secrets/wakatime\.ini$
+    key_groups:
+      - age:
+          - *macbook
+          - *wsl
+
+  - path_regex: ^secrets/xray/users\.json$
+    encrypted_regex: ^(name|uuid|shortId)$
+    key_groups:
+      - age:
+          - *cloudcone
+          - *devvm
+          - *dmit
+          - *us_1
+          - *us_4

@@ -14,13 +14,6 @@ let
     "https_proxy"
   ];
 
-  proxyUrlExpr =
-    proxyCfg: literalUrl:
-    if proxyCfg.secretUrlFile != null then
-      "$(cat ${lib.escapeShellArg proxyCfg.secretUrlFile})"
-    else
-      literalUrl;
-
   baseNoProxy = [
     "localhost"
     "127.0.0.1"
@@ -60,27 +53,6 @@ let
       export no_proxy=${noProxy}
     '';
 
-  mkProxyEnvFileScript =
-    {
-      proxyCfg,
-      dest,
-    }:
-    let
-      proxyUrl = proxyUrlExpr proxyCfg proxyCfg.url;
-      noProxy = renderNoProxy proxyCfg;
-    in
-    ''
-      umask 077
-      printf '%s\n' \
-        "HTTP_PROXY=${proxyUrl}" \
-        "http_proxy=${proxyUrl}" \
-        "HTTPS_PROXY=${proxyUrl}" \
-        "https_proxy=${proxyUrl}" \
-        "NO_PROXY=${noProxy}" \
-        "no_proxy=${noProxy}" \
-        >${lib.escapeShellArg dest}
-    '';
-
   mkProxyWrapArgs =
     proxyCfg:
     lib.optionals proxyCfg.enable [
@@ -91,9 +63,9 @@ in
 {
   inherit
     mkProxyScript
-    mkProxyEnvFileScript
     mkProxyWrapArgs
     proxyVars
+    renderNoProxy
     ;
 
   # Shell snippet that clears proxy env vars. Use in scripts that must reach the network bypassing

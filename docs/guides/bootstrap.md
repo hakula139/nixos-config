@@ -31,7 +31,7 @@ wsl -d NixOS                             # first launch
 
 On older WSL versions, use `wsl --import NixOS C:\WSL\NixOS .\nixos.wsl`.
 
-Inside the new distro, copy the agenix identity from the Windows side and apply the managed configuration:
+Inside the new distro, copy the SOPS decryption identity from the Windows side and apply the managed configuration:
 
 ```bash
 git clone https://github.com/hakulab/nixos-config ~/nixos-config
@@ -46,14 +46,14 @@ sudo nixos-rebuild switch --flake ~/nixos-config#wsl
 
 ## Non-NixOS Linux (System Manager)
 
-`wsl-non-nixos` uses [system-manager](https://github.com/numtide/system-manager) to own the system profile, user shell integration, agenix secret activation, and the Home Manager activation service.
+`wsl-non-nixos` uses [system-manager](https://github.com/numtide/system-manager) to own the system profile, user shell integration, SOPS secret activation, and the Home Manager activation service.
 
 Install Nix with the Determinate Nix Installer, then bootstrap System Manager before the managed profile installs `system-manager` itself:
 
 ```bash
 curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 nix run '.#system-manager' -- switch --flake '.#wsl-non-nixos' --sudo
-system-manager-health-check agenix-install-secrets.service home-manager-hakula.service
+system-manager-health-check sops-install-secrets.service home-manager-hakula.service
 ```
 
 ## macOS
@@ -69,7 +69,7 @@ sudo nix run nix-darwin/nix-darwin-26.05#darwin-rebuild -- switch --flake '.#mac
 
 ## Docker image
 
-`devvm` packages its NixOS system closure as a Docker image for transfer to restricted networks. The [Compose file](../../hosts/images/devvm/docker-compose.yml) also requires host files and directories for credentials, workspace data, and the Docker socket. Public packages and GitHub repositories over git reach the image through the corp mirrors, so `npx` and `uvx` resolve at runtime without public internet access.
+`devvm` packages its NixOS system closure as a Docker image for transfer to restricted networks. The [Compose file](../../hosts/images/devvm/docker-compose.yml) also requires host files and directories for credentials, workspace data, and the Docker socket, and the container reads its SOPS decryption identity from `/root/.config/sops/identity` inside the `devvm-root` volume. Public packages and GitHub repositories over git reach the image through the corp mirrors, so `npx` and `uvx` resolve at runtime without public internet access.
 
 Build the image with Nix, then load and start it with Docker:
 

@@ -15,7 +15,7 @@ let
   cfg = config.hakula.builders;
 
   remoteServers = lib.filter (s: s.name != hostName) (lib.attrValues servers);
-  builderKeyPath = config.age.secrets.builder-ssh-key.path;
+  builderKeyPath = config.sops.secrets.builder-ssh-key.path;
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ in
     # ----------------------------------------------------------------------------------------------
     # Secrets
     # ----------------------------------------------------------------------------------------------
-    age.secrets.builder-ssh-key = repoLib.secrets.mkSecret {
+    sops.secrets.builder-ssh-key = repoLib.secrets.mkSecret {
       name = "builders/ssh-key";
       owner = "root";
       group = "root";

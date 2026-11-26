@@ -41,8 +41,8 @@
     # ----------------------------------------------------------------------------------------------
     # Deployment and secrets
     # ----------------------------------------------------------------------------------------------
-    agenix = {
-      url = "github:ryantm/agenix";
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -173,14 +173,12 @@
       };
 
       data = import ./data;
-      keys = import ./secrets/keys.nix;
 
       commonSpecialArgs = data // {
         inherit
           inputs
           repo
           repoLib
-          keys
           ;
       };
 
