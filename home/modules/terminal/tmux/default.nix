@@ -17,7 +17,7 @@ let
     builtins.replaceStrings
       [ "@direnv@" "@tmux@" ]
       [ (esc (lib.getExe config.programs.direnv.package)) (esc (lib.getExe pkgs.tmux)) ]
-      (builtins.readFile ./wrapper.sh)
+      (builtins.readFile ./scripts/wrapper.sh)
   );
 
   # A custom join keeps the man output, which wrap-package would drop.
@@ -39,7 +39,7 @@ let
   taskName = repoLib.mkNuCommand {
     inherit pkgs;
     name = "tmux-task-name";
-    script = ./task-name.nu;
+    script = ./scripts/task-name.nu;
     runtimeInputs = [ pkgs.tmux ];
   };
 
@@ -79,7 +79,7 @@ let
   restoreClients = repoLib.mkNuCommand {
     inherit pkgs;
     name = "tmux-restore-clients";
-    script = ./restore-clients.nu;
+    script = ./scripts/restore-clients.nu;
     runtimeInputs = [ pkgs.tmux ];
     flags.restore-script = "${continuumPluginDir}/scripts/continuum_restore.sh";
   };
