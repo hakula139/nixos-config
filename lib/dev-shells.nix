@@ -16,10 +16,7 @@ let
 in
 {
   default = pkgs.mkShell {
-    packages = [
-      tooling.scriptPython
-    ]
-    ++ tooling.all;
+    packages = tooling.all;
 
     inputsFrom = [ preCommit ];
 

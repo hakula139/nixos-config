@@ -32,6 +32,7 @@ in
           config
           pkgs
           lib
+          repoLib
           servers
           ;
       };
@@ -67,7 +68,7 @@ in
         ];
         serviceConfig = repoLib.systemd.hardening // {
           Type = "oneshot";
-          ExecStart = clashGenerator;
+          ExecStart = lib.getExe clashGenerator;
           RemainAfterExit = true;
           User = "clashgen";
           Group = "clashgen";

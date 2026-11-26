@@ -17,7 +17,7 @@ Nushell is the default for new helper scripts. Bash is only for scripts another 
 
 ## Layout
 
-Lines end at column 100, counting the indent, in every language except Python, which follows ruff's 88.
+Lines end at column 100, counting the indent.
 
 Every language uses these section banners, written with its own comment marker and ending at the line limit. Use equals signs for the unindented file header and dashes for inner subsections, indented to match the surrounding code:
 

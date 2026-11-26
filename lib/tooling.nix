@@ -44,10 +44,6 @@ let
   # ------------------------------------------------------------------------------------------------
   # Script Tests
   # ------------------------------------------------------------------------------------------------
-  scriptPython = pkgs.python3.withPackages (ps: [
-    ps.jinja2
-  ]);
-
   testRunners = with pkgs; [
     bun
     nu-test
@@ -58,7 +54,6 @@ in
     nix
     secrets
     shell
-    scriptPython
     testRunners
     ;
 

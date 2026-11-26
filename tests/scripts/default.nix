@@ -36,7 +36,6 @@ pkgs.runCommand "script-tests"
       pkgs.nixfmt
       pkgs.prek
       pkgs.zstd
-      tooling.scriptPython
     ]
     ++ tooling.testRunners;
   }
