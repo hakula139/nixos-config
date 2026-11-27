@@ -71,7 +71,19 @@ in
   # Home Manager Overrides
   # ------------------------------------------------------------------------------------------------
   home-manager.users.root =
-    { secretPath, ... }:
+    {
+      config,
+      secretPath,
+      ...
+    }:
+    let
+      inherit (config.agents.claude-code.auth) enabledProfiles;
+      gatewayProfile = "corp-gateway-hybrid";
+
+      useGatewayProfile =
+        config.hakula.llm-assistants.auth.enableCorpGateway
+        && (enabledProfiles == null || lib.elem gatewayProfile enabledProfiles);
+    in
     {
       # --------------------------------------------------------------------------------------------
       # Nix
@@ -105,7 +117,7 @@ in
         };
       };
 
-      agents.claude-code.auth.defaultProfile = "corp-gateway-hybrid";
+      agents.claude-code.auth.defaultProfile = lib.mkIf useGatewayProfile (lib.mkDefault gatewayProfile);
 
       # --------------------------------------------------------------------------------------------
       # Secrets

@@ -34,7 +34,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── corp-domain.nix             # Corp-internal domain
 │   ├── corp-hosts.nix              # Corp-internal hostnames and URLs
 │   ├── keys.nix                    # SSH public keys (users, servers, workstations, builder)
-│   ├── llm-models.nix              # Shared model catalog and defaults
+│   ├── llm-models.nix              # Gateway model IDs, costs, and local defaults
 │   ├── platform-settings.nix       # Cross-platform locale, time zone, Nix, and GC settings
 │   ├── servers.nix                 # Server inventory (IP, port, provider, host keys, builders)
 │   ├── ssh.nix                     # SSH port shared by every sshd and client entry

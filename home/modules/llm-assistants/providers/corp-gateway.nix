@@ -60,6 +60,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # Claude Code per-profile workarounds
   # ------------------------------------------------------------------------------------------------
+  gptMiniKey = modelCatalog.defaults.gpt.mini;
   localMiniKey = modelCatalog.defaults.local.mini;
   localMiniModel = modelCatalog.models.${localMiniKey};
   localMiniId = localMiniModel.channelId.local;
@@ -91,7 +92,7 @@ let
     };
 
     corp-gateway-openai = mkClaudeProfileOverrides {
-      smallFastId = modelCatalog.models.${modelCatalog.defaults.gpt.mini}.channelId.openai;
+      smallFastId = modelCatalog.models.${gptMiniKey}.channelId.openai or gptMiniKey;
       extraAttrs.nativeWebSearch = false;
     };
 

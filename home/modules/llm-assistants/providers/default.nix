@@ -5,18 +5,30 @@
 {
   config,
   lib,
+  inputs,
   corpHosts,
-  modelCatalog,
+  modelPolicy,
   secretPath,
   ...
 }:
 
 let
   inherit (cfg.auth) enableCorpGateway;
+  inherit (config.agents.resolved) modelCatalog;
 
   cfg = config.hakula.llm-assistants;
+  builtinModelDefaults = inputs.agents-nix.lib.models.defaultCatalog.defaults;
 
   oauthTokenSecret = "llm-assistants/claude-oauth-token";
+
+  profileEnabled = auth: name: auth.enabledProfiles == null || lib.elem name auth.enabledProfiles;
+
+  defaultAnthropicGatewayProfile =
+    auth:
+    let
+      name = "corp-gateway-anthropic";
+    in
+    lib.mkIf (enableCorpGateway && profileEnabled auth name) (lib.mkDefault name);
 
   corpGateway = import ./corp-gateway.nix {
     inherit
@@ -47,8 +59,15 @@ in
       # Models, providers, and profiles
       # --------------------------------------------------------------------------------------------
       models = {
-        catalog = modelCatalog.models;
-        inherit (modelCatalog) defaults;
+        catalog = modelPolicy.models;
+        defaults = {
+          inherit (modelPolicy) local;
+
+          hybrid = {
+            inherit (builtinModelDefaults.gemini) default flagship standard;
+            inherit (modelPolicy.local) mini;
+          };
+        };
         familyApis.local = "openai-responses";
 
         workloadPolicy.local = {
@@ -82,7 +101,9 @@ in
       # Per-assistant profile routing
       # --------------------------------------------------------------------------------------------
       claude-code = lib.mkIf enableCorpGateway {
-        auth.profileOverrides = corpGateway.claudeProfileOverrides;
+        auth.profileOverrides = lib.filterAttrs (
+          name: _: profileEnabled config.agents.claude-code.auth name
+        ) corpGateway.claudeProfileOverrides;
         statusline.costSources = corpGateway.costSources;
       };
 
@@ -94,13 +115,9 @@ in
         ];
       };
 
-      omp.auth.defaultProfile = lib.mkDefault (
-        if enableCorpGateway then "corp-gateway-anthropic" else "official"
-      );
+      omp.auth.defaultProfile = defaultAnthropicGatewayProfile config.agents.omp.auth;
 
-      oxide-code.auth.defaultProfile = lib.mkDefault (
-        if enableCorpGateway then "corp-gateway-anthropic" else "official"
-      );
+      oxide-code.auth.defaultProfile = defaultAnthropicGatewayProfile config.agents.oxide-code.auth;
     };
 
     # ----------------------------------------------------------------------------------------------

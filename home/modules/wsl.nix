@@ -11,8 +11,14 @@
 
 let
   inherit (corpHosts) wildcardDomain;
+  inherit (config.agents.claude-code.auth) enabledProfiles;
 
   cfg = config.hakula.wsl;
+  gatewayProfile = "corp-gateway-anthropic";
+
+  useGatewayProfile =
+    config.hakula.llm-assistants.auth.enableCorpGateway
+    && (enabledProfiles == null || lib.elem gatewayProfile enabledProfiles);
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -36,7 +42,7 @@ in
       ];
     };
 
-    agents.claude-code.auth.defaultProfile = "corp-gateway-anthropic";
+    agents.claude-code.auth.defaultProfile = lib.mkIf useGatewayProfile (lib.mkDefault gatewayProfile);
 
     hakula.cursor = {
       extensions.prune = lib.mkForce false;

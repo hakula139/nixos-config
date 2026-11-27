@@ -1,90 +1,11 @@
 # ==================================================================================================
-# LLM Model Catalog
+# LLM Gateway Model Policy
 # ==================================================================================================
 
 let
   # ------------------------------------------------------------------------------------------------
-  # Family capabilities
+  # Local model capabilities
   # ------------------------------------------------------------------------------------------------
-  claudeCommon = {
-    vendor = "anthropic";
-    apis = [ "anthropic-messages" ];
-
-    contextWindow = 1000000;
-    maxTokens = 128000;
-    autoCompactTokens = 400000;
-    input = [
-      "text"
-      "image"
-    ];
-
-    reasoning = true;
-    thinking = {
-      mode = "anthropic-adaptive";
-      efforts = [
-        "low"
-        "medium"
-        "high"
-        "xhigh"
-        "max"
-      ];
-      defaultLevel = "medium";
-    };
-  };
-
-  gptCommon = {
-    vendor = "openai";
-    apis = [ "openai-responses" ];
-
-    contextWindow = 1050000;
-    maxTokens = 128000;
-    autoCompactTokens = 272000;
-    input = [
-      "text"
-      "image"
-    ];
-
-    reasoning = true;
-    thinking = {
-      mode = "effort";
-      efforts = [
-        "low"
-        "medium"
-        "high"
-        "xhigh"
-        "max"
-      ];
-      defaultLevel = "high";
-    };
-  };
-
-  geminiCommon = {
-    vendor = "google";
-    apis = [
-      "openai-chat-completions"
-      "openai-responses"
-    ];
-
-    contextWindow = 1048576;
-    maxTokens = 65536;
-    autoCompactTokens = 400000;
-    input = [
-      "text"
-      "image"
-    ];
-
-    reasoning = true;
-    thinking = {
-      mode = "effort";
-      efforts = [
-        "low"
-        "medium"
-        "high"
-      ];
-      defaultLevel = "medium";
-    };
-  };
-
   localCommon = {
     apis = [
       "openai-chat-completions"
@@ -227,51 +148,16 @@ let
         channel: cost: if builtins.elem channel freeChannels then costs.free else cost
       ) model.channelCost;
     };
-
-  # ------------------------------------------------------------------------------------------------
-  # Tier defaults
-  # ------------------------------------------------------------------------------------------------
-  familyDefaults = {
-    claude = {
-      default = "claude-opus-5-5";
-      flagship = "claude-opus-5-5";
-      standard = "claude-sonnet-5-5";
-      mini = "claude-haiku-5-5";
-    };
-
-    gpt = {
-      default = "gpt-6.2-sol";
-      flagship = "gpt-6.2-astra";
-      standard = "gpt-6.2-sol";
-      mini = "gpt-6-luna";
-    };
-
-    gemini = {
-      default = "gemini-4-neon";
-      flagship = "gemini-4-neon";
-      standard = "gemini-4-neon";
-      mini = "gemini-4-hydrogen";
-    };
-
-    local = {
-      default = "kimi-k3.1-pro";
-      flagship = "kimi-k3.1-pro";
-      standard = "kimi-k3.1-pro";
-      mini = "deepseek-v4.1-flash";
-    };
-  };
 in
 {
   # ------------------------------------------------------------------------------------------------
   # Defaults
   # ------------------------------------------------------------------------------------------------
-  defaults = familyDefaults // {
-    hybrid = {
-      inherit (familyDefaults.gemini) default flagship standard;
-      inherit (familyDefaults.local) mini;
-    };
-
-    prose = "gemini-4-neon";
+  local = {
+    default = "kimi-k3.1-pro";
+    flagship = "kimi-k3.1-pro";
+    standard = "kimi-k3.1-pro";
+    mini = "deepseek-v4.1-flash";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -281,20 +167,17 @@ in
     # ----------------------------------------------------------------------------------------------
     # Claude
     # ----------------------------------------------------------------------------------------------
-    "claude-opus-5-5" = claudeCommon // {
-      name = "Claude Opus 5.5";
+    "claude-opus-5-5" = {
       channelId.anthropic = "azure/claude-opus-5-5";
       channelCost.anthropic = costs.claude.opus;
     };
 
-    "claude-sonnet-5-5" = claudeCommon // {
-      name = "Claude Sonnet 5.5";
+    "claude-sonnet-5-5" = {
       channelId.anthropic = "bedrock/global.anthropic.claude-sonnet-5-5";
       channelCost.anthropic = costs.claude.sonnet;
     };
 
-    "claude-haiku-5-5" = claudeCommon // {
-      name = "Claude Haiku 5.5";
+    "claude-haiku-5-5" = {
       channelId.anthropic = "bedrock/global.anthropic.claude-haiku-5-5";
       channelCost.anthropic = costs.claude.haiku;
     };
@@ -302,32 +185,22 @@ in
     # ----------------------------------------------------------------------------------------------
     # GPT
     # ----------------------------------------------------------------------------------------------
-    "gpt-6.2-astra" = gptCommon // {
-      name = "GPT-6.2 Astra";
+    "gpt-6.2-astra" = {
       channelId.openai = "azure/gpt-6.2-astra";
       channelCost.openai = costs.gpt.astra-6-2;
     };
 
-    "gpt-6.2-sol" = gptCommon // {
-      name = "GPT-6.2 Sol";
+    "gpt-6.2-sol" = {
       channelId.openai = "azure/gpt-6.2-sol";
       channelCost.openai = costs.gpt.sol;
     };
 
-    "gpt-6.1-terra" = gptCommon // {
-      name = "GPT-6.1 Terra";
-      contextWindow = 922000;
+    "gpt-6.1-terra" = {
       channelId.openai = "azure/gpt-6.1-terra";
       channelCost.openai = costs.gpt.terra;
     };
 
-    "gpt-6-luna" = gptCommon // {
-      name = "GPT-6 Luna";
-
-      thinking = gptCommon.thinking // {
-        defaultLevel = "low";
-      };
-
+    "gpt-6-luna" = {
       channelId.openai = "azure/gpt-6-luna";
       channelCost.openai = costs.gpt.luna;
     };
@@ -335,20 +208,17 @@ in
     # ----------------------------------------------------------------------------------------------
     # Gemini
     # ----------------------------------------------------------------------------------------------
-    "gemini-4-carbon" = geminiCommon // {
-      name = "Gemini 4 Carbon";
+    "gemini-4-carbon" = {
       channelId.google = "openrouter/google/gemini-4-carbon";
       channelCost.google = costs.gemini.carbon;
     };
 
-    "gemini-4-neon" = geminiCommon // {
-      name = "Gemini 4 Neon";
+    "gemini-4-neon" = {
       channelId.google = "gemini/gemini-4-neon";
       channelCost.google = costs.gemini.neon;
     };
 
-    "gemini-4-hydrogen" = geminiCommon // {
-      name = "Gemini 4 Hydrogen";
+    "gemini-4-hydrogen" = {
       channelId.google = "gemini/gemini-4-hydrogen";
       channelCost.google = costs.gemini.hydrogen;
     };
