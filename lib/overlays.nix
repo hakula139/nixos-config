@@ -8,8 +8,8 @@
 
 [
   inputs.rust-overlay.overlays.default
-  inputs.flake-catalog.overlays.default
   inputs.agents-nix.overlays.default
+  inputs.flake-catalog.overlays.default
 
   (final: prev: {
     # ----------------------------------------------------------------------------------------------
