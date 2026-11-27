@@ -109,6 +109,10 @@ in
           "github"
           "scrapling"
         ];
+      };
+
+      agents = {
+        claude-code.auth.defaultProfile = lib.mkIf useGatewayProfile (lib.mkDefault gatewayProfile);
 
         proxy = {
           enable = true;
@@ -116,8 +120,6 @@ in
           noProxy = proxyNoProxy;
         };
       };
-
-      agents.claude-code.auth.defaultProfile = lib.mkIf useGatewayProfile (lib.mkDefault gatewayProfile);
 
       # --------------------------------------------------------------------------------------------
       # Secrets

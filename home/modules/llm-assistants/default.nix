@@ -6,7 +6,6 @@
   config,
   lib,
   inputs,
-  repoLib,
   enableDevToolchains,
   hostType,
   secretPath,
@@ -60,8 +59,6 @@ in
         description = "MCP servers to disable across all LLM assistants";
       };
     };
-
-    proxy = repoLib.proxy.mkProxyOptions "LLM assistants";
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -71,15 +68,7 @@ in
     {
       agents = {
         instructions.enable = lib.mkDefault cfg.enable;
-
-        proxy = {
-          inherit (cfg.proxy)
-            enable
-            url
-            secretUrlFile
-            noProxy
-            ;
-        };
+        proxy.url = lib.mkDefault "http://127.0.0.1:7897";
       };
 
       hakula.llm-assistants.mcp.disabledServers = lib.mkDefault (

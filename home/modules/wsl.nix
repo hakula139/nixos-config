@@ -35,14 +35,13 @@ in
     # ----------------------------------------------------------------------------------------------
     # Home Manager Overrides
     # ----------------------------------------------------------------------------------------------
-    hakula.llm-assistants = {
-      enable = lib.mkDefault true;
-      proxy.noProxy = lib.mkDefault [
-        wildcardDomain
-      ];
-    };
+    hakula.llm-assistants.enable = lib.mkDefault true;
 
-    agents.claude-code.auth.defaultProfile = lib.mkIf useGatewayProfile (lib.mkDefault gatewayProfile);
+    agents = {
+      claude-code.auth.defaultProfile = lib.mkIf useGatewayProfile (lib.mkDefault gatewayProfile);
+
+      proxy.noProxy = [ wildcardDomain ];
+    };
 
     hakula.cursor = {
       extensions.prune = lib.mkForce false;
