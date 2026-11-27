@@ -5,12 +5,16 @@
 {
   config,
   lib,
+  inputs,
   ...
 }:
 
-lib.mkIf config.hakula.llm-assistants.enable {
-  programs.agent-project-move = {
-    enable = true;
-    skillDirectories = [ ];
+{
+  imports = [
+    inputs.agents-nix.homeModules.agent-project-move
+  ];
+
+  config = lib.mkIf config.hakula.llm-assistants.enable {
+    agents.agent-project-move.enable = true;
   };
 }

@@ -4,8 +4,8 @@
 
 {
   config,
-  pkgs,
   lib,
+  inputs,
   repoLib,
   modelCatalog,
   ...
@@ -16,7 +16,6 @@ let
   inherit (repoLib.llmAssistants) channelIds;
 
   cfg = config.hakula.llm-assistants;
-  json = pkgs.formats.json { };
 
   perToken = rate: rate / 1000000.0;
 
@@ -37,29 +36,24 @@ let
     ) model.channelId
   ) modelCatalog.models;
 in
-lib.mkIf cfg.enable {
-  # ------------------------------------------------------------------------------------------------
-  # Packages
-  # ------------------------------------------------------------------------------------------------
-  home.packages = [
-    pkgs.ccusage
+{
+  imports = [
+    inputs.agents-nix.homeModules.ccusage
   ];
 
-  # ------------------------------------------------------------------------------------------------
-  # Configuration files
-  # ------------------------------------------------------------------------------------------------
-  # ccusage discovers configuration for all agents in the Claude directory.
-  xdg.configFile."claude/ccusage.json".source = json.generate "ccusage.json" (
-    {
-      pi.stores = [
+  config = lib.mkIf cfg.enable {
+    agents.ccusage = {
+      enable = true;
+
+      # Explicitly register the OMP store while OMP still uses the local nixos-config module.
+      piStores = [
         {
           name = "omp";
           path = "${configDirs.omp}/sessions";
         }
       ];
-    }
-    // lib.optionalAttrs cfg.auth.enableCorpGateway {
-      claude.defaults.pricingOverrides = pricingOverrides;
-    }
-  );
+
+      pricingOverrides = lib.mkIf cfg.auth.enableCorpGateway pricingOverrides;
+    };
+  };
 }

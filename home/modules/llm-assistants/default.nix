@@ -70,6 +70,7 @@ in
     ./acp
     ./activity-report
     ./agent-project-move
+    ./caldav.nix
     ./ccusage
     ./claude-code
     ./codex
@@ -111,6 +112,20 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkMerge [
     {
+      # Keep agents.nix instruction docs disabled until shared and primary assistants cut over.
+      agents = {
+        instructions.enable = false;
+
+        proxy = {
+          inherit (cfg.proxy)
+            enable
+            url
+            secretUrlFile
+            noProxy
+            ;
+        };
+      };
+
       hakula.llm-assistants.mcp.disabledServers = lib.mkDefault (
         lib.optionals (hostType == "personal") mcpOptions.corpServerNames
       );
