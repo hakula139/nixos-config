@@ -112,8 +112,8 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkMerge [
     {
-      # Keep agents.nix instruction docs disabled until shared and primary assistants cut over.
       agents = {
+        # ./shared still installs instruction docs, so disable agents.nix's default copy.
         instructions.enable = false;
 
         proxy = {

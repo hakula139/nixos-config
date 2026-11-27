@@ -20,7 +20,7 @@
       enable = true;
       labels = {
         default = [ hostType ];
-        projects.nixos-config = [ "personal" ];
+        projects.nixos-config = lib.mkDefault [ "personal" ];
       };
     };
   };

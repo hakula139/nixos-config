@@ -12,8 +12,9 @@
 }:
 
 let
+  inherit (config.hakula.llm-assistants.auth) enableCorpGateway;
+
   cfg = config.hakula.t3code;
-  enableCorpGateway = config.hakula.llm-assistants.auth.enableCorpGateway;
   corpGateway = config.lib.llmAssistants.profileDefinitions.providers.corp-gateway;
 in
 {

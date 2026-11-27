@@ -63,6 +63,7 @@ lib.mkIf (config.hakula.llm-assistants.enable && hostType == "work" && isDesktop
   };
 
   programs.vdirsyncer.enable = true;
+
   programs.khal = {
     enable = true;
     locale = {
