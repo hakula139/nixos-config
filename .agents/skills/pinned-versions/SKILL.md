@@ -43,13 +43,9 @@ A NixOS release upgrade rechecks each `pkgs.unstable` pick and overlay pin again
 
 Update the package's `version` and source hash, staying on the release channel the pin already uses (alpha, beta, or rc) unless a stable release at or above it exists. Commit-pinned packages such as `zsh-hist` need `src.rev`, `src.hash`, and the date in their `0-unstable-YYYY-MM-DD` version changed together.
 
-Dependencies beyond the source need these hashes:
+`cloudreve` fetches release archives with `fetchurl`. Prefetch its bytes without `--unpack`, and update every platform entry, including those unavailable locally.
 
-- `acpx` needs `pnpmDeps.hash`.
-- `mcp-server-gitlab` needs `npmDepsHash`. Rebuild to validate dependency hashes even when the upstream lockfile appears unchanged.
-- `cloudreve` and `mcp-server-github` fetch release archives with `fetchurl`. Prefetch their bytes without `--unpack`, and update every platform entry, including those unavailable locally.
-
-Use `lib.fakeHash` temporarily to obtain a hash from a Nix mismatch error, resolving dependency hashes after the source hash, then confirm each dependency hash with `nix build --rebuild` of the package's own fixed-output derivation, because Nix keeps a mismatched fetch under its real hash and a later build reuses it. `fetchPnpmDeps` refetches the whole dependency tree, so the confirmation costs a second full fetch. Never leave a placeholder hash in the final change.
+Use `lib.fakeHash` temporarily to obtain a hash from a Nix mismatch error, resolving dependency hashes after the source hash, then confirm each dependency hash with `nix build --rebuild` of the package's own fixed-output derivation, because Nix keeps a mismatched fetch under its real hash and a later build reuses it. Never leave a placeholder hash in the final change.
 
 The custom packages are overlay attributes rather than flake outputs, so build them through the overlay:
 
@@ -63,7 +59,7 @@ nix build --no-link --print-out-paths --impure --expr '
       config.allowUnfree = true;
     };
   in
-  p.acpx
+  p.cloudreve
 '
 ```
 

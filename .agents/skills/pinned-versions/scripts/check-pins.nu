@@ -135,10 +135,6 @@ def nix-version [root: string, file: string]: nothing -> string {
   nix-attr $root $file '(?m)^\s*version = "(?<v>[^"]+)"'
 }
 
-def nix-version-v [root: string, file: string]: nothing -> string {
-  $"v(nix-version $root $file)"
-}
-
 def image-tag [root: string, file: string]: nothing -> string {
   open --raw ($root | path join $file)
   | lines
@@ -268,24 +264,9 @@ def registry [root: string]: nothing -> list<record> {
       title: "Nix-built overlay packages"
       pins: [
         {
-          pin: "acpx"
-          local: {|| nix-version-v $root "packages/acpx/default.nix" }
-          upstream: {|| gh-latest-release "openclaw/acpx" }
-        }
-        {
           pin: "cloudreve"
           local: {|| nix-version $root "packages/cloudreve/default.nix" }
           upstream: {|| gh-latest-release "cloudreve/cloudreve" }
-        }
-        {
-          pin: "mcp-server-github"
-          local: {|| nix-version-v $root "packages/mcp/mcp-server-github/default.nix" }
-          upstream: {|| gh-latest-release "github/github-mcp-server" }
-        }
-        {
-          pin: "mcp-server-gitlab"
-          local: {|| nix-version-v $root "packages/mcp/mcp-server-gitlab/default.nix" }
-          upstream: {|| gh-latest-release "zereight/gitlab-mcp" }
         }
         {
           pin: "thaw"
