@@ -104,10 +104,6 @@ in
         # ------------------------------------------------------------------------------------------
         claude-code = {
           enable = true;
-          # agents.nix falls back to pkgs.claude-code / pkgs.workmux when present in nixpkgs, so
-          # pin llm-agents explicitly to avoid downgrading from nixpkgs.
-          package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
-          hooks.worktree.workmuxPackage = config.agents.workmux.package;
           plugins.lspPlugins = enableDevToolchains;
         };
 
