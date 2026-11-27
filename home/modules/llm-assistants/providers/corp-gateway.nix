@@ -152,7 +152,6 @@ in
   modelCall = {
     enable = true;
     provider = "corp-gateway";
-    baseUrl = "${baseUrl}/v1";
     clientApiKeyFiles.prose-polish = secretPath prosePolishSecret;
   };
 
