@@ -27,6 +27,7 @@ in
   imports = [
     inputs.flake-catalog.homeModules.activity-report
     inputs.flake-catalog.homeModules.agent-project-move
+    inputs.flake-catalog.homeModules.claude-statusline
     inputs.flake-catalog.homeModules.listenbrainz-scrobbler
     inputs.flake-catalog.homeModules.oxide-code
 

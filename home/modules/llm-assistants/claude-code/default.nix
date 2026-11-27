@@ -6,8 +6,10 @@
   config,
   pkgs,
   lib,
+  corpHosts,
   modelCatalog,
   repoLib,
+  secretPath,
   enableDevToolchains,
   ...
 }:
@@ -78,13 +80,14 @@ in
         inherit lib enableDevToolchains;
       };
 
-      statusLine = import ./scripts/statusline {
+      statusline = import ./statusline.nix {
         inherit
-          pkgs
           lib
+          corpHosts
           modelCatalog
-          repoLib
+          secretPath
           ;
+        inherit (cfg.auth) enableCorpGateway;
       };
 
       # --------------------------------------------------------------------------------------------
@@ -146,6 +149,8 @@ in
           package = claudeCodeBin;
         };
 
+        programs.claude-statusline = statusline;
+
         # ------------------------------------------------------------------------------------------
         # Configuration files
         # ------------------------------------------------------------------------------------------
@@ -155,10 +160,6 @@ in
             (builtins.readFile ./instructions.md)
           ];
           ".claude/settings.json".source = "${configFiles}/settings.json";
-          ".claude/statusline-command" = {
-            source = lib.getExe statusLine;
-            executable = true;
-          };
         };
 
         xdg.dataFile = hooks.dataFiles;

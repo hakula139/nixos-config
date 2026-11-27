@@ -11,6 +11,7 @@ rec {
   gitlab = "gitlab-space2.${domain}";
   harbor = "harbor.${domain}";
   llmGateway = "gw.llm.${domain}";
+  llmGatewayPortal = "gw-portal.llm.${domain}";
   mirrorCatalog = "mirror-catalog.${domain}";
   wiki = "wiki.${domain}";
 
@@ -18,6 +19,7 @@ rec {
   githubMirrorUrl = "https://${githubMirror}";
   gitlabUrl = "https://${gitlab}";
   llmGatewayUrl = "https://${llmGateway}";
+  llmGatewayPortalUrl = "https://${llmGatewayPortal}";
   mirrorCatalogUrl = "https://${mirrorCatalog}";
   wikiUrl = "https://${wiki}";
 }
