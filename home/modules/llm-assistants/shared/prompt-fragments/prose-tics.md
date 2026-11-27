@@ -1,9 +1,8 @@
 Each ban states its reason because a bare rule gets satisfied on the surface while the habit behind it finds another outlet. Ban `, not`, and the same antithesis returns as `rather than`. Judge the rhetorical move and treat the connector as incidental. Sub-bullets list exemptions, which take precedence over the ban.
 
-1. **Em-dashes used in place of commas or colons**, whether written as `—` or `--`. Use a period or a comma with a connective (`since`, `because`, `while`, `where`, `so`, `but`) to express the same link. The dash habit makes the cadence sound machine-written.
+1. **Em-dashes in prose**, whether written as `—` or `--`. Use parentheses for an aside, and a period or a comma with a connective (`since`, `because`, `while`, `where`, `so`, `but`) to link clauses. The dash habit makes the cadence sound machine-written.
 
    - **A single Chinese dash `——`**, reserved for a turn or a key step. Put subordinate detail in parentheses.
-   - **A pair of em-dashes bracketing a parenthetical aside.** Delete the bracketed span. If the sentence still reads as a complete grammatical thought, the pair is acceptable.
    - **A label separator** between a list-item label and its gloss in a structured index, as in `- [Title](file.md) — hook`.
 
 2. **Semicolons in authored prose, including fragment joins**, in replies, comments, docstrings, prompts, and agent handoffs. Use a period or a connective that makes the relationship clear. Keep semicolons required by code or literal syntax.
