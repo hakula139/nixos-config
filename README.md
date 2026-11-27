@@ -26,3 +26,7 @@ Run `nixsw` from the repository root to apply the local configuration, and `nixd
 [Agent company]: docs/reference/agent-company.md
 [Secrets]: .agents/skills/sops/SKILL.md
 [Contributor instructions]: AGENTS.md
+
+## License
+
+Copyright (c) 2025-2026 [Hakula](https://hakula.xyz). Licensed under the [MIT License](LICENSE).
