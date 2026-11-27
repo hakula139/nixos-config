@@ -4,11 +4,10 @@
 
 {
   config,
-  pkgs,
   lib,
   inputs,
-  corpHosts,
   repoLib,
+  corpHosts,
   enableDevToolchains,
   hostType,
   secretPath,
@@ -33,6 +32,7 @@ in
 {
   imports = [
     inputs.agents-nix.homeModules.default
+
     ./caldav.nix
     ./mcp.nix
     ./providers
@@ -70,7 +70,6 @@ in
   config = lib.mkMerge [
     {
       agents = {
-        browser.chromiumPackage = pkgs.browser-tools.chromium;
         instructions.enable = lib.mkDefault cfg.enable;
 
         proxy = {
@@ -90,17 +89,13 @@ in
 
     (lib.mkIf cfg.enable {
       # --------------------------------------------------------------------------------------------
-      # Shared agent settings
+      # Agents
       # --------------------------------------------------------------------------------------------
       agents = {
-        instructions.extraSections = ''
-          ## Host Environment
-
-          The configuration repository is nixos-config (`''${XDG_CONFIG_HOME:-$HOME/.config}/nixos-config/repository`), whose `AGENTS.md` locates the sources. If a tool or the environment misbehaves, hand the repair to `harness-repair` and continue the main task.
-
-          - **Secrets**: Managed secrets live at `/run/secrets/<service>/<secret>`. Write new values only into their SOPS secret or the untracked file that consumes them.
-          - **Browser tools**: Get Playwright / Chromium tools from `nix develop nixos-config#browser`.
-        '';
+        # ------------------------------------------------------------------------------------------
+        # Shared settings
+        # ------------------------------------------------------------------------------------------
+        instructions.extraSections = builtins.readFile ./host-environment.md;
 
         permissions = {
           ownRepositories = [
@@ -170,6 +165,7 @@ in
         };
 
         agent-project-move.enable = true;
+
         ccusage.enable = true;
 
         ctx7 = {

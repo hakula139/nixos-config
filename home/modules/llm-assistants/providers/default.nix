@@ -5,7 +5,6 @@
 {
   config,
   lib,
-  inputs,
   corpHosts,
   modelCatalog,
   secretPath,
@@ -13,7 +12,7 @@
 }:
 
 let
-  inherit (config.hakula.llm-assistants.auth) enableCorpGateway;
+  inherit (cfg.auth) enableCorpGateway;
 
   cfg = config.hakula.llm-assistants;
 
@@ -22,7 +21,6 @@ let
   corpGateway = import ./corp-gateway.nix {
     inherit
       lib
-      inputs
       corpHosts
       modelCatalog
       secretPath
@@ -33,18 +31,6 @@ let
     inherit lib secretPath;
   };
 
-  # `agents.nix` picks the first listed API for families absent from its built-in `familyApis`,
-  # and OMP only enables reasoning-effort compat and `/v1` routing on `openai-responses`.
-  preferResponsesApi =
-    model:
-    if (model.channelId or { }) ? local && lib.elem "openai-responses" (model.apis or [ ]) then
-      model
-      // {
-        apis = [ "openai-responses" ] ++ lib.remove "openai-responses" model.apis;
-      }
-    else
-      model;
-
   requiredSecrets = [
     oauthTokenSecret
   ]
@@ -54,12 +40,16 @@ in
 {
   config = lib.mkIf cfg.enable {
     # ----------------------------------------------------------------------------------------------
-    # Models, providers, and profiles
+    # Agents
     # ----------------------------------------------------------------------------------------------
     agents = {
+      # --------------------------------------------------------------------------------------------
+      # Models, providers, and profiles
+      # --------------------------------------------------------------------------------------------
       models = {
-        catalog = lib.mapAttrs (_: preferResponsesApi) modelCatalog.models;
+        catalog = modelCatalog.models;
         inherit (modelCatalog) defaults;
+        familyApis.local = "openai-responses";
 
         workloadPolicy.local = {
           default = "high";
@@ -92,7 +82,7 @@ in
       # Per-assistant profile routing
       # --------------------------------------------------------------------------------------------
       claude-code = lib.mkIf enableCorpGateway {
-        auth.profiles = corpGateway.claudeProfileOverrides;
+        auth.profileOverrides = corpGateway.claudeProfileOverrides;
         statusline.costSources = corpGateway.costSources;
       };
 
@@ -111,8 +101,6 @@ in
       oxide-code.auth.defaultProfile = lib.mkDefault (
         if enableCorpGateway then "corp-gateway-anthropic" else "official"
       );
-
-      ccusage.pricingOverrides = lib.mkIf enableCorpGateway corpGateway.pricingOverrides;
     };
 
     # ----------------------------------------------------------------------------------------------

@@ -4,19 +4,17 @@
 
 {
   lib,
-  inputs,
   corpHosts,
   modelCatalog,
   secretPath,
 }:
 
 let
-  inherit (inputs.agents-nix.lib.models) channelIds;
-
   baseUrl = corpHosts.llmGatewayUrl;
   caSecret = "llm-assistants/corp-gateway/cachain.crt";
   portalTokenSecret = "llm-assistants/corp-gateway/portal-token";
   tokenSecretFor = client: "llm-assistants/corp-gateway/api-key/${client}";
+  prosePolishSecret = tokenSecretFor "prose-polish";
 
   # The gateway injects its MCP tools into every model request unless this header names the clients
   # to keep. Naming none keeps the tools on the MCP server, and OMP drops empty header values, so
@@ -58,28 +56,6 @@ let
       }
     )
   ) channels;
-
-  # ------------------------------------------------------------------------------------------------
-  # Pricing overrides
-  # ------------------------------------------------------------------------------------------------
-  perToken = rate: rate / 1000000.0;
-
-  mkPricingOverride = cost: {
-    inputCostPerToken = perToken cost.input;
-    outputCostPerToken = perToken cost.output;
-    cacheReadInputTokenCost = perToken cost.cacheRead;
-    cacheCreationInputTokenCost = perToken cost.cacheWrite;
-  };
-
-  # The offline LiteLLM snapshot is stale and prices local models at reseller rates, so override it
-  # from the catalog's billed costs.
-  pricingOverrides = lib.concatMapAttrs (
-    _: model:
-    lib.concatMapAttrs (
-      channel: channelId:
-      lib.genAttrs (channelIds channelId) (_: mkPricingOverride model.channelBilledCost.${channel})
-    ) (model.channelId or { })
-  ) modelCatalog.models;
 
   # ------------------------------------------------------------------------------------------------
   # Claude Code per-profile workarounds
@@ -149,12 +125,6 @@ let
     "omp"
     "oxide-code"
   ];
-
-  modelCallClients = [
-    "claude-code"
-    "codex"
-    "prose-polish"
-  ];
 in
 {
   providers.corp-gateway = {
@@ -172,8 +142,6 @@ in
     inherit channels;
   };
 
-  inherit claudeProfileOverrides;
-
   profiles = channelProfiles // {
     corp-gateway-hybrid = {
       provider = "corp-gateway";
@@ -183,12 +151,12 @@ in
 
   modelCall = {
     enable = true;
+    provider = "corp-gateway";
     baseUrl = "${baseUrl}/v1";
-    clientApiKeyFiles = lib.genAttrs modelCallClients (client: secretPath (tokenSecretFor client));
-    caCertFile = secretPath caSecret;
-    channels = builtins.attrNames channels;
-    inherit extraHeaders;
+    clientApiKeyFiles.prose-polish = secretPath prosePolishSecret;
   };
+
+  inherit claudeProfileOverrides;
 
   costSources = [
     {
@@ -220,13 +188,9 @@ in
     }
   ];
 
-  inherit pricingOverrides;
-
-  requiredSecrets = lib.unique (
-    map tokenSecretFor (providerClients ++ modelCallClients)
-    ++ [
-      caSecret
-      portalTokenSecret
-    ]
-  );
+  requiredSecrets = map tokenSecretFor providerClients ++ [
+    prosePolishSecret
+    caSecret
+    portalTokenSecret
+  ];
 }

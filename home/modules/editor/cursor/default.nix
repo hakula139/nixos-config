@@ -123,7 +123,7 @@ in
       # --------------------------------------------------------------------------------------------
       # MCP defaults
       # --------------------------------------------------------------------------------------------
-      hakula.cursor.mcp.disabledServers = lib.mkDefault config.agents.mcp.disabledServers;
+      hakula.cursor.mcp.disabledServers = config.agents.mcp.disabledServers;
 
       # --------------------------------------------------------------------------------------------
       # User configuration files

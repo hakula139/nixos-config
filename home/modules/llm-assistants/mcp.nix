@@ -16,28 +16,20 @@ let
 
   caSecret = "llm-assistants/corp-gateway/cachain.crt";
   claudeGatewayKeySecret = "llm-assistants/corp-gateway/api-key/claude-code";
+  confluencePatSecret = "llm-assistants/mcp/confluence-pat";
+  exaApiKeySecret = "llm-assistants/mcp/exa-api-key";
+  githubPatSecret = "github/pat";
+  gitlabPatSecret = "gitlab/pat";
 
   mcpServerSecrets = {
-    atlassian = [
-      "llm-assistants/mcp/confluence-pat"
-    ];
-
+    atlassian = [ confluencePatSecret ];
     bifrost = [
       claudeGatewayKeySecret
       caSecret
     ];
-
-    exa = [
-      "llm-assistants/mcp/exa-api-key"
-    ];
-
-    github = [
-      "github/pat"
-    ];
-
-    gitlab = [
-      "gitlab/pat"
-    ];
+    exa = [ exaApiKeySecret ];
+    github = [ githubPatSecret ];
+    gitlab = [ gitlabPatSecret ];
   };
 
   serverEnabled = name: !(lib.elem name config.agents.mcp.disabledServers);
@@ -61,27 +53,28 @@ in
         atlassian = {
           enable = serverEnabled "atlassian";
           url = corpHosts.wikiUrl;
-          tokenFile = secretPath "llm-assistants/mcp/confluence-pat";
+          tokenFile = secretPath confluencePatSecret;
           # mcp-atlassian ignores NO_PROXY, so unset proxies for internal Confluence.
           clearProxy = true;
         };
 
         chromeDevtools.enable = serverEnabled "chromeDevtools";
+
         deepwiki.enable = serverEnabled "deepwiki";
 
         exa = {
           enable = serverEnabled "exa";
-          apiKeyFile = secretPath "llm-assistants/mcp/exa-api-key";
+          apiKeyFile = secretPath exaApiKeySecret;
         };
 
         github = {
           enable = serverEnabled "github";
-          fallbackTokenFile = secretPath "github/pat";
+          fallbackTokenFile = secretPath githubPatSecret;
         };
 
         gitlab = {
           enable = serverEnabled "gitlab";
-          fallbackTokenFile = secretPath "gitlab/pat";
+          fallbackTokenFile = secretPath gitlabPatSecret;
           fallbackApiUrl = "${corpHosts.gitlabUrl}/api/v4";
         };
 
