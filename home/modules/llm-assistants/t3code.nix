@@ -5,7 +5,6 @@
 {
   config,
   lib,
-  inputs,
   isDesktop,
   secretPath,
   ...
@@ -15,13 +14,9 @@ let
   inherit (config.hakula.llm-assistants.auth) enableCorpGateway;
 
   cfg = config.hakula.t3code;
-  corpGateway = config.lib.llmAssistants.profileDefinitions.providers.corp-gateway;
+  caSecret = "llm-assistants/corp-gateway/cachain.crt";
 in
 {
-  imports = [
-    inputs.agents-nix.homeModules.t3code
-  ];
-
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
@@ -35,14 +30,14 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkIf (config.hakula.llm-assistants.enable && cfg.enable) {
     hakula.secrets.required = lib.optionalAttrs enableCorpGateway {
-      ${corpGateway.caSecret} = { };
+      ${caSecret} = { };
     };
 
     agents.t3code = {
       enable = true;
       headless = !isDesktop;
       inherit (cfg) lan;
-      caCertFile = lib.mkIf enableCorpGateway (secretPath corpGateway.caSecret);
+      caCertFile = lib.mkIf enableCorpGateway (secretPath caSecret);
       service.launchdLabel = "com.hakula.t3code";
     };
   };

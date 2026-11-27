@@ -1,7 +1,0 @@
-{
-  args: [
-    "--model"
-    "gemini-9"
-  ]
-  stderr: "unknown model gemini-9. The catalog lists gemini-4-neon."
-}

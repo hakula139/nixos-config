@@ -4,11 +4,14 @@
 
 {
   config,
-  options,
+  pkgs,
   lib,
+  inputs,
+  corpHosts,
   repoLib,
   enableDevToolchains,
   hostType,
+  secretPath,
   ...
 }:
 
@@ -18,68 +21,22 @@ assert lib.assertOneOf "hostType" hostType [
 ];
 
 let
-  inherit (repoLib.llmAssistants) mcpOptions;
-
   cfg = config.hakula.llm-assistants;
-  corpGateway = config.lib.llmAssistants.profileDefinitions.providers.corp-gateway;
 
-  assistantNames = [
-    "claude-code"
-    "codex"
-    "cursor"
-    "omp"
-    "oxide-code"
-    "t3code"
+  corpServerNames = [
+    "atlassian"
+    "bifrost"
+    "gitlab"
+    "mirrorCatalog"
   ];
-
-  mcpAssistantNames = lib.filter (name: options.hakula.${name} ? mcp) assistantNames;
-
-  mcpAssistants = map (name: config.hakula.${name}) (
-    lib.filter (name: name != "cursor" || config.hakula.cursor.enable) mcpAssistantNames
-  );
-
-  mcpServerSecrets = {
-    atlassian = [
-      "llm-assistants/mcp/confluence-pat"
-    ];
-
-    bifrost = [
-      (corpGateway.tokenSecretFor "claude-code")
-      corpGateway.caSecret
-    ];
-
-    exa = [
-      "llm-assistants/mcp/exa-api-key"
-    ];
-
-    gitlab = [
-      "gitlab/pat"
-    ];
-  };
-
-  activeServers = lib.unique (
-    lib.concatMap (a: mcpOptions.computeEnabledServers a.mcp) mcpAssistants
-  );
-
-  requiredMcpSecretKeys = lib.unique (lib.concatMap (s: mcpServerSecrets.${s} or [ ]) activeServers);
-
-  requiredMcpSecrets = lib.genAttrs requiredMcpSecretKeys (_: { });
 in
 {
   imports = [
-    ./acp
-    ./activity-report
-    ./agent-project-move
+    inputs.agents-nix.homeModules.default
     ./caldav.nix
-    ./ccusage
-    ./claude-code
-    ./codex
-    ./ctx7
-    ./omp
-    ./oxide-code
-    ./shared
+    ./mcp.nix
+    ./providers
     ./t3code.nix
-    ./workmux
   ];
 
   # ------------------------------------------------------------------------------------------------
@@ -99,7 +56,7 @@ in
     };
 
     mcp = {
-      disabledServers = mcpOptions.mkDisabledServersOption {
+      disabledServers = inputs.agents-nix.lib.mcp.mkDisabledServersOption {
         description = "MCP servers to disable across all LLM assistants";
       };
     };
@@ -113,8 +70,8 @@ in
   config = lib.mkMerge [
     {
       agents = {
-        # ./shared still installs instruction docs, so disable agents.nix's default copy.
-        instructions.enable = false;
+        browser.chromiumPackage = pkgs.browser-tools.chromium;
+        instructions.enable = lib.mkDefault cfg.enable;
 
         proxy = {
           inherit (cfg.proxy)
@@ -127,24 +84,110 @@ in
       };
 
       hakula.llm-assistants.mcp.disabledServers = lib.mkDefault (
-        lib.optionals (hostType == "personal") mcpOptions.corpServerNames
+        lib.optionals (hostType == "personal") corpServerNames
       );
     }
 
     (lib.mkIf cfg.enable {
-      hakula = lib.mkMerge [
-        (lib.genAttrs mcpAssistantNames (_: {
-          mcp.disabledServers = lib.mkDefault cfg.mcp.disabledServers;
-        }))
+      # --------------------------------------------------------------------------------------------
+      # Shared agent settings
+      # --------------------------------------------------------------------------------------------
+      agents = {
+        instructions.extraSections = ''
+          ## Host Environment
 
-        {
-          secrets.required =
-            requiredMcpSecrets
-            // lib.optionalAttrs cfg.auth.enableCorpGateway {
-              "llm-assistants/corp-gateway/portal-token" = { };
-            };
-        }
-      ];
+          The configuration repository is nixos-config (`''${XDG_CONFIG_HOME:-$HOME/.config}/nixos-config/repository`), whose `AGENTS.md` locates the sources. If a tool or the environment misbehaves, hand the repair to `harness-repair` and continue the main task.
+
+          - **Secrets**: Managed secrets live at `/run/secrets/<service>/<secret>`. Write new values only into their SOPS secret or the untracked file that consumes them.
+          - **Browser tools**: Get Playwright / Chromium tools from `nix develop nixos-config#browser`.
+        '';
+
+        permissions = {
+          ownRepositories = [
+            "github.com/hakulab"
+            "github.com/hakula139"
+            corpHosts.gitlab
+          ];
+
+          gateCommands = [
+            {
+              command = "nixboot";
+              reason = "Changes the boot configuration.";
+            }
+            {
+              command = "nixdp";
+              reason = "Deploys host configurations.";
+            }
+            {
+              command = "nixroll";
+              reason = "Switches system configuration.";
+            }
+            {
+              command = "nixsw";
+              reason = "Switches system configuration.";
+            }
+            {
+              command = "nixtest";
+              reason = "Switches system configuration.";
+            }
+          ];
+        };
+
+        skills.sources = inputs.flake-catalog.lib.skills;
+
+        # ------------------------------------------------------------------------------------------
+        # Primary assistants
+        # ------------------------------------------------------------------------------------------
+        claude-code = {
+          enable = true;
+          plugins.lspPlugins = enableDevToolchains;
+        };
+
+        codex.enable = true;
+
+        omp = {
+          enable = true;
+          extensions.telegram = {
+            enable = true;
+            botTokenFile = secretPath "llm-assistants/telegram-bot-token";
+          };
+          extraEnvFiles.EXA_API_KEY = secretPath "llm-assistants/mcp/exa-api-key";
+        };
+
+        oxide-code.enable = true;
+
+        # ------------------------------------------------------------------------------------------
+        # Peripheral tools
+        # ------------------------------------------------------------------------------------------
+        acp.enable = true;
+
+        activity-report = {
+          enable = true;
+          labels = {
+            default = [ hostType ];
+            projects.nixos-config = lib.mkDefault [ "personal" ];
+          };
+        };
+
+        agent-project-move.enable = true;
+        ccusage.enable = true;
+
+        ctx7 = {
+          enable = true;
+          apiKeyFile = secretPath "llm-assistants/mcp/context7-api-key";
+        };
+
+        workmux.enable = true;
+      };
+
+      # --------------------------------------------------------------------------------------------
+      # Secrets
+      # --------------------------------------------------------------------------------------------
+      hakula.secrets.required = {
+        "llm-assistants/mcp/context7-api-key" = { };
+        "llm-assistants/mcp/exa-api-key" = { };
+        "llm-assistants/telegram-bot-token" = { };
+      };
     })
   ];
 }

@@ -1,1 +1,0 @@
-- Send failures, their root causes, and any needed implementation changes directly to the implementer.

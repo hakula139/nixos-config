@@ -99,7 +99,7 @@ in
         };
       };
 
-      hakula.claude-code.auth.defaultProfile = "corp-gateway-hybrid";
+      agents.claude-code.auth.defaultProfile = "corp-gateway-hybrid";
 
       # --------------------------------------------------------------------------------------------
       # Secrets

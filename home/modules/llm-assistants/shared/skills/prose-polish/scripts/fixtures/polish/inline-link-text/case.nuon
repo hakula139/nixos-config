@@ -1,8 +1,0 @@
-{
-  rules: [
-    {find: "链接]", replace: "链接文字]"}
-  ]
-  sent: [
-    "安装步骤见 [链接](docs/notes.md)。"
-  ]
-}
