@@ -311,32 +311,32 @@ in
     # ----------------------------------------------------------------------------------------------
     "gpt-6.2-astra" = gptCommon // {
       name = "GPT-6.2 Astra";
-      channelId.openai = "openai/gpt-6.2-astra";
+      channelId.openai = "azure/gpt-6.2-astra";
       channelCost.openai = costs.gpt.astra-6-2;
     };
 
     "gpt-6.2-sol" = gptCommon // {
       name = "GPT-6.2 Sol";
-      channelId.openai = "openai/gpt-6.2-sol";
+      channelId.openai = "azure/gpt-6.2-sol";
       channelCost.openai = costs.gpt.sol;
     };
 
     "gpt-6.1-sol" = gptCommon // {
       name = "GPT-6.1 Sol";
-      channelId.openai = "openai/gpt-6.1-sol";
+      channelId.openai = "azure/gpt-6.1-sol";
       channelCost.openai = costs.gpt.sol;
     };
 
     "gpt-6.1-terra" = gptCommon // {
       name = "GPT-6.1 Terra";
       contextWindow = 922000;
-      channelId.openai = "openai/gpt-6.1-terra";
+      channelId.openai = "azure/gpt-6.1-terra";
       channelCost.openai = costs.gpt.terra;
     };
 
     "gpt-6-astra" = gptCommon // {
       name = "GPT-6 Astra";
-      channelId.openai = "openai/gpt-6-astra";
+      channelId.openai = "azure/gpt-6-astra";
       channelCost.openai = costs.gpt.astra-6;
     };
 
@@ -347,7 +347,7 @@ in
         defaultLevel = "low";
       };
 
-      channelId.openai = "openai/gpt-6-luna";
+      channelId.openai = "azure/gpt-6-luna";
       channelCost.openai = costs.gpt.luna;
     };
 
