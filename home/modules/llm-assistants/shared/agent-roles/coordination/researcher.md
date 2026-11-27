@@ -1,1 +1,0 @@
-- Send findings that affect another teammate directly to them, giving the architect or implementer the file references, codebase patterns, conventions, and external documentation their design or implementation needs.

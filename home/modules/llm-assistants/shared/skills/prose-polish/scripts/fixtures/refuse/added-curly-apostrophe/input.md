@@ -1,1 +1,0 @@
-Don't drop the flake check before you push, since it uses the same hooks as CI.

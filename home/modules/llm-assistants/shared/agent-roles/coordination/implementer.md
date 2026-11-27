@@ -1,3 +1,0 @@
-- Ask the teammate responsible for other files to make any changes outside your assigned scope.
-- If independent parts would benefit from parallel work, propose an ownership split to the parent.
-- When changes are ready, send the reviewer and tester the changed files and enough context to review and test them effectively. When the change has user-facing surfaces, send the change summary to the usability reviewer as well.

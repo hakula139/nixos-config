@@ -35,6 +35,6 @@ pkgs.runCommand "script-tests"
   ''
     cd ${src}
     nu-test ${lib.escapeShellArgs (testPaths nuTests)}
-    bun test ${lib.escapeShellArgs (testPaths tsTests)}
+    ${lib.optionalString (tsTests != [ ]) "bun test ${lib.escapeShellArgs (testPaths tsTests)}"}
     touch "$out"
   ''

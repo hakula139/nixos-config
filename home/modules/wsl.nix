@@ -36,7 +36,7 @@ in
       ];
     };
 
-    hakula.claude-code.auth.defaultProfile = "corp-gateway-anthropic";
+    agents.claude-code.auth.defaultProfile = "corp-gateway-anthropic";
 
     hakula.cursor = {
       extensions.prune = lib.mkForce false;

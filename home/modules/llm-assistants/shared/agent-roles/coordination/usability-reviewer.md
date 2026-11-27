@@ -1,2 +1,0 @@
-- Message the implementer directly about Confusing issues that would block adoption.
-- Share API design and naming findings directly with the architect, and forward incidental correctness findings to the reviewer.

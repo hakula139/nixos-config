@@ -25,9 +25,7 @@ let
 in
 {
   imports = [
-    inputs.flake-catalog.homeModules.claude-statusline
     inputs.flake-catalog.homeModules.listenbrainz-scrobbler
-    inputs.flake-catalog.homeModules.oxide-code
 
     ./modules/shared.nix
     ./modules/darwin.nix

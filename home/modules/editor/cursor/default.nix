@@ -17,11 +17,9 @@
 
 let
   inherit (pkgs.stdenv) isDarwin isLinux;
-  inherit (repoLib.llmAssistants) mcpOptions;
 
   cfg = config.hakula.cursor;
-  shared = config.lib.llmAssistants;
-  cursorMcpServers = mcpOptions.commonServerNames;
+  agentsMcp = config.agents.resolved.mcp;
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -43,7 +41,10 @@ in
       enable = lib.mkEnableOption "turning off Cursor port forwarding in mirrored mode (WSL only)";
     };
 
-    mcp = mcpOptions.mkMcpOptions { names = cursorMcpServers; };
+    mcp = inputs.agents-nix.lib.mcp.mkMcpOptions {
+      default = agentsMcp.serverNames;
+      description = "MCP servers for Cursor";
+    };
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -55,8 +56,8 @@ in
       # Module imports
       # --------------------------------------------------------------------------------------------
       mcp = import ./mcp.nix {
-        inherit pkgs shared mcpOptions;
-        enabledServers = mcpOptions.computeEnabledServers cfg.mcp;
+        inherit pkgs agentsMcp;
+        enabledServers = agentsMcp.computeEnabledServers cfg.mcp;
       };
 
       settings = import ./settings {
@@ -89,7 +90,7 @@ in
           systemManagerPaths
           ;
         inherit (settings) machineSettingsJson;
-        proxyCfg = config.hakula.llm-assistants.proxy;
+        proxyCfg = config.agents.proxy;
       };
 
       windowsSync = import ./windows-sync.nix {
@@ -119,6 +120,11 @@ in
       linuxFiles = userFiles "Cursor/User";
     in
     {
+      # --------------------------------------------------------------------------------------------
+      # MCP defaults
+      # --------------------------------------------------------------------------------------------
+      hakula.cursor.mcp.disabledServers = config.agents.mcp.disabledServers;
+
       # --------------------------------------------------------------------------------------------
       # User configuration files
       # --------------------------------------------------------------------------------------------
