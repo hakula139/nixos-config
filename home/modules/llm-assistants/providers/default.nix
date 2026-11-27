@@ -13,8 +13,9 @@
 }:
 
 let
+  inherit (config.hakula.llm-assistants.auth) enableCorpGateway;
+
   cfg = config.hakula.llm-assistants;
-  inherit (cfg.auth) enableCorpGateway;
 
   oauthTokenSecret = "llm-assistants/claude-oauth-token";
 
@@ -73,9 +74,9 @@ in
       profiles = {
         official-token = {
           provider = null;
+          oauthTokenFile = secretPath oauthTokenSecret;
           family = "claude";
           nativeWebSearch = true;
-          oauthTokenFile = secretPath oauthTokenSecret;
           clients = [
             "claude-code"
             "oxide-code"

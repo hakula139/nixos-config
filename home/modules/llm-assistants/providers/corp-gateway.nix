@@ -157,10 +157,8 @@ let
   ];
 in
 {
-  inherit caSecret;
-
   providers.corp-gateway = {
-    inherit baseUrl channels extraHeaders;
+    inherit baseUrl;
 
     apiUrls = {
       anthropic-messages = "${baseUrl}/anthropic";
@@ -169,7 +167,9 @@ in
 
     clientApiKeyFiles = lib.genAttrs providerClients (client: secretPath (tokenSecretFor client));
     caCertFile = secretPath caSecret;
+    inherit extraHeaders;
     extraEnv.CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
+    inherit channels;
   };
 
   inherit claudeProfileOverrides;

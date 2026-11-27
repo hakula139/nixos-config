@@ -13,7 +13,6 @@
 
 let
   cfg = config.hakula.llm-assistants;
-  inherit (config.agents.resolved.mcp) computeEnabledServers;
 
   caSecret = "llm-assistants/corp-gateway/cachain.crt";
   claudeGatewayKeySecret = "llm-assistants/corp-gateway/api-key/claude-code";
@@ -32,21 +31,22 @@ let
       "llm-assistants/mcp/exa-api-key"
     ];
 
+    github = [
+      "github/pat"
+    ];
+
     gitlab = [
       "gitlab/pat"
     ];
   };
 
-  mcpConfigs =
-    lib.optional config.agents.claude-code.enable config.agents.claude-code.mcp
-    ++ lib.optional config.agents.codex.enable config.agents.codex.mcp
-    ++ lib.optional config.agents.omp.enable config.agents.omp.mcp
-    ++ lib.optional config.hakula.cursor.enable config.hakula.cursor.mcp;
+  serverEnabled = name: !(lib.elem name config.agents.mcp.disabledServers);
 
-  activeServers = lib.unique (lib.concatMap computeEnabledServers mcpConfigs);
-  requiredMcpSecretKeys = lib.unique (lib.concatMap (s: mcpServerSecrets.${s} or [ ]) activeServers);
-
-  serverEnabled = name: !(lib.elem name cfg.mcp.disabledServers);
+  requiredMcpSecretKeys = lib.unique (
+    lib.concatLists (
+      lib.mapAttrsToList (name: secrets: lib.optionals (serverEnabled name) secrets) mcpServerSecrets
+    )
+  );
 in
 {
   config = lib.mkIf cfg.enable {
