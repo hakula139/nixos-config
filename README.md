@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![WakaTime coding time for nixos-config](https://wakatime.com/badge/user/f4a35a1f-0e29-4093-a647-e66aad164737/project/7afcb821-4d64-4db6-ab32-b0e0ee8a29cb.svg)
 
-Personal Nix configuration for NixOS servers, WSL workstations, macOS, and development containers. A shared flake manages system configuration, Home Manager, custom packages, and sops-nix secrets.
+Personal Nix configuration for NixOS servers, WSL workstations, macOS, and development containers. A shared flake manages system configuration, Home Manager, custom packages, and sops-nix secrets, while the reusable coding-agent configuration layer lives in [hakulab/agents.nix](https://github.com/hakulab/agents.nix).
 
 ## Applying a configuration
 

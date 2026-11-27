@@ -56,7 +56,6 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── tooling.nix                 # Shared development tool groups
 │   ├── wrap-package.nix            # Package wrappers preserving upstream launcher identity
 │   ├── hosts/                      # Shared `/etc/hosts` updater script and Nix helper
-│   ├── llm-assistants/             # Assistant options, permissions, and profiles
 │   ├── mihomo/                     # Shared mihomo settings, update / start / port-check commands
 │   ├── nu/                         # Shared Nushell modules (`*.nu`) and test helpers (`*.testlib.nu`)
 │   ├── nu-command/                 # Nushell command adapter over devkit
@@ -74,7 +73,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 ├── tests/                          # `checks.<system>`, one aggregator over per-case directories
 │   ├── default.nix                 # Aggregator importing each check case
 │   ├── nu-command/                 # Nushell command adapter check with its fixtures
-│   └── scripts/                    # `checks.<system>.scripts`, nu-test and bun tests
+│   └── scripts/                    # `checks.<system>.scripts`, Nushell script tests
 ├── .sops.yaml                      # SOPS age recipients and file creation rules
 ├── docs/                           # This knowledge base
 └── .github/workflows/ci.yml        # CI pipeline

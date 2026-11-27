@@ -13,15 +13,13 @@ let
 
   tooling = repoLib.toolingFor pkgs;
 
-  testsWith =
-    suffix: lib.fileset.toList (lib.fileset.fileFilter (file: lib.hasSuffix suffix file.name) root);
-
-  nuTests = testsWith ".test.nu";
-  tsTests = testsWith ".test.ts";
+  nuTests = lib.fileset.toList (
+    lib.fileset.fileFilter (file: lib.hasSuffix ".test.nu" file.name) root
+  );
 
   src = lib.fileset.toSource {
     inherit root;
-    fileset = lib.fileset.unions (map dirOf (nuTests ++ tsTests));
+    fileset = lib.fileset.unions (map dirOf nuTests);
   };
 
   testPaths = map (lib.path.removePrefix root);
@@ -30,11 +28,10 @@ pkgs.runCommand "script-tests"
   {
     env.NU_LIB_DIRS = "${repoLib.nuTestLib}";
 
-    nativeBuildInputs = [ pkgs.git ] ++ tooling.testRunners;
+    nativeBuildInputs = tooling.testRunners;
   }
   ''
     cd ${src}
     nu-test ${lib.escapeShellArgs (testPaths nuTests)}
-    ${lib.optionalString (tsTests != [ ]) "bun test ${lib.escapeShellArgs (testPaths tsTests)}"}
     touch "$out"
   ''
