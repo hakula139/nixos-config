@@ -145,13 +145,6 @@ let
         cacheWrite = 10.0;
       };
 
-      astra-6 = {
-        input = 10.0;
-        output = 50.0;
-        cacheRead = 1.0;
-        cacheWrite = 12.5;
-      };
-
       sol = {
         input = 2.0;
         output = 10.0;
@@ -321,23 +314,11 @@ in
       channelCost.openai = costs.gpt.sol;
     };
 
-    "gpt-6.1-sol" = gptCommon // {
-      name = "GPT-6.1 Sol";
-      channelId.openai = "azure/gpt-6.1-sol";
-      channelCost.openai = costs.gpt.sol;
-    };
-
     "gpt-6.1-terra" = gptCommon // {
       name = "GPT-6.1 Terra";
       contextWindow = 922000;
       channelId.openai = "azure/gpt-6.1-terra";
       channelCost.openai = costs.gpt.terra;
-    };
-
-    "gpt-6-astra" = gptCommon // {
-      name = "GPT-6 Astra";
-      channelId.openai = "azure/gpt-6-astra";
-      channelCost.openai = costs.gpt.astra-6;
     };
 
     "gpt-6-luna" = gptCommon // {
