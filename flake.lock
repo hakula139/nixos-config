@@ -78,11 +78,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1795760179,
-        "narHash": "sha256-b4kk69lzTWV9THCf5mJdwaUbMZsROpxlKDFm7eed1K4=",
+        "lastModified": 1795769203,
+        "narHash": "sha256-fHnSgu7X2u+c3E/IBZYO50QNjF4wB9mmhMIVZODdtZs=",
         "owner": "hakulab",
         "repo": "claude-statusline",
-        "rev": "83d81938d652ddd9a52fe8f47dd4b290a47576db",
+        "rev": "b3a7a4c41b86f7193d2ec11c806e87f10a7013ac",
         "type": "github"
       },
       "original": {
@@ -376,11 +376,11 @@
         "wakatime-cli": "wakatime-cli"
       },
       "locked": {
-        "lastModified": 1795762127,
-        "narHash": "sha256-H2T7ApCgs6Uve3i5xTMYJ+dkpCxIoUJXZ8qI3b4d7OQ=",
+        "lastModified": 1795770310,
+        "narHash": "sha256-D03eJBEGn+0faLUpt8EbFyca6u0+mynpIN3+qlM7RDA=",
         "owner": "hakulab",
         "repo": "flake-catalog",
-        "rev": "f439abfbed04ca0a81d327192d4963e89c407001",
+        "rev": "2760da0c7b793c281cfd4fe5d601eb84a6627517",
         "type": "github"
       },
       "original": {

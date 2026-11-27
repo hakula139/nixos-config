@@ -46,8 +46,6 @@
             "total_cost"
           ];
         };
-
-        behavior.show_block = false;
       }
     ];
   };
