@@ -5,20 +5,20 @@
 {
   config,
   lib,
+  repoLib,
   corpHosts,
   ...
 }:
 
 let
   inherit (corpHosts) wildcardDomain;
-  inherit (config.agents.claude-code.auth) enabledProfiles;
 
   cfg = config.hakula.wsl;
   gatewayProfile = "corp-gateway-anthropic";
 
   useGatewayProfile =
     config.hakula.llm-assistants.auth.enableCorpGateway
-    && (enabledProfiles == null || lib.elem gatewayProfile enabledProfiles);
+    && repoLib.isConfiguredAgentProfileEnabled config.agents "claude-code" gatewayProfile;
 in
 {
   # ------------------------------------------------------------------------------------------------

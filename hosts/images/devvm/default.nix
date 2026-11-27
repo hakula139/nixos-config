@@ -4,6 +4,7 @@
 
 {
   lib,
+  repoLib,
   corpHosts,
   keys,
   repo,
@@ -77,12 +78,11 @@ in
       ...
     }:
     let
-      inherit (config.agents.claude-code.auth) enabledProfiles;
       gatewayProfile = "corp-gateway-hybrid";
 
       useGatewayProfile =
         config.hakula.llm-assistants.auth.enableCorpGateway
-        && (enabledProfiles == null || lib.elem gatewayProfile enabledProfiles);
+        && repoLib.isConfiguredAgentProfileEnabled config.agents "claude-code" gatewayProfile;
     in
     {
       # --------------------------------------------------------------------------------------------

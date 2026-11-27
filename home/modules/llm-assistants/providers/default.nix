@@ -6,6 +6,7 @@
   config,
   lib,
   inputs,
+  repoLib,
   corpHosts,
   modelPolicy,
   secretPath,
@@ -14,6 +15,7 @@
 
 let
   inherit (cfg.auth) enableCorpGateway;
+  inherit (repoLib) isConfiguredAgentProfileEnabled;
   inherit (config.agents.resolved) modelCatalog;
 
   cfg = config.hakula.llm-assistants;
@@ -21,14 +23,14 @@ let
 
   oauthTokenSecret = "llm-assistants/claude-oauth-token";
 
-  profileEnabled = auth: name: auth.enabledProfiles == null || lib.elem name auth.enabledProfiles;
-
   defaultAnthropicGatewayProfile =
-    auth:
+    client:
     let
       name = "corp-gateway-anthropic";
     in
-    lib.mkIf (enableCorpGateway && profileEnabled auth name) (lib.mkDefault name);
+    lib.mkIf (enableCorpGateway && isConfiguredAgentProfileEnabled config.agents client name) (
+      lib.mkDefault name
+    );
 
   corpGateway = import ./corp-gateway.nix {
     inherit
@@ -102,7 +104,7 @@ in
       # --------------------------------------------------------------------------------------------
       claude-code = lib.mkIf enableCorpGateway {
         auth.profileOverrides = lib.filterAttrs (
-          name: _: profileEnabled config.agents.claude-code.auth name
+          name: _: isConfiguredAgentProfileEnabled config.agents "claude-code" name
         ) corpGateway.claudeProfileOverrides;
         statusline.costSources = corpGateway.costSources;
       };
@@ -115,9 +117,9 @@ in
         ];
       };
 
-      omp.auth.defaultProfile = defaultAnthropicGatewayProfile config.agents.omp.auth;
+      omp.auth.defaultProfile = defaultAnthropicGatewayProfile "omp";
 
-      oxide-code.auth.defaultProfile = defaultAnthropicGatewayProfile config.agents.oxide-code.auth;
+      oxide-code.auth.defaultProfile = defaultAnthropicGatewayProfile "oxide-code";
     };
 
     # ----------------------------------------------------------------------------------------------

@@ -38,6 +38,17 @@ in
 
   aria2 = import ./aria2.nix;
   hosts = import ./hosts { inherit mkNuCommand; };
+
+  isConfiguredAgentProfileEnabled =
+    agents: client: name:
+    let
+      inherit (agents.${client}.auth) enabledProfiles;
+      profile = agents.profiles.${name} or null;
+    in
+    profile != null
+    && (profile.clients == null || lib.elem client profile.clients)
+    && (enabledProfiles == null || lib.elem name enabledProfiles);
+
   mihomo = import ./mihomo { inherit lib mkNuCommand proxy; };
   packagesFor = pkgs: import ./packages.nix { inherit pkgs; };
   secrets = import ./secrets.nix { inherit lib; };
