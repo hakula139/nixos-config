@@ -78,7 +78,7 @@ in
     ./omp
     ./oxide-code
     ./shared
-    ./t3code
+    ./t3code.nix
     ./workmux
   ];
 
