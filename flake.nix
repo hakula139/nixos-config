@@ -78,6 +78,17 @@
     # ----------------------------------------------------------------------------------------------
     # Hakula's flakes
     # ----------------------------------------------------------------------------------------------
+    agents-nix = {
+      url = "github:hakulab/agents.nix";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-unstable.follows = "nixpkgs-unstable";
+        devkit.follows = "devkit";
+        home-manager.follows = "home-manager";
+        llm-agents.follows = "llm-agents";
+      };
+    };
+
     devkit = {
       url = "github:hakulab/devkit/v3";
       inputs = {
@@ -111,7 +122,7 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
       overlays = import ./lib/overlays.nix {
-        inherit inputs repoLib;
+        inherit inputs;
       };
 
       pkgsFor =

@@ -30,14 +30,7 @@ pkgs.runCommand "script-tests"
   {
     env.NU_LIB_DIRS = "${repoLib.nuTestLib}";
 
-    nativeBuildInputs = [
-      pkgs.direnv
-      pkgs.git
-      pkgs.nixfmt
-      pkgs.prek
-      pkgs.zstd
-    ]
-    ++ tooling.testRunners;
+    nativeBuildInputs = [ pkgs.git ] ++ tooling.testRunners;
   }
   ''
     cd ${src}

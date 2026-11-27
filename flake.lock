@@ -2,6 +2,31 @@
   "nodes": {
     "activity-report": {
       "inputs": {
+        "devkit": [
+          "agents-nix",
+          "devkit"
+        ],
+        "nixpkgs": [
+          "agents-nix",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795733435,
+        "narHash": "sha256-Jq/ayrHDa46G4/pk0XyzVjDyu7xMt8ZukDtE2S6DPA8=",
+        "owner": "hakulab",
+        "repo": "activity-report",
+        "rev": "e9b27a677bfd46f39bff7063abb446bebbdd4b64",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hakulab",
+        "repo": "activity-report",
+        "type": "github"
+      }
+    },
+    "activity-report_2": {
+      "inputs": {
         "devkit": "devkit_2",
         "nixpkgs": "nixpkgs"
       },
@@ -21,6 +46,31 @@
     },
     "agent-project-move": {
       "inputs": {
+        "devkit": [
+          "agents-nix",
+          "devkit"
+        ],
+        "nixpkgs": [
+          "agents-nix",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795740082,
+        "narHash": "sha256-3uZsYGVgPKtMg1r2uJkFoan077TsvVIqR2wCupugN40=",
+        "owner": "hakulab",
+        "repo": "agent-project-move",
+        "rev": "bbce4026d2077e4a8ba94967e68e48698b45bc3e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hakulab",
+        "repo": "agent-project-move",
+        "type": "github"
+      }
+    },
+    "agent-project-move_2": {
+      "inputs": {
         "devkit": "devkit_3",
         "nixpkgs": "nixpkgs_2"
       },
@@ -35,6 +85,42 @@
       "original": {
         "owner": "hakulab",
         "repo": "agent-project-move",
+        "type": "github"
+      }
+    },
+    "agents-nix": {
+      "inputs": {
+        "activity-report": "activity-report",
+        "agent-project-move": "agent-project-move",
+        "claude-statusline": "claude-statusline",
+        "devkit": [
+          "devkit"
+        ],
+        "home-manager": [
+          "home-manager"
+        ],
+        "llm-agents": [
+          "llm-agents"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-unstable": [
+          "nixpkgs-unstable"
+        ],
+        "oxide-code": "oxide-code"
+      },
+      "locked": {
+        "lastModified": 1795803194,
+        "narHash": "sha256-fGZ7wbj17GATwl7LhSsW6PkH9RJhwWYCYPwxcO9hLHc=",
+        "owner": "hakulab",
+        "repo": "agents.nix",
+        "rev": "72bec69456a3c1c1b65fcdc4ba439fa8c4e8fd9f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hakulab",
+        "repo": "agents.nix",
         "type": "github"
       }
     },
@@ -73,6 +159,31 @@
       }
     },
     "claude-statusline": {
+      "inputs": {
+        "devkit": [
+          "agents-nix",
+          "devkit"
+        ],
+        "nixpkgs": [
+          "agents-nix",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795769203,
+        "narHash": "sha256-fHnSgu7X2u+c3E/IBZYO50QNjF4wB9mmhMIVZODdtZs=",
+        "owner": "hakulab",
+        "repo": "claude-statusline",
+        "rev": "b3a7a4c41b86f7193d2ec11c806e87f10a7013ac",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hakulab",
+        "repo": "claude-statusline",
+        "type": "github"
+      }
+    },
+    "claude-statusline_2": {
       "inputs": {
         "devkit": "devkit_4",
         "nixpkgs": "nixpkgs_3"
@@ -364,14 +475,14 @@
     },
     "flake-catalog": {
       "inputs": {
-        "activity-report": "activity-report",
-        "agent-project-move": "agent-project-move",
-        "claude-statusline": "claude-statusline",
+        "activity-report": "activity-report_2",
+        "agent-project-move": "agent-project-move_2",
+        "claude-statusline": "claude-statusline_2",
         "devkit": "devkit_5",
         "home-manager": "home-manager",
         "listenbrainz-scrobbler": "listenbrainz-scrobbler",
         "nixpkgs": "nixpkgs_5",
-        "oxide-code": "oxide-code",
+        "oxide-code": "oxide-code_2",
         "plugins": "plugins",
         "wakatime-cli": "wakatime-cli"
       },
@@ -1344,10 +1455,40 @@
     },
     "oxide-code": {
       "inputs": {
+        "devkit": [
+          "agents-nix",
+          "devkit"
+        ],
+        "home-manager": [
+          "agents-nix",
+          "home-manager"
+        ],
+        "nixpkgs": [
+          "agents-nix",
+          "nixpkgs"
+        ],
+        "rust-overlay": "rust-overlay"
+      },
+      "locked": {
+        "lastModified": 1795760062,
+        "narHash": "sha256-H9gZilg7+mXnYdK3xgHfVGgzRJCUnwyBMqpMljt6rUs=",
+        "owner": "hakulab",
+        "repo": "oxide-code",
+        "rev": "81f4d2bbdd0a5036a287f6c9254a26a00daecf1c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hakulab",
+        "repo": "oxide-code",
+        "type": "github"
+      }
+    },
+    "oxide-code_2": {
+      "inputs": {
         "devkit": "devkit_7",
         "home-manager": "home-manager_3",
         "nixpkgs": "nixpkgs_6",
-        "rust-overlay": "rust-overlay"
+        "rust-overlay": "rust-overlay_2"
       },
       "locked": {
         "lastModified": 1795689681,
@@ -1412,6 +1553,7 @@
     },
     "root": {
       "inputs": {
+        "agents-nix": "agents-nix",
         "colmena": "colmena",
         "devkit": "devkit",
         "disko": "disko",
@@ -1423,12 +1565,34 @@
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs_10",
         "nixpkgs-unstable": "nixpkgs-unstable_9",
-        "rust-overlay": "rust-overlay_2",
+        "rust-overlay": "rust-overlay_3",
         "sops-nix": "sops-nix",
         "system-manager": "system-manager"
       }
     },
     "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "agents-nix",
+          "oxide-code",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795604585,
+        "narHash": "sha256-rsB/BPQf+Q9p7O7WhqtmG64b3F175ly7swafxWS1etM=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "67021b279bfffe654a0201ede805748a255ae5a7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "rust-overlay_2": {
       "inputs": {
         "nixpkgs": [
           "flake-catalog",
@@ -1450,7 +1614,7 @@
         "type": "github"
       }
     },
-    "rust-overlay_2": {
+    "rust-overlay_3": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"

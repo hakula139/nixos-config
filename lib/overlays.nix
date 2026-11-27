@@ -4,11 +4,11 @@
 
 {
   inputs,
-  repoLib,
 }:
 
 [
   inputs.rust-overlay.overlays.default
+  inputs.agents-nix.overlays.default
   inputs.flake-catalog.overlays.default
 
   (final: prev: {
@@ -50,13 +50,8 @@
     # ----------------------------------------------------------------------------------------------
     # Custom packages
     # ----------------------------------------------------------------------------------------------
-    acpx = final.callPackage ../packages/acpx { };
-    browser-tools = final.callPackage ../packages/browser-tools { };
     cloudreve = final.callPackage ../packages/cloudreve { };
     direnv = prev.direnv.override { bash = final.unstable.bash; };
-    file-formatter = final.callPackage ../packages/file-formatter { inherit repoLib; };
-    mcp-server-github = final.callPackage ../packages/mcp/mcp-server-github { };
-    mcp-server-gitlab = final.callPackage ../packages/mcp/mcp-server-gitlab { };
     nushell = final.callPackage ../packages/nushell { };
     peertube = final.callPackage ../packages/peertube { };
     peertube-runner = final.callPackage ../packages/peertube/runner.nix { };
