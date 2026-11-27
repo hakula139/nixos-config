@@ -65,10 +65,6 @@ nix build --no-link --print-out-paths --impure --expr '
 
 For executable packages, run a supported `--version` or `--help` from the store path to catch wrapper, entry-point, or loader failures. `zsh-hist` has no executable, so verify its loading and `hist` command in an isolated Zsh session without modifying the user's history.
 
-### Windows notification helper
-
-`toasty` is a local binding, so the overlay build above does not produce it. Update its release tag and `fetchurl` hash together, then build a Linux host that enables assistant notifications, such as `wsl`, to validate the fetch and wrapper. Runtime notification verification requires Windows interoperability in WSL.
-
 ## Container images and runtime packages
 
 ### Container images

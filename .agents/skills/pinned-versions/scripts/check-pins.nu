@@ -102,23 +102,6 @@ def gh-newest-release [repo: string]: nothing -> string {
   newest-version (gh-releases $repo | get tag_name) --allow-pre-release
 }
 
-def gh-newest-tag [repo: string]: nothing -> string {
-  newest-version (gh-api $"repos/($repo)/tags" ".[].name" --paginate | lines)
-}
-
-def gh-newest-tag-head [repo: string]: nothing -> string {
-  let tag = (gh-newest-tag $repo)
-  gh-api $"repos/($repo)/commits/($tag)" ".sha"
-}
-
-# Upstream's newest release may ship no binaries, which is not a bumpable target.
-def gh-latest-release-with-asset [repo: string, asset: string]: nothing -> string {
-  gh-releases $repo
-  | where {|release| $release.assets | any {|entry| $entry.name == $asset } }
-  | first
-  | get tag_name
-}
-
 def gh-default-head [repo: string]: nothing -> string {
   gh-api $"repos/($repo)/commits?per_page=1" ".[0].sha"
 }
@@ -247,20 +230,6 @@ def action-pin [pin: string]: nothing -> record {
 def registry [root: string]: nothing -> list<record> {
   [
     {
-      title: "OMP extensions (rev + hash)"
-      pins: [
-        {
-          pin: "omp-telegram"
-          local: {||
-            let file = "home/modules/llm-assistants/omp/extensions.nix"
-            abbrev (nix-attr $root $file 'rev = "(?<v>[0-9a-f]+)"')
-          }
-          # Upstream publishes tags without GitHub release objects.
-          upstream: {|| abbrev (gh-newest-tag-head "TerrifiedBug/omp-telegram") }
-        }
-      ]
-    }
-    {
       title: "Nix-built overlay packages"
       pins: [
         {
@@ -292,19 +261,6 @@ def registry [root: string]: nothing -> list<record> {
           ["peertube" "Chocobozzz/PeerTube"]
         ]
       )
-    }
-    {
-      title: "Windows notification helper"
-      pins: [
-        {
-          pin: "toasty"
-          local: {||
-            let file = "home/modules/llm-assistants/shared/notify/default.nix"
-            nix-attr $root $file "download/(?<v>v?[0-9.]+)"
-          }
-          upstream: {|| gh-latest-release-with-asset "shanselman/toasty" "toasty-x64.exe" }
-        }
-      ]
     }
     {
       title: "Container images (oci-containers image options)"

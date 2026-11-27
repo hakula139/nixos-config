@@ -97,6 +97,7 @@ in
           "github"
           "scrapling"
         ];
+
         proxy = {
           enable = true;
           secretUrlFile = secretPath proxyUrlSecret;
