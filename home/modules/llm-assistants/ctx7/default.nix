@@ -4,21 +4,23 @@
 
 {
   config,
-  pkgs,
   lib,
-  repoLib,
+  inputs,
   secretPath,
   ...
 }:
 
-lib.mkIf config.hakula.llm-assistants.enable {
-  hakula.secrets.required."llm-assistants/mcp/context7-api-key" = { };
-
-  home.packages = [
-    (repoLib.wrapPackage {
-      inherit pkgs;
-      pkg = pkgs.unstable.ctx7;
-      envFiles.CONTEXT7_API_KEY = secretPath "llm-assistants/mcp/context7-api-key";
-    })
+{
+  imports = [
+    inputs.agents-nix.homeModules.ctx7
   ];
+
+  config = lib.mkIf config.hakula.llm-assistants.enable {
+    hakula.secrets.required."llm-assistants/mcp/context7-api-key" = { };
+
+    agents.ctx7 = {
+      enable = true;
+      apiKeyFile = secretPath "llm-assistants/mcp/context7-api-key";
+    };
+  };
 }

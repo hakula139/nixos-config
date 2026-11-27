@@ -70,6 +70,7 @@ in
     ./acp
     ./activity-report
     ./agent-project-move
+    ./caldav.nix
     ./ccusage
     ./claude-code
     ./codex
@@ -77,7 +78,7 @@ in
     ./omp
     ./oxide-code
     ./shared
-    ./t3code
+    ./t3code.nix
     ./workmux
   ];
 
@@ -111,6 +112,20 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkMerge [
     {
+      agents = {
+        # ./shared still installs instruction docs, so disable agents.nix's default copy.
+        instructions.enable = false;
+
+        proxy = {
+          inherit (cfg.proxy)
+            enable
+            url
+            secretUrlFile
+            noProxy
+            ;
+        };
+      };
+
       hakula.llm-assistants.mcp.disabledServers = lib.mkDefault (
         lib.optionals (hostType == "personal") mcpOptions.corpServerNames
       );
