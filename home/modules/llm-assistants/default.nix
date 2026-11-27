@@ -7,7 +7,6 @@
   lib,
   inputs,
   repoLib,
-  corpHosts,
   enableDevToolchains,
   hostType,
   secretPath,
@@ -35,6 +34,7 @@ in
 
     ./caldav.nix
     ./mcp.nix
+    ./permissions.nix
     ./providers
     ./t3code.nix
   ];
@@ -96,37 +96,6 @@ in
         # Shared settings
         # ------------------------------------------------------------------------------------------
         instructions.extraSections = builtins.readFile ./host-environment.md;
-
-        permissions = {
-          ownRepositories = [
-            "github.com/hakulab"
-            "github.com/hakula139"
-            corpHosts.gitlab
-          ];
-
-          gateCommands = [
-            {
-              command = "nixboot";
-              reason = "Changes the boot configuration.";
-            }
-            {
-              command = "nixdp";
-              reason = "Deploys host configurations.";
-            }
-            {
-              command = "nixroll";
-              reason = "Switches system configuration.";
-            }
-            {
-              command = "nixsw";
-              reason = "Switches system configuration.";
-            }
-            {
-              command = "nixtest";
-              reason = "Switches system configuration.";
-            }
-          ];
-        };
 
         skills.sources = inputs.flake-catalog.lib.skills;
 
