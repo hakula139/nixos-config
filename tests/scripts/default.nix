@@ -4,37 +4,12 @@
 
 {
   pkgs,
+  inputs,
   repoLib,
   root,
 }:
 
-let
-  inherit (pkgs) lib;
-
-  tooling = repoLib.toolingFor pkgs;
-
-  testsWith =
-    suffix: lib.fileset.toList (lib.fileset.fileFilter (file: lib.hasSuffix suffix file.name) root);
-
-  nuTests = testsWith ".test.nu";
-  tsTests = testsWith ".test.ts";
-
-  src = lib.fileset.toSource {
-    inherit root;
-    fileset = lib.fileset.unions (map dirOf (nuTests ++ tsTests));
-  };
-
-  testPaths = map (lib.path.removePrefix root);
-in
-pkgs.runCommand "script-tests"
-  {
-    env.NU_LIB_DIRS = "${repoLib.nuTestLib}";
-
-    nativeBuildInputs = [ pkgs.git ] ++ tooling.testRunners;
-  }
-  ''
-    cd ${src}
-    nu-test ${lib.escapeShellArgs (testPaths nuTests)}
-    ${lib.optionalString (tsTests != [ ]) "bun test ${lib.escapeShellArgs (testPaths tsTests)}"}
-    touch "$out"
-  ''
+(inputs.devkit.lib.mkLib pkgs).nuTests {
+  src = root;
+  libDirs = [ repoLib.nuTestLib ];
+}

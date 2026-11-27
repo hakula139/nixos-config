@@ -7,7 +7,6 @@
   corpHosts,
   keys,
   repo,
-  repoLib,
   ...
 }:
 
@@ -91,7 +90,14 @@ in
 
       hakula.llm-assistants = {
         enable = lib.mkDefault true;
-        mcp.disabledServers = repoLib.llmAssistants.mcpOptions.publicServerNames;
+        mcp.disabledServers = [
+          "chromeDevtools"
+          "deepwiki"
+          "exa"
+          "github"
+          "scrapling"
+        ];
+
         proxy = {
           enable = true;
           secretUrlFile = secretPath proxyUrlSecret;

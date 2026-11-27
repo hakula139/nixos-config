@@ -5,7 +5,6 @@
 {
   config,
   lib,
-  repoLib,
   ...
 }:
 
@@ -16,14 +15,14 @@ in
   # ------------------------------------------------------------------------------------------------
   # Module options
   # ------------------------------------------------------------------------------------------------
-  options.hakula.llm-assistants = repoLib.llmAssistants.mkOptions {
-    inherit (repoLib.proxy) mkProxyOptions;
-    enableDescription = "LLM assistants for the primary interactive user";
-    defaultUser = config.hakula.user.name;
+  options.hakula.llm-assistants = {
+    enable = lib.mkEnableOption "LLM assistants for the primary interactive user";
   };
 
   # ------------------------------------------------------------------------------------------------
   # Module config
   # ------------------------------------------------------------------------------------------------
-  config = lib.mkIf cfg.enable (repoLib.llmAssistants.mkHomeManagerConfig cfg);
+  config = lib.mkIf cfg.enable {
+    home-manager.users.${config.hakula.user.name}.hakula.llm-assistants.enable = lib.mkDefault true;
+  };
 }

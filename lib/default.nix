@@ -38,7 +38,6 @@ in
 
   aria2 = import ./aria2.nix;
   hosts = import ./hosts { inherit mkNuCommand; };
-  llmAssistants = import ./llm-assistants { inherit lib; };
   mihomo = import ./mihomo { inherit lib mkNuCommand proxy; };
   packagesFor = pkgs: import ./packages.nix { inherit pkgs; };
   secrets = import ./secrets.nix { inherit lib; };

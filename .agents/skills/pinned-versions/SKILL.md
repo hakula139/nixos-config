@@ -1,10 +1,9 @@
 ---
 name: pinned-versions
 description: >-
-  Audit or upgrade manually pinned dependencies in nixos-config, including extension revisions,
-  custom packages, flake release tags, container images, and runtime packages, and review
-  Renovate's GitHub Actions updates. Use for stale dependency sweeps or hash mismatches after
-  version bumps.
+  Audit or upgrade manually pinned dependencies in nixos-config, including custom packages, flake
+  release tags, container images, and runtime packages, and review Renovate's GitHub Actions
+  updates. Use for stale dependency sweeps or hash mismatches after version bumps.
 ---
 
 # Pinned Versions
@@ -37,9 +36,7 @@ A NixOS release upgrade rechecks each `pkgs.unstable` pick and overlay pin again
 
 `peertube` follows the `nixpkgs-unstable` version, with three local patches and an `aarch64-darwin` platforms addition on the package itself. `peertube-runner` is a build override in `packages/peertube/runner.nix` that derives from it, and a version move can break it. A sweep pins a version again only when upstream is ahead of `nixpkgs-unstable`. Review release-specific migration requirements before changing the version, run required manual migrations during deployment and verify their results, and keep one-time migration services out of the persistent configuration.
 
-## Nix-built packages and fetched helpers
-
-### Overlay packages
+## Overlay packages
 
 Update the package's `version` and source hash, staying on the release channel the pin already uses (alpha, beta, or rc) unless a stable release at or above it exists. Commit-pinned packages such as `zsh-hist` need `src.rev`, `src.hash`, and the date in their `0-unstable-YYYY-MM-DD` version changed together.
 
@@ -64,10 +61,6 @@ nix build --no-link --print-out-paths --impure --expr '
 ```
 
 For executable packages, run a supported `--version` or `--help` from the store path to catch wrapper, entry-point, or loader failures. `zsh-hist` has no executable, so verify its loading and `hist` command in an isolated Zsh session without modifying the user's history.
-
-### Windows notification helper
-
-`toasty` is a local binding, so the overlay build above does not produce it. Update its release tag and `fetchurl` hash together, then build a Linux host that enables assistant notifications, such as `wsl`, to validate the fetch and wrapper. Runtime notification verification requires Windows interoperability in WSL.
 
 ## Container images and runtime packages
 

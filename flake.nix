@@ -334,8 +334,8 @@
       checks = forAllSystems (
         system:
         import ./tests {
+          inherit inputs repoLib;
           pkgs = pkgsFor system;
-          inherit repoLib;
         }
       );
 
