@@ -47,6 +47,7 @@ in
       # --------------------------------------------------------------------------------------------
       settings = import ./settings.nix {
         inherit pkgs lib repoLib;
+        inherit (config.agents) acp;
         markdownFormatterCommand = lib.getName markdownFormatter;
       };
 

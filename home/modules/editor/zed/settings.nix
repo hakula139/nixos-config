@@ -6,6 +6,7 @@
   pkgs,
   lib,
   repoLib,
+  acp,
   markdownFormatterCommand,
 }:
 
@@ -56,9 +57,44 @@ let
   ];
 
   # ------------------------------------------------------------------------------------------------
+  # Agent servers
+  # ------------------------------------------------------------------------------------------------
+  mkAgentServers =
+    agyCommand:
+    lib.optionalAttrs acp.enable (
+      lib.optionalAttrs acp.agyAdapter.enable {
+        Antigravity = {
+          args = [
+            "acp"
+            "--sandbox"
+          ];
+          command = agyCommand;
+          env = { };
+          type = "custom";
+        };
+      }
+      // lib.optionalAttrs acp.claudeAdapter.enable {
+        "Claude Code" = {
+          args = [ ];
+          command = "claude-agent-acp";
+          env = { };
+          type = "custom";
+        };
+      }
+      // lib.optionalAttrs acp.codexAdapter.enable {
+        Codex = {
+          args = [ ];
+          command = "codex-acp";
+          env = { };
+          type = "custom";
+        };
+      }
+    );
+
+  # ------------------------------------------------------------------------------------------------
   # User settings
   # ------------------------------------------------------------------------------------------------
-  mkUserSettings = markdownExternalFormatter: {
+  mkUserSettings = markdownExternalFormatter: agentServers: {
     # ----------------------------------------------------------------------------------------------
     # Appearance
     # ----------------------------------------------------------------------------------------------
@@ -183,25 +219,13 @@ let
     # ----------------------------------------------------------------------------------------------
     # Agent servers
     # ----------------------------------------------------------------------------------------------
-    agent_servers = {
-      "Claude Code" = {
-        args = [ ];
-        command = "claude-agent-acp";
-        env = { };
-        type = "custom";
-      };
-
-      Codex = {
-        args = [ ];
-        command = "codex-acp";
-        env = { };
-        type = "custom";
-      };
-    };
+    agent_servers = agentServers;
   };
 
   userSettings =
-    mkUserSettings { command = markdownFormatterCommand; }
+    mkUserSettings { command = markdownFormatterCommand; } (
+      mkAgentServers (lib.defaultTo "agy" acp.agyAdapter.executable)
+    )
     // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
       agent_buffer_font_size = 15;
       buffer_font_size = 17;
@@ -243,7 +267,7 @@ let
           "{buffer_path}"
         ];
         command = "prettier";
-      })
+      } (mkAgentServers "agy"))
       {
         auto_install_extensions = lib.genAttrs extensions (_: true);
 
