@@ -9,6 +9,9 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
+[*.patch]
+trim_trailing_whitespace = false
+
 [*.nu]
 indent_style = space
 indent_size = 2
