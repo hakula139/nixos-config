@@ -70,13 +70,11 @@ let
       light = "Catppuccin Latte";
       mode = "system";
     };
-
     theme = {
       dark = "Catppuccin Mocha";
       light = "Catppuccin Latte";
       mode = "system";
     };
-
     theme_overrides."Catppuccin Mocha"."terminal.background" = "#0F111A";
 
     tabs = {
@@ -207,6 +205,11 @@ let
         type = "custom";
       };
     };
+  }
+  // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+    agent_buffer_font_size = 15;
+    buffer_font_size = 17;
+    ui_font_size = 18;
   };
 
   # ------------------------------------------------------------------------------------------------
