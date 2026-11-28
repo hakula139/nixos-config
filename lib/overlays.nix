@@ -11,7 +11,7 @@
   inputs.agents-nix.overlays.default
   inputs.flake-catalog.overlays.default
 
-  (final: prev: {
+  (final: _prev: {
     # ----------------------------------------------------------------------------------------------
     # Nixpkgs channels
     # ----------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@
     # Custom packages
     # ----------------------------------------------------------------------------------------------
     cloudreve = final.callPackage ../packages/cloudreve { };
-    direnv = prev.direnv.override { bash = final.unstable.bash; };
+    direnv = final.unstable.direnv;
     peertube = final.callPackage ../packages/peertube { };
     peertube-runner = final.callPackage ../packages/peertube/runner.nix { };
     thaw = final.callPackage ../packages/thaw { };
