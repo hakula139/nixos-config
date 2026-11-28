@@ -71,13 +71,11 @@ let
       light = "Catppuccin Latte";
       mode = "system";
     };
-
     theme = {
       dark = "Catppuccin Mocha";
       light = "Catppuccin Latte";
       mode = "system";
     };
-
     theme_overrides."Catppuccin Mocha"."terminal.background" = "#0F111A";
 
     tabs = {
