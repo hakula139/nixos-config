@@ -15,13 +15,13 @@
 
 let
   inherit (cfg.auth) enableCorpGateway;
-  inherit (repoLib.agents) mkGatewayDefaultProfile resolvedClientProfiles;
-  inherit (config.agents.resolved) modelCatalog;
+  inherit (repoLib.agents) mkGatewayDefaultProfile;
+  inherit (config.agents.resolved) clientProfiles modelCatalog;
 
   cfg = config.hakula.llm-assistants;
   builtinModelDefaults = inputs.agents-nix.lib.models.defaultCatalog.defaults;
   geminiDefaults = config.agents.models.defaults.gemini or { };
-  resolvedClaudeProfiles = resolvedClientProfiles config.agents "claude-code";
+  resolvedClaudeProfiles = clientProfiles.claude-code;
 
   oauthTokenSecret = "llm-assistants/claude-oauth-token";
 
