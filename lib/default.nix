@@ -48,6 +48,7 @@ in
   ssh = import ./ssh.nix { inherit lib; };
   systemd = import ./systemd.nix { inherit lib; };
   telemetry = import ./telemetry.nix { inherit lib; };
+  tmux = import ./tmux;
   toolingFor = pkgs: import ./tooling.nix { inherit pkgs; };
   wsl = import ./wsl { inherit lib; };
 }

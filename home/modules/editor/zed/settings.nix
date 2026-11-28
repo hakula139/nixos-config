@@ -5,6 +5,7 @@
 {
   pkgs,
   lib,
+  repoLib,
 }:
 
 let
@@ -136,13 +137,7 @@ let
       shell.with_arguments = {
         args = [
           "-lc"
-          ''
-            if command -v tmux >/dev/null 2>&1 && [ -z "''${TMUX:-}" ]; then
-              exec tmux new-session -A -s "''${PWD##*/}"
-            else
-              exec "''${SHELL:-/bin/sh}" -l
-            fi
-          ''
+          repoLib.tmux.editorShell
         ];
         program = "sh";
       };
