@@ -62,18 +62,7 @@ let
   mkAgentServers =
     agyCommand:
     lib.optionalAttrs acp.enable (
-      lib.optionalAttrs acp.agyAdapter.enable {
-        Antigravity = {
-          args = [
-            "acp"
-            "--sandbox"
-          ];
-          command = agyCommand;
-          env = { };
-          type = "custom";
-        };
-      }
-      // lib.optionalAttrs acp.claudeAdapter.enable {
+      lib.optionalAttrs acp.claudeAdapter.enable {
         "Claude Code" = {
           args = [ ];
           command = "claude-agent-acp";
@@ -85,6 +74,17 @@ let
         Codex = {
           args = [ ];
           command = "codex-acp";
+          env = { };
+          type = "custom";
+        };
+      }
+      // lib.optionalAttrs acp.agyAdapter.enable {
+        Antigravity = {
+          args = [
+            "acp"
+            "--sandbox"
+          ];
+          command = agyCommand;
           env = { };
           type = "custom";
         };
