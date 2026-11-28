@@ -257,7 +257,6 @@ def registry [root: string]: nothing -> list<record> {
       pins: (
         override-rows $root [
           [name repo];
-          ["nushell" "nushell/nushell"]
           ["peertube" "Chocobozzz/PeerTube"]
         ]
       )
