@@ -4,7 +4,7 @@
   "no-duplicate-heading": { "siblings_only": true },
   "ol-prefix": { "style": "ordered" },
 
-  // These rules match the dprint formatter that runs before markdownlint.
+  // The dprint hook runs before this linter, so these match its output.
   "code-fence-style": { "style": "backtick" },
   "emphasis-style": { "style": "underscore" },
   "heading-style": { "style": "atx" },

@@ -74,6 +74,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 ├── secrets/                        # SOPS-encrypted secrets (YAML bundles and native formats)
 ├── tests/                          # `checks.<system>`, one aggregator over per-case directories
 │   ├── default.nix                 # Aggregator importing each check case
+│   ├── editor-configs/
 │   ├── nu-command/                 # Nushell command adapter check with its fixtures
 │   └── scripts/                    # `checks.<system>.scripts`, Nushell script tests
 ├── .sops.yaml                      # SOPS age recipients and file creation rules

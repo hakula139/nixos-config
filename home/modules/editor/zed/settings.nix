@@ -6,6 +6,7 @@
   pkgs,
   lib,
   repoLib,
+  markdownFormatter,
 }:
 
 let
@@ -145,15 +146,7 @@ let
     # Languages & LSP
     # ----------------------------------------------------------------------------------------------
     languages = {
-      Markdown = {
-        formatter.external = {
-          arguments = [
-            "--stdin-filepath"
-            "{buffer_path}"
-          ];
-          command = "prettier";
-        };
-      };
+      Markdown.formatter.external.command = lib.getName markdownFormatter;
 
       Nix = {
         formatter.external.command = "nixfmt";
@@ -243,6 +236,13 @@ let
     agent_buffer_font_size = 16;
     auto_install_extensions = lib.genAttrs extensions (_: true);
     buffer_font_size = 18;
+    languages.Markdown.formatter.external = {
+      arguments = [
+        "--stdin-filepath"
+        "{buffer_path}"
+      ];
+      command = "prettier";
+    };
     terminal = {
       # Clear multiline nix-direnv hooks that break Zed's `wsl.exe --` terminal launch.
       env = {
