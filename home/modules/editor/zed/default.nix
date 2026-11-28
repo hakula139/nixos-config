@@ -6,6 +6,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   repoLib,
   ...
 }:
@@ -30,11 +31,23 @@ in
   # ------------------------------------------------------------------------------------------------
   config = lib.mkIf cfg.enable (
     let
+      inherit (inputs.devkit.lib.mkLib pkgs) dprint dprintConfig;
+
+      markdownFormatter = pkgs.writeShellApplication {
+        name = "devkit-format-markdown";
+        text = ''
+          exec ${lib.getExe dprint} fmt \
+            --config ${dprintConfig} \
+            --stdin md
+        '';
+      };
+
       # --------------------------------------------------------------------------------------------
       # Module imports
       # --------------------------------------------------------------------------------------------
       settings = import ./settings.nix {
         inherit pkgs lib repoLib;
+        markdownFormatterCommand = lib.getName markdownFormatter;
       };
 
       windowsSync = import ./windows-sync.nix {
@@ -56,9 +69,12 @@ in
       };
 
       # --------------------------------------------------------------------------------------------
-      # Windows sync
+      # Packages
       # --------------------------------------------------------------------------------------------
-      home.packages = lib.optional cfg.windowsSync.enable windowsSync.syncWindowsSettings;
+      home.packages = [
+        markdownFormatter
+      ]
+      ++ lib.optional cfg.windowsSync.enable windowsSync.syncWindowsSettings;
     }
   );
 }

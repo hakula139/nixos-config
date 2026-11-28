@@ -1,0 +1,13 @@
+{
+  "code-block-style": { "style": "fenced" },
+  "line-length": false,
+  "no-duplicate-heading": { "siblings_only": true },
+  "ol-prefix": { "style": "ordered" },
+
+  // The dprint hook runs before this linter, so these match its output.
+  "code-fence-style": { "style": "backtick" },
+  "emphasis-style": { "style": "underscore" },
+  "heading-style": { "style": "atx" },
+  "strong-style": { "style": "asterisk" },
+  "ul-style": { "style": "dash" },
+}
