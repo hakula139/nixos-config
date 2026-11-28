@@ -32,6 +32,7 @@ let
       "cachix/auth-token"
       "github/pat"
       "gitlab/pat"
+      "llm-assistants/ai-studio-api-key"
       "llm-assistants/claude-oauth-token"
       "llm-assistants/ikuncode-api-key"
       "llm-assistants/mcp/confluence-pat"
@@ -88,7 +89,6 @@ let
       "betterdisplay/email"
       "betterdisplay/key"
       "drivedx/license"
-      "llm-assistants/ai-studio-api-key"
     ]
     // bundle "wsl.yaml" [
       "feishu/caldav/password"
