@@ -14,6 +14,7 @@
   hooks = {
     doctoc.enable = true;
     end-of-file-fixer.excludes = [ "^secrets/" ];
+    markdownlint-cli2.settings.configPath = "";
     nu-check = {
       enable = true;
       settings.libDirs = [
