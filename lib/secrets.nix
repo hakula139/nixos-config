@@ -88,6 +88,7 @@ let
       "betterdisplay/email"
       "betterdisplay/key"
       "drivedx/license"
+      "llm-assistants/ai-studio-api-key"
     ]
     // bundle "wsl.yaml" [
       "feishu/caldav/password"

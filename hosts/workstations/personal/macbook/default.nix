@@ -58,6 +58,8 @@
   # Home Manager Overrides
   # ------------------------------------------------------------------------------------------------
   home-manager.users.hakula = {
+    imports = [ ./agy.nix ];
+
     agents.claude-code.auth.defaultProfile = "official";
     agents.proxy.enable = true;
     hakula.nix.configPath = "/Users/hakula/GitHub/nixos-config";
