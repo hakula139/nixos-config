@@ -33,6 +33,7 @@ let
       "github/pat"
       "gitlab/pat"
       "llm-assistants/claude-oauth-token"
+      "llm-assistants/google-ai-studio-api-key"
       "llm-assistants/ikuncode-api-key"
       "llm-assistants/mcp/confluence-pat"
       "llm-assistants/mcp/context7-api-key"
