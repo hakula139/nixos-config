@@ -34,7 +34,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── corp-domain.nix             # Corp-internal domain
 │   ├── corp-hosts.nix              # Corp-internal hostnames and URLs
 │   ├── keys.nix                    # SSH public keys (users, servers, workstations, builder)
-│   ├── llm-models.nix              # Shared model catalog and defaults
+│   ├── llm-models.nix              # Gateway model IDs, costs, and local defaults
 │   ├── platform-settings.nix       # Cross-platform locale, time zone, Nix, and GC settings
 │   ├── servers.nix                 # Server inventory (IP, port, provider, host keys, builders)
 │   ├── ssh.nix                     # SSH port shared by every sshd and client entry
@@ -42,6 +42,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   └── telemetry-domains.nix       # Exact and wildcard suffix telemetry domains
 ├── lib/                            # Pure helpers and framework code
 │   ├── default.nix                 # Repository helper namespace exposed as repoLib
+│   ├── agents.nix                  # Agent profile availability and gateway default helpers
 │   ├── aria2.nix                   # Shared aria2 download and RPC settings
 │   ├── builders.nix                # mk* host builders
 │   ├── dev-shells.nix              # `devShells.<system>`, the default and browser shells

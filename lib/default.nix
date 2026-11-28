@@ -36,6 +36,7 @@ in
     wrapPackage
     ;
 
+  agents = import ./agents.nix { inherit lib; };
   aria2 = import ./aria2.nix;
   hosts = import ./hosts { inherit mkNuCommand; };
   mihomo = import ./mihomo { inherit lib mkNuCommand proxy; };

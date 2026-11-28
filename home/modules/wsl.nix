@@ -5,6 +5,7 @@
 {
   config,
   lib,
+  repoLib,
   corpHosts,
   ...
 }:
@@ -29,14 +30,14 @@ in
     # ----------------------------------------------------------------------------------------------
     # Home Manager Overrides
     # ----------------------------------------------------------------------------------------------
-    hakula.llm-assistants = {
-      enable = lib.mkDefault true;
-      proxy.noProxy = lib.mkDefault [
-        wildcardDomain
-      ];
-    };
+    hakula.llm-assistants.enable = lib.mkDefault true;
 
-    agents.claude-code.auth.defaultProfile = "corp-gateway-anthropic";
+    agents = {
+      claude-code.auth.defaultProfile =
+        repoLib.agents.mkGatewayDefaultProfile config "claude-code"
+          "corp-gateway-anthropic";
+      proxy.noProxy = [ wildcardDomain ];
+    };
 
     hakula.cursor = {
       extensions.prune = lib.mkForce false;

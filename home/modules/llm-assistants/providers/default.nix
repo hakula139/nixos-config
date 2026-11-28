@@ -5,16 +5,23 @@
 {
   config,
   lib,
+  inputs,
+  repoLib,
   corpHosts,
-  modelCatalog,
+  modelPolicy,
   secretPath,
   ...
 }:
 
 let
   inherit (cfg.auth) enableCorpGateway;
+  inherit (repoLib.agents) mkGatewayDefaultProfile resolvedClientProfiles;
+  inherit (config.agents.resolved) modelCatalog;
 
   cfg = config.hakula.llm-assistants;
+  builtinModelDefaults = inputs.agents-nix.lib.models.defaultCatalog.defaults;
+  geminiDefaults = config.agents.models.defaults.gemini or { };
+  resolvedClaudeProfiles = resolvedClientProfiles config.agents "claude-code";
 
   oauthTokenSecret = "llm-assistants/claude-oauth-token";
 
@@ -23,6 +30,7 @@ let
       lib
       corpHosts
       modelCatalog
+      resolvedClaudeProfiles
       secretPath
       ;
   };
@@ -47,8 +55,19 @@ in
       # Models, providers, and profiles
       # --------------------------------------------------------------------------------------------
       models = {
-        catalog = modelCatalog.models;
-        inherit (modelCatalog) defaults;
+        catalog = modelPolicy.models;
+
+        defaults = {
+          local = lib.mapAttrs (_: lib.mkDefault) modelPolicy.local;
+
+          hybrid = {
+            default = lib.mkDefault (geminiDefaults.default or builtinModelDefaults.gemini.default);
+            flagship = lib.mkDefault (geminiDefaults.flagship or builtinModelDefaults.gemini.flagship);
+            standard = lib.mkDefault (geminiDefaults.standard or builtinModelDefaults.gemini.standard);
+            mini = lib.mkDefault config.agents.models.defaults.local.mini;
+          };
+        };
+
         familyApis.local = "openai-responses";
 
         workloadPolicy.local = {
@@ -82,7 +101,9 @@ in
       # Per-assistant profile routing
       # --------------------------------------------------------------------------------------------
       claude-code = lib.mkIf enableCorpGateway {
-        auth.profileOverrides = corpGateway.claudeProfileOverrides;
+        auth.profileOverrides = lib.filterAttrs (
+          name: _: resolvedClaudeProfiles ? ${name}
+        ) corpGateway.claudeProfileOverrides;
         statusline.costSources = corpGateway.costSources;
       };
 
@@ -94,13 +115,11 @@ in
         ];
       };
 
-      omp.auth.defaultProfile = lib.mkDefault (
-        if enableCorpGateway then "corp-gateway-anthropic" else "official"
-      );
+      omp.auth.defaultProfile = mkGatewayDefaultProfile config "omp" "corp-gateway-anthropic";
 
-      oxide-code.auth.defaultProfile = lib.mkDefault (
-        if enableCorpGateway then "corp-gateway-anthropic" else "official"
-      );
+      oxide-code.auth.defaultProfile =
+        mkGatewayDefaultProfile config "oxide-code"
+          "corp-gateway-anthropic";
     };
 
     # ----------------------------------------------------------------------------------------------

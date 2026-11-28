@@ -143,12 +143,8 @@ in
         # ------------------------------------------------------------------------------------------
         # Assistant configuration
         # ------------------------------------------------------------------------------------------
-        hakula.llm-assistants = {
-          auth.enableCorpGateway = lib.mkDefault true;
-          proxy.noProxy = [
-            gatewayHost
-          ];
-        };
+        hakula.llm-assistants.auth.enableCorpGateway = lib.mkDefault true;
+        agents.proxy.noProxy = [ gatewayHost ];
 
         # ------------------------------------------------------------------------------------------
         # Launchd agents (macOS)

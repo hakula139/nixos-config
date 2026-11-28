@@ -4,6 +4,7 @@
 
 {
   lib,
+  repoLib,
   corpHosts,
   keys,
   repo,
@@ -71,7 +72,11 @@ in
   # Home Manager Overrides
   # ------------------------------------------------------------------------------------------------
   home-manager.users.root =
-    { secretPath, ... }:
+    {
+      config,
+      secretPath,
+      ...
+    }:
     {
       # --------------------------------------------------------------------------------------------
       # Nix
@@ -97,6 +102,12 @@ in
           "github"
           "scrapling"
         ];
+      };
+
+      agents = {
+        claude-code.auth.defaultProfile =
+          repoLib.agents.mkGatewayDefaultProfile config "claude-code"
+            "corp-gateway-hybrid";
 
         proxy = {
           enable = true;
@@ -104,8 +115,6 @@ in
           noProxy = proxyNoProxy;
         };
       };
-
-      agents.claude-code.auth.defaultProfile = "corp-gateway-hybrid";
 
       # --------------------------------------------------------------------------------------------
       # Secrets
