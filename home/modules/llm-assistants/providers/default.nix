@@ -23,8 +23,8 @@ let
   geminiDefaults = config.agents.models.defaults.gemini or { };
   resolvedClaudeProfiles = clientProfiles.claude-code;
 
+  claudeOauthSecret = "llm-assistants/claude-oauth-token";
   googleAiStudioSecret = "llm-assistants/google-ai-studio-api-key";
-  oauthTokenSecret = "llm-assistants/claude-oauth-token";
 
   corpGateway = import ./corp-gateway.nix {
     inherit
@@ -41,8 +41,8 @@ let
   };
 
   requiredSecrets = [
+    claudeOauthSecret
     googleAiStudioSecret
-    oauthTokenSecret
   ]
   ++ thirdParty.requiredSecrets
   ++ lib.optionals enableCorpGateway corpGateway.requiredSecrets;
@@ -87,21 +87,21 @@ in
       // lib.optionalAttrs enableCorpGateway corpGateway.providers;
 
       profiles = {
-        google-ai-studio = {
-          provider = "google-ai-studio";
-          family = "gemini";
-          clients = [ "agy" ];
-        };
-
-        official-token = {
+        claude-oauth = {
           provider = null;
-          oauthTokenFile = secretPath oauthTokenSecret;
+          oauthTokenFile = secretPath claudeOauthSecret;
           family = "claude";
           nativeWebSearch = true;
           clients = [
             "claude-code"
             "oxide-code"
           ];
+        };
+
+        google-ai-studio = {
+          provider = "google-ai-studio";
+          family = "gemini";
+          clients = [ "agy" ];
         };
       }
       // thirdParty.profiles
