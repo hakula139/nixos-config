@@ -8,17 +8,19 @@ description: >-
 
 # Pinned Versions
 
-Locate pins through `scripts/check-pins.nu`, compare upstream versions, and update the relevant source and hashes. Run commands from the repository root. An audit only reports drift, while the update steps apply to a request that asks for upgrades. When upgrading, keep unrelated pins and lockfile inputs outside the change, and deploy only when the requested scope includes activation. Skip a pin that another open request owns, and name that request in the upgrade request's description.
+Locate pins in `scripts/check-pins.nu`, compare upstream versions, and update the relevant source and hashes. Run commands from the repository root. An audit only reports drift, while the update steps apply to a request that asks for upgrades. When upgrading, keep unrelated pins and lockfile inputs outside the change, and deploy only when the requested scope includes activation. Skip a pin that another open request owns, and name that request in the upgrade request's description.
 
 Before bumping a pin, check whether upstream has made local overrides or patches unnecessary. Remove patches whose fixes are included upstream. Keep any remaining behavior overrides and update the checker registry and affected instructions to match.
 
 ## Check for drift
 
 ```bash
-.agents/skills/pinned-versions/scripts/check-pins.nu
+nix develop -c .agents/skills/pinned-versions/scripts/check-pins.nu
 ```
 
-`list` prints the registry without network calls and needs Nushell and Git. Comparison also needs Nix for the override rows, plus `gh` authenticated to `github.com`, which `nix develop` does not supply. `UNKNOWN` means a lookup failed, usually from a transient fetch failure, so rerun before acting on it. `STALE` means the registered value differs from upstream, so inspect the upstream target before deciding to upgrade. On an override row, `version pin superseded` means `nixpkgs-unstable` ships the latest upstream release at or above the pinned version. `override redundant` means the row has no version pin, and its derivation and platforms match `nixpkgs-unstable`. `ok (tracks nixpkgs)` means the override differs from `nixpkgs-unstable` in more than its version, through patches, build overrides, or platforms. The checker compares registered values only, so it does not validate hashes, compatibility, or deployed versions.
+The default development shell puts devkit's checker module on Nushell's search path. Inside a prepared shell, run `.agents/skills/pinned-versions/scripts/check-pins.nu list` to print the registry offline. Comparing versions also requires Nix for the override rows and a separately installed `gh` authenticated to `github.com`.
+
+`UNKNOWN` means a lookup failed, usually from a transient fetch failure, so rerun before acting on it. `STALE` means the registered value differs from upstream, so inspect the upstream target before deciding to upgrade. On an override row, `version pin superseded` means `nixpkgs-unstable` ships the latest upstream release at or above the pinned version. `override redundant` means the row has no version pin, and its derivation and platforms match `nixpkgs-unstable`. `ok (tracks nixpkgs)` means the override differs from `nixpkgs-unstable` in more than its version, through patches, build overrides, or platforms. The checker compares registered values only, so it does not validate hashes, compatibility, or deployed versions.
 
 To update an override of a nixpkgs package, find its latest upstream release first. If `nixpkgs-unstable` already ships that release at or above the pin, drop the `version`, its `src` hash override, and any dependency hashes that exist only for the bump, keeping patches, build overrides, and meta. Otherwise bump the override to that release. Delete the package only when nothing else remains, and deleting it also means removing its overlay line, pointing its consumers at `pkgs.unstable.<name>`, and dropping its Cachix pin in `.github/workflows/ci.yml`. After a bump or a partial deletion, build the package, since remaining patches and platform additions must still apply to the new upstream version.
 

@@ -343,6 +343,7 @@
         system:
         import ./lib/dev-shells.nix {
           pkgs = pkgsFor system;
+          inherit (repoLib) devkitNuLibDir;
           preCommit = preCommitFor system;
         }
       );

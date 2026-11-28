@@ -16,7 +16,10 @@
     end-of-file-fixer.excludes = [ "^secrets/" ];
     nu-check = {
       enable = true;
-      settings.libDirs = [ repoLib.nuTestLib ];
+      settings.libDirs = [
+        repoLib.nuTestLib
+        repoLib.devkitNuLibDir
+      ];
     };
     prettier = {
       enable = true;

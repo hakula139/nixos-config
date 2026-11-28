@@ -10,7 +10,7 @@
 # Run with --help for usage.
 # ==================================================================================================
 
-source versions.nu
+use pin-check
 
 # The overlay applies the custom packages to every host, so one host's package set covers each
 # override and the channel it overrides.
@@ -22,30 +22,6 @@ const REV_ABBREV = 12
 # Helpers
 # --------------------------------------------------------------------------------------------------
 
-# A missing prerequisite leaves the run incomplete, so it shares exit 2 with a failed query.
-def die [msg: string] {
-  print -e $"error: ($msg)"
-  exit 2
-}
-
-def repo-root []: nothing -> string {
-  try {
-    ^git rev-parse --show-toplevel | str trim
-  } catch {
-    die "cannot find the repository root. Run inside the nixos-config checkout."
-  }
-}
-
-# A failed lookup leaves no comparable value, so the caller reports UNKNOWN.
-def query [pin: string, closure: closure]: nothing -> string {
-  try {
-    do $closure | into string | str trim
-  } catch {|err|
-    print -e $"  ($pin): ($err.msg)"
-    ""
-  }
-}
-
 def abbrev [rev: string]: nothing -> string {
   if ($rev | str length) <= $REV_ABBREV {
     $rev
@@ -56,8 +32,13 @@ def abbrev [rev: string]: nothing -> string {
 
 # Evaluate a field of an attribute through the flake at `root`, capturing stderr so evaluation
 # warnings stay off the terminal. A failure prints the first `error:` line, falling back to the
-# last line, and returns "".
-def flake-attr [root: string, attr: string, field: string, --json]: nothing -> string {
+# last line, and returns null.
+def flake-attr [
+  root: string
+  attr: string
+  field: string
+  --json
+]: nothing -> oneof<string, nothing> {
   let mode = if $json { "--json" } else { "--raw" }
   let result = (^nix eval $mode $"($root)#($attr).($field)" | complete)
   if $result.exit_code != 0 {
@@ -65,58 +46,16 @@ def flake-attr [root: string, attr: string, field: string, --json]: nothing -> s
     let error_line = ($lines | where {|line| $line | str starts-with "error:" } | first)
     let detail = ($error_line | default ($lines | last | default ""))
 
-    print -e $"  cannot evaluate ($attr).($field): ($detail)"
-    ""
+    print -e $"cannot evaluate ($attr).($field): ($detail)"
+    null
   } else {
     $result.stdout | str trim
   }
 }
 
 # --------------------------------------------------------------------------------------------------
-# Upstream queries
-# --------------------------------------------------------------------------------------------------
-
-def --wrapped gh-api [path: string, jq: string, ...args: string]: nothing -> string {
-  (
-    ^gh api $path
-      --hostname github.com
-      --jq $jq
-      ...$args
-    | str trim
-  )
-}
-
-def gh-latest-release [repo: string]: nothing -> string {
-  gh-api $"repos/($repo)/releases/latest" ".tag_name"
-}
-
-def gh-releases [repo: string]: nothing -> list<record> {
-  let jq = ".[] | select(.draft == false) | @json"
-  gh-api $"repos/($repo)/releases?per_page=100" $jq --paginate
-  | from json --objects
-}
-
-# `releases/latest` skips pre-releases, which may be all an upstream has published. The API lists
-# releases in creation order, so compare versions.
-def gh-newest-release [repo: string]: nothing -> string {
-  newest-version (gh-releases $repo | get tag_name) --allow-pre-release
-}
-
-def gh-default-head [repo: string]: nothing -> string {
-  gh-api $"repos/($repo)/commits?per_page=1" ".[0].sha"
-}
-
-# --------------------------------------------------------------------------------------------------
 # Pin extraction
 # --------------------------------------------------------------------------------------------------
-
-def nix-attr [root: string, file: string, regex: string]: nothing -> string {
-  open --raw ($root | path join $file) | parse --regex $regex | get v.0
-}
-
-def nix-version [root: string, file: string]: nothing -> string {
-  nix-attr $root $file '(?m)^\s*version = "(?<v>[^"]+)"'
-}
 
 def image-tag [root: string, file: string]: nothing -> string {
   open --raw ($root | path join $file)
@@ -126,32 +65,6 @@ def image-tag [root: string, file: string]: nothing -> string {
   | str join "\n"
   | parse --regex 'default = "[^"]*:(?<v>[^"]+)"'
   | get v.0
-}
-
-def action-pins [root: string]: nothing -> list<string> {
-  [".github/workflows" ".github/actions"]
-  | each {|dir| glob ($root | path join $dir "**/*") }
-  | flatten
-  | where {|p|
-    ($p | path type) == "file" and ($p | path parse | get extension) in ["yml" "yaml"]
-  }
-  | each {|p|
-    let doc = (open $p)
-    let jobs = ($doc | get -o jobs | default {} | values)
-    [
-      ($jobs | get -o uses)
-      ($jobs | each {|job| $job | get -o steps | default [] | get -o uses } | flatten)
-      ($doc | get -o runs.steps | default [] | get -o uses)
-    ]
-    | flatten
-  }
-  | flatten
-  | compact
-  | where {|pin|
-    not ($pin | str starts-with "./") and not ($pin | str starts-with "docker://")
-  }
-  | uniq
-  | sort
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -170,28 +83,46 @@ def override-rows [root: string, overrides: list<record>]: nothing -> list<recor
     {
       pin: $name
       local: {|| flake-attr $root $local_attr version }
-      upstream: {|| gh-latest-release $override.repo | str replace -r "^v" "" }
-      status: {|pinned, latest|
+      upstream: {|| pin-check gh-latest-release $override.repo | str replace -r "^v" "" }
+      classify: {|pinned, latest|
         if not ($root | path join $file | path exists) {
-          print -e $"  ($name): ($file) is missing"
-          "UNKNOWN"
+          print -e $"($name): ($file) is missing"
+          {
+            status: "UNKNOWN"
+            outcome: "unknown"
+          }
         } else {
           let unstable = (flake-attr $root $unstable_attr version)
           let pinned_in_file = try {
-            nix-version $root $file
+            pin-check nix-version $root $file
           } catch {
             ""
           }
 
           if ($unstable | is-empty) {
-            "UNKNOWN"
+            {
+              status: "UNKNOWN"
+              outcome: "unknown"
+            }
           } else if ($pinned_in_file | is-not-empty) {
-            if (version-at-least $unstable $latest) and (version-at-least $unstable $pinned) {
-              "version pin superseded"
-            } else if (version-older $pinned $latest) {
-              "STALE"
+            if (
+              (pin-check version-at-least $unstable $latest)
+              and (pin-check version-at-least $unstable $pinned)
+            ) {
+              {
+                status: "version pin superseded"
+                outcome: "stale"
+              }
+            } else if (pin-check version-older $pinned $latest) {
+              {
+                status: "STALE"
+                outcome: "stale"
+              }
             } else {
-              "ok"
+              {
+                status: "ok"
+                outcome: "current"
+              }
             }
           } else {
             let local_drv = (flake-attr $root $local_attr drvPath)
@@ -200,14 +131,26 @@ def override-rows [root: string, overrides: list<record>]: nothing -> list<recor
             let unstable_platforms = (flake-attr $root $unstable_attr meta.platforms --json)
             let evaluated = [$local_drv $unstable_drv $local_platforms $unstable_platforms]
 
-            if (version-older $unstable $latest) {
-              "STALE"
+            if (pin-check version-older $unstable $latest) {
+              {
+                status: "STALE"
+                outcome: "stale"
+              }
             } else if ($evaluated | any {|value| $value | is-empty }) {
-              "UNKNOWN"
+              {
+                status: "UNKNOWN"
+                outcome: "unknown"
+              }
             } else if ($local_drv == $unstable_drv) and ($local_platforms == $unstable_platforms) {
-              "override redundant"
+              {
+                status: "override redundant"
+                outcome: "stale"
+              }
             } else {
-              "ok (tracks nixpkgs)"
+              {
+                status: "ok (tracks nixpkgs)"
+                outcome: "current"
+              }
             }
           }
         }
@@ -216,39 +159,32 @@ def override-rows [root: string, overrides: list<record>]: nothing -> list<recor
   }
 }
 
-# Renovate's github-actions manager updates these refs, so the row delegates.
-def action-pin [pin: string]: nothing -> record {
-  {
-    pin: ($pin | split row "@" | first)
-    local: {|| $pin | split row "@" | last }
-    delegated: "renovate"
-  }
-}
-
 # Each row pairs a pin name with closures that read the local value and the upstream value. Both
 # stay lazy so `list` can print the registry without touching the network.
-def registry [root: string]: nothing -> list<record> {
+def registry []: nothing -> list<record> {
+  let root = (pin-check repo-root "nixos-config")
+
   [
     {
       title: "Nix-built overlay packages"
       pins: [
         {
           pin: "cloudreve"
-          local: {|| nix-version $root "packages/cloudreve/default.nix" }
-          upstream: {|| gh-latest-release "cloudreve/cloudreve" }
+          local: {|| pin-check nix-version $root "packages/cloudreve/default.nix" }
+          upstream: {|| pin-check gh-latest-release "cloudreve/cloudreve" }
         }
         {
           pin: "thaw"
-          local: {|| nix-version $root "packages/thaw/default.nix" }
-          upstream: {|| gh-newest-release "thaw-app/Thaw" }
+          local: {|| pin-check nix-version $root "packages/thaw/default.nix" }
+          upstream: {|| pin-check gh-newest-release "thaw-app/Thaw" }
         }
         {
           pin: "zsh-hist"
           local: {||
             let file = "packages/zsh-hist/default.nix"
-            abbrev (nix-attr $root $file 'rev = "(?<v>[0-9a-f]+)"')
+            abbrev (pin-check nix-attr $root $file 'rev = "(?<v>[0-9a-f]+)"')
           }
-          upstream: {|| abbrev (gh-default-head "marlonrichert/zsh-hist") }
+          upstream: {|| abbrev (pin-check gh-default-head "marlonrichert/zsh-hist") }
         }
       ]
     }
@@ -267,14 +203,16 @@ def registry [root: string]: nothing -> list<record> {
         {
           pin: "umami"
           local: {|| image-tag $root "modules/nixos/umami/default.nix" }
-          upstream: {|| gh-latest-release "umami-software/umami" | str replace -r "^v" "" }
+          upstream: {||
+            pin-check gh-latest-release "umami-software/umami" | str replace -r "^v" ""
+          }
         }
       ]
     }
     {
       title: "GitHub Actions"
       pins: (try {
-        action-pins $root | each {|pin| action-pin $pin }
+        pin-check action-pins $root | each {|pin| pin-check action-pin $pin }
       } catch {
         []
       })
@@ -283,116 +221,18 @@ def registry [root: string]: nothing -> list<record> {
 }
 
 # --------------------------------------------------------------------------------------------------
-# Reporting
-# --------------------------------------------------------------------------------------------------
-
-def resolve []: list<record> -> list<record> {
-  par-each --keep-order {|row|
-    if ($row.delegated? | is-not-empty) {
-      let pinned = (query $row.pin $row.local)
-      return {
-        pin: $row.pin
-        pinned: $pinned
-        upstream: "renovate"
-        status: $row.delegated
-      }
-    }
-
-    let pinned = (query $row.pin $row.local)
-    let upstream = (query $row.pin $row.upstream)
-    let status = if ($pinned | is-empty) or ($upstream | is-empty) {
-      "UNKNOWN"
-    } else if ($row.status? | is-not-empty) {
-      do $row.status $pinned $upstream
-    } else if $pinned == $upstream {
-      "ok"
-    } else {
-      "STALE"
-    }
-
-    {
-      pin: $row.pin
-      pinned: ($pinned | default --empty "?")
-      upstream: ($upstream | default --empty "?")
-      status: $status
-    }
-  }
-}
-
-def resolve-group [group: record]: nothing -> record {
-  let rows = if ($group.pins | is-empty) {
-    # An empty group would print as a clean sweep, indistinguishable from every pin being current.
-    print -e $"  ($group.title): no pins matched"
-    [
-      {
-        pin: $group.title
-        pinned: "?"
-        upstream: "?"
-        status: "UNKNOWN"
-      }
-    ]
-  } else {
-    $group.pins | resolve
-  }
-  {
-    title: $group.title
-    rows: $rows
-  }
-}
-
-# --------------------------------------------------------------------------------------------------
 # Entry point
 # --------------------------------------------------------------------------------------------------
 
 # Compare registered manual pins with upstream versions.
 def "main check" [] {
-  if (which gh | is-empty) {
-    die "gh not found. Install GitHub CLI and authenticate to github.com."
-  }
-  if (^gh auth status --hostname github.com | complete).exit_code != 0 {
-    die "GitHub authentication check failed. Check credentials and network access."
-  }
-
-  # Resolution finishes before anything prints, since `par-each` threads would otherwise interleave
-  # their sections.
-  let groups = (
-    registry (repo-root)
-    | par-each --keep-order {|group| resolve-group $group }
-  )
-
-  for group in $groups {
-    print $"\n($group.title)"
-    print ($group.rows | table)
-  }
-  let rows = ($groups | get rows | flatten)
-
-  let stale = (
-    $rows
-    | where {|row| $row.status in ["STALE" "version pin superseded" "override redundant"] }
-    | length
-  )
-  let unknown = ($rows | where status == "UNKNOWN" | length)
-
-  print $"\n($stale) stale, ($unknown) unknown."
-  if $unknown > 0 {
-    print "UNKNOWN means a lookup failed. Rerun, and fix the printed cause if it persists."
-    exit 2
-  }
-  if $stale > 0 {
-    exit 1
-  }
+  pin-check check {|| registry }
 }
 
 # List the registered pins without querying upstream.
 def "main list" [] {
-  print "Manual pins tracked by this script:"
-  for group in (registry (repo-root)) {
-    print $"\n($group.title)"
-    for pin in $group.pins {
-      print $"  ($pin.pin)"
-    }
-  }
-  print "\nRenovate owns the flake.lock inputs and the GitHub Actions refs."
+  let footer = "Renovate owns the flake.lock inputs and the GitHub Actions refs."
+  pin-check list {|| registry } --footer $footer
 }
 
 # Check registered manual pins for upstream drift by default.
