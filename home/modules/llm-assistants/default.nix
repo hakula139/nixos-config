@@ -20,13 +20,6 @@ assert lib.assertOneOf "hostType" hostType [
 
 let
   cfg = config.hakula.llm-assistants;
-
-  corpServerNames = [
-    "atlassian"
-    "bifrost"
-    "gitlab"
-    "mirrorCatalog"
-  ];
 in
 {
   imports = [
@@ -36,7 +29,6 @@ in
     ./mcp.nix
     ./permissions.nix
     ./providers
-    ./t3code.nix
   ];
 
   # ------------------------------------------------------------------------------------------------
@@ -54,12 +46,6 @@ in
       default = hostType == "work";
       description = "Include corporate gateway profiles and provision their credentials";
     };
-
-    mcp = {
-      disabledServers = inputs.agents-nix.lib.mcp.mkDisabledServersOption {
-        description = "MCP servers to disable across all LLM assistants";
-      };
-    };
   };
 
   # ------------------------------------------------------------------------------------------------
@@ -71,10 +57,6 @@ in
         instructions.enable = lib.mkDefault cfg.enable;
         proxy.url = lib.mkDefault repoLib.proxy.defaultUrl;
       };
-
-      hakula.llm-assistants.mcp.disabledServers = lib.mkDefault (
-        lib.optionals (hostType == "personal") corpServerNames
-      );
     }
 
     (lib.mkIf cfg.enable {

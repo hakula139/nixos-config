@@ -42,7 +42,6 @@ in
 
     ../shared/base
     ../shared/cachix
-    ../shared/llm-assistants
     ../shared/nix-caches
     ../shared/nix-gc
     ../shared/tailscale

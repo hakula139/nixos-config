@@ -7,12 +7,20 @@
   pkgs,
   lib,
   corpHosts,
+  hostType,
   secretPath,
   ...
 }:
 
 let
   cfg = config.hakula.llm-assistants;
+
+  corpServerNames = [
+    "atlassian"
+    "bifrost"
+    "gitlab"
+    "mirrorCatalog"
+  ];
 
   caSecret = "llm-assistants/corp-gateway/cachain.crt";
   claudeGatewayKeySecret = "llm-assistants/corp-gateway/api-key/claude-code";
@@ -46,7 +54,7 @@ in
     # MCP configuration
     # ----------------------------------------------------------------------------------------------
     agents.mcp = {
-      inherit (cfg.mcp) disabledServers;
+      disabledServers = lib.mkIf (hostType == "personal") (lib.mkDefault corpServerNames);
       uv.isolatedConfig = !config.hakula.corp-mirrors.enable;
 
       presets = {

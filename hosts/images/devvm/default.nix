@@ -93,21 +93,18 @@ in
       # --------------------------------------------------------------------------------------------
       home.sessionVariables.IS_SANDBOX = "1";
 
-      hakula.llm-assistants = {
-        enable = lib.mkDefault true;
-        mcp.disabledServers = [
+      agents = {
+        claude-code.auth.defaultProfile =
+          repoLib.agents.mkGatewayDefaultProfile config "claude-code"
+            "corp-gateway-hybrid";
+
+        mcp.disabledServers = lib.mkIf config.hakula.llm-assistants.enable [
           "chromeDevtools"
           "deepwiki"
           "exa"
           "github"
           "scrapling"
         ];
-      };
-
-      agents = {
-        claude-code.auth.defaultProfile =
-          repoLib.agents.mkGatewayDefaultProfile config "claude-code"
-            "corp-gateway-hybrid";
 
         proxy = {
           enable = true;
