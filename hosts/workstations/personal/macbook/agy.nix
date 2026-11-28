@@ -15,7 +15,7 @@ in
     agy = {
       enable = true;
       auth = {
-        defaultProfile = "ai-studio";
+        defaultProfile = "official";
         enabledProfiles = [
           "official"
           "ai-studio"
