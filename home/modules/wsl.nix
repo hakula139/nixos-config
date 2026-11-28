@@ -30,8 +30,6 @@ in
     # ----------------------------------------------------------------------------------------------
     # Home Manager Overrides
     # ----------------------------------------------------------------------------------------------
-    hakula.llm-assistants.enable = lib.mkDefault true;
-
     agents = {
       claude-code.auth.defaultProfile =
         repoLib.agents.mkGatewayDefaultProfile config "claude-code"

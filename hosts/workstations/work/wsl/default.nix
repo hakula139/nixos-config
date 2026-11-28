@@ -4,6 +4,7 @@
 
 {
   config,
+  lib,
   repo,
   hostName,
   ...
@@ -47,7 +48,7 @@
     # Assistant Tooling
     # ----------------------------------------------------------------------------------------------
     # Tailnet peers reach this distro through tailscale0 instead of loopback.
-    hakula.t3code.lan = true;
+    agents.t3code.lan = lib.mkDefault true;
   };
 
   # ------------------------------------------------------------------------------------------------
