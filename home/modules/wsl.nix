@@ -14,11 +14,6 @@ let
   inherit (corpHosts) wildcardDomain;
 
   cfg = config.hakula.wsl;
-  gatewayProfile = "corp-gateway-anthropic";
-
-  useGatewayProfile =
-    config.hakula.llm-assistants.auth.enableCorpGateway
-    && repoLib.isConfiguredAgentProfileEnabled config.agents "claude-code" gatewayProfile;
 in
 {
   # ------------------------------------------------------------------------------------------------
@@ -38,8 +33,9 @@ in
     hakula.llm-assistants.enable = lib.mkDefault true;
 
     agents = {
-      claude-code.auth.defaultProfile = lib.mkIf useGatewayProfile (lib.mkDefault gatewayProfile);
-
+      claude-code.auth.defaultProfile =
+        repoLib.agents.mkGatewayDefaultProfile config "claude-code"
+          "corp-gateway-anthropic";
       proxy.noProxy = [ wildcardDomain ];
     };
 

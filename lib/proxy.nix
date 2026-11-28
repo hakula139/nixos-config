@@ -7,6 +7,8 @@
 }:
 
 let
+  defaultUrl = "http://127.0.0.1:7897";
+
   proxyVars = [
     "HTTP_PROXY"
     "http_proxy"
@@ -62,6 +64,7 @@ let
 in
 {
   inherit
+    defaultUrl
     mkProxyScript
     mkProxyWrapArgs
     proxyVars
@@ -73,7 +76,7 @@ in
 
     url = lib.mkOption {
       type = lib.types.str;
-      default = "http://127.0.0.1:7897";
+      default = defaultUrl;
       description = "HTTP proxy URL for ${name}. Ignored when secretUrlFile is set.";
     };
 

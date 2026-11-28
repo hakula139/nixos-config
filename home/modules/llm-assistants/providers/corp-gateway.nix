@@ -7,6 +7,7 @@
   corpHosts,
   modelCatalog,
   secretPath,
+  resolvedClaudeProfiles,
 }:
 
 let
@@ -63,11 +64,20 @@ let
   gptMiniKey = modelCatalog.defaults.gpt.mini;
   localMiniKey = modelCatalog.defaults.local.mini;
   localMiniModel = modelCatalog.models.${localMiniKey};
-  localMiniId = localMiniModel.channelId.local;
+  localMiniId = localMiniModel.channelId.local or localMiniKey;
   localMiniAliasId =
     localMiniId + lib.optionalString (localMiniModel.contextWindow >= 1000000) "[1m]";
 
   localDefaultModel = modelCatalog.models.${modelCatalog.defaults.local.default};
+
+  claudeModelId =
+    workload: if workload.channel == "anthropic" then workload.modelKey else workload.modelId;
+
+  hybridSmallFastId =
+    if resolvedClaudeProfiles ? corp-gateway-hybrid then
+      claudeModelId resolvedClaudeProfiles.corp-gateway-hybrid.workloads.mini
+    else
+      localMiniId;
 
   mkClaudeProfileOverrides =
     {
@@ -113,7 +123,7 @@ let
     };
 
     corp-gateway-hybrid = mkClaudeProfileOverrides {
-      smallFastId = localMiniId;
+      smallFastId = hybridSmallFastId;
     };
   };
 

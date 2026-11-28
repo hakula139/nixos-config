@@ -42,6 +42,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   └── telemetry-domains.nix       # Exact and wildcard suffix telemetry domains
 ├── lib/                            # Pure helpers and framework code
 │   ├── default.nix                 # Repository helper namespace exposed as repoLib
+│   ├── agents.nix                  # Agent profile availability and gateway default helpers
 │   ├── aria2.nix                   # Shared aria2 download and RPC settings
 │   ├── builders.nix                # mk* host builders
 │   ├── dev-shells.nix              # `devShells.<system>`, the default and browser shells

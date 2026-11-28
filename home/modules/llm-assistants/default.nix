@@ -6,6 +6,7 @@
   config,
   lib,
   inputs,
+  repoLib,
   enableDevToolchains,
   hostType,
   secretPath,
@@ -68,7 +69,7 @@ in
     {
       agents = {
         instructions.enable = lib.mkDefault cfg.enable;
-        proxy.url = lib.mkDefault "http://127.0.0.1:7897";
+        proxy.url = lib.mkDefault repoLib.proxy.defaultUrl;
       };
 
       hakula.llm-assistants.mcp.disabledServers = lib.mkDefault (

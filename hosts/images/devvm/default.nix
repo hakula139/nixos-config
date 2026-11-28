@@ -77,13 +77,6 @@ in
       secretPath,
       ...
     }:
-    let
-      gatewayProfile = "corp-gateway-hybrid";
-
-      useGatewayProfile =
-        config.hakula.llm-assistants.auth.enableCorpGateway
-        && repoLib.isConfiguredAgentProfileEnabled config.agents "claude-code" gatewayProfile;
-    in
     {
       # --------------------------------------------------------------------------------------------
       # Nix
@@ -112,7 +105,9 @@ in
       };
 
       agents = {
-        claude-code.auth.defaultProfile = lib.mkIf useGatewayProfile (lib.mkDefault gatewayProfile);
+        claude-code.auth.defaultProfile =
+          repoLib.agents.mkGatewayDefaultProfile config "claude-code"
+            "corp-gateway-hybrid";
 
         proxy = {
           enable = true;
