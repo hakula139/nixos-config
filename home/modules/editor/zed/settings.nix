@@ -61,9 +61,10 @@ let
     # ----------------------------------------------------------------------------------------------
     # Appearance
     # ----------------------------------------------------------------------------------------------
+    agent_buffer_font_size = 15;
     buffer_font_fallbacks = [ "Sarasa Mono SC" ];
     buffer_font_family = "Maple Mono NF CN";
-    buffer_font_size = 16;
+    buffer_font_size = 17;
 
     icon_theme = {
       dark = "Catppuccin Mocha";
@@ -90,6 +91,7 @@ let
       "Microsoft YaHei UI"
     ];
     ui_font_family = ".SystemUIFont";
+    ui_font_size = 18;
 
     # ----------------------------------------------------------------------------------------------
     # Panels
@@ -237,9 +239,7 @@ let
   # Windows sync artifacts
   # ------------------------------------------------------------------------------------------------
   windowsSettings = lib.recursiveUpdate userSettings {
-    agent_buffer_font_size = 16;
     auto_install_extensions = lib.genAttrs extensions (_: true);
-    buffer_font_size = 18;
     terminal = {
       # Clear multiline nix-direnv hooks that break Zed's `wsl.exe --` terminal launch.
       env = {
@@ -248,7 +248,6 @@ let
       };
       font_size = 16;
     };
-    ui_font_size = 19;
   };
 
   windowsSettingsJson = json.generate "zed-windows-settings.json" windowsSettings;
