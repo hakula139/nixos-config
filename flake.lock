@@ -109,11 +109,11 @@
         "oxide-code": "oxide-code"
       },
       "locked": {
-        "lastModified": 1795856950,
-        "narHash": "sha256-DgsEEAsY657Dz2f722UlhBxdcIy/FoBHwmYdLSHAM3c=",
+        "lastModified": 1795857294,
+        "narHash": "sha256-GYNiRr2BFYrLcUnWrYm4X3gDlRwasjnzPK63E/teQOs=",
         "owner": "hakulab",
         "repo": "agents.nix",
-        "rev": "b8e9e8750e776d879a9970241f8eb148b614369b",
+        "rev": "b6d0ecbb72ec893aad8c55dafbbc3ce6bba68ef3",
         "type": "github"
       },
       "original": {
