@@ -163,6 +163,7 @@ let
       # Terminal
       # --------------------------------------------------------------------------------------------
       terminal = {
+        blinking = "off";
         font_fallbacks = [
           "JetBrainsMono Nerd Font"
           "Sarasa Term SC"
