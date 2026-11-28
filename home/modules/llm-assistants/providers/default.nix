@@ -15,12 +15,13 @@
 
 let
   inherit (cfg.auth) enableCorpGateway;
-  inherit (repoLib.agents) isProfileEnabled mkGatewayDefaultProfile;
+  inherit (repoLib.agents) mkGatewayDefaultProfile resolvedClientProfiles;
   inherit (config.agents.resolved) modelCatalog;
 
   cfg = config.hakula.llm-assistants;
   builtinModelDefaults = inputs.agents-nix.lib.models.defaultCatalog.defaults;
   geminiDefaults = config.agents.models.defaults.gemini or { };
+  resolvedClaudeProfiles = resolvedClientProfiles config.agents "claude-code";
 
   oauthTokenSecret = "llm-assistants/claude-oauth-token";
 
@@ -29,12 +30,9 @@ let
       lib
       corpHosts
       modelCatalog
+      resolvedClaudeProfiles
       secretPath
       ;
-    resolvedClaudeProfiles = config.agents.resolved.resolveProfiles {
-      nativeFamily = "claude";
-      client = "claude-code";
-    };
   };
 
   thirdParty = import ./third-party {
@@ -104,7 +102,7 @@ in
       # --------------------------------------------------------------------------------------------
       claude-code = lib.mkIf enableCorpGateway {
         auth.profileOverrides = lib.filterAttrs (
-          name: _: isProfileEnabled config.agents "claude-code" name
+          name: _: resolvedClaudeProfiles ? ${name}
         ) corpGateway.claudeProfileOverrides;
         statusline.costSources = corpGateway.costSources;
       };

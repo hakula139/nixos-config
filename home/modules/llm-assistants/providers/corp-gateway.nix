@@ -6,8 +6,8 @@
   lib,
   corpHosts,
   modelCatalog,
-  secretPath,
   resolvedClaudeProfiles,
+  secretPath,
 }:
 
 let
@@ -61,7 +61,6 @@ let
   # ------------------------------------------------------------------------------------------------
   # Claude Code per-profile workarounds
   # ------------------------------------------------------------------------------------------------
-  gptMiniKey = modelCatalog.defaults.gpt.mini;
   localMiniKey = modelCatalog.defaults.local.mini;
   localMiniModel = modelCatalog.models.${localMiniKey};
   localMiniId = localMiniModel.channelId.local or localMiniKey;
@@ -73,11 +72,7 @@ let
   claudeModelId =
     workload: if workload.channel == "anthropic" then workload.modelKey else workload.modelId;
 
-  hybridSmallFastId =
-    if resolvedClaudeProfiles ? corp-gateway-hybrid then
-      claudeModelId resolvedClaudeProfiles.corp-gateway-hybrid.workloads.mini
-    else
-      localMiniId;
+  smallFastIdFor = name: claudeModelId resolvedClaudeProfiles.${name}.workloads.mini;
 
   mkClaudeProfileOverrides =
     {
@@ -98,11 +93,11 @@ let
 
   claudeProfileOverrides = {
     corp-gateway-anthropic = mkClaudeProfileOverrides {
-      smallFastId = modelCatalog.defaults.claude.mini;
+      smallFastId = smallFastIdFor "corp-gateway-anthropic";
     };
 
     corp-gateway-openai = mkClaudeProfileOverrides {
-      smallFastId = modelCatalog.models.${gptMiniKey}.channelId.openai or gptMiniKey;
+      smallFastId = smallFastIdFor "corp-gateway-openai";
       extraAttrs.nativeWebSearch = false;
     };
 
@@ -118,12 +113,12 @@ let
     };
 
     corp-gateway-local = mkClaudeProfileOverrides {
-      smallFastId = localMiniId;
+      smallFastId = smallFastIdFor "corp-gateway-local";
       extraEnv.CLAUDE_CODE_MAX_CONTEXT_TOKENS = toString localDefaultModel.contextWindow;
     };
 
     corp-gateway-hybrid = mkClaudeProfileOverrides {
-      smallFastId = hybridSmallFastId;
+      smallFastId = smallFastIdFor "corp-gateway-hybrid";
     };
   };
 

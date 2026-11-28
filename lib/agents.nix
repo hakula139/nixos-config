@@ -35,8 +35,8 @@ let
 
       resolvedProfiles = agents.resolved.resolveProfiles (
         {
-          inherit client;
           inherit (spec) nativeFamily;
+          inherit client;
         }
         // lib.optionalAttrs (spec.hasChannelFilters or false) {
           inherit (auth) allowedProviders allowedChannels;
@@ -68,5 +68,6 @@ in
   inherit
     isProfileEnabled
     mkGatewayDefaultProfile
+    resolvedClientProfiles
     ;
 }
