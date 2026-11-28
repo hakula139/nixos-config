@@ -15,6 +15,9 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    # Drop this pin once nixpkgs-unstable provides Nushell 0.117.0 or later.
+    nixpkgs-master.url = "github:NixOS/nixpkgs/master";
+
     # ----------------------------------------------------------------------------------------------
     # System frameworks
     # ----------------------------------------------------------------------------------------------

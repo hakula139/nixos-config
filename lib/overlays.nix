@@ -24,6 +24,7 @@
     # Flake-input CLIs
     # ----------------------------------------------------------------------------------------------
     colmena = inputs.colmena.packages.${final.stdenv.hostPlatform.system}.colmena;
+    nushell = inputs.nixpkgs-master.legacyPackages.${final.stdenv.hostPlatform.system}.nushell;
     system-manager = inputs.system-manager.packages.${final.stdenv.hostPlatform.system}.default;
     inherit (inputs.devkit.lib.mkLib final) nu-check nu-test;
 
@@ -43,7 +44,6 @@
     # ----------------------------------------------------------------------------------------------
     cloudreve = final.callPackage ../packages/cloudreve { };
     direnv = prev.direnv.override { bash = final.unstable.bash; };
-    nushell = final.callPackage ../packages/nushell { };
     peertube = final.callPackage ../packages/peertube { };
     peertube-runner = final.callPackage ../packages/peertube/runner.nix { };
     thaw = final.callPackage ../packages/thaw { };
