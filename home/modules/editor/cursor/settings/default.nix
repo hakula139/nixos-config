@@ -7,6 +7,7 @@
   pkgs,
   lib,
   inputs,
+  repoLib,
   flakeConfigName,
   isDarwin,
   isNixOS,
@@ -34,7 +35,7 @@ let
     tmux = {
       args = [
         "-lc"
-        (builtins.readFile ../../tmux-shell.sh)
+        repoLib.tmux.editorShell
       ];
       icon = "terminal-tmux";
       path = "sh";

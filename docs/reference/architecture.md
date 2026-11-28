@@ -60,6 +60,7 @@ A flake-based NixOS / nix-darwin / system-manager configuration. Every host regi
 │   ├── mihomo/                     # Shared mihomo settings, update / start / port-check commands
 │   ├── nu/                         # Shared Nushell modules (`*.nu`) and test helpers (`*.testlib.nu`)
 │   ├── nu-command/                 # Nushell command adapter over devkit
+│   ├── tmux/                       # Shared tmux launcher for editors
 │   └── wsl/                        # Windows interop helpers (windows-interop.nu)
 ├── modules/
 │   ├── darwin/                     # macOS-specific modules

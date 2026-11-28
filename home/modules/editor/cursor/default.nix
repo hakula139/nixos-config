@@ -66,6 +66,7 @@ in
           pkgs
           lib
           inputs
+          repoLib
           flakeConfigName
           isDarwin
           isNixOS

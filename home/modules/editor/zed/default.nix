@@ -34,7 +34,7 @@ in
       # Module imports
       # --------------------------------------------------------------------------------------------
       settings = import ./settings.nix {
-        inherit pkgs lib;
+        inherit pkgs lib repoLib;
       };
 
       windowsSync = import ./windows-sync.nix {

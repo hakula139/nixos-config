@@ -5,6 +5,7 @@
 {
   pkgs,
   lib,
+  repoLib,
 }:
 
 let
@@ -136,7 +137,7 @@ let
       shell.with_arguments = {
         args = [
           "-lc"
-          (builtins.readFile ../tmux-shell.sh)
+          repoLib.tmux.editorShell
         ];
         program = "sh";
       };
