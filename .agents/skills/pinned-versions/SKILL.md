@@ -26,7 +26,7 @@ The registry can lag the repository. For a repository-wide audit, also inspect n
 
 ## Locked inputs and release selectors
 
-Renovate manages `flake.lock` inputs and GitHub Actions, so a manual sweep leaves those alone, including rolling inputs such as `llm-agents`. Update a selected input with `nix flake update <input>` only when its selector changes in `flake.nix`. An input pinned to a release tag selects nothing newer than that tag, so change the tag first. The inputs that select NixOS release branches need review together for a release upgrade, and the checker does not compare them.
+Renovate manages `flake.lock` inputs and GitHub Actions, so a manual sweep leaves those alone. Update `llm-agents` in `agents.nix`, which owns its pin. Update a selected input with `nix flake update <input>` only when its selector changes in `flake.nix`. An input pinned to a release tag selects nothing newer than that tag, so change the tag first. The inputs that select NixOS release branches need review together for a release upgrade, and the checker does not compare them.
 
 ### Nixpkgs package selections
 
