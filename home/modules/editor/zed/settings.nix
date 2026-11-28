@@ -58,7 +58,7 @@ let
   # ------------------------------------------------------------------------------------------------
   # User settings
   # ------------------------------------------------------------------------------------------------
-  userSettings = {
+  mkUserSettings = markdownExternalFormatter: {
     # ----------------------------------------------------------------------------------------------
     # Appearance
     # ----------------------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ let
     # Languages & LSP
     # ----------------------------------------------------------------------------------------------
     languages = {
-      Markdown.formatter.external.command = lib.getName markdownFormatter;
+      Markdown.formatter.external = markdownExternalFormatter;
 
       Nix = {
         formatter.external.command = "nixfmt";
@@ -198,12 +198,15 @@ let
         type = "custom";
       };
     };
-  }
-  // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-    agent_buffer_font_size = 15;
-    buffer_font_size = 17;
-    ui_font_size = 18;
   };
+
+  userSettings =
+    mkUserSettings { command = lib.getName markdownFormatter; }
+    // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+      agent_buffer_font_size = 15;
+      buffer_font_size = 17;
+      ui_font_size = 18;
+    };
 
   # ------------------------------------------------------------------------------------------------
   # Keymaps
@@ -232,27 +235,31 @@ let
   # ------------------------------------------------------------------------------------------------
   # Windows sync artifacts
   # ------------------------------------------------------------------------------------------------
-  windowsSettings = lib.recursiveUpdate userSettings {
-    agent_buffer_font_size = 16;
-    auto_install_extensions = lib.genAttrs extensions (_: true);
-    buffer_font_size = 18;
-    languages.Markdown.formatter.external = {
-      arguments = [
-        "--stdin-filepath"
-        "{buffer_path}"
-      ];
-      command = "prettier";
-    };
-    terminal = {
-      # Clear multiline nix-direnv hooks that break Zed's `wsl.exe --` terminal launch.
-      env = {
-        buildPhase = "";
-        shellHook = "";
+  windowsSettings =
+    lib.recursiveUpdate
+      (mkUserSettings {
+        arguments = [
+          "--stdin-filepath"
+          "{buffer_path}"
+        ];
+        command = "prettier";
+      })
+      {
+        auto_install_extensions = lib.genAttrs extensions (_: true);
+
+        agent_buffer_font_size = 16;
+        buffer_font_size = 18;
+        ui_font_size = 19;
+
+        terminal = {
+          # Clear multiline nix-direnv hooks that break Zed's `wsl.exe --` terminal launch.
+          env = {
+            buildPhase = "";
+            shellHook = "";
+          };
+          font_size = 16;
+        };
       };
-      font_size = 16;
-    };
-    ui_font_size = 19;
-  };
 
   windowsSettingsJson = json.generate "zed-windows-settings.json" windowsSettings;
   windowsKeymapsJson = json.generate "zed-windows-keymap.json" userKeymaps;
