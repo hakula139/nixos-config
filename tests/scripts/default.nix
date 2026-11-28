@@ -11,5 +11,8 @@
 
 (inputs.devkit.lib.mkLib pkgs).nuTests {
   src = root;
-  libDirs = [ repoLib.nuTestLib ];
+  libDirs = [
+    repoLib.nuTestLib
+    repoLib.devkitNuLibDir
+  ];
 }

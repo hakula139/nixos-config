@@ -8,6 +8,8 @@
 }:
 
 let
+  devkitNuLibDir = devkit.outPath + "/lib";
+
   nuRuntimeFiles = lib.fileset.fileFilter (
     file: !(lib.hasSuffix ".test.nu" file.name || lib.hasSuffix ".testlib.nu" file.name)
   ) ./nu;
@@ -30,6 +32,7 @@ let
 in
 {
   inherit
+    devkitNuLibDir
     mkNuCommand
     nuTestLib
     proxy

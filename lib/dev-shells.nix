@@ -4,6 +4,7 @@
 
 {
   pkgs,
+  devkitNuLibDir,
   preCommit,
 }:
 
@@ -21,7 +22,7 @@ in
     inputsFrom = [ preCommit ];
 
     shellHook = ''
-      export NU_LIB_DIRS="$(git rev-parse --show-toplevel)/lib/nu"
+      export NU_LIB_DIRS="$(git rev-parse --show-toplevel)/lib/nu:${devkitNuLibDir}"
     '';
   };
 

@@ -242,11 +242,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795691101,
-        "narHash": "sha256-I3ffFPhEHhGiPk+lJn+vKBLlwmOgOKxJcVEaWI9xpUA=",
+        "lastModified": 1795863466,
+        "narHash": "sha256-CBp7pEQU3RdaE0ekkDnYDXFbvCFRDIfv6P/q5kfzUfs=",
         "owner": "hakulab",
         "repo": "devkit",
-        "rev": "a7674a1bbc3a68239d0a86163e2ca1f3524b9ac0",
+        "rev": "5d0b95843259956c37e34c67c8cebc9645ada043",
         "type": "github"
       },
       "original": {
