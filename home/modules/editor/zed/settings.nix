@@ -6,7 +6,7 @@
   pkgs,
   lib,
   repoLib,
-  markdownFormatter,
+  markdownFormatterCommand,
 }:
 
 let
@@ -201,7 +201,7 @@ let
   };
 
   userSettings =
-    mkUserSettings { command = lib.getName markdownFormatter; }
+    mkUserSettings { command = markdownFormatterCommand; }
     // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
       agent_buffer_font_size = 15;
       buffer_font_size = 17;

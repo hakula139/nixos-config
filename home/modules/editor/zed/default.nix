@@ -46,12 +46,8 @@ in
       # Module imports
       # --------------------------------------------------------------------------------------------
       settings = import ./settings.nix {
-        inherit
-          pkgs
-          lib
-          repoLib
-          markdownFormatter
-          ;
+        inherit pkgs lib repoLib;
+        markdownFormatterCommand = lib.getName markdownFormatter;
       };
 
       windowsSync = import ./windows-sync.nix {
